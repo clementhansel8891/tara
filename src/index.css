@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Local-First Business Operations Platform Design System
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Core Palette - Neutral Professional */
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Professional Blue */
+    --primary: 217 91% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Subtle Gray */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    /* Semantic Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 217 91% 50%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Status Colors */
+    --status-empty: 220 14% 96%;
+    --status-ordering: 38 92% 50%;
+    --status-served: 199 89% 48%;
+    --status-billed: 142 76% 36%;
+    --status-occupied: 0 84% 60%;
+
+    /* License Badges */
+    --license-active: 142 76% 36%;
+    --license-trial: 38 92% 50%;
+    --license-expired: 0 84% 60%;
+
+    /* POS Specific */
+    --pos-background: 220 14% 96%;
+    --pos-card: 0 0% 100%;
+    --pos-accent: 217 91% 50%;
+
+    /* Chart Colors */
+    --chart-1: 217 91% 50%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 68% 60%;
+    --chart-5: 199 89% 48%;
+  }
+
+  .dark {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 222 47% 6%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 6%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 222 47% 6%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 60%;
+
+    --sidebar-background: 222 47% 4%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 12%;
+    --sidebar-ring: 217 91% 60%;
+
+    /* Status Colors - Dark Mode */
+    --status-empty: 217 33% 17%;
+    --status-ordering: 38 92% 50%;
+    --status-served: 199 89% 48%;
+    --status-billed: 142 70% 45%;
+    --status-occupied: 0 62% 40%;
+
+    /* POS Specific - Dark Mode */
+    --pos-background: 222 47% 4%;
+    --pos-card: 222 47% 8%;
+    --pos-accent: 217 91% 60%;
+
+    /* Chart Colors - Dark */
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 70% 45%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 68% 60%;
+    --chart-5: 199 89% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  /* Touch-friendly tap targets for POS */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* POS Large buttons */
+  .pos-btn {
+    @apply min-h-[56px] text-lg font-medium;
+  }
+
+  /* Offline mode indicator pulse */
+  .offline-pulse {
+    animation: pulse-offline 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-offline {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Status badge glow */
+  .status-glow {
+    box-shadow: 0 0 8px currentColor;
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  /* Grid layouts for POS */
+  .pos-grid {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .table-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}
