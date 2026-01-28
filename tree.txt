@@ -1,0 +1,186 @@
+Folder PATH listing for volume OS
+Volume serial number is 58C7-C0E5
+C:\USERS\USER\DOCUMENTS\SOFTWARE-DEVELOPER\ZENVIX-DEMO\BUSINESS-FLOW-SUITE
+ª   .gitignore
+ª   bun.lockb
+ª   components.json
+ª   eslint.config.js
+ª   index.html
+ª   package-lock.json
+ª   package.json
+ª   postcss.config.js
+ª   README.md
+ª   tailwind.config.ts
+ª   tree.txt
+ª   tsconfig.app.json
+ª   tsconfig.json
+ª   tsconfig.node.json
+ª   vite.config.ts
+ª   vitest.config.ts
+ª   
++---public
+ª       favicon.ico
+ª       placeholder.svg
+ª       robots.txt
+ª       
++---src
+    ª   App.css
+    ª   App.tsx
+    ª   index.css
+    ª   main.tsx
+    ª   vite-env.d.ts
+    ª   
+    +---components
+    ª   ª   NavLink.tsx
+    ª   ª   
+    ª   +---pos-cafe
+    ª   ª       OrderPad.tsx
+    ª   ª       TableBilling.tsx
+    ª   ª       
+    ª   +---shared
+    ª   ª       AppSwitcher.tsx
+    ª   ª       LicenseBadge.tsx
+    ª   ª       ModuleCard.tsx
+    ª   ª       OfflineIndicator.tsx
+    ª   ª       PinPad.tsx
+    ª   ª       StatCard.tsx
+    ª   ª       StatusBadge.tsx
+    ª   ª       
+    ª   +---ui
+    ª           accordion.tsx
+    ª           alert-dialog.tsx
+    ª           alert.tsx
+    ª           aspect-ratio.tsx
+    ª           avatar.tsx
+    ª           badge.tsx
+    ª           breadcrumb.tsx
+    ª           button.tsx
+    ª           calendar.tsx
+    ª           card.tsx
+    ª           carousel.tsx
+    ª           chart.tsx
+    ª           checkbox.tsx
+    ª           collapsible.tsx
+    ª           command.tsx
+    ª           context-menu.tsx
+    ª           dialog.tsx
+    ª           drawer.tsx
+    ª           dropdown-menu.tsx
+    ª           form.tsx
+    ª           hover-card.tsx
+    ª           input-otp.tsx
+    ª           input.tsx
+    ª           label.tsx
+    ª           menubar.tsx
+    ª           navigation-menu.tsx
+    ª           pagination.tsx
+    ª           popover.tsx
+    ª           progress.tsx
+    ª           radio-group.tsx
+    ª           resizable.tsx
+    ª           scroll-area.tsx
+    ª           select.tsx
+    ª           separator.tsx
+    ª           sheet.tsx
+    ª           sidebar.tsx
+    ª           skeleton.tsx
+    ª           slider.tsx
+    ª           sonner.tsx
+    ª           switch.tsx
+    ª           table.tsx
+    ª           tabs.tsx
+    ª           textarea.tsx
+    ª           toast.tsx
+    ª           toaster.tsx
+    ª           toggle-group.tsx
+    ª           toggle.tsx
+    ª           tooltip.tsx
+    ª           use-toast.ts
+    ª           
+    +---contexts
+    ª       AppContext.tsx
+    ª       
+    +---core
+    ª   +---identity
+    ª   ª       context.tsx
+    ª   ª       storage.ts
+    ª   ª       
+    ª   +---licensing
+    ª   ª       context.tsx
+    ª   ª       
+    ª   +---services
+    ª   ª       index.ts
+    ª   ª       registry.ts
+    ª   ª       
+    ª   +---types
+    ª           index.ts
+    ª           
+    +---hooks
+    ª       use-mobile.tsx
+    ª       use-toast.ts
+    ª       
+    +---layouts
+    ª       CoreLayout.tsx
+    ª       POSLayout.tsx
+    ª       
+    +---lib
+    ª       local-storage.ts
+    ª       mock-data.ts
+    ª       utils.ts
+    ª       
+    +---modules
+    ª   +---cafe
+    ª   ª       index.ts
+    ª   ª       
+    ª   +---retail
+    ª   ª       index.ts
+    ª   ª       
+    ª   +---shared
+    ª           contract.ts
+    ª           
+    +---pages
+    ª   ª   Index.tsx
+    ª   ª   NotFound.tsx
+    ª   ª   
+    ª   +---core
+    ª   ª       Admin.tsx
+    ª   ª       Dashboard.tsx
+    ª   ª       Finance.tsx
+    ª   ª       HR.tsx
+    ª   ª       Integrations.tsx
+    ª   ª       InventoryModule.tsx
+    ª   ª       Modules.tsx
+    ª   ª       Operations.tsx
+    ª   ª       Purchasing.tsx
+    ª   ª       Reports.tsx
+    ª   ª       Security.tsx
+    ª   ª       Settings.tsx
+    ª   ª       Staff.tsx
+    ª   ª       
+    ª   +---pos-cafe
+    ª   ª       Cashier.tsx
+    ª   ª       History.tsx
+    ª   ª       Inventory.tsx
+    ª   ª       Kitchen.tsx
+    ª   ª       Settings.tsx
+    ª   ª       Tables.tsx
+    ª   ª       
+    ª   +---pos-retail
+    ª           Cashier.tsx
+    ª           History.tsx
+    ª           Inventory.tsx
+    ª           Sales.tsx
+    ª           Settings.tsx
+    ª           Shifts.tsx
+    ª           
+    +---platform
+    ª   +---device-detection
+    ª   ª       index.ts
+    ª   ª       
+    ª   +---runtime-ui
+    ª           resolver.ts
+    ª           
+    +---test
+            example.test.ts
+            setup.ts
+            
