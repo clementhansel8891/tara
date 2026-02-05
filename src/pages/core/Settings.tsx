@@ -1,439 +1,302 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useApp } from "@/contexts/AppContext";
-import {
-  Building2,
-  MapPin,
-  Globe,
-  Smartphone,
-  Monitor,
-  Shield,
-  Database,
-  RefreshCw,
-  Lock,
-  Save,
-  Plus,
-  Trash2,
-  Crown,
-} from "lucide-react";
-import { toast } from "sonner";
+import { PageShell } from "@/core/ui/PageShell";
+import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { PageHeader } from "@/core/ui/PageHeader";
 
-const Settings = () => {
-  const { state, updateSettings } = useApp();
-  const [businessProfile, setBusinessProfile] = useState({
-    name: "Sample Business",
-    legalName: "Sample Business Pte Ltd",
-    taxId: "123-456-789",
-    email: "contact@samplebusiness.com",
-    phone: "+65 1234 5678",
-    address: "123 Business Street, Singapore 123456",
-    website: "www.samplebusiness.com",
-    timezone: "Asia/Singapore",
-    currency: "SGD",
-  });
+const SETTINGS_TABS = [
+  { value: "general", label: "General" },
+  { value: "devices", label: "Devices" },
+  { value: "taxes", label: "Taxes" },
+  { value: "roles", label: "Roles" },
+  { value: "integrations", label: "Integrations" },
+];
 
-  const [branches] = useState([
-    { id: "1", name: "Main Branch", address: "123 Main St", status: "active" },
-    { id: "2", name: "Downtown", address: "456 Downtown Ave", status: "active" },
-    { id: "3", name: "Airport", address: "Terminal 3", status: "inactive" },
-  ]);
-
-  const [devices] = useState([
-    { id: "1", name: "POS Terminal 1", type: "tablet", branch: "Main Branch", lastSeen: "2 min ago", status: "online" },
-    { id: "2", name: "POS Terminal 2", type: "tablet", branch: "Main Branch", lastSeen: "5 min ago", status: "online" },
-    { id: "3", name: "Kitchen Display", type: "display", branch: "Main Branch", lastSeen: "1 min ago", status: "online" },
-    { id: "4", name: "POS Terminal 3", type: "tablet", branch: "Downtown", lastSeen: "1 hour ago", status: "offline" },
-  ]);
-
-  const handleSave = () => {
-    toast.success("Settings saved successfully");
-  };
+export default function CoreSettings() {
+  const [activeTab, setActiveTab] = useState("general");
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground">Manage your business configuration and preferences</p>
-      </div>
-
-      <Tabs defaultValue="business" className="space-y-4">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="business">Business Profile</TabsTrigger>
-          <TabsTrigger value="branches">Branches</TabsTrigger>
-          <TabsTrigger value="devices">Devices</TabsTrigger>
-          <TabsTrigger value="backup">Backup & Sync</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="business" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Business Information
-              </CardTitle>
-              <CardDescription>
-                Basic information about your business
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+      <PageShell
+        header={
+          <PageHeader
+            title="Settings"
+            subtitle="Manage organization configuration, compliance, and access controls."
+            primaryAction={<Button>Save changes</Button>}
+            secondaryActions={<Button variant="outline">Reset</Button>}
+          />
+        }
+        left={
+          <div className="p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Configuration
+            </div>
+            <TabsList className="mt-3 flex w-full flex-col items-stretch bg-transparent p-0">
+              {SETTINGS_TABS.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="justify-start rounded-md px-3 py-2 text-sm data-[state=active]:bg-muted data-[state=active]:text-foreground"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <TabsContent value="general" className="space-y-6">
+            <WorkspacePanel
+              title="Organization profile"
+              description="Core identity details used across documents and communications."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="business-name">Business Name</Label>
-                  <Input
-                    id="business-name"
-                    value={businessProfile.name}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, name: e.target.value })}
-                  />
+                  <Label htmlFor="org-name">Organization name</Label>
+                  <Input id="org-name" placeholder="Enter organization name" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="legal-name">Legal Name</Label>
-                  <Input
-                    id="legal-name"
-                    value={businessProfile.legalName}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, legalName: e.target.value })}
-                  />
+                  <Label htmlFor="org-legal">Legal entity</Label>
+                  <Input id="org-legal" placeholder="Enter legal entity name" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tax-id">Tax ID / Business Registration</Label>
+                  <Label htmlFor="org-email">Primary email</Label>
                   <Input
-                    id="tax-id"
-                    value={businessProfile.taxId}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, taxId: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
+                    id="org-email"
                     type="email"
-                    value={businessProfile.email}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, email: e.target.value })}
+                    placeholder="email@company.com"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    value={businessProfile.phone}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, phone: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={businessProfile.website}
-                    onChange={(e) => setBusinessProfile({ ...businessProfile, website: e.target.value })}
-                  />
+                  <Label htmlFor="org-phone">Phone</Label>
+                  <Input id="org-phone" placeholder="+1 (000) 000-0000" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="org-address">Registered address</Label>
                 <Textarea
-                  id="address"
-                  value={businessProfile.address}
-                  onChange={(e) => setBusinessProfile({ ...businessProfile, address: e.target.value })}
+                  id="org-address"
+                  placeholder="Street, city, state, postal code"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </WorkspacePanel>
+
+            <WorkspacePanel
+              title="Locale & currency"
+              description="Defaults for time zone, currency, and numbering."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Timezone</Label>
-                  <Select value={businessProfile.timezone} onValueChange={(v) => setBusinessProfile({ ...businessProfile, timezone: v })}>
+                  <Label>Time zone</Label>
+                  <Select defaultValue="utc">
                     <SelectTrigger>
-                      <Globe className="h-4 w-4 mr-2" />
-                      <SelectValue />
+                      <SelectValue placeholder="Select time zone" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Asia/Singapore">Singapore (GMT+8)</SelectItem>
-                      <SelectItem value="Asia/Hong_Kong">Hong Kong (GMT+8)</SelectItem>
-                      <SelectItem value="Asia/Tokyo">Tokyo (GMT+9)</SelectItem>
-                      <SelectItem value="America/New_York">New York (GMT-5)</SelectItem>
-                      <SelectItem value="Europe/London">London (GMT+0)</SelectItem>
+                      <SelectItem value="utc">UTC</SelectItem>
+                      <SelectItem value="america-new-york">
+                        America / New York
+                      </SelectItem>
+                      <SelectItem value="asia-jakarta">
+                        Asia / Jakarta
+                      </SelectItem>
+                      <SelectItem value="asia-singapore">
+                        Asia / Singapore
+                      </SelectItem>
+                      <SelectItem value="europe-london">
+                        Europe / London
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Currency</Label>
-                  <Select value={businessProfile.currency} onValueChange={(v) => setBusinessProfile({ ...businessProfile, currency: v })}>
+                  <Select defaultValue="usd">
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="SGD">SGD - Singapore Dollar</SelectItem>
-                      <SelectItem value="USD">USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR">EUR - Euro</SelectItem>
-                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                      <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                      <SelectItem value="usd">USD - US Dollar</SelectItem>
+                      <SelectItem value="sgd">
+                        SGD - Singapore Dollar
+                      </SelectItem>
+                      <SelectItem value="idr">
+                        IDR - Indonesian Rupiah
+                      </SelectItem>
+                      <SelectItem value="eur">EUR - Euro</SelectItem>
+                      <SelectItem value="gbp">GBP - British Pound</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              <div className="flex justify-end">
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </WorkspacePanel>
 
-        <TabsContent value="branches" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Branch Locations
-                </CardTitle>
-                <CardDescription>
-                  Manage your business locations
-                </CardDescription>
-              </div>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Branch
-              </Button>
-            </CardHeader>
-            <CardContent>
+            <WorkspacePanel
+              title="Governance"
+              description="Approval requirements for critical actions."
+            >
               <div className="space-y-4">
-                {branches.map((branch) => (
-                  <div
-                    key={branch.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-full ${branch.status === "active" ? "bg-success/10" : "bg-muted"}`}>
-                        <MapPin className={`h-5 w-5 ${branch.status === "active" ? "text-success" : "text-muted-foreground"}`} />
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{branch.name}</h3>
-                        <p className="text-sm text-muted-foreground">{branch.address}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={branch.status === "active" ? "default" : "secondary"}>
-                        {branch.status}
-                      </Badge>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Require approval for refunds
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Force manager approval for any refund workflow.
+                    </p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="devices" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5" />
-                  Registered Devices
-                </CardTitle>
-                <CardDescription>
-                  Manage POS terminals and displays
-                </CardDescription>
-              </div>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Register Device
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {devices.map((device) => (
-                  <div
-                    key={device.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-full ${device.status === "online" ? "bg-success/10" : "bg-muted"}`}>
-                        {device.type === "tablet" ? (
-                          <Smartphone className={`h-5 w-5 ${device.status === "online" ? "text-success" : "text-muted-foreground"}`} />
-                        ) : (
-                          <Monitor className={`h-5 w-5 ${device.status === "online" ? "text-success" : "text-muted-foreground"}`} />
-                        )}
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{device.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {device.branch} • Last seen: {device.lastSeen}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${device.status === "online" ? "bg-success" : "bg-muted-foreground"}`} />
-                      <span className="text-sm capitalize">{device.status}</span>
-                    </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Dual control for role changes
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Require a second approver for access changes.
+                    </p>
                   </div>
-                ))}
+                  <Switch />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </WorkspacePanel>
+          </TabsContent>
 
-        <TabsContent value="backup" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                Backup & Sync
-              </CardTitle>
-              <CardDescription>
-                Manage data backup and synchronization settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+          <TabsContent value="devices" className="space-y-6">
+            <WorkspacePanel
+              title="Registered devices"
+              description="Manage kiosks, POS terminals, and workstations."
+            >
+              <div className="flex items-center justify-between rounded-lg border border-dashed p-6">
                 <div>
-                  <h3 className="font-medium">Auto Backup</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically backup data daily
+                  <p className="text-sm font-medium">No devices registered</p>
+                  <p className="text-xs text-muted-foreground">
+                    Add hardware to monitor availability and compliance.
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Button variant="outline">Register device</Button>
               </div>
+            </WorkspacePanel>
 
-              <div className="space-y-2">
-                <Label>Last Backup</Label>
-                <div className="flex items-center gap-4 p-4 border rounded-lg">
-                  <Database className="h-5 w-5 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="font-medium">backup_2024-01-15_08-00.zip</p>
-                    <p className="text-sm text-muted-foreground">156 MB • January 15, 2024 at 8:00 AM</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Download
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Sync Now
-                </Button>
-                <Button>
-                  <Database className="h-4 w-4 mr-2" />
-                  Create Backup
-                </Button>
-              </div>
-
-              <Separator />
-
+            <WorkspacePanel
+              title="Device policies"
+              description="Set security controls for managed devices."
+            >
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Crown className="h-5 w-5 text-warning" />
-                    <div>
-                      <h3 className="font-medium">Remote Access</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Access your dashboard from anywhere
-                      </p>
-                    </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium">Enforce screen lock</p>
+                    <p className="text-xs text-muted-foreground">
+                      Require automatic lock after inactivity.
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-warning border-warning">
-                      Premium
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <Lock className="h-4 w-4 mr-2" />
-                      Upgrade
-                    </Button>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Restrict external storage
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Block unauthorized USB storage devices.
+                    </p>
                   </div>
+                  <Switch />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </WorkspacePanel>
+          </TabsContent>
 
-        <TabsContent value="security" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Security Settings
-              </CardTitle>
-              <CardDescription>
-                Manage access control and security preferences
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Require PIN for sensitive actions</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Require staff PIN for voids, refunds, and discounts
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
+          <TabsContent value="taxes" className="space-y-6">
+            <WorkspacePanel
+              title="Tax configuration"
+              description="Define default rates and rounding rules."
+            >
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="tax-rate">Default tax rate (%)</Label>
+                  <Input id="tax-rate" type="number" placeholder="0.00" />
                 </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Auto-lock after inactivity</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Lock POS terminals after 5 minutes of inactivity
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Log all transactions</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Keep detailed audit trail of all actions
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
+                <div className="space-y-2">
+                  <Label>Rounding method</Label>
+                  <Select defaultValue="standard">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select rounding" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">
+                        Standard rounding
+                      </SelectItem>
+                      <SelectItem value="ceil">Round up</SelectItem>
+                      <SelectItem value="floor">Round down</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-
               <Separator />
-
-              <div className="space-y-2">
-                <Label>Session Timeout</Label>
-                <Select defaultValue="30">
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="120">2 hours</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div>
+                  <p className="text-sm font-medium">Tax-inclusive pricing</p>
+                  <p className="text-xs text-muted-foreground">
+                    Prices already include tax.
+                  </p>
+                </div>
+                <Switch />
               </div>
+            </WorkspacePanel>
+          </TabsContent>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Security Settings
-                </Button>
+          <TabsContent value="roles" className="space-y-6">
+            <WorkspacePanel
+              title="Roles & permissions"
+              description="Define access roles for administrators and operators."
+            >
+              <div className="flex items-center justify-between rounded-lg border border-dashed p-6">
+                <div>
+                  <p className="text-sm font-medium">No custom roles yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Create roles to control access by team and function.
+                  </p>
+                </div>
+                <Button variant="outline">Create role</Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </WorkspacePanel>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="space-y-6">
+            <WorkspacePanel
+              title="Integrations"
+              description="Connect services for billing, analytics, and messaging."
+            >
+              <div className="flex items-center justify-between rounded-lg border border-dashed p-6">
+                <div>
+                  <p className="text-sm font-medium">
+                    No integrations connected
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Add approved providers to extend your workspace.
+                  </p>
+                </div>
+                <Button variant="outline">Browse integrations</Button>
+              </div>
+            </WorkspacePanel>
+          </TabsContent>
+        </div>
+      </PageShell>
+    </Tabs>
   );
-};
-
-export default Settings;
+}

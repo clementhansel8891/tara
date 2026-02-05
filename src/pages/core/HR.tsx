@@ -1,291 +1,178 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Users,
-  UserPlus,
-  Calendar,
-  Clock,
-  DollarSign,
-  TrendingUp,
-  FileText,
-  Award,
-  Search,
-  Filter,
-  MoreVertical,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
-} from 'lucide-react';
-import { formatCurrency } from '@/lib/mock-data';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PageShell } from "@/core/ui/PageShell";
+import { PageHeader } from "@/core/ui/PageHeader";
+import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { AlertTriangle, Calendar, CheckCircle2, Clock, Users } from "lucide-react";
 
-// Mock HR data
-const employees = [
-  { id: 1, name: 'John Smith', role: 'Store Manager', department: 'Operations', status: 'active', email: 'john@opscore.com', phone: '+1 234 567 890', hireDate: '2022-03-15', salary: 55000 },
-  { id: 2, name: 'Sarah Johnson', role: 'Shift Supervisor', department: 'POS Retail', status: 'active', email: 'sarah@opscore.com', phone: '+1 234 567 891', hireDate: '2022-06-20', salary: 42000 },
-  { id: 3, name: 'Michael Chen', role: 'Barista', department: 'POS Cafe', status: 'active', email: 'michael@opscore.com', phone: '+1 234 567 892', hireDate: '2023-01-10', salary: 32000 },
-  { id: 4, name: 'Emily Davis', role: 'Cashier', department: 'POS Retail', status: 'on-leave', email: 'emily@opscore.com', phone: '+1 234 567 893', hireDate: '2023-04-05', salary: 30000 },
-  { id: 5, name: 'David Wilson', role: 'Kitchen Staff', department: 'POS Cafe', status: 'active', email: 'david@opscore.com', phone: '+1 234 567 894', hireDate: '2023-08-12', salary: 28000 },
+const hiringPipeline = [
+  { id: "hp-1", role: "Store Manager", stage: "Interview", candidates: 4 },
+  { id: "hp-2", role: "Operations Analyst", stage: "Offer", candidates: 2 },
+  { id: "hp-3", role: "Regional HR", stage: "Screening", candidates: 6 },
 ];
 
-const leaveRequests = [
-  { id: 1, employee: 'Emily Davis', type: 'Annual Leave', startDate: '2024-01-25', endDate: '2024-01-30', status: 'pending', days: 5 },
-  { id: 2, employee: 'Michael Chen', type: 'Sick Leave', startDate: '2024-01-22', endDate: '2024-01-23', status: 'approved', days: 2 },
-  { id: 3, employee: 'Sarah Johnson', type: 'Personal', startDate: '2024-02-01', endDate: '2024-02-02', status: 'pending', days: 2 },
+const attendanceOverview = [
+  { id: "att-1", label: "On-time check-ins", value: "92%" },
+  { id: "att-2", label: "Late arrivals", value: "4%" },
+  { id: "att-3", label: "Absent", value: "2%" },
 ];
 
-const payrollSummary = {
-  totalPayroll: 187000,
-  paidThisMonth: 156000,
-  pending: 31000,
-  nextPayday: '2024-01-31',
-};
+const payrollCycles = [
+  {
+    id: "pay-1",
+    period: "Jan 16 - Jan 31",
+    status: "Processing",
+    due: "Due in 2 days",
+  },
+  {
+    id: "pay-2",
+    period: "Feb 1 - Feb 15",
+    status: "Scheduled",
+    due: "Opens Feb 12",
+  },
+];
 
-export default function HR() {
-  const [activeTab, setActiveTab] = useState('employees');
-  const [searchTerm, setSearchTerm] = useState('');
+const complianceAlerts = [
+  {
+    id: "comp-1",
+    title: "Overtime policy exception",
+    detail: "Region East exceeded weekly cap for 6 staff",
+    severity: "High",
+    time: "35 minutes ago",
+  },
+  {
+    id: "comp-2",
+    title: "Work permit renewal pending",
+    detail: "3 documents expiring within 14 days",
+    severity: "Medium",
+    time: "Today, 08:10",
+  },
+  {
+    id: "comp-3",
+    title: "Training compliance",
+    detail: "Security awareness completion at 89%",
+    severity: "Low",
+    time: "Yesterday, 19:05",
+  },
+];
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+export default function CoreHR() {
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Human Resources</h1>
-          <p className="text-muted-foreground">Employee management and payroll</p>
+    <PageShell
+      header={
+        <PageHeader
+          title="Human Resources"
+          subtitle="Centralized workforce oversight, compliance, and payroll readiness."
+          primaryAction={<Button>New requisition</Button>}
+          secondaryActions={<Button variant="outline">Export workforce</Button>}
+        />
+      }
+    >
+      <div className="space-y-6">
+        <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+          <WorkspacePanel
+            title="Hiring pipeline"
+            description="Open requisitions and hiring status."
+          >
+            <div className="space-y-4">
+              {hiringPipeline.map((item) => (
+                <div key={item.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{item.role}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Stage: {item.stage}
+                    </p>
+                  </div>
+                  <Badge variant="secondary">{item.candidates} candidates</Badge>
+                </div>
+              ))}
+            </div>
+          </WorkspacePanel>
+
+          <WorkspacePanel
+            title="Attendance overview"
+            description="Daily attendance health snapshot."
+          >
+            <div className="space-y-4">
+              {attendanceOverview.map((item) => (
+                <div key={item.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </WorkspacePanel>
         </div>
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Employee
-        </Button>
-      </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Employees</p>
-                <p className="text-2xl font-bold">{employees.length}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">On Leave</p>
-                <p className="text-2xl font-bold">{employees.filter(e => e.status === 'on-leave').length}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-yellow-500/10">
-                <Calendar className="h-6 w-6 text-yellow-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Monthly Payroll</p>
-                <p className="text-2xl font-bold">{formatCurrency(payrollSummary.totalPayroll)}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-green-500/10">
-                <DollarSign className="h-6 w-6 text-green-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pending Requests</p>
-                <p className="text-2xl font-bold">{leaveRequests.filter(l => l.status === 'pending').length}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-blue-500/10">
-                <Clock className="h-6 w-6 text-blue-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="employees">Employees</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="leave">Leave Management</TabsTrigger>
-          <TabsTrigger value="payroll">Payroll</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="employees" className="mt-4 space-y-4">
-          <div className="flex gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search employees..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-          </div>
-
-          <Card>
-            <ScrollArea className="h-[500px]">
-              <div className="divide-y">
-                {filteredEmployees.map((emp) => (
-                  <div key={emp.id} className="flex items-center justify-between p-4 hover:bg-muted/50">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback>{emp.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{emp.name}</h4>
-                          <Badge variant={emp.status === 'active' ? 'default' : 'secondary'}>
-                            {emp.status}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{emp.role}</p>
-                        <p className="text-xs text-muted-foreground">{emp.department}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          {emp.email}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Phone className="h-3 w-3" />
-                          {emp.phone}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatCurrency(emp.salary)}/yr</p>
-                        <p className="text-sm text-muted-foreground">Since {emp.hireDate}</p>
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </div>
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+          <WorkspacePanel
+            title="Payroll cycle status"
+            description="Upcoming payroll runs and processing stages."
+          >
+            <div className="space-y-4">
+              {payrollCycles.map((cycle) => (
+                <div key={cycle.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{cycle.period}</p>
+                    <p className="text-xs text-muted-foreground">{cycle.due}</p>
                   </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="attendance" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Attendance Tracking</CardTitle>
-              <CardDescription>Daily attendance records synced from POS systems</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>Attendance data is synced from POS shift records</p>
-                <p className="text-sm mt-2">View detailed attendance reports in the Reports module</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="leave" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Leave Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {leaveRequests.map((req) => (
-                  <div key={req.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-muted">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{req.employee}</p>
-                        <p className="text-sm text-muted-foreground">{req.type} • {req.days} days</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm">{req.startDate} - {req.endDate}</p>
-                      <Badge variant={req.status === 'approved' ? 'default' : req.status === 'pending' ? 'secondary' : 'destructive'}>
-                        {req.status}
-                      </Badge>
-                    </div>
-                    {req.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">Reject</Button>
-                        <Button size="sm">Approve</Button>
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Badge variant="outline">{cycle.status}</Badge>
                   </div>
-                ))}
+                </div>
+              ))}
+              <div className="flex items-center justify-between rounded-lg border border-dashed p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  Review payroll inputs before submission
+                </div>
+                <Button size="sm">Open payroll</Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </WorkspacePanel>
 
-        <TabsContent value="payroll" className="mt-4">
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Total Payroll</p>
-                <p className="text-2xl font-bold">{formatCurrency(payrollSummary.totalPayroll)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Paid This Month</p>
-                <p className="text-2xl font-bold text-green-500">{formatCurrency(payrollSummary.paidThisMonth)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">Next Payday</p>
-                <p className="text-2xl font-bold">{payrollSummary.nextPayday}</p>
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Payroll Processing</CardTitle>
-              <CardDescription>Manage salary payments and deductions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>Payroll processing integrates with Finance module</p>
-                <Button className="mt-4">Process Payroll</Button>
+          <WorkspacePanel
+            title="Workforce compliance alerts"
+            description="Exceptions requiring HR attention."
+          >
+            <div className="space-y-4">
+              {complianceAlerts.map((alert) => (
+                <div key={alert.id} className="rounded-lg border p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{alert.title}</p>
+                      <p className="text-xs text-muted-foreground">{alert.detail}</p>
+                    </div>
+                    <Badge variant="outline">{alert.severity}</Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      {alert.time}
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Review
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between rounded-lg border border-dashed p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Compliance summary ready for audit export
+                </div>
+                <Button size="sm" variant="outline">
+                  Export
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+            </div>
+          </WorkspacePanel>
+        </div>
+      </div>
+    </PageShell>
   );
 }

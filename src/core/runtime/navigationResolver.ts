@@ -1,19 +1,23 @@
 // ============================================================================
-// NAVIGATION RESOLVER
+// NAVIGATION RESOLVER (PHASE 3 CANONICAL)
 // ============================================================================
 //
 // Builds navigation structure for the UI.
 //
 // Responsibilities:
 // - Merge Core + Module pages
-// - Enforce permissions
+// - Enforce permissions (canonical enforcement point)
 // - Respect module activation state
-// - Keep inactive modules visible but non-navigable
+// - Keep inactive modules visible but non-navigable (locked UX)
 //
 // Non-responsibilities:
 // - License validation
-// - Routing
+// - Routing registration
 // - UI rendering
+//
+// Phase 3 Rule:
+// - Modules declare pages ONLY via getPages()
+// - Core derives navigation dynamically
 //
 // ============================================================================
 
@@ -24,7 +28,7 @@ import type {
   LayoutProfile,
 } from "@/core/types";
 
-import type { ModuleId, ModulePageDefinition } from "@/modules/shared/contract";
+import type { ModuleId } from "@/modules/shared/contract";
 
 import { resolveCorePages } from "./corePageResolver";
 import { resolveModules } from "./moduleResolver";
@@ -35,16 +39,41 @@ import { resolveModules } from "./moduleResolver";
 
 export interface NavigationItem {
   id: string;
+
+  /**
+   * Display label for menus
+   */
   label: string;
-  path?: string; // undefined when inactive / inaccessible
+
+  /**
+   * Route path.
+   * Undefined = locked / inactive / inaccessible.
+   */
+  path?: string;
+
+  /**
+   * Optional icon identifier
+   */
   icon?: string;
+
+  /**
+   * Owning module
+   */
   moduleId: ModuleId;
+
+  /**
+   * Locked UX state
+   */
   disabled?: boolean;
+
+  /**
+   * Navigation grouping (cashier/admin/ops/etc)
+   */
   menuGroup?: string;
 }
 
 /* ============================================================================ */
-/* PERMISSION HELPERS                                                           */
+/* PERMISSION ENFORCEMENT (CANONICAL CORE LOGIC)                                */
 /* ============================================================================ */
 
 /**
@@ -75,7 +104,14 @@ function hasPermission(
 /* ============================================================================ */
 
 export interface ResolveNavigationOptions {
+  /**
+   * Runtime device context
+   */
   deviceType: DeviceType;
+
+  /**
+   * User permission set (already resolved by Core IAM)
+   */
   userPermissions: Permission[];
 
   /**
@@ -91,7 +127,7 @@ export interface ResolveNavigationOptions {
 }
 
 /* ============================================================================ */
-/* NAVIGATION RESOLVER                                                          */
+/* NAVIGATION RESOLVER (PRIMARY EXPORT)                                          */
 /* ============================================================================ */
 
 export function resolveNavigation(
@@ -102,9 +138,9 @@ export function resolveNavigation(
 
   const navigation: NavigationItem[] = [];
 
-  // ---------------------------------------------------------------------------
-  // CORE PAGES (ALWAYS ACTIVE)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 1. CORE PAGES (ALWAYS ACTIVE)
+  // ===========================================================================
 
   const corePages = resolveCorePages();
 
@@ -118,15 +154,16 @@ export function resolveNavigation(
       icon: page.icon,
       moduleId: "core",
       menuGroup: page.section,
+      disabled: false,
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // MODULE PAGES (RESOLVED VIA MODULE RESOLVER)
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
+  // 2. MODULE PAGES (DYNAMIC, PHASE 3)
+  // ===========================================================================
 
   const resolvedModules = resolveModules({
-    tenantId: "runtime", // navigation is tenant-scoped, id not needed here
+    tenantId: "runtime",
     activeModuleInstances,
     deviceType,
     layoutProfile,
@@ -134,16 +171,38 @@ export function resolveNavigation(
 
   for (const module of resolvedModules) {
     for (const page of module.pages) {
-      // Permission enforcement
-      if (!hasPermission(userPermissions, page.requiredPermissions)) continue;
+      // -----------------------------------------------------------------------
+      // Permission enforcement (Core-owned)
+      // -----------------------------------------------------------------------
+
+      const allowed = hasPermission(userPermissions, page.requiredPermissions);
+
+      if (!allowed) {
+        // Not visible at all if unauthorized
+        continue;
+      }
+
+      // -----------------------------------------------------------------------
+      // Locked UX behavior:
+      // - Visible always
+      // - Clickable only if module active
+      // -----------------------------------------------------------------------
 
       navigation.push({
         id: `${module.id}:${page.id}`,
         label: page.title,
+
+        // Only active modules produce navigable routes
         path: module.isActive ? page.route : undefined,
-        icon: undefined,
+
+        // Module owns icon declaration
+        icon: page.icon,
+
         moduleId: module.id,
+
+        // Locked state if inactive
         disabled: !module.isActive,
+
         menuGroup: page.menuGroup,
       });
     }

@@ -13,11 +13,25 @@ import type {
 } from "../shared/contract";
 
 // ============================================================
+// PAGE COMPONENT IMPORTS (MODULE OWNED)
+// ============================================================
+
+import RetailCashier from "@/pages/retail/Cashier";
+import RetailInventory from "@/pages/retail/Inventory";
+import RetailShifts from "@/pages/retail/Shifts";
+
+// ============================================================
 // MODULE IDENTITY (LOCKED)
 // ============================================================
 
 const MODULE_ID = "retail" as const;
 const MODULE_VERSION = "1.0.0" as const;
+
+/**
+ * Canonical module route prefix.
+ * ALL module pages MUST live under this base.
+ */
+const BASE_ROUTE = `/m/${MODULE_ID}` as const;
 
 // ============================================================
 // CONFIGURATION
@@ -34,6 +48,7 @@ export interface RetailModuleConfig extends ModuleConfig {
 
 const DEFAULT_CONFIG: RetailModuleConfig = {
   taxRate: 8.5,
+
   features: {
     barcodeScanning: true,
     requireShiftStart: true,
@@ -68,7 +83,7 @@ const PERMISSIONS = {
 } satisfies Record<string, Permission>;
 
 // ============================================================
-// PAGE DECLARATIONS
+// PAGE DECLARATIONS (PHASE 3 COMPLIANT)
 // ============================================================
 
 const PAGES: ReadonlyArray<ModulePageDefinition> = [
@@ -76,27 +91,43 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     id: "cashier",
     moduleId: MODULE_ID,
     title: "Cashier",
-    route: "/retail",
-    menuGroup: "cashier",
+
+    route: "/m/retail/cashier",
+    menuGroup: "operations",
+
     requiredPermissions: [PERMISSIONS.SALES_CREATE],
+
+    component: RetailCashier,
   },
+
   {
     id: "inventory",
     moduleId: MODULE_ID,
     title: "Inventory",
-    route: "/retail/inventory",
-    menuGroup: "admin",
+
+    route: `${BASE_ROUTE}/inventory`,
+    menuGroup: "management",
+
     requiredPermissions: [PERMISSIONS.INVENTORY_READ],
+
+    component: RetailInventory,
+
     hidden: (ctx) =>
       !(ctx.moduleConfig as RetailModuleConfig).features.barcodeScanning,
   },
+
   {
     id: "shifts",
     moduleId: MODULE_ID,
     title: "Shifts",
-    route: "/retail/shifts",
-    menuGroup: "ops",
+
+    route: `${BASE_ROUTE}/shifts`,
+    menuGroup: "operations",
+
     requiredPermissions: [PERMISSIONS.SHIFTS_READ],
+
+    component: RetailShifts,
+
     hidden: (ctx) =>
       !(ctx.moduleConfig as RetailModuleConfig).features.requireShiftStart,
   },
@@ -132,7 +163,7 @@ function validateConfig(config: ModuleConfig): ModuleConfigValidationResult {
 }
 
 // ============================================================
-// MODULE CONTRACT
+// MODULE CONTRACT (FINAL)
 // ============================================================
 
 export const retailModule: ModuleContract = {
@@ -152,6 +183,9 @@ export const retailModule: ModuleContract = {
 
   validateConfig,
 
+  /**
+   * Single source of truth for navigation + routing.
+   */
   getPages: (_config: ReadonlyModuleConfig) => PAGES,
 
   async onActivate(tenantId) {

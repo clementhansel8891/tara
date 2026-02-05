@@ -179,7 +179,7 @@ const moduleConfigs: ModuleConfigRecord[] = [
   {
     id: "modcfg-1",
     organizationId: "org-1",
-    moduleId: "cafe",
+    moduleId: "f&b",
     enabled: true,
     config: {
       waitlistEnabled: true,

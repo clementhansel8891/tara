@@ -247,9 +247,9 @@ const mockLicenses: License[] = [
     features: ["pos", "inventory", "shifts", "reports"],
   },
   {
-    id: "lic-cafe",
+    id: "lic-f&b",
     organizationId: "org-1",
-    moduleId: "cafe",
+    moduleId: "f&b",
     type: "professional",
     status: "active",
     startDate: "2024-01-01",
@@ -307,9 +307,9 @@ const mockModuleInstances: ModuleInstance[] = [
     activatedAt: "2024-01-01",
   },
   {
-    id: "inst-cafe",
+    id: "inst-f&b",
     organizationId: "org-1",
-    moduleId: "cafe",
+    moduleId: "f&b",
     licenseId: "lic-cafe",
     status: "active",
     config: { tableCount: 12, enableKDS: true },

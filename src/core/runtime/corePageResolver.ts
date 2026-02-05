@@ -1,29 +1,51 @@
 // ============================================================================
-// CORE PAGE RESOLVER
+// CORE PAGE RESOLVER (PHASE 3 — ROUTE CONTRACT)
 // ============================================================================
 //
 // Purpose:
 // - Resolve ALL Core pages
 // - Core pages are ALWAYS active
-// - No licensing
-// - No module dependency
+// - Core pages are FIRST-CLASS routable contracts
 //
-// Core represents office & administrative reality of all businesses.
+// Rules:
+// - Core pages MUST provide React components
+// - Routes MUST live under /core/...
+// - No tenant can disable Core
 //
 // ============================================================================
 
+import type React from "react";
+
 /* ============================================================================ */
-/* CORE PAGE TYPE                                                               */
+/* IMPORT CORE PAGE COMPONENTS                                                  */
 /* ============================================================================ */
 
-export interface CorePage {
+import Dashboard from "@/pages/core/Dashboard";
+import Staff from "@/pages/core/Staff";
+import Reports from "@/pages/core/Reports";
+import Settings from "@/pages/core/Settings";
+import Admin from "@/pages/core/Admin";
+
+/* ============================================================================ */
+/* CORE PAGE CONTRACT TYPE                                                      */
+/* ============================================================================ */
+
+export interface CorePageDefinition {
   id: string;
   title: string;
+
+  /**
+   * Canonical Core route.
+   *
+   * MUST live under:
+   *   /core/<page>
+   */
   route: string;
+
   icon?: string;
 
   /**
-   * Navigation grouping (e.g. "Office", "Administration")
+   * Navigation grouping
    */
   section: "office" | "administration" | "system";
 
@@ -31,57 +53,69 @@ export interface CorePage {
    * Whether page appears in navigation
    */
   visible: boolean;
+
+  /**
+   * React component bound to this page.
+   *
+   * Phase 3 Enforcement:
+   * - App.tsx derives routes directly from this
+   */
+  component: React.ComponentType;
 }
 
 /* ============================================================================ */
-/* STATIC CORE PAGE DEFINITIONS                                                  */
+/* STATIC CORE PAGE DEFINITIONS (LOCKED)                                        */
 /* ============================================================================ */
-/**
- * These pages ALWAYS exist.
- * They represent baseline business reality.
- *
- * No tenant can disable these.
- */
-const CORE_PAGES: readonly CorePage[] = Object.freeze([
+
+const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
   {
     id: "dashboard",
     title: "Dashboard",
-    route: "/",
+    route: "/core/dashboard",
     icon: "dashboard",
     section: "office",
     visible: true,
+    component: Dashboard,
   },
+
   {
-    id: "organization",
-    title: "Organization",
-    route: "/organization",
-    icon: "company",
+    id: "admin",
+    title: "Administration",
+    route: "/core/admin",
+    icon: "shield",
     section: "administration",
     visible: true,
+    component: Admin,
   },
+
   {
     id: "staff",
     title: "Staff",
-    route: "/staff",
+    route: "/core/staff",
     icon: "users",
     section: "administration",
     visible: true,
+    component: Staff,
   },
+
   {
     id: "reports",
     title: "Reports",
-    route: "/reports",
+    route: "/core/reports",
     icon: "chart",
     section: "office",
     visible: true,
+    component: Reports,
   },
+
   {
     id: "settings",
     title: "Settings",
-    route: "/settings",
+    route: "/core/settings",
     icon: "settings",
     section: "system",
     visible: true,
+    component: Settings,
   },
 ]);
 
@@ -92,13 +126,11 @@ const CORE_PAGES: readonly CorePage[] = Object.freeze([
 /**
  * Resolve all Core pages.
  *
- * This function:
- * - Has NO parameters
- * - Has NO conditions
- * - Always returns the same result
- *
- * Core is non-negotiable infrastructure.
+ * Core is absolute:
+ * - Always exists
+ * - Always active
+ * - Always routable
  */
-export function resolveCorePages(): readonly CorePage[] {
+export function resolveCorePages(): readonly CorePageDefinition[] {
   return CORE_PAGES;
 }

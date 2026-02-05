@@ -2,7 +2,7 @@
 // MODULE RESOLVER (CORE RUNTIME)
 // ============================================================================
 //
-// Resolves module visibility, activation state, and pages
+// Resolves module activation + runtime-visible pages
 // for a given tenant + runtime context.
 //
 // PURE FUNCTION.
@@ -10,10 +10,14 @@
 // NO UI.
 // NO PERMISSION ENFORCEMENT.
 //
+// Phase 3 Contract Rules:
+// - All modules MUST expose getPages()
+// - Pages include React components
+// - Core filters by device + hidden(ctx)
+//
 // ============================================================================
 
 import type {
-  ModuleContract,
   ModulePageDefinition,
   ModulePageContext,
   ModuleId,
@@ -34,13 +38,17 @@ export interface ResolvedModule {
   category: "core" | "industry";
 
   /**
-   * License / activation state
+   * Activation state for this tenant.
+   * (Licensing + persistence decides this)
    */
   isActive: boolean;
 
   /**
-   * Pages resolved for runtime navigation
-   * (empty if inactive)
+   * Runtime-visible pages.
+   *
+   * Rules:
+   * - Empty if inactive
+   * - Filtered by device + hidden(ctx)
    */
   pages: ReadonlyArray<ModulePageDefinition>;
 }
@@ -53,41 +61,100 @@ export interface ModuleResolutionInput {
   tenantId: string;
 
   /**
-   * Enabled module instances for tenant
-   * (only ACTIVE ones appear here)
+   * Active module instances for tenant.
+   *
+   * Only active modules appear here.
+   * Each instance includes tenant config.
    */
   activeModuleInstances: ModuleInstance[];
 
   /**
-   * Runtime device context
+   * Runtime environment context.
    */
   deviceType: DeviceType;
   layoutProfile: LayoutProfile;
 }
 
 /* ============================================================================ */
-/* MODULE RESOLUTION                                                            */
+/* INTERNAL FILTER HELPERS                                                      */
 /* ============================================================================ */
 
+/**
+ * Apply canonical visibility filtering rules:
+ * - Device compatibility
+ * - hidden flag or hidden(ctx)
+ */
+function filterVisiblePages(
+  pages: ReadonlyArray<ModulePageDefinition>,
+  ctx: ModulePageContext,
+): ModulePageDefinition[] {
+  return pages.filter((page) => {
+    // ------------------------------------------------------------------------
+    // Device Compatibility
+    // ------------------------------------------------------------------------
+
+    if (
+      page.supportedDeviceTypes &&
+      !page.supportedDeviceTypes.includes(ctx.deviceType)
+    ) {
+      return false;
+    }
+
+    // ------------------------------------------------------------------------
+    // Static Hidden Flag
+    // ------------------------------------------------------------------------
+
+    if (page.hidden === true) {
+      return false;
+    }
+
+    // ------------------------------------------------------------------------
+    // Dynamic Hidden Resolver
+    // ------------------------------------------------------------------------
+
+    if (typeof page.hidden === "function") {
+      return !page.hidden(ctx);
+    }
+
+    return true;
+  });
+}
+
+/* ============================================================================ */
+/* MODULE RESOLUTION (PRIMARY API)                                               */
+/* ============================================================================ */
+
+/**
+ * Resolve all modules for runtime navigation + routing derivation.
+ *
+ * Output guarantees:
+ * - Every registered module appears
+ * - Inactive modules return pages: []
+ * - Active modules return filtered pages
+ */
 export function resolveModules(
   input: ModuleResolutionInput,
 ): ReadonlyArray<ResolvedModule> {
   const { activeModuleInstances, deviceType, layoutProfile } = input;
 
+  // Map active modules by id for O(1) lookup
   const activeModuleMap = new Map<ModuleId, ModuleInstance>(
     activeModuleInstances.map((m) => [m.moduleId, m]),
   );
 
   const resolved: ResolvedModule[] = [];
 
-  const moduleContracts = getAllModuleContracts();
+  // Registry contains ALL modules known to the system
+  const contracts = getAllModuleContracts();
 
-  for (const module of moduleContracts) {
-    const instance = activeModuleMap.get(module.id);
+  for (const contract of contracts) {
+    const instance = activeModuleMap.get(contract.id);
     const isActive = Boolean(instance);
 
+    // Default: inactive modules contribute no pages
     let pages: ModulePageDefinition[] = [];
 
+    // Active module: resolve runtime-visible pages
     if (isActive && instance) {
       const ctx: ModulePageContext = {
         moduleConfig: instance.config,
@@ -95,29 +162,17 @@ export function resolveModules(
         layoutProfile,
       };
 
-      pages = module.getPages(instance.config).filter((page) => {
-        // Device compatibility
-        if (
-          page.supportedDeviceTypes &&
-          !page.supportedDeviceTypes.includes(deviceType)
-        ) {
-          return false;
-        }
+      // Phase 3 Rule: getPages() is mandatory
+      const declaredPages = contract.getPages(instance.config);
 
-        // Declarative visibility
-        if (typeof page.hidden === "function") {
-          return !page.hidden(ctx);
-        }
-
-        return page.hidden !== true;
-      });
+      pages = filterVisiblePages(declaredPages, ctx);
     }
 
     resolved.push({
-      id: module.id,
-      name: module.name,
-      description: module.description,
-      category: module.category,
+      id: contract.id,
+      name: contract.name,
+      description: contract.description,
+      category: contract.category,
       isActive,
       pages,
     });

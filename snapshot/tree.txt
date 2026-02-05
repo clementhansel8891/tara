@@ -1,0 +1,175 @@
+Folder PATH listing for volume OS
+Volume serial number is 58C7-C0E5
+C:\USERS\USER\DOCUMENTS\SOFTWARE-DEVELOPER\ZENVIX-DEMO\BUSINESS-FLOW-SUITE-V2\SRC
+|   App.css
+|   App.tsx
+|   index.css
+|   main.tsx
+|   vite-env.d.ts
+|   
++---components
+|   |   NavLink.tsx
+|   |   
+|   +---pos-cafe
+|   |       OrderPad.tsx
+|   |       TableBilling.tsx
+|   |       
+|   +---shared
+|   |       AppSwitcher.tsx
+|   |       LicenseBadge.tsx
+|   |       ModuleCard.tsx
+|   |       OfflineIndicator.tsx
+|   |       PinPad.tsx
+|   |       StatCard.tsx
+|   |       StatusBadge.tsx
+|   |       
+|   \---ui
+|           accordion.tsx
+|           alert-dialog.tsx
+|           alert.tsx
+|           aspect-ratio.tsx
+|           avatar.tsx
+|           badge.tsx
+|           breadcrumb.tsx
+|           button.tsx
+|           calendar.tsx
+|           card.tsx
+|           carousel.tsx
+|           chart.tsx
+|           checkbox.tsx
+|           collapsible.tsx
+|           command.tsx
+|           context-menu.tsx
+|           dialog.tsx
+|           drawer.tsx
+|           dropdown-menu.tsx
+|           form.tsx
+|           hover-card.tsx
+|           input-otp.tsx
+|           input.tsx
+|           label.tsx
+|           menubar.tsx
+|           navigation-menu.tsx
+|           pagination.tsx
+|           popover.tsx
+|           progress.tsx
+|           radio-group.tsx
+|           resizable.tsx
+|           scroll-area.tsx
+|           select.tsx
+|           separator.tsx
+|           sheet.tsx
+|           sidebar.tsx
+|           skeleton.tsx
+|           slider.tsx
+|           sonner.tsx
+|           switch.tsx
+|           table.tsx
+|           tabs.tsx
+|           textarea.tsx
+|           toast.tsx
+|           toaster.tsx
+|           toggle-group.tsx
+|           toggle.tsx
+|           tooltip.tsx
+|           use-toast.ts
+|           
++---contexts
+|       AppContext.tsx
+|       
++---core
+|   +---contributions
+|   |       processor.ts
+|   |       registry.ts
+|   |       types.ts
+|   |       
+|   +---identity
+|   |       context.tsx
+|   |       storage.ts
+|   |       
+|   +---licensing
+|   |       context.tsx
+|   |       
+|   +---runtime
+|   |       corePageResolver.ts
+|   |       modulePageResolver.ts
+|   |       moduleRegistry.ts
+|   |       moduleResolver.ts
+|   |       navigationResolver.ts
+|   |       
+|   +---services
+|   |       index.ts
+|   |       registry.ts
+|   |       
+|   \---types
+|           index.ts
+|           
++---hooks
+|       use-mobile.tsx
+|       use-toast.ts
+|       
++---layouts
+|       CoreLayout.tsx
+|       POSLayout.tsx
+|       
++---lib
+|       local-storage.ts
+|       mock-data.ts
+|       utils.ts
+|       
++---modules
+|   +---cafe
+|   |       index.ts
+|   |       
+|   +---retail
+|   |       index.ts
+|   |       
+|   \---shared
+|           contract.ts
+|           
++---pages
+|   |   Index.tsx
+|   |   NotFound.tsx
+|   |   
+|   +---core
+|   |       Admin.tsx
+|   |       Dashboard.tsx
+|   |       Finance.tsx
+|   |       HR.tsx
+|   |       Integrations.tsx
+|   |       InventoryModule.tsx
+|   |       Modules.tsx
+|   |       Operations.tsx
+|   |       Purchasing.tsx
+|   |       Reports.tsx
+|   |       Security.tsx
+|   |       Settings.tsx
+|   |       Staff.tsx
+|   |       
+|   +---f&b
+|   |       Cashier.tsx
+|   |       History.tsx
+|   |       Inventory.tsx
+|   |       Kitchen.tsx
+|   |       Settings.tsx
+|   |       Tables.tsx
+|   |       
+|   \---retail
+|           Cashier.tsx
+|           History.tsx
+|           Inventory.tsx
+|           Sales.tsx
+|           Settings.tsx
+|           Shifts.tsx
+|           
++---platform
+|   +---device-detection
+|   |       index.ts
+|   |       
+|   \---runtime-ui
+|           resolver.ts
+|           
+\---test
+        example.test.ts
+        setup.ts
+        

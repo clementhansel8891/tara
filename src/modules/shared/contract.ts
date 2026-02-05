@@ -14,6 +14,9 @@
 // ============================================================================
 
 import type { DeviceType, LayoutProfile } from "@/core/types";
+import type { ContributionType } from "@/core/contributions/types";
+
+import type React from "react";
 
 /* ============================================================================ */
 /* CORE IDENTIFIERS                                                             */
@@ -62,7 +65,7 @@ export interface Permission {
 }
 
 /* ============================================================================ */
-/* PAGE DEFINITION (CANONICAL)                                                   */
+/* PAGE DEFINITION (CANONICAL)                                                  */
 /* ============================================================================ */
 
 /**
@@ -80,7 +83,14 @@ export interface PageDefinition {
 
   /**
    * Canonical absolute route.
-   * Example: /pos/cafe/orders
+   *
+   * IMPORTANT:
+   * Routes MUST live under:
+   *   /m/<moduleId>/...
+   *
+   * Example:
+   *   /m/fnb/tables
+   *   /m/retail/sales
    */
   route: string;
 
@@ -96,15 +106,9 @@ export interface PageDefinition {
   requiredPermissions?: Permission[];
 
   /**
-   * Navigation grouping (POS, Admin, Ops, etc).
+   * Navigation grouping (cashier, ops, admin, etc).
    */
   menuGroup?: string;
-
-  /**
-   * Static visibility flag.
-   * Dynamic logic is NOT allowed here.
-   */
-  hidden?: boolean;
 }
 
 /* ============================================================================ */
@@ -131,17 +135,44 @@ export interface ModulePageContext {
 }
 
 /* ============================================================================ */
-/* MODULE PAGE DECLARATION                                                       */
+/* MODULE PAGE DECLARATION (CANONICAL)                                          */
 /* ============================================================================ */
 
 /**
  * Module-owned page declaration.
  *
- * Safe extension of PageDefinition.
+ * This is the ONLY allowed page contract.
+ *
+ * Core will use this for:
+ * - Navigation generation
+ * - Routing enforcement
+ * - Device compatibility filtering
  */
-export interface ModulePageDefinition extends Omit<PageDefinition, "hidden"> {
+export interface ModulePageDefinition extends PageDefinition {
+  /**
+   * React component bound to this page.
+   *
+   * Enables Phase 3:
+   * - No hardcoded routes in App.tsx
+   * - Modules fully own their page mapping
+   */
+  component: React.ComponentType;
+
+  /**
+   * Optional device restriction.
+   * Example: kiosk-only screens.
+   */
   supportedDeviceTypes?: DeviceType[];
 
+  /**
+   * Optional runtime visibility.
+   *
+   * Static:
+   *   hidden: true
+   *
+   * Dynamic:
+   *   hidden: (ctx) => ctx.moduleConfig.featureX === false
+   */
   hidden?: boolean | ((ctx: ModulePageContext) => boolean);
 }
 
@@ -158,7 +189,7 @@ export interface ModuleOutputEvent<TPayload = unknown> {
 }
 
 /* ============================================================================ */
-/* MODULE CONTRACT (PRIMARY INTERFACE)                                           */
+/* MODULE CONTRACT (PRIMARY INTERFACE — SINGLE SOURCE OF TRUTH)                 */
 /* ============================================================================ */
 
 export interface ModuleContract {
@@ -178,7 +209,15 @@ export interface ModuleContract {
 
   requiredCoreServices: string[];
   requiredPermissions: Permission[];
+
+  /**
+   * Device support declared at module-level.
+   */
   supportedDeviceTypes: DeviceType[];
+
+  /**
+   * Optional preferred layout profile.
+   */
   preferredLayoutProfile?: LayoutProfile;
 
   // --------------------------------------------------------------------------
@@ -190,27 +229,33 @@ export interface ModuleContract {
   validateConfig(config: ModuleConfig): ModuleConfigValidationResult;
 
   // --------------------------------------------------------------------------
-  // Pages
+  // Pages (MANDATORY — SINGLE SOURCE OF TRUTH)
   // --------------------------------------------------------------------------
 
   /**
-   * Static page declarations.
+   * Canonical page resolver.
    *
-   * Used by:
-   * - Navigation resolver
-   * - Licensing UI
-   * - Visibility checks
+   * RULES:
+   * - ALWAYS required
+   * - Static modules return constant arrays
+   * - Dynamic modules may filter pages based on config
    *
-   * MUST be declarative.
+   * Core derives:
+   * - Navigation
+   * - Routes
+   * - Enforcement
    */
-  pages?: ReadonlyArray<ModulePageDefinition>;
+  getPages(config: ReadonlyModuleConfig): ReadonlyArray<ModulePageDefinition>;
+
+  // --------------------------------------------------------------------------
+  // Contributions (OPTIONAL)
+  // --------------------------------------------------------------------------
 
   /**
-   * Dynamic page resolver.
-   *
-   * Used when page visibility depends on tenant config.
+   * Contribution types this module may emit.
+   * Declarative only.
    */
-  getPages?(config: ReadonlyModuleConfig): ReadonlyArray<ModulePageDefinition>;
+  contributions?: ContributionType[];
 
   // --------------------------------------------------------------------------
   // Lifecycle Hooks (OPTIONAL)
@@ -228,7 +273,7 @@ export interface ModuleContract {
 }
 
 /* ============================================================================ */
-/* DATA SCOPING & ISOLATION                                                      */
+/* DATA SCOPING & ISOLATION                                                     */
 /* ============================================================================ */
 
 export interface ScopedData<T> {
@@ -265,18 +310,4 @@ export function filterByScope<
     if (siteId && item.siteId !== siteId) return false;
     return true;
   });
-}
-
-/* ============================================================================ */
-/* MODULE DATA CONTRIBUTIONS                                                    */
-/* ============================================================================ */
-
-import type { ContributionType } from "@/core/contributions/types";
-
-export interface ModuleContract {
-  /**
-   * Contribution types this module may emit.
-   * Declarative only.
-   */
-  contributions?: ContributionType[];
 }
