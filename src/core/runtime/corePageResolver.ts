@@ -23,7 +23,7 @@ import type React from "react";
 import Dashboard from "@/pages/core/Dashboard";
 import Operations from "@/pages/core/Operations";
 import Finance from "@/pages/core/Finance";
-import Purchasing from "@/pages/core/Purchasing";
+import ProcurementEntry from "@/pages/core/ProcurementEntry";
 import InventoryModule from "@/pages/core/InventoryModule";
 import Staff from "@/pages/core/Staff";
 import Modules from "@/pages/core/Modules";
@@ -106,13 +106,13 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
   },
 
   {
-    id: "purchasing",
-    title: "Purchasing",
-    route: "/core/purchasing",
+    id: "procurement",
+    title: "Procurement",
+    route: "/core/procurement",
     icon: "clipboard-check",
     section: "office",
     visible: true,
-    component: Purchasing,
+    component: ProcurementEntry,
   },
 
   {

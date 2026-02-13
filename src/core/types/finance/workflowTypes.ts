@@ -7,7 +7,7 @@ export type WorkflowRequest = {
   destinationDept: string;
   status: "pending" | "approved" | "rejected";
   notes?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 };

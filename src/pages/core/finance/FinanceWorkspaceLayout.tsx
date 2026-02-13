@@ -24,6 +24,9 @@ import {
   FileSpreadsheet,
   BarChart3,
   Lock,
+  FileText,
+  FileSignature,
+  BookOpen,
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -33,31 +36,41 @@ const SECTIONS: MenuSection[] = [
   {
     title: "Operations",
     items: [
-      { label: "MoneyDesk", to: "/core/finance/moneydesk", icon: LayoutGrid },
-      { label: "TreasuryMap", to: "/core/finance/treasury", icon: Wallet },
-      { label: "LedgerCore", to: "/core/finance/ledger", icon: FileSpreadsheet },
+      { label: "Money Desk", to: "/core/finance/moneydesk", icon: LayoutGrid },
+      { label: "Treasury Map", to: "/core/finance/treasury", icon: Wallet },
+      { label: "Ledger Core", to: "/core/finance/ledger", icon: FileSpreadsheet },
+      { label: "Invoice Capture", to: "/core/finance/invoices", icon: FileText },
+      { label: "Finance Docs", to: "/core/finance/docs", icon: FileSignature },
+      { label: "Assets", to: "/core/finance/assets", icon: BookOpen },
     ],
   },
   {
     title: "Payments",
     items: [
-      { label: "PayFlow", to: "/core/finance/payflow", icon: CreditCard },
-      { label: "ReceivableDesk", to: "/core/finance/receivables", icon: Receipt },
-      { label: "PayableDesk", to: "/core/finance/payables", icon: Banknote },
+      { label: "Pay Flow", to: "/core/finance/payflow", icon: CreditCard },
+      { label: "Receivable Desk", to: "/core/finance/receivables", icon: Receipt },
+      { label: "Payable Desk", to: "/core/finance/payables", icon: Banknote },
     ],
   },
   {
     title: "Governance",
     items: [
-      { label: "ClosePeriodStudio", to: "/core/finance/close", icon: Lock },
-      { label: "AuditVault", to: "/core/finance/audit", icon: ShieldCheck },
+      { label: "Close Period Studio", to: "/core/finance/close", icon: Lock },
+      { label: "Audit Vault", to: "/core/finance/audit", icon: ShieldCheck },
+      { label: "Policy Manager", to: "/core/finance/policy", icon: ShieldCheck },
     ],
   },
   {
     title: "Intelligence",
-    items: [{ label: "FinanceInsights", to: "/core/finance/insights", icon: BarChart3 }],
+    items: [{ label: "Finance Insights", to: "/core/finance/insights", icon: BarChart3 }],
   },
 ];
+
+const ROUTE_LABELS: Record<string, string> = Object.fromEntries(
+  SECTIONS.flatMap((section) =>
+    section.items.map((item) => [item.to.replace("/core/finance/", ""), item.label]),
+  ),
+);
 
 export default function FinanceWorkspaceLayout() {
   const session = useSession();
@@ -65,7 +78,7 @@ export default function FinanceWorkspaceLayout() {
 
   const segments = location.pathname.replace("/core/finance", "").split("/").filter(Boolean);
   const breadcrumbs = segments.map((segment, index) => ({
-    label: segment.replace(/-/g, " "),
+    label: ROUTE_LABELS[segment] ?? segment.replace(/-/g, " "),
     path: `/core/finance/${segments.slice(0, index + 1).join("/")}`,
   }));
 

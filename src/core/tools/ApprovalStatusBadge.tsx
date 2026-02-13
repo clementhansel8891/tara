@@ -5,15 +5,16 @@ type ApprovalStatusBadgeProps = {
 };
 
 export function ApprovalStatusBadge({ status }: ApprovalStatusBadgeProps) {
+  const upper = status.toUpperCase();
   const tone =
-    status === "APPROVED"
+    upper === "APPROVED" || upper === "SUCCESS" || upper === "HEALTHY"
       ? "default"
-      : status === "REJECTED"
+      : upper === "REJECTED" || upper === "FAILED" || upper === "CRITICAL"
         ? "destructive"
-        : status === "PENDING"
+        : upper === "PENDING" || upper === "WARN" || upper === "MEDIUM"
           ? "secondary"
           : "outline";
-  return <Badge variant={tone}>{status}</Badge>;
+  return <Badge variant={tone}>{upper}</Badge>;
 }
 
 export default ApprovalStatusBadge;

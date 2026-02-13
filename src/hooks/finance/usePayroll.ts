@@ -1,40 +1,43 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { SessionContext } from "@/core/security/session";
 import { PayrollEntry } from "@/core/types/finance/payrollTypes";
 import { payrollService } from "@/core/services/finance/payrollService";
+
+const toErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 export function usePayroll(tenantId: string, session: SessionContext) {
   const [entries, setEntries] = useState<PayrollEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPayroll = async (period?: string) => {
+  const fetchPayroll = useCallback(async (period?: string) => {
     setLoading(true);
     setError(null);
     try {
       const data = await payrollService.getPayrollEntries(tenantId, period);
       setEntries(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch payroll entries");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to fetch payroll entries"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantId]);
 
-  const createPayrollEntry = async (entry: PayrollEntry) => {
+  const createPayrollEntry = useCallback(async (entry: PayrollEntry) => {
     setLoading(true);
     try {
       const newEntry = await payrollService.createPayrollEntry(entry);
       setEntries((prev) => [...prev, newEntry]);
-    } catch (err: any) {
-      setError(err.message || "Failed to create payroll entry");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to create payroll entry"));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updatePayrollEntry = async (
+  const updatePayrollEntry = useCallback(async (
     entryId: string,
     updates: Partial<PayrollEntry>,
   ) => {
@@ -42,28 +45,28 @@ export function usePayroll(tenantId: string, session: SessionContext) {
     try {
       const updated = await payrollService.updatePayrollEntry(entryId, updates);
       setEntries((prev) => prev.map((e) => (e.id === entryId ? updated : e)));
-    } catch (err: any) {
-      setError(err.message || "Failed to update payroll entry");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to update payroll entry"));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const runPayroll = async (period: string) => {
+  const runPayroll = useCallback(async (period: string) => {
     setLoading(true);
     try {
       await payrollService.runPayroll(tenantId, period);
       await fetchPayroll(period);
-    } catch (err: any) {
-      setError(err.message || "Failed to run payroll");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to run payroll"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchPayroll, tenantId]);
 
   useEffect(() => {
     fetchPayroll();
-  }, [tenantId]);
+  }, [fetchPayroll]);
 
   return {
     entries,

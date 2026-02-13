@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/core/ui/PageShell";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { useSession } from "@/core/security/session";
+import { procurementService } from "@/core/services/procurement/procurementService";
 import { AlertTriangle, ClipboardCheck, PackageSearch, Truck } from "lucide-react";
 
 const policyItems = [
@@ -68,6 +71,10 @@ const transferRequests = [
 ];
 
 export default function InventoryModule() {
+  const session = useSession();
+  const [, setVersion] = useState(0);
+  const procurementReceipts = procurementService.listGoodsReceiptSyncs(session.tenantId);
+
   return (
     <PageShell
       header={
@@ -80,6 +87,72 @@ export default function InventoryModule() {
       }
     >
       <div className="space-y-6">
+        <WorkspacePanel
+          title="Procurement goods receipt sync"
+          description="Expected PO deliveries synchronized from Procurement release."
+        >
+          <div className="space-y-3">
+            {procurementReceipts.length === 0 ? (
+              <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                No procurement delivery sync records yet.
+              </p>
+            ) : (
+              procurementReceipts.slice(0, 8).map((sync) => (
+                <div key={sync.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      PO {sync.finalPoId} | Branch {sync.branchCode}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Status: {sync.status} | Issues: {sync.issueCount}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        procurementService.updateGoodsReceiptSyncStatus(
+                          session.tenantId,
+                          session,
+                          sync.id,
+                          {
+                            status: "SYNCED",
+                            issueCount: 0,
+                            invoiceMismatch: false,
+                          },
+                        );
+                        setVersion((prev) => prev + 1);
+                      }}
+                    >
+                      Confirm
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        procurementService.updateGoodsReceiptSyncStatus(
+                          session.tenantId,
+                          session,
+                          sync.id,
+                          {
+                            status: "MISMATCH_REPORTED",
+                            issueCount: Math.max(sync.issueCount, 1),
+                            invoiceMismatch: sync.invoiceMismatch,
+                          },
+                        );
+                        setVersion((prev) => prev + 1);
+                      }}
+                    >
+                      Report mismatch
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </WorkspacePanel>
+
         <WorkspacePanel
           title="Stock policy overview"
           description="Governance controls applied across all inventories."

@@ -42,6 +42,7 @@ export const treasuryService = {
       status: "pending",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      requestedBy: session.userId,
     };
     repo.createTransfer(tenantId, transfer);
     workflowService.createRequest(tenantId, session, {

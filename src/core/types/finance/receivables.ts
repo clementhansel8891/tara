@@ -5,7 +5,7 @@ export interface ReceivableInvoice {
   amount: number;
   currency: "IDR" | "USD";
   dueDate: string;
-  status: "draft" | "issued" | "overdue" | "paid";
+  status: "draft" | "pending" | "issued" | "overdue" | "paid";
   agingBucket: "0-30" | "30-60" | "60+";
   createdAt: string;
   updatedAt: string;

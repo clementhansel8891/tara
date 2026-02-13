@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { treasuryService } from "@/core/services/finance/treasuryService"; // our updated treasuryService
 import type { TreasuryTransfer } from "@/core/types/finance/treasury";
 import type { SessionContext } from "@/core/security/session";
 import { MoneySource } from "@/core/types/finance/accounts";
+
+const toErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 export function useTreasury(tenantId: string, session: SessionContext) {
   const [sources, setSources] = useState<MoneySource[]>([]);
@@ -10,33 +13,33 @@ export function useTreasury(tenantId: string, session: SessionContext) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSources = async () => {
+  const fetchSources = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await treasuryService.listSources(tenantId, session);
       setSources(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch treasury sources");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to fetch treasury sources"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, tenantId]);
 
-  const fetchTransfers = async () => {
+  const fetchTransfers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await treasuryService.listTransfers(tenantId, session);
       setTransfers(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch treasury transfers");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to fetch treasury transfers"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, tenantId]);
 
-  const createTransfer = async (payload: {
+  const createTransfer = useCallback(async (payload: {
     fromSourceId: string;
     toSourceId: string;
     amount: number;
@@ -49,14 +52,14 @@ export function useTreasury(tenantId: string, session: SessionContext) {
         payload,
       );
       setTransfers((prev) => [...prev, transfer]);
-    } catch (err: any) {
-      setError(err.message || "Failed to create transfer");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to create transfer"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, tenantId]);
 
-  const reconcileSettlement = async (sourceId: string, amount: number) => {
+  const reconcileSettlement = useCallback(async (sourceId: string, amount: number) => {
     setLoading(true);
     try {
       await treasuryService.reconcileSettlement(
@@ -67,17 +70,17 @@ export function useTreasury(tenantId: string, session: SessionContext) {
       );
       // Refresh sources after reconciliation
       await fetchSources();
-    } catch (err: any) {
-      setError(err.message || "Failed to reconcile settlement");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to reconcile settlement"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchSources, session, tenantId]);
 
   useEffect(() => {
     fetchSources();
     fetchTransfers();
-  }, [tenantId]);
+  }, [fetchSources, fetchTransfers]);
 
   return {
     sources,

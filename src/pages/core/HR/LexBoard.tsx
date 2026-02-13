@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,16 +10,18 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { legalService } from "@/core/services/hr/legalService";
 import { workflowService } from "@/core/services/hr/workflowService";
+import { procurementService } from "@/core/services/procurement/procurementService";
 import { buildTemplatePreview, contractTemplates } from "@/core/tools/docs/TemplateEngine";
 import { DocumentViewer } from "@/core/tools/docs/DocumentViewer";
 
 export default function LexBoard() {
   const session = useSession();
-  const [version, setVersion] = useState(0);
+  const [, setVersion] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>(contractTemplates[0]?.id ?? "tpl-employment");
   const [search, setSearch] = useState("");
-  const compliance = useMemo(() => legalService.getComplianceCases(session.tenantId, session), [session, version]);
+  const compliance = legalService.getComplianceCases(session.tenantId, session);
+  const procurementHandoffs = procurementService.listLegalHandoffs(session.tenantId);
   const filteredContracts = compliance.contracts.filter((contract) =>
     search ? contract.title.toLowerCase().includes(search.toLowerCase()) : true,
   );
@@ -91,6 +93,42 @@ export default function LexBoard() {
             </tbody>
           </table>
         </DataTableShell>
+      </WorkspacePanel>
+
+      <WorkspacePanel title="Procurement handoff queue" description="Contract ownership handoff routed from Procurement.">
+        <div className="space-y-3 text-sm">
+          {procurementHandoffs.length === 0 ? (
+            <p className="rounded-lg border border-dashed p-3 text-muted-foreground">
+              No procurement contract handoffs yet.
+            </p>
+          ) : (
+            procurementHandoffs.slice(0, 6).map((handoff) => (
+              <div key={handoff.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium text-foreground">{handoff.contractId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Requisition {handoff.requisitionId} | Status: {handoff.status}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={handoff.status !== "PENDING_LEGAL_ACK"}
+                  onClick={() => {
+                    procurementService.acknowledgeLegalHandoff(
+                      session.tenantId,
+                      session,
+                      handoff.id,
+                    );
+                    setVersion((prev) => prev + 1);
+                  }}
+                >
+                  Acknowledge
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
       </WorkspacePanel>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">

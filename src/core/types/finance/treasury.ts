@@ -10,6 +10,7 @@ export interface TreasuryTransfer {
   status: "draft" | "pending" | "approved" | "rejected" | "completed";
   createdAt: string;
   updatedAt: string;
+  requestedBy: string;
 }
 
 export interface SettlementRecord {

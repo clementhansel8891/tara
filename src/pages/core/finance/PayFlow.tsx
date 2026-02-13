@@ -1,5 +1,5 @@
-// src/pages/core/finance/PayFlow.tsx
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+// cspell:ignore qris gopay shopeepay
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,16 +17,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
-import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
 import { financeService } from "@/core/services/finance/financeService";
-import { workflowService } from "@/core/services/hr/workflowService";
 import { logService } from "@/core/services/finance/logService";
 import { useTreasury } from "@/hooks/finance/useTreasury";
+
+type PaymentStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "SCHEDULED"
+  | "FAILED";
+
+type PaymentTab = PaymentStatus;
 
 type Payment = {
   id?: string;
@@ -34,18 +42,24 @@ type Payment = {
   amount: number;
   method: string;
   purpose: string;
-  status?: "PENDING" | "APPROVED" | "REJECTED" | "SCHEDULED" | "FAILED";
+  status?: PaymentStatus;
   approvalLevel?: number;
   scheduledDate?: string;
   recurring?: boolean;
 };
 
+const TABS: PaymentTab[] = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "SCHEDULED",
+  "FAILED",
+];
+
 export default function PayFlow() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<
-    "pending" | "approved" | "rejected" | "scheduled" | "failed"
-  >("pending");
+  const [tab, setTab] = useState<PaymentTab>("PENDING");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [batchDialogOpen, setBatchDialogOpen] = useState(false);
   const [payment, setPayment] = useState<Payment>({
@@ -60,33 +74,70 @@ export default function PayFlow() {
 
   const { sources } = useTreasury(session.tenantId, session);
 
-  // Fetch payments from mock service
-  const payments = useMemo(
-    () => financeService.listPayments(session.tenantId),
-    [session],
+  const normalizePayments = useCallback(() => {
+    return financeService
+      .listPayments(session.tenantId)
+      .map((payment) => ({
+        ...payment,
+        status:
+          payment.status === "PENDING" ||
+          payment.status === "APPROVED" ||
+          payment.status === "REJECTED" ||
+          payment.status === "SCHEDULED" ||
+          payment.status === "FAILED"
+            ? payment.status
+            : ("PENDING" as PaymentStatus),
+      })) as Payment[];
+  }, [session.tenantId]);
+
+  const [payments, setPayments] = useState<Payment[]>(() =>
+    normalizePayments(),
   );
 
-  // Filtered payments by search and tab
-  const filteredPayments = payments.filter(
-    (p) =>
-      (!search || p.destination.toLowerCase().includes(search.toLowerCase())) &&
-      (tab === "pending"
-        ? p.status === "PENDING"
-        : tab === "approved"
-          ? p.status === "APPROVED"
-          : tab === "rejected"
-            ? p.status === "REJECTED"
-            : tab === "scheduled"
-              ? p.status === "SCHEDULED"
-              : tab === "failed"
-                ? p.status === "FAILED"
-                : true),
+  const refreshPayments = useCallback(() => {
+    setPayments(normalizePayments());
+  }, [normalizePayments]);
+
+  useEffect(() => {
+    refreshPayments();
+  }, [refreshPayments, session]);
+
+  const groupedPayments = useMemo(() => {
+    const groups: Record<PaymentTab, Payment[]> = {
+      PENDING: [],
+      APPROVED: [],
+      REJECTED: [],
+      SCHEDULED: [],
+      FAILED: [],
+    };
+    for (const item of payments) {
+      const status: PaymentStatus = item.status ?? "PENDING";
+      groups[status].push(item);
+    }
+    return groups;
+  }, [payments]);
+
+  const summaryCounts = useMemo(
+    () => ({
+      pending: groupedPayments.PENDING.length,
+      approved: groupedPayments.APPROVED.length,
+      rejected: groupedPayments.REJECTED.length,
+      scheduled: groupedPayments.SCHEDULED.length,
+      failed: groupedPayments.FAILED.length,
+    }),
+    [groupedPayments],
   );
 
-  // Create single payment with workflow & logging
+  const filteredPayments = useMemo(
+    () =>
+      groupedPayments[tab].filter((p) =>
+        !search ? true : p.destination.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [groupedPayments, search, tab],
+  );
+
   const handleCreatePayment = () => {
     financeService.createPayment(session.tenantId, payment);
-    workflowService.routePayment(session.tenantId, payment); // Mock workflow route
     logService.log(
       session.tenantId,
       session.userId,
@@ -101,13 +152,12 @@ export default function PayFlow() {
       status: "PENDING",
       approvalLevel: 0,
     });
+    refreshPayments();
   };
 
-  // Batch payment creation
   const handleCreateBatch = () => {
     batchPayments.forEach((p) => {
       financeService.createPayment(session.tenantId, p);
-      workflowService.routePayment(session.tenantId, p);
       logService.log(
         session.tenantId,
         session.userId,
@@ -116,119 +166,157 @@ export default function PayFlow() {
     });
     setBatchDialogOpen(false);
     setBatchPayments([]);
+    refreshPayments();
   };
 
-  // Approve / Reject inline
-  const handleApprovalAction = (
-    id: string,
-    action: "APPROVED" | "REJECTED",
-  ) => {
+  const handleApprovalAction = (id: string, action: "APPROVED" | "REJECTED") => {
     financeService.updatePaymentStatus(session.tenantId, id, action);
     logService.log(session.tenantId, session.userId, `Payment ${id} ${action}`);
+    refreshPayments();
   };
+
+  const renderTable = (items: Payment[]) => (
+    <DataTableShell total={items.length} page={1} pageSize={10}>
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+          <tr>
+            <th className="p-3 text-left">Destination</th>
+            <th className="p-3 text-left">Method</th>
+            <th className="p-3 text-left">Amount</th>
+            <th className="p-3 text-left">Purpose</th>
+            <th className="p-3 text-left">Status</th>
+            <th className="p-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((p) => (
+            <tr key={p.id} className="border-t">
+              <td className="p-3">{p.destination}</td>
+              <td className="p-3 text-muted-foreground">{p.method}</td>
+              <td className="p-3 text-muted-foreground">
+                {p.amount.toLocaleString()}
+              </td>
+              <td className="p-3">{p.purpose}</td>
+              <td className="p-3">
+                <ApprovalStatusBadge status={p.status ?? "PENDING"} />
+              </td>
+              <td className="p-3 space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={p.status === "APPROVED"}
+                  onClick={() => p.id && handleApprovalAction(p.id, "APPROVED")}
+                >
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={p.status === "REJECTED"}
+                  onClick={() => p.id && handleApprovalAction(p.id, "REJECTED")}
+                >
+                  Reject
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </DataTableShell>
+  );
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="PayFlow"
+        title="Pay Flow"
         subtitle="Operational payments: create, approve, track, schedule, and audit all transactions."
         primaryAction={
-          <Button onClick={() => setDialogOpen(true)}>New Payment</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBatchDialogOpen(true)}>
+              Create Batch
+            </Button>
+            <Button onClick={() => setDialogOpen(true)}>Create Payment</Button>
+          </div>
         }
         secondaryActions={
-          <Input
-            placeholder="Search payments"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="min-w-[220px]"
-          />
+          <div className="flex gap-2">
+            <Select
+              value={tab}
+              onValueChange={(value) =>
+                setTab(value as PaymentStatus)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tab" />
+              </SelectTrigger>
+              <SelectContent>
+                {TABS.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Search payments"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="min-w-[220px]"
+            />
+          </div>
         }
       />
 
       <WorkspacePanel
-        title="Payments WorkQueue"
+        title="Payment Health"
+        description="Counts by status for transparency and approvals."
+      >
+        <div className="grid gap-3 sm:grid-cols-5">
+          {TABS.map((status) => (
+            <div key={status} className="rounded-lg border p-3">
+              <p className="text-xs text-muted-foreground">{status}</p>
+              <p className="text-xl font-semibold">
+                {summaryCounts[status.toLowerCase() as keyof typeof summaryCounts]}
+              </p>
+              <Badge variant="outline">{status}</Badge>
+            </div>
+          ))}
+        </div>
+      </WorkspacePanel>
+
+      <WorkspacePanel
+        title="Payments Work Queue"
         description="Payments requiring action, approvals, or review."
       >
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+        <Tabs value={tab} onValueChange={(value) => setTab(value as PaymentTab)}>
           <TabsList>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-            <TabsTrigger value="failed">Failed</TabsTrigger>
+            {TABS.map((status) => (
+              <TabsTrigger key={status} value={status}>
+                {status.charAt(0) + status.slice(1).toLowerCase()}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="pending" className="mt-4">
-            <DataTableShell
-              total={filteredPayments.length}
-              page={1}
-              pageSize={10}
-            >
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="p-3 text-left">Destination</th>
-                    <th className="p-3 text-left">Method</th>
-                    <th className="p-3 text-left">Amount</th>
-                    <th className="p-3 text-left">Purpose</th>
-                    <th className="p-3 text-left">Approval Level</th>
-                    <th className="p-3 text-left">Status</th>
-                    <th className="p-3 text-left">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPayments.map((p) => (
-                    <tr key={p.id} className="border-t">
-                      <td className="p-3">{p.destination}</td>
-                      <td className="p-3 text-muted-foreground">{p.method}</td>
-                      <td className="p-3 text-muted-foreground">
-                        {p.amount.toLocaleString()}
-                      </td>
-                      <td className="p-3">{p.purpose}</td>
-                      <td className="p-3">{p.approvalLevel}</td>
-                      <td className="p-3">
-                        <ApprovalStatusBadge status={p.status!} />
-                      </td>
-                      <td className="p-3 space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handleApprovalAction(p.id!, "APPROVED")
-                          }
-                        >
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() =>
-                            handleApprovalAction(p.id!, "REJECTED")
-                          }
-                        >
-                          Reject
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </DataTableShell>
-          </TabsContent>
-
-          {/* Other tabs: approved, rejected, scheduled, failed */}
-          {["approved", "rejected", "scheduled", "failed"].map((t) => (
-            <TabsContent key={t} value={t} className="mt-4">
-              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                {t.charAt(0).toUpperCase() + t.slice(1)} payments will appear
-                here. Integration hooks ready.
-              </div>
-            </TabsContent>
-          ))}
+          {TABS.map((status) => {
+            const items =
+              status === tab ? filteredPayments : groupedPayments[status];
+            return (
+              <TabsContent key={status} value={status} className="mt-4">
+                {items.length ? (
+                  renderTable(items)
+                ) : (
+                  <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                    {status.charAt(0) + status.slice(1).toLowerCase()} payments will
+                    appear here.
+                  </div>
+                )}
+              </TabsContent>
+            );
+          })}
         </Tabs>
       </WorkspacePanel>
 
-      {/* Dialog: New Payment */}
+      {/* Dialogs */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -252,7 +340,7 @@ export default function PayFlow() {
             />
             <Select
               value={payment.method}
-              onValueChange={(v) => setPayment({ ...payment, method: v })}
+              onValueChange={(value) => setPayment({ ...payment, method: value })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Method" />
@@ -293,17 +381,16 @@ export default function PayFlow() {
                 onChange={(e) =>
                   setPayment({ ...payment, recurring: e.target.checked })
                 }
-              />{" "}
+              />
               <span>Recurring</span>
             </div>
             <div className="flex justify-end gap-2">
-              <Button onClick={handleCreatePayment}>Submit & Route</Button>
+              <Button onClick={handleCreatePayment}>Create and Route</Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Batch Payment (mock) */}
       <Dialog open={batchDialogOpen} onOpenChange={setBatchDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -311,9 +398,8 @@ export default function PayFlow() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground">
-              Upload CSV or add multiple payments manually.
+              Upload a CSV or add multiple payments manually.
             </div>
-            {/* Mock table for batch payments */}
             {batchPayments.map((p, idx) => (
               <div key={idx} className="flex gap-2">
                 <Input
@@ -361,7 +447,7 @@ export default function PayFlow() {
               Add Payment
             </Button>
             <div className="flex justify-end gap-2">
-              <Button onClick={handleCreateBatch}>Submit Batch</Button>
+              <Button onClick={handleCreateBatch}>Create Batch</Button>
             </div>
           </div>
         </DialogContent>

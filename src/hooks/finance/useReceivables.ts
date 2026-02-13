@@ -1,41 +1,44 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { receivablesService } from "@/core/services/finance/receivablesService";
 import type { ReceivableInvoice } from "@/core/types/finance/receivables";
 import type { SessionContext } from "@/core/security/session";
+
+const toErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
 export function useReceivables(tenantId: string, session: SessionContext) {
   const [receivables, setReceivables] = useState<ReceivableInvoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReceivables = async (status?: string) => {
+  const fetchReceivables = useCallback(async (status?: string) => {
     setLoading(true);
     setError(null);
     try {
       const data = await receivablesService.getReceivables(tenantId, status);
       setReceivables(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch receivables");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to fetch receivables"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [tenantId]);
 
-  const createReceivable = async (receivable: ReceivableInvoice) => {
+  const createReceivable = useCallback(async (receivable: ReceivableInvoice) => {
     setLoading(true);
     try {
       const newReceivable = await receivablesService.createReceivable(receivable);
       if (newReceivable) setReceivables((prev) => [...prev, newReceivable]);
-    } catch (err: any) {
-      setError(err.message || "Failed to create receivable");
+    } catch (err: unknown) {
+      setError(toErrorMessage(err, "Failed to create receivable"));
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchReceivables();
-  }, [tenantId]);
+  }, [fetchReceivables]);
 
   return { receivables, loading, error, fetchReceivables, createReceivable };
 }

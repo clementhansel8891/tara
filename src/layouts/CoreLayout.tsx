@@ -34,7 +34,7 @@ const navItems = [
   { path: '/core', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { path: '/core/operations', icon: ClipboardList, label: 'Operations' },
   { path: '/core/finance', icon: Wallet, label: 'Finance' },
-  { path: '/core/purchasing', icon: ShoppingCart, label: 'Purchasing' },
+  { path: '/core/procurement', icon: ShoppingCart, label: 'Procurement' },
   { path: '/core/inventory', icon: Package, label: 'Inventory' },
   { path: '/core/admin', icon: Shield, label: 'Administration' },
   { path: '/core/hr', icon: Users2, label: 'HR' },

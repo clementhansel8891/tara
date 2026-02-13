@@ -33,6 +33,41 @@ import CaseDetail from "@/pages/core/HR/Cases/CaseDetail";
 import FinanceWorkspaceLayout from "@/pages/core/finance/FinanceWorkspaceLayout";
 import MoneyDesk from "@/pages/core/finance/MoneyDesk";
 import TreasuryMap from "@/pages/core/finance/TreasuryMap";
+import LedgerCore from "@/pages/core/finance/LedgerCore";
+import PayFlow from "@/pages/core/finance/PayFlow";
+import ReceivableDesk from "@/pages/core/finance/ReceivableDesk";
+import PayableDesk from "@/pages/core/finance/PayableDesk";
+import ClosePeriodStudio from "@/pages/core/finance/ClosePeriodStudio";
+import AuditVault from "@/pages/core/finance/AuditVault";
+import FinanceInsights from "@/pages/core/finance/FinanceInsights";
+import InvoiceCapture from "@/pages/core/finance/InvoiceCapture";
+import FinanceDocs from "@/pages/core/finance/FinanceDocs";
+import Assets from "@/pages/core/finance/Assets";
+import PolicyManager from "@/pages/core/finance/PolicyManager";
+import ProcurementWorkspaceLayout from "@/pages/core/procurement/ProcurementWorkspaceLayout";
+import SupplierDesk from "@/pages/core/procurement/SupplierDesk";
+import ContractDesk from "@/pages/core/procurement/ContractDesk";
+import PurchaseRequestDesk from "@/pages/core/procurement/PurchaseRequestDesk";
+import PoReleaseDesk from "@/pages/core/procurement/PoReleaseDesk";
+import SupplierPortalDesk from "@/pages/core/procurement/SupplierPortalDesk";
+import ProcurementRiskCenter from "@/pages/core/procurement/ProcurementRiskCenter";
+import ProcurementInsights from "@/pages/core/procurement/ProcurementInsights";
+import ITWorkspaceLayout from "@/pages/core/it/ITWorkspaceLayout";
+import AccountDesk from "@/pages/core/it/AccountDesk";
+import DeviceDesk from "@/pages/core/it/DeviceDesk";
+import SystemHealth from "@/pages/core/it/SystemHealth";
+import SalesWorkspaceLayout from "@/pages/core/sales/SalesWorkspaceLayout";
+import LeadDesk from "@/pages/core/sales/LeadDesk";
+import OpportunityDesk from "@/pages/core/sales/OpportunityDesk";
+import SalesOrderDesk from "@/pages/core/sales/SalesOrderDesk";
+import MarketingWorkspaceLayout from "@/pages/core/marketing/MarketingWorkspaceLayout";
+import CampaignDesk from "@/pages/core/marketing/CampaignDesk";
+import ExecutionDesk from "@/pages/core/marketing/ExecutionDesk";
+import MarketingAnalytics from "@/pages/core/marketing/MarketingAnalytics";
+import AdminWorkspaceLayout from "@/pages/core/adminWorkspace/AdminWorkspaceLayout";
+import RequestDesk from "@/pages/core/adminWorkspace/RequestDesk";
+import RequestAssign from "@/pages/core/adminWorkspace/RequestAssign";
+import RequestTrack from "@/pages/core/adminWorkspace/RequestTrack";
 import WorkflowInbox from "@/pages/core/WorkflowInbox";
 import ToolsHome from "@/pages/core/tools/ToolsHome";
 import DocumentTool from "@/pages/core/tools/DocumentTool";
@@ -72,6 +107,7 @@ export function buildCoreRoutes(): JSX.Element[] {
 
   return [
     <Route key="core-index" index element={<Navigate to={defaultPath} replace />} />,
+    <Route key="core-purchasing-legacy" path="purchasing" element={<Navigate to="/core/procurement" replace />} />,
     <Route
       key="core-finance"
       path="finance/*"
@@ -98,7 +134,301 @@ export function buildCoreRoutes(): JSX.Element[] {
           </ProtectedRoute>
         }
       />
-      {/* Remaining finance pages will be added in subsequent phases */}
+      <Route
+        path="ledger"
+        element={
+          <ProtectedRoute permission="finance.ledger.view" scope="COMPANY">
+            <LedgerCore />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="payflow"
+        element={
+          <ProtectedRoute permission="finance.payments.manage" scope="COMPANY">
+            <PayFlow />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="receivables"
+        element={
+          <ProtectedRoute permission="finance.receivables.view" scope="COMPANY">
+            <ReceivableDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="payables"
+        element={
+          <ProtectedRoute permission="finance.payables.view" scope="COMPANY">
+            <PayableDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="close"
+        element={
+          <ProtectedRoute permission="finance.close.manage" scope="COMPANY">
+            <ClosePeriodStudio />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="audit"
+        element={
+          <ProtectedRoute permission="finance.audit.view" scope="COMPANY">
+            <AuditVault />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="insights"
+        element={
+          <ProtectedRoute permission="finance.insights.view" scope="COMPANY">
+            <FinanceInsights />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="invoices"
+        element={
+          <ProtectedRoute permission="finance.invoices.manage" scope="COMPANY">
+            <InvoiceCapture />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="docs"
+        element={
+          <ProtectedRoute permission="finance.docs.view" scope="COMPANY">
+            <FinanceDocs />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="assets"
+        element={
+          <ProtectedRoute permission="finance.assets.view" scope="COMPANY">
+            <Assets />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="policy"
+        element={
+          <ProtectedRoute permission="finance.policy.manage" scope="COMPANY">
+            <PolicyManager />
+          </ProtectedRoute>
+        }
+      />
+    </Route>,
+    <Route
+      key="core-procurement"
+      path="procurement/*"
+      element={
+        <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+          <ProcurementWorkspaceLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<PurchaseRequestDesk />} />
+      <Route
+        path="suppliers"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <SupplierDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="contracts"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <ContractDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="prs"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <PurchaseRequestDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="po-release"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <PoReleaseDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="portal"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <SupplierPortalDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="risk"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <ProcurementRiskCenter />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="insights"
+        element={
+          <ProtectedRoute permission="core.procurement.access" scope="COMPANY">
+            <ProcurementInsights />
+          </ProtectedRoute>
+        }
+      />
+    </Route>,
+    <Route
+      key="core-it"
+      path="it/*"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<AccountDesk />} />
+      <Route
+        path="accounts"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <AccountDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="devices"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <DeviceDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="health"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <SystemHealth />
+          </ProtectedRoute>
+        }
+      />
+    </Route>,
+    <Route
+      key="core-sales"
+      path="sales/*"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<LeadDesk />} />
+      <Route
+        path="leads"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <LeadDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="opps"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <OpportunityDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="orders"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <SalesOrderDesk />
+          </ProtectedRoute>
+        }
+      />
+    </Route>,
+    <Route
+      key="core-marketing"
+      path="marketing/*"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<CampaignDesk />} />
+      <Route
+        path="campaigns"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <CampaignDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="execution"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <ExecutionDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="analytics"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <MarketingAnalytics />
+          </ProtectedRoute>
+        }
+      />
+    </Route>,
+    <Route
+      key="core-admin-workspace"
+      path="admin/*"
+      element={
+        <ProtectedRoute permission="core.admin.requests" scope="COMPANY">
+          <AdminWorkspaceLayout />
+        </ProtectedRoute>
+      }
+    >
+      <Route index element={<RequestDesk />} />
+      <Route
+        path="requests"
+        element={
+          <ProtectedRoute permission="core.admin.requests" scope="COMPANY">
+            <RequestDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="assign"
+        element={
+          <ProtectedRoute permission="core.admin.requests" scope="COMPANY">
+            <RequestAssign />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="track"
+        element={
+          <ProtectedRoute permission="core.admin.requests" scope="COMPANY">
+            <RequestTrack />
+          </ProtectedRoute>
+        }
+      />
     </Route>,
     <Route
       key="core-hr"

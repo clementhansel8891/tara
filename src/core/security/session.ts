@@ -7,14 +7,16 @@ export interface SessionContext {
   departmentId: string;
 }
 
+const DEV_SESSION: SessionContext = Object.freeze({
+  userId: "user-demo",
+  tenantId: "tenant-demo",
+
+  // DEV ACCESS (so Finance renders)
+  role: Roles.SUPERADMIN,
+
+  departmentId: "dept-ops",
+});
+
 export function useSession(): SessionContext {
-  return {
-    userId: "user-demo",
-    tenantId: "tenant-demo",
-
-    // DEV ACCESS (so Finance renders)
-    role: Roles.SUPERADMIN,
-
-    departmentId: "dept-ops",
-  };
+  return DEV_SESSION;
 }

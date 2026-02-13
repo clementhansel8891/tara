@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -8,125 +10,194 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
-import { financeService } from "@/core/services/finance/financeService";
-import { workflowService } from "@/core/services/hr/workflowService";
+import { financeService, type FinanceReceivableRow } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
+
+type ReceivableTab = "PENDING" | "APPROVED" | "OVERDUE";
+
+const TABS: ReceivableTab[] = ["PENDING", "APPROVED", "OVERDUE"];
 
 export default function ReceivableDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<"pending" | "received" | "overdue">("pending");
+  const [tab, setTab] = useState<ReceivableTab>("PENDING");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [customer, setCustomer] = useState("");
+  const [amount, setAmount] = useState("0");
+  const [dueDate, setDueDate] = useState("");
+  const [receivables, setReceivables] = useState<FinanceReceivableRow[]>([]);
 
-  // Mock: fetch receivable records
-  const receivables = useMemo(
-    () => financeService.listReceivables(session.tenantId),
-    [session],
+  const refreshReceivables = useCallback(() => {
+    setReceivables(financeService.listReceivables(session.tenantId));
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refreshReceivables();
+  }, [refreshReceivables]);
+
+  const filtered = useMemo(
+    () =>
+      receivables.filter((item) =>
+        search ? item.customer.toLowerCase().includes(search.toLowerCase()) : true,
+      ),
+    [receivables, search],
   );
 
-  const filteredReceivables = receivables.filter((r) =>
-    search ? r.customer.toLowerCase().includes(search.toLowerCase()) : true,
-  );
+  const grouped = useMemo(() => {
+    const next: Record<ReceivableTab, FinanceReceivableRow[]> = {
+      PENDING: [],
+      APPROVED: [],
+      OVERDUE: [],
+    };
+    filtered.forEach((item) => {
+      next[item.status].push(item);
+    });
+    return next;
+  }, [filtered]);
 
-  const handleMarkReceived = (id: string) => {
-    financeService.markReceived(session.tenantId, id);
+  const createReceivable = () => {
+    financeService.createReceivable(session.tenantId, session, {
+      customer,
+      amount: Number(amount || "0"),
+      dueDate,
+    });
     logService.log(
       session.tenantId,
       session.userId,
-      `Marked receivable ${id} as received`,
+      "Created receivable",
+      `${customer} - ${amount}`,
     );
+    setDialogOpen(false);
+    setCustomer("");
+    setAmount("0");
+    setDueDate("");
+    refreshReceivables();
   };
+
+  const markReceived = (id: string) => {
+    financeService.markReceived(session.tenantId, id);
+    logService.log(session.tenantId, session.userId, "Marked receivable received", id);
+    refreshReceivables();
+  };
+
+  const sendReminder = (id: string) => {
+    financeService.sendReceivableReminder(session.tenantId, session, id);
+    logService.log(session.tenantId, session.userId, "Sent receivable reminder", id);
+  };
+
+  const renderTable = (items: FinanceReceivableRow[]) => (
+    <DataTableShell total={items.length} page={1} pageSize={10}>
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+          <tr>
+            <th className="p-3 text-left">Customer</th>
+            <th className="p-3 text-left">Invoice</th>
+            <th className="p-3 text-left">Amount</th>
+            <th className="p-3 text-left">Due Date</th>
+            <th className="p-3 text-left">Status</th>
+            <th className="p-3 text-left">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((receivable) => (
+            <tr key={receivable.id} className="border-t">
+              <td className="p-3">{receivable.customer}</td>
+              <td className="p-3">{receivable.invoiceId}</td>
+              <td className="p-3 text-muted-foreground">{receivable.amount.toLocaleString()}</td>
+              <td className="p-3">{receivable.dueDate}</td>
+              <td className="p-3">
+                <ApprovalStatusBadge status={receivable.status} />
+              </td>
+              <td className="p-3">
+                <div className="flex flex-wrap gap-2">
+                  {receivable.status !== "APPROVED" ? (
+                    <Button size="sm" onClick={() => markReceived(receivable.id)}>
+                      Mark Received
+                    </Button>
+                  ) : null}
+                  {receivable.status !== "APPROVED" ? (
+                    <Button size="sm" variant="outline" onClick={() => sendReminder(receivable.id)}>
+                      Reminder
+                    </Button>
+                  ) : null}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </DataTableShell>
+  );
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="ReceivableDesk"
-        subtitle="Manage incoming payments, invoices, and collections efficiently."
-        primaryAction={
-          <Button onClick={() => alert("Add invoice modal coming soon")}>
-            Add Invoice
-          </Button>
-        }
+        title="Receivable Desk"
+        subtitle="Track incoming invoices with collection and reminder workflows."
+        primaryAction={<Button onClick={() => setDialogOpen(true)}>Create Receivable</Button>}
         secondaryActions={
           <Input
-            placeholder="Search customers or invoices"
+            placeholder="Search customers"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             className="min-w-[220px]"
           />
         }
       />
 
-      <WorkspacePanel
-        title="Receivables WorkQueue"
-        description="Invoices and payments requiring attention."
-      >
-        <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+      <WorkspacePanel title="Receivable Health" description="Collection visibility by status.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Pending</p>
+            <p className="text-xl font-semibold">{grouped.PENDING.length}</p>
+            <Badge variant="secondary">Collecting</Badge>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Received</p>
+            <p className="text-xl font-semibold">{grouped.APPROVED.length}</p>
+            <Badge variant="default">Settled</Badge>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Overdue</p>
+            <p className="text-xl font-semibold text-rose-600">{grouped.OVERDUE.length}</p>
+            <Badge variant="destructive">Follow up</Badge>
+          </div>
+        </div>
+      </WorkspacePanel>
+
+      <WorkspacePanel title="Receivables Work Queue" description="Invoices requiring collection action.">
+        <FilterBar searchValue={search} onSearchChange={setSearch} />
+        <Tabs value={tab} onValueChange={(value) => setTab(value as ReceivableTab)}>
           <TabsList>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="received">Received</TabsTrigger>
-            <TabsTrigger value="overdue">Overdue</TabsTrigger>
+            {TABS.map((status) => (
+              <TabsTrigger key={status} value={status}>
+                {status.charAt(0) + status.slice(1).toLowerCase()}
+              </TabsTrigger>
+            ))}
           </TabsList>
-
-          <TabsContent value="pending" className="mt-4">
-            <DataTableShell
-              total={filteredReceivables.length}
-              page={1}
-              pageSize={10}
-            >
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="p-3 text-left">Customer</th>
-                    <th className="p-3 text-left">Invoice</th>
-                    <th className="p-3 text-left">Amount</th>
-                    <th className="p-3 text-left">Due Date</th>
-                    <th className="p-3 text-left">Status</th>
-                    <th className="p-3 text-left">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredReceivables
-                    .filter((r) => r.status === "PENDING")
-                    .map((r) => (
-                      <tr key={r.id} className="border-t">
-                        <td className="p-3">{r.customer}</td>
-                        <td className="p-3">{r.invoiceId}</td>
-                        <td className="p-3 text-muted-foreground">
-                          {r.amount.toLocaleString()}
-                        </td>
-                        <td className="p-3">{r.dueDate}</td>
-                        <td className="p-3">
-                          <ApprovalStatusBadge status={r.status} />
-                        </td>
-                        <td className="p-3">
-                          <Button
-                            size="sm"
-                            onClick={() => handleMarkReceived(r.id)}
-                          >
-                            Mark Received
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </DataTableShell>
-          </TabsContent>
-
-          <TabsContent value="received" className="mt-4">
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Received invoices will appear here. Integration with bank
-              reconciliation ready.
-            </div>
-          </TabsContent>
-
-          <TabsContent value="overdue" className="mt-4">
-            <div className="rounded-lg border border-dashed p-4 text-sm text-red-500">
-              Overdue invoices with reminders and follow-ups.
-            </div>
-          </TabsContent>
+          {TABS.map((status) => (
+            <TabsContent key={status} value={status} className="mt-4">
+              {renderTable(grouped[status])}
+            </TabsContent>
+          ))}
         </Tabs>
       </WorkspacePanel>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Receivable</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input placeholder="Customer" value={customer} onChange={(event) => setCustomer(event.target.value)} />
+            <Input placeholder="Amount" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} />
+            <Input placeholder="Due date" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+            <div className="flex justify-end gap-2">
+              <Button onClick={createReceivable}>Create and Route</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

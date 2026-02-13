@@ -48,9 +48,6 @@ export default function TreasuryMap() {
       fromSourceId: fromSource || sources[0]?.id || "",
       toSourceId: toSource || sources[1]?.id || "",
       amount: Number(amount || "0"),
-      tenantId: session.tenantId,
-      requestedBy: session.userId,
-      approvalStages: ["Treasury", "Finance", "CFO"], // multi-level approval
     };
 
     createTransfer(transferRequest);
@@ -69,14 +66,14 @@ export default function TreasuryMap() {
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="TreasuryMap"
+        title="Treasury Map"
         subtitle="Real-time cash positioning, liquidity, inter-account transfers, and settlements."
         primaryAction={
-          <Button onClick={() => setDialogOpen(true)}>Transfer</Button>
+          <Button onClick={() => setDialogOpen(true)}>Create Transfer</Button>
         }
         secondaryActions={
           <Input
-            placeholder="Search accounts"
+            placeholder="Search treasury accounts"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-w-[220px]"
@@ -240,7 +237,7 @@ export default function TreasuryMap() {
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Amount"
             />
-            <Button onClick={handleTransfer}>Submit & Route</Button>
+            <Button onClick={handleTransfer}>Create and Route</Button>
           </div>
         </DialogContent>
       </Dialog>

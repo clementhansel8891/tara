@@ -1,135 +1,152 @@
-// src/pages/core/finance/FinanceDocs.tsx
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
-import { financeService } from "@/core/services/finance/financeService";
-import { workflowService } from "@/core/services/hr/workflowService";
+import { financeService, type FinanceDocumentRow } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
+
+type DocumentTab = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+
+const TABS: DocumentTab[] = ["ALL", "PENDING", "APPROVED", "REJECTED"];
 
 export default function FinanceDocs() {
   const session = useSession();
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<DocumentTab>("ALL");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [docForm, setDocForm] = useState({
-    title: "",
-    type: "INVOICE",
-    description: "",
-    file: null as File | null,
-  });
-
-  // Fetch finance documents
-  const documents = useMemo(
-    () => financeService.listDocuments(session.tenantId),
-    [session],
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState("INVOICE");
+  const [description, setDescription] = useState("");
+  const [docs, setDocs] = useState<FinanceDocumentRow[]>(() =>
+    financeService.listDocuments(session.tenantId),
   );
 
-  const filteredDocs = documents.filter((d) =>
-    search ? d.title.toLowerCase().includes(search.toLowerCase()) : true,
+  const refreshDocs = useCallback(() => {
+    setDocs(financeService.listDocuments(session.tenantId));
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refreshDocs();
+  }, [refreshDocs]);
+
+  const filteredDocs = useMemo(
+    () =>
+      docs.filter((doc) => {
+        const searchMatch = search ? doc.title.toLowerCase().includes(search.toLowerCase()) : true;
+        const tabMatch = tab === "ALL" ? true : doc.status === tab;
+        return searchMatch && tabMatch;
+      }),
+    [docs, search, tab],
   );
 
-  const handleUploadDoc = () => {
-    if (!docForm.file) return;
-    financeService.uploadDocument(session.tenantId, {
-      title: docForm.title,
-      type: docForm.type,
-      description: docForm.description,
-      file: docForm.file,
+  const uploadDoc = () => {
+    financeService.uploadDocumentForApproval(session.tenantId, session, {
+      title,
+      type,
+      description,
+      file: null,
     });
-    logService.log(
-      session.tenantId,
-      session.userId,
-      `Uploaded document: ${docForm.title}`,
-    );
+    logService.log(session.tenantId, session.userId, "Uploaded finance document", title);
     setDialogOpen(false);
-    setDocForm({ title: "", type: "INVOICE", description: "", file: null });
+    setTitle("");
+    setType("INVOICE");
+    setDescription("");
+    refreshDocs();
+  };
+
+  const updateStatus = (id: string, status: "APPROVED" | "REJECTED") => {
+    financeService.updateDocumentStatus(session.tenantId, id, status);
+    logService.log(session.tenantId, session.userId, "Updated finance document status", `${id} -> ${status}`);
+    refreshDocs();
   };
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Finance Docs"
-        subtitle="Manage all finance documents: invoices, receipts, contracts, and audit attachments."
-        primaryAction={
-          <Button onClick={() => setDialogOpen(true)}>Upload Document</Button>
-        }
+        subtitle="Document control with route-to-approval and audit-ready status tracking."
+        primaryAction={<Button onClick={() => setDialogOpen(true)}>Upload Document</Button>}
         secondaryActions={
           <Input
             placeholder="Search documents"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
             className="min-w-[220px]"
           />
         }
       />
 
-      <WorkspacePanel
-        title="Document List"
-        description="All finance documents with status and type."
-      >
+      <WorkspacePanel title="Documents Work Queue" description="Document inbox by approval stage.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
-        <DataTableShell total={filteredDocs.length} page={1} pageSize={10}>
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="p-3 text-left">Title</th>
-                <th className="p-3 text-left">Type</th>
-                <th className="p-3 text-left">Description</th>
-                <th className="p-3 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredDocs.map((d) => (
-                <tr key={d.id} className="border-t">
-                  <td className="p-3 font-medium">{d.title}</td>
-                  <td className="p-3 text-muted-foreground">{d.type}</td>
-                  <td className="p-3 text-muted-foreground">{d.description}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={d.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </DataTableShell>
+        <Tabs value={tab} onValueChange={(value) => setTab(value as DocumentTab)}>
+          <TabsList>
+            {TABS.map((status) => (
+              <TabsTrigger key={status} value={status}>
+                {status.charAt(0) + status.slice(1).toLowerCase()}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {TABS.map((status) => (
+            <TabsContent key={status} value={status} className="mt-4">
+              <DataTableShell total={filteredDocs.length} page={1} pageSize={10}>
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="p-3 text-left">Title</th>
+                      <th className="p-3 text-left">Type</th>
+                      <th className="p-3 text-left">Description</th>
+                      <th className="p-3 text-left">Status</th>
+                      <th className="p-3 text-left">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredDocs.map((doc) => (
+                      <tr key={doc.id} className="border-t">
+                        <td className="p-3 font-medium">{doc.title}</td>
+                        <td className="p-3 text-muted-foreground">{doc.type}</td>
+                        <td className="p-3 text-muted-foreground">{doc.description}</td>
+                        <td className="p-3">
+                          <ApprovalStatusBadge status={doc.status} />
+                        </td>
+                        <td className="p-3">
+                          {doc.status === "PENDING" ? (
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline" onClick={() => updateStatus(doc.id, "APPROVED")}>
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => updateStatus(doc.id, "REJECTED")}>
+                                Reject
+                              </Button>
+                            </div>
+                          ) : null}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DataTableShell>
+            </TabsContent>
+          ))}
+        </Tabs>
       </WorkspacePanel>
 
-      {/* Dialog: Upload Document */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Upload Finance Document</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input
-              placeholder="Title"
-              value={docForm.title}
-              onChange={(e) =>
-                setDocForm({ ...docForm, title: e.target.value })
-              }
-            />
-            <Select
-              value={docForm.type}
-              onValueChange={(v) => setDocForm({ ...docForm, type: v })}
-            >
+            <Input placeholder="Title" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <Select value={type} onValueChange={setType}>
               <SelectTrigger>
                 <SelectValue placeholder="Document Type" />
               </SelectTrigger>
@@ -142,21 +159,9 @@ export default function FinanceDocs() {
                 <SelectItem value="JOURNAL_ENTRY">Journal Entry</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              placeholder="Description"
-              value={docForm.description}
-              onChange={(e) =>
-                setDocForm({ ...docForm, description: e.target.value })
-              }
-            />
-            <Input
-              type="file"
-              onChange={(e) =>
-                setDocForm({ ...docForm, file: e.target.files?.[0] ?? null })
-              }
-            />
+            <Input placeholder="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
             <div className="flex justify-end gap-2">
-              <Button onClick={handleUploadDoc}>Upload & Route</Button>
+              <Button onClick={uploadDoc}>Upload and Route</Button>
             </div>
           </div>
         </DialogContent>
