@@ -21,12 +21,16 @@ import { ModuleLayout } from "@/layouts/ModuleLayout";
 
 import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
 import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
+import CoreDashboard from "./pages/core/Dashboard";
 
 export default function App() {
   return (
     <AppProvider>
       <BrowserRouter>
         <Routes>
+          {/* Landing trial */}
+          <Route path="/core/dashboard" element={<CoreDashboard />} />
+
           {/* Landing */}
           <Route path="/" element={<Index />} />
 
