@@ -28,7 +28,7 @@ export class FileProcessingService {
     await new Promise((resolve, reject) => {
       stream
         .pipe(csv())
-        .on('data', (data) => {
+        .on('data', (data: any) => {
           // Sanitize incoming data
           const sanitized: any = {};
           for (const key in data) {
@@ -37,7 +37,7 @@ export class FileProcessingService {
           results.push(sanitized);
         })
         .on('end', () => resolve(results))
-        .on('error', (err) => reject(err));
+        .on('error', (err: any) => reject(err));
     });
 
     return this.validateData(results, dtoClass);
@@ -57,14 +57,14 @@ export class FileProcessingService {
     }
 
     const headers: string[] = [];
-    worksheet.getRow(1).eachCell((cell, colNumber) => {
+    worksheet.getRow(1).eachCell((cell: ExcelJS.Cell, colNumber: number) => {
       headers[colNumber] = cell.value?.toString() || '';
     });
 
-    worksheet.eachRow((row, rowNumber) => {
+    worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
       if (rowNumber === 1) return; // Skip headers
       const rowData: any = {};
-      row.eachCell((cell, colNumber) => {
+      row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
         const header = headers[colNumber];
         if (header) {
           rowData[header] = this.sanitizeValue(cell.value);
