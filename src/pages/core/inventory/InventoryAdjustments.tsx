@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,7 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
+import type { InventoryAdjustmentRequest, InventoryItemMaster } from "@/core/types/inventory/inventory";
 
 export default function InventoryAdjustments() {
   const session = useSession();
@@ -17,10 +18,29 @@ export default function InventoryAdjustments() {
   const [departmentCode, setDepartmentCode] = useState("PRODUCTION");
   const [delta, setDelta] = useState("0");
   const [reason, setReason] = useState("");
-  const [, setVersion] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [adjustments, setAdjustments] = useState<InventoryAdjustmentRequest[]>([]);
+  const [items, setItems] = useState<InventoryItemMaster[]>([]);
 
-  const adjustments = inventoryService.listAdjustments(session.tenantId);
-  const items = inventoryService.listItems(session.tenantId);
+  const refresh = useCallback(async () => {
+    try {
+      const [adj, itm] = await Promise.all([
+        inventoryService.listAdjustments(session.tenantId),
+        inventoryService.listItems(session.tenantId),
+      ]);
+      setAdjustments(adj);
+      setItems(itm);
+    } catch (err) {
+      console.error("Failed to fetch inventory adjustments data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const filtered = useMemo(
     () =>
       adjustments.filter((item) =>
@@ -30,6 +50,14 @@ export default function InventoryAdjustments() {
       ),
     [adjustments, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading adjustments...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -70,10 +98,10 @@ export default function InventoryAdjustments() {
             onChange={(event) => setDelta(event.target.value)}
           />
           <Button
-            onClick={() => {
+            onClick={async () => {
               const selectedItem = itemId || items[0]?.id;
               if (!selectedItem) return;
-              inventoryService.requestAdjustment(session.tenantId, session, {
+              await inventoryService.requestAdjustment(session.tenantId, session, {
                 itemId: selectedItem,
                 locationCode,
                 departmentCode,
@@ -83,7 +111,7 @@ export default function InventoryAdjustments() {
               setItemId("");
               setReason("");
               setDelta("0");
-              setVersion((prev) => prev + 1);
+              refresh();
             }}
           >
             Request Adjustment
@@ -126,9 +154,9 @@ export default function InventoryAdjustments() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          inventoryService.approveAdjustment(session.tenantId, session, item.id);
-                          setVersion((prev) => prev + 1);
+                        onClick={async () => {
+                          await inventoryService.approveAdjustment(session.tenantId, session, item.id);
+                          refresh();
                         }}
                       >
                         Approve

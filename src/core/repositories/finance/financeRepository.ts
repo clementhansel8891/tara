@@ -17,93 +17,93 @@ import type {
 export type Asset = FixedAsset;
 
 export interface FinanceRepository {
-  listSources: (tenantId: string) => MoneySource[];
+  listSources: (tenantId: string) => Promise<MoneySource[]>;
   updateSource: (
     tenantId: string,
     sourceId: string,
     patch: Partial<MoneySource>,
-  ) => MoneySource | null;
+  ) => Promise<MoneySource | null>;
 
-  listTransfers: (tenantId: string) => TreasuryTransfer[];
+  listTransfers: (tenantId: string) => Promise<TreasuryTransfer[]>;
   createTransfer: (
     tenantId: string,
     transfer: TreasuryTransfer,
-  ) => TreasuryTransfer;
-  listSettlements: (tenantId: string) => SettlementRecord[];
+  ) => Promise<TreasuryTransfer>;
+  listSettlements: (tenantId: string) => Promise<SettlementRecord[]>;
   createSettlement: (
     tenantId: string,
     settlement: SettlementRecord,
-  ) => SettlementRecord;
+  ) => Promise<SettlementRecord>;
 
-  listPaymentRequests: (tenantId: string) => PaymentRequest[];
+  listPaymentRequests: (tenantId: string) => Promise<PaymentRequest[]>;
   createPaymentRequest: (
     tenantId: string,
     payload: PaymentRequest,
-  ) => PaymentRequest;
+  ) => Promise<PaymentRequest>;
   updatePaymentRequest: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentRequest>,
-  ) => PaymentRequest | null;
+  ) => Promise<PaymentRequest | null>;
 
-  listReceivables: (tenantId: string) => ReceivableInvoice[];
+  listReceivables: (tenantId: string) => Promise<ReceivableInvoice[]>;
   createReceivable: (
     tenantId: string,
     payload: ReceivableInvoice,
-  ) => ReceivableInvoice;
+  ) => Promise<ReceivableInvoice>;
   updateReceivable: (
     tenantId: string,
     id: string,
     patch: Partial<ReceivableInvoice>,
-  ) => ReceivableInvoice | null;
+  ) => Promise<ReceivableInvoice | null>;
 
-  listPayables: (tenantId: string) => PayableBill[];
-  createPayable: (tenantId: string, payload: PayableBill) => PayableBill;
+  listPayables: (tenantId: string) => Promise<PayableBill[]>;
+  createPayable: (tenantId: string, payload: PayableBill) => Promise<PayableBill>;
   updatePayable: (
     tenantId: string,
     id: string,
     patch: Partial<PayableBill>,
-  ) => PayableBill | null;
+  ) => Promise<PayableBill | null>;
 
-  listJournalEntries: (tenantId: string) => JournalEntry[];
-  createJournalEntry: (tenantId: string, payload: JournalEntry) => JournalEntry;
+  listJournalEntries: (tenantId: string) => Promise<JournalEntry[]>;
+  createJournalEntry: (tenantId: string, payload: JournalEntry) => Promise<JournalEntry>;
   updateJournalEntry: (
     tenantId: string,
     id: string,
     patch: Partial<JournalEntry>,
-  ) => JournalEntry | null;
+  ) => Promise<JournalEntry | null>;
 
-  listAssets: (tenantId: string) => Asset[];
+  listAssets: (tenantId: string) => Promise<Asset[]>;
   createAsset: (
     tenantId: string,
     asset: Omit<
       Asset,
       "id" | "createdAt" | "updatedAt" | "accumulatedDepreciation" | "carryingValue" | "revaluationReserve"
     >,
-  ) => Asset;
+  ) => Promise<Asset>;
   updateAsset: (
     tenantId: string,
     id: string,
     patch: Partial<Asset>,
-  ) => Asset | null;
+  ) => Promise<Asset | null>;
 
-  listCapexRequests: (tenantId: string) => CapexRequest[];
+  listCapexRequests: (tenantId: string) => Promise<CapexRequest[]>;
   createCapexRequest: (
     tenantId: string,
     payload: CapexRequest,
-  ) => CapexRequest;
+  ) => Promise<CapexRequest>;
   updateCapexRequest: (
     tenantId: string,
     id: string,
     patch: Partial<CapexRequest>,
-  ) => CapexRequest | null;
+  ) => Promise<CapexRequest | null>;
 
-  listAssetDepreciationEntries: (tenantId: string) => AssetDepreciationEntry[];
+  listAssetDepreciationEntries: (tenantId: string) => Promise<AssetDepreciationEntry[]>;
   createAssetDepreciationEntry: (
     tenantId: string,
     payload: AssetDepreciationEntry,
-  ) => AssetDepreciationEntry;
+  ) => Promise<AssetDepreciationEntry>;
 
-  listAssetEvents: (tenantId: string) => AssetEvent[];
-  createAssetEvent: (tenantId: string, payload: AssetEvent) => AssetEvent;
+  listAssetEvents: (tenantId: string) => Promise<AssetEvent[]>;
+  createAssetEvent: (tenantId: string, payload: AssetEvent) => Promise<AssetEvent>;
 }

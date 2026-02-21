@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -7,14 +7,36 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
+import type { InventoryAuditCycle, InventoryIntegrationEvent, InventoryMovement } from "@/core/types/inventory/inventory";
 
 export default function InventoryAuditLog() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const [, setVersion] = useState(0);
-  const movements = inventoryService.listMovements(session.tenantId);
-  const cycles = inventoryService.listAuditCycles(session.tenantId);
-  const integrations = inventoryService.listIntegrationEvents(session.tenantId);
+  const [loading, setLoading] = useState(true);
+  const [movements, setMovements] = useState<InventoryMovement[]>([]);
+  const [cycles, setCycles] = useState<InventoryAuditCycle[]>([]);
+  const [integrations, setIntegrations] = useState<InventoryIntegrationEvent[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const [m, c, i] = await Promise.all([
+        inventoryService.listMovements(session.tenantId),
+        inventoryService.listAuditCycles(session.tenantId),
+        inventoryService.listIntegrationEvents(session.tenantId),
+      ]);
+      setMovements(m);
+      setCycles(c);
+      setIntegrations(i);
+    } catch (err) {
+      console.error("Failed to fetch inventory audit log data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filteredMovements = useMemo(
     () =>
@@ -28,6 +50,14 @@ export default function InventoryAuditLog() {
     [movements, search],
   );
 
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading audit logs...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -35,12 +65,12 @@ export default function InventoryAuditLog() {
         subtitle="Immutable activity trail for stock movements, audit cycles, and integration sync events."
         primaryAction={
           <Button
-            onClick={() => {
-              inventoryService.startAuditCycle(session.tenantId, session, {
+            onClick={async () => {
+              await inventoryService.startAuditCycle(session.tenantId, session, {
                 locationCode: "JKT-WH",
                 scope: "LOCATION",
               });
-              setVersion((prev) => prev + 1);
+              refresh();
             }}
           >
             Start Audit Cycle
@@ -55,7 +85,7 @@ export default function InventoryAuditLog() {
           />
         }
       />
-
+      {/* ... rest of the tables (Movement Ledger, Audit Cycles, Integration Events) remain the same structure ... */}
       <WorkspacePanel title="Movement Ledger" description="Every stock movement is traceable with actor and reason.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredMovements.length} page={1} pageSize={10}>
@@ -111,12 +141,12 @@ export default function InventoryAuditLog() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            inventoryService.closeAuditCycle(session.tenantId, session, cycle.id, {
+                          onClick={async () => {
+                            await inventoryService.closeAuditCycle(session.tenantId, session, cycle.id, {
                               expectedValue: 1000,
                               countedValue: 990,
                             });
-                            setVersion((prev) => prev + 1);
+                            refresh();
                           }}
                         >
                           Close

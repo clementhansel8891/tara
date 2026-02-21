@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,14 +16,34 @@ export default function GrowthCycle() {
   const [version, setVersion] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState(false);
-  const [cycleName, setCycleName] = useState("Q1 Review");
+  const [cycleName, setCycleName] = useState("");
   const [cycleStart, setCycleStart] = useState("2026-01-01");
   const [cycleEnd, setCycleEnd] = useState("2026-03-31");
   const [cycleDue, setCycleDue] = useState("2026-04-10");
   const [selectedCycle, setSelectedCycle] = useState("");
   const [notes, setNotes] = useState("");
   const [search, setSearch] = useState("");
-  const overview = useMemo(() => performanceService.getCycleOverview(session.tenantId, session), [session, version]);
+  const [cycleType, setCycleType] = useState<"annual" | "probation">("annual");
+
+  const [overview, setOverview] = useState<{
+    cycles: any[];
+    reviews: any[];
+    activeCycles: number;
+    pendingReviews: number;
+  }>({ cycles: [], reviews: [], activeCycles: 0, pendingReviews: 0 });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await performanceService.getCycleOverview(session.tenantId, session);
+        setOverview(data);
+      } catch (err) {
+        console.error("Failed to load growth cycle data", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
   const filteredCycles = overview.cycles.filter((cycle) =>
     search ? cycle.name.toLowerCase().includes(search.toLowerCase()) : true,
   );

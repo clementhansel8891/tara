@@ -36,14 +36,17 @@ const ReceivingTerminal = () => {
   const [activeShift, setActiveShift] = useState<any | null>(null);
 
   useEffect(() => {
-    try {
-      const shifts = retailService.listShifts(session.tenantId!);
-      const openShift = shifts.find(s => s.status === "open" && s.employeeId === session.userId);
-      setActiveShift(openShift || null);
-    } catch (e) {
-      console.error("Failed to fetch shift", e);
-    }
-  }, [session.tenantId, session.userId]);
+    const fetchData = async () => {
+      try {
+        const shifts = await retailService.listShifts(session.tenantId!, session);
+        const openShift = shifts.find(s => s.status === "open" && s.employeeId === session.userId);
+        setActiveShift(openShift || null);
+      } catch (e) {
+        console.error("Failed to fetch shift", e);
+      }
+    };
+    fetchData();
+  }, [session.tenantId, session.userId, session]);
 
   useEffect(() => {
     // Mock fetching POs

@@ -1,73 +1,108 @@
-import type { PayrollRun } from "@/core/types/hr/payroll";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { PayrollRun, PayrollRunStatus, PayrollLine } from "@/core/types/hr/payroll";
+import { prisma } from "@/core/persistence/database/client";
 
-const key = (tenantId: string) => `hr:${tenantId}:payroll-runs`;
-
-const seedRuns = (tenantId: string): PayrollRun[] => [
-  {
-    id: `${tenantId}-pay-001`,
-    tenantId,
-    periodStart: "2026-02-01",
-    periodEnd: "2026-02-15",
-    status: "draft",
-    totalEmployees: 42,
-    totalGrossPay: 420000,
-    totalNetPay: 320000,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-pay-000`,
-    tenantId,
-    periodStart: "2026-01-16",
-    periodEnd: "2026-01-31",
-    status: "approved",
-    totalEmployees: 40,
-    totalGrossPay: 390000,
-    totalNetPay: 300000,
-    approvedBy: `${tenantId}-emp-001`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Payroll Run
+ */
+const mapToRun = (db: any): PayrollRun => ({
+  id: db.id,
+  tenantId: db.companyId,
+  periodStart: db.periodStart.toISOString().split('T')[0],
+  periodEnd: db.periodEnd.toISOString().split('T')[0],
+  status: db.status as PayrollRunStatus,
+  totalEmployees: db.totalEmployees,
+  totalGrossPay: Number(db.totalGrossPay),
+  totalNetPay: Number(db.totalNetPay),
+  approvalId: db.approvalId || undefined,
+  approvedBy: db.approvedBy || undefined,
+  exportedAt: db.exportedAt?.toISOString(),
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as PayrollRun);
 
 export const payrollRepo = {
-  listRuns(tenantId: string): PayrollRun[] {
-    return ensureSeed(key(tenantId), seedRuns(tenantId));
+  /**
+   * List all payroll runs for a tenant
+   */
+  async listRuns(tenantId: string): Promise<PayrollRun[]> {
+    const runs = await prisma.payrollRun.findMany({
+      where: {
+        companyId: tenantId,
+      },
+      orderBy: {
+        periodStart: 'desc',
+      },
+    });
+
+    return runs.map(mapToRun);
   },
 
-  getRun(tenantId: string, runId: string): PayrollRun | undefined {
-    return this.listRuns(tenantId).find((run) => run.id === runId);
+  /**
+   * Get a specific payroll run by ID
+   */
+  async getRun(tenantId: string, runId: string): Promise<PayrollRun | undefined> {
+    const run = await prisma.payrollRun.findFirst({
+      where: {
+        id: runId,
+        companyId: tenantId,
+      },
+    });
+
+    return run ? mapToRun(run) : undefined;
   },
 
-  createRun(
+  /**
+   * Create a new payroll run
+   */
+  async createRun(
     tenantId: string,
     payload: Omit<PayrollRun, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ): PayrollRun {
-    const runs = this.listRuns(tenantId);
-    const now = new Date().toISOString();
-    const run: PayrollRun = {
-      ...payload,
-      id: nextId(`${tenantId}-pay`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [run, ...runs];
-    saveToStorage(key(tenantId), updated);
-    return run;
+  ): Promise<PayrollRun> {
+    const run = await prisma.payrollRun.create({
+      data: {
+        companyId: tenantId,
+        periodStart: new Date(payload.periodStart),
+        periodEnd: new Date(payload.periodEnd),
+        status: payload.status,
+        totalEmployees: payload.totalEmployees,
+        totalGrossPay: payload.totalGrossPay,
+        totalNetPay: payload.totalNetPay,
+        approvalId: payload.approvalId,
+        approvedBy: payload.approvedBy,
+        exportedAt: payload.exportedAt ? new Date(payload.exportedAt) : undefined,
+      },
+    });
+
+    return mapToRun(run);
   },
 
-  updateRun(tenantId: string, runId: string, patch: Partial<PayrollRun>): PayrollRun | null {
-    const runs = this.listRuns(tenantId);
-    let updatedRun: PayrollRun | null = null;
-    const updated = runs.map((run) => {
-      if (run.id !== runId) return run;
-      updatedRun = { ...run, ...patch, updatedAt: new Date().toISOString() };
-      return updatedRun;
+  /**
+   * Update an existing payroll run
+   */
+  async updateRun(
+    tenantId: string, 
+    runId: string, 
+    patch: Partial<PayrollRun>
+  ): Promise<PayrollRun | null> {
+    const data: any = {};
+    if (patch.status) data.status = patch.status;
+    if (patch.periodStart) data.periodStart = new Date(patch.periodStart);
+    if (patch.periodEnd) data.periodEnd = new Date(patch.periodEnd);
+    if (patch.totalEmployees !== undefined) data.totalEmployees = patch.totalEmployees;
+    if (patch.totalGrossPay !== undefined) data.totalGrossPay = patch.totalGrossPay;
+    if (patch.totalNetPay !== undefined) data.totalNetPay = patch.totalNetPay;
+    if (patch.approvalId) data.approvalId = patch.approvalId;
+    if (patch.approvedBy) data.approvedBy = patch.approvedBy;
+    if (patch.exportedAt) data.exportedAt = new Date(patch.exportedAt);
+
+    const updated = await prisma.payrollRun.update({
+      where: {
+        id: runId,
+        companyId: tenantId,
+      },
+      data,
     });
-    if (!updatedRun) return null;
-    saveToStorage(key(tenantId), updated);
-    return updatedRun;
+
+    return mapToRun(updated);
   },
 };

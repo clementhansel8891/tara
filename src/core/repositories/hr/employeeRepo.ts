@@ -1,138 +1,186 @@
-import type { Employee } from "@/core/types/hr/employee";
-import { ensureSeed, loadFromStorage, nextId, saveToStorage } from "./storage";
+import type { Employee, EmploymentStatus, EmploymentType } from "@/core/types/hr/employee";
+import { prisma } from "@/core/persistence/database/client";
 
-const key = (tenantId: string) => `hr:${tenantId}:employees`;
-
-const seedEmployees = (tenantId: string): Employee[] => [
-  {
-    id: `${tenantId}-emp-001`,
-    tenantId,
-    userId: "user-demo",
-    employeeCode: "EMP-001",
-    firstName: "Amelia",
-    lastName: "Hart",
-    fullName: "Amelia Hart",
-    email: "amelia.hart@company.com",
-    phone: "+1 (555) 010-1001",
-    departmentId: "dept-ops",
-    managerId: "mgr-001",
-    roleTitle: "Regional Manager",
-    location: "West Region",
-    status: "active",
-    employmentType: "full_time",
-    baseSalary: 8500,
-    hourlyRate: 45,
-    hireDate: "2024-03-12",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-emp-002`,
-    tenantId,
-    employeeCode: "EMP-002",
-    firstName: "Victor",
-    lastName: "Lim",
-    fullName: "Victor Lim",
-    email: "victor.lim@company.com",
-    phone: "+1 (555) 010-1002",
-    departmentId: "dept-fin",
-    roleTitle: "Finance Controller",
-    location: "HQ",
-    status: "active",
-    employmentType: "full_time",
-    baseSalary: 9200,
-    hourlyRate: 50,
-    hireDate: "2023-11-05",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-emp-003`,
-    tenantId,
-    employeeCode: "EMP-003",
-    firstName: "Sofia",
-    lastName: "Ramirez",
-    fullName: "Sofia Ramirez",
-    email: "sofia.ramirez@company.com",
-    phone: "+1 (555) 010-1003",
-    departmentId: "dept-compl",
-    roleTitle: "Compliance Lead",
-    location: "EMEA",
-    status: "on_leave",
-    employmentType: "full_time",
-    baseSalary: 7600,
-    hourlyRate: 40,
-    hireDate: "2022-06-18",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "tenant-other-emp-001",
-    tenantId: "tenant-other",
-    userId: "user-cross",
-    employeeCode: "EMP-CROSS-01",
-    firstName: "Global",
-    lastName: "Admin",
-    fullName: "Global Admin",
-    email: "global.admin@company.com",
-    phone: "+1 (555) 999-9999",
-    departmentId: "dept-ops",
-    roleTitle: "Global Director",
-    location: "Global HQ",
-    status: "active",
-    employmentType: "full_time",
-    baseSalary: 12000,
-    hourlyRate: 75,
-    hireDate: "2020-01-01",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper to convert Prisma Employee with relations to Frontend Employee type
+ */
+const mapToEmployee = (db: any): Employee => ({
+  id: db.id,
+  tenantId: db.companyId,
+  userId: db.userId || undefined,
+  employeeCode: db.employeeCode,
+  firstName: db.firstName,
+  lastName: db.lastName,
+  fullName: `${db.firstName} ${db.lastName}`,
+  email: db.email,
+  phone: db.phone || undefined,
+  departmentId: db.departmentId,
+  managerId: db.managerId || undefined,
+  roleTitle: db.position,
+  location: db.location?.name || "Unknown",
+  locationId: db.locationId,
+  status: db.status as EmploymentStatus,
+  employmentType: (db.employmentType || "full_time") as EmploymentType,
+  baseSalary: db.baseSalary ? Number(db.baseSalary) : undefined,
+  hourlyRate: db.hourlyRate ? Number(db.hourlyRate) : undefined,
+  hireDate: db.hireDate.toISOString().split('T')[0],
+  terminationDate: db.terminationDate?.toISOString().split('T')[0],
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as Employee);
 
 export const employeeRepo = {
-  list(tenantId: string): Employee[] {
-    return ensureSeed(key(tenantId), seedEmployees(tenantId));
-  },
-
-  getById(tenantId: string, employeeId: string): Employee | undefined {
-    return this.list(tenantId).find((emp) => emp.id === employeeId);
-  },
-
-  create(tenantId: string, payload: Omit<Employee, "id" | "tenantId" | "createdAt" | "updatedAt">): Employee {
-    const employees = this.list(tenantId);
-    const now = new Date().toISOString();
-    const employee: Employee = {
-      ...payload,
-      id: nextId(`${tenantId}-emp`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [employee, ...employees];
-    saveToStorage(key(tenantId), updated);
-    return employee;
-  },
-
-  update(tenantId: string, employeeId: string, patch: Partial<Employee>): Employee | null {
-    const employees = this.list(tenantId);
-    let updatedEmployee: Employee | null = null;
-    const updated = employees.map((emp) => {
-      if (emp.id !== employeeId) return emp;
-      updatedEmployee = {
-        ...emp,
-        ...patch,
-        updatedAt: new Date().toISOString(),
-      };
-      return updatedEmployee;
+  /**
+   * List all employees for a specific tenant
+   */
+  async list(tenantId: string): Promise<Employee[]> {
+    const employees = await prisma.employee.findMany({
+      where: {
+        companyId: tenantId,
+        deletedAt: null,
+      },
+      include: {
+        location: true,
+        department: true,
+      },
+      orderBy: {
+        lastName: 'asc',
+      },
     });
-    if (!updatedEmployee) return null;
-    saveToStorage(key(tenantId), updated);
-    return updatedEmployee;
+
+    return employees.map(mapToEmployee);
   },
 
-  delete(tenantId: string, employeeId: string): void {
-    const employees = this.list(tenantId);
-    const updated = employees.filter((emp) => emp.id !== employeeId);
-    saveToStorage(key(tenantId), updated);
+  /**
+   * Get employee by ID
+   */
+  async getById(tenantId: string, employeeId: string): Promise<Employee | undefined> {
+    const dbEmployee = await prisma.employee.findFirst({
+      where: {
+        id: employeeId,
+        companyId: tenantId,
+        deletedAt: null,
+      },
+      include: {
+        location: true,
+        department: true,
+      },
+    });
+
+    return dbEmployee ? mapToEmployee(dbEmployee) : undefined;
+  },
+
+  /**
+   * Get employee by ID (Global/Superadmin)
+   */
+  async getGlobal(employeeId: string): Promise<Employee | undefined> {
+    const dbEmployee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: {
+        location: true,
+        department: true,
+      },
+    });
+
+    return dbEmployee ? mapToEmployee(dbEmployee) : undefined;
+  },
+
+  /**
+   * Create a new employee
+   */
+  async create(
+    tenantId: string, 
+    payload: Omit<Employee, "id" | "tenantId" | "createdAt" | "updatedAt" | "fullName">
+  ): Promise<Employee> {
+    // If location is provided as a string (name), we might need to find the ID
+    // But for now, we assume the UI provides locationId if we expanded the interface
+    // Fallback to a default location if necessary
+    let locId = (payload as any).locationId;
+    if (!locId) {
+      const firstLoc = await prisma.location.findFirst({ where: { companyId: tenantId } });
+      locId = firstLoc?.id || "loc-default";
+    }
+
+    const employee = await prisma.employee.create({
+      data: {
+        companyId: tenantId,
+        locationId: locId,
+        departmentId: payload.departmentId,
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        email: payload.email,
+        phone: payload.phone,
+        userId: payload.userId,
+        managerId: payload.managerId,
+        position: payload.roleTitle,
+        employeeCode: payload.employeeCode,
+        employmentType: payload.employmentType,
+        baseSalary: payload.baseSalary,
+        hourlyRate: payload.hourlyRate,
+        hireDate: new Date(payload.hireDate),
+        status: payload.status,
+      },
+      include: {
+        location: true,
+        department: true,
+      },
+    });
+
+    return mapToEmployee(employee);
+  },
+
+  /**
+   * Update an employee
+   */
+  async update(
+    tenantId: string, 
+    employeeId: string, 
+    patch: Partial<Employee>
+  ): Promise<Employee | null> {
+    const data: any = {};
+    if (patch.firstName) data.firstName = patch.firstName;
+    if (patch.lastName) data.lastName = patch.lastName;
+    if (patch.email) data.email = patch.email;
+    if (patch.phone) data.phone = patch.phone;
+    if (patch.userId) data.userId = patch.userId;
+    if (patch.managerId) data.managerId = patch.managerId;
+    if (patch.roleTitle) data.position = patch.roleTitle;
+    if (patch.employeeCode) data.employeeCode = patch.employeeCode;
+    if (patch.status) data.status = patch.status;
+    if (patch.employmentType) data.employmentType = patch.employmentType;
+    if (patch.baseSalary !== undefined) data.baseSalary = patch.baseSalary;
+    if (patch.hourlyRate !== undefined) data.hourlyRate = patch.hourlyRate;
+    if (patch.hireDate) data.hireDate = new Date(patch.hireDate);
+    if (patch.terminationDate) data.terminationDate = new Date(patch.terminationDate);
+    if (patch.departmentId) data.departmentId = patch.departmentId;
+    if ((patch as any).locationId) data.locationId = (patch as any).locationId;
+
+    const employee = await prisma.employee.update({
+      where: {
+        id: employeeId,
+      },
+      data,
+      include: {
+        location: true,
+        department: true,
+      },
+    });
+
+    return mapToEmployee(employee);
+  },
+
+  /**
+   * Delete an employee (Soft Delete)
+   */
+  async delete(tenantId: string, employeeId: string): Promise<void> {
+    await prisma.employee.update({
+      where: {
+        id: employeeId,
+        companyId: tenantId,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   },
 };

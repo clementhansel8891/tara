@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,16 +25,35 @@ const TRIGGERS: NurtureWorkflow["trigger"][] = [
 
 export default function NurtureStudio() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState<NurtureWorkflow["trigger"]>("NEW_LEAD");
   const [templateA, setTemplateA] = useState("welcome-sequence-1");
   const [templateB, setTemplateB] = useState("retargeting-reminder-1");
+  const [loading, setLoading] = useState(true);
+  const [workflows, setWorkflows] = useState<NurtureWorkflow[]>([]);
 
-  const workflows = useMemo(
-    () => marketingService.listWorkflows(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      const w = await marketingService.listWorkflows(session.tenantId);
+      setWorkflows(w);
+    } catch (err) {
+      console.error("Failed to fetch nurture workflows:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading nurture studio...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -75,9 +94,9 @@ export default function NurtureStudio() {
         </div>
         <Button
           className="mt-3"
-          onClick={() => {
+          onClick={async () => {
             if (!name) return;
-            marketingService.createWorkflow(session.tenantId, session, {
+            await marketingService.createWorkflow(session.tenantId, session, {
               name,
               trigger,
               steps: [
@@ -98,7 +117,7 @@ export default function NurtureStudio() {
               ],
             });
             setName("");
-            setRefreshKey((value) => value + 1);
+            refresh();
           }}
         >
           Create Workflow
@@ -134,14 +153,14 @@ export default function NurtureStudio() {
                         size="sm"
                         variant="outline"
                         disabled={item.status === "ACTIVE"}
-                        onClick={() => {
-                          marketingService.updateWorkflowStatus(
+                        onClick={async () => {
+                          await marketingService.updateWorkflowStatus(
                             session.tenantId,
                             session,
                             item.id,
                             "ACTIVE",
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Activate
@@ -150,14 +169,14 @@ export default function NurtureStudio() {
                         size="sm"
                         variant="outline"
                         disabled={item.status === "PAUSED"}
-                        onClick={() => {
-                          marketingService.updateWorkflowStatus(
+                        onClick={async () => {
+                          await marketingService.updateWorkflowStatus(
                             session.tenantId,
                             session,
                             item.id,
                             "PAUSED",
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Pause

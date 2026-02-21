@@ -25,14 +25,12 @@ export default function InvoiceCapture() {
   const [amount, setAmount] = useState("0");
   const [invoiceDate, setInvoiceDate] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [invoices, setInvoices] = useState<FinanceInvoiceRow[]>(() =>
-    financeService.listInvoices(session.tenantId),
-  );
+  const [invoices, setInvoices] = useState<FinanceInvoiceRow[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<FinanceInvoiceRow | null>(null);
 
   const refreshInvoices = useCallback(() => {
-    setInvoices(financeService.listInvoices(session.tenantId));
-  }, [session.tenantId]);
+    financeService.listInvoices(session.tenantId, session).then(setInvoices).catch(console.error);
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refreshInvoices();

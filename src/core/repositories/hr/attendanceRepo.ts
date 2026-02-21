@@ -1,152 +1,153 @@
-import type { AttendanceDevice, AttendancePolicy, AttendanceRecord, WorkplaceLocation, AttendanceEvent } from "@/core/types/hr/attendance";
-import { ensureSeed, saveToStorage } from "./storage";
+import type { AttendanceDevice, AttendancePolicy, AttendanceRecord, WorkplaceLocation, AttendanceEvent, AttendanceStatus } from "@/core/types/hr/attendance";
+import { prisma } from "@/core/persistence/database/client";
 
-const RECORDS_KEY = (tenantId: string) => `hr:${tenantId}:attendance:records`;
-
-const MOCK_POLICY: AttendancePolicy = {
-  id: "policy-global",
-  tenantId: "tenant-demo",
-  name: "Standard Global Policy",
-  gracePeriodMinutes: 15,
-  lateThresholdMinutes: 60,
-  requirePhotoProof: false,
-  requireLocation: true,
-  autoCheckout: true,
-};
-
-const MOCK_LOCATIONS: WorkplaceLocation[] = [
-  {
-    id: "loc-hq",
-    tenantId: "tenant-demo",
-    name: "Global HQ",
-    address: "123 Business Park, Metro City",
-    coordinates: { lat: -6.2088, lng: 106.8456 },
-    geofenceRadius: 100,
-  },
-  {
-    id: "loc-store-001",
-    tenantId: "tenant-demo",
-    name: "Downtown Store",
-    address: "456 Retail Blvd",
-    coordinates: { lat: -6.2250, lng: 106.8000 },
-    geofenceRadius: 50,
-  },
-];
-
-const MOCK_DEVICES: AttendanceDevice[] = [
-  {
-    id: "dev-kiosk-hq",
-    tenantId: "tenant-demo",
-    name: "HQ Front Desk Kiosk",
-    type: "kiosk",
-    locationId: "loc-hq",
-    isActive: true,
-  },
-  {
-    id: "dev-mobile",
-    tenantId: "tenant-demo",
-    name: "Zenvix Mobile App",
-    type: "mobile",
-    isActive: true,
-  },
-];
-
-const SEED_RECORDS = (tenantId: string): AttendanceRecord[] => [
-  {
-    id: `${tenantId}-att-001`,
-    tenantId,
-    employeeId: `${tenantId}-emp-001`,
-    date: "2026-02-05",
-    shiftId: "shift-morning",
-    policyId: "policy-global",
-    status: "on_time",
-    workDurationMinutes: 480,
-    abnormalTags: [],
-    requiresAttention: false,
-    checkIn: {
-      id: "evt-001-in",
-      tenantId,
-      employeeId: `${tenantId}-emp-001`,
-      timestamp: "2026-02-05T08:58:00.000Z",
-      type: "check_in",
-      locationId: "loc-hq",
-      deviceId: "dev-kiosk-hq",
-      verificationMethod: "biometric",
-    },
-    checkOut: {
-      id: "evt-001-out",
-      tenantId,
-      employeeId: `${tenantId}-emp-001`,
-      timestamp: "2026-02-05T17:10:00.000Z",
-      type: "check_out",
-      locationId: "loc-hq",
-      deviceId: "dev-kiosk-hq",
-      verificationMethod: "biometric",
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-att-002`,
-    tenantId,
-    employeeId: `${tenantId}-emp-002`,
-    date: "2026-02-05",
-    shiftId: "shift-morning",
-    policyId: "policy-global",
-    status: "late",
-    workDurationMinutes: 0,
-    abnormalTags: ["late"],
-    requiresAttention: true,
-    checkIn: {
-      id: "evt-002-in",
-      tenantId,
-      employeeId: `${tenantId}-emp-002`,
-      timestamp: "2026-02-05T09:23:00.000Z",
-      type: "check_in",
-      locationId: "loc-hq",
-      deviceId: "dev-mobile",
-      verificationMethod: "gps",
-      coordinates: { lat: -6.2088, lng: 106.8456 },
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Attendance Record
+ */
+const mapToRecord = (db: any): AttendanceRecord => ({
+  id: db.id,
+  tenantId: db.companyId,
+  employeeId: db.employeeId,
+  date: db.date.toISOString().split('T')[0],
+  shiftId: db.shiftId || "shift-default",
+  policyId: db.policyId || "policy-default",
+  status: db.status as AttendanceStatus,
+  workDurationMinutes: db.workDurationMinutes,
+  abnormalTags: (db.abnormalTags as string[]) || [],
+  requiresAttention: db.requiresAttention,
+  checkIn: db.checkIn ? (db.checkIn as any as AttendanceEvent) : undefined,
+  checkOut: db.checkOut ? (db.checkOut as any as AttendanceEvent) : undefined,
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as AttendanceRecord);
 
 export const attendanceRepo = {
+  /**
+   * Mock policy for now as it's not yet in DB
+   */
   getPolicy(tenantId: string): AttendancePolicy {
-    return { ...MOCK_POLICY, tenantId };
+    return {
+      id: "policy-global",
+      tenantId,
+      name: "Standard Global Policy",
+      gracePeriodMinutes: 15,
+      lateThresholdMinutes: 60,
+      requirePhotoProof: false,
+      requireLocation: true,
+      autoCheckout: true,
+    };
   },
 
-  listLocations(tenantId: string): WorkplaceLocation[] {
-    return MOCK_LOCATIONS.map((l) => ({ ...l, tenantId }));
+  /**
+   * List locations from DB
+   */
+  async listLocations(tenantId: string): Promise<WorkplaceLocation[]> {
+    const locations = await prisma.location.findMany({
+      where: { companyId: tenantId, deletedAt: null }
+    });
+
+    return locations.map(l => ({
+      id: l.id,
+      tenantId: l.companyId,
+      name: l.name,
+      address: l.address || "",
+      coordinates: { lat: 0, lng: 0 }, // Defaults if not in DB
+      geofenceRadius: 100
+    }));
   },
 
-  getLocation(tenantId: string, locationId: string): WorkplaceLocation | undefined {
-    return this.listLocations(tenantId).find((l) => l.id === locationId);
+  async getLocation(tenantId: string, locationId: string): Promise<WorkplaceLocation | undefined> {
+    const loc = await prisma.location.findFirst({
+      where: { id: locationId, companyId: tenantId, deletedAt: null }
+    });
+    if (!loc) return undefined;
+    
+    return {
+      id: loc.id,
+      tenantId: loc.companyId,
+      name: loc.name,
+      address: loc.address || "",
+      coordinates: { lat: 0, lng: 0 },
+      geofenceRadius: 100
+    };
   },
 
+  /**
+   * Devices are mock for now
+   */
   getDevice(tenantId: string, deviceId: string): AttendanceDevice | undefined {
-    const devices = MOCK_DEVICES.map((d) => ({ ...d, tenantId }));
-    return devices.find((d) => d.id === deviceId);
+    if (deviceId === "dev-mobile") {
+      return {
+        id: "dev-mobile",
+        tenantId,
+        name: "Zenvix Mobile App",
+        type: "mobile",
+        isActive: true,
+      };
+    }
+    return undefined;
   },
 
-  list(tenantId: string): AttendanceRecord[] {
-    return this.listRecords(tenantId);
+  /**
+   * List all attendance records for a tenant
+   */
+  async list(tenantId: string): Promise<AttendanceRecord[]> {
+    const records = await prisma.attendanceRecord.findMany({
+      where: { companyId: tenantId },
+      orderBy: { date: 'desc' },
+    });
+
+    return records.map(mapToRecord);
   },
 
-  listRecords(tenantId: string): AttendanceRecord[] {
-    return ensureSeed(RECORDS_KEY(tenantId), SEED_RECORDS(tenantId));
+  /**
+   * Get specific record for employee and date
+   */
+  async getRecord(tenantId: string, employeeId: string, date: string): Promise<AttendanceRecord | undefined> {
+    const record = await prisma.attendanceRecord.findFirst({
+      where: {
+        companyId: tenantId,
+        employeeId,
+        date: new Date(date),
+      },
+    });
+
+    return record ? mapToRecord(record) : undefined;
   },
 
-  getRecord(tenantId: string, employeeId: string, date: string): AttendanceRecord | undefined {
-    const records = this.listRecords(tenantId);
-    return records.find((r) => r.employeeId === employeeId && r.date === date);
-  },
-
-  saveRecord(tenantId: string, record: AttendanceRecord): void {
-    const records = this.listRecords(tenantId).filter((r) => r.id !== record.id);
-    const updated = [...records, record];
-    saveToStorage(RECORDS_KEY(tenantId), updated);
+  /**
+   * Save or Update an attendance record
+   */
+  async saveRecord(tenantId: string, record: AttendanceRecord): Promise<void> {
+    await prisma.attendanceRecord.upsert({
+      where: {
+        id: record.id,
+      },
+      update: {
+        status: record.status,
+        checkIn: record.checkIn as any,
+        checkOut: record.checkOut as any,
+        workDurationMinutes: Number(record.workDurationMinutes),
+        abnormalTags: record.abnormalTags as any,
+        requiresAttention: record.requiresAttention,
+        shiftId: record.shiftId,
+        policyId: record.policyId,
+      },
+      create: {
+        id: record.id,
+        companyId: tenantId,
+        employeeId: record.employeeId,
+        locationId: record.checkIn?.locationId || "loc-default",
+        date: new Date(record.date),
+        status: record.status,
+        checkIn: record.checkIn as any,
+        checkOut: record.checkOut as any,
+        workDurationMinutes: Number(record.workDurationMinutes),
+        abnormalTags: record.abnormalTags as any,
+        requiresAttention: record.requiresAttention,
+        shiftId: record.shiftId,
+        policyId: record.policyId,
+      },
+    });
   },
 };

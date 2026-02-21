@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +26,26 @@ export default function PulseDesk() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
 
-  const pulseItems = useMemo(() => {
-    const items = hrWorkstreamService.getPulseItems(session.tenantId, session);
-    let filtered = items;
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((item) => item.status.toLowerCase() === statusFilter);
-    }
-    if (!search) return filtered;
-    return filtered.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()));
-  }, [session, search, statusFilter, version]);
+  const [pulseItems, setPulseItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        const items = await hrWorkstreamService.getPulseItems(session.tenantId, session);
+        let filtered = items;
+        if (statusFilter !== "all") {
+          filtered = filtered.filter((item) => item.status.toLowerCase() === statusFilter);
+        }
+        if (search) {
+          filtered = filtered.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()));
+        }
+        setPulseItems(filtered);
+      } catch (err) {
+        console.error("Failed to load pulse items", err);
+      }
+    };
+    loadItems();
+  }, [session.tenantId, session, search, statusFilter, version]);
 
   const pendingApprovals = useMemo(
     () => workflowService.listRequests(session.tenantId).filter((flow) => flow.status === "PENDING"),

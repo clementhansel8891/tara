@@ -34,9 +34,16 @@ const SelfServiceKiosk = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const data = retailService.listInventory(session.tenantId);
-    setProducts(data);
-  }, [session.tenantId]);
+    const fetchData = async () => {
+      try {
+        const data = await retailService.listInventory(session.tenantId, session);
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch inventory", error);
+      }
+    };
+    fetchData();
+  }, [session.tenantId, session]);
 
   const addToCart = (product: any) => {
     setCart(prev => {

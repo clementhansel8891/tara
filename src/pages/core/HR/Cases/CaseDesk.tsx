@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,19 @@ export default function CaseDesk() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
 
-  const cases = useMemo(() => caseService.listCases(session.tenantId, session), [session, version]);
+  const [cases, setCases] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const items = await caseService.listCases(session.tenantId, session);
+        setCases(items);
+      } catch (err) {
+        console.error("Failed to load cases", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
   const filtered = cases.filter((item) =>
     search ? item.title.toLowerCase().includes(search.toLowerCase()) : true,
   );

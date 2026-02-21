@@ -1,78 +1,79 @@
-import type { RecruitmentRequisition } from "@/core/types/hr/recruitment";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { RecruitmentRequisition, RecruitmentStatus } from "@/core/types/hr/recruitment";
+import { prisma } from "@/core/persistence/database/client";
 
-const key = (tenantId: string) => `hr:${tenantId}:recruitment`;
-
-const seedRequisitions = (tenantId: string): RecruitmentRequisition[] => [
-  {
-    id: `${tenantId}-req-001`,
-    tenantId,
-    title: "Store Manager",
-    departmentId: "dept-ops",
-    status: "interview",
-    openings: 2,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-req-002`,
-    tenantId,
-    title: "Operations Analyst",
-    departmentId: "dept-ops",
-    status: "offer",
-    openings: 1,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-req-003`,
-    tenantId,
-    title: "HR Officer",
-    departmentId: "dept-hr",
-    status: "screening",
-    openings: 1,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Recruitment Requisition
+ */
+const mapToReq = (db: any): RecruitmentRequisition => ({
+  id: db.id,
+  tenantId: db.companyId,
+  title: db.title,
+  departmentId: db.departmentId || undefined,
+  status: db.status as RecruitmentStatus,
+  openings: db.openings,
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as RecruitmentRequisition);
 
 export const recruitmentRepo = {
-  list(tenantId: string): RecruitmentRequisition[] {
-    return ensureSeed(key(tenantId), seedRequisitions(tenantId));
+  /**
+   * List all requisitions for a tenant
+   */
+  async list(tenantId: string): Promise<RecruitmentRequisition[]> {
+    const list = await prisma.jobRequisition.findMany({
+      where: {
+        companyId: tenantId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return list.map(mapToReq);
   },
 
-  create(
+  /**
+   * Create a new requisition
+   */
+  async create(
     tenantId: string,
     payload: Omit<RecruitmentRequisition, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ): RecruitmentRequisition {
-    const records = this.list(tenantId);
-    const now = new Date().toISOString();
-    const record: RecruitmentRequisition = {
-      ...payload,
-      id: nextId(`${tenantId}-req`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [record, ...records];
-    saveToStorage(key(tenantId), updated);
-    return record;
+  ): Promise<RecruitmentRequisition> {
+    const record = await prisma.jobRequisition.create({
+      data: {
+        companyId: tenantId,
+        title: payload.title,
+        departmentId: payload.departmentId,
+        status: payload.status,
+        openings: payload.openings,
+      },
+    });
+
+    return mapToReq(record);
   },
 
-  update(tenantId: string, requisitionId: string, patch: Partial<RecruitmentRequisition>): RecruitmentRequisition | null {
-    const records = this.list(tenantId);
-    let updatedRecord: RecruitmentRequisition | null = null;
-    const updated = records.map((record) => {
-      if (record.id !== requisitionId) return record;
-      updatedRecord = {
-        ...record,
-        ...patch,
-        updatedAt: new Date().toISOString(),
-      };
-      return updatedRecord;
+  /**
+   * Update an existing requisition
+   */
+  async update(
+    tenantId: string, 
+    requisitionId: string, 
+    patch: Partial<RecruitmentRequisition>
+  ): Promise<RecruitmentRequisition | null> {
+    const data: any = {};
+    if (patch.title) data.title = patch.title;
+    if (patch.status) data.status = patch.status;
+    if (patch.openings !== undefined) data.openings = patch.openings;
+    if (patch.departmentId) data.departmentId = patch.departmentId;
+
+    const updated = await prisma.jobRequisition.update({
+      where: {
+        id: requisitionId,
+        companyId: tenantId,
+      },
+      data,
     });
-    if (!updatedRecord) return null;
-    saveToStorage(key(tenantId), updated);
-    return updatedRecord;
+
+    return mapToReq(updated);
   },
 };

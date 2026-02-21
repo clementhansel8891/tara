@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -7,21 +7,42 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesForecast, SalesOpportunity } from "@/core/types/sales/sales";
 
 export default function ForecastDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const forecast = useMemo(
-    () => salesService.getExecutiveForecast(session.tenantId),
-    [session.tenantId],
+  const [loading, setLoading] = useState(true);
+  const [forecast, setForecast] = useState<SalesForecast | null>(null);
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [f, o] = await Promise.all([
+        salesService.getExecutiveForecast(session.tenantId, session),
+        salesService.listOpportunities(session.tenantId, session),
+      ]);
+      setForecast(f);
+      setOpportunities(o);
+    } catch (err) {
+      console.error("Failed to fetch forecast data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const openOpportunities = useMemo(() => 
+    opportunities.filter(
+      (item) => item.stage !== "CLOSED_WON" && item.stage !== "CLOSED_LOST",
+    ),
+    [opportunities]
   );
-  const opportunities = useMemo(
-    () => salesService.listOpportunities(session.tenantId),
-    [session.tenantId],
-  );
-  const openOpportunities = opportunities.filter(
-    (item) => item.stage !== "CLOSED_WON" && item.stage !== "CLOSED_LOST",
-  );
+
   const filtered = useMemo(
     () =>
       openOpportunities.filter((item) =>
@@ -53,31 +74,31 @@ export default function ForecastDesk() {
         <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Open pipeline</p>
-            <p className="text-2xl font-semibold">{forecast.openPipelineValue.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.openPipelineValue.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Weighted forecast</p>
-            <p className="text-2xl font-semibold">{forecast.weightedForecastValue.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.weightedForecastValue.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Won this period</p>
-            <p className="text-2xl font-semibold">{forecast.wonThisPeriod.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.wonThisPeriod.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Lost this period</p>
-            <p className="text-2xl font-semibold">{forecast.lostThisPeriod.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.lostThisPeriod.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Conversion rate</p>
-            <p className="text-2xl font-semibold">{forecast.conversionRate}%</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.conversionRate : 0}%</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Avg cycle (days)</p>
-            <p className="text-2xl font-semibold">{forecast.avgDealCycleDays}</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.avgDealCycleDays : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Forecast accuracy</p>
-            <p className="text-2xl font-semibold">{forecast.forecastAccuracy}%</p>
+            <p className="text-2xl font-semibold">{forecast ? forecast.forecastAccuracy : 0}%</p>
           </div>
         </div>
       </WorkspacePanel>
@@ -85,6 +106,9 @@ export default function ForecastDesk() {
       <WorkspacePanel title="Forecast Table" description="Opportunity-level weighted revenue visibility.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing forecast table...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -113,6 +137,7 @@ export default function ForecastDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

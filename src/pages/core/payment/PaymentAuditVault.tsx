@@ -1,20 +1,31 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
+import type { PaymentAuditEvent, EvidencePack } from "@/core/types/payment/payment";
 
 export default function PaymentAuditVault() {
   const session = useSession();
-  const events = useMemo(
-    () => paymentService.listAuditEvents(session.tenantId),
-    [session.tenantId],
-  );
-  const evidence = useMemo(
-    () => paymentService.listEvidencePacks(session.tenantId),
-    [session.tenantId],
-  );
+  const [events, setEvents] = useState<PaymentAuditEvent[]>([]);
+  const [evidence, setEvidence] = useState<EvidencePack[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [eventsData, evidenceData] = await Promise.all([
+          paymentService.listAuditEvents(session.tenantId),
+          paymentService.listEvidencePacks(session.tenantId),
+        ]);
+        setEvents(eventsData);
+        setEvidence(evidenceData);
+      } catch (error) {
+        console.error("Failed to fetch audit vault data:", error);
+      }
+    };
+    fetchData();
+  }, [session.tenantId]);
 
   return (
     <div className="space-y-6">

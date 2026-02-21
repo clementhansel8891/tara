@@ -11,9 +11,9 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { financeService, type FinanceInvoiceRow, type FinanceJournalRow } from "@/core/services/finance/financeService";
-import { payrollService } from "@/core/services/finance/payrollService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { logService } from "@/core/services/finance/logService";
+import type { FinanceInvoiceRow, FinanceJournalRow } from "@/core/services/finance/financeService";
 import type { PayrollEntry } from "@/core/types/finance/payrollTypes";
 
 type LedgerTab = "journals" | "invoices" | "payroll";
@@ -59,11 +59,15 @@ export default function LedgerCore() {
   };
 
   const refreshLedger = useCallback(async () => {
-    const payrollRows = await payrollService.getPayrollEntries(session.tenantId);
-    setJournals(financeService.listJournals(session.tenantId));
-    setInvoices(financeService.listInvoices(session.tenantId));
+    const [payrollRows, journalRows, invoiceRows] = await Promise.all([
+      financeApiClient.getPayrollEntries(session.tenantId, session),
+      financeApiClient.listJournals(session.tenantId, session),
+      financeApiClient.listInvoices(session.tenantId, session),
+    ]);
     setPayrollEntries(payrollRows);
-  }, [session.tenantId]);
+    setJournals(journalRows);
+    setInvoices(invoiceRows);
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     void refreshLedger();
@@ -105,9 +109,9 @@ export default function LedgerCore() {
     [payrollEntries, search],
   );
 
-  const handleCreateJournal = () => {
+  const handleCreateJournal = async () => {
     try {
-      financeService.createJournal(session.tenantId, entry);
+      await financeApiClient.createJournal(session.tenantId, session, entry);
       logService.log(
         session.tenantId,
         session.userId,
@@ -130,7 +134,7 @@ export default function LedgerCore() {
       const totalNet = safeEmployeeCount * safeNetPerEmployee;
       const timestamp = new Date().toISOString();
 
-      await payrollService.createPayrollEntry({
+      await financeApiClient.createPayrollEntry(session.tenantId, session, {
         id: `payroll-${Date.now()}`,
         tenantId: session.tenantId,
         employeeId: `batch-${payrollPeriod}`,
@@ -144,13 +148,13 @@ export default function LedgerCore() {
         updatedAt: timestamp,
       });
 
-      financeService.createJournal(session.tenantId, {
+      await financeApiClient.createJournal(session.tenantId, session, {
         account: "EXP-PAYROLL",
         type: "DEBIT",
         amount: totalNet,
         description: `Payroll posting for ${payrollPeriod}`,
       });
-      financeService.createJournal(session.tenantId, {
+      await financeApiClient.createJournal(session.tenantId, session, {
         account: "BS-CASH",
         type: "CREDIT",
         amount: totalNet,

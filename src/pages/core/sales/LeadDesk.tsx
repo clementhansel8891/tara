@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ export default function LeadDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [leads, setLeads] = useState<SalesLead[]>([]);
   const [companyName, setCompanyName] = useState("");
   const [contactName, setContactName] = useState("");
   const [potentialValue, setPotentialValue] = useState("0");
@@ -28,16 +30,32 @@ export default function LeadDesk() {
     setErrorMessage(null);
   };
 
-  const leads = useMemo(
-    () => salesService.listLeads(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const filtered = leads.filter((lead) =>
-    search
-      ? `${lead.companyName} ${lead.contactName} ${lead.ownerName} ${lead.status}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      : true,
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await salesService.listLeads(session.tenantId, session);
+      setLeads(data);
+    } catch (err) {
+      console.error("Failed to fetch leads:", err);
+      setErrorMessage("Failed to load leads pool.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, refreshKey]);
+
+  const filtered = useMemo(() => 
+    leads.filter((lead) =>
+      search
+        ? `${lead.companyName} ${lead.contactName} ${lead.ownerName} ${lead.status}`
+            .toLowerCase()
+            .includes(search.toLowerCase())
+        : true,
+    ),
+    [leads, search]
   );
 
   return (
@@ -49,9 +67,9 @@ export default function LeadDesk() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  salesService.runSlaSweep(session.tenantId, session);
+                  await salesService.runSlaSweep(session.tenantId, session);
                   setStatusMessage("SLA sweep completed. Delinquent leads flagged.");
                   setRefreshKey((value) => value + 1);
                 } catch (err) {
@@ -92,10 +110,10 @@ export default function LeadDesk() {
             onChange={(event) => setPotentialValue(event.target.value)}
           />
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!companyName || !contactName) return;
               try {
-                salesService.createLead(session.tenantId, session, {
+                await salesService.createLead(session.tenantId, session, {
                   companyName,
                   contactName,
                   source: "MARKETING",
@@ -120,6 +138,9 @@ export default function LeadDesk() {
       <WorkspacePanel title="Lead queue" description="Lead acceptance and progression from New to Qualified.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing lead pool...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -161,10 +182,10 @@ export default function LeadDesk() {
                         size="sm"
                         variant="outline"
                         disabled={lead.status !== "NEW" && lead.status !== "ASSIGNED"}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            salesService.updateLeadStatus(
+                            await salesService.updateLeadStatus(
                               session.tenantId,
                               session,
                               lead.id,
@@ -183,10 +204,10 @@ export default function LeadDesk() {
                         size="sm"
                         variant="outline"
                         disabled={lead.status !== "CONTACTED"}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            salesService.updateLeadStatus(
+                            await salesService.updateLeadStatus(
                               session.tenantId,
                               session,
                               lead.id,
@@ -204,10 +225,10 @@ export default function LeadDesk() {
                       <Button
                         size="sm"
                         disabled={lead.status !== "QUALIFIED"}
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            salesService.convertLeadToOpportunity(
+                            await salesService.convertLeadToOpportunity(
                               session.tenantId,
                               session,
                               lead.id,
@@ -227,6 +248,7 @@ export default function LeadDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
@@ -258,7 +280,7 @@ export default function LeadDesk() {
             <div className="border-t pt-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Lifecycle Audit</p>
               <div className="space-y-1 text-xs text-muted-foreground">
-                <p>• Created on {selectedLead?.createdAt.slice(0, 10)}</p>
+                <p>• Created on {selectedLead?.createdAt?.slice(0, 10)}</p>
                 <p>• Last Activity Profile: High Integrity</p>
               </div>
             </div>

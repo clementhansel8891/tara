@@ -25,6 +25,7 @@ export type ContractStatus =
   | "DRAFT"
   | "LEGAL_REVIEW"
   | "LEGAL_APPROVED"
+  | "PARTIAL_SIGNED"
   | "SIGNED"
   | "REJECTED";
 
@@ -322,6 +323,6 @@ export type SupplierRecommendation = {
 export type ProcurementSpendInsight = {
   id: string;
   label: string;
-  category: "SPEND" | "APPROVAL" | "SUPPLIER" | "RISK";
+  category: "SPEND" | "APPROVAL" | "SUPPLIER" | "RISK" | "PROCESS" | "PERFORMANCE";
   value: string;
 };

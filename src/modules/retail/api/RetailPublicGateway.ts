@@ -1,5 +1,4 @@
 import { retailService } from "@/core/services/retail/retailService";
-import { retailRepo } from "@/core/repositories/retail/retailRepo";
 import type { 
   ApiAuthHeaders, 
   PublicProductDTO, 
@@ -7,63 +6,153 @@ import type {
   PublicOrderResponseDTO,
   ApiErrorResponse 
 } from "@/core/types/retail/api";
+import type { RetailChannel } from "@/core/types/retail/retail";
+import type { SessionContext } from "@/core/security/session";
+import { Roles } from "@/core/security/roles";
+
+const createSystemSession = (tenantId: string): SessionContext => ({
+  userId: "sys-api-gateway",
+  tenantId,
+  role: Roles.SYSTEM,
+  departmentId: "ops-retail",
+});
+
+const isApiErrorResponse = (value: unknown): value is ApiErrorResponse =>
+  typeof value === "object" &&
+  value !== null &&
+  "error" in value &&
+  "code" in value &&
+  typeof (value as Record<string, unknown>).code === "number";
+
+export type RetailGatewayPushEvent = {
+  eventId?: string;
+  source?: string;
+  type: string;
+  tenantId: string;
+  channelId?: string;
+  payload?: Record<string, unknown>;
+  occurredAt: string;
+};
+
+type RetailGatewayPushListener = (event: RetailGatewayPushEvent) => void;
 
 /**
  * SIMULATED BACKEND CONTROLLER
  * In a real NestJS app, this would be decorated with @Controller('retail/public')
  */
 export class RetailPublicGateway {
-  
-  private validateCredentials(tenantId: string, headers: ApiAuthHeaders) {
+  private pushListeners = new Set<RetailGatewayPushListener>();
+  private credentialRegistry = new Map<
+    string,
+    { tenantId: string; channelId?: string; clientSecret: string; updatedAt: string }
+  >();
+
+  registerChannelCredentials(
+    tenantId: string,
+    credentials: { clientId: string; clientSecret: string; channelId?: string },
+  ) {
+    this.credentialRegistry.set(credentials.clientId, {
+      tenantId,
+      channelId: credentials.channelId,
+      clientSecret: credentials.clientSecret,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  onPush(listener: RetailGatewayPushListener) {
+    this.pushListeners.add(listener);
+    return () => {
+      this.pushListeners.delete(listener);
+    };
+  }
+
+  emitPushEvent(event: Omit<RetailGatewayPushEvent, "occurredAt">) {
+    this.dispatchPushEvent({
+      ...event,
+      occurredAt: new Date().toISOString(),
+    });
+  }
+
+  private dispatchPushEvent(event: RetailGatewayPushEvent) {
+    this.pushListeners.forEach((listener) => {
+      try {
+        listener(event);
+      } catch (error) {
+        console.warn("Retail Gateway push listener failed:", error);
+      }
+    });
+    console.log("[RetailGateway] Push event", event);
+  }
+
+  private resolveRegisteredSecret(tenantId: string, clientId: string) {
+    const entry = this.credentialRegistry.get(clientId);
+    if (!entry || entry.tenantId !== tenantId) {
+      return null;
+    }
+    return entry.clientSecret;
+  }
+
+  private async validateCredentials(tenantId: string, headers: ApiAuthHeaders): Promise<RetailChannel> {
     const clientId = headers["x-client-id"];
     const clientSecret = headers["x-client-secret"];
-
-    // In a real DB, we'd query by clientId. 
-    // Here we iterate mock channels to find a match.
-    // NOTE: This assumes 'apiConfig' was added to RetailChannel or we check against a stored map.
-    // Since we didn't extend RetailChannel type yet, we will rely on a Convention or Mock store.
-    // For this simulation, we will retrieve ALL channels and check if any match.
-    // Real implementation would have hashed secrets.
     
-    // TEMPORARY: Since we didn't add apiConfig to the interface yet, 
-    // we'll fetch channels and assume we stored credentials in a way we can verify,
-    // OR we will update RetailChannel interface now (recommended).
-    
-    // For now, let's look for a channel that might match or implement a mock verification 
-    // that accepts the keys we generated in UI (which we didn't persist to DB in the previous step effectively 
-    // beyond local storage, need to fix that if we want real persistence across reloads).
-    
-    // Actually, in EcommerceConnector we generated random keys but didn't save them to the channel object 
-    // because `RetailChannel` interface didn't have fields for it. 
-    // We should probably update the interface or just accept ANY key for "Demo" purposes 
-    // if we want to avoid deep refactoring of the Repository layer right now.
-    
-    // DECISION: For "Hardening", we want it to feel real. 
-    // Let's implement a "Mock Registry" in this file for active sessions, 
-    // or better, just check if the ClientID starts with "znx_".
-    
-    if (!clientId || !clientSecret) {
-      throw { code: 401, error: "Unauthorized", details: "Missing API Credentials" };
+    if ((clientId && !clientSecret) || (!clientId && clientSecret)) {
+      throw { code: 401, error: "Unauthorized", details: "Missing Channel Client Credentials" };
     }
 
-    if (clientId === "YOUR_CLIENT_ID" || clientSecret === "YOUR_SECRET") {
-       throw { code: 403, error: "Configuration Error", details: "You must replace 'YOUR_CLIENT_ID' with the actual keys generated in the Commerce Hub." };
+    if (!clientId && !clientSecret) {
+      throw { code: 401, error: "Unauthorized", details: "Missing Channel Client Credentials" };
     }
 
-    if (!clientId.startsWith("znx_") || !clientSecret.startsWith("sk_live_")) {
-       throw { code: 403, error: "Forbidden", details: `Invalid API Key Format. Expected 'znx_...' but got '${clientId.substring(0,4)}...'` };
+    const resolvedClientSecret = clientSecret ?? "";
+    const resolvedClientId = clientId ?? "";
+
+    if (resolvedClientId && resolvedClientId === "YOUR_CLIENT_ID") {
+       throw { code: 403, error: "Configuration Error", details: "You must replace 'YOUR_CLIENT_ID' with the actual client id generated in the Commerce Hub." };
     }
 
-    // If it passes format check, we assume it's valid for this DEMO trial.
-    // In prod, this would `await findChannelByApiKey(clientId)`.
-    return true;
+    if (resolvedClientSecret === "YOUR_CLIENT_SECRET") {
+       throw { code: 403, error: "Configuration Error", details: "You must replace the placeholder secret with the Channel Client Secret generated in the Commerce Hub." };
+    }
+
+    if (resolvedClientId && !resolvedClientId.startsWith("znx_")) {
+       throw { code: 403, error: "Forbidden", details: `Invalid Client ID Format. Expected 'znx_' but got '${resolvedClientId.substring(0,4)}...'` };
+    }
+
+    if (!resolvedClientSecret.startsWith("sk_test_")) {
+       throw { code: 403, error: "Forbidden", details: `Invalid Client Secret Format. Expected 'sk_test_' but got '${resolvedClientSecret.substring(0,6)}...'` };
+    }
+
+    const session = createSystemSession(tenantId);
+    const channels = await retailService.listChannels(tenantId, session);
+    const matchedChannel = channels.find(
+      (channel) => (channel.clientId ?? channel.channelId) === resolvedClientId,
+    );
+
+    if (!matchedChannel) {
+      throw { code: 403, error: "Forbidden", details: "Client ID not recognized for this tenant." };
+    }
+
+    const storedSecret =
+      matchedChannel.clientSecret ?? this.resolveRegisteredSecret(tenantId, resolvedClientId);
+
+    if (!storedSecret) {
+      throw { code: 403, error: "Forbidden", details: "Client secret not registered for this channel." };
+    }
+
+    if (storedSecret !== resolvedClientSecret) {
+      throw { code: 403, error: "Forbidden", details: "Client secret mismatch." };
+    }
+
+    return matchedChannel;
   }
 
   async getProducts(tenantId: string, headers: ApiAuthHeaders): Promise<PublicProductDTO[] | ApiErrorResponse> {
     try {
-      this.validateCredentials(tenantId, headers);
+      await this.validateCredentials(tenantId, headers);
 
-      const internalProducts = retailService.listInventory(tenantId);
+      const session = createSystemSession(tenantId);
+      const internalProducts = await retailService.listInventory(tenantId, session);
       
       return internalProducts.map(p => ({
         id: p.id,
@@ -75,14 +164,14 @@ export class RetailPublicGateway {
         maxQuantity: p.stock
       }));
 
-    } catch (e: any) {
-      return this.handleError(e);
+    } catch (error: unknown) {
+      return this.handleError(error);
     }
   }
 
   async createOrder(tenantId: string, headers: ApiAuthHeaders, body: PublicOrderRequestDTO): Promise<PublicOrderResponseDTO | ApiErrorResponse> {
     try {
-      this.validateCredentials(tenantId, headers);
+      await this.validateCredentials(tenantId, headers);
 
       if (!body.items || body.items.length === 0) {
         throw { code: 400, error: "Bad Request", details: "Order must contain items" };
@@ -90,15 +179,10 @@ export class RetailPublicGateway {
 
       // Convert Public DTO to Internal Service Call
       // We need a "System Session" context for this background job
-      const systemSession = {
-        userId: "sys-api-gateway",
-        tenantId: tenantId,
-        role: "SYSTEM",
-        permissions: ["ALL"] // System Override
-      };
+      const session = createSystemSession(tenantId);
 
       // We need to resolve SKU to Item ID
-      const inventory = retailService.listInventory(tenantId);
+      const inventory = await retailService.listInventory(tenantId, session);
       const orderItems = body.items.map(pubItem => {
         const internalItem = inventory.find(i => i.sku === pubItem.sku);
         if (!internalItem) {
@@ -113,32 +197,29 @@ export class RetailPublicGateway {
       });
 
       // Pick a default store for online orders (First active store)
-      const stores = retailService.listStores(tenantId);
+      const stores = await retailService.listStores(tenantId, session);
       const fulfillmentStore = stores[0]; 
       if (!fulfillmentStore) throw { code: 500, error: "Config Error", details: "No active fulfillment store configured" };
 
       // Create Order
       // Note: We might need to mock a "Device ID" for API orders
-      const order = retailService.createOrder(
+      const order = await retailService.createOrder(
         tenantId,
-        systemSession as any,
+        session,
         fulfillmentStore.id,
         "dev-api-gateway", 
         orderItems,
-        // We bypass shift requirement for API orders using System Role check in Service?
-        // Service check: if (actor.role === Roles.SUPERADMIN) return true;
-        // Our systemSession has role "SYSTEM", we need to ensure Service accepts that or we use SUPERADMIN.
-        undefined // No shift ID for API orders
+        undefined
       );
 
       // Auto-Process Payment if marked as PAID
       if (body.paymentStatus === "PAID") {
-        retailService.processPayment(
+        await retailService.processPayment(
            tenantId,
-           systemSession as any,
+           session,
            order.id,
            order.totalAmount,
-           "card", // Assume card for online
+           (body.paymentMethod || "card") as "card" | "cash" | "qr",
            undefined 
         );
       }
@@ -151,26 +232,121 @@ export class RetailPublicGateway {
         message: "Order received and pushed to fulfillment queue."
       };
 
-    } catch (e: any) {
-      return this.handleError(e);
+    } catch (error: unknown) {
+      return this.handleError(error);
     }
   }
 
-  private handleError(e: any): ApiErrorResponse {
-    console.error("API Gateway Error:", e);
+  async handleRequest(
+    tenantId: string,
+    request: {
+      method: string;
+      path: string;
+      headers: ApiAuthHeaders;
+      body?: unknown;
+    },
+  ) {
+    try {
+      const method = request.method.toUpperCase();
+      const path = request.path.startsWith("/") ? request.path : `/${request.path}`;
+
+      if (method === "GET" && path === "/products") {
+        return await this.getProducts(tenantId, request.headers);
+      }
+
+      if (method === "POST" && path === "/orders") {
+        return await this.createOrder(tenantId, request.headers, request.body as PublicOrderRequestDTO);
+      }
+
+      if (method === "POST") {
+        const syncMatch = path.match(/^\/channels\/([^/]+)\/sync$/);
+        const requestedChannelId = syncMatch?.[1] ?? this.resolveChannelIdFromBody(request.body);
+        if (path === "/sync" || syncMatch) {
+          const channel = await this.validateCredentials(tenantId, request.headers);
+          const channelId = requestedChannelId ?? channel.id;
+
+          if (requestedChannelId && requestedChannelId !== channel.id) {
+            throw { code: 403, error: "Forbidden", details: "Channel mismatch for provided credentials." };
+          }
+
+          const session = createSystemSession(tenantId);
+          const result = await retailService.syncChannel(tenantId, session, channelId);
+          this.emitPushEvent({
+            type: "channel.sync",
+            tenantId,
+            channelId,
+            payload: result as Record<string, unknown>,
+          });
+          return result;
+        }
+      }
+
+      throw { code: 404, error: "Not Found", details: "Endpoint not implemented in simulation" };
+    } catch (error: unknown) {
+      return this.handleError(error);
+    }
+  }
+
+  private resolveChannelIdFromBody(body: unknown): string | null {
+    if (!body || typeof body !== "object") {
+      return null;
+    }
+    const payload = body as Record<string, unknown>;
+    if (typeof payload.channelId === "string") {
+      return payload.channelId;
+    }
+    if (typeof payload.id === "string") {
+      return payload.id;
+    }
+    return null;
+  }
+
+  private handleError(error: unknown): ApiErrorResponse {
+    console.error("API Gateway Error:", error);
+    if (isApiErrorResponse(error)) {
+      return error;
+    }
+
+    if (error instanceof Error) {
+      return {
+        error: error.message || "Internal Server Error",
+        code: 500,
+        details: error.stack ?? error.message,
+      };
+    }
+
+    if (typeof error === "object" && error !== null) {
+      const errObj = error as Record<string, unknown>;
+      return {
+        error: typeof errObj.error === "string" ? errObj.error : "Internal Server Error",
+        code: typeof errObj.code === "number" ? errObj.code : 500,
+        details:
+          typeof errObj.details === "string"
+            ? errObj.details
+            : "No additional details provided",
+      };
+    }
+
     return {
-      error: e.error || "Internal Server Error",
-      code: e.code || 500,
-      details: e.details || e.message
+      error: "Internal Server Error",
+      code: 500,
+      details: "Unknown error",
     };
   }
+}
+
+interface RetailWindow extends Window {
+  Zenvix?: {
+    RetailGateway?: RetailPublicGateway;
+  };
 }
 
 export const retailGateway = new RetailPublicGateway();
 
 // Expose for "External Website" Simulation (Window Bridge)
 if (typeof window !== "undefined") {
-  (window as any).Zenvix = (window as any).Zenvix || {};
-  (window as any).Zenvix.RetailGateway = retailGateway;
+  const zenvixWindow = window as RetailWindow;
+  zenvixWindow.Zenvix = zenvixWindow.Zenvix || {};
+  zenvixWindow.Zenvix.RetailGateway = retailGateway;
   console.log("🔌 Retail Public Gateway exposed at window.Zenvix.RetailGateway");
 }

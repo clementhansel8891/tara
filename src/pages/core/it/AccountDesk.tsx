@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,31 +24,47 @@ import { Label } from "@/components/ui/label";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-
-const accounts = [
-  { id: "EMP-00112", user: "Ava Reynolds", action: "Create", status: "PENDING", dept: "Finance" },
-  { id: "EMP-00145", user: "Henry Pham", action: "Deactivate", status: "IN_PROGRESS", dept: "Facilities" },
-  { id: "EMP-00033", user: "Jessie Allan", action: "Create", status: "APPROVED", dept: "Operations" },
-];
+import { itService, type ProvisioningRequest } from "@/core/services/it/itService";
 
 export default function AccountDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [autoProvision, setAutoProvision] = useState(true);
   const [version, setVersion] = useState(0);
+  const [provisioningQueue, setProvisioningQueue] = useState<ProvisioningRequest[]>([]);
+  const [supplierQueue, setSupplierQueue] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [itReqs, supReqs] = await Promise.all([
+          itService.getProvisioningRequests(session.tenantId, session),
+          procurementService.listSupplierAccessProvisioning(session.tenantId)
+        ]);
+        setProvisioningQueue(itReqs);
+        setSupplierQueue(supReqs);
+      } catch (err) {
+        setErrorMessage("Failed to fetch provisioning requests.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [session.tenantId, session, version]);
+
   const clearStatus = () => {
     setStatusMessage(null);
     setErrorMessage(null);
   };
-  const supplierAccessQueue = procurementService.listSupplierAccessProvisioning(session.tenantId);
 
-  const filtered = accounts.filter((acc) =>
-    search ? acc.user.toLowerCase().includes(search.toLowerCase()) : true,
+  const filtered = provisioningQueue.filter((acc) =>
+    search ? (acc.employeeId || "").toLowerCase().includes(search.toLowerCase()) : true,
   );
 
   return (
@@ -60,7 +76,7 @@ export default function AccountDesk() {
         primaryAction={<Button onClick={() => setCreateOpen(true)}>New Account</Button>}
         secondaryActions={
           <Input
-            placeholder="Search users"
+            placeholder="Search IDs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-w-[220px]"
@@ -74,27 +90,33 @@ export default function AccountDesk() {
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="p-3 text-left">User</th>
-                <th className="p-3 text-left">Action</th>
-                <th className="p-3 text-left">Department</th>
+                <th className="p-3 text-left">Subject ID</th>
+                <th className="p-3 text-left">Scope</th>
+                <th className="p-3 text-left">Reason</th>
                 <th className="p-3 text-left">Status</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((acc) => (
-                <tr
-                  key={acc.id}
-                  className="border-t cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedAccount(acc)}
-                >
-                  <td className="p-3 font-medium">{acc.user}</td>
-                  <td className="p-3 text-muted-foreground">{acc.action}</td>
-                  <td className="p-3 text-muted-foreground">{acc.dept}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={acc.status} />
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={4} className="p-3 text-center">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={4} className="p-3 text-center text-muted-foreground">No account requests found.</td></tr>
+              ) : (
+                filtered.map((acc) => (
+                  <tr
+                    key={acc.id}
+                    className="border-t cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedAccount(acc)}
+                  >
+                    <td className="p-3 font-medium">{acc.employeeId || acc.supplierId || "N/A"}</td>
+                    <td className="p-3 text-muted-foreground truncate max-w-[150px]">{acc.scope}</td>
+                    <td className="p-3 text-muted-foreground truncate max-w-[200px]">{acc.reason}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={acc.status.toUpperCase()} />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -105,12 +127,14 @@ export default function AccountDesk() {
         description="Procurement-originated supplier access requests."
       >
         <div className="space-y-3 text-sm">
-          {supplierAccessQueue.length === 0 ? (
+          {loading ? (
+             <p className="p-3 text-center">Loading...</p>
+          ) : supplierQueue.length === 0 ? (
             <p className="rounded-lg border border-dashed p-3 text-muted-foreground">
               No supplier provisioning requests from Procurement.
             </p>
           ) : (
-            supplierAccessQueue.slice(0, 8).map((request) => (
+            supplierQueue.slice(0, 8).map((request) => (
               <div key={request.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <p className="font-medium text-foreground">
@@ -124,9 +148,9 @@ export default function AccountDesk() {
                   size="sm"
                   variant="outline"
                   disabled={request.status === "PROVISIONED"}
-                  onClick={() => {
+                  onClick={async () => {
                     try {
-                      procurementService.updateSupplierAccessProvisioningStatus(
+                      await procurementService.updateSupplierAccessProvisioningStatus(
                         session.tenantId,
                         session,
                         request.id,
@@ -157,40 +181,52 @@ export default function AccountDesk() {
         </div>
       </WorkspacePanel>
 
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Provision New Account</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 pt-2">
-            <Input placeholder="User Full Name" />
-            <Input placeholder="Email Address" />
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="hr">HR</SelectItem>
-                <SelectItem value="ops">Operations</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              className="w-full"
-              onClick={() => {
-                try {
-                  setCreateOpen(false);
-                  setStatusMessage("System account provisioning request sent to directory services.");
-                } catch (err) {
-                  setErrorMessage("Failed to initiate provisioning.");
-                }
-              }}
-            >
-              Provision Account
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+    <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Provision New Account</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 pt-2">
+          <Input placeholder="Employee/Supplier ID" id="subject-id" />
+          <Input placeholder="Reason" id="reason" />
+          <Select onValueChange={(val) => (window as any)._provisionScope = val}>
+            <SelectTrigger>
+              <SelectValue placeholder="Scope" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="full_portal">Full Portal</SelectItem>
+              <SelectItem value="quote">Quote Only</SelectItem>
+              <SelectItem value="invoice">Invoice Only</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            className="w-full"
+            onClick={async () => {
+              try {
+                const subjectId = (document.getElementById("subject-id") as HTMLInputElement).value;
+                const reason = (document.getElementById("reason") as HTMLInputElement).value;
+                const scope = (window as any)._provisionScope || "full_portal";
+                
+                await itService.createProvisioningRequest(session.tenantId, session, {
+                  employeeId: subjectId.startsWith("EMP") ? subjectId : undefined,
+                  supplierId: subjectId.startsWith("EMP") ? undefined : subjectId,
+                  reason,
+                  scope,
+                });
+                
+                setCreateOpen(false);
+                setStatusMessage("Provisioning request sent successfully.");
+                setVersion((prev) => prev + 1);
+              } catch (err) {
+                setErrorMessage("Failed to initiate provisioning.");
+              }
+            }}
+          >
+            Provision Account
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
 
       <Dialog open={!!selectedAccount} onOpenChange={() => setSelectedAccount(null)}>
         <DialogContent className="max-w-md">
@@ -199,33 +235,35 @@ export default function AccountDesk() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 text-sm gap-y-2">
-              <span className="text-muted-foreground">User:</span>
-              <span className="font-semibold">{selectedAccount?.user}</span>
-              <span className="text-muted-foreground">Target Dept:</span>
-              <span>{selectedAccount?.dept}</span>
-              <span className="text-muted-foreground">Action:</span>
-              <span className="font-bold">{selectedAccount?.action}</span>
+              <span className="text-muted-foreground">Subject ID:</span>
+              <span className="font-semibold">{selectedAccount?.employeeId || selectedAccount?.supplierId}</span>
+              <span className="text-muted-foreground">Reason:</span>
+              <span>{selectedAccount?.reason}</span>
+              <span className="text-muted-foreground">Scope:</span>
+              <span className="font-bold">{selectedAccount?.scope}</span>
               <span className="text-muted-foreground">Status:</span>
-              <span><ApprovalStatusBadge status={selectedAccount?.status || "PENDING"} /></span>
+              <span><ApprovalStatusBadge status={(selectedAccount?.status || "PENDING").toUpperCase()} /></span>
             </div>
             <div className="border-t pt-2 text-xs text-muted-foreground italic">
-              Audit Context: Triggered via HR Workflow {selectedAccount?.id}. Manual override available for domain admins.
+              Audit Context: Triggered via System Workflow {selectedAccount?.id}. Manual override available for domain admins.
             </div>
-            {selectedAccount?.status === "PENDING" && (
+            {selectedAccount?.status.toLowerCase() === "requested" && (
               <Button
                 className="w-full"
                 size="sm"
                 variant="outline"
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    setStatusMessage(`Account action for ${selectedAccount.user} marked as processing.`);
+                    await itService.markAsProvisioned(session.tenantId, session, selectedAccount.id, session.userId);
+                    setStatusMessage(`Account action for ${selectedAccount.employeeId || selectedAccount.supplierId} marked as provisioned.`);
+                    setVersion((prev) => prev + 1);
                     setSelectedAccount(null);
                   } catch (err) {
                     setErrorMessage("Action failed.");
                   }
                 }}
               >
-                Start Processing
+                Mark as Provisioned
               </Button>
             )}
           </div>

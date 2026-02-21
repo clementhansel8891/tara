@@ -1,0 +1,24 @@
+Environment variables loaded from .env
+Running seed command `tsx prisma/seed.ts` ...
+≡ƒôí DATABASE_URL in seed script: FOUND (hidden)
+≡ƒî▒ Starting database seed...
+Γ£à Created company: Demo Company A
+Γ£à Created locations: Jakarta Branch Bandung Branch
+Γ£à Created departments: Engineering, Human Resources, Sales, Operations
+Γ£à Created employees: John Doe, Jane Smith, Bob Johnson
+Γ£à Created stores: Jakarta Store 1 Online Store
+Γ£à Created ecommerce connector: demo-store.example.com
+Γ£à Created POS devices
+Γ£à Created catalog: Pro Laptop 14" Cotton T-Shirt Black Fuji Apple
+Γ£à Initialized stock levels
+Γ£à Created retail customers
+Γ£à Created active promotion
+Γ£à Created money sources: Bank BCA - Operational Main Cash Register
+Γ£à Created journal entry: Opening Balance 2024
+Γ£à Created sample payables and receivables
+Γ£à Created procurement data: Nusantara Industrial Supply Packaging line motor replacement
+Γ£à Created sales data: Nusantara Tech Nusantara Tech
+Γ£à Created payment data: Bank BCA JKT-POS-001
+≡ƒÅü Database seed completed successfully!
+
+The seed command has been executed.

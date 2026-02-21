@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PaymentRefund } from "@/core/types/payment/payment";
+import type { PaymentRefund, PaymentTransaction } from "@/core/types/payment/payment";
 
 const REFUND_TYPES: PaymentRefund["type"][] = ["FULL", "PARTIAL", "SCHEDULED"];
 
@@ -24,18 +24,26 @@ export default function RefundDesk() {
   const [amount, setAmount] = useState("0");
   const [reason, setReason] = useState("");
   const [type, setType] = useState<PaymentRefund["type"]>("PARTIAL");
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [refunds, setRefunds] = useState<PaymentRefund[]>([]);
 
-  const settledPayments = useMemo(
-    () =>
-      paymentService
-        .listTransactions(session.tenantId)
-        .filter((item) => item.status === "SETTLED"),
-    [refreshKey, session.tenantId],
-  );
-  const refunds = useMemo(
-    () => paymentService.listRefunds(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [transactionsData, refundsData] = await Promise.all([
+          paymentService.listTransactions(session.tenantId),
+          paymentService.listRefunds(session.tenantId),
+        ]);
+        setTransactions(transactionsData);
+        setRefunds(refundsData);
+      } catch (error) {
+        console.error("Failed to fetch refund data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
+
+  const settledPayments = useMemo(() => transactions.filter((item) => item.status === "SETTLED"), [transactions]);
 
   return (
     <div className="space-y-6">

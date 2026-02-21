@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,6 @@ const CHANNEL_PRESETS: Record<
 
 export default function CampaignDesk() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const [objective, setObjective] =
@@ -50,16 +49,28 @@ export default function CampaignDesk() {
   const [selectedCampaign, setSelectedCampaign] = useState<MarketingCampaign | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const c = await marketingService.listCampaigns(session.tenantId);
+      setCampaigns(c);
+    } catch (err) {
+      console.error("Failed to fetch campaigns:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const clearStatus = () => {
     setStatusMessage(null);
     setErrorMessage(null);
   };
-
-  const campaigns = useMemo(
-    () => marketingService.listCampaigns(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
 
   const filtered = useMemo(
     () =>
@@ -72,6 +83,14 @@ export default function CampaignDesk() {
       ),
     [campaigns, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading campaign data...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -135,10 +154,10 @@ export default function CampaignDesk() {
         </div>
         <Button
           className="mt-3"
-          onClick={() => {
+          onClick={async () => {
             if (!name) return;
             try {
-              marketingService.createCampaign(session.tenantId, session, {
+              await marketingService.createCampaign(session.tenantId, session, {
                 name,
                 objective,
                 channelMix: CHANNEL_PRESETS[objective],
@@ -149,7 +168,7 @@ export default function CampaignDesk() {
               });
               setStatusMessage(`Campaign "${name}" initialized and queued for budget approval.`);
               setName("");
-              setRefreshKey((value) => value + 1);
+              refresh();
             } catch (err) {
               setErrorMessage("Failed to create campaign. Budget threshold exceeded.");
             }
@@ -198,17 +217,17 @@ export default function CampaignDesk() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            marketingService.updateCampaignStatus(
+                            await marketingService.updateCampaignStatus(
                               session.tenantId,
                               session,
                               item.id,
                               "SCHEDULED",
                             );
                             setStatusMessage("Campaign scheduled.");
-                            setRefreshKey((value) => value + 1);
+                            refresh();
                           } catch (err) {
                             setErrorMessage("Failed to schedule campaign.");
                           }
@@ -219,17 +238,17 @@ export default function CampaignDesk() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            marketingService.updateCampaignStatus(
+                            await marketingService.updateCampaignStatus(
                               session.tenantId,
                               session,
                               item.id,
                               "ACTIVE",
                             );
                             setStatusMessage("Campaign activated.");
-                            setRefreshKey((value) => value + 1);
+                            refresh();
                           } catch (err) {
                             setErrorMessage("Failed to activate campaign.");
                           }
@@ -240,17 +259,17 @@ export default function CampaignDesk() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            marketingService.updateCampaignStatus(
+                            await marketingService.updateCampaignStatus(
                               session.tenantId,
                               session,
                               item.id,
                               "PAUSED",
                             );
                             setStatusMessage("Campaign paused.");
-                            setRefreshKey((value) => value + 1);
+                            refresh();
                           } catch (err) {
                             setErrorMessage("Failed to pause campaign.");
                           }

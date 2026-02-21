@@ -8,6 +8,7 @@ import React, {
 
 import { CartItem } from "@/lib/mock-data";
 import * as storage from "@/lib/local-storage";
+import type { ModuleId } from "@/modules/shared/contract";
 
 /* ============================================================================ */
 /* DOMAIN TYPES (LOCAL, EXPLICIT)                                                */
@@ -27,7 +28,7 @@ export interface AuthUser {
  * Platform-recognized application identifiers.
  * Must align with module contracts.
  */
-export type ActiveAppId = "core" | "retail" | "fnb" | "pos-retail" | "pos-cafe";
+export type ActiveAppId = ModuleId;
 
 /* ============================================================================ */
 /* STATE                                                                        */

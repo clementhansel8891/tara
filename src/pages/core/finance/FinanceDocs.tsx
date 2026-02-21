@@ -10,7 +10,8 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
-import { financeService, type FinanceDocumentRow } from "@/core/services/finance/financeService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
+import type { FinanceDocumentRow } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
 
 type DocumentTab = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
@@ -25,14 +26,12 @@ export default function FinanceDocs() {
   const [title, setTitle] = useState("");
   const [type, setType] = useState("INVOICE");
   const [description, setDescription] = useState("");
-  const [docs, setDocs] = useState<FinanceDocumentRow[]>(() =>
-    financeService.listDocuments(session.tenantId),
-  );
-  const [selectedItem, setSelectedItem] = useState<FinanceDocumentRow | null>(null);
+  const refreshDocs = useCallback(async () => {
+    setDocs(await financeApiClient.listDocuments(session.tenantId, session));
+  }, [session.tenantId, session]);
 
-  const refreshDocs = useCallback(() => {
-    setDocs(financeService.listDocuments(session.tenantId));
-  }, [session.tenantId]);
+  const [docs, setDocs] = useState<FinanceDocumentRow[]>([]);
+  const [selectedItem, setSelectedItem] = useState<FinanceDocumentRow | null>(null);
 
   useEffect(() => {
     refreshDocs();
@@ -48,8 +47,8 @@ export default function FinanceDocs() {
     [docs, search, tab],
   );
 
-  const uploadDoc = () => {
-    financeService.uploadDocumentForApproval(session.tenantId, session, {
+  const uploadDoc = async () => {
+    await financeApiClient.uploadDocumentForApproval(session.tenantId, session, {
       title,
       type,
       description,
@@ -63,8 +62,8 @@ export default function FinanceDocs() {
     refreshDocs();
   };
 
-  const updateStatus = (id: string, status: "APPROVED" | "REJECTED") => {
-    financeService.updateDocumentStatus(session.tenantId, id, status);
+  const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
+    await financeApiClient.updateDocumentStatus(session.tenantId, session, id, status);
     logService.log(session.tenantId, session.userId, "Updated finance document status", `${id} -> ${status}`);
     refreshDocs();
   };

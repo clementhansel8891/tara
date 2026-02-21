@@ -14,4 +14,14 @@ export interface TenantContext {
    * Used for location-specific operations
    */
   locationId?: string;
+
+  /**
+   * User ID (optional, from x-actor-id)
+   */
+  userId?: string;
+
+  /**
+   * User Role (optional, from x-user-role)
+   */
+  role?: string;
 }

@@ -31,13 +31,13 @@ const CashierPOS = () => {
   const [activeShift, setActiveShift] = useState<any | null>(null);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = retailService.listInventory(session.tenantId);
+        const data = await retailService.listInventory(session.tenantId, session);
         setProducts(data);
 
         // Fetch active shift
-        const shifts = retailService.listShifts(session.tenantId);
+        const shifts = await retailService.listShifts(session.tenantId, session);
         const openShift = shifts.find(s => s.status === "open" && s.employeeId === session.userId);
         setActiveShift(openShift || null);
       } catch (error) {
@@ -47,7 +47,7 @@ const CashierPOS = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.userId]);
+  }, [session.tenantId, session.userId, session]);
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => 
@@ -62,7 +62,7 @@ const CashierPOS = () => {
       if (existing) {
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { id: product.id, name: product.name, sku: product.sku, price: 85000, quantity: 1 }]; // Mock price if not in inventory
+      return [...prev, { id: product.id, name: product.name, sku: product.sku, price: product.price, quantity: 1 }]; // Mock price if not in inventory
     });
   };
 

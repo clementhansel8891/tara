@@ -144,5 +144,44 @@ export interface AssetAuditPack {
   evidence: string[];
   checksum: string;
   signature: string;
+// ... (previous content)
   signatureVersion: "v1";
 }
+
+export type Asset = FixedAsset;
+
+export interface AssetCapexInput {
+  assetDescription: string;
+  requestedAmount: number;
+  department: string;
+  justification: string;
+}
+
+export interface AssetAuditPackArtifact {
+  id: string;
+  url: string;
+  generatedAt: string;
+}
+
+export interface FinanceCapexBudgetRow {
+  department: string;
+  allocatedBudget: number;
+  committedBudget: number;
+  availableBudget: number;
+  fiscalYear: string;
+}
+
+export interface ScheduledDepreciationRunResult {
+  runId: string;
+  postedEntries: number;
+  skippedAssetIds: string[];
+}
+
+export interface FinanceAlert {
+  id: string;
+  message: string;
+  severity: "LOW" | "MEDIUM" | "HIGH";
+  createdAt: string;
+  read: boolean;
+}
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -6,7 +6,7 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { useSession } from "@/core/security/session";
-import { financeService } from "@/core/services/finance/financeService";
+import { financeService, type FinanceInsight } from "@/core/services/finance/financeService";
 
 export default function FinanceInsights() {
   const session = useSession();
@@ -14,10 +14,11 @@ export default function FinanceInsights() {
   const [timeFrame, setTimeFrame] = useState("30");
   const [category, setCategory] = useState("ALL");
 
-  const insights = useMemo(
-    () => financeService.getFinanceInsights(session.tenantId),
-    [session],
-  );
+  const [insights, setInsights] = useState<FinanceInsight[]>([]);
+
+  useEffect(() => {
+    financeService.getFinanceInsights(session.tenantId, session).then(setInsights).catch(console.error);
+  }, [session.tenantId, session]);
 
   const filteredInsights = useMemo(
     () =>

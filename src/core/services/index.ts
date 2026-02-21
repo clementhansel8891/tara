@@ -18,6 +18,16 @@ export { legalService } from "./hr/legalService";
 export { analyticsService } from "./hr/analyticsService";
 export { caseService } from "./hr/caseService";
 
+// PROCUREMENT
+export { procurementService } from "./procurement/procurementService";
+
+// IT
+export { itService } from "./it/itService";
+export { itSettingsService } from "./it/itSettingsService";
+
+// FINANCE
+export { financeService } from "./finance/financeService";
+
 /* ============================================================================ */
 /* TYPE IMPORTS (SINGLE ENTRY POINT)                                             */
 /* ============================================================================ */

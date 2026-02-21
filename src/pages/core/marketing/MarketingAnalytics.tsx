@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,23 +8,36 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
+import type { MarketingCampaign, ChannelPerformance, AttributionRecord } from "@/core/types/marketing/marketing";
 
 export default function MarketingAnalytics() {
   const session = useSession();
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
+  const [channelPerformance, setChannelPerformance] = useState<ChannelPerformance[]>([]);
+  const [attribution, setAttribution] = useState<AttributionRecord[]>([]);
 
-  const campaigns = useMemo(
-    () => marketingService.listCampaigns(session.tenantId),
-    [session.tenantId],
-  );
-  const channel = useMemo(
-    () => marketingService.getChannelPerformance(session.tenantId),
-    [session.tenantId],
-  );
-  const attribution = useMemo(
-    () => marketingService.listAttribution(session.tenantId),
-    [session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      const [c, ch, a] = await Promise.all([
+        marketingService.listCampaigns(session.tenantId),
+        marketingService.getChannelPerformance(session.tenantId),
+        marketingService.listAttribution(session.tenantId),
+      ]);
+      setCampaigns(c);
+      setChannelPerformance(ch);
+      setAttribution(a);
+    } catch (err) {
+      console.error("Failed to fetch marketing analytics data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filtered = useMemo(
     () =>
@@ -37,6 +50,14 @@ export default function MarketingAnalytics() {
       ),
     [campaigns, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading analytics...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -55,7 +76,7 @@ export default function MarketingAnalytics() {
 
       <WorkspacePanel title="Channel Breakdown" description="Performance pullback from channels with CPL and lead output.">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {channel.map((item) => (
+          {channelPerformance.map((item) => (
             <div key={item.channel} className="rounded-lg border p-3">
               <p className="text-sm font-medium">{item.channel}</p>
               <p className="text-xs text-muted-foreground">

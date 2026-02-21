@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,22 +29,47 @@ export default function TalentFlow() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const candidates = useMemo(
-    () => recruitmentService.listCandidates(session.tenantId, session),
-    [session, version],
-  );
-  
+  const [candidates, setCandidates] = useState<CandidateRecord[]>([]);
+  const [candidateProfile, setCandidateProfile] = useState<any | null>(null);
+  const [stages, setStages] = useState<readonly string[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [cands, stgs] = await Promise.all([
+          recruitmentService.listCandidates(session.tenantId, session),
+          recruitmentService.getPipelineStages(),
+        ]);
+        setCandidates(cands);
+        setStages(stgs);
+      } catch (err) {
+        console.error("Failed to load talent flow data", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!selectedCandidateId || !profileOpen) {
+        setCandidateProfile(null);
+        return;
+      }
+      try {
+        const profile = await recruitmentService.getCandidateProfile(session.tenantId, session, selectedCandidateId);
+        setCandidateProfile(profile);
+      } catch (err) {
+        console.error("Failed to load candidate profile", err);
+      }
+    };
+    loadProfile();
+  }, [session.tenantId, session, selectedCandidateId, profileOpen]);
+
   const selectedCandidateData = useMemo(() => {
     if (!selectedCandidateId) return null;
     return candidates.find(c => c.id === selectedCandidateId) || null;
   }, [candidates, selectedCandidateId]);
 
-  const candidateProfile = useMemo(() => {
-    if (!selectedCandidateId || !profileOpen) return null;
-    return recruitmentService.getCandidateProfile(session.tenantId, session, selectedCandidateId);
-  }, [session, selectedCandidateId, profileOpen]);
-
-  const stages = useMemo(() => recruitmentService.getPipelineStages(), []);
   const filteredCandidates = candidates.filter((candidate) =>
     search ? candidate.name.toLowerCase().includes(search.toLowerCase()) : true,
   );

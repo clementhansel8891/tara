@@ -24,3 +24,15 @@ export type Receivable = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface FinanceReceivableRow {
+  id: string;
+  customerName: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  status: "DRAFT" | "SENT" | "OVERDUE" | "PAID" | "DISPUTED";
+  agingDays: number;
+}
+

@@ -33,7 +33,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { employeeRepo } from "@/core/repositories/hr/employeeRepo";
+import { hrService } from "@/core/services/hr/hrService";
 import { useSession } from "@/core/security/session";
 import type { Employee } from "@/core/types/hr/employee";
 
@@ -45,12 +45,17 @@ const StaffAssignments = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = employeeRepo.list(session.tenantId);
+        const data = await hrService.listEmployees(session.tenantId, session);
         setStaff(data);
       } catch (error) {
         console.error("Failed to fetch staff", error);
+        toast({ 
+          title: "Error", 
+          description: "Failed to load staff data. Please try again.", 
+          variant: "destructive" 
+        });
       } finally {
         setIsLoading(false);
       }
@@ -61,7 +66,7 @@ const StaffAssignments = () => {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to revoke all access for this personnel?")) return;
     try {
-      employeeRepo.delete(session.tenantId!, id);
+      await hrService.deleteEmployee(session.tenantId!, session, id);
       setStaff(prev => prev.filter(s => s.id !== id));
       toast({ title: "Access Revoked", description: "Security credentials have been purged from Zenvix Vault." });
     } catch (error) {

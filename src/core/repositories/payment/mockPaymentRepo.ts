@@ -2,7 +2,7 @@ import {
   ensureSeed,
   loadFromStorage,
   saveToStorage,
-} from "@/core/repositories/hr/storage";
+} from "@/core/persistence";
 import type { PaymentRepository } from "@/core/repositories/payment/paymentRepository";
 import type {
   DevicePool,
@@ -205,128 +205,142 @@ const updateById = <T extends { id: string }>(
 };
 
 export const mockPaymentRepo: PaymentRepository = {
-  listTransactions(tenantId) {
-    return ensureSeed<PaymentTransaction[]>(
+  async listTransactions(tenantId) {
+    return await ensureSeed<PaymentTransaction>(
       transactionsKey(tenantId),
       seedTransactions(tenantId),
     );
   },
-  createTransaction(tenantId, payload) {
-    const next = [payload, ...this.listTransactions(tenantId)];
-    saveToStorage(transactionsKey(tenantId), next);
+  async createTransaction(tenantId, payload) {
+    const current = await this.listTransactions(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(transactionsKey(tenantId), next);
     return payload;
   },
-  updateTransaction(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listTransactions(tenantId), id, patch);
-    if (updated) saveToStorage(transactionsKey(tenantId), next);
+  async updateTransaction(tenantId, id, patch) {
+    const current = await this.listTransactions(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(transactionsKey(tenantId), next);
     return updated;
   },
 
-  listProviders(tenantId) {
-    return ensureSeed<PaymentProvider[]>(providersKey(tenantId), seedProviders(tenantId));
+  async listProviders(tenantId) {
+    return await ensureSeed<PaymentProvider>(providersKey(tenantId), seedProviders(tenantId));
   },
-  updateProvider(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listProviders(tenantId), id, patch);
-    if (updated) saveToStorage(providersKey(tenantId), next);
+  async updateProvider(tenantId, id, patch) {
+    const current = await this.listProviders(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(providersKey(tenantId), next);
     return updated;
   },
 
-  listRoutingPolicies(tenantId) {
-    return ensureSeed<RoutingPolicy[]>(routingKey(tenantId), seedRouting(tenantId));
+  async listRoutingPolicies(tenantId) {
+    return await ensureSeed<RoutingPolicy>(routingKey(tenantId), seedRouting(tenantId));
   },
-  updateRoutingPolicy(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listRoutingPolicies(tenantId), id, patch);
-    if (updated) saveToStorage(routingKey(tenantId), next);
+  async updateRoutingPolicy(tenantId, id, patch) {
+    const current = await this.listRoutingPolicies(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(routingKey(tenantId), next);
     return updated;
   },
 
-  listDevices(tenantId) {
-    return ensureSeed<PosDevice[]>(devicesKey(tenantId), seedDevices(tenantId));
+  async listDevices(tenantId) {
+    return await ensureSeed<PosDevice>(devicesKey(tenantId), seedDevices(tenantId));
   },
-  updateDevice(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listDevices(tenantId), id, patch);
-    if (updated) saveToStorage(devicesKey(tenantId), next);
+  async updateDevice(tenantId, id, patch) {
+    const current = await this.listDevices(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(devicesKey(tenantId), next);
     return updated;
   },
-  listDevicePools(tenantId) {
-    return ensureSeed<DevicePool[]>(poolsKey(tenantId), seedPools(tenantId));
+  async listDevicePools(tenantId) {
+    return await ensureSeed<DevicePool>(poolsKey(tenantId), seedPools(tenantId));
   },
 
-  listDisputes(tenantId) {
-    return loadFromStorage<PaymentDispute[]>(disputesKey(tenantId), []);
+  async listDisputes(tenantId) {
+    return await loadFromStorage<PaymentDispute[]>(disputesKey(tenantId), []);
   },
-  createDispute(tenantId, payload) {
-    const next = [payload, ...this.listDisputes(tenantId)];
-    saveToStorage(disputesKey(tenantId), next);
+  async createDispute(tenantId, payload) {
+    const current = await this.listDisputes(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(disputesKey(tenantId), next);
     return payload;
   },
-  updateDispute(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listDisputes(tenantId), id, patch);
-    if (updated) saveToStorage(disputesKey(tenantId), next);
+  async updateDispute(tenantId, id, patch) {
+    const current = await this.listDisputes(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(disputesKey(tenantId), next);
     return updated;
   },
 
-  listChargebacks(tenantId) {
-    return loadFromStorage<PaymentChargeback[]>(chargebacksKey(tenantId), []);
+  async listChargebacks(tenantId) {
+    return await loadFromStorage<PaymentChargeback[]>(chargebacksKey(tenantId), []);
   },
-  createChargeback(tenantId, payload) {
-    const next = [payload, ...this.listChargebacks(tenantId)];
-    saveToStorage(chargebacksKey(tenantId), next);
+  async createChargeback(tenantId, payload) {
+    const current = await this.listChargebacks(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(chargebacksKey(tenantId), next);
     return payload;
   },
-  updateChargeback(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listChargebacks(tenantId), id, patch);
-    if (updated) saveToStorage(chargebacksKey(tenantId), next);
+  async updateChargeback(tenantId, id, patch) {
+    const current = await this.listChargebacks(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(chargebacksKey(tenantId), next);
     return updated;
   },
 
-  listRefunds(tenantId) {
-    return loadFromStorage<PaymentRefund[]>(refundsKey(tenantId), []);
+  async listRefunds(tenantId) {
+    return await loadFromStorage<PaymentRefund[]>(refundsKey(tenantId), []);
   },
-  createRefund(tenantId, payload) {
-    const next = [payload, ...this.listRefunds(tenantId)];
-    saveToStorage(refundsKey(tenantId), next);
+  async createRefund(tenantId, payload) {
+    const current = await this.listRefunds(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(refundsKey(tenantId), next);
     return payload;
   },
-  updateRefund(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listRefunds(tenantId), id, patch);
-    if (updated) saveToStorage(refundsKey(tenantId), next);
+  async updateRefund(tenantId, id, patch) {
+    const current = await this.listRefunds(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(refundsKey(tenantId), next);
     return updated;
   },
 
-  listSettlements(tenantId) {
-    return ensureSeed<SettlementRecord[]>(
+  async listSettlements(tenantId) {
+    return await ensureSeed<SettlementRecord>(
       settlementsKey(tenantId),
       seedSettlements(tenantId),
     );
   },
-  createSettlement(tenantId, payload) {
-    const next = [payload, ...this.listSettlements(tenantId)];
-    saveToStorage(settlementsKey(tenantId), next);
+  async createSettlement(tenantId, payload) {
+    const current = await this.listSettlements(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(settlementsKey(tenantId), next);
     return payload;
   },
-  updateSettlement(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listSettlements(tenantId), id, patch);
-    if (updated) saveToStorage(settlementsKey(tenantId), next);
+  async updateSettlement(tenantId, id, patch) {
+    const current = await this.listSettlements(tenantId);
+    const { updated, next } = updateById(current, id, patch);
+    if (updated) await saveToStorage(settlementsKey(tenantId), next);
     return updated;
   },
 
-  listEvidencePacks(tenantId) {
-    return ensureSeed<EvidencePack[]>(evidenceKey(tenantId), seedEvidence(tenantId));
+  async listEvidencePacks(tenantId) {
+    return await ensureSeed<EvidencePack>(evidenceKey(tenantId), seedEvidence(tenantId));
   },
-  createEvidencePack(tenantId, payload) {
-    const next = [payload, ...this.listEvidencePacks(tenantId)];
-    saveToStorage(evidenceKey(tenantId), next);
+  async createEvidencePack(tenantId, payload) {
+    const current = await this.listEvidencePacks(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(evidenceKey(tenantId), next);
     return payload;
   },
 
-  listAuditEvents(tenantId) {
-    return loadFromStorage<PaymentAuditEvent[]>(auditKey(tenantId), []);
+  async listAuditEvents(tenantId) {
+    return await loadFromStorage<PaymentAuditEvent[]>(auditKey(tenantId), []);
   },
-  createAuditEvent(tenantId, payload) {
-    const next = [payload, ...this.listAuditEvents(tenantId)];
-    saveToStorage(auditKey(tenantId), next);
+  async createAuditEvent(tenantId, payload) {
+    const current = await this.listAuditEvents(tenantId);
+    const next = [payload, ...current];
+    await saveToStorage(auditKey(tenantId), next);
     return payload;
   },
 };
-

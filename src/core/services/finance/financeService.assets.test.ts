@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { mockFinanceRepo } from "@/core/repositories/finance/mockFinanceRepo";
+import { financeRepo } from "@/core/repositories/finance/financeRepo";
 import { Roles } from "@/core/security/roles";
 import type { SessionContext } from "@/core/security/session";
 import { financeService } from "./financeService";
@@ -35,10 +35,10 @@ describe("financeService asset lifecycle", () => {
     expect(run.postedEntries).toBeGreaterThan(0);
     expect(run.journalEntryIds.length).toBe(run.postedEntries);
 
-    const entries = financeService.listAssetDepreciationEntries(tenantId);
+    const entries = await financeService.listAssetDepreciationEntries(tenantId);
     expect(entries.length).toBe(run.postedEntries);
 
-    const journals = mockFinanceRepo.listJournalEntries(tenantId);
+    const journals = await financeRepo.listJournalEntries(tenantId);
     const allJournalsExist = run.journalEntryIds.every((id) =>
       journals.some((journal) => journal.id === id),
     );
@@ -87,8 +87,7 @@ describe("financeService asset lifecycle", () => {
     expect(disposal.type).toBe("DISPOSAL");
     expect(disposal.attachmentDocumentIds).toEqual(docIds);
 
-    const disposalJournal = mockFinanceRepo
-      .listJournalEntries(tenantId)
+    const disposalJournal = (await financeRepo.listJournalEntries(tenantId))
       .find((entry) => entry.id === disposal.journalEntryId);
     expect(disposalJournal).toBeDefined();
     expect(

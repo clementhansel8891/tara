@@ -10,66 +10,66 @@ import type {
 } from "@/core/types/sales/sales";
 
 export interface SalesRepository {
-  listLeads: (tenantId: string) => SalesLead[];
-  createLead: (tenantId: string, payload: SalesLead) => SalesLead;
+  listLeads: (tenantId: string) => Promise<SalesLead[]>;
+  createLead: (tenantId: string, payload: SalesLead) => Promise<SalesLead>;
   updateLead: (
     tenantId: string,
     id: string,
     patch: Partial<SalesLead>,
-  ) => SalesLead | null;
+  ) => Promise<SalesLead | null>;
 
-  listOpportunities: (tenantId: string) => SalesOpportunity[];
+  listOpportunities: (tenantId: string) => Promise<SalesOpportunity[]>;
   createOpportunity: (
     tenantId: string,
     payload: SalesOpportunity,
-  ) => SalesOpportunity;
+  ) => Promise<SalesOpportunity>;
   updateOpportunity: (
     tenantId: string,
     id: string,
     patch: Partial<SalesOpportunity>,
-  ) => SalesOpportunity | null;
+  ) => Promise<SalesOpportunity | null>;
 
-  listQuotes: (tenantId: string) => SalesQuote[];
-  createQuote: (tenantId: string, payload: SalesQuote) => SalesQuote;
+  listQuotes: (tenantId: string) => Promise<SalesQuote[]>;
+  createQuote: (tenantId: string, payload: SalesQuote) => Promise<SalesQuote>;
   updateQuote: (
     tenantId: string,
     id: string,
     patch: Partial<SalesQuote>,
-  ) => SalesQuote | null;
+  ) => Promise<SalesQuote | null>;
 
-  listTimelineEvents: (tenantId: string) => SalesTimelineEvent[];
+  listTimelineEvents: (tenantId: string) => Promise<SalesTimelineEvent[]>;
   createTimelineEvent: (
     tenantId: string,
     payload: SalesTimelineEvent,
-  ) => SalesTimelineEvent;
+  ) => Promise<SalesTimelineEvent>;
 
-  listTasks: (tenantId: string) => SalesTask[];
-  createTask: (tenantId: string, payload: SalesTask) => SalesTask;
+  listTasks: (tenantId: string) => Promise<SalesTask[]>;
+  createTask: (tenantId: string, payload: SalesTask) => Promise<SalesTask>;
   updateTask: (
     tenantId: string,
     id: string,
     patch: Partial<SalesTask>,
-  ) => SalesTask | null;
+  ) => Promise<SalesTask | null>;
 
-  listAlerts: (tenantId: string) => SalesAlert[];
-  createAlert: (tenantId: string, payload: SalesAlert) => SalesAlert;
+  listAlerts: (tenantId: string) => Promise<SalesAlert[]>;
+  createAlert: (tenantId: string, payload: SalesAlert) => Promise<SalesAlert>;
   updateAlert: (
     tenantId: string,
     id: string,
     patch: Partial<SalesAlert>,
-  ) => SalesAlert | null;
+  ) => Promise<SalesAlert | null>;
 
-  listOrders: (tenantId: string) => SalesOrder[];
-  createOrder: (tenantId: string, payload: SalesOrder) => SalesOrder;
+  listOrders: (tenantId: string) => Promise<SalesOrder[]>;
+  createOrder: (tenantId: string, payload: SalesOrder) => Promise<SalesOrder>;
   updateOrder: (
     tenantId: string,
     id: string,
     patch: Partial<SalesOrder>,
-  ) => SalesOrder | null;
+  ) => Promise<SalesOrder | null>;
 
-  listAuditEvents: (tenantId: string) => SalesAuditEvent[];
+  listAuditEvents: (tenantId: string) => Promise<SalesAuditEvent[]>;
   createAuditEvent: (
     tenantId: string,
     payload: SalesAuditEvent,
-  ) => SalesAuditEvent;
+  ) => Promise<SalesAuditEvent>;
 }

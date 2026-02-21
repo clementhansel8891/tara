@@ -1,23 +1,33 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PaymentProvider } from "@/core/types/payment/payment";
+import type { PaymentProvider, RoutingPolicy } from "@/core/types/payment/payment";
 
 export default function ProviderRoutingDesk() {
   const session = useSession();
   const [refreshKey, setRefreshKey] = useState(0);
-  const providers = useMemo(
-    () => paymentService.listProviders(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const policies = useMemo(
-    () => paymentService.listRoutingPolicies(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const [providers, setProviders] = useState<PaymentProvider[]>([]);
+  const [policies, setPolicies] = useState<RoutingPolicy[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [providersData, policiesData] = await Promise.all([
+          paymentService.listProviders(session.tenantId),
+          paymentService.listRoutingPolicies(session.tenantId),
+        ]);
+        setProviders(providersData);
+        setPolicies(policiesData);
+      } catch (error) {
+        console.error("Failed to fetch provider routing data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
 
   const setProvider = (providerId: PaymentProvider["id"], status: PaymentProvider["status"]) => {
     paymentService.setProviderStatus(session.tenantId, session, providerId, status);

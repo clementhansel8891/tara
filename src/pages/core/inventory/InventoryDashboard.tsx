@@ -9,16 +9,23 @@ import type { InventoryAlert, InventoryDashboardMetrics } from "@/core/types/inv
 
 export default function InventoryDashboard() {
   const session = useSession();
-  const [metrics, setMetrics] = useState<InventoryDashboardMetrics>(
-    inventoryService.getDashboard(session.tenantId),
-  );
-  const [alerts, setAlerts] = useState<InventoryAlert[]>(
-    inventoryService.listAlerts(session.tenantId),
-  );
+  const [metrics, setMetrics] = useState<InventoryDashboardMetrics | null>(null);
+  const [alerts, setAlerts] = useState<InventoryAlert[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(() => {
-    setMetrics(inventoryService.getDashboard(session.tenantId));
-    setAlerts(inventoryService.listAlerts(session.tenantId));
+  const refresh = useCallback(async () => {
+    try {
+      const [m, a] = await Promise.all([
+        inventoryService.getDashboard(session.tenantId),
+        inventoryService.listAlerts(session.tenantId),
+      ]);
+      setMetrics(m);
+      setAlerts(a);
+    } catch (error) {
+      console.error("Failed to fetch inventory dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [session.tenantId]);
 
   useEffect(() => {
@@ -30,6 +37,14 @@ export default function InventoryDashboard() {
     [alerts],
   );
 
+  if (loading || !metrics) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -37,8 +52,8 @@ export default function InventoryDashboard() {
         subtitle="Company-wide stock posture, pending controls, and operational alerts."
         primaryAction={
           <Button
-            onClick={() => {
-              inventoryService.runLowStockScan(session.tenantId, session);
+            onClick={async () => {
+              await inventoryService.runLowStockScan(session.tenantId, session);
               refresh();
             }}
           >
@@ -48,8 +63,8 @@ export default function InventoryDashboard() {
         secondaryActions={
           <Button
             variant="outline"
-            onClick={() => {
-              inventoryService.runExpiryScan(session.tenantId, session);
+            onClick={async () => {
+              await inventoryService.runExpiryScan(session.tenantId, session);
               refresh();
             }}
           >

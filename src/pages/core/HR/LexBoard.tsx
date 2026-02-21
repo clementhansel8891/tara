@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,12 +16,37 @@ import { DocumentViewer } from "@/core/tools/docs/DocumentViewer";
 
 export default function LexBoard() {
   const session = useSession();
-  const [, setVersion] = useState(0);
+  const [version, setVersion] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string>(contractTemplates[0]?.id ?? "tpl-employment");
   const [search, setSearch] = useState("");
-  const compliance = legalService.getComplianceCases(session.tenantId, session);
-  const procurementHandoffs = procurementService.listLegalHandoffs(session.tenantId);
+  
+  const [compliance, setCompliance] = useState<{
+    contracts: any[];
+    expiringVisas: any[];
+    pendingRenewals: number;
+  }>({ contracts: [], expiringVisas: [], pendingRenewals: 0 });
+  
+  const [procurementHandoffs, setProcurementHandoffs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [comp, handoffs] = await Promise.all([
+          legalService.getComplianceCases(session.tenantId, session),
+          procurementService.listLegalHandoffs(session.tenantId), // Assuming this is sync for now or we make it async? 
+          // If procurementService is sync, Promise.all wraps it. 
+          // Ideally we check procurementService too.
+        ]);
+        setCompliance(comp);
+        setProcurementHandoffs(handoffs);
+      } catch (err) {
+        console.error("Failed to load lex board data", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
   const filteredContracts = compliance.contracts.filter((contract) =>
     search ? contract.title.toLowerCase().includes(search.toLowerCase()) : true,
   );
@@ -41,10 +66,10 @@ export default function LexBoard() {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               const target = compliance.contracts[0];
               if (target) {
-                workflowService.createRequest(session.tenantId, session, {
+                await workflowService.createRequest(session.tenantId, session, {
                   entityType: "CONTRACT",
                   entityId: target.id,
                   makerDept: session.departmentId,
@@ -58,10 +83,10 @@ export default function LexBoard() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               const target = compliance.contracts[0];
               if (target) {
-                legalService.requestRenewal(session.tenantId, session, target.id);
+                await legalService.requestRenewal(session.tenantId, session, target.id);
                 setVersion((prev) => prev + 1);
               }
             }}
@@ -114,8 +139,8 @@ export default function LexBoard() {
                   size="sm"
                   variant="outline"
                   disabled={handoff.status !== "PENDING_LEGAL_ACK"}
-                  onClick={() => {
-                    procurementService.acknowledgeLegalHandoff(
+                  onClick={async () => {
+                    await procurementService.acknowledgeLegalHandoff(
                       session.tenantId,
                       session,
                       handoff.id,
@@ -140,8 +165,8 @@ export default function LexBoard() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    workflowService.createRequest(session.tenantId, session, {
+                  onClick={async () => {
+                    await workflowService.createRequest(session.tenantId, session, {
                       entityType: "CONTRACT",
                       entityId: contract.id,
                       makerDept: session.departmentId,
@@ -191,8 +216,8 @@ export default function LexBoard() {
             <DocumentViewer
               title="Template Preview"
               content={buildTemplatePreview(selectedTemplate)}
-              onSave={() => {
-                legalService.createContract(session.tenantId, session, {
+              onSave={async () => {
+                await legalService.createContract(session.tenantId, session, {
                   title: "Generated Contract",
                   type: "internal",
                   status: "draft",

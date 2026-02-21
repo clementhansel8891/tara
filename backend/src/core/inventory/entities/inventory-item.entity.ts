@@ -7,6 +7,7 @@ export class InventoryItem {
   uom: string;
   barcode: string;
   qrCode: string;
+  moduleTags: string[];
   active: boolean;
   createdAt: Date;
   updatedAt: Date;

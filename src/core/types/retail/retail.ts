@@ -1,18 +1,82 @@
 import type { HRAuditFields } from "@/core/types/hr/base";
 
-export type RetailStoreStatus = "active" | "inactive" | "maintenance";
+// ============================================================
+// PHYSICAL BRANCH (Store)
+// ============================================================
+
+export type RetailStoreStatus = "active" | "inactive" | "maintenance" | "decommissioned";
+export type RetailStoreType = "flagship" | "express" | "kiosk" | "pop-up" | "warehouse";
 
 export interface RetailStore extends HRAuditFields {
   id: string;
   tenantId: string;
   name: string;
   code: string;
-  address: string;
+  locationId: string;
+  type: RetailStoreType;
   status: RetailStoreStatus;
-  warehouseId: string; // Linked Inventory Warehouse
-  managerId: string; // Store Manager (Employee ID)
-  locationId: string; // Linked HR Location for Geofencing
+  managerId?: string;
+  phone?: string;
+  email?: string;
+  timezone?: string;
+  address?: string;
+  operatingHours?: Record<string, any>;
+  inventoryPoolId?: string; // null = private per-location inventory
+  settings?: any;
 }
+
+// ============================================================
+// ECOMMERCE STORE
+// ============================================================
+
+export type EcommercePlatform =
+  | "shopify"
+  | "woocommerce"
+  | "tokopedia"
+  | "shopee"
+  | "lazada"
+  | "tiktok"
+  | "custom";
+
+export interface EcommerceStore extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  name: string;
+  platform: EcommercePlatform;
+  domain: string;
+  apiKey: string;
+  status: "active" | "inactive" | "suspended";
+  inventoryPoolId?: string; // null = private
+  managerId?: string;
+  /** IDs of physical Store branches this e-commerce store serves */
+  branchIds?: string[];
+  settings?: any;
+}
+
+// ============================================================
+// INVENTORY POOL
+// ============================================================
+
+export interface InventoryPool extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  /** shared = multiple stores from same pool | exclusive = dedicated to one store */
+  type: "shared" | "exclusive";
+}
+
+export interface InventoryPoolStock {
+  poolId: string;
+  productId: string;
+  onHand: number;
+  reserved: number;
+  available: number;
+}
+
+// ============================================================
+// POS DEVICE
+// ============================================================
 
 export type POSDeviceType = "pos_terminal" | "kiosk" | "mobile_pos" | "scanner" | "refund_desk";
 
@@ -23,13 +87,17 @@ export interface POSDevice extends HRAuditFields {
   name: string;
   type: POSDeviceType;
   isActive: boolean;
-  macAddress?: string; // For trusted device enforcement
+  macAddress?: string;
 }
 
-export type OrderStatus = "draft" | "pending_payment" | "paid" | "fulfilled" | "cancelled" | "refunded";
+// ============================================================
+// ORDERS
+// ============================================================
+
+export type OrderStatus = "draft" | "pending_payment" | "reserved" | "paid" | "fulfilled" | "cancelled" | "refunded";
 
 export interface RetailOrderItem {
-  itemId: string; // Inventory Item ID
+  itemId: string;
   name: string;
   quantity: number;
   unitPrice: number;
@@ -42,7 +110,7 @@ export interface RetailOrder extends HRAuditFields {
   tenantId: string;
   storeId: string;
   deviceId: string;
-  cashierId: string; // Employee ID
+  cashierId: string;
   customerName?: string;
   status: OrderStatus;
   items: RetailOrderItem[];
@@ -55,12 +123,21 @@ export interface RetailOrder extends HRAuditFields {
   updatedAt: string;
 }
 
+// ============================================================
+// LICENSE
+// ============================================================
+
 export interface RetailLicense {
   tenantId: string;
   status: "active" | "expired" | "frozen";
-  maxStores: number;
+  maxBranches: number;
+  maxEcommerceStores: number;
   expiryDate: string;
 }
+
+// ============================================================
+// PROMOTIONS
+// ============================================================
 
 export type PromotionType = "percentage" | "fixed_amount" | "bogo" | "bundle";
 export type PromotionStatus = "draft" | "active" | "scheduled" | "expired";
@@ -78,18 +155,33 @@ export interface RetailPromotion extends HRAuditFields {
   targetIds?: string[];
 }
 
+// ============================================================
+// CHANNELS (Legacy Ecommerce Hub)
+// ============================================================
+
 export type ChannelType = "DIRECT" | "OWNED" | "MARKETPLACE";
 export type ChannelStatus = "active" | "inactive" | "warning";
 
 export interface RetailChannel extends HRAuditFields {
   id: string;
   tenantId: string;
+  branchId?: string;
   name: string;
   type: ChannelType;
   status: ChannelStatus;
-  syncFrequency: string; // e.g. "5m", "1h"
+  syncFrequency: string;
   lastSync?: string;
+  channelId?: string;
+  clientId?: string;
+  clientSecret?: string;
+  gatewayUrl?: string;
+  connector?: string;
+  settings?: any;
 }
+
+// ============================================================
+// SHIFTS
+// ============================================================
 
 export interface RetailShift extends HRAuditFields {
   id: string;
@@ -103,4 +195,49 @@ export interface RetailShift extends HRAuditFields {
   expectedCash?: number;
   status: "open" | "closed";
   notes?: string;
+}
+
+// ============================================================
+// CUSTOMERS
+// ============================================================
+
+export interface RetailCustomer extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  tier: "regular" | "silver" | "gold" | "platinum";
+  points: number;
+}
+
+// ============================================================
+// GATEWAY INFRASTRUCTURE
+// ============================================================
+
+export type GatewayNodeStatus = "ACTIVE" | "STANDBY" | "DOWN";
+
+export interface RetailGatewayNode extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  loadBalancerId?: string;
+  nodeName: string;
+  ipAddress?: string;
+  port: number;
+  status: GatewayNodeStatus;
+  healthScore: number;
+  lastHeartbeat?: string;
+  version?: string;
+  region?: string;
+}
+
+export interface RetailLoadBalancer extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  name: string;
+  virtualIp?: string;
+  algorithm: string;
+  status: "ONLINE" | "OFFLINE";
+  nodes?: RetailGatewayNode[];
 }

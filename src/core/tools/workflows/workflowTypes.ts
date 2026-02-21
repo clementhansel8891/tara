@@ -12,7 +12,8 @@ export type WorkflowEntityType =
   | "ASSET_REQUEST"
   | "ATTENDANCE"
   | "SHIFT_SWAP"
-  | "EMERGENCY_OVERRIDE";
+  | "EMERGENCY_OVERRIDE"
+  | "RETAIL_CHANNEL";
 
 export type WorkflowStatus =
   | "PENDING"

@@ -23,9 +23,7 @@ export default function ClosePeriodStudio() {
   const [tab, setTab] = useState<PeriodTab>("OPEN");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<AccountingPeriod | null>(null);
-  const [periods, setPeriods] = useState<AccountingPeriod[]>(() =>
-    financeService.listPeriods(session.tenantId)
-  );
+  const [periods, setPeriods] = useState<AccountingPeriod[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -35,8 +33,8 @@ export default function ClosePeriodStudio() {
   };
 
   const refresh = useCallback(() => {
-    setPeriods(financeService.listPeriods(session.tenantId));
-  }, [session.tenantId]);
+    financeService.listPeriods(session.tenantId, session).then(setPeriods).catch(console.error);
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -56,7 +54,7 @@ export default function ClosePeriodStudio() {
 
   const startClose = (period: AccountingPeriod) => {
     try {
-      financeService.lockPeriod(session.tenantId, period.id);
+      financeService.lockPeriod(session.tenantId, session, period.id);
       workflowService.createRequest(session.tenantId, session, {
         entityType: "PAYMENT",
         entityId: period.id,
@@ -75,7 +73,7 @@ export default function ClosePeriodStudio() {
 
   const approveClose = (period: AccountingPeriod) => {
     try {
-      financeService.approvePeriodClose(session.tenantId, period.id);
+      financeService.approvePeriodClose(session.tenantId, session, period.id);
       logService.log(session.tenantId, session.userId, "Approved period close", period.id);
       setStatusMessage("Period close approved and books finalized.");
       refresh();
@@ -86,7 +84,7 @@ export default function ClosePeriodStudio() {
 
   const failClose = (period: AccountingPeriod) => {
     try {
-      financeService.markPeriodFailed(session.tenantId, period.id);
+      financeService.markPeriodFailed(session.tenantId, session, period.id);
       logService.log(session.tenantId, session.userId, "Marked close as failed", period.id);
       setErrorMessage("Period close marked as failed for further investigation.");
       refresh();
@@ -97,7 +95,7 @@ export default function ClosePeriodStudio() {
 
   const reopen = (period: AccountingPeriod) => {
     try {
-      financeService.reopenPeriod(session.tenantId, period.id);
+      financeService.reopenPeriod(session.tenantId, session, period.id);
       logService.log(session.tenantId, session.userId, "Reopened period", period.id);
       setStatusMessage("Period reopened for adjustment.");
       refresh();
@@ -108,7 +106,7 @@ export default function ClosePeriodStudio() {
 
   const forceClose = (period: AccountingPeriod) => {
     try {
-      financeService.forceClosePeriod(session.tenantId, period.id);
+      financeService.forceClosePeriod(session.tenantId, session, period.id);
       logService.log(session.tenantId, session.userId, "Force closed period", period.id);
       setStatusMessage("Period force-closed with admin override.");
       refresh();

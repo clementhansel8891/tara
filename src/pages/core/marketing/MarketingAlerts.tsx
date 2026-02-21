@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,15 +8,28 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
+import type { MarketingAlert } from "@/core/types/marketing/marketing";
 
 export default function MarketingAlerts() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
-  const alerts = useMemo(
-    () => marketingService.listAlerts(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const [loading, setLoading] = useState(true);
+  const [alerts, setAlerts] = useState<MarketingAlert[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const a = await marketingService.listAlerts(session.tenantId);
+      setAlerts(a);
+    } catch (err) {
+      console.error("Failed to fetch marketing alerts:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filtered = useMemo(
     () =>
@@ -30,6 +43,14 @@ export default function MarketingAlerts() {
     [alerts, search],
   );
 
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading alerts...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -39,9 +60,9 @@ export default function MarketingAlerts() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => {
-                marketingService.runHealthSweep(session.tenantId, session);
-                setRefreshKey((value) => value + 1);
+              onClick={async () => {
+                await marketingService.runHealthSweep(session.tenantId, session);
+                refresh();
               }}
             >
               Sweep
@@ -89,13 +110,13 @@ export default function MarketingAlerts() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          marketingService.acknowledgeAlert(
+                        onClick={async () => {
+                          await marketingService.acknowledgeAlert(
                             session.tenantId,
                             session,
                             item.id,
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Acknowledge

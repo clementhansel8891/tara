@@ -8,9 +8,10 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
+import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-import type { SupplierPortalMessage } from "@/core/types/procurement/procurement";
+import type { SupplierPortalMessage, SupplierMaster, SupplierBranch } from "@/core/types/procurement/procurement";
 
 export default function SupplierPortalDesk() {
   const session = useSession();
@@ -23,13 +24,34 @@ export default function SupplierPortalDesk() {
   const [content, setContent] = useState("");
   const [attachmentName, setAttachmentName] = useState("");
   const [messages, setMessages] = useState<SupplierPortalMessage[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierMaster[]>([]);
+  const [branches, setBranches] = useState<SupplierBranch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const suppliers = procurementService.listSupplierMasters(session.tenantId);
-  const branches = procurementService.listSupplierBranches(session.tenantId);
+  const clearStatus = () => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+  };
 
-  const refresh = useCallback(() => {
-    setMessages(procurementService.listPortalMessages(session.tenantId));
-  }, [session.tenantId]);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [msg, sup, br] = await Promise.all([
+        procurementService.listPortalMessages(session.tenantId, session),
+        procurementService.listSupplierMasters(session.tenantId, session),
+        procurementService.listSupplierBranches(session.tenantId, session),
+      ]);
+      setMessages(msg);
+      setSuppliers(sup);
+      setBranches(br);
+    } catch (err) {
+      setErrorMessage("Failed to load portal data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -45,20 +67,25 @@ export default function SupplierPortalDesk() {
     [messages, search],
   );
 
-  const createMessage = () => {
+  const createMessage = async () => {
     if (!supplierId || !supplierBranchId || !content.trim()) return;
-    procurementService.createPortalMessage(session.tenantId, session, {
-      supplierId,
-      supplierBranchId,
-      direction,
-      type,
-      content,
-      attachmentName: attachmentName || undefined,
-    });
-    setDialogOpen(false);
-    setContent("");
-    setAttachmentName("");
-    refresh();
+    try {
+      await procurementService.createPortalMessage(session.tenantId, session, {
+        supplierId,
+        supplierBranchId,
+        direction,
+        type,
+        content,
+        attachmentName: attachmentName || undefined,
+      });
+      setStatusMessage("Portal message sent to supplier.");
+      setDialogOpen(false);
+      setContent("");
+      setAttachmentName("");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Failed to send portal message.");
+    }
   };
 
   return (
@@ -77,6 +104,8 @@ export default function SupplierPortalDesk() {
         }
       />
 
+      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+
       <WorkspacePanel title="Portal Inbox" description="Auditable supplier interaction timeline.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
@@ -93,17 +122,23 @@ export default function SupplierPortalDesk() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((message) => (
-                <tr key={message.id} className="border-t">
-                  <td className="p-3 text-muted-foreground">{message.createdAt.slice(0, 16).replace("T", " ")}</td>
-                  <td className="p-3 text-muted-foreground">{message.supplierId}</td>
-                  <td className="p-3 text-muted-foreground">{message.supplierBranchId}</td>
-                  <td className="p-3 text-muted-foreground">{message.direction}</td>
-                  <td className="p-3 text-muted-foreground">{message.type}</td>
-                  <td className="p-3">{message.content}</td>
-                  <td className="p-3 text-muted-foreground">{message.attachmentName ?? "-"}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={7} className="p-3 text-center italic">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={7} className="p-3 text-center text-muted-foreground">No portal messages found.</td></tr>
+              ) : (
+                filtered.map((message) => (
+                  <tr key={message.id} className="border-t">
+                    <td className="p-3 text-muted-foreground">{message.createdAt.slice(0, 16).replace("T", " ")}</td>
+                    <td className="p-3 text-muted-foreground">{message.supplierId}</td>
+                    <td className="p-3 text-muted-foreground">{message.supplierBranchId}</td>
+                    <td className="p-3 text-muted-foreground">{message.direction}</td>
+                    <td className="p-3 text-muted-foreground">{message.type}</td>
+                    <td className="p-3">{message.content}</td>
+                    <td className="p-3 text-muted-foreground">{message.attachmentName ?? "-"}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

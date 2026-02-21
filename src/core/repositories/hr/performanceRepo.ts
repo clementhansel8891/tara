@@ -1,106 +1,112 @@
-import type { PerformanceCycle, PerformanceReview } from "@/core/types/hr/performance";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { PerformanceCycle, PerformanceReview, ReviewCycleStatus } from "@/core/types/hr/performance";
+import { prisma } from "@/core/persistence/database/client";
+// Triggering IDE type refresh
 
-const cycleKey = (tenantId: string) => `hr:${tenantId}:performance-cycles`;
-const reviewKey = (tenantId: string) => `hr:${tenantId}:performance-reviews`;
+/**
+ * Mapping helper for Performance Cycle
+ */
+const mapToCycle = (db: any): PerformanceCycle => ({
+  id: db.id,
+  tenantId: db.companyId,
+  name: db.name,
+  status: db.status as ReviewCycleStatus,
+  startDate: db.startDate.toISOString().split('T')[0],
+  endDate: db.endDate.toISOString().split('T')[0],
+  dueDate: db.dueDate.toISOString().split('T')[0],
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as PerformanceCycle);
 
-const seedCycles = (tenantId: string): PerformanceCycle[] => [
-  {
-    id: `${tenantId}-cycle-001`,
-    tenantId,
-    name: "Q1 2026 Review",
-    status: "active",
-    startDate: "2026-01-15",
-    endDate: "2026-03-31",
-    dueDate: "2026-03-10",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-cycle-000`,
-    tenantId,
-    name: "Q4 2025 Review",
-    status: "completed",
-    startDate: "2025-10-01",
-    endDate: "2025-12-31",
-    dueDate: "2026-01-15",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const seedReviews = (tenantId: string): PerformanceReview[] => [
-  {
-    id: `${tenantId}-review-001`,
-    tenantId,
-    cycleId: `${tenantId}-cycle-001`,
-    employeeId: `${tenantId}-emp-001`,
-    reviewerId: `${tenantId}-emp-002`,
-    status: "pending",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Performance Review
+ */
+const mapToReview = (db: any): PerformanceReview => ({
+  id: db.id,
+  tenantId: db.companyId,
+  cycleId: db.cycleId,
+  employeeId: db.employeeId,
+  reviewerId: db.reviewerId,
+  status: db.status as any,
+  score: db.rating || undefined,
+  summary: db.comments || undefined,
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as PerformanceReview);
 
 export const performanceRepo = {
-  listCycles(tenantId: string): PerformanceCycle[] {
-    return ensureSeed(cycleKey(tenantId), seedCycles(tenantId));
+  /**
+   * Cycles
+   */
+  async listCycles(tenantId: string): Promise<PerformanceCycle[]> {
+    const cycles = await prisma.performanceCycle.findMany({
+      where: { companyId: tenantId },
+      orderBy: { startDate: 'desc' },
+    });
+    return cycles.map(mapToCycle);
   },
 
-  listReviews(tenantId: string): PerformanceReview[] {
-    return ensureSeed(reviewKey(tenantId), seedReviews(tenantId));
-  },
-
-  createCycle(
+  async createCycle(
     tenantId: string,
     payload: Omit<PerformanceCycle, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ): PerformanceCycle {
-    const cycles = this.listCycles(tenantId);
-    const now = new Date().toISOString();
-    const cycle: PerformanceCycle = {
-      ...payload,
-      id: nextId(`${tenantId}-cycle`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [cycle, ...cycles];
-    saveToStorage(cycleKey(tenantId), updated);
-    return cycle;
+  ): Promise<PerformanceCycle> {
+    const cycle = await prisma.performanceCycle.create({
+      data: {
+        companyId: tenantId,
+        name: payload.name,
+        status: payload.status,
+        startDate: new Date(payload.startDate),
+        endDate: new Date(payload.endDate),
+        dueDate: new Date(payload.dueDate),
+      },
+    });
+    return mapToCycle(cycle);
   },
 
-  createReview(
-    tenantId: string,
-    payload: Omit<PerformanceReview, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ): PerformanceReview {
-    const reviews = this.listReviews(tenantId);
-    const now = new Date().toISOString();
-    const review: PerformanceReview = {
-      ...payload,
-      id: nextId(`${tenantId}-review`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [review, ...reviews];
-    saveToStorage(reviewKey(tenantId), updated);
-    return review;
-  },
-
-  updateCycle(
+  async updateCycle(
     tenantId: string,
     cycleId: string,
     patch: Partial<PerformanceCycle>,
-  ): PerformanceCycle | null {
-    const cycles = this.listCycles(tenantId);
-    let updatedCycle: PerformanceCycle | null = null;
-    const updated = cycles.map((cycle) => {
-      if (cycle.id !== cycleId) return cycle;
-      updatedCycle = { ...cycle, ...patch, updatedAt: new Date().toISOString() };
-      return updatedCycle;
+  ): Promise<PerformanceCycle | null> {
+    const data: any = {};
+    if (patch.name) data.name = patch.name;
+    if (patch.status) data.status = patch.status;
+    if (patch.startDate) data.startDate = new Date(patch.startDate);
+    if (patch.endDate) data.endDate = new Date(patch.endDate);
+    if (patch.dueDate) data.dueDate = new Date(patch.dueDate);
+
+    const updated = await prisma.performanceCycle.update({
+      where: { id: cycleId, companyId: tenantId },
+      data,
     });
-    if (!updatedCycle) return null;
-    saveToStorage(cycleKey(tenantId), updated);
-    return updatedCycle;
+    return mapToCycle(updated);
+  },
+
+  /**
+   * Reviews
+   */
+  async listReviews(tenantId: string): Promise<PerformanceReview[]> {
+    const reviews = await prisma.performanceReview.findMany({
+      where: { companyId: tenantId },
+      orderBy: { createdAt: 'desc' },
+    });
+    return reviews.map(mapToReview);
+  },
+
+  async createReview(
+    tenantId: string,
+    payload: Omit<PerformanceReview, "id" | "tenantId" | "createdAt" | "updatedAt">,
+  ): Promise<PerformanceReview> {
+    const review = await prisma.performanceReview.create({
+      data: {
+        companyId: tenantId,
+        cycleId: payload.cycleId,
+        employeeId: payload.employeeId,
+        reviewerId: payload.reviewerId,
+        status: payload.status,
+        rating: payload.score,
+        comments: payload.summary,
+      },
+    });
+    return mapToReview(review);
   },
 };

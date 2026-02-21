@@ -11,7 +11,6 @@ import {
   Store, 
   ShieldAlert, 
   Search, 
-  Filter,
   RefreshCw,
   Plus,
   ArrowDownToLine,
@@ -20,7 +19,6 @@ import {
   Edit3, 
   ChevronRight,
   MoreVertical,
-  MinusCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -41,7 +39,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
-import { nextId } from "@/core/repositories/hr/storage";
+import { nextId } from "@/core/persistence";
+import { emitRetailPushEvent } from "@/modules/retail/api/retailGatewayPush";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,29 +50,37 @@ import {
 import { ItemDetailModal } from "./modals/ItemDetailModal";
 import { TransferTrackingModal } from "./modals/TransferTrackingModal";
 
+type InventoryItemView = {
+  id: string;
+  sku: string;
+  name: string;
+  stock: number;
+  category?: string;
+};
+
 const InventoryVisibility = () => {
   const session = useSession();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
-  const [inventory, setInventory] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<InventoryItemView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCorrecting, setIsCorrecting] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryItemView | null>(null);
   const [correctionQty, setCorrectionQty] = useState<number>(0);
-  const [newItem, setNewItem] = useState<any>({ category: 'FINISHED_GOOD' });
+  const [newItem, setNewItem] = useState<{ name?: string; sku?: string; category: string }>({ category: 'FINISHED_GOOD' });
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const [editingItem, setEditingItem] = useState<any | null>(null);
+  const [editingItem, setEditingItem] = useState<InventoryItemView | null>(null);
   const [isItemDetailOpen, setIsItemDetailOpen] = useState(false);
-  const [selectedDetailItem, setSelectedDetailItem] = useState<any | null>(null);
+  const [selectedDetailItem, setSelectedDetailItem] = useState<InventoryItemView | null>(null);
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [trackingTransferId, setTrackingTransferId] = useState<string>("");
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = retailService.listInventory(session.tenantId);
-        setInventory(data);
+        const data = await retailService.listInventory(session.tenantId, session);
+        setInventory(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch inventory", error);
       } finally {
@@ -81,7 +88,7 @@ const InventoryVisibility = () => {
       }
     };
     fetchData();
-  }, [session.tenantId]);
+  }, [session.tenantId, session]);
 
   const stats = useMemo(() => {
     const totalSOH = inventory.reduce((sum, item) => sum + item.stock, 0);
@@ -99,6 +106,7 @@ const InventoryVisibility = () => {
 
   const handleManualCorrection = () => {
     if (!selectedItem) return;
+    const previousStock = selectedItem.stock;
     setIsCorrecting(true);
     try {
       // In a real app, this would hit repository
@@ -109,6 +117,19 @@ const InventoryVisibility = () => {
       setInventory(prev => prev.map(item => 
         item.sku === selectedItem.sku ? { ...item, stock: correctionQty } : item
       ));
+      void emitRetailPushEvent({
+        type: "inventory.stock.adjusted",
+        tenantId: session.tenantId,
+        payload: {
+          sku: selectedItem.sku,
+          name: selectedItem.name,
+          category: selectedItem.category,
+          previousStock,
+          newStock: correctionQty,
+          adjustmentType: "absolute",
+          reason: "manual_correction",
+        },
+      });
       setSelectedItem(null);
     } catch (e) {
       toast({ title: "Error", description: "Failed to apply correction.", variant: "destructive" });
@@ -133,6 +154,17 @@ const InventoryVisibility = () => {
       setInventory([...inventory, item]);
       setNewItem({ category: 'FINISHED_GOOD' });
       toast({ title: "SKU Registered", description: `${item.name} added to Item Master.` });
+      void emitRetailPushEvent({
+        type: "inventory.item.created",
+        tenantId: session.tenantId,
+        payload: {
+          id: item.id,
+          sku: item.sku,
+          name: item.name,
+          category: item.category,
+          stock: item.stock,
+        },
+      });
     } catch (e) {
       toast({ title: "Error", description: "Registration failed.", variant: "destructive" });
     } finally {
@@ -142,11 +174,25 @@ const InventoryVisibility = () => {
 
   const handleDeleteItem = (sku: string) => {
     if (!confirm("Are you sure you want to remove this item from the Master? All associated stock will be written off.")) return;
+    const removedItem = inventory.find(i => i.sku === sku);
     setInventory(inventory.filter(i => i.sku !== sku));
     toast({ title: "Item Removed", description: "SKU has been decommissioned from active inventory.", variant: "destructive" });
+    if (removedItem) {
+      void emitRetailPushEvent({
+        type: "inventory.item.deleted",
+        tenantId: session.tenantId,
+        payload: {
+          id: removedItem.id,
+          sku: removedItem.sku,
+          name: removedItem.name,
+          category: removedItem.category,
+          stock: removedItem.stock,
+        },
+      });
+    }
   };
 
-  const handleItemClick = (item: any) => {
+  const handleItemClick = (item: InventoryItemView) => {
     setSelectedDetailItem(item);
     setIsItemDetailOpen(true);
   };
@@ -156,7 +202,7 @@ const InventoryVisibility = () => {
     setIsTrackingOpen(true);
   };
 
-  const handleItemEdit = (item: any) => {
+  const handleItemEdit = (item: InventoryItemView) => {
     setEditingItem(item);
     toast({ title: "Edit Mode", description: `Editing ${item.name}` });
   };
@@ -165,7 +211,7 @@ const InventoryVisibility = () => {
     handleDeleteItem(sku);
   };
 
-  const handleInitiatePO = (item: any) => {
+  const handleInitiatePO = (item: InventoryItemView) => {
     toast({ 
       title: "P.O. Draft Created", 
       description: `Draft Purchase Order for ${item.name} has been dispatched to Zenvix Procurement Hub.` 

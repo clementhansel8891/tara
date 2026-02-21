@@ -24,8 +24,26 @@ export class CreateItemDto {
   @IsNotEmpty()
   uom: string;
 
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  unit?: string;
+
+  @IsOptional()
+  basePrice?: number;
+
+  @IsOptional()
+  taxRate?: number;
+
   @IsBoolean()
   @IsOptional()
   active?: boolean;
+
+  @IsString({ each: true })
+  @IsOptional()
+  moduleTags?: string[];
 }
 

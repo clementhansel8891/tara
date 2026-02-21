@@ -1,27 +1,40 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
+import type { PaymentDashboardMetrics, PaymentProvider, PaymentTransaction } from "@/core/types/payment/payment";
 
 export default function PaymentDashboard() {
   const session = useSession();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [metrics, setMetrics] = useState<PaymentDashboardMetrics | null>(null);
+  const [providers, setProviders] = useState<PaymentProvider[]>([]);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
 
-  const metrics = useMemo(
-    () => paymentService.getDashboard(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const providers = useMemo(
-    () => paymentService.listProviders(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const transactions = useMemo(
-    () => paymentService.listTransactions(session.tenantId).slice(0, 8),
-    [refreshKey, session.tenantId],
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [metricsData, providersData, transactionsData] = await Promise.all([
+          paymentService.getDashboard(session.tenantId),
+          paymentService.listProviders(session.tenantId),
+          paymentService.listTransactions(session.tenantId),
+        ]);
+        setMetrics(metricsData);
+        setProviders(providersData);
+        setTransactions(transactionsData.slice(0, 8));
+      } catch (error) {
+        console.error("Failed to fetch payment dashboard data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
+
+  if (!metrics) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">

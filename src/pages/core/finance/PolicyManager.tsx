@@ -11,7 +11,8 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { financeService, type FinanceCapexBudgetRow } from "@/core/services/finance/financeService";
+import { type FinanceCapexBudgetRow } from "@/core/services/finance/financeService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { logService } from "@/core/services/finance/logService";
 
 type PolicyType = "APPROVAL_LIMIT" | "PAYMENT_RULE" | "EXPENSE_POLICY";
@@ -30,10 +31,8 @@ export default function PolicyManager() {
     department: "",
     totalBudget: 0,
   });
-  const [policies, setPolicies] = useState(() => financeService.listPolicies(session.tenantId));
-  const [capexBudgets, setCapexBudgets] = useState<FinanceCapexBudgetRow[]>(() =>
-    financeService.listCapexBudgets(session.tenantId)
-  );
+  const [policies, setPolicies] = useState<any[]>([]);
+  const [capexBudgets, setCapexBudgets] = useState<FinanceCapexBudgetRow[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,13 +42,13 @@ export default function PolicyManager() {
     setErrorMessage(null);
   };
 
-  const refreshPolicies = useCallback(() => {
-    setPolicies(financeService.listPolicies(session.tenantId));
-    setCapexBudgets(financeService.listCapexBudgets(session.tenantId));
-  }, [session.tenantId]);
+  const refreshPolicies = useCallback(async () => {
+    setPolicies(await financeApiClient.listPolicies(session.tenantId, session));
+    setCapexBudgets(await financeApiClient.listCapexBudgets(session.tenantId, session));
+  }, [session.tenantId, session]);
 
   useEffect(() => {
-    refreshPolicies();
+    void refreshPolicies();
   }, [refreshPolicies]);
 
   const statusCounts = useMemo(
@@ -68,34 +67,34 @@ export default function PolicyManager() {
     [policies, search],
   );
 
-  const savePolicy = () => {
+  const savePolicy = async () => {
     try {
-      financeService.createPolicy(session.tenantId, policyForm);
+      await financeApiClient.createPolicy(session.tenantId, session, policyForm);
       logService.log(session.tenantId, session.userId, "Created policy", policyForm.title);
       setStatusMessage(`Policy "${policyForm.title}" created successfully.`);
       setDialogOpen(false);
       setPolicyForm({ title: "", type: "APPROVAL_LIMIT", description: "", threshold: 0 });
-      refreshPolicies();
+      await refreshPolicies();
     } catch (err) {
       setErrorMessage("Failed to create policy. Audit constraint violation.");
     }
   };
 
-  const togglePolicy = (id: string) => {
+  const togglePolicy = async (id: string) => {
     try {
-      financeService.togglePolicy(session.tenantId, id);
+      await financeApiClient.togglePolicy(session.tenantId, session, id);
       logService.log(session.tenantId, session.userId, "Toggled policy active state", id);
       setStatusMessage("Policy status updated successfully.");
-      refreshPolicies();
+      await refreshPolicies();
     } catch (err) {
       setErrorMessage("Failed to update policy status.");
     }
   };
 
-  const saveCapexBudget = () => {
+  const saveCapexBudget = async () => {
     try {
       if (!budgetForm.department.trim()) return;
-      financeService.setCapexBudget(session.tenantId, session, budgetForm);
+      await financeApiClient.setCapexBudget(session.tenantId, session, budgetForm);
       logService.log(
         session.tenantId,
         session.userId,
@@ -104,7 +103,7 @@ export default function PolicyManager() {
       );
       setStatusMessage(`Budget for ${budgetForm.department} updated.`);
       setBudgetForm({ department: "", totalBudget: 0 });
-      refreshPolicies();
+      await refreshPolicies();
     } catch (err) {
       setErrorMessage("Failed to update budget. Fiscal year locked.");
     }

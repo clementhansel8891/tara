@@ -1,0 +1,38 @@
+src/core/it-settings/repositories/it-settings.db.repository.ts(23,25): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/core/it-settings/repositories/it-settings.db.repository.ts(99,26): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/it/repositories/it.db.repository.ts(19,26): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/it/repositories/it.db.repository.ts(103,24): error TS7006: Parameter 'h' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(333,26): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(372,26): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(383,25): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(393,24): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(574,28): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(588,28): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(604,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/core/payment/repositories/payment.db.repository.ts(621,23): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(23,27): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(69,30): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(181,21): error TS7006: Parameter 'po' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(200,23): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(248,26): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(268,26): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(288,24): error TS7006: Parameter 'd' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(307,27): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(325,24): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(342,61): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(344,44): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(345,42): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/core/procurement/repositories/procurement.db.repository.ts(345,47): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/core/retail/guards/ecommerce-connector.guard.ts(2,31): error TS2307: Cannot find module '../../persistence/prisma.service' or its corresponding type declarations.
+src/core/retail/guards/ecommerce-connector.guard.ts(40,36): error TS7006: Parameter 'channel' implicitly has an 'any' type.
+src/core/retail/guards/ecommerce-connector.guard.ts(82,38): error TS7006: Parameter 'channel' implicitly has an 'any' type.
+src/core/retail/retail-gateway.service.ts(75,9): error TS2322: Type '{ product_id: string; quantity: number; unit_price: number; }[]' is not assignable to type 'OrderItemDto[]'.
+  Type '{ product_id: string; quantity: number; unit_price: number; }' is missing the following properties from type 'OrderItemDto': productId, unitPrice
+src/core/retail/retail-public-auth.service.ts(5,20): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.
+src/core/retail/retail-public-auth.service.ts(6,17): error TS2307: Cannot find module 'jsonwebtoken' or its corresponding type declarations.
+src/core/retail/retail-public-customer.service.ts(2,31): error TS2307: Cannot find module '../../../persistence/prisma.service' or its corresponding type declarations.
+src/core/retail/retail-public-customer.service.ts(34,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/retail/retail-public-customer.service.ts(48,36): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/core/retail/retail-public-customer.service.ts(48,41): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/retail/retail-public-customer.service.ts(169,39): error TS7006: Parameter 'item' implicitly has an 'any' type.
+src/core/retail/retail-public-customer.service.ts(262,35): error TS7006: Parameter 'item' implicitly has an 'any' type.

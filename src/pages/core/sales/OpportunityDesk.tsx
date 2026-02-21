@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
-import type { OpportunityStage } from "@/core/types/sales/sales";
+import type { OpportunityStage, SalesOpportunity, SalesQuote } from "@/core/types/sales/sales";
 
 const STAGES: OpportunityStage[] = [
   "NEW",
@@ -31,20 +31,39 @@ export default function OpportunityDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const opportunities = useMemo(
-    () => salesService.listOpportunities(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const quotes = useMemo(
-    () => salesService.listQuotes(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const filtered = opportunities.filter((op) =>
-    search
-      ? `${op.accountName} ${op.ownerName} ${op.stage} ${op.health}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      : true,
+  const [loading, setLoading] = useState(true);
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
+  const [quotes, setQuotes] = useState<SalesQuote[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [o, q] = await Promise.all([
+        salesService.listOpportunities(session.tenantId, session),
+        salesService.listQuotes(session.tenantId, session),
+      ]);
+      setOpportunities(o);
+      setQuotes(q);
+    } catch (err) {
+      console.error("Failed to fetch opportunities data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, refreshKey]);
+
+  const filtered = useMemo(() => 
+    opportunities.filter((op) =>
+      search
+        ? `${op.accountName} ${op.ownerName} ${op.stage} ${op.health}`
+            .toLowerCase()
+            .includes(search.toLowerCase())
+        : true,
+    ),
+    [opportunities, search]
   );
 
   return (
@@ -65,6 +84,9 @@ export default function OpportunityDesk() {
       <WorkspacePanel title="Deal board" description="Stage movement, quote context, and close controls.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing deal board...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -88,8 +110,8 @@ export default function OpportunityDesk() {
                   <td className="p-3">
                     <Select
                       value={op.stage}
-                      onValueChange={(value: OpportunityStage) => {
-                        salesService.moveOpportunityStage(
+                      onValueChange={async (value: OpportunityStage) => {
+                        await salesService.moveOpportunityStage(
                           session.tenantId,
                           session,
                           op.id,
@@ -124,8 +146,8 @@ export default function OpportunityDesk() {
                         size="sm"
                         variant="outline"
                         disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}
-                        onClick={() => {
-                          salesService.closeWonOpportunity(session.tenantId, session, op.id);
+                        onClick={async () => {
+                          await salesService.closeWonOpportunity(session.tenantId, session, op.id);
                           setRefreshKey((current) => current + 1);
                         }}
                       >
@@ -135,8 +157,8 @@ export default function OpportunityDesk() {
                         size="sm"
                         variant="outline"
                         disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}
-                        onClick={() => {
-                          salesService.closeLostOpportunity(
+                        onClick={async () => {
+                          await salesService.closeLostOpportunity(
                             session.tenantId,
                             session,
                             op.id,
@@ -153,6 +175,7 @@ export default function OpportunityDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

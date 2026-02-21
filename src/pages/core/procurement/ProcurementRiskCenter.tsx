@@ -7,6 +7,7 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
+import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
 import type {
@@ -43,14 +44,36 @@ export default function ProcurementRiskCenter() {
   const [legalHandoffs, setLegalHandoffs] = useState<LegalContractHandoff[]>([]);
   const [goodsReceiptSyncs, setGoodsReceiptSyncs] = useState<GoodsReceiptSyncRecord[]>([]);
   const [supplierAccess, setSupplierAccess] = useState<SupplierAccessProvisioning[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    setSignals(procurementService.listRiskSignals(session.tenantId));
-    setAuditEvents(procurementService.listAuditEvents(session.tenantId));
-    setLegalHandoffs(procurementService.listLegalHandoffs(session.tenantId));
-    setGoodsReceiptSyncs(procurementService.listGoodsReceiptSyncs(session.tenantId));
-    setSupplierAccess(procurementService.listSupplierAccessProvisioning(session.tenantId));
-  }, [session.tenantId]);
+  const clearStatus = () => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+  };
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [sig, aud, leg, goods, sup] = await Promise.all([
+        procurementService.listRiskSignals(session.tenantId, session),
+        procurementService.listAuditEvents(session.tenantId, session),
+        procurementService.listLegalHandoffs(session.tenantId),
+        procurementService.listGoodsReceiptSyncs(session.tenantId),
+        procurementService.listSupplierAccessProvisioning(session.tenantId),
+      ]);
+      setSignals(sig);
+      setAuditEvents(aud);
+      setLegalHandoffs(leg);
+      setGoodsReceiptSyncs(goods);
+      setSupplierAccess(sup);
+    } catch (err) {
+      setErrorMessage("Failed to load risk and compliance data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -124,14 +147,24 @@ export default function ProcurementRiskCenter() {
     return { legalPending, inventoryPending, itPending, breached };
   }, [goodsReceiptSyncs, handoffRows, legalHandoffs, supplierAccess]);
 
-  const runScan = () => {
-    procurementService.runRiskScan(session.tenantId, session);
-    refresh();
+  const runScan = async () => {
+    try {
+      await procurementService.runRiskScan(session.tenantId, session);
+      setStatusMessage("Anti-fraud risk scan completed.");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Risk scan failed.");
+    }
   };
 
-  const setStatus = (riskSignalId: string, status: RiskSignal["status"]) => {
-    procurementService.setRiskSignalStatus(session.tenantId, session, riskSignalId, status);
-    refresh();
+  const setStatus = async (riskSignalId: string, status: RiskSignal["status"]) => {
+    try {
+      await procurementService.setRiskSignalStatus(session.tenantId, session, riskSignalId, status);
+      setStatusMessage(`Risk signal status updated to ${status}.`);
+      refresh();
+    } catch (err) {
+      setErrorMessage("Failed to update risk signal status.");
+    }
   };
 
   return (
@@ -150,6 +183,8 @@ export default function ProcurementRiskCenter() {
         }
       />
 
+      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+
       <WorkspacePanel title="Risk Signals" description="Open and historical procurement risk alerts.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
@@ -165,31 +200,37 @@ export default function ProcurementRiskCenter() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((signal) => (
-                <tr key={signal.id} className="border-t">
-                  <td className="p-3 font-medium">{signal.code}</td>
-                  <td className="p-3 text-muted-foreground">{signal.severity}</td>
-                  <td className="p-3 text-muted-foreground">{signal.entityId}</td>
-                  <td className="p-3">{signal.detail}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={signal.status} />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {signal.status === "OPEN" ? (
-                        <Button size="sm" variant="outline" onClick={() => setStatus(signal.id, "ACKNOWLEDGED")}>
-                          Acknowledge
-                        </Button>
-                      ) : null}
-                      {signal.status !== "RESOLVED" ? (
-                        <Button size="sm" onClick={() => setStatus(signal.id, "RESOLVED")}>
-                          Resolve
-                        </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No risk signals found.</td></tr>
+              ) : (
+                filtered.map((signal) => (
+                  <tr key={signal.id} className="border-t">
+                    <td className="p-3 font-medium">{signal.code}</td>
+                    <td className="p-3 text-muted-foreground">{signal.severity}</td>
+                    <td className="p-3 text-muted-foreground">{signal.entityId}</td>
+                    <td className="p-3">{signal.detail}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={signal.status} />
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {signal.status === "OPEN" ? (
+                          <Button size="sm" variant="outline" onClick={() => setStatus(signal.id, "ACKNOWLEDGED")}>
+                            Acknowledge
+                          </Button>
+                        ) : null}
+                        {signal.status !== "RESOLVED" ? (
+                          <Button size="sm" onClick={() => setStatus(signal.id, "RESOLVED")}>
+                            Resolve
+                          </Button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -226,7 +267,9 @@ export default function ProcurementRiskCenter() {
               </tr>
             </thead>
             <tbody>
-              {handoffRows.length === 0 ? (
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : handoffRows.length === 0 ? (
                 <tr>
                   <td className="p-3 text-muted-foreground" colSpan={5}>
                     No cross-workspace handoff backlog.
@@ -264,16 +307,22 @@ export default function ProcurementRiskCenter() {
               </tr>
             </thead>
             <tbody>
-              {auditEvents.map((event) => (
-                <tr key={event.id} className="border-t">
-                  <td className="p-3 text-muted-foreground">{event.createdAt.slice(0, 16).replace("T", " ")}</td>
-                  <td className="p-3 font-medium">{event.action}</td>
-                  <td className="p-3 text-muted-foreground">
-                    {event.entityType} / {event.entityId}
-                  </td>
-                  <td className="p-3">{event.detail}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={4} className="p-3 text-center">Loading...</td></tr>
+              ) : auditEvents.length === 0 ? (
+                <tr><td colSpan={4} className="p-3 text-center text-muted-foreground">No audit events found.</td></tr>
+              ) : (
+                auditEvents.map((event) => (
+                  <tr key={event.id} className="border-t">
+                    <td className="p-3 text-muted-foreground">{event.createdAt.slice(0, 16).replace("T", " ")}</td>
+                    <td className="p-3 font-medium">{event.action}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {event.entityType} / {event.entityId}
+                    </td>
+                    <td className="p-3">{event.detail}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

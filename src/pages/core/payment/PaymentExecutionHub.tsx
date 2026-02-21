@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PaymentTransaction } from "@/core/types/payment/payment";
+import type { PaymentTransaction, PaymentProvider } from "@/core/types/payment/payment";
 
 const TYPES: PaymentTransaction["type"][] = [
   "VENDOR_PAYOUT",
@@ -45,19 +45,35 @@ export default function PaymentExecutionHub() {
   const [selectedTransaction, setSelectedTransaction] = useState<PaymentTransaction | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [providers, setProviders] = useState<PaymentProvider[]>([]);
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
 
   const clearStatus = () => {
     setStatusMessage(null);
     setErrorMessage(null);
   };
 
-  const providers = paymentService.listProviders(session.tenantId);
   const [providerId, setProviderId] = useState(providers[0]?.id ?? "BANK_BCA");
 
-  const transactions = useMemo(
-    () => paymentService.listTransactions(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [providersData, transactionsData] = await Promise.all([
+          paymentService.listProviders(session.tenantId),
+          paymentService.listTransactions(session.tenantId),
+        ]);
+        setProviders(providersData);
+        setTransactions(transactionsData);
+        if (providersData.length > 0 && !providerId) {
+          setProviderId(providersData[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch payment execution data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
+
   const filtered = useMemo(
     () =>
       transactions.filter((item) =>

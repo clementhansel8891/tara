@@ -1,23 +1,42 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PosDevice } from "@/core/types/payment/payment";
+import type { PosDevice, DevicePool } from "@/core/types/payment/payment";
 
 export default function DeviceRoutingDesk() {
   const session = useSession();
   const [refreshKey, setRefreshKey] = useState(0);
-  const devices = useMemo(
-    () => paymentService.listDevices(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const pools = useMemo(
-    () => paymentService.listDevicePools(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const [devices, setDevices] = useState<PosDevice[]>([]);
+  const [pools, setPools] = useState<DevicePool[]>([]);
+  const [selectedDevices, setSelectedDevices] = useState<Map<string, PosDevice | null>>(new Map());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [devicesData, poolsData] = await Promise.all([
+          paymentService.listDevices(session.tenantId),
+          paymentService.listDevicePools(session.tenantId),
+        ]);
+        setDevices(devicesData);
+        setPools(poolsData);
+
+        // Resolve selected devices for each pool
+        const selectedMap = new Map<string, PosDevice | null>();
+        for (const pool of poolsData) {
+          const selected = await paymentService.resolveDeviceForLocation(session.tenantId, pool.location);
+          selectedMap.set(pool.location, selected);
+        }
+        setSelectedDevices(selectedMap);
+      } catch (error) {
+        console.error("Failed to fetch device routing data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
 
   const setStatus = (deviceId: string, status: PosDevice["status"]) => {
     paymentService.setDeviceStatus(session.tenantId, session, deviceId, status);
@@ -34,7 +53,7 @@ export default function DeviceRoutingDesk() {
       <WorkspacePanel title="Device Pools" description="Location pools with primary and fallback hardware order.">
         <div className="grid gap-3 md:grid-cols-2">
           {pools.map((pool) => {
-            const selected = paymentService.resolveDeviceForLocation(session.tenantId, pool.location);
+            const selected = selectedDevices.get(pool.location);
             return (
               <div key={pool.id} className="rounded-lg border p-3">
                 <p className="text-sm font-medium">{pool.location}</p>

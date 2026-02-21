@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
-import type { MarketingLead } from "@/core/types/marketing/marketing";
+import type { MarketingLead, MarketingCampaign } from "@/core/types/marketing/marketing";
 
 const SOURCES: MarketingLead["source"][] = [
   "LANDING_PAGE",
@@ -29,7 +29,6 @@ const SOURCES: MarketingLead["source"][] = [
 
 export default function LeadCaptureDesk() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
   const [source, setSource] = useState<MarketingLead["source"]>("LANDING_PAGE");
   const [companyName, setCompanyName] = useState("");
@@ -37,14 +36,32 @@ export default function LeadCaptureDesk() {
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("Retail");
   const [employeeBand, setEmployeeBand] = useState("51-200");
+  const [campaignId, setCampaignId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [leads, setLeads] = useState<MarketingLead[]>([]);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
 
-  const campaigns = marketingService.listCampaigns(session.tenantId);
-  const [campaignId, setCampaignId] = useState(campaigns[0]?.id ?? "");
+  const refresh = useCallback(async () => {
+    try {
+      const [l, c] = await Promise.all([
+        marketingService.listLeads(session.tenantId),
+        marketingService.listCampaigns(session.tenantId),
+      ]);
+      setLeads(l);
+      setCampaigns(c);
+      if (c.length > 0 && !campaignId) {
+        setCampaignId(c[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch lead capture data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, campaignId]);
 
-  const leads = useMemo(
-    () => marketingService.listLeads(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filtered = useMemo(
     () =>
@@ -57,6 +74,14 @@ export default function LeadCaptureDesk() {
       ),
     [leads, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading leads...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -125,9 +150,9 @@ export default function LeadCaptureDesk() {
             </SelectContent>
           </Select>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!companyName || !contactName) return;
-              marketingService.captureLead(session.tenantId, session, {
+              await marketingService.captureLead(session.tenantId, session, {
                 source,
                 companyName,
                 contactName,
@@ -139,7 +164,7 @@ export default function LeadCaptureDesk() {
               setCompanyName("");
               setContactName("");
               setEmail("");
-              setRefreshKey((value) => value + 1);
+              refresh();
             }}
           >
             Capture
@@ -185,13 +210,13 @@ export default function LeadCaptureDesk() {
                         size="sm"
                         variant="outline"
                         disabled={!["QUALIFIED", "SCORED"].includes(item.status)}
-                        onClick={() => {
-                          marketingService.markLeadHandoffReady(
+                        onClick={async () => {
+                          await marketingService.markLeadHandoffReady(
                             session.tenantId,
                             session,
                             item.id,
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Mark Ready
@@ -199,13 +224,13 @@ export default function LeadCaptureDesk() {
                       <Button
                         size="sm"
                         disabled={!["QUALIFIED", "HANDOFF_READY"].includes(item.status)}
-                        onClick={() => {
-                          marketingService.handoffLeadToSales(
+                        onClick={async () => {
+                          await marketingService.handoffLeadToSales(
                             session.tenantId,
                             session,
                             item.id,
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Handoff

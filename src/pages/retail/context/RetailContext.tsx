@@ -28,7 +28,7 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (!session.tenantId) return;
     
     try {
-      const stores = await retailService.listStores(session.tenantId);
+      const stores = await retailService.listStores(session.tenantId, session);
       // Logic for determining active store
       if (stores.length > 0 && !activeStore) {
         setActiveStore(stores[0]);
@@ -37,7 +37,7 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         if (current) setActiveStore(current);
       }
 
-      const shifts = await retailService.listShifts(session.tenantId);
+      const shifts = await retailService.listShifts(session.tenantId, session);
       const openShift = shifts.find(s => s.status === 'open' && s.employeeId === session.userId);
       setActiveShift(openShift || null);
     } catch (e) {
@@ -53,7 +53,7 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const setStore = async (storeId: string) => {
     if (!session.tenantId) return;
-    const store = await retailService.getStore(session.tenantId, storeId);
+    const store = await retailService.getStore(session.tenantId, storeId, session);
     if (store) setActiveStore(store);
   };
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,10 +22,32 @@ export default function SkillTrack() {
   const [bulkIds, setBulkIds] = useState("");
   const [notes, setNotes] = useState("");
   const [search, setSearch] = useState("");
-  const compliance = useMemo(() => trainingService.getComplianceStatus(session.tenantId, session), [session, version]);
-  const assignments = useMemo(() => trainingService.listAssignments(session.tenantId, session), [session, version]);
-  const programs = useMemo(() => trainingService.listPrograms(session.tenantId, session), [session]);
-  const staff = useMemo(() => staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 }), [session, version]);
+  
+  const [compliance, setCompliance] = useState({ assigned: 0, completed: 0, overdue: 0, completionRate: 0 });
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [staff, setStaff] = useState<{ items: any[]; total: number }>({ items: [], total: 0 });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [comp, assgns, progs, stff] = await Promise.all([
+          trainingService.getComplianceStatus(session.tenantId, session),
+          trainingService.listAssignments(session.tenantId, session),
+          trainingService.listPrograms(session.tenantId, session),
+          staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 }),
+        ]);
+        setCompliance(comp);
+        setAssignments(assgns);
+        setPrograms(progs);
+        setStaff(stff);
+      } catch (err) {
+        console.error("Failed to load skill track data", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
   const filteredAssignments = assignments.filter((assignment) =>
     search ? assignment.employeeId.toLowerCase().includes(search.toLowerCase()) : true,
   );
@@ -64,8 +86,8 @@ export default function SkillTrack() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              trainingService.exportCompliance(session.tenantId, session);
+            onClick={async () => {
+              await trainingService.exportCompliance(session.tenantId, session);
             }}
           >
             Export Compliance
@@ -106,8 +128,8 @@ export default function SkillTrack() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    trainingService.requestComplianceReview(session.tenantId, session, assignment.employeeId);
+                  onClick={async () => {
+                    await trainingService.requestComplianceReview(session.tenantId, session, assignment.employeeId);
                     setVersion((prev) => prev + 1);
                   }}
                 >
@@ -192,22 +214,26 @@ export default function SkillTrack() {
               </>
             )}
             <Button
-              onClick={() => {
-                if (actionType === "bulk") {
-                  const ids = bulkIds.split(",").map((id) => id.trim()).filter(Boolean);
-                  trainingService.bulkAssign(session.tenantId, session, {
-                    employeeIds: ids.length ? ids : staff.items.map((emp) => emp.id),
-                    programId: selectedProgram,
-                  });
-                } else if (selectedEmployee) {
-                  trainingService.assignTraining(session.tenantId, session, {
-                    employeeId: selectedEmployee,
-                    programId: selectedProgram,
-                  });
+              onClick={async () => {
+                try {
+                  if (actionType === "bulk") {
+                    const ids = bulkIds.split(",").map((id) => id.trim()).filter(Boolean);
+                    await trainingService.bulkAssign(session.tenantId, session, {
+                      employeeIds: ids.length ? ids : staff.items.map((emp) => emp.id),
+                      programId: selectedProgram,
+                    });
+                  } else if (selectedEmployee) {
+                    await trainingService.assignTraining(session.tenantId, session, {
+                      employeeId: selectedEmployee,
+                      programId: selectedProgram,
+                    });
+                  }
+                  setNotes("");
+                  setDialogOpen(false);
+                  setVersion((prev) => prev + 1);
+                } catch (err) {
+                  console.error("Failed to assign training", err);
                 }
-                setNotes("");
-                setDialogOpen(false);
-                setVersion((prev) => prev + 1);
               }}
             >
               Confirm

@@ -1,0 +1,107 @@
+
+> zenvix-backend@1.0.0 build
+> nest build
+
+src/core/it-settings/repositories/it-settings.db.repository.ts:23:25 - error TS7006: Parameter 'd' implicitly has an 'any' type.
+
+23     return devices.map((d) => ({
+                           ~
+src/core/it-settings/repositories/it-settings.db.repository.ts:99:26 - error TS7006: Parameter 's' implicitly has an 'any' type.
+
+99     return settings.map((s) => ({
+                            ~
+src/core/it/repositories/it.db.repository.ts:19:26 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+19     return requests.map((r) => ({
+                            ~
+src/core/it/repositories/it.db.repository.ts:103:24 - error TS7006: Parameter 'h' implicitly has an 'any' type.
+
+103     return health.map((h) => ({
+                           ~
+src/core/payment/repositories/payment.db.repository.ts:333:26 - error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+333     return providers.map(p => ({
+                             ~
+src/core/payment/repositories/payment.db.repository.ts:372:26 - error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+372     return providers.map(p => ({
+                             ~
+src/core/payment/repositories/payment.db.repository.ts:383:25 - error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+383     return policies.map(p => ({
+                            ~
+src/core/payment/repositories/payment.db.repository.ts:393:24 - error TS7006: Parameter 'd' implicitly has an 'any' type.
+
+393     return devices.map(d => ({
+                           ~
+src/core/payment/repositories/payment.db.repository.ts:574:28 - error TS7006: Parameter 'c' implicitly has an 'any' type.
+Found 25 error(s).
+
+
+574     return chargebacks.map(c => ({
+                               ~
+src/core/payment/repositories/payment.db.repository.ts:588:28 - error TS7006: Parameter 's' implicitly has an 'any' type.
+
+588     return settlements.map(s => ({
+                               ~
+src/core/payment/repositories/payment.db.repository.ts:604:22 - error TS7006: Parameter 'e' implicitly has an 'any' type.
+
+604     return packs.map(e => ({
+                         ~
+src/core/payment/repositories/payment.db.repository.ts:621:23 - error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+621     return audits.map(a => ({
+                          ~
+src/core/procurement/repositories/procurement.db.repository.ts:23:27 - error TS7006: Parameter 's' implicitly has an 'any' type.
+
+23     return suppliers.map((s) => ({
+                             ~
+src/core/procurement/repositories/procurement.db.repository.ts:69:30 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+69     return requisitions.map((r) => ({
+                                ~
+src/core/procurement/repositories/procurement.db.repository.ts:181:21 - error TS7006: Parameter 'po' implicitly has an 'any' type.
+
+181     return pos.map((po) => ({
+                        ~~
+src/core/procurement/repositories/procurement.db.repository.ts:200:23 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+200     return risks.map((r) => ({
+                          ~
+src/core/procurement/repositories/procurement.db.repository.ts:248:26 - error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+248     return branches.map((b) => ({
+                             ~
+src/core/procurement/repositories/procurement.db.repository.ts:268:26 - error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+268     return products.map((p) => ({
+                             ~
+src/core/procurement/repositories/procurement.db.repository.ts:288:24 - error TS7006: Parameter 'd' implicitly has an 'any' type.
+
+288     return drafts.map((d) => ({
+                           ~
+src/core/procurement/repositories/procurement.db.repository.ts:307:27 - error TS7006: Parameter 'c' implicitly has an 'any' type.
+
+307     return contracts.map((c) => ({
+                              ~
+src/core/procurement/repositories/procurement.db.repository.ts:325:24 - error TS7006: Parameter 'e' implicitly has an 'any' type.
+
+325     return events.map((e) => ({
+                           ~
+src/core/procurement/repositories/procurement.db.repository.ts:342:61 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+342     const categories = Array.from(new Set(requisitions.map((r) => r.category)));
+                                                                ~
+src/core/procurement/repositories/procurement.db.repository.ts:344:44 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+344       const catReqs = requisitions.filter((r) => r.category === cat);
+                                               ~
+src/core/procurement/repositories/procurement.db.repository.ts:345:42 - error TS7006: Parameter 'sum' implicitly has an 'any' type.
+
+345       const totalSpend = catReqs.reduce((sum, r) => sum + Number(r.amount), 0);
+                                             ~~~
+src/core/procurement/repositories/procurement.db.repository.ts:345:47 - error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+345       const totalSpend = catReqs.reduce((sum, r) => sum + Number(r.amount), 0);
+                                                  ~
+

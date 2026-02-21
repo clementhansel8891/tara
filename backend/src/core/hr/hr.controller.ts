@@ -8,6 +8,7 @@ import {
   Param,
   Query,
   Req,
+  Patch,
   UseInterceptors,
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -16,6 +17,12 @@ import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { ClockInDto } from './dto/clock-in.dto';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
+import { CreateDepartmentDto } from './dto/create-department.dto';
+import { CreateRequisitionDto } from './dto/create-requisition.dto';
+import { CreatePerformanceCycleDto } from './dto/create-performance-cycle.dto';
+import { SubmitReviewDto } from './dto/submit-review.dto';
+import { CreateCaseDto } from './dto/create-case.dto';
+import { CreateContractDto } from './dto/create-contract.dto';
 import { TenantInterceptor } from '../../gateway/tenant.interceptor';
 import { TenantContext } from '../../gateway/tenant-context.interface';
 
@@ -44,8 +51,11 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Query('locationId') locationId?: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const employees = await this.hrService.getEmployees(tenantId, locationId);
+    const { tenantId, role } = request.tenantContext;
+    
+    const employees = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalEmployees(locationId)
+      : await this.hrService.getEmployees(tenantId, locationId);
 
     return {
       success: true,
@@ -62,8 +72,14 @@ export class HRController {
    */
   @Get('employees/:id')
   async getEmployee(@Req() request: RequestWithTenant, @Param('id') employeeId: string) {
-    const { tenantId } = request.tenantContext;
-    const employee = await this.hrService.getEmployeeById(tenantId, employeeId);
+    const { tenantId, role } = request.tenantContext;
+    
+    let employee;
+    if (role === 'SUPERADMIN') {
+       employee = await this.hrService.getGlobalEmployeeById(employeeId);
+    } else {
+       employee = await this.hrService.getEmployeeById(tenantId, employeeId);
+    }
 
     if (!employee) {
       return {
@@ -158,8 +174,11 @@ export class HRController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const attendance = await this.hrService.getAttendance(tenantId, employeeId, startDate, endDate);
+    const { tenantId, role } = request.tenantContext;
+    
+    const attendance = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalAttendance(employeeId, startDate, endDate)
+      : await this.hrService.getAttendance(tenantId, employeeId, startDate, endDate);
 
     return {
       success: true,
@@ -222,8 +241,11 @@ export class HRController {
     @Query('status') status?: string,
     @Query('employeeId') employeeId?: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const requests = await this.hrService.getLeaveRequests(tenantId, status, employeeId);
+    const { tenantId, role } = request.tenantContext;
+    
+    const requests = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalLeaveRequests(status, employeeId)
+      : await this.hrService.getLeaveRequests(tenantId, status, employeeId);
 
     return {
       success: true,
@@ -317,8 +339,11 @@ export class HRController {
     @Param('employeeId') employeeId: string,
     @Query('period') period?: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const payrolls = await this.hrService.getPayroll(tenantId, employeeId, period);
+    const { tenantId, role } = request.tenantContext;
+    
+    const payrolls = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalPayroll(employeeId, period)
+      : await this.hrService.getPayroll(tenantId, employeeId, period);
 
     return {
       success: true,
@@ -348,5 +373,159 @@ export class HRController {
       message: 'Payroll calculated successfully',
       data: payroll,
     };
+  }
+
+  // ==================== Organization Management ====================
+
+  @Get('departments')
+  async getDepartments(@Req() request: RequestWithTenant) {
+    const { tenantId, role } = request.tenantContext;
+    
+    const departments = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalDepartments()
+      : await this.hrService.getDepartments(tenantId);
+      
+    return { success: true, tenantId, data: departments };
+  }
+
+  @Post('departments')
+  async createDepartment(@Req() request: RequestWithTenant, @Body() dto: CreateDepartmentDto) {
+    const { tenantId } = request.tenantContext;
+    const department = await this.hrService.createDepartment(tenantId, dto);
+    return { success: true, tenantId, data: department };
+  }
+
+  // ==================== Recruitment Management ====================
+
+  @Get('requisitions')
+  async getRequisitions(@Req() request: RequestWithTenant, @Query('status') status?: string) {
+    const { tenantId, role } = request.tenantContext;
+    
+    const requisitions = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalRequisitions(status)
+      : await this.hrService.getRequisitions(tenantId, status);
+      
+    return { success: true, tenantId, data: requisitions };
+  }
+
+  @Post('requisitions')
+  async createRequisition(@Req() request: RequestWithTenant, @Body() dto: CreateRequisitionDto) {
+    const { tenantId } = request.tenantContext;
+    const requisition = await this.hrService.createRequisition(tenantId, dto);
+    return { success: true, tenantId, data: requisition };
+  }
+
+  @Patch('requisitions/:id')
+  async updateRequisition(
+    @Req() request: RequestWithTenant,
+    @Param('id') id: string,
+    @Body() body: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const requisition = await this.hrService.updateRequisition(tenantId, id, body);
+    return { success: true, tenantId, data: requisition };
+  }
+
+  // ==================== Performance Management ====================
+
+  @Get('performance/cycles')
+  async getPerformanceCycles(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const cycles = await this.hrService.getPerformanceCycles(tenantId);
+    return { success: true, tenantId, data: cycles };
+  }
+
+  @Post('performance/cycles')
+  async createPerformanceCycle(@Req() request: RequestWithTenant, @Body() dto: CreatePerformanceCycleDto) {
+    const { tenantId } = request.tenantContext;
+    const cycle = await this.hrService.createPerformanceCycle(tenantId, dto);
+    return { success: true, tenantId, data: cycle };
+  }
+
+  @Get('performance/reviews')
+  async getPerformanceReviews(
+    @Req() request: RequestWithTenant,
+    @Query('cycleId') cycleId?: string,
+    @Query('employeeId') employeeId?: string
+  ) {
+    const { tenantId, role } = request.tenantContext;
+    
+    const reviews = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalPerformanceReviews(cycleId, employeeId)
+      : await this.hrService.getPerformanceReviews(tenantId, cycleId, employeeId);
+      
+    return { success: true, tenantId, data: reviews };
+  }
+
+  @Post('performance/reviews')
+  async submitPerformanceReview(@Req() request: RequestWithTenant, @Body() dto: SubmitReviewDto) {
+    const { tenantId } = request.tenantContext;
+    const review = await this.hrService.submitPerformanceReview(tenantId, dto);
+    return { success: true, tenantId, data: review };
+  }
+
+  // ==================== Case Management ====================
+
+  @Get('cases')
+  async getCases(@Req() request: RequestWithTenant, @Query('status') status?: string) {
+    const { tenantId } = request.tenantContext;
+    const cases = await this.hrService.getCases(tenantId, status);
+    return { success: true, tenantId, data: cases };
+  }
+
+  @Get('cases/:id')
+  async getCase(@Req() request: RequestWithTenant, @Param('id') id: string) {
+    const { tenantId } = request.tenantContext;
+    const hrCase = await this.hrService.getCaseById(tenantId, id);
+    return { success: true, tenantId, data: hrCase };
+  }
+
+  @Post('cases')
+  async createCase(@Req() request: RequestWithTenant, @Body() dto: CreateCaseDto) {
+    const { tenantId } = request.tenantContext;
+    const hrCase = await this.hrService.createCase(tenantId, dto);
+    return { success: true, tenantId, data: hrCase };
+  }
+
+  @Patch('cases/:id')
+  async updateCase(
+    @Req() request: RequestWithTenant,
+    @Param('id') id: string,
+    @Body() body: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const hrCase = await this.hrService.updateCase(tenantId, id, body);
+    return { success: true, tenantId, data: hrCase };
+  }
+
+  // ==================== Contract Management ====================
+
+  @Get('contracts')
+  async getContracts(@Req() request: RequestWithTenant, @Query('employeeId') employeeId?: string) {
+    const { tenantId, role } = request.tenantContext;
+    
+    const contracts = role === 'SUPERADMIN'
+      ? await this.hrService.getGlobalContracts(employeeId)
+      : await this.hrService.getContracts(tenantId, employeeId);
+      
+    return { success: true, tenantId, data: contracts };
+  }
+
+  @Post('contracts')
+  async createContract(@Req() request: RequestWithTenant, @Body() dto: CreateContractDto) {
+    const { tenantId } = request.tenantContext;
+    const contract = await this.hrService.createContract(tenantId, dto);
+    return { success: true, tenantId, data: contract };
+  }
+
+  @Patch('contracts/:id')
+  async updateContract(
+    @Req() request: RequestWithTenant,
+    @Param('id') id: string,
+    @Body() body: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const contract = await this.hrService.updateContract(tenantId, id, body);
+    return { success: true, tenantId, data: contract };
   }
 }

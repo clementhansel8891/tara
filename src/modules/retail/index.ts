@@ -25,6 +25,7 @@ import StaffAssignments from "@/pages/retail/management/StaffAssignments";
 import ShiftControl from "@/pages/retail/management/ShiftControl";
 
 import EcommerceConnector from "@/pages/retail/management/EcommerceConnector";
+import InfrastructureControl from "@/pages/retail/management/InfrastructureControl";
 import OrderFulfillment from "@/pages/retail/management/OrderFulfillment";
 import PricingPromoDesk from "@/pages/retail/management/PricingPromoDesk";
 import InventoryVisibility from "@/pages/retail/management/InventoryVisibility";
@@ -151,6 +152,16 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     menuGroup: "management",
     requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
     component: EcommerceConnector,
+  },
+  {
+    id: "mgt-infrastructure",
+    moduleId: MODULE_ID,
+    title: "Infra Control",
+    route: "/m/retail/management/infrastructure",
+    icon: "Network",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: InfrastructureControl,
   },
   {
     id: "mgt-orders",

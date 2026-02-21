@@ -10,6 +10,10 @@ import { SalesModule } from './core/sales/sales.module';
 import { MarketingModule } from './core/marketing/marketing.module';
 import { PaymentModule } from './core/payment/payment.module';
 import { RetailModule } from './core/retail/retail.module';
+import { PersistenceModule } from './persistence/persistence.module';
+
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 /**
  * App Module
@@ -19,6 +23,7 @@ import { RetailModule } from './core/retail/retail.module';
  * - FinanceModule: Finance & Accounting (Core Module 1)
  * - HRModule: Global HR & Identity (Core Module 2)
  * - ITSettingsModule: IT, Settings & Device Bridge (Core Module 3)
+ * - PersistenceModule: Global Database Connection (Prisma)
  * 
  * Future modules:
  * - Industry modules (Retail, F&B, etc.)
@@ -26,6 +31,11 @@ import { RetailModule } from './core/retail/retail.module';
  */
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100, // 100 requests per minute
+    }]),
+    PersistenceModule,
     FinanceModule,
     HRModule,
     ITSettingsModule,
@@ -39,6 +49,12 @@ import { RetailModule } from './core/retail/retail.module';
     RetailModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    }
+  ],
 })
+
 export class AppModule {}

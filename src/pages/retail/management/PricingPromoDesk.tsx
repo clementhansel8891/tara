@@ -9,16 +9,12 @@ import {
   Clock, 
   TrendingUp, 
   TrendingDown, 
-  AlertCircle, 
   BarChart3, 
-  Calendar, 
   ChevronRight, 
   Plus, 
   Search, 
-  Trash2,
   Lock,
-  Calculator,
-  RefreshCw
+  Calculator
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,8 +36,8 @@ const PricingPromoDesk = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = retailService.listPromotions(session.tenantId);
-        setPromotions(data);
+        const data = await retailService.listPromotions(session.tenantId, session);
+        setPromotions(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch promotions", error);
       } finally {
@@ -49,7 +45,7 @@ const PricingPromoDesk = () => {
       }
     };
     fetchData();
-  }, [session.tenantId]);
+  }, [session.tenantId, session]);
 
   const handleCreateProposal = async () => {
     setIsLoading(true);
@@ -70,8 +66,13 @@ const PricingPromoDesk = () => {
       await retailService.updatePromotion(session.tenantId!, session, newPromo);
       setPromotions(prev => [newPromo, ...prev]);
       toast({ title: "Proposal Created", description: "A new pricing proposal has been logged for review." });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to create proposal", error);
+      toast({
+        title: "Proposal Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

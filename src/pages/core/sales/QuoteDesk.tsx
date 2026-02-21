@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,24 +8,45 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesOpportunity, SalesQuote } from "@/core/types/sales/sales";
 
 export default function QuoteDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const opportunities = salesService.listOpportunities(session.tenantId);
-  const [selectedOpportunityId, setSelectedOpportunityId] = useState(
-    opportunities[0]?.id ?? "",
-  );
-  const [quoteAmount, setQuoteAmount] = useState(
-    opportunities[0]?.amount?.toString() ?? "0",
-  );
+  const [loading, setLoading] = useState(true);
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
+  const [quotes, setQuotes] = useState<SalesQuote[]>([]);
+  
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState("");
+  const [quoteAmount, setQuoteAmount] = useState("0");
   const [discountPercent, setDiscountPercent] = useState("0");
 
-  const quotes = useMemo(
-    () => salesService.listQuotes(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [o, q] = await Promise.all([
+        salesService.listOpportunities(session.tenantId, session),
+        salesService.listQuotes(session.tenantId, session),
+      ]);
+      setOpportunities(o);
+      setQuotes(q);
+      
+      if (o.length > 0 && !selectedOpportunityId) {
+        setSelectedOpportunityId(o[0].id);
+        setQuoteAmount(o[0].amount.toString());
+      }
+    } catch (err) {
+      console.error("Failed to fetch quote desk data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session, selectedOpportunityId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, refreshKey]);
+
   const filtered = useMemo(
     () =>
       quotes.filter((item) =>
@@ -73,13 +94,17 @@ export default function QuoteDesk() {
             type="number"
           />
           <Button
-            onClick={() => {
-              salesService.createQuote(session.tenantId, session, {
-                opportunityId: selectedOpportunityId,
-                amount: Number(quoteAmount),
-                discountPercent: Number(discountPercent),
-              });
-              setRefreshKey((value) => value + 1);
+            onClick={async () => {
+              try {
+                await salesService.createQuote(session.tenantId, session, {
+                  opportunityId: selectedOpportunityId,
+                  amount: Number(quoteAmount),
+                  discountPercent: Number(discountPercent),
+                });
+                setRefreshKey((value) => value + 1);
+              } catch (err) {
+                console.error("Failed to create quote:", err);
+              }
             }}
           >
             Create Quote
@@ -90,6 +115,9 @@ export default function QuoteDesk() {
       <WorkspacePanel title="Quote Queue" description="Submit, approve/reject, and send quotes to customers.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing quotes...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -121,8 +149,8 @@ export default function QuoteDesk() {
                         variant="outline"
                         size="sm"
                         disabled={item.status !== "DRAFT"}
-                        onClick={() => {
-                          salesService.submitQuoteForApproval(session.tenantId, session, item.id);
+                        onClick={async () => {
+                          await salesService.submitQuoteForApproval(session.tenantId, session, item.id);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -132,8 +160,8 @@ export default function QuoteDesk() {
                         variant="outline"
                         size="sm"
                         disabled={item.status !== "PENDING_APPROVAL"}
-                        onClick={() => {
-                          salesService.decideQuoteApproval(session.tenantId, session, item.id, true);
+                        onClick={async () => {
+                          await salesService.decideQuoteApproval(session.tenantId, session, item.id, true);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -143,8 +171,8 @@ export default function QuoteDesk() {
                         variant="outline"
                         size="sm"
                         disabled={item.status !== "PENDING_APPROVAL"}
-                        onClick={() => {
-                          salesService.decideQuoteApproval(session.tenantId, session, item.id, false);
+                        onClick={async () => {
+                          await salesService.decideQuoteApproval(session.tenantId, session, item.id, false);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -153,8 +181,8 @@ export default function QuoteDesk() {
                       <Button
                         size="sm"
                         disabled={item.status !== "APPROVED"}
-                        onClick={() => {
-                          salesService.sendQuoteToCustomer(session.tenantId, session, item.id);
+                        onClick={async () => {
+                          await salesService.sendQuoteToCustomer(session.tenantId, session, item.id);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -166,6 +194,7 @@ export default function QuoteDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

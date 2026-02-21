@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -55,13 +56,36 @@ export class InventoryController {
     };
   }
 
+  @Post('items/batch-delete')
+  async batchDeleteItems(@Req() request: RequestWithTenant, @Body() body: { itemIds: string[] }) {
+    const { tenantId } = request.tenantContext;
+    await this.inventoryService.batchDeleteItems(tenantId, body.itemIds);
+    return {
+      success: true,
+      tenantId,
+      message: 'Batch delete successful',
+    };
+  }
+
+  @Delete('items/:id')
+  async deleteItem(@Req() request: RequestWithTenant, @Param('id') itemId: string) {
+    const { tenantId } = request.tenantContext;
+    await this.inventoryService.deleteItem(tenantId, itemId);
+    return {
+      success: true,
+      tenantId,
+      message: 'Inventory item deleted',
+    };
+  }
+
   @Get('balances')
   async getBalances(
     @Req() request: RequestWithTenant,
     @Query('locationId') locationId?: string,
+    @Query('departmentId') departmentId?: string,
   ) {
     const { tenantId } = request.tenantContext;
-    const data = await this.inventoryService.getBalances(tenantId, locationId);
+    const data = await this.inventoryService.getBalances(tenantId, locationId, departmentId);
     return { success: true, tenantId, count: data.length, data };
   }
 
@@ -81,6 +105,17 @@ export class InventoryController {
       tenantId,
       message: 'Stock intake recorded',
       data: await this.inventoryService.intakeStock(tenantId, dto),
+    };
+  }
+
+  @Post('batch-intake')
+  async batchIntakeStock(@Req() request: RequestWithTenant, @Body() body: { items: StockIntakeDto[] }) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Batch stock intake recorded',
+      data: await this.inventoryService.batchIntakeStock(tenantId, body.items),
     };
   }
 
@@ -152,6 +187,91 @@ export class InventoryController {
       tenantId,
       message: 'Alert status updated',
       data: await this.inventoryService.setAlertStatus(tenantId, alertId, body.status),
+    };
+  }
+
+  @Get('audit-cycles')
+  async getAuditCycles(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.inventoryService.getAuditCycles(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Post('audit-cycles')
+  async createAuditCycle(@Req() request: RequestWithTenant, @Body() body: any) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Audit cycle started',
+      data: await this.inventoryService.createAuditCycle(tenantId, body),
+    };
+  }
+
+  @Put('audit-cycles/:id')
+  async updateAuditCycle(
+    @Req() request: RequestWithTenant,
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Audit cycle updated',
+      data: await this.inventoryService.updateAuditCycle(tenantId, id, body),
+    };
+  }
+
+  @Get('integration-events')
+  async getIntegrationEvents(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.inventoryService.getIntegrationEvents(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Post('scans/low-stock')
+  async runLowStockScan(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Low stock scan completed',
+      data: await this.inventoryService.runLowStockScan(tenantId),
+    };
+  }
+
+  @Post('scans/expiry')
+  async runExpiryScan(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Expiry scan completed',
+      data: await this.inventoryService.runExpiryScan(tenantId),
+    };
+  }
+
+  @Post('consume')
+  async consumeStock(@Req() request: RequestWithTenant, @Body() dto: any) {
+    const { tenantId, locationId } = request.tenantContext;
+    if (locationId && !dto.locationId) dto.locationId = locationId;
+    return {
+      success: true,
+      tenantId,
+      message: 'Stock consumption recorded',
+      data: await this.inventoryService.consumeStock(tenantId, dto),
+    };
+  }
+
+  @Post('procurement-request')
+  async requestProcurement(@Req() request: RequestWithTenant, @Body() body: any) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      tenantId,
+      message: 'Procurement request created',
+      data: await this.inventoryService.requestProcurement(tenantId, body),
     };
   }
 }

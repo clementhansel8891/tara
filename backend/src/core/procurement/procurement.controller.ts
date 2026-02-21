@@ -109,5 +109,47 @@ export class ProcurementController {
       data,
     };
   }
+
+  @Get('branches')
+  async getBranches(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getSupplierBranches(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Get('products')
+  async getProducts(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getSupplierProducts(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Get('draft-pos')
+  async getDraftPurchaseOrders(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getDraftPurchaseOrders(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Get('contracts')
+  async getContracts(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getContracts(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Get('audit-events')
+  async getAuditEvents(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getAuditEvents(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Get('spend-insights')
+  async getSpendInsights(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.procurementService.getSpendInsights(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
 }
 

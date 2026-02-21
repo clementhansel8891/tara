@@ -19,9 +19,9 @@ const ShiftControl = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = retailService.listShifts(session.tenantId);
+        const data = await retailService.listShifts(session.tenantId, session);
         setShifts(data);
       } catch (error) {
         console.error("Failed to fetch shifts", error);
@@ -30,7 +30,7 @@ const ShiftControl = () => {
       }
     };
     fetchData();
-  }, [session.tenantId]);
+  }, [session.tenantId, session]);
 
   const activeShift = shifts.find(s => s.status === 'open');
 
@@ -38,20 +38,20 @@ const ShiftControl = () => {
     setIsSyncing(true);
     try {
       if (activeShift) {
-        retailService.closeShift(session.tenantId, session, activeShift.id, 5000); // Mock closing balance
+        await retailService.closeShift(session.tenantId, session, activeShift.id, 5000); // Mock closing balance
         toast({
           title: "Shift Session Closed",
           description: `All terminals for shift ${activeShift.id} have been synchronized.`,
         });
       } else {
-        const newShift = retailService.openShift(session.tenantId, session, "store-1", 1000);
+        const newShift = await retailService.openShift(session.tenantId, session, "store-1", 1000);
         toast({
           title: "New Shift Opened",
           description: `Shift ${newShift.id} is now live on pos-001.`,
         });
       }
       // Refresh data
-      const data = retailService.listShifts(session.tenantId);
+      const data = await retailService.listShifts(session.tenantId, session);
       setShifts(data);
     } catch (error) {
       console.error("Shift toggle failed", error);

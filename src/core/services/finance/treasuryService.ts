@@ -1,11 +1,11 @@
 import type { SessionContext } from "@/core/security/session";
-import { mockFinanceRepo } from "@/core/repositories/finance/mockFinanceRepo";
+import { financeRepo } from "@/core/repositories/finance/financeRepo";
 import type { MoneySource } from "@/core/types/finance/accounts";
 import type { TreasuryTransfer } from "@/core/types/finance/treasury";
 import { audit } from "@/core/logging/audit";
 import { workflowService } from "@/core/services/hr/workflowService";
 
-const repo = mockFinanceRepo;
+const repo = financeRepo;
 
 const ensureTenant = (tenantId: string, session: SessionContext) => {
   if (session.role === "SUPERADMIN") return;
@@ -18,12 +18,12 @@ const id = (prefix: string) =>
 export const treasuryService = {
   async listSources(tenantId: string, session: SessionContext): Promise<MoneySource[]> {
     ensureTenant(tenantId, session);
-    return repo.listSources(tenantId);
+    return await repo.listSources(tenantId);
   },
 
   async listTransfers(tenantId: string, session: SessionContext): Promise<TreasuryTransfer[]> {
     ensureTenant(tenantId, session);
-    return repo.listTransfers(tenantId);
+    return await repo.listTransfers(tenantId);
   },
 
   async createTransfer(
@@ -44,7 +44,7 @@ export const treasuryService = {
       updatedAt: new Date().toISOString(),
       requestedBy: session.userId,
     };
-    repo.createTransfer(tenantId, transfer);
+    await repo.createTransfer(tenantId, transfer);
     workflowService.createRequest(tenantId, session, {
       entityType: "PURCHASE",
       entityId: transfer.id,
@@ -70,7 +70,7 @@ export const treasuryService = {
     amount: number,
   ) {
     ensureTenant(tenantId, session);
-    const record = repo.createSettlement(tenantId, {
+    const record = await repo.createSettlement(tenantId, {
       id: id("stl"),
       tenantId,
       sourceId,

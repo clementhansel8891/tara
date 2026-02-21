@@ -177,5 +177,29 @@ export class ProcurementMockRepository extends IProcurementRepository {
     });
     return this.getRiskSignals(tenantId);
   }
+
+  async getSupplierBranches(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getSupplierProducts(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getDraftPurchaseOrders(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getContracts(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getAuditEvents(tenantId: string): Promise<any[]> {
+    return [];
+  }
+
+  async getSpendInsights(tenantId: string): Promise<any[]> {
+    return [];
+  }
 }
 

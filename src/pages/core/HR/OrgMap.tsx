@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ export default function OrgMap() {
   const [selectedDept, setSelectedDept] = useState<OrgMapDept | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [data, setData] = useState<OrgMapDept[]>([]);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -47,11 +48,22 @@ export default function OrgMap() {
   };
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
-  const data = useMemo(() => {
-    const items = orgService.getOrgMap(session.tenantId, session);
-    if (!search) return items;
-    return items.filter((dept) => dept.name.toLowerCase().includes(search.toLowerCase()));
-  }, [session, version, search]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const items = await orgService.getOrgMap(session.tenantId, session);
+        setData(items);
+      } catch (err) {
+        console.error("Failed to load org map", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
+  const filteredData = data.filter((dept) =>
+    search ? dept.name.toLowerCase().includes(search.toLowerCase()) : true,
+  );
 
   return (
     <div className="space-y-6">
@@ -91,7 +103,7 @@ export default function OrgMap() {
 
       <WorkspacePanel title="Active Records" description="Department map and readiness.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
-        <DataTableShell total={data.length} page={1} pageSize={10}>
+        <DataTableShell total={filteredData.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -103,7 +115,7 @@ export default function OrgMap() {
               </tr>
             </thead>
             <tbody>
-              {data.map((dept) => (
+              {filteredData.map((dept) => (
                 <tr
                   key={dept.id}
                   className="cursor-pointer border-t hover:bg-muted/50"
@@ -141,9 +153,9 @@ export default function OrgMap() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
+                  onClick={async () => {
                     try {
-                      orgService.routeDepartment(session.tenantId, session, dept.id, "OrgMap routing");
+                      await orgService.routeDepartment(session.tenantId, session, dept.id, "OrgMap routing");
                       setStatusMessage(`Department ${dept.name} routed to FlowGate.`);
                       setVersion((prev) => prev + 1);
                     } catch (err) {
@@ -182,9 +194,9 @@ export default function OrgMap() {
             <Input value={deptName} onChange={(e) => setDeptName(e.target.value)} />
             <Input value={deptCode} onChange={(e) => setDeptCode(e.target.value)} />
             <Button
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  orgService.createDepartment(session.tenantId, session, {
+                  await orgService.createDepartment(session.tenantId, session, {
                     id: `dept-${deptCode.toLowerCase()}`,
                     name: deptName,
                     code: deptCode.toUpperCase(),
@@ -228,14 +240,14 @@ export default function OrgMap() {
               />
             )}
             <Button
-              onClick={() => {
+              onClick={async () => {
                 try {
                   if (actionType === "risk") {
-                    orgService.escalateStaffingRisk(session.tenantId, session, actionDeptId, actionNotes);
+                    await orgService.escalateStaffingRisk(session.tenantId, session, actionDeptId, actionNotes);
                     setStatusMessage("Staffing risk escalated.");
                   }
                   if (actionType === "requisition") {
-                    orgService.openRequisition(session.tenantId, session, {
+                    await orgService.openRequisition(session.tenantId, session, {
                       title: requisitionTitle,
                       departmentId: actionDeptId,
                       openings: Number(requisitionOpenings || "1"),
@@ -243,7 +255,7 @@ export default function OrgMap() {
                     setStatusMessage("New job requisition opened.");
                   }
                   if (actionType === "route") {
-                    orgService.routeDepartment(session.tenantId, session, actionDeptId, actionNotes);
+                    await orgService.routeDepartment(session.tenantId, session, actionDeptId, actionNotes);
                     setStatusMessage("Department route initiated.");
                   }
                   setActionNotes("");

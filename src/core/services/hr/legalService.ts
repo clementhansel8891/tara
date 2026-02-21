@@ -1,5 +1,4 @@
-import { listContracts as listLegalContracts, createContract, updateContract } from "@/core/hr/legal/contractRegistry";
-import { getExpiringVisas } from "@/core/hr/legal/visaTracker";
+import { apiRequest } from "@/core/api/apiClient";
 import type { ContractRecord } from "@/core/hr/legal/contractTypes";
 import type { SessionContext } from "@/core/security/session";
 import { Roles } from "@/core/security/roles";
@@ -12,29 +11,30 @@ const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
 };
 
 export const legalService = {
-  listContracts(tenantId: string, actor: SessionContext): ContractRecord[] {
+  async listContracts(tenantId: string, actor: SessionContext): Promise<ContractRecord[]> {
     ensureTenantAccess(tenantId, actor);
-    return listLegalContracts(tenantId);
+    return apiRequest<ContractRecord[]>("/hr/contracts", "GET", actor);
   },
 
-  getComplianceCases(tenantId: string, actor: SessionContext) {
+  async getComplianceCases(tenantId: string, actor: SessionContext) {
     ensureTenantAccess(tenantId, actor);
-    const contracts = listLegalContracts(tenantId);
-    const expiringVisas = getExpiringVisas(tenantId, 30);
+    // Note: Visa tracking is still missing backend support, keeping stubs for that part
+    const contracts = await apiRequest<ContractRecord[]>("/hr/contracts", "GET", actor);
     return {
       contracts,
-      expiringVisas,
+      expiringVisas: [], // Missing backend support for now
       pendingRenewals: contracts.filter((item) => item.status === "draft").length,
     };
   },
 
-  createContract(
+  async createContract(
     tenantId: string,
     actor: SessionContext,
     payload: Omit<ContractRecord, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ) {
+  ): Promise<ContractRecord> {
     ensureTenantAccess(tenantId, actor);
-    const record = createContract(tenantId, payload);
+    const record = await apiRequest<ContractRecord>("/hr/contracts", "POST", actor, payload);
+    
     workflowService.createRequest(tenantId, actor, {
       entityType: "CONTRACT",
       entityId: record.id,
@@ -42,6 +42,7 @@ export const legalService = {
       destinationDept: "LEGAL",
       metadata: { title: record.title },
     });
+    
     audit.log({
       tenantId,
       actorId: actor.userId,
@@ -49,12 +50,14 @@ export const legalService = {
       entityType: "contract",
       entityId: record.id,
     });
+    
     return record;
   },
 
-  markSigned(tenantId: string, actor: SessionContext, contractId: string) {
+  async markSigned(tenantId: string, actor: SessionContext, contractId: string) {
     ensureTenantAccess(tenantId, actor);
-    const record = updateContract(tenantId, contractId, { status: "active" });
+    const record = await apiRequest<ContractRecord>(`/hr/contracts/${contractId}`, "PATCH", actor, { status: "active" });
+    
     if (record) {
       audit.log({
         tenantId,
@@ -67,9 +70,10 @@ export const legalService = {
     return record;
   },
 
-  requestRenewal(tenantId: string, actor: SessionContext, contractId: string) {
+  async requestRenewal(tenantId: string, actor: SessionContext, contractId: string) {
     ensureTenantAccess(tenantId, actor);
-    const record = updateContract(tenantId, contractId, { status: "draft" });
+    const record = await apiRequest<ContractRecord>(`/hr/contracts/${contractId}`, "PATCH", actor, { status: "draft" });
+    
     if (record) {
       workflowService.createRequest(tenantId, actor, {
         entityType: "CONTRACT",

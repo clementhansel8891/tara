@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Play, 
   Code2, 
@@ -19,28 +19,86 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "@/core/security/session";
 
 // Import the Simulated Gateway directly (in real app, this would be an HTTP fetch)
 import { retailGateway } from "@/modules/retail/api/RetailPublicGateway";
-import type { ApiAuthHeaders } from "@/core/types/retail/api";
+import type {
+  ApiAuthHeaders,
+  ApiErrorResponse,
+  PublicOrderResponseDTO,
+  PublicProductDTO,
+} from "@/core/types/retail/api";
 
-const DeveloperConsole = ({ 
+const isApiErrorResponse = (value: unknown): value is ApiErrorResponse =>
+  typeof value === "object" &&
+  value !== null &&
+  "error" in value &&
+  "code" in value &&
+  typeof (value as Record<string, unknown>).code === "number";
+
+const toApiErrorResponse = (value: unknown): ApiErrorResponse => {
+  if (isApiErrorResponse(value)) {
+    return value;
+  }
+
+  if (value instanceof Error) {
+    return {
+      error: value.message,
+      code: 500,
+      details: value.stack ?? value.message,
+    };
+  }
+
+  if (typeof value === "object" && value !== null) {
+    const obj = value as Record<string, unknown>;
+    return {
+      error: typeof obj.error === "string" ? obj.error : "Internal Server Error",
+      code: typeof obj.code === "number" ? obj.code : 500,
+      details: typeof obj.details === "string" ? obj.details : "No additional details provided",
+    };
+  }
+
+  if (typeof value === "string") {
+    return {
+      error: value,
+      code: 500,
+      details: value,
+    };
+  }
+
+  return {
+    error: "Internal Server Error",
+    code: 500,
+    details: "Unknown error",
+  };
+};
+
+const DeveloperConsole = ({
   defaultClientId = "",
-  defaultClientSecret = ""
-}: { 
-  defaultClientId?: string; 
+  defaultClientSecret = "",
+}: {
+  defaultClientId?: string;
   defaultClientSecret?: string;
 }) => {
   const { toast } = useToast();
+  const session = useSession();
   
   // Request State
   const [method, setMethod] = useState("GET");
   const [endpoint, setEndpoint] = useState("/products");
   const [clientId, setClientId] = useState(defaultClientId);
   const [clientSecret, setClientSecret] = useState(defaultClientSecret);
+
+  useEffect(() => {
+    if (defaultClientId) {
+      setClientId(defaultClientId);
+    }
+    if (defaultClientSecret) {
+      setClientSecret(defaultClientSecret);
+    }
+  }, [defaultClientId, defaultClientSecret]);
   const [requestBody, setRequestBody] = useState(JSON.stringify({
     externalReference: "ORD-EXT-001",
     items: [
@@ -50,11 +108,12 @@ const DeveloperConsole = ({
       name: "John Doe",
       email: "john@example.com"
     },
-    paymentStatus: "PAID"
+    paymentStatus: "PAID",
+    paymentMethod: "card"
   }, null, 2));
 
   // Response State
-  const [response, setResponse] = useState<any>(null);
+  const [response, setResponse] = useState<PublicProductDTO[] | PublicOrderResponseDTO | ApiErrorResponse | null>(null);
   const [status, setStatus] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -80,23 +139,22 @@ const DeveloperConsole = ({
 
     try {
       const headers: ApiAuthHeaders = {
-        "x-client-id": clientId,
-        "x-client-secret": clientSecret
+        "x-client-id": clientId || undefined,
+        "x-client-secret": clientSecret || undefined,
       };
 
-      let result;
+      let result: PublicProductDTO[] | PublicOrderResponseDTO | ApiErrorResponse;
       // Routing Logic (Gateway Dispatcher)
       if (endpoint === "/products" && method === "GET") {
-        result = await retailGateway.getProducts("demo-tenant", headers);
+        result = await retailGateway.getProducts(session.tenantId, headers);
       } else if (endpoint === "/orders" && method === "POST") {
         const body = JSON.parse(requestBody);
-        result = await retailGateway.createOrder("demo-tenant", headers, body);
+        result = await retailGateway.createOrder(session.tenantId, headers, body);
       } else {
         throw { code: 404, error: "Not Found", details: "Endpoint not implemented in simulation" };
       }
 
-      // Check for Gateway Error Object
-      if ((result as any).error) {
+      if (isApiErrorResponse(result)) {
          throw result;
       }
 
@@ -104,11 +162,16 @@ const DeveloperConsole = ({
       setStatus(200);
       toast({ title: "Request Successful", description: `API returned 200 OK` });
 
-    } catch (e: any) {
-      console.error(e);
-      setStatus(e.code || 500);
-      setResponse(e);
-      toast({ title: "Request Failed", description: e.error || "Unknown Error", variant: "destructive" });
+    } catch (error: unknown) {
+      console.error(error);
+      const normalizedError = toApiErrorResponse(error);
+      setStatus(normalizedError.code);
+      setResponse(normalizedError);
+      toast({
+        title: "Request Failed",
+        description: normalizedError.details || normalizedError.error,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -145,18 +208,18 @@ const DeveloperConsole = ({
 
           <div className="space-y-3">
              <div className="flex justify-between">
-                <Label className="text-[10px] font-black uppercase text-slate-400">Headers</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-400">Client Credentials</Label>
              </div>
              <div className="grid grid-cols-1 gap-2">
-               <Input 
-                 placeholder="x-client-id" 
-                 value={clientId} 
+               <Input
+                 placeholder="Channel Client ID"
+                 value={clientId}
                  onChange={e => setClientId(e.target.value)}
                  className="h-10 font-mono text-xs rounded-lg"
                />
-               <Input 
-                 placeholder="x-client-secret" 
-                 value={clientSecret} 
+               <Input
+                 placeholder="Channel Client Secret"
+                 value={clientSecret}
                  onChange={e => setClientSecret(e.target.value)}
                  type="password"
                  className="h-10 font-mono text-xs rounded-lg"

@@ -1,6 +1,6 @@
 export interface ApiAuthHeaders {
-  "x-client-id": string;
-  "x-client-secret": string;
+  "x-client-id"?: string;
+  "x-client-secret"?: string;
 }
 
 export interface PublicProductDTO {

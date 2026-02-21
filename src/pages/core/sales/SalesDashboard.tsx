@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,22 +8,37 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesDashboardMetrics, SalesNextAction, SalesLead } from "@/core/types/sales/sales";
 
 export default function SalesDashboard() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const metrics = salesService.getDashboard(session.tenantId);
-  const nextActions = useMemo(
-    () => salesService.getNextBestActions(session.tenantId),
-    [session.tenantId],
-  );
-  const leads = useMemo(
-    () =>
-      salesService
-        .listLeads(session.tenantId)
-        .filter((item) => ["NEW", "ASSIGNED", "CONTACTED", "QUALIFIED"].includes(item.status)),
-    [session.tenantId],
-  );
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<SalesDashboardMetrics | null>(null);
+  const [nextActions, setNextActions] = useState<SalesNextAction[]>([]);
+  const [leads, setLeads] = useState<SalesLead[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [m, n, l] = await Promise.all([
+        salesService.getDashboard(session.tenantId, session),
+        salesService.getNextBestActions(session.tenantId, session),
+        salesService.listLeads(session.tenantId, session),
+      ]);
+      setMetrics(m);
+      setNextActions(n);
+      setLeads(l.filter((item) => ["NEW", "ASSIGNED", "CONTACTED", "QUALIFIED"].includes(item.status)));
+    } catch (err) {
+      console.error("Failed to fetch sales dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filteredLeads = useMemo(
     () =>
@@ -37,6 +52,14 @@ export default function SalesDashboard() {
     [leads, search],
   );
 
+  if (loading || !metrics) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading sales command center...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -44,7 +67,13 @@ export default function SalesDashboard() {
         subtitle="Daily sales operations: lead SLA, follow-up queue, AI next actions, and pipeline readiness."
         secondaryActions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => salesService.runSlaSweep(session.tenantId, session)}>
+            <Button 
+              variant="outline" 
+              onClick={async () => {
+                await salesService.runSlaSweep(session.tenantId, session);
+                refresh();
+              }}
+            >
               Run SLA Sweep
             </Button>
             <Input
@@ -135,7 +164,7 @@ export default function SalesDashboard() {
                     </Badge>
                   </td>
                   <td className="p-3 text-muted-foreground">
-                    {new Date(item.slaDueAt).toLocaleString()}
+                    {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString() : "N/A"}
                   </td>
                 </tr>
               ))}

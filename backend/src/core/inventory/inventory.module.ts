@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
-import { useDbPersistence } from '../../shared/persistence.mode';
+import { PersistenceModule } from '../../persistence/persistence.module';
 import { InventoryController } from './inventory.controller';
 import { InventoryService } from './inventory.service';
 import { InventoryDbRepository } from './repositories/inventory.db.repository';
-import { InventoryMockRepository } from './repositories/inventory.mock.repository';
 import { IInventoryRepository } from './repositories/inventory.repository.interface';
 
 @Module({
+  imports: [PersistenceModule],
   controllers: [InventoryController],
   providers: [
     InventoryService,
     {
       provide: IInventoryRepository,
-      useClass: useDbPersistence() ? InventoryDbRepository : InventoryMockRepository,
+      useClass: InventoryDbRepository,
     },
   ],
   exports: [InventoryService],

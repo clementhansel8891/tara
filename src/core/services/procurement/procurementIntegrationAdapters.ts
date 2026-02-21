@@ -4,7 +4,7 @@ import type { SessionContext } from "@/core/security/session";
 import {
   loadFromStorage,
   saveToStorage,
-} from "@/core/repositories/hr/storage";
+} from "@/core/persistence";
 import type {
   GoodsReceiptSyncRecord,
   GoodsReceiptSyncStatus,

@@ -1,58 +1,90 @@
-import type { HRCase } from "@/core/types/hr/case";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { HRCase, CaseType, CaseStatus } from "@/core/types/hr/case";
+import { prisma } from "@/core/persistence/database/client";
+// Re-triggering IDE type check with standardized naming
 
-const key = (tenantId: string) => `hr:${tenantId}:cases`;
-
-const seedCases = (tenantId: string): HRCase[] => [
-  {
-    id: `${tenantId}-case-001`,
-    tenantId,
-    title: "Payroll adjustment request",
-    type: "payroll_correction",
-    status: "open",
-    employeeId: `${tenantId}-emp-002`,
-    departmentId: "dept-fin",
-    ownerId: "user-demo",
-    priority: "high",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for HR Case
+ */
+const mapToCase = (db: any): HRCase => ({
+  id: db.id,
+  tenantId: db.companyId,
+  title: db.title,
+  type: db.type as CaseType,
+  status: db.status as CaseStatus,
+  employeeId: db.employeeId,
+  departmentId: db.departmentId || undefined,
+  ownerId: db.ownerId || undefined,
+  priority: db.priority as any,
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as HRCase);
 
 export const caseRepo = {
-  list(tenantId: string): HRCase[] {
-    return ensureSeed(key(tenantId), seedCases(tenantId));
-  },
-
-  get(tenantId: string, caseId: string): HRCase | undefined {
-    return this.list(tenantId).find((item) => item.id === caseId);
-  },
-
-  create(tenantId: string, payload: Omit<HRCase, "id" | "tenantId" | "createdAt" | "updatedAt">): HRCase {
-    const cases = this.list(tenantId);
-    const now = new Date().toISOString();
-    const record: HRCase = {
-      ...payload,
-      id: nextId(`${tenantId}-case`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [record, ...cases];
-    saveToStorage(key(tenantId), updated);
-    return record;
-  },
-
-  update(tenantId: string, caseId: string, patch: Partial<HRCase>): HRCase | undefined {
-    const cases = this.list(tenantId);
-    let updatedCase: HRCase | undefined;
-    const next = cases.map((item) => {
-      if (item.id !== caseId) return item;
-      updatedCase = { ...item, ...patch, updatedAt: new Date().toISOString() };
-      return updatedCase;
+  /**
+   * List all cases for a tenant
+   */
+  async list(tenantId: string): Promise<HRCase[]> {
+    const list = await prisma.hRCase.findMany({
+      where: { companyId: tenantId },
+      orderBy: { createdAt: 'desc' },
     });
-    if (!updatedCase) return undefined;
-    saveToStorage(key(tenantId), next);
-    return updatedCase;
+    return list.map(mapToCase);
+  },
+
+  /**
+   * Get a single case
+   */
+  async get(tenantId: string, caseId: string): Promise<HRCase | undefined> {
+    const record = await prisma.hRCase.findFirst({
+      where: { id: caseId, companyId: tenantId },
+    });
+    return record ? mapToCase(record) : undefined;
+  },
+
+  /**
+   * Create a new case
+   */
+  async create(
+    tenantId: string, 
+    payload: Omit<HRCase, "id" | "tenantId" | "createdAt" | "updatedAt">
+  ): Promise<HRCase> {
+    const record = await prisma.hRCase.create({
+      data: {
+        companyId: tenantId,
+        employeeId: payload.employeeId,
+        departmentId: payload.departmentId,
+        title: payload.title,
+        type: payload.type,
+        status: payload.status,
+        priority: payload.priority,
+        ownerId: payload.ownerId,
+      },
+    });
+    return mapToCase(record);
+  },
+
+  /**
+   * Update an existing case
+   */
+  async update(
+    tenantId: string, 
+    caseId: string, 
+    patch: Partial<HRCase>
+  ): Promise<HRCase | undefined> {
+    const data: any = {};
+    if (patch.title) data.title = patch.title;
+    if (patch.status) data.status = patch.status;
+    if (patch.priority) data.priority = patch.priority;
+    if (patch.ownerId) data.ownerId = patch.ownerId;
+
+    const updated = await prisma.hRCase.update({
+      where: {
+        id: caseId,
+        companyId: tenantId,
+      },
+      data,
+    });
+
+    return mapToCase(updated);
   },
 };

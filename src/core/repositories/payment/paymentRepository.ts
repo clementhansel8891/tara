@@ -13,82 +13,83 @@ import type {
 } from "@/core/types/payment/payment";
 
 export interface PaymentRepository {
-  listTransactions: (tenantId: string) => PaymentTransaction[];
+  listTransactions: (tenantId: string) => Promise<PaymentTransaction[]>;
   createTransaction: (
     tenantId: string,
     payload: PaymentTransaction,
-  ) => PaymentTransaction;
+  ) => Promise<PaymentTransaction>;
   updateTransaction: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentTransaction>,
-  ) => PaymentTransaction | null;
+  ) => Promise<PaymentTransaction | null>;
 
-  listProviders: (tenantId: string) => PaymentProvider[];
+  listProviders: (tenantId: string) => Promise<PaymentProvider[]>;
   updateProvider: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentProvider>,
-  ) => PaymentProvider | null;
+  ) => Promise<PaymentProvider | null>;
 
-  listRoutingPolicies: (tenantId: string) => RoutingPolicy[];
+  listRoutingPolicies: (tenantId: string) => Promise<RoutingPolicy[]>;
   updateRoutingPolicy: (
     tenantId: string,
     id: string,
     patch: Partial<RoutingPolicy>,
-  ) => RoutingPolicy | null;
+  ) => Promise<RoutingPolicy | null>;
 
-  listDevices: (tenantId: string) => PosDevice[];
+  listDevices: (tenantId: string) => Promise<PosDevice[]>;
   updateDevice: (
     tenantId: string,
     id: string,
     patch: Partial<PosDevice>,
-  ) => PosDevice | null;
-  listDevicePools: (tenantId: string) => DevicePool[];
-  listDisputes: (tenantId: string) => PaymentDispute[];
-  createDispute: (tenantId: string, payload: PaymentDispute) => PaymentDispute;
+  ) => Promise<PosDevice | null>;
+  listDevicePools: (tenantId: string) => Promise<DevicePool[]>;
+
+  listDisputes: (tenantId: string) => Promise<PaymentDispute[]>;
+  createDispute: (tenantId: string, payload: PaymentDispute) => Promise<PaymentDispute>;
   updateDispute: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentDispute>,
-  ) => PaymentDispute | null;
+  ) => Promise<PaymentDispute | null>;
 
-  listChargebacks: (tenantId: string) => PaymentChargeback[];
+  listChargebacks: (tenantId: string) => Promise<PaymentChargeback[]>;
   createChargeback: (
     tenantId: string,
     payload: PaymentChargeback,
-  ) => PaymentChargeback;
+  ) => Promise<PaymentChargeback>;
   updateChargeback: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentChargeback>,
-  ) => PaymentChargeback | null;
+  ) => Promise<PaymentChargeback | null>;
 
-  listRefunds: (tenantId: string) => PaymentRefund[];
-  createRefund: (tenantId: string, payload: PaymentRefund) => PaymentRefund;
+  listRefunds: (tenantId: string) => Promise<PaymentRefund[]>;
+  createRefund: (tenantId: string, payload: PaymentRefund) => Promise<PaymentRefund>;
   updateRefund: (
     tenantId: string,
     id: string,
     patch: Partial<PaymentRefund>,
-  ) => PaymentRefund | null;
+  ) => Promise<PaymentRefund | null>;
 
-  listSettlements: (tenantId: string) => SettlementRecord[];
+  listSettlements: (tenantId: string) => Promise<SettlementRecord[]>;
   createSettlement: (
     tenantId: string,
     payload: SettlementRecord,
-  ) => SettlementRecord;
+  ) => Promise<SettlementRecord>;
   updateSettlement: (
     tenantId: string,
     id: string,
     patch: Partial<SettlementRecord>,
-  ) => SettlementRecord | null;
+  ) => Promise<SettlementRecord | null>;
 
-  listEvidencePacks: (tenantId: string) => EvidencePack[];
-  createEvidencePack: (tenantId: string, payload: EvidencePack) => EvidencePack;
+  listEvidencePacks: (tenantId: string) => Promise<EvidencePack[]>;
+  createEvidencePack: (tenantId: string, payload: EvidencePack) => Promise<EvidencePack>;
 
-  listAuditEvents: (tenantId: string) => PaymentAuditEvent[];
+  listAuditEvents: (tenantId: string) => Promise<PaymentAuditEvent[]>;
   createAuditEvent: (
     tenantId: string,
     payload: PaymentAuditEvent,
-  ) => PaymentAuditEvent;
+  ) => Promise<PaymentAuditEvent>;
 }

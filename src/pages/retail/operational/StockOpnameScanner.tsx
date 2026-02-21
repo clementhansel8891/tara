@@ -31,13 +31,13 @@ const StockOpnameScanner = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = retailService.listInventory(session.tenantId);
+        const data = await retailService.listInventory(session.tenantId, session);
         setProducts(data);
 
         // Fetch active shift
-        const shifts = retailService.listShifts(session.tenantId);
+        const shifts = await retailService.listShifts(session.tenantId, session);
         const openShift = shifts.find(s => s.status === "open" && s.employeeId === session.userId);
         setActiveShift(openShift || null);
       } catch (error) {
@@ -47,7 +47,7 @@ const StockOpnameScanner = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.userId]);
+  }, [session.tenantId, session.userId, session]);
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();

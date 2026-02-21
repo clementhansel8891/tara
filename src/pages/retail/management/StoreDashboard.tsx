@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { BarChart3, TrendingUp, Users, AlertCircle, ShoppingBag, Clock, ShieldCheck, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Smartphone } from "lucide-react";
@@ -7,8 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -19,7 +17,7 @@ import {
 } from 'recharts';
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
-import type { RetailOrder, RetailStore, POSDevice } from "@/core/types/retail/retail";
+import type { RetailOrder, POSDevice } from "@/core/types/retail/retail";
 import { useToast } from "@/hooks/use-toast";
 
 const SALES_DATA = [
@@ -39,21 +37,25 @@ const StoreDashboard = () => {
   const [devices, setDevices] = useState<POSDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const [orderData, deviceData] = await Promise.all([
+        retailService.listOrders(session.tenantId, session),
+        retailService.listDevices(session.tenantId, session),
+      ]);
+      setOrders(orderData);
+      setDevices(deviceData);
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session.tenantId, session]);
+
   useEffect(() => {
-    const fetchData = () => {
-      try {
-        const orderData = retailService.listOrders(session.tenantId);
-        const deviceData = retailService.listDevices(session.tenantId);
-        setOrders(orderData);
-        setDevices(deviceData);
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchData();
-  }, [session.tenantId]);
+  }, [fetchData]);
 
   const stats = useMemo(() => {
     const totalSales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
@@ -68,6 +70,14 @@ const StoreDashboard = () => {
       activeDevices
     };
   }, [orders, devices]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground italic">Synchronizing store vitals...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

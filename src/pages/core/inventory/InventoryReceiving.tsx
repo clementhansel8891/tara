@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -7,6 +7,8 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
+import type { InventoryItemMaster } from "@/core/types/inventory/inventory";
+import type { GoodsReceiptSyncRecord } from "@/core/types/procurement/procurement";
 
 export default function InventoryReceiving() {
   const session = useSession();
@@ -16,10 +18,29 @@ export default function InventoryReceiving() {
   const [departmentCode, setDepartmentCode] = useState("PRODUCTION");
   const [quantity, setQuantity] = useState("1");
   const [unitCost, setUnitCost] = useState("0");
-  const [, setVersion] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [queue, setQueue] = useState<GoodsReceiptSyncRecord[]>([]);
+  const [items, setItems] = useState<InventoryItemMaster[]>([]);
 
-  const queue = inventoryService.listProcurementReceiptQueue(session.tenantId);
-  const items = inventoryService.listItems(session.tenantId);
+  const refresh = useCallback(async () => {
+    try {
+      const [q, i] = await Promise.all([
+        inventoryService.listProcurementReceiptQueue(session.tenantId),
+        inventoryService.listItems(session.tenantId),
+      ]);
+      setQueue(q);
+      setItems(i);
+    } catch (err) {
+      console.error("Failed to fetch inventory receiving data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const filteredQueue = useMemo(
     () =>
       queue.filter((sync) =>
@@ -31,6 +52,14 @@ export default function InventoryReceiving() {
       ),
     [queue, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading receiving queue...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -72,10 +101,10 @@ export default function InventoryReceiving() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
+                        onClick={async () => {
                           const selectedItemId = itemId || items[0]?.id;
                           if (!selectedItemId) return;
-                          inventoryService.processProcurementReceipt(session.tenantId, session, {
+                          await inventoryService.processProcurementReceipt(session.tenantId, session, {
                             syncId: sync.id,
                             itemId: selectedItemId,
                             quantity: Number(quantity || "1"),
@@ -84,7 +113,7 @@ export default function InventoryReceiving() {
                             departmentCode,
                             mismatch: false,
                           });
-                          setVersion((prev) => prev + 1);
+                          refresh();
                         }}
                       >
                         Confirm
@@ -92,10 +121,10 @@ export default function InventoryReceiving() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
+                        onClick={async () => {
                           const selectedItemId = itemId || items[0]?.id;
                           if (!selectedItemId) return;
-                          inventoryService.processProcurementReceipt(session.tenantId, session, {
+                          await inventoryService.processProcurementReceipt(session.tenantId, session, {
                             syncId: sync.id,
                             itemId: selectedItemId,
                             quantity: Number(quantity || "1"),
@@ -105,7 +134,7 @@ export default function InventoryReceiving() {
                             mismatch: true,
                             mismatchIssueCount: Math.max(sync.issueCount, 1),
                           });
-                          setVersion((prev) => prev + 1);
+                          refresh();
                         }}
                       >
                         Report mismatch
@@ -118,7 +147,7 @@ export default function InventoryReceiving() {
           </table>
         </DataTableShell>
       </WorkspacePanel>
-
+      {/* ... rest of the Inputs panel remain same ... */}
       <WorkspacePanel title="Receipt Inputs" description="Default posting target used by quick confirmation actions.">
         <div className="grid gap-3 md:grid-cols-5">
           <Input

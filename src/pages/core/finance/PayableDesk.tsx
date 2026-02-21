@@ -11,7 +11,8 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { financeService, type FinancePayableRow } from "@/core/services/finance/financeService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
+import type { FinancePayableRow } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
 
 type PayableTab = "PENDING" | "APPROVED" | "OVERDUE";
@@ -36,9 +37,9 @@ export default function PayableDesk() {
     setErrorMessage(null);
   };
 
-  const refreshPayables = useCallback(() => {
-    setPayables(financeService.listPayables(session.tenantId));
-  }, [session.tenantId]);
+  const refreshPayables = useCallback(async () => {
+    setPayables(await financeApiClient.listPayables(session.tenantId, session));
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refreshPayables();
@@ -64,9 +65,9 @@ export default function PayableDesk() {
     return next;
   }, [filtered]);
 
-  const createPayable = () => {
+  const createPayable = async () => {
     try {
-      financeService.createPayable(session.tenantId, session, {
+      await financeApiClient.createPayable(session.tenantId, session, {
         vendor,
         amount: Number(amount || "0"),
         dueDate,
@@ -88,9 +89,9 @@ export default function PayableDesk() {
     }
   };
 
-  const approvePayable = (id: string) => {
+  const approvePayable = async (id: string) => {
     try {
-      financeService.approvePayable(session.tenantId, session, id);
+      await financeApiClient.approvePayable(session.tenantId, session, id);
       logService.log(session.tenantId, session.userId, "Approved payable", id);
       setStatusMessage("Payable approved by department HOD.");
       refreshPayables();
@@ -99,9 +100,9 @@ export default function PayableDesk() {
     }
   };
 
-  const markPaid = (id: string) => {
+  const markPaid = async (id: string) => {
     try {
-      financeService.markPaid(session.tenantId, id);
+      await financeApiClient.markPaid(session.tenantId, session, id);
       logService.log(session.tenantId, session.userId, "Marked payable paid", id);
       setStatusMessage("Payable marked as paid and posted to ledger.");
       refreshPayables();

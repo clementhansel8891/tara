@@ -3,9 +3,9 @@ import type {
   PaymentRequest,
   PaymentMethod,
 } from "@/core/types/finance/payments";
-import { mockFinanceRepo } from "@/core/repositories/finance/mockFinanceRepo";
+import { financeRepo } from "@/core/repositories/finance/financeRepo";
 
-const repo = mockFinanceRepo;
+const repo = financeRepo;
 
 export type PaymentExecutionPayload = {
   tenantId: string;
@@ -26,7 +26,7 @@ export const paymentsService = {
     tenantId: string,
     status?: string,
   ): Promise<PaymentRequest[]> {
-    const all = repo.listPaymentRequests(tenantId);
+    const all = await repo.listPaymentRequests(tenantId);
     if (!status) return all;
     return all.filter((p) => p.status === status);
   },
@@ -48,7 +48,7 @@ export const paymentsService = {
       updatedAt: now,
     };
 
-    return repo.createPaymentRequest(payload.tenantId, request);
+    return await repo.createPaymentRequest(payload.tenantId, request);
   },
 
   async approvePayment(_approval: {
@@ -62,7 +62,7 @@ export const paymentsService = {
     tenantId: string,
     filters?: PaymentHistoryFilters,
   ): Promise<PaymentRequest[]> {
-    let all = repo.listPaymentRequests(tenantId);
+    let all = await repo.listPaymentRequests(tenantId);
     if (!filters) return all;
 
     if (filters.status) {

@@ -6,23 +6,22 @@ import type {
 } from "@/core/types/hr/scheduling";
 import { schedulingRepo } from "@/core/repositories/hr/schedulingRepo";
 import { workflowService } from "@/core/services/hr/workflowService";
-import { nextId } from "@/core/repositories/hr/storage";
+import { nextId } from "@/core/persistence";
 import { audit } from "@/core/logging/audit";
 
 export const schedulingService = {
-  getDailySchedule(
+  async getDailySchedule(
     tenantId: string,
     employeeId: string,
     date: string,
-  ): DailySchedule | null {
+  ): Promise<DailySchedule | null> {
     // 1. Check for Emergency Overrides (Highest Priority)
-    const overrides = schedulingRepo
-      .listOverrides(tenantId)
-      .filter((o) => o.date === date && o.coveringEmployeeId === employeeId);
+    const allOverrides = await schedulingRepo.listOverrides(tenantId);
+    const overrides = allOverrides.filter((o) => o.date === date && o.coveringEmployeeId === employeeId);
 
     if (overrides.length > 0) {
       const override = overrides[0]; // Take first overlap
-      const shift = schedulingRepo.getShift(tenantId, override.shiftId);
+      const shift = await schedulingRepo.getShift(tenantId, override.shiftId);
       if (shift) {
         return {
           date,
@@ -36,9 +35,8 @@ export const schedulingService = {
     }
 
     // 2. Check for Approved Shift Swaps
-    const swaps = schedulingRepo
-      .listSwaps(tenantId)
-      .filter(
+    const allSwaps = await schedulingRepo.listSwaps(tenantId);
+    const swaps = allSwaps.filter(
         (s) =>
           s.date === date &&
           s.status === "APPROVED" &&
@@ -46,10 +44,9 @@ export const schedulingService = {
       );
 
     // If I requested a swap away, I have NO shift (unless I swapped FOR another)
-    // Simplified logic: If I am target, I get the shift. If I am requester, I lose my shift.
     const swappedIn = swaps.find((s) => s.targetEmployeeId === employeeId);
     if (swappedIn) {
-      const shift = schedulingRepo.getShift(tenantId, swappedIn.shiftId);
+      const shift = await schedulingRepo.getShift(tenantId, swappedIn.shiftId);
       if (shift) {
         return {
           date,
@@ -68,11 +65,11 @@ export const schedulingService = {
     }
 
     // 3. Fallback to Standard Schedule Assignment
-    const assignment = schedulingRepo.getAssignment(tenantId, employeeId);
+    const assignment = await schedulingRepo.getAssignment(tenantId, employeeId);
     if (assignment) {
       // Check if day matches
       const dayOfWeek = new Date(date).getDay();
-      const shift = schedulingRepo.getShift(tenantId, assignment.shiftId);
+      const shift = await schedulingRepo.getShift(tenantId, assignment.shiftId);
       if (shift && shift.workDays.includes(dayOfWeek)) {
         return {
           date,
@@ -87,7 +84,7 @@ export const schedulingService = {
     return null;
   },
 
-  requestSwap(
+  async requestSwap(
     tenantId: string,
     session: SessionContext,
     targetEmployeeId: string,
@@ -108,10 +105,10 @@ export const schedulingService = {
       updatedAt: new Date().toISOString(),
     };
 
-    schedulingRepo.saveSwapRequest(tenantId, request);
+    await schedulingRepo.saveSwapRequest(tenantId, request);
 
     // Create Workflow
-    workflowService.createRequest(tenantId, session, {
+    await workflowService.createRequest(tenantId, session, {
       entityType: "SHIFT_SWAP",
       entityId: request.id,
       makerDept: session.departmentId,
@@ -123,7 +120,7 @@ export const schedulingService = {
     return request;
   },
 
-  submitOverride(
+  async submitOverride(
     tenantId: string,
     session: SessionContext,
     absentEmployeeId: string,
@@ -146,10 +143,10 @@ export const schedulingService = {
       updatedAt: new Date().toISOString(),
     };
 
-    schedulingRepo.saveOverride(tenantId, override);
+    await schedulingRepo.saveOverride(tenantId, override);
 
     // Create Audit Workflow (Auto-approved effectively, but logged)
-    workflowService.createRequest(tenantId, session, {
+    await workflowService.createRequest(tenantId, session, {
       entityType: "EMERGENCY_OVERRIDE",
       entityId: override.id,
       makerDept: session.departmentId,

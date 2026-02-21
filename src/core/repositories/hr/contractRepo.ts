@@ -1,83 +1,85 @@
-import type { Contract } from "@/core/types/hr/contract";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { Contract, ContractStatus, ContractType } from "@/core/types/hr/contract";
+import { prisma } from "@/core/persistence/database/client";
 
-const key = (tenantId: string) => `hr:${tenantId}:contracts`;
-
-const seedContracts = (tenantId: string): Contract[] => [
-  {
-    id: `${tenantId}-con-001`,
-    tenantId,
-    employeeId: `${tenantId}-emp-001`,
-    title: "Employment Agreement - Amelia Hart",
-    type: "employment",
-    status: "active",
-    startDate: "2024-03-12",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-con-002`,
-    tenantId,
-    title: "Vendor Services Agreement - Benefits Provider",
-    type: "vendor",
-    status: "active",
-    startDate: "2023-09-01",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-con-003`,
-    tenantId,
-    title: "Visa Case - Lina Park",
-    type: "visa",
-    status: "active",
-    startDate: "2025-06-12",
-    endDate: "2026-06-11",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-con-004`,
-    tenantId,
-    title: "Tax Compliance - Withholding Forms",
-    type: "tax",
-    status: "draft",
-    startDate: "2026-01-10",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Contract
+ */
+const mapToContract = (db: any): Contract => ({
+  id: db.id,
+  tenantId: db.companyId,
+  employeeId: db.employeeId || undefined,
+  title: db.title,
+  type: db.type as ContractType,
+  status: db.status as ContractStatus,
+  startDate: db.startDate.toISOString().split('T')[0],
+  endDate: db.endDate?.toISOString().split('T')[0],
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as Contract);
 
 export const contractRepo = {
-  list(tenantId: string): Contract[] {
-    return ensureSeed(key(tenantId), seedContracts(tenantId));
-  },
-
-  create(tenantId: string, payload: Omit<Contract, "id" | "tenantId" | "createdAt" | "updatedAt">): Contract {
-    const contracts = this.list(tenantId);
-    const now = new Date().toISOString();
-    const contract: Contract = {
-      ...payload,
-      id: nextId(`${tenantId}-con`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [contract, ...contracts];
-    saveToStorage(key(tenantId), updated);
-    return contract;
-  },
-
-  update(tenantId: string, contractId: string, patch: Partial<Contract>): Contract | null {
-    const contracts = this.list(tenantId);
-    let updatedContract: Contract | null = null;
-    const updated = contracts.map((item) => {
-      if (item.id !== contractId) return item;
-      updatedContract = { ...item, ...patch, updatedAt: new Date().toISOString() };
-      return updatedContract;
+  /**
+   * List all contracts for a tenant
+   */
+  async list(tenantId: string): Promise<Contract[]> {
+    const list = await prisma.contract.findMany({
+      where: {
+        companyId: tenantId,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
     });
-    if (!updatedContract) return null;
-    saveToStorage(key(tenantId), updated);
-    return updatedContract;
+
+    return list.map(mapToContract);
+  },
+
+  /**
+   * Create a new contract
+   */
+  async create(
+    tenantId: string, 
+    payload: Omit<Contract, "id" | "tenantId" | "createdAt" | "updatedAt">
+  ): Promise<Contract> {
+    const record = await prisma.contract.create({
+      data: {
+        companyId: tenantId,
+        employeeId: payload.employeeId,
+        title: payload.title,
+        type: payload.type,
+        status: payload.status,
+        startDate: new Date(payload.startDate),
+        endDate: payload.endDate ? new Date(payload.endDate) : undefined,
+      },
+    });
+
+    return mapToContract(record);
+  },
+
+  /**
+   * Update an existing contract
+   */
+  async update(
+    tenantId: string, 
+    contractId: string, 
+    patch: Partial<Contract>
+  ): Promise<Contract | null> {
+    const data: any = {};
+    if (patch.title) data.title = patch.title;
+    if (patch.type) data.type = patch.type;
+    if (patch.status) data.status = patch.status;
+    if (patch.startDate) data.startDate = new Date(patch.startDate);
+    if (patch.endDate) data.endDate = new Date(patch.endDate);
+    if (patch.employeeId) data.employeeId = patch.employeeId;
+
+    const updated = await prisma.contract.update({
+      where: {
+        id: contractId,
+        companyId: tenantId,
+      },
+      data,
+    });
+
+    return mapToContract(updated);
   },
 };

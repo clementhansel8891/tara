@@ -1,3 +1,6 @@
+// Re-exporting from the single source of truth
+export type { PayrollRun, PayrollRunStatus } from "@/core/types/hr/payroll";
+
 export type PayrollComponent = {
   id: string;
   name: string;
@@ -17,13 +20,4 @@ export type Payslip = {
   createdAt: string;
 };
 
-export type PayrollRun = {
-  id: string;
-  tenantId: string;
-  periodStart: string;
-  periodEnd: string;
-  status: "draft" | "pending" | "approved" | "executed";
-  workflowId?: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export type Payroll = Payslip;

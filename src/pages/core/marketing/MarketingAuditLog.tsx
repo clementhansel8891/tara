@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -7,14 +7,28 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
+import type { MarketingAuditEvent } from "@/core/types/marketing/marketing";
 
 export default function MarketingAuditLog() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const events = useMemo(
-    () => marketingService.listAuditEvents(session.tenantId),
-    [session.tenantId],
-  );
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<MarketingAuditEvent[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      const e = await marketingService.listAuditEvents(session.tenantId);
+      setEvents(e);
+    } catch (err) {
+      console.error("Failed to fetch marketing audit events:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filtered = useMemo(
     () =>
@@ -27,6 +41,14 @@ export default function MarketingAuditLog() {
       ),
     [events, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading audit log...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

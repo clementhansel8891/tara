@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,15 +21,23 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 export default function RetailManagement() {
   const session = useSession();
   const [orders, setOrders] = useState<RetailOrder[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const orderList = retailService.listOrders(session.tenantId);
+      setLoading(true);
+      const orderList = await retailService.listOrders(session.tenantId, session);
       setOrders(orderList);
     } catch (err) {
       console.error("Management Failed to load", err);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const totalSales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
 
@@ -94,6 +102,9 @@ export default function RetailManagement() {
 
       <WorkspacePanel title="Audit Ledger" description="Immutable transaction log">
         <DataTableShell total={orders.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing audit ledger...</div>
+          ) : (
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 text-xs text-muted-foreground border-b uppercase">
               <tr>
@@ -109,11 +120,12 @@ export default function RetailManagement() {
                   <td className="p-4 font-mono text-blue-600">{o.id}</td>
                   <td className="p-4 font-bold">${o.totalAmount.toFixed(2)}</td>
                   <td className="p-4"><ApprovalStatusBadge status={o.status === 'paid' ? 'APPROVED' : 'PENDING'} /></td>
-                  <td className="p-4 text-muted-foreground text-xs">{new Date(o.createdAt).toLocaleString()}</td>
+                  <td className="p-4 text-muted-foreground text-xs">{o.createdAt ? new Date(o.createdAt).toLocaleString() : "N/A"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

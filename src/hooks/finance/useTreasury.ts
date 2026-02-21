@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { treasuryService } from "@/core/services/finance/treasuryService"; // our updated treasuryService
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import type { TreasuryTransfer } from "@/core/types/finance/treasury";
 import type { SessionContext } from "@/core/security/session";
 import { MoneySource } from "@/core/types/finance/accounts";
@@ -17,7 +17,7 @@ export function useTreasury(tenantId: string, session: SessionContext) {
     setLoading(true);
     setError(null);
     try {
-      const data = await treasuryService.listSources(tenantId, session);
+      const data = await financeApiClient.listSources(tenantId, session);
       setSources(data);
     } catch (err: unknown) {
       setError(toErrorMessage(err, "Failed to fetch treasury sources"));
@@ -30,7 +30,7 @@ export function useTreasury(tenantId: string, session: SessionContext) {
     setLoading(true);
     setError(null);
     try {
-      const data = await treasuryService.listTransfers(tenantId, session);
+      const data = await financeApiClient.listTransfers(tenantId, session);
       setTransfers(data);
     } catch (err: unknown) {
       setError(toErrorMessage(err, "Failed to fetch treasury transfers"));
@@ -46,7 +46,7 @@ export function useTreasury(tenantId: string, session: SessionContext) {
   }) => {
     setLoading(true);
     try {
-      const transfer = await treasuryService.createTransfer(
+      const transfer = await financeApiClient.createTransfer(
         tenantId,
         session,
         payload,
@@ -62,7 +62,7 @@ export function useTreasury(tenantId: string, session: SessionContext) {
   const reconcileSettlement = useCallback(async (sourceId: string, amount: number) => {
     setLoading(true);
     try {
-      await treasuryService.reconcileSettlement(
+      await financeApiClient.reconcileSettlement(
         tenantId,
         session,
         sourceId,

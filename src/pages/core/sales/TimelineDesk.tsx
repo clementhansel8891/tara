@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,7 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
-import type { SalesTimelineEvent } from "@/core/types/sales/sales";
+import type { SalesTimelineEvent, SalesOpportunity } from "@/core/types/sales/sales";
 
 const CHANNELS: SalesTimelineEvent["channel"][] = [
   "NOTE",
@@ -31,16 +31,40 @@ export default function TimelineDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
-  const opportunities = salesService.listOpportunities(session.tenantId);
-  const [opportunityId, setOpportunityId] = useState(opportunities[0]?.id ?? "");
+  const [loading, setLoading] = useState(true);
+  
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
+  const [timeline, setTimeline] = useState<SalesTimelineEvent[]>([]);
+  
+  const [opportunityId, setOpportunityId] = useState("");
   const [channel, setChannel] = useState<SalesTimelineEvent["channel"]>("NOTE");
   const [summary, setSummary] = useState("");
   const [detail, setDetail] = useState("");
 
-  const timeline = useMemo(
-    () => salesService.listTimelineEvents(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [o, t] = await Promise.all([
+        salesService.listOpportunities(session.tenantId, session),
+        salesService.listTimelineEvents(session.tenantId, session),
+      ]);
+      setOpportunities(o);
+      setTimeline(t);
+      
+      if (o.length > 0 && !opportunityId) {
+        setOpportunityId(o[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch timeline data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session, opportunityId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, refreshKey]);
+
   const filtered = useMemo(
     () =>
       timeline.filter((item) =>
@@ -93,18 +117,22 @@ export default function TimelineDesk() {
             placeholder="Summary"
           />
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!opportunityId || !summary) return;
-              salesService.addTimelineEvent(session.tenantId, session, {
-                opportunityId,
-                channel,
-                direction: "OUTBOUND",
-                summary,
-                detail,
-              });
-              setSummary("");
-              setDetail("");
-              setRefreshKey((value) => value + 1);
+              try {
+                await salesService.addTimelineEvent(session.tenantId, session, {
+                  opportunityId,
+                  channel,
+                  direction: "OUTBOUND",
+                  summary,
+                  detail,
+                });
+                setSummary("");
+                setDetail("");
+                setRefreshKey((value) => value + 1);
+              } catch (err) {
+                console.error("Failed to log interaction:", err);
+              }
             }}
           >
             Log Event
@@ -121,6 +149,9 @@ export default function TimelineDesk() {
       <WorkspacePanel title="Timeline Feed" description="Chronological communication history across all opportunities.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={15}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing timeline feed...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -152,6 +183,7 @@ export default function TimelineDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

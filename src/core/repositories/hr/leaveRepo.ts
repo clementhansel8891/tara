@@ -1,70 +1,92 @@
-import type { LeaveRequest } from "@/core/types/hr/leave";
-import { ensureSeed, nextId, saveToStorage } from "./storage";
+import type { LeaveRequest, LeaveStatus, LeaveType } from "@/core/types/hr/leave";
+import { prisma } from "@/core/persistence/database/client";
 
-const key = (tenantId: string) => `hr:${tenantId}:leave`;
-
-const seedLeave = (tenantId: string): LeaveRequest[] => [
-  {
-    id: `${tenantId}-leave-001`,
-    tenantId,
-    employeeId: `${tenantId}-emp-003`,
-    departmentId: "dept-compl",
-    type: "annual",
-    status: "requested",
-    startDate: "2026-02-10",
-    endDate: "2026-02-14",
-    reason: "Planned leave",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: `${tenantId}-leave-002`,
-    tenantId,
-    employeeId: `${tenantId}-emp-001`,
-    departmentId: "dept-ops",
-    type: "sick",
-    status: "approved",
-    startDate: "2026-02-03",
-    endDate: "2026-02-04",
-    approverId: `${tenantId}-emp-005`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+/**
+ * Mapping helper for Leave Request
+ */
+const mapToLeave = (db: any): LeaveRequest => ({
+  id: db.id,
+  tenantId: db.companyId,
+  employeeId: db.employeeId,
+  departmentId: db.departmentId || undefined,
+  type: db.type as LeaveType,
+  status: db.status as LeaveStatus,
+  startDate: db.startDate.toISOString().split('T')[0],
+  endDate: db.endDate.toISOString().split('T')[0],
+  reason: db.reason || undefined,
+  approverId: db.approvedBy || undefined,
+  approvalId: db.approvalId || undefined,
+  createdAt: db.createdAt.toISOString(),
+  updatedAt: db.updatedAt.toISOString(),
+} as LeaveRequest);
 
 export const leaveRepo = {
-  list(tenantId: string): LeaveRequest[] {
-    return ensureSeed(key(tenantId), seedLeave(tenantId));
+  /**
+   * List all leave requests for a tenant
+   */
+  async list(tenantId: string): Promise<LeaveRequest[]> {
+    const list = await prisma.leaveRequest.findMany({
+      where: {
+        companyId: tenantId,
+      },
+      orderBy: {
+        startDate: 'desc',
+      },
+    });
+
+    return list.map(mapToLeave);
   },
 
-  create(
+  /**
+   * Create a new leave request
+   */
+  async create(
     tenantId: string,
     payload: Omit<LeaveRequest, "id" | "tenantId" | "createdAt" | "updatedAt">,
-  ): LeaveRequest {
-    const records = this.list(tenantId);
-    const now = new Date().toISOString();
-    const record: LeaveRequest = {
-      ...payload,
-      id: nextId(`${tenantId}-leave`),
-      tenantId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const updated = [record, ...records];
-    saveToStorage(key(tenantId), updated);
-    return record;
+  ): Promise<LeaveRequest> {
+    const record = await prisma.leaveRequest.create({
+      data: {
+        companyId: tenantId,
+        employeeId: payload.employeeId,
+        departmentId: payload.departmentId,
+        type: payload.type,
+        status: payload.status,
+        startDate: new Date(payload.startDate),
+        endDate: new Date(payload.endDate),
+        reason: payload.reason,
+        approvedBy: payload.approverId,
+        approvalId: payload.approvalId,
+      },
+    });
+
+    return mapToLeave(record);
   },
 
-  update(tenantId: string, leaveId: string, patch: Partial<LeaveRequest>): LeaveRequest | null {
-    const records = this.list(tenantId);
-    let updatedRecord: LeaveRequest | null = null;
-    const updated = records.map((record) => {
-      if (record.id !== leaveId) return record;
-      updatedRecord = { ...record, ...patch, updatedAt: new Date().toISOString() };
-      return updatedRecord;
+  /**
+   * Update an existing leave request
+   */
+  async update(
+    tenantId: string, 
+    leaveId: string, 
+    patch: Partial<LeaveRequest>
+  ): Promise<LeaveRequest | null> {
+    const data: any = {};
+    if (patch.status) data.status = patch.status;
+    if (patch.type) data.type = patch.type;
+    if (patch.startDate) data.startDate = new Date(patch.startDate);
+    if (patch.endDate) data.endDate = new Date(patch.endDate);
+    if (patch.reason) data.reason = patch.reason;
+    if (patch.approverId) data.approvedBy = patch.approverId;
+    if (patch.approvalId) data.approvalId = patch.approvalId;
+
+    const updated = await prisma.leaveRequest.update({
+      where: {
+        id: leaveId,
+        companyId: tenantId,
+      },
+      data,
     });
-    if (!updatedRecord) return null;
-    saveToStorage(key(tenantId), updated);
-    return updatedRecord;
+
+    return mapToLeave(updated);
   },
 };

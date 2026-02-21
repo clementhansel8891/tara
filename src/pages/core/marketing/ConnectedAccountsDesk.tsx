@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -24,20 +24,39 @@ const PROVIDERS: ConnectedProvider[] = ["META", "GOOGLE"];
 
 export default function ConnectedAccountsDesk() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [provider, setProvider] = useState<ConnectedProvider>("META");
   const [accountName, setAccountName] = useState("");
   const [scopes, setScopes] = useState("ads_read,leads_retrieval");
+  const [loading, setLoading] = useState(true);
+  const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
 
-  const accounts = useMemo(
-    () => marketingService.listConnectedAccounts(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      const a = await marketingService.listConnectedAccounts(session.tenantId);
+      setAccounts(a);
+    } catch (err) {
+      console.error("Failed to fetch connected accounts:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
 
-  const setStatus = (accountId: string, status: ConnectionStatus) => {
-    marketingService.updateAccountStatus(session.tenantId, session, accountId, status);
-    setRefreshKey((value) => value + 1);
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const setStatus = async (accountId: string, status: ConnectionStatus) => {
+    await marketingService.updateAccountStatus(session.tenantId, session, accountId, status);
+    refresh();
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading accounts...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,15 +90,15 @@ export default function ConnectedAccountsDesk() {
             onChange={(event) => setScopes(event.target.value)}
           />
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!accountName) return;
-              marketingService.connectAccount(session.tenantId, session, {
+              await marketingService.connectAccount(session.tenantId, session, {
                 provider,
                 accountName,
                 scopes: scopes.split(",").map((item) => item.trim()).filter(Boolean),
               });
               setAccountName("");
-              setRefreshKey((value) => value + 1);
+              refresh();
             }}
           >
             Connect
@@ -109,7 +128,7 @@ export default function ConnectedAccountsDesk() {
                     {new Date(item.tokenExpiresAt).toLocaleString()}
                   </td>
                   <td className="p-3 text-muted-foreground">
-                    {item.lastSyncAt ? new Date(item.lastSyncAt).toLocaleString() : "Never"}
+                     {item.lastSyncAt ? new Date(item.lastSyncAt).toLocaleString() : "Never"}
                   </td>
                   <td className="p-3">
                     <Badge

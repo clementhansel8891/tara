@@ -4,46 +4,31 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-
-type HealthEvent = {
-  id: string;
-  component: string;
-  status: "HEALTHY" | "WARN" | "CRITICAL";
-  message: string;
-  time: string;
-};
+import { useSession } from "@/core/security/session";
+import { itService, type SystemHealth as SystemHealthType } from "@/core/services/it/itService";
 
 export default function SystemHealth() {
-  const [events, setEvents] = useState<HealthEvent[]>([]);
+  const session = useSession();
+  const [healthData, setHealthData] = useState<SystemHealthType[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    setEvents([
-      {
-        id: "evt-1",
-        component: "Edge Gateway - HQ",
-        status: "HEALTHY",
-        message: "Heartbeat stable",
-        time: "Now",
-      },
-      {
-        id: "evt-2",
-        component: "LAN Node - Branch 5",
-        status: "WARN",
-        message: "Packet loss 8%",
-        time: "3m ago",
-      },
-      {
-        id: "evt-3",
-        component: "MQTT Broker",
-        status: "CRITICAL",
-        message: "Restarted after failure",
-        time: "12m ago",
-      },
-    ]);
-  }, []);
+    const fetchHealth = async () => {
+      setLoading(true);
+      try {
+        const data = await itService.getSystemHealth(session.tenantId, session);
+        setHealthData(data);
+      } catch (err) {
+        console.error("Failed to fetch system health", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHealth();
+  }, [session.tenantId, session]);
 
-  const filtered = events.filter((evt) =>
+  const filtered = healthData.filter((evt) =>
     search ? evt.component.toLowerCase().includes(search.toLowerCase()) : true,
   );
 
@@ -69,31 +54,39 @@ export default function SystemHealth() {
               <tr>
                 <th className="p-3 text-left">Component</th>
                 <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Message</th>
-                <th className="p-3 text-left">Time</th>
+                <th className="p-3 text-left">Latency</th>
+                <th className="p-3 text-left">Checked At</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((evt) => (
-                <tr key={evt.id} className="border-t">
-                  <td className="p-3 font-medium">{evt.component}</td>
-                  <td className="p-3">
-                    <Badge
-                      variant={
-                        evt.status === "HEALTHY"
-                          ? "secondary"
-                          : evt.status === "WARN"
-                            ? "outline"
-                            : "destructive"
-                      }
-                    >
-                      {evt.status}
-                    </Badge>
-                  </td>
-                  <td className="p-3 text-muted-foreground">{evt.message}</td>
-                  <td className="p-3 text-muted-foreground">{evt.time}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={4} className="p-3 text-center">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={4} className="p-3 text-center text-muted-foreground">No health events tracked.</td></tr>
+              ) : (
+                filtered.map((evt) => (
+                  <tr key={evt.id} className="border-t">
+                    <td className="p-3 font-medium">{evt.component}</td>
+                    <td className="p-3">
+                      <Badge
+                        variant={
+                          evt.status === "healthy"
+                            ? "secondary"
+                            : evt.status === "warning"
+                              ? "outline"
+                              : "destructive"
+                        }
+                      >
+                        {evt.status.toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="p-3 text-muted-foreground">{evt.latencyMs}ms</td>
+                    <td className="p-3 text-muted-foreground text-xs">
+                      {new Date(evt.checkedAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

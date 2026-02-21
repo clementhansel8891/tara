@@ -1,15 +1,15 @@
 import type { ReceivableInvoice } from "@/core/types/finance/receivables";
-import { mockFinanceRepo } from "@/core/repositories/finance/mockFinanceRepo";
+import { financeRepo } from "@/core/repositories/finance/financeRepo";
 
-const repo = mockFinanceRepo;
+const repo = financeRepo;
 
 export const receivablesService = {
   async getReceivables(tenantId: string, _status?: string): Promise<ReceivableInvoice[]> {
-    return repo.listReceivables(tenantId);
+    return await repo.listReceivables(tenantId);
   },
 
   async createReceivable(receivable: ReceivableInvoice): Promise<ReceivableInvoice> {
-    return repo.createReceivable(receivable.tenantId, receivable);
+    return await repo.createReceivable(receivable.tenantId, receivable);
   },
 
   async updateReceivable(_receivableId: string, _updates: Partial<ReceivableInvoice>): Promise<ReceivableInvoice | null> {

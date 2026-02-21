@@ -1,15 +1,17 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
+import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
 import type {
   GoodsReceiptSyncRecord,
   LegalContractHandoff,
+  ProcurementSpendInsight,
   SupplierAccessProvisioning,
 } from "@/core/types/procurement/procurement";
 
@@ -28,10 +30,36 @@ const isProvisioningSlaBreached = (request: SupplierAccessProvisioning) =>
 export default function ProcurementInsights() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const insights = procurementService.getSpendInsights(session.tenantId);
-  const legalHandoffs = procurementService.listLegalHandoffs(session.tenantId);
-  const goodsReceiptSyncs = procurementService.listGoodsReceiptSyncs(session.tenantId);
-  const supplierAccess = procurementService.listSupplierAccessProvisioning(session.tenantId);
+  const [insights, setInsights] = useState<ProcurementSpendInsight[]>([]);
+  const [legalHandoffs, setLegalHandoffs] = useState<LegalContractHandoff[]>([]);
+  const [goodsReceiptSyncs, setGoodsReceiptSyncs] = useState<GoodsReceiptSyncRecord[]>([]);
+  const [supplierAccess, setSupplierAccess] = useState<SupplierAccessProvisioning[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [ins, leg, goods, sup] = await Promise.all([
+        procurementService.getSpendInsights(session.tenantId, session),
+        procurementService.listLegalHandoffs(session.tenantId),
+        procurementService.listGoodsReceiptSyncs(session.tenantId),
+        procurementService.listSupplierAccessProvisioning(session.tenantId),
+      ]);
+      setInsights(ins);
+      setLegalHandoffs(leg);
+      setGoodsReceiptSyncs(goods);
+      setSupplierAccess(sup);
+    } catch (err) {
+      setErrorMessage("Failed to load spend insights.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const integrationMetrics = useMemo(() => {
     const legalPending = legalHandoffs.filter((item) => item.status !== "CONTRACT_ACCEPTED").length;
@@ -94,27 +122,37 @@ export default function ProcurementInsights() {
         }
       />
 
+      <FeedbackAlert message={null} error={errorMessage} onClear={() => setErrorMessage(null)} />
+
       <WorkspacePanel title="Top Insights" description="Core procurement KPIs and health metrics.">
         <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {mergedInsights.map((item) => (
-            <div key={item.id} className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">{item.label}</p>
-              <p className="text-2xl font-semibold">{item.value}</p>
-              <Badge variant="outline">{item.category}</Badge>
-            </div>
-          ))}
+          {loading ? (
+            <div className="col-span-full py-6 text-center text-muted-foreground text-sm italic">Loading insights dashboard...</div>
+          ) : (
+            mergedInsights.map((item) => (
+              <div key={item.id} className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-2xl font-semibold">{item.value}</p>
+                <Badge variant="outline">{item.category}</Badge>
+              </div>
+            ))
+          )}
         </div>
       </WorkspacePanel>
 
       <WorkspacePanel title="Cross-workspace handoff dashboard" description="SLA visibility for Legal, Inventory, and IT integrations.">
         <div className="grid gap-3 md:grid-cols-4">
-          {integrationMetrics.map((item) => (
-            <div key={item.id} className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">{item.label}</p>
-              <p className="text-2xl font-semibold">{item.value}</p>
-              <Badge variant="outline">{item.category}</Badge>
-            </div>
-          ))}
+          {loading ? (
+            <div className="col-span-full py-6 text-center text-muted-foreground text-sm italic">Loading integration metrics...</div>
+          ) : (
+            integrationMetrics.map((item) => (
+              <div key={item.id} className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-2xl font-semibold">{item.value}</p>
+                <Badge variant="outline">{item.category}</Badge>
+              </div>
+            ))
+          )}
         </div>
       </WorkspacePanel>
 
@@ -130,13 +168,19 @@ export default function ProcurementInsights() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
-                <tr key={item.id} className="border-t">
-                  <td className="p-3 font-medium">{item.label}</td>
-                  <td className="p-3 text-muted-foreground">{item.category}</td>
-                  <td className="p-3">{item.value}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={3} className="p-3 text-center italic">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={3} className="p-3 text-center text-muted-foreground">No metrics found.</td></tr>
+              ) : (
+                filtered.map((item) => (
+                  <tr key={item.id} className="border-t">
+                    <td className="p-3 font-medium">{item.label}</td>
+                    <td className="p-3 text-muted-foreground">{item.category}</td>
+                    <td className="p-3">{item.value}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

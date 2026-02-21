@@ -23,7 +23,7 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
-import { financeService } from "@/core/services/finance/financeService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { logService } from "@/core/services/finance/logService";
 import { useTreasury } from "@/hooks/finance/useTreasury";
 
@@ -75,29 +75,26 @@ export default function PayFlow() {
 
   const { sources } = useTreasury(session.tenantId, session);
 
-  const normalizePayments = useCallback(() => {
-    return financeService
-      .listPayments(session.tenantId)
-      .map((payment) => ({
-        ...payment,
-        status:
-          payment.status === "PENDING" ||
-          payment.status === "APPROVED" ||
-          payment.status === "REJECTED" ||
-          payment.status === "SCHEDULED" ||
-          payment.status === "FAILED"
-            ? payment.status
-            : ("PENDING" as PaymentStatus),
-      })) as Payment[];
-  }, [session.tenantId]);
+  const fetchPayments = useCallback(async () => {
+    const raw = await financeApiClient.listPayments(session.tenantId, session);
+    return raw.map((payment) => ({
+      ...payment,
+      status:
+        payment.status === "PENDING" ||
+        payment.status === "APPROVED" ||
+        payment.status === "REJECTED" ||
+        payment.status === "SCHEDULED" ||
+        payment.status === "FAILED"
+          ? payment.status
+          : ("PENDING" as PaymentStatus),
+    })) as Payment[];
+  }, [session.tenantId, session]);
 
-  const [payments, setPayments] = useState<Payment[]>(() =>
-    normalizePayments(),
-  );
+  const [payments, setPayments] = useState<Payment[]>([]);
 
-  const refreshPayments = useCallback(() => {
-    setPayments(normalizePayments());
-  }, [normalizePayments]);
+  const refreshPayments = useCallback(async () => {
+    setPayments(await fetchPayments());
+  }, [fetchPayments]);
 
   useEffect(() => {
     refreshPayments();
@@ -137,8 +134,8 @@ export default function PayFlow() {
     [groupedPayments, search, tab],
   );
 
-  const handleCreatePayment = () => {
-    financeService.createPayment(session.tenantId, payment);
+  const handleCreatePayment = async () => {
+    await financeApiClient.createPayment(session.tenantId, session, payment);
     logService.log(
       session.tenantId,
       session.userId,
@@ -156,22 +153,22 @@ export default function PayFlow() {
     refreshPayments();
   };
 
-  const handleCreateBatch = () => {
-    batchPayments.forEach((p) => {
-      financeService.createPayment(session.tenantId, p);
+  const handleCreateBatch = async () => {
+    await Promise.all(batchPayments.map(async (p) => {
+      await financeApiClient.createPayment(session.tenantId, session, p);
       logService.log(
         session.tenantId,
         session.userId,
         `Created Payment: ${JSON.stringify(p)}`,
       );
-    });
+    }));
     setBatchDialogOpen(false);
     setBatchPayments([]);
     refreshPayments();
   };
 
-  const handleApprovalAction = (id: string, action: "APPROVED" | "REJECTED") => {
-    financeService.updatePaymentStatus(session.tenantId, id, action);
+  const handleApprovalAction = async (id: string, action: "APPROVED" | "REJECTED") => {
+    await financeApiClient.updatePaymentStatus(session.tenantId, session, id, action);
     logService.log(session.tenantId, session.userId, `Payment ${id} ${action}`);
     refreshPayments();
   };

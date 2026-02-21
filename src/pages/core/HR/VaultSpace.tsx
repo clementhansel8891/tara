@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,13 +23,26 @@ export default function VaultSpace() {
   const [docType, setDocType] = useState<"CONTRACT" | "VISA_FILE" | "POLICY" | "PAYROLL_EXPORT" | "KPI_REPORT">("CONTRACT");
   const [notes, setNotes] = useState("");
 
-  const documents = useMemo(() => {
-    const items = documentService.listVaultItems(session.tenantId, session);
-    if (!search) return items;
-    return items.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()));
-  }, [session, search, version]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [compliance, setCompliance] = useState<{ contracts: any[]; pendingRenewals: number }>({ contracts: [], pendingRenewals: 0 });
 
-  const compliance = useMemo(() => legalService.getComplianceCases(session.tenantId, session), [session]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const items = await documentService.listVaultItems(session.tenantId, session);
+        const filtered = search
+          ? items.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()))
+          : items;
+        setDocuments(filtered);
+
+        const comp = await legalService.getComplianceCases(session.tenantId, session);
+        setCompliance(comp);
+      } catch (error) {
+        console.error("Failed to load vault data", error);
+      }
+    };
+    fetchData();
+  }, [session, search, version]);
 
   return (
     <div className="space-y-6">
@@ -38,8 +51,8 @@ export default function VaultSpace() {
         subtitle="Secure HR document vault and compliance-ready storage."
         primaryAction={
           <Button
-            onClick={() => {
-              documentService.createVaultItem(session.tenantId, session, {
+            onClick={async () => {
+              await documentService.createVaultItem(session.tenantId, session, {
                 title: "Employment Pack",
                 type: "CONTRACT",
               });
@@ -67,8 +80,8 @@ export default function VaultSpace() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              documentService.exportVault(session.tenantId, session);
+            onClick={async () => {
+              await documentService.exportVault(session.tenantId, session);
             }}
           >
             Export Staff Report
@@ -120,8 +133,8 @@ export default function VaultSpace() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    workflowService.createRequest(session.tenantId, session, {
+                  onClick={async () => {
+                    await workflowService.createRequest(session.tenantId, session, {
                       entityType: "CONTRACT",
                       entityId: contract.id,
                       makerDept: session.departmentId,
@@ -176,16 +189,16 @@ export default function VaultSpace() {
               onChange={(e) => setNotes(e.target.value)}
             />
             <Button
-              onClick={() => {
+              onClick={async () => {
                 if (actionType === "contract") {
-                  legalService.createContract(session.tenantId, session, {
+                  await legalService.createContract(session.tenantId, session, {
                     title: docTitle,
                     type: "internal",
                     status: "draft",
                   });
                 }
                 if (actionType === "attach") {
-                  documentService.attachDocument(session.tenantId, session, {
+                  await documentService.attachDocument(session.tenantId, session, {
                     title: docTitle,
                     type: docType,
                     metadata: notes ? { notes } : undefined,

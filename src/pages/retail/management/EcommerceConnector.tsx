@@ -1,175 +1,394 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { useNavigate } from "react-router-dom";
 import {
-  Globe,
-  ShoppingBag,
-  CheckCircle2,
-  XCircle,
-  Settings,
   Zap,
   Link2,
-  AlertCircle,
   Plus,
   RefreshCw,
-  Copy,
   Server,
-  ShieldCheck,
-  Code2
+  Code2,
+  Network,
+  ShoppingBag,
+  CheckCircle2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@/core/security/session";
-import { Separator } from "@/components/ui/separator";
-import { retailService } from "@/core/services/retail/retailService";
-import type { RetailChannel, ChannelType } from "@/core/types/retail/retail";
-import { nextId } from "@/core/repositories/hr/storage";
+import { Roles } from "@/core/security/roles";
+import { workflowService } from "@/core/services/hr/workflowService";
+import { resolveDepartment } from "@/core/org/departmentResolver";
+import { ecommerceHubService, type EcommerceConnectorRecord, type ChannelRecord } from "@/core/services/retail/ecommerceHubService";
+import type { WorkflowStatus } from "@/core/tools/workflows/workflowTypes";
 import DeveloperConsole from "@/pages/retail/management/DeveloperConsole";
+
+// Modular Components
+import { MarketplaceGallery } from "./components/MarketplaceGallery";
+import { ChannelListItem } from "./components/ChannelListItem";
+import { ManageConnectorDialog } from "./components/ManageConnectorDialog";
+import { ChannelDetailDialog } from "./components/ChannelDetailDialog";
+import { Card, CardContent } from "@/components/ui/card";
 
 const EcommerceConnector = () => {
   const session = useSession();
   const { toast } = useToast();
+  const branchIds = ["branch_main"];
+  const gatewayUrl =
+    import.meta.env.VITE_RETAIL_GATEWAY_URL ??
+    (window.location.origin.includes(":8080")
+      ? `${window.location.origin.replace(":8080", ":3001")}/api/retail/events`
+      : `${window.location.origin}/api/retail/events`);
+
+  const copyCredential = (value: string, label: string) => {
+    navigator.clipboard.writeText(value);
+    toast({
+      title: `${label} Copied`,
+      description: `${label} is ready to paste into your storefront configuration.`,
+    });
+  };
   
   // State
-  const [channels, setChannels] = useState<RetailChannel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [connectors, setConnectors] = useState<EcommerceConnectorRecord[]>([]);
+  const [channels, setChannels] = useState<ChannelRecord[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [rotationLoading, setRotationLoading] = useState<string | null>(null);
+  const [revocationLoading, setRevocationLoading] = useState<string | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState<ChannelRecord | null>(null);
+  const [approvalStatus, setApprovalStatus] = useState<WorkflowStatus | "NONE">("NONE");
+  const [approvalRequestId, setApprovalRequestId] = useState<string | null>(null);
 
   // Form State
-  const [channelType, setChannelType] = useState<ChannelType>("MARKETPLACE");
+  const [channelType, setChannelType] = useState<string>("MARKETPLACE");
+  const [platform, setPlatform] = useState("custom");
   const [channelName, setChannelName] = useState("");
-  const [syncFreq, setSyncFreq] = useState("15m");
+  const [syncFreq, setSyncFreq] = useState("15min");
+  const [detailName, setDetailName] = useState("");
+  const [detailSyncFreq, setDetailSyncFreq] = useState("15min");
+  const [detailSettings, setDetailSettings] = useState<any>({ visibleCategories: [] });
   
-  // Credentials State (Marketplace Input or Owned Output)
-  const [apiKey, setApiKey] = useState("");
-  const [apiSecret, setApiSecret] = useState("");
-  const [generatedCreds, setGeneratedCreds] = useState<{clientId: string, clientSecret: string} | null>(null);
+  // Credentials State
+  const [marketplaceApiKey, setMarketplaceApiKey] = useState("");
+  const [marketplaceApiSecret, setMarketplaceApiSecret] = useState("");
+  const [generatedCreds, setGeneratedCreds] = useState<{
+    connectorId: string;
+    apiKey: string;
+    channelId: string;
+    clientId: string;
+    clientSecret: string;
+  } | null>(null);
+  
+  const [channelSecrets, setChannelSecrets] = useState<
+    Record<string, { clientId: string; clientSecret: string }>
+  >({});
+  const [detailClientSecret, setDetailClientSecret] = useState("");
+  const [detailClientId, setDetailClientId] = useState("");
 
   // Tab State
-  const [activeTab, setActiveTab] = useState("channels");
+  const [activeTab, setActiveTab] = useState("headless");
 
   // Fetch Data
-  const refreshChannels = () => {
+  const refreshChannels = useCallback(async () => {
     try {
-      const data = retailService.listChannels(session.tenantId);
-      setChannels(data);
+      const data = await ecommerceHubService.listChannels(session);
+      const nextChannels = Array.isArray(data) ? data : [];
+      setChannels(nextChannels);
     } catch (e) {
       console.error(e);
       toast({ title: "Error", description: "Failed to load channels", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [session, toast]);
+
+  const refreshConnectors = useCallback(async () => {
+    try {
+      const data = await ecommerceHubService.listConnectors(session);
+      setConnectors(data);
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "Failed to load connectors", variant: "destructive" });
+    }
+  }, [session, toast]);
 
   useEffect(() => {
     refreshChannels();
-  }, [session.tenantId]);
+    refreshConnectors();
+  }, [refreshChannels, refreshConnectors]);
 
   // Actions
-  const handleOpenDialog = (preselectName?: string, type: ChannelType = "MARKETPLACE") => {
+  const handleOpenDialog = (preselectName?: string, type: string = "MARKETPLACE", platformVal: string = "custom") => {
     setChannelName(preselectName || "");
     setChannelType(type);
-    setApiKey("");
-    setApiSecret("");
+    setPlatform(platformVal);
+    setMarketplaceApiKey("");
+    setMarketplaceApiSecret("");
     setGeneratedCreds(null);
     setIsDialogOpen(true);
   };
- 
-  // ... (keep handleCreateChannel)
-   const handleCreateChannel = () => {
-    if (!channelName) return;
+
+  const getChannelApprovalSnapshot = useCallback(
+    (channelId: string) => {
+      if (session.role === Roles.SUPERADMIN) {
+        return { status: "APPROVED" as const, requestId: null };
+      }
+      const flows = workflowService.listRequests(session.tenantId, {
+        entityType: "RETAIL_CHANNEL",
+      });
+      const matches = flows.filter((flow) => flow.entityId === channelId);
+      if (!matches.length) {
+        return { status: "NONE" as const, requestId: null };
+      }
+      const latest = matches.sort(
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      )[0];
+      return { status: latest.status, requestId: latest.id };
+    },
+    [session],
+  );
+
+  const loadApprovalStatus = useCallback(
+    (channelId: string) => {
+      const snapshot = getChannelApprovalSnapshot(channelId);
+      setApprovalStatus(snapshot.status);
+      setApprovalRequestId(snapshot.requestId);
+    },
+    [getChannelApprovalSnapshot],
+  );
+
+  const handleOpenDetail = (channel: ChannelRecord) => {
+    setSelectedChannel(channel);
+    setDetailName(channel.name);
+    setDetailSyncFreq(channel.syncFrequency || "15m");
+    setDetailSettings(channel.settings || { visibleCategories: [] });
+    
+    // Fallback to credentials JSON if cached secret not found
+    const cachedSecret = channelSecrets[channel.id];
+    const credentials = (channel.credentials as any) || {};
+    
+    setDetailClientId(cachedSecret?.clientId ?? credentials.clientId ?? channel.clientId ?? "");
+    setDetailClientSecret(cachedSecret?.clientSecret ?? credentials.clientSecret ?? channel.clientSecret ?? "");
+    
+    setIsDetailOpen(true);
+    loadApprovalStatus(channel.id);
+  };
+
+  const handleCreateChannel = async () => {
+    if (!channelName) {
+      toast({
+        title: "Missing Channel Name",
+        description: "Please enter a channel name before generating keys.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsProcessing(true);
-
     try {
-      // 1. Simulate Delay
-      setTimeout(() => {
-        const newChannel: RetailChannel = {
-          id: nextId("ch"),
-          tenantId: session.tenantId,
+      if (channelType === "OWNED") {
+        // Step 1: Create or Get Connector for this Storefront (Gateway Auth)
+        const connectorResult = await ecommerceHubService.createConnector(session, {
           name: channelName,
-          type: channelType,
-          status: "active",
+          platform: platform,
+          domain: `${channelName.toLowerCase().replace(/\s+/g, '-')}.zenvix.io`,
+          branchIds
+        });
+
+        // Step 2: Create the Channel under this connector (Channel Auth)
+        const channelResult = await ecommerceHubService.createChannel(session, {
+          name: channelName,
+          type: "OWNED",
+          adapterType: (platform.toUpperCase() as any),
+          integrationCategory: platform === 'custom' ? 'HEADLESS' : 'PREMADE',
           syncFrequency: syncFreq,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // Store Credentials for Demo Purpose (In real app, hash this!)
-          // We need to suppress TS error for now or add field to type.
-          // For now, we will just rely on the user copying them.
-          // The Gateway Simulation uses a "StartsWith" check, so we don't strictly need to store them here
-          // to make the demo work, as long as the user uses the generated keys.
-        };
+          settings: {
+             connectorId: connectorResult.connector.id
+          }
+        });
 
-        // 2. Logic based on Type
-        if (channelType === "OWNED") {
-           // Generate Credentials for the user
-           const clientId = `znx_${Math.random().toString(36).substring(2, 10)}`;
-           const clientSecret = `sk_live_${Math.random().toString(36).substring(2, 20)}`;
-           setGeneratedCreds({ clientId, clientSecret });
-           
-           // Persist
-           retailService.createChannel(session.tenantId, session, newChannel);
-           refreshChannels();
-           toast({ title: "Storefront Created", description: "Headless credentials generated successfully." });
-           setIsProcessing(false);
-           // Don't close dialog yet, user needs to copy creds
-        } else {
-           // Marketplace Logic (Mock Verify)
-           if (!apiKey || !apiSecret) {
-             toast({ title: "Error", description: "API Key and Secret required for Marketplace", variant: "destructive" });
-             setIsProcessing(false);
-             return; 
-           }
-           
-           retailService.createChannel(session.tenantId, session, newChannel);
-           refreshChannels();
-           toast({ title: "Connection Successful", description: `Linked to ${channelName} successfully.` });
-           setIsProcessing(false);
-           setIsDialogOpen(false);
+        // Store generated results for success view
+        setGeneratedCreds({
+          connectorId: connectorResult.connector.id,
+          apiKey: connectorResult.plainApiKey, // Distinct Gateway Key
+          channelId: channelResult.channel.id,
+          clientId: channelResult.plainClientId, // Distinct Storefront ID
+          clientSecret: channelResult.plainClientSecret, // Distinct Storefront Secret
+        });
+
+        await refreshChannels();
+        await refreshConnectors();
+        toast({ title: "Storefront Generated", description: "Credentials issued successfully." });
+        return;
+      }
+
+      // Marketplace Flow
+      await ecommerceHubService.createChannel(session, {
+        name: channelName,
+        type: "MARKETPLACE",
+        adapterType: (platform.toUpperCase() as any),
+        integrationCategory: "PRESET",
+        syncFrequency: syncFreq,
+        settings: {
+           apiKey: marketplaceApiKey,
+           apiSecret: marketplaceApiSecret
         }
-      }, 1500);
+      });
 
-    } catch (e) {
-      setIsProcessing(false);
+      await refreshChannels();
+      await refreshConnectors();
+      toast({ title: "Connection Successful", description: `Linked to ${channelName} successfully.` });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error(error);
       toast({ title: "Error", description: "Failed to create channel", variant: "destructive" });
-    }
-  };
-  const handleDelete = (id: string) => {
-    if (confirm("Disconnect this channel? Integration will stop immediately.")) {
-       retailService.deleteChannel(session.tenantId, session, id);
-       refreshChannels();
-       toast({ title: "Disconnected", description: "Channel removed." });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleSync = (id: string) => {
-    retailService.syncChannel(session.tenantId, session, id);
-    refreshChannels();
-    toast({ title: "Sync Triggered", description: "Data synchronization started in background." });
+  const handleDelete = async (id: string) => {
+    if (!confirm("Disconnect this channel? Integration will stop immediately.")) {
+      return;
+    }
+    try {
+      await ecommerceHubService.deleteChannel(session, id);
+      await refreshChannels();
+      if (selectedChannel?.id === id) {
+        setIsDetailOpen(false);
+        setSelectedChannel(null);
+      }
+      toast({ title: "Disconnected", description: "Channel removed." });
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Delete Failed", description: "Could not remove this channel.", variant: "destructive" });
+    }
   };
 
-  // Helper Configs
+  const handleRotateChannel = async (
+    channelId: string,
+    options: { showDialog?: boolean } = {},
+  ) => {
+    const approvalSnapshot = getChannelApprovalSnapshot(channelId);
+    if (session.role !== Roles.SUPERADMIN && approvalSnapshot.status !== "APPROVED") {
+      toast({
+        title: "Approval Required",
+        description: "Request approval to rotate this channel secret.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setRotationLoading(channelId);
+    try {
+      const creds = await ecommerceHubService.rotateChannelCredentials(session, channelId);
+      
+      setChannelSecrets((prev) => ({
+        ...prev,
+        [channelId]: { clientId: creds.plainClientId, clientSecret: creds.plainClientSecret },
+      }));
+
+      if (selectedChannel?.id === channelId) {
+        setDetailClientId(creds.plainClientId);
+        setDetailClientSecret(creds.plainClientSecret);
+      }
+      
+      toast({
+        title: "Credentials Rotated",
+        description: "New client secret created and updated in state.",
+      });
+      await refreshChannels();
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Rotation Failed", description: "Could not rotate credentials.", variant: "destructive" });
+    } finally {
+      setRotationLoading(null);
+    }
+  };
+
+  const handleRevokeChannel = async (channelId: string) => {
+    const approvalSnapshot = getChannelApprovalSnapshot(channelId);
+    if (session.role !== Roles.SUPERADMIN && approvalSnapshot.status !== "APPROVED") {
+      toast({
+        title: "Approval Required",
+        description: "Request approval to revoke this channel secret.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!confirm("Revoke these credentials? External storefronts will immediately lose access.")) {
+      return;
+    }
+    setRevocationLoading(channelId);
+    try {
+      await ecommerceHubService.revokeChannelCredentials(session, channelId);
+      toast({ title: "Credentials Revoked", description: "Channel access is now disabled." });
+      setChannelSecrets((prev) => {
+        const next = { ...prev };
+        delete next[channelId];
+        return next;
+      });
+      if (selectedChannel?.id === channelId) {
+        setDetailClientSecret("");
+      }
+      await refreshChannels();
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Revoke Failed", description: "Failed to revoke credentials.", variant: "destructive" });
+    } finally {
+      setRevocationLoading(null);
+    }
+  };
+
+  const handleRequestApproval = () => {
+    if (!selectedChannel) return;
+    const makerDept = resolveDepartment(session.departmentId)?.code ?? session.departmentId;
+    const request = workflowService.createRequest(session.tenantId, session, {
+      entityType: "RETAIL_CHANNEL",
+      entityId: selectedChannel.id,
+      makerDept,
+      destinationDept: "IT",
+      notes: `Channel edit request for ${selectedChannel.name}`,
+    });
+    setApprovalStatus(request.status);
+    setApprovalRequestId(request.id);
+    toast({
+      title: "Approval Requested",
+      description: "Your request has been routed to IT for review.",
+    });
+  };
+
+  const handleSaveChannel = async () => {
+    if (!selectedChannel) return;
+    if (!detailName.trim()) {
+      toast({ title: "Missing Name", description: "Channel name is required.", variant: "destructive" });
+      return;
+    }
+    const canEdit = session.role === Roles.SUPERADMIN || approvalStatus === "APPROVED";
+    if (!canEdit) {
+      toast({ title: "Approval Required", description: "Request IT approval to save changes.", variant: "destructive" });
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const updated = await ecommerceHubService.updateChannel(session, selectedChannel.id, {
+        name: detailName.trim(),
+        syncFrequency: detailSyncFreq,
+        settings: detailSettings,
+      });
+      setChannels((prev) =>
+        prev.map((channel) => (channel.id === updated.id ? updated : channel)),
+      );
+      setSelectedChannel(updated as ChannelRecord);
+      toast({ title: "Updated", description: "Settings saved successfully." });
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Update Failed", description: "Could not update channel.", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const availableMarketplaces = [
     { id: "tokopedia", name: "Tokopedia", color: "emerald", icon: ShoppingBag },
     { id: "shopee", name: "Shopee", color: "orange", icon: ShoppingBag },
@@ -177,314 +396,285 @@ const EcommerceConnector = () => {
     { id: "tiktok", name: "TikTok Shop", color: "slate", icon: ShoppingBag },
   ];
 
-  const getIcon = (type: ChannelType) => {
-     switch(type) {
-       case 'OWNED': return Globe;
-       case 'MARKETPLACE': return ShoppingBag;
-       default: return Link2;
-     }
-  };
+  const canEdit = session.role === Roles.SUPERADMIN || approvalStatus === "APPROVED";
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <PageHeader
-        title="Commerce Authority Hub"
-        subtitle="Unified control plane for Marketplaces, Headless Storefronts, and POS integrations."
+        title="Ecommerce Hub"
+        subtitle="Unified control center for headless storefronts and marketplace integrations."
+        primaryAction={
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={refreshChannels}
+              className="h-11 rounded-xl px-4 font-bold border-slate-200"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Sync Data
+            </Button>
+            <Button
+              className="h-11 rounded-xl px-6 bg-slate-900 text-white font-bold shadow-lg"
+              onClick={() => handleOpenDialog("", "OWNED", "custom")}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Provision New Store
+            </Button>
+          </div>
+        }
       />
 
       <WorkspacePanel>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-           <div className="flex justify-between items-center">
-              <TabsList className="bg-slate-100 p-1 rounded-xl">
-                 <TabsTrigger value="channels" className="rounded-lg text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all">
-                    Active Channels
-                 </TabsTrigger>
-                 <TabsTrigger value="developer" className="rounded-lg text-xs font-bold uppercase tracking-widest px-4 py-2 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">
-                    Developer Console
-                 </TabsTrigger>
+        <div className="p-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+            <div className="flex items-center justify-between border-b border-slate-200">
+              <TabsList className="bg-transparent h-auto p-0 gap-8">
+                <TabsTrigger
+                  value="headless"
+                  className="bg-transparent h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent px-0 font-black italic uppercase tracking-widest text-xs"
+                >
+                  <Code2 className="w-4 h-4 mr-2" />
+                  Headless
+                </TabsTrigger>
+                <TabsTrigger
+                  value="premade"
+                  className="bg-transparent h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent px-0 font-black italic uppercase tracking-widest text-xs"
+                >
+                  <Network className="w-4 h-4 mr-2" />
+                  Premade
+                </TabsTrigger>
+                <TabsTrigger
+                  value="preset"
+                  className="bg-transparent h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent px-0 font-black italic uppercase tracking-widest text-xs"
+                >
+                  <ShoppingBag className="w-4 h-4 mr-2" />
+                  Preset
+                </TabsTrigger>
               </TabsList>
-           </div>
+            </div>
 
-           <TabsContent value="channels">
-              {/* KPI Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                 <Card className="bg-slate-900 text-white border-0 shadow-xl">
-                    <CardContent className="p-6">
-                       <div className="flex items-center gap-3 mb-2">
-                          <Server className="w-5 h-5 text-blue-400" />
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-400">Total Channels</div>
-                       </div>
-                       <div className="text-3xl font-black italic tracking-tighter">{channels.length}</div>
-                       <div className="text-[10px] text-slate-400 mt-2 font-bold uppercase">
-                          {channels.filter(c => c.status === 'active').length} Active • {channels.filter(c => c.type === 'OWNED').length} Owned
-                       </div>
-                    </CardContent>
-                 </Card>
-                 
-                 <Card className="border-slate-200 border-l-4 border-l-emerald-500 shadow-md">
-                    <CardContent className="p-6">
-                       <div className="flex items-center gap-3 mb-2">
-                          <Zap className="w-5 h-5 text-emerald-600" />
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-400">Sync Velocity</div>
-                       </div>
-                       <div className="text-3xl font-black italic tracking-tighter text-slate-900">Real-time</div>
-                       <div className="text-[10px] text-emerald-600 mt-2 font-bold uppercase">
-                          Websockets Active
-                       </div>
-                    </CardContent>
-                 </Card>
+            <TabsContent value="headless">
+              <div className="space-y-8">
+                {/* Flow Explanation */}
+                <div className="bg-blue-50 border border-blue-200 rounded-[2rem] p-8 flex flex-col md:flex-row items-center gap-6">
+                  <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <Code2 className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-black italic uppercase tracking-tighter text-blue-900 mb-2">Headless Strategy: Provisioning Flow</h2>
+                    <p className="text-sm text-blue-700 font-medium leading-relaxed">
+                      To integrate a custom storefront, first click <span className="font-black italic underline cursor-pointer" onClick={() => handleOpenDialog("", "OWNED", "custom")}>PROVISION NEW STORE</span>. 
+                      You will receive <strong>Gateway Credentials</strong> (for API access) and <strong>Storefront Secrets</strong> (for Auth). 
+                      Copy these into your `.env` and use the <strong>Developer Console</strong> below to verify connectivity immediately.
+                    </p>
+                  </div>
+                </div>
 
-                 <Card className="border-slate-200 border-l-4 border-l-indigo-500 shadow-md">
-                    <CardContent className="p-6">
-                       <div className="flex items-center gap-3 mb-2">
-                          <Code2 className="w-5 h-5 text-indigo-600" />
-                          <div className="text-xs font-black uppercase tracking-widest text-slate-400">API Health</div>
-                       </div>
-                       <div className="text-3xl font-black italic tracking-tighter text-slate-900">100%</div>
-                       <div className="text-[10px] text-indigo-600 mt-2 font-bold uppercase">
-                          0 Errors / 24h
-                       </div>
-                    </CardContent>
-                 </Card>
-              </div>
-
-              {/* Action Bar */}
-              <div className="flex justify-between items-center mb-6">
-                 <div className="text-sm font-black italic tracking-widest text-slate-400 uppercase">Active Integrations</div>
-                 <Button 
-                   onClick={() => handleOpenDialog("", "OWNED")}
-                   className="h-12 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black italic shadow-xl gap-2"
-                 >
-                   <Plus className="w-5 h-5" />
-                   New Headless Storefront
-                 </Button>
-              </div>
-
-              {/* Channel Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                 {channels.map(channel => {
-                   const Icon = getIcon(channel.type);
-                   const isOwned = channel.type === 'OWNED';
-                   return (
-                     <Card key={channel.id} className="group hover:border-blue-400 transition-all cursor-pointer border-2 border-slate-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl">
-                        <CardContent className="p-0">
-                           <div className="flex">
-                              {/* Status Strip */}
-                              <div className={`w-3 ${channel.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                              
-                              <div className="p-6 flex-1">
-                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-4">
-                                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isOwned ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                                          <Icon className="w-6 h-6" />
-                                       </div>
-                                       <div>
-                                          <div className="text-lg font-black italic text-slate-900 leading-tight">{channel.name}</div>
-                                          <div className="flex items-center gap-2 mt-1">
-                                             <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest">{channel.type}</Badge>
-                                             <span className="text-[10px] text-slate-400 font-bold">ID: {channel.id}</span>
-                                          </div>
-                                       </div>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="text-slate-300 hover:text-red-500" onClick={(e) => {e.stopPropagation(); handleDelete(channel.id)}}>
-                                       <XCircle className="w-5 h-5" />
-                                    </Button>
-                                 </div>
-
-                                 <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div className="text-xs">
-                                       <div className="text-slate-400 font-bold uppercase text-[9px]">Last Sync</div>
-                                       <div className="font-bold text-slate-700">{new Date(channel.lastSync || Date.now()).toLocaleTimeString()}</div>
-                                    </div>
-                                    <div className="text-xs">
-                                       <div className="text-slate-400 font-bold uppercase text-[9px]">Sync Freq</div>
-                                       <div className="font-bold text-slate-700">{channel.syncFrequency}</div>
-                                    </div>
-                                 </div>
-
-                                 <div className="flex gap-2">
-                                    <Button onClick={() => handleSync(channel.id)} variant="outline" size="sm" className="flex-1 rounded-xl text-xs font-bold gap-2 hover:bg-blue-50 hover:text-blue-600 border-slate-200">
-                                       <RefreshCw className="w-3 h-3" /> Sync Now
-                                    </Button>
-                                    <Button size="sm" variant="outline" className="rounded-xl text-xs font-bold border-slate-200">
-                                       <Settings className="w-3 h-3" />
-                                    </Button>
-                                 </div>
-                              </div>
-                           </div>
-                        </CardContent>
-                     </Card>
-                   );
-                 })}
-              </div>
-
-              {/* Marketplace Gallery */}
-              <div className="mb-6">
-                 <div className="text-sm font-black italic tracking-widest text-slate-400 uppercase mb-4">Connect Marketplace</div>
-                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {availableMarketplaces.map(mp => (
-                       <Card 
-                         key={mp.id} 
-                         onClick={() => handleOpenDialog(mp.name, "MARKETPLACE")}
-                         className="border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all group rounded-2xl"
-                       >
-                          <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
-                             <div className={`w-12 h-12 bg-${mp.color}-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                                <mp.icon className={`w-6 h-6 text-${mp.color}-600`} />
-                             </div>
-                             <div className="font-black italic text-slate-700 text-sm group-hover:text-blue-700">{mp.name}</div>
-                             <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">Ready to Connect</div>
-                          </CardContent>
-                       </Card>
-                    ))}
-                 </div>
-              </div>
-           </TabsContent>
-
-           <TabsContent value="developer">
-             <DeveloperConsole 
-                defaultClientId={generatedCreds?.clientId}
-                defaultClientSecret={generatedCreds?.clientSecret}
-             />
-           </TabsContent>
-        </Tabs>
-
-        {/* Main Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-           <DialogContent className="max-w-xl rounded-[2rem] p-0 overflow-hidden">
-              <div className="bg-slate-900 p-8 text-white">
-                 <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-                    {channelType === 'OWNED' ? <Globe className="w-6 h-6 text-indigo-400" /> : <ShoppingBag className="w-6 h-6 text-emerald-400" />}
-                    {channelType === 'OWNED' ? 'Provision Headless Store' : 'Connect Marketplace'}
-                 </DialogTitle>
-                 <DialogDescription className="text-slate-400 font-medium italic mt-2">
-                    {channelType === 'OWNED' 
-                       ? "Generate API credentials for your custom Zenvix Storefront." 
-                       : "Authorize Zenvix to manage products and orders on this external channel."}
-                 </DialogDescription>
-              </div>
-              
-              <div className="p-8 space-y-6">
-                 {generatedCreds ? (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" />
-                          <div>
-                             <div className="font-bold text-emerald-800 text-sm">Channel Provisioned Successfully</div>
-                             <div className="text-xs text-emerald-600 mt-1">Copy these credentials. They will not be shown again.</div>
-                          </div>
-                       </div>
-
-                       <div className="space-y-4">
-                          <div className="space-y-2">
-                             <Label className="text-xs font-black uppercase text-slate-400">Client ID (Public)</Label>
-                             <div className="flex gap-2">
-                                <code className="flex-1 bg-slate-100 p-3 rounded-lg font-mono text-xs font-bold text-slate-700">{generatedCreds.clientId}</code>
-                                <Button variant="outline" size="icon" onClick={() => {navigator.clipboard.writeText(generatedCreds.clientId); toast({title:"Copied"})}}>
-                                   <Copy className="w-4 h-4" />
-                                </Button>
-                             </div>
-                          </div>
-                          <div className="space-y-2">
-                             <Label className="text-xs font-black uppercase text-slate-400">Client Secret (Private)</Label>
-                             <div className="flex gap-2">
-                                <code className="flex-1 bg-slate-100 p-3 rounded-lg font-mono text-xs font-bold text-slate-700">{generatedCreds.clientSecret}</code>
-                                <Button variant="outline" size="icon" onClick={() => {navigator.clipboard.writeText(generatedCreds.clientSecret); toast({title:"Copied"})}}>
-                                   <Copy className="w-4 h-4" />
-                                </Button>
-                             </div>
-                          </div>
-                       </div>
-
-                       <DialogFooter>
-                          <Button onClick={() => setIsDialogOpen(false)} className="w-full h-12 rounded-xl font-bold bg-slate-900 text-white">
-                             Done
-                          </Button>
-                       </DialogFooter>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {/* Gateway Kit Card */}
+                  <Card className="col-span-1 rounded-[2rem] border-slate-900 bg-slate-900 p-8 text-white shadow-2xl">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
+                      <Server className="w-6 h-6 text-white" />
                     </div>
-                 ) : (
+                    <h3 className="text-xl font-black italic uppercase italic tracking-tighter mb-2">Gateway Kit</h3>
+                    <p className="text-xs text-slate-400 font-bold mb-6 uppercase tracking-widest">Global Endpoint Configuration</p>
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                           <Label className="text-xs font-black uppercase text-slate-400">Channel Name</Label>
-                           <Input 
-                             value={channelName} 
-                             onChange={e => setChannelName(e.target.value)} 
-                             className="h-12 rounded-xl font-bold" 
-                             placeholder={channelType === 'OWNED' ? "e.g. My Flagship Website" : "e.g. Tokopedia Official"}
-                           />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="space-y-2">
-                              <Label className="text-xs font-black uppercase text-slate-400">Channel Type</Label>
-                              <div className="h-12 flex items-center px-4 bg-slate-50 rounded-xl font-bold text-sm text-slate-500 border border-slate-200">
-                                 {channelType}
-                              </div>
-                           </div>
-                           <div className="space-y-2">
-                              <Label className="text-xs font-black uppercase text-slate-400">Sync Frequency</Label>
-                              <Select value={syncFreq} onValueChange={setSyncFreq}>
-                                 <SelectTrigger className="h-12 rounded-xl font-bold">
-                                    <SelectValue />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                    <SelectItem value="5m">5 Minutes</SelectItem>
-                                    <SelectItem value="15m">15 Minutes</SelectItem>
-                                    <SelectItem value="1h">1 Hour</SelectItem>
-                                 </SelectContent>
-                              </Select>
-                           </div>
-                        </div>
-
-                        {channelType === 'MARKETPLACE' && (
-                           <>
-                              <Separator className="my-2" />
-                              <div className="space-y-4">
-                                 <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg text-xs font-bold">
-                                    <ShieldCheck className="w-4 h-4" />
-                                    <span>Enter your marketplace API credentials below.</span>
-                                 </div>
-                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase text-slate-400">API Key / Shop ID</Label>
-                                    <Input 
-                                      value={apiKey} 
-                                      onChange={e => setApiKey(e.target.value)}
-                                      className="h-12 rounded-xl font-bold" 
-                                      type="password"
-                                    />
-                                 </div>
-                                 <div className="space-y-2">
-                                    <Label className="text-xs font-black uppercase text-slate-400">API Secret</Label>
-                                    <Input 
-                                      value={apiSecret} 
-                                      onChange={e => setApiSecret(e.target.value)}
-                                      className="h-12 rounded-xl font-bold" 
-                                      type="password"
-                                    />
-                                 </div>
-                              </div>
-                           </>
-                        )}
-                        
-                        <div className="pt-4">
-                           <Button 
-                             onClick={handleCreateChannel} 
-                             disabled={isProcessing || !channelName}
-                             className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-widest shadow-xl"
-                           >
-                              {isProcessing ? (
-                                 <><RefreshCw className="w-5 h-5 animate-spin mr-2" /> Processing...</>
-                              ) : (
-                                 channelType === 'OWNED' ? 'Generate Storefront Keys' : 'Authenticate & Connect'
-                              )}
-                           </Button>
-                        </div>
+                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Gateway URL</div>
+                        <div className="text-[11px] font-mono break-all text-emerald-400">{gatewayUrl}</div>
+                      </div>
+                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Region</div>
+                        <div className="text-xs font-bold text-white">ID-JKT-01 (Primary)</div>
+                      </div>
                     </div>
-                 )}
+                  </Card>
+
+                  {/* Dev Console Embed */}
+                  <div className="col-span-2">
+                    <DeveloperConsole />
+                  </div>
+                </div>
+
+                {/* Filtered Channels */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-400">Headless Deployments</h3>
+                  <div className="rounded-[2rem] border border-slate-200 bg-white shadow-xl overflow-hidden">
+                    <div className="divide-y divide-slate-100">
+                      {channels.filter(c => c.integrationCategory === 'HEADLESS').length === 0 ? (
+                        <div className="p-12 text-center text-slate-400 text-xs font-bold italic uppercase">No active headless deployments</div>
+                      ) : (
+                        channels.filter(c => c.integrationCategory === 'HEADLESS').map((channel) => (
+                          <ChannelListItem
+                            key={channel.id}
+                            channel={channel}
+                            session={session}
+                            branchIds={branchIds}
+                            gatewayUrl={gatewayUrl}
+                            channelSecrets={channelSecrets}
+                            onOpenDetail={handleOpenDetail}
+                            copyCredential={copyCredential}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-           </DialogContent>
-        </Dialog>
+            </TabsContent>
+
+            <TabsContent value="premade">
+               <div className="space-y-8">
+                 <div className="grid md:grid-cols-2 gap-8">
+                    <Card className="rounded-[2.5rem] border-slate-200 shadow-xl overflow-hidden hover:shadow-2xl transition-all group border-2">
+                      <CardContent className="p-10 space-y-6">
+                        <div className="w-16 h-16 bg-emerald-100 rounded-3xl flex items-center justify-center text-emerald-600 mb-6 group-hover:rotate-12 transition-transform">
+                          <Network className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <div className="text-3xl font-black italic uppercase tracking-tighter text-slate-900">
+                            Webhook Bridge
+                          </div>
+                          <p className="text-slate-500 font-medium leading-relaxed mt-4">
+                            Connect your bespoke CMS or ERP via simple outbound webhooks and JSON mapping.
+                          </p>
+                        </div>
+                        <Button
+                          className="w-full h-14 rounded-2xl bg-emerald-600 text-white font-black italic uppercase tracking-widest text-xs shadow-2xl mt-4"
+                          onClick={() => handleOpenDialog("Custom Webhook", "OWNED", "CUSTOM")}
+                        >
+                          Setup Bridge
+                        </Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="rounded-[2.5rem] border-dashed border-2 border-slate-200 bg-slate-50/50 flex flex-col justify-center p-12 text-center items-center">
+                        <div className="w-16 h-16 bg-white rounded-3xl border-2 border-slate-200 flex items-center justify-center border-dashed mb-4">
+                          <Plus className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <div className="font-black italic uppercase tracking-widest text-xs text-slate-500">
+                          Template Repository
+                        </div>
+                        <p className="text-xs text-slate-400 font-bold mt-2 max-w-[200px]">
+                          Import pre-defined JSON schemas for major ERP systems.
+                        </p>
+                    </Card>
+                 </div>
+
+                 {/* Filtered Channels */}
+                 <div className="space-y-4">
+                   <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-400">Active Bridges</h3>
+                   <div className="rounded-[2rem] border border-slate-200 bg-white shadow-xl overflow-hidden">
+                     <div className="divide-y divide-slate-100">
+                       {channels.filter(c => c.integrationCategory === 'PREMADE').length === 0 ? (
+                         <div className="p-12 text-center text-slate-400 text-xs font-bold italic uppercase">No active webhook bridges</div>
+                       ) : (
+                         channels.filter(c => c.integrationCategory === 'PREMADE').map((channel) => (
+                           <ChannelListItem
+                             key={channel.id}
+                             channel={channel}
+                             session={session}
+                             branchIds={branchIds}
+                             gatewayUrl={gatewayUrl}
+                             channelSecrets={channelSecrets}
+                             onOpenDetail={handleOpenDetail}
+                             copyCredential={copyCredential}
+                           />
+                         ))
+                       )}
+                     </div>
+                   </div>
+                 </div>
+               </div>
+            </TabsContent>
+
+            <TabsContent value="preset">
+              <div className="space-y-8">
+                <MarketplaceGallery
+                  marketplaces={availableMarketplaces}
+                  onSelect={(name, type, platform) => handleOpenDialog(name, type, platform)}
+                />
+
+                {/* Filtered Channels */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-400">Marketplace Syncs</h3>
+                  <div className="rounded-[2rem] border border-slate-200 bg-white shadow-xl overflow-hidden">
+                    <div className="divide-y divide-slate-100">
+                      {channels.filter(c => c.integrationCategory === 'PRESET').length === 0 ? (
+                        <div className="p-12 text-center text-slate-400 text-xs font-bold italic uppercase">No active marketplace syncs</div>
+                      ) : (
+                        channels.filter(c => c.integrationCategory === 'PRESET').map((channel) => (
+                          <ChannelListItem
+                            key={channel.id}
+                            channel={channel}
+                            session={session}
+                            branchIds={branchIds}
+                            gatewayUrl={gatewayUrl}
+                            channelSecrets={channelSecrets}
+                            onOpenDetail={handleOpenDetail}
+                            copyCredential={copyCredential}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </WorkspacePanel>
+
+      {/* Dialogs */}
+      <ManageConnectorDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        channelType={channelType}
+        channelName={channelName}
+        setChannelName={setChannelName}
+        syncFreq={syncFreq}
+        setSyncFreq={setSyncFreq}
+        marketplaceApiKey={marketplaceApiKey}
+        setMarketplaceApiKey={setMarketplaceApiKey}
+        marketplaceApiSecret={marketplaceApiSecret}
+        setMarketplaceApiSecret={setMarketplaceApiSecret}
+        isProcessing={isProcessing}
+        handleCreateChannel={handleCreateChannel}
+        generatedCreds={generatedCreds}
+        session={session}
+        branchIds={branchIds}
+        gatewayUrl={gatewayUrl}
+        copyCredential={copyCredential}
+      />
+
+      <ChannelDetailDialog
+        isOpen={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        selectedChannel={selectedChannel}
+        detailName={detailName}
+        setDetailName={setDetailName}
+        detailSyncFreq={detailSyncFreq}
+        setDetailSyncFreq={setDetailSyncFreq}
+        detailSettings={detailSettings}
+        setDetailSettings={setDetailSettings}
+        detailClientId={detailClientId}
+        detailClientSecret={detailClientSecret}
+        approvalStatus={approvalStatus}
+        approvalRequestId={approvalRequestId}
+        canEdit={canEdit}
+        isSaving={isSaving}
+        rotationLoading={rotationLoading}
+        revocationLoading={revocationLoading}
+        session={session}
+        branchIds={branchIds}
+        gatewayUrl={gatewayUrl}
+        handleRotateChannel={handleRotateChannel}
+        handleRevokeChannel={handleRevokeChannel}
+        handleDelete={handleDelete}
+        handleSaveChannel={handleSaveChannel}
+        handleRequestApproval={handleRequestApproval}
+        copyCredential={copyCredential}
+      />
     </div>
   );
 };

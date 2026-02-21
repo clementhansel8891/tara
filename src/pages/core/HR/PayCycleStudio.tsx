@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -24,14 +24,28 @@ export default function PayCycleStudio() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
   const financeAllowed = ([Roles.SUPERADMIN, Roles.OWNER, Roles.COMPANY_ADMIN, Roles.FINANCE_ADMIN] as readonly string[]).includes(session.role);
-  const runs = useMemo(() => {
-    const items = payrollService.listRuns(session.tenantId, session);
-    if (!search) return items;
-    return items.filter((run) => run.id.toLowerCase().includes(search.toLowerCase()));
-  }, [session, version, search]);
-  const workflows = useMemo(
-    () => workflowService.listRequests(session.tenantId, { entityType: "PAYROLL" }),
-    [session, version],
+  
+  const [runs, setRuns] = useState<any[]>([]);
+  const [workflows, setWorkflows] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // checks if payrollService methods are async in next step, but for now assuming component refactor
+        const runItems = await payrollService.listRuns(session.tenantId, session);
+        setRuns(runItems);
+        
+        const workflowItems = await workflowService.listRequests(session.tenantId, { entityType: "PAYROLL" });
+        setWorkflows(workflowItems);
+      } catch (err) {
+        console.error("Failed to load pay cycle data", err);
+      }
+    };
+    loadData();
+  }, [session.tenantId, session, version]);
+
+  const filteredRuns = runs.filter((run) =>
+    search ? run.id.toLowerCase().includes(search.toLowerCase()) : true,
   );
 
   return (
@@ -55,10 +69,10 @@ export default function PayCycleStudio() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
+            onClick={async () => {
               const target = runs[0];
               if (target) {
-                const result = payrollService.runVarianceCheck(session.tenantId, session, target.id);
+                const result = await payrollService.runVarianceCheck(session.tenantId, session, target.id);
                 setVarianceNote(`Variance score for ${result.runId}: ${result.varianceScore}`);
               }
             }}
@@ -80,7 +94,7 @@ export default function PayCycleStudio() {
           searchPlaceholder="Search payroll runs"
           onReset={() => setSearch("")}
         />
-        <DataTableShell total={runs.length} page={1} pageSize={10}>
+        <DataTableShell total={filteredRuns.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -90,7 +104,7 @@ export default function PayCycleStudio() {
               </tr>
             </thead>
             <tbody>
-              {runs.map((run) => (
+              {filteredRuns.map((run) => (
                 <tr key={run.id} className="border-t">
                   <td className="p-3">{run.periodStart} - {run.periodEnd}</td>
                   <td className="p-3 text-muted-foreground">{run.status}</td>

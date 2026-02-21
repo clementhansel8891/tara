@@ -2,7 +2,7 @@ import {
   ensureSeed,
   loadFromStorage,
   saveToStorage,
-} from "@/core/repositories/hr/storage";
+} from "@/core/persistence";
 import type { InventoryRepository } from "@/core/repositories/inventory/inventoryRepository";
 import type {
   InventoryAdjustmentRequest,
@@ -194,7 +194,7 @@ const seedAlerts = (tenantId: string): InventoryAlert[] => [
   },
 ];
 
-const ensureArray = <T>(key: string, seed: T[]) => ensureSeed<T[]>(key, seed);
+const ensureArray = <T>(key: string, seed: T[]) => ensureSeed<T>(key, seed);
 
 const updateById = <T extends { id: string }>(
   items: T[],
@@ -211,104 +211,116 @@ const updateById = <T extends { id: string }>(
 };
 
 export const mockInventoryRepo: InventoryRepository = {
-  listItems(tenantId) {
-    return ensureArray(itemsKey(tenantId), seedItems(tenantId));
+  async listItems(tenantId) {
+    return await ensureArray(itemsKey(tenantId), seedItems(tenantId));
   },
-  createItem(tenantId, payload) {
-    const next = [payload, ...this.listItems(tenantId)];
-    saveToStorage(itemsKey(tenantId), next);
+  async createItem(tenantId, payload) {
+    const items = await this.listItems(tenantId);
+    const next = [payload, ...items];
+    await saveToStorage(itemsKey(tenantId), next);
     return payload;
   },
-  updateItem(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listItems(tenantId), id, patch);
-    if (updated) saveToStorage(itemsKey(tenantId), next);
+  async updateItem(tenantId, id, patch) {
+    const items = await this.listItems(tenantId);
+    const { updated, next } = updateById(items, id, patch);
+    if (updated) await saveToStorage(itemsKey(tenantId), next);
     return updated;
   },
-  deleteItem(tenantId, id) {
-    const items = this.listItems(tenantId);
+  async deleteItem(tenantId, id) {
+    const items = await this.listItems(tenantId);
     const next = items.filter(i => i.id !== id);
     if (next.length === items.length) return false;
-    saveToStorage(itemsKey(tenantId), next);
+    await saveToStorage(itemsKey(tenantId), next);
     return true;
   },
 
-  listBalances(tenantId) {
-    return ensureArray(balancesKey(tenantId), seedBalances(tenantId));
+  async listBalances(tenantId) {
+    return await ensureArray(balancesKey(tenantId), seedBalances(tenantId));
   },
-  createBalance(tenantId, payload) {
-    const next = [payload, ...this.listBalances(tenantId)];
-    saveToStorage(balancesKey(tenantId), next);
+  async createBalance(tenantId, payload) {
+    const balances = await this.listBalances(tenantId);
+    const next = [payload, ...balances];
+    await saveToStorage(balancesKey(tenantId), next);
     return payload;
   },
-  updateBalance(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listBalances(tenantId), id, patch);
-    if (updated) saveToStorage(balancesKey(tenantId), next);
+  async updateBalance(tenantId, id, patch) {
+    const balances = await this.listBalances(tenantId);
+    const { updated, next } = updateById(balances, id, patch);
+    if (updated) await saveToStorage(balancesKey(tenantId), next);
     return updated;
   },
 
-  listMovements(tenantId) {
-    return ensureArray(movementsKey(tenantId), seedMovements(tenantId));
+  async listMovements(tenantId) {
+    return await ensureArray(movementsKey(tenantId), seedMovements(tenantId));
   },
-  createMovement(tenantId, payload) {
-    const next = [payload, ...this.listMovements(tenantId)];
-    saveToStorage(movementsKey(tenantId), next);
+  async createMovement(tenantId, payload) {
+    const movements = await this.listMovements(tenantId);
+    const next = [payload, ...movements];
+    await saveToStorage(movementsKey(tenantId), next);
     return payload;
   },
 
-  listAdjustments(tenantId) {
-    return ensureArray(adjustmentsKey(tenantId), seedAdjustments(tenantId));
+  async listAdjustments(tenantId) {
+    return await ensureArray(adjustmentsKey(tenantId), seedAdjustments(tenantId));
   },
-  createAdjustment(tenantId, payload) {
-    const next = [payload, ...this.listAdjustments(tenantId)];
-    saveToStorage(adjustmentsKey(tenantId), next);
+  async createAdjustment(tenantId, payload) {
+    const adjustments = await this.listAdjustments(tenantId);
+    const next = [payload, ...adjustments];
+    await saveToStorage(adjustmentsKey(tenantId), next);
     return payload;
   },
-  updateAdjustment(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listAdjustments(tenantId), id, patch);
-    if (updated) saveToStorage(adjustmentsKey(tenantId), next);
+  async updateAdjustment(tenantId, id, patch) {
+    const adjustments = await this.listAdjustments(tenantId);
+    const { updated, next } = updateById(adjustments, id, patch);
+    if (updated) await saveToStorage(adjustmentsKey(tenantId), next);
     return updated;
   },
 
-  listAuditCycles(tenantId) {
-    return ensureArray(auditCyclesKey(tenantId), seedAuditCycles(tenantId));
+  async listAuditCycles(tenantId) {
+    return await ensureArray(auditCyclesKey(tenantId), seedAuditCycles(tenantId));
   },
-  createAuditCycle(tenantId, payload) {
-    const next = [payload, ...this.listAuditCycles(tenantId)];
-    saveToStorage(auditCyclesKey(tenantId), next);
+  async createAuditCycle(tenantId, payload) {
+    const cycles = await this.listAuditCycles(tenantId);
+    const next = [payload, ...cycles];
+    await saveToStorage(auditCyclesKey(tenantId), next);
     return payload;
   },
-  updateAuditCycle(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listAuditCycles(tenantId), id, patch);
-    if (updated) saveToStorage(auditCyclesKey(tenantId), next);
+  async updateAuditCycle(tenantId, id, patch) {
+    const cycles = await this.listAuditCycles(tenantId);
+    const { updated, next } = updateById(cycles, id, patch);
+    if (updated) await saveToStorage(auditCyclesKey(tenantId), next);
     return updated;
   },
 
-  listAlerts(tenantId) {
-    return ensureArray(alertsKey(tenantId), seedAlerts(tenantId));
+  async listAlerts(tenantId) {
+    return await ensureArray(alertsKey(tenantId), seedAlerts(tenantId));
   },
-  createAlert(tenantId, payload) {
-    const next = [payload, ...this.listAlerts(tenantId)];
-    saveToStorage(alertsKey(tenantId), next);
+  async createAlert(tenantId, payload) {
+    const alerts = await this.listAlerts(tenantId);
+    const next = [payload, ...alerts];
+    await saveToStorage(alertsKey(tenantId), next);
     return payload;
   },
-  updateAlert(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listAlerts(tenantId), id, patch);
-    if (updated) saveToStorage(alertsKey(tenantId), next);
+  async updateAlert(tenantId, id, patch) {
+    const alerts = await this.listAlerts(tenantId);
+    const { updated, next } = updateById(alerts, id, patch);
+    if (updated) await saveToStorage(alertsKey(tenantId), next);
     return updated;
   },
 
-  listIntegrationEvents(tenantId) {
-    return loadFromStorage<InventoryIntegrationEvent[]>(integrationEventsKey(tenantId), []);
+  async listIntegrationEvents(tenantId) {
+    return await loadFromStorage<InventoryIntegrationEvent[]>(integrationEventsKey(tenantId), []);
   },
-  createIntegrationEvent(tenantId, payload) {
-    const next = [payload, ...this.listIntegrationEvents(tenantId)];
-    saveToStorage(integrationEventsKey(tenantId), next);
+  async createIntegrationEvent(tenantId, payload) {
+    const events = await this.listIntegrationEvents(tenantId);
+    const next = [payload, ...events];
+    await saveToStorage(integrationEventsKey(tenantId), next);
     return payload;
   },
-  updateIntegrationEvent(tenantId, id, patch) {
-    const { updated, next } = updateById(this.listIntegrationEvents(tenantId), id, patch);
-    if (updated) saveToStorage(integrationEventsKey(tenantId), next);
+  async updateIntegrationEvent(tenantId, id, patch) {
+    const events = await this.listIntegrationEvents(tenantId);
+    const { updated, next } = updateById(events, id, patch);
+    if (updated) await saveToStorage(integrationEventsKey(tenantId), next);
     return updated;
   },
 };
-

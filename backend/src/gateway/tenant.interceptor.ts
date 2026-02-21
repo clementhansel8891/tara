@@ -27,13 +27,17 @@ export class TenantInterceptor implements NestInterceptor {
       );
     }
 
-    // Extract location ID from header (optional)
+    // Extract valid headers
     const locationId = request.headers['x-location-id'];
+    const userId = request.headers['x-actor-id'];
+    const role = request.headers['x-user-role'];
 
     // Attach tenant context to request object
     const tenantContext: TenantContext = {
       tenantId: tenantId as string,
       locationId: locationId as string | undefined,
+      userId: userId as string | undefined,
+      role: role as string | undefined,
     };
 
     request.tenantContext = tenantContext;

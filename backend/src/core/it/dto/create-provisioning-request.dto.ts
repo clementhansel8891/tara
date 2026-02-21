@@ -9,12 +9,16 @@ export enum ProvisioningScope {
 
 export class CreateProvisioningRequestDto {
   @IsString()
-  @IsNotEmpty()
-  supplierId: string;
+  @IsOptional()
+  employeeId?: string;
 
   @IsString()
-  @IsNotEmpty()
-  supplierBranchId: string;
+  @IsOptional()
+  supplierId?: string;
+
+  @IsString()
+  @IsOptional()
+  supplierBranchId?: string;
 
   @IsEnum(ProvisioningScope)
   scope: ProvisioningScope;

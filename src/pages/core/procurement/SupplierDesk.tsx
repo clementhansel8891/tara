@@ -11,7 +11,7 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-import type { SupplierBranch, SupplierMaster } from "@/core/types/procurement/procurement";
+import type { SupplierBranch, SupplierMaster, SupplierRecommendation } from "@/core/types/procurement/procurement";
 
 export default function SupplierDesk() {
   const session = useSession();
@@ -30,6 +30,9 @@ export default function SupplierDesk() {
   const [recCategory, setRecCategory] = useState("Machinery");
   const [masters, setMasters] = useState<SupplierMaster[]>([]);
   const [branches, setBranches] = useState<SupplierBranch[]>([]);
+  const [recommendations, setRecommendations] = useState<SupplierRecommendation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [recLoading, setRecLoading] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierMaster | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<SupplierBranch | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -40,14 +43,43 @@ export default function SupplierDesk() {
     setErrorMessage(null);
   };
 
-  const refresh = useCallback(() => {
-    setMasters(procurementService.listSupplierMasters(session.tenantId));
-    setBranches(procurementService.listSupplierBranches(session.tenantId));
-  }, [session.tenantId]);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [m, b] = await Promise.all([
+        procurementService.listSupplierMasters(session.tenantId, session),
+        procurementService.listSupplierBranches(session.tenantId, session),
+      ]);
+      setMasters(m);
+      setBranches(b);
+    } catch (err) {
+      setErrorMessage("Failed to load supplier data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const fetchRecs = async () => {
+      setRecLoading(true);
+      try {
+        const recs = await procurementService.getSupplierRecommendations(session.tenantId, session, {
+          branchCode: recBranchCode,
+          category: recCategory,
+        });
+        setRecommendations(recs);
+      } catch (err) {
+        setErrorMessage("Failed to load recommendations.");
+      } finally {
+        setRecLoading(false);
+      }
+    };
+    fetchRecs();
+  }, [recBranchCode, recCategory, session.tenantId, session]);
 
   const filteredMasters = useMemo(
     () =>
@@ -59,22 +91,14 @@ export default function SupplierDesk() {
     [masters, search],
   );
 
-  const recommendations = useMemo(
-    () =>
-      procurementService.getSupplierRecommendations(session.tenantId, {
-        branchCode: recBranchCode,
-        category: recCategory,
-      }),
-    [recBranchCode, recCategory, session.tenantId],
-  );
-
-  const createMaster = () => {
+  const createMaster = async () => {
     if (!name.trim()) return;
     try {
-      procurementService.createSupplierMaster(session.tenantId, session, {
+      await procurementService.createSupplierMaster(session.tenantId, session, {
         name,
         taxId,
         categories: categories.split(",").map((item) => item.trim()).filter(Boolean),
+        branchCode: "HQ", // Default branch code for master record logic if required
       });
       setStatusMessage(`Supplier Master "${name}" created and routed for compliance vetting.`);
       setMasterDialogOpen(false);
@@ -87,10 +111,10 @@ export default function SupplierDesk() {
     }
   };
 
-  const createBranch = () => {
+  const createBranch = async () => {
     if (!supplierId) return;
     try {
-      procurementService.createSupplierBranch(session.tenantId, session, {
+      await procurementService.createSupplierBranch(session.tenantId, session, {
         supplierId,
         branchCode,
         branchName: branchName || `${branchCode} Branch`,
@@ -146,21 +170,27 @@ export default function SupplierDesk() {
               </tr>
             </thead>
             <tbody>
-              {filteredMasters.map((supplier) => (
-                <tr
-                  key={supplier.id}
-                  className="cursor-pointer border-t hover:bg-muted/50"
-                  onClick={() => setSelectedSupplier(supplier)}
-                >
-                  <td className="p-3 font-medium">{supplier.name}</td>
-                  <td className="p-3 text-muted-foreground">{supplier.taxId}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={supplier.complianceStatus} />
-                  </td>
-                  <td className="p-3 text-muted-foreground">{supplier.globalRating}</td>
-                  <td className="p-3 text-muted-foreground">{supplier.riskTier}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : filteredMasters.length === 0 ? (
+                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No suppliers found.</td></tr>
+              ) : (
+                filteredMasters.map((supplier) => (
+                  <tr
+                    key={supplier.id}
+                    className="cursor-pointer border-t hover:bg-muted/50"
+                    onClick={() => setSelectedSupplier(supplier)}
+                  >
+                    <td className="p-3 font-medium">{supplier.name}</td>
+                    <td className="p-3 text-muted-foreground">{supplier.taxId}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={supplier.complianceStatus || "PENDING"} />
+                    </td>
+                    <td className="p-3 text-muted-foreground">{supplier.globalRating}</td>
+                    <td className="p-3 text-muted-foreground">{supplier.riskTier}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -180,22 +210,28 @@ export default function SupplierDesk() {
               </tr>
             </thead>
             <tbody>
-              {branches.map((branch) => (
-                <tr
-                  key={branch.id}
-                  className="cursor-pointer border-t hover:bg-muted/50"
-                  onClick={() => setSelectedBranch(branch)}
-                >
-                  <td className="p-3 font-medium">
-                    {branch.branchCode} - {branch.branchName}
-                  </td>
-                  <td className="p-3 text-muted-foreground">{branch.supplierId}</td>
-                  <td className="p-3 text-muted-foreground">{branch.location}</td>
-                  <td className="p-3 text-muted-foreground">{branch.leadTimeDays} days</td>
-                  <td className="p-3 text-muted-foreground">{branch.localRating}</td>
-                  <td className="p-3 text-muted-foreground">{branch.riskTier}</td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : branches.length === 0 ? (
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No branches found.</td></tr>
+              ) : (
+                branches.map((branch) => (
+                  <tr
+                    key={branch.id}
+                    className="cursor-pointer border-t hover:bg-muted/50"
+                    onClick={() => setSelectedBranch(branch)}
+                  >
+                    <td className="p-3 font-medium">
+                      {branch.branchCode} - {branch.branchName}
+                    </td>
+                    <td className="p-3 text-muted-foreground">{branch.supplierId}</td>
+                    <td className="p-3 text-muted-foreground">{branch.location}</td>
+                    <td className="p-3 text-muted-foreground">{branch.leadTimeDays} days</td>
+                    <td className="p-3 text-muted-foreground">{branch.localRating}</td>
+                    <td className="p-3 text-muted-foreground">{branch.riskTier}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -228,16 +264,22 @@ export default function SupplierDesk() {
               </tr>
             </thead>
             <tbody>
-              {recommendations.map((item) => (
-                <tr key={`${item.supplierId}-${item.supplierBranchId}`} className="border-t">
-                  <td className="p-3 font-medium">{item.supplierName}</td>
-                  <td className="p-3 text-muted-foreground">{item.branchName}</td>
-                  <td className="p-3 text-muted-foreground">{item.score}</td>
-                  <td className="p-3 text-muted-foreground">{item.riskTier}</td>
-                  <td className="p-3 text-muted-foreground">{item.unitPrice?.toLocaleString() ?? "-"}</td>
-                  <td className="p-3 text-muted-foreground">{item.leadTimeDays} days</td>
-                </tr>
-              ))}
+              {recLoading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : recommendations.length === 0 ? (
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No recommendations for this criteria.</td></tr>
+              ) : (
+                recommendations.map((item) => (
+                  <tr key={`${item.supplierId}-${item.supplierBranchId}`} className="border-t">
+                    <td className="p-3 font-medium">{item.supplierName}</td>
+                    <td className="p-3 text-muted-foreground">{item.branchName}</td>
+                    <td className="p-3 text-muted-foreground">{item.score}</td>
+                    <td className="p-3 text-muted-foreground">{item.riskTier}</td>
+                    <td className="p-3 text-muted-foreground">{item.unitPrice?.toLocaleString() ?? "-"}</td>
+                    <td className="p-3 text-muted-foreground">{item.leadTimeDays} days</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,21 +43,46 @@ export default function PeopleCore() {
   const [actionReason, setActionReason] = useState("");
   const [targetDept, setTargetDept] = useState("HR");
 
+  const [record, setRecord] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   const clearStatus = () => {
     setStatusMessage(null);
     setErrorMessage(null);
   };
 
-  const record = useMemo(
-    () => peopleService.getEmployee360(session.tenantId, employeeId, session),
-    [session, employeeId],
-  );
+  useEffect(() => {
+    const loadRecord = async () => {
+      setIsLoading(true);
+      try {
+        const data = await peopleService.getEmployee360(session.tenantId, employeeId, session);
+        setRecord(data);
+      } catch (err) {
+        setErrorMessage("Failed to load employee record.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (employeeId) {
+      loadRecord();
+    }
+  }, [session.tenantId, session, employeeId]);
+
+  if (isLoading) {
+    return (
+      <WorkspacePanel title="Loading..." description="Fetching employee record.">
+        <div className="flex items-center justify-center p-8">
+           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      </WorkspacePanel>
+    );
+  }
 
   if (!record) {
     return (
       <WorkspacePanel title="Access restricted" description="You do not have access to this profile.">
         <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          This employee record is outside your authorized scope.
+          This employee record is outside your authorized scope or does not exist.
         </div>
       </WorkspacePanel>
     );

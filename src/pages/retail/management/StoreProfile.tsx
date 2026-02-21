@@ -17,7 +17,8 @@ import {
   Save, 
   Trash2, 
   RefreshCw,
-  Plus
+  Plus,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { nextId } from "@/core/repositories/hr/storage";
 
 const StoreProfile = () => {
   const session = useSession();
@@ -46,20 +46,28 @@ const StoreProfile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [stores, setStores] = useState<RetailStore[]>([]);
   const [selectedStore, setSelectedStore] = useState<RetailStore | null>(null);
-  const [newStore, setNewStore] = useState<Partial<RetailStore>>({});
+  const [newStore, setNewStore] = useState<{ name?: string; code?: string; type?: string; locationId?: string; address?: string }>({});
   const [isRegistering, setIsRegistering] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
 
   useEffect(() => {
-    const data = retailService.listStores(session.tenantId!);
-    setStores(data);
-    if (data.length > 0) setSelectedStore(data[0]);
-  }, [session.tenantId]);
+    const fetchStores = async () => {
+      try {
+        const data = await retailService.listStores(session.tenantId!, session);
+        setStores(data);
+        if (data.length > 0) setSelectedStore(data[0]);
+      } catch (error) {
+        console.error("Failed to fetch stores", error);
+      }
+    };
+    fetchStores();
+  }, [session.tenantId, session]);
 
   const handleSave = async () => {
     if (!selectedStore) return;
     setIsSaving(true);
     try {
-      retailService.updateStore(session.tenantId!, session, selectedStore);
+      await retailService.updateStore(session.tenantId!, session, selectedStore);
       toast({ title: "Profile Updated", description: "Store metadata and compliance settings synchronized." });
     } catch (e) {
       toast({ title: "Error", description: "Failed to update store.", variant: "destructive" });
@@ -68,29 +76,23 @@ const StoreProfile = () => {
     }
   };
 
-  const handleRegister = () => {
-    if (!newStore.name || !newStore.code) return;
+  const handleRegister = async () => {
+    if (!newStore.name || !newStore.code || !newStore.locationId) return;
     setIsRegistering(true);
-    const store: RetailStore = {
-      id: nextId("STR"),
-      tenantId: session.tenantId!,
-      name: newStore.name,
-      code: newStore.code,
-      address: newStore.address || "",
-      status: "active",
-      warehouseId: "wh-auto",
-      managerId: session.userId,
-      locationId: `loc-${newStore.code}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
     try {
-      retailService.createStore(session.tenantId!, session, store);
-      setStores([...stores, store]);
-      setSelectedStore(store);
+      const payload = {
+        name: newStore.name,
+        code: newStore.code,
+        locationId: newStore.locationId,
+        type: (newStore.type || 'flagship') as any,
+        address: newStore.address,
+      };
+      const created = await retailService.createStore(session.tenantId!, session, payload);
+      setStores(prev => [...prev, created]);
+      setSelectedStore(created);
       setNewStore({});
-      toast({ title: "Store Registered", description: `${store.name} is now active in your tenant.` });
+      setRegisterOpen(false);
+      toast({ title: "Store Registered", description: `${created.name} is now active in your tenant.` });
     } catch (e) {
       toast({ title: "Error", description: "Registration failed.", variant: "destructive" });
     } finally {
@@ -98,12 +100,12 @@ const StoreProfile = () => {
     }
   };
 
-  const handleDecommission = () => {
+  const handleDecommission = async () => {
     if (!selectedStore) return;
     if (!confirm("CRITICAL WARNING: This will immediately freeze all POS operations and invalidate fiscal connectivity for this store. Authorize decommissioning?")) return;
     
     try {
-      retailService.deleteStore(session.tenantId!, session, selectedStore.id);
+      await retailService.deleteStore(session.tenantId!, session, selectedStore.id);
       const remaining = stores.filter(s => s.id !== selectedStore.id);
       setStores(remaining);
       setSelectedStore(remaining[0] || null);
@@ -198,6 +200,46 @@ const StoreProfile = () => {
                 ))}
               </CardContent>
             </Card>
+
+            <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden mt-8">
+              <CardHeader className="bg-slate-50 border-b p-6">
+                <CardTitle className="flex items-center gap-2 text-sm font-black italic uppercase tracking-widest text-slate-500">
+                  <Globe className="w-5 h-5 text-indigo-600" />
+                  Store Configuration & Catalog
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                 <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Available Categories</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                       {["Apparel", "Footwear", "Accessories", "Electronics", "Home & Garden", "Beauty"].map(cat => {
+                          const isSelected = selectedStore?.settings?.visibleCategories?.includes(cat) ?? false;
+                          return (
+                             <div 
+                                key={cat}
+                                onClick={() => {
+                                   if (!selectedStore) return;
+                                   const current = selectedStore?.settings?.visibleCategories || [];
+                                   const updated = isSelected ? current.filter((c: string) => c !== cat) : [...current, cat];
+                                   setSelectedStore({
+                                      ...selectedStore,
+                                      settings: { ...(selectedStore.settings || {}), visibleCategories: updated }
+                                   });
+                                }}
+                                className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 shadow-sm' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}
+                             >
+                                <span className="text-xs font-bold italic tracking-tight">{cat}</span>
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-300'}`}>
+                                   {isSelected && <CheckCircle2 className="w-3 h-3" />}
+                                </div>
+                             </div>
+                          );
+                       })}
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-bold tracking-tighter italic">Select the categories that should be visible in the POS or Kiosk for this specific store location.</p>
+                 </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-8">
@@ -269,7 +311,7 @@ const StoreProfile = () => {
                <CardHeader className="bg-slate-50 border-b py-6">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500">Store Registry</CardTitle>
-                    <Dialog>
+                    <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
                       <DialogTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8 text-blue-600 font-black italic gap-1">
                           <Plus className="w-4 h-4" /> Register New
@@ -290,6 +332,24 @@ const StoreProfile = () => {
                             <Input value={newStore.code || ""} onChange={e => setNewStore({...newStore, code: e.target.value})} className="h-12 rounded-xl font-bold italic" placeholder="e.g. JK-002" />
                           </div>
                           <div className="space-y-1">
+                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location ID <span className="text-red-500">*</span></Label>
+                             <Input value={newStore.locationId || ""} onChange={e => setNewStore({...newStore, locationId: e.target.value})} className="h-12 rounded-xl font-mono text-xs" placeholder="Location UUID from HR module" />
+                          </div>
+                          <div className="space-y-1">
+                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Store Type</Label>
+                             <select 
+                               value={newStore.type || 'flagship'} 
+                               onChange={e => setNewStore({...newStore, type: e.target.value})} 
+                               className="w-full h-12 rounded-xl border border-slate-200 px-3 font-bold italic text-sm bg-white"
+                             >
+                               <option value="flagship">Flagship</option>
+                               <option value="express">Express</option>
+                               <option value="kiosk">Kiosk</option>
+                               <option value="pop-up">Pop-Up</option>
+                               <option value="warehouse">Warehouse</option>
+                             </select>
+                          </div>
+                          <div className="space-y-1">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Address</Label>
                             <Input value={newStore.address || ""} onChange={e => setNewStore({...newStore, address: e.target.value})} className="h-12 rounded-xl font-bold italic" placeholder="Full physical address" />
                           </div>
@@ -298,7 +358,7 @@ const StoreProfile = () => {
                           <Button 
                             className="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white font-black italic rounded-xl shadow-xl uppercase tracking-widest"
                             onClick={handleRegister}
-                            disabled={isRegistering || !newStore.name || !newStore.code}
+                            disabled={isRegistering || !newStore.name || !newStore.code || !newStore.locationId}
                           >
                             {isRegistering ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Authorize Branch Activation"}
                           </Button>

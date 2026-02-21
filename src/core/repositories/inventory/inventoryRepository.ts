@@ -9,62 +9,62 @@ import type {
 } from "@/core/types/inventory/inventory";
 
 export interface InventoryRepository {
-  listItems: (tenantId: string) => InventoryItemMaster[];
-  createItem: (tenantId: string, payload: InventoryItemMaster) => InventoryItemMaster;
+  listItems: (tenantId: string) => Promise<InventoryItemMaster[]>;
+  createItem: (tenantId: string, payload: InventoryItemMaster) => Promise<InventoryItemMaster>;
   updateItem: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryItemMaster>,
-  ) => InventoryItemMaster | null;
-  deleteItem: (tenantId: string, id: string) => boolean;
+  ) => Promise<InventoryItemMaster | null>;
+  deleteItem: (tenantId: string, id: string) => Promise<boolean>;
 
-  listBalances: (tenantId: string) => InventoryStockBalance[];
-  createBalance: (tenantId: string, payload: InventoryStockBalance) => InventoryStockBalance;
+  listBalances: (tenantId: string) => Promise<InventoryStockBalance[]>;
+  createBalance: (tenantId: string, payload: InventoryStockBalance) => Promise<InventoryStockBalance>;
   updateBalance: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryStockBalance>,
-  ) => InventoryStockBalance | null;
+  ) => Promise<InventoryStockBalance | null>;
 
-  listMovements: (tenantId: string) => InventoryMovement[];
-  createMovement: (tenantId: string, payload: InventoryMovement) => InventoryMovement;
+  listMovements: (tenantId: string) => Promise<InventoryMovement[]>;
+  createMovement: (tenantId: string, payload: InventoryMovement) => Promise<InventoryMovement>;
 
-  listAdjustments: (tenantId: string) => InventoryAdjustmentRequest[];
+  listAdjustments: (tenantId: string) => Promise<InventoryAdjustmentRequest[]>;
   createAdjustment: (
     tenantId: string,
     payload: InventoryAdjustmentRequest,
-  ) => InventoryAdjustmentRequest;
+  ) => Promise<InventoryAdjustmentRequest>;
   updateAdjustment: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryAdjustmentRequest>,
-  ) => InventoryAdjustmentRequest | null;
+  ) => Promise<InventoryAdjustmentRequest | null>;
 
-  listAuditCycles: (tenantId: string) => InventoryAuditCycle[];
-  createAuditCycle: (tenantId: string, payload: InventoryAuditCycle) => InventoryAuditCycle;
+  listAuditCycles: (tenantId: string) => Promise<InventoryAuditCycle[]>;
+  createAuditCycle: (tenantId: string, payload: InventoryAuditCycle) => Promise<InventoryAuditCycle>;
   updateAuditCycle: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryAuditCycle>,
-  ) => InventoryAuditCycle | null;
+  ) => Promise<InventoryAuditCycle | null>;
 
-  listAlerts: (tenantId: string) => InventoryAlert[];
-  createAlert: (tenantId: string, payload: InventoryAlert) => InventoryAlert;
+  listAlerts: (tenantId: string) => Promise<InventoryAlert[]>;
+  createAlert: (tenantId: string, payload: InventoryAlert) => Promise<InventoryAlert>;
   updateAlert: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryAlert>,
-  ) => InventoryAlert | null;
+  ) => Promise<InventoryAlert | null>;
 
-  listIntegrationEvents: (tenantId: string) => InventoryIntegrationEvent[];
+  listIntegrationEvents: (tenantId: string) => Promise<InventoryIntegrationEvent[]>;
   createIntegrationEvent: (
     tenantId: string,
     payload: InventoryIntegrationEvent,
-  ) => InventoryIntegrationEvent;
+  ) => Promise<InventoryIntegrationEvent>;
   updateIntegrationEvent: (
     tenantId: string,
     id: string,
     patch: Partial<InventoryIntegrationEvent>,
-  ) => InventoryIntegrationEvent | null;
+  ) => Promise<InventoryIntegrationEvent | null>;
 }
 

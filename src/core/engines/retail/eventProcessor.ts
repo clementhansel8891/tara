@@ -2,6 +2,12 @@
 
 import { RetailEvent } from "@/core/events/retailEvents";
 import { retailRepo } from "@/core/repositories/retail/retailRepo";
+import type { CreateRetailOrderPayload } from "@/core/repositories/retail/retailRepo";
+
+type PaymentSuccessPayload = Partial<CreateRetailOrderPayload> & {
+  orderId?: string;
+  tenantId?: string;
+};
 
 /**
  * processRetailEvent
@@ -15,7 +21,7 @@ import { retailRepo } from "@/core/repositories/retail/retailRepo";
  * - user_register   → create Customer profile (next step)
  * - cart_add        → update trending scores (future)
  */
-export function processRetailEvent(event: RetailEvent) {
+export async function processRetailEvent(event: RetailEvent) {
   switch (event.type) {
     /**
      * PAYMENT SUCCESS → ORDER CREATION
@@ -24,30 +30,30 @@ export function processRetailEvent(event: RetailEvent) {
      * Ecommerce payment confirmation triggers Order creation in Zenvix.
      */
     case "payment_success": {
-      const payload = event.payload;
-
+      const payload = event.payload as PaymentSuccessPayload;
+      const tenantId =
+        payload.tenantId ?? event.scope?.companyId ?? "tenant-demo";
       const orderId = payload.orderId ?? `ord-${Date.now()}`;
+      const storeId = payload.storeId ?? event.scope?.branchId ?? "store-001";
 
-      const newOrder = {
+      const orderPayload: CreateRetailOrderPayload = {
         id: orderId,
-        tenantId: payload.tenantId ?? "tenant-demo",
-        storeId: payload.storeId ?? "store-001",
-
-        status: "paid",
-
-        totalAmount: payload.totalAmount ?? 0,
+        storeId,
+        deviceId: payload.deviceId ?? "api-gateway",
+        cashierId: payload.cashierId ?? event.actor.id,
+        status: payload.status ?? "paid",
         items: payload.items ?? [],
-
-        customer: payload.customer ?? null,
-
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        totalAmount: payload.totalAmount ?? 0,
+        subtotal: payload.subtotal,
+        tax: payload.tax,
+        paymentMethod: payload.paymentMethod,
+        paymentReference: payload.paymentReference,
+        customer: payload.customer,
       };
 
-      // Idempotency check (Trial-level)
-      const existing = retailRepo
-        .listOrders(newOrder.tenantId)
-        .find((o: any) => o.id === orderId);
+      const existing = (await retailRepo.listOrders(tenantId)).find(
+        (o) => o.id === orderId,
+      );
 
       if (existing) {
         return {
@@ -56,7 +62,7 @@ export function processRetailEvent(event: RetailEvent) {
         };
       }
 
-      retailRepo.createOrder(newOrder.tenantId, newOrder as any);
+      await retailRepo.createOrder(tenantId, orderPayload);
 
       return {
         action: "order_created",

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -19,21 +19,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
-
-const devices = [
-  { id: "DEV-3301", type: "Laptop", location: "HQ-1", owner: "Ava Reynolds", status: "Active" },
-  { id: "DEV-3302", type: "Scanner", location: "Warehouse-2", owner: "Operations", status: "Assigned" },
-  { id: "DEV-3298", type: "Router", location: "Branch-5", owner: "Network", status: "Monitoring" },
-];
+import { useSession } from "@/core/security/session";
+import { itSettingsService, type ITDevice } from "@/core/services/it/itSettingsService";
 
 export default function DeviceDesk() {
+  const session = useSession();
   const [search, setSearch] = useState("");
-  const [selectedDevice, setSelectedDevice] = useState<any | null>(null);
+  const [devices, setDevices] = useState<ITDevice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDevice, setSelectedDevice] = useState<ITDevice | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      setLoading(true);
+      try {
+        const data = await itSettingsService.getDevices(session.tenantId, session);
+        setDevices(data);
+      } catch (err) {
+        setErrorMessage("Failed to fetch devices.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDevices();
+  }, [session.tenantId, session, version]);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -41,7 +55,7 @@ export default function DeviceDesk() {
   };
 
   const filtered = devices.filter((dev) =>
-    search ? dev.id.toLowerCase().includes(search.toLowerCase()) : true,
+    search ? dev.id.toLowerCase().includes(search.toLowerCase()) || dev.deviceName.toLowerCase().includes(search.toLowerCase()) : true,
   );
 
   return (
@@ -67,29 +81,35 @@ export default function DeviceDesk() {
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="p-3 text-left">Device</th>
+                <th className="p-3 text-left">Device Name</th>
                 <th className="p-3 text-left">Type</th>
                 <th className="p-3 text-left">Location</th>
-                <th className="p-3 text-left">Owner</th>
                 <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Last Seen</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((dev) => (
-                 <tr
-                  key={dev.id}
-                  className="border-t cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedDevice(dev)}
-                >
-                  <td className="p-3 font-medium">{dev.id}</td>
-                  <td className="p-3 text-muted-foreground">{dev.type}</td>
-                  <td className="p-3 text-muted-foreground">{dev.location}</td>
-                  <td className="p-3 text-muted-foreground">{dev.owner}</td>
-                  <td className="p-3">
-                    <Badge variant="secondary">{dev.status}</Badge>
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No devices found.</td></tr>
+              ) : (
+                filtered.map((dev) => (
+                   <tr
+                    key={dev.id}
+                    className="border-t cursor-pointer hover:bg-muted/50"
+                    onClick={() => setSelectedDevice(dev)}
+                  >
+                    <td className="p-3 font-medium">{dev.deviceName}</td>
+                    <td className="p-3 text-muted-foreground">{dev.deviceType}</td>
+                    <td className="p-3 text-muted-foreground">{dev.locationId || "Unassigned"}</td>
+                    <td className="p-3">
+                      <Badge variant={dev.status === "active" ? "default" : "secondary"}>{dev.status}</Badge>
+                    </td>
+                    <td className="p-3 text-muted-foreground text-xs">{new Date(dev.lastSeen).toLocaleDateString()}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -101,8 +121,8 @@ export default function DeviceDesk() {
             <DialogTitle>Assign New Device</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-2">
-            <Input placeholder="Serial / Device ID" />
-            <Select>
+            <Input placeholder="Device Name" id="reg-device-name" />
+            <Select onValueChange={(val) => (window as any)._regDeviceType = val}>
               <SelectTrigger>
                 <SelectValue placeholder="Device Type" />
               </SelectTrigger>
@@ -113,19 +133,31 @@ export default function DeviceDesk() {
                 <SelectItem value="network">Network Gear</SelectItem>
               </SelectContent>
             </Select>
-            <Input placeholder="Target Location" />
+            <Input placeholder="Target Location ID" id="reg-location-id" />
             <Button
               className="w-full"
-              onClick={() => {
+              onClick={async () => {
                 try {
+                  const deviceName = (document.getElementById("reg-device-name") as HTMLInputElement).value;
+                  const locationId = (document.getElementById("reg-location-id") as HTMLInputElement).value;
+                  const deviceType = (window as any)._regDeviceType || "iot";
+
+                  await itSettingsService.registerDevice(session.tenantId, session, {
+                    deviceName,
+                    deviceType,
+                    locationId,
+                    status: "active",
+                  });
+                  
                   setCreateOpen(false);
-                  setStatusMessage("Device assignment request routed for physical verification.");
+                  setStatusMessage("Device registered successfully.");
+                  setVersion((prev) => prev + 1);
                 } catch (err) {
-                  setErrorMessage("Failed to request assignment.");
+                  setErrorMessage("Failed to register device.");
                 }
               }}
             >
-              Request Assignment
+              Register Device
             </Button>
           </div>
         </DialogContent>
@@ -139,28 +171,32 @@ export default function DeviceDesk() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 text-sm gap-y-2">
               <span className="text-muted-foreground">Device ID:</span>
-              <span className="font-mono">{selectedDevice?.id}</span>
+              <span className="font-mono text-xs">{selectedDevice?.id}</span>
+              <span className="text-muted-foreground">Name:</span>
+              <span className="font-semibold">{selectedDevice?.deviceName}</span>
               <span className="text-muted-foreground">Type:</span>
-              <span className="font-semibold">{selectedDevice?.type}</span>
+              <span>{selectedDevice?.deviceType}</span>
               <span className="text-muted-foreground">Location:</span>
-              <span>{selectedDevice?.location}</span>
-              <span className="text-muted-foreground">Current Owner:</span>
-              <span>{selectedDevice?.owner}</span>
+              <span>{selectedDevice?.locationId || "N/A"}</span>
               <span className="text-muted-foreground">Status:</span>
               <span><Badge variant="outline">{selectedDevice?.status}</Badge></span>
             </div>
             <div className="border-t pt-2 text-xs text-muted-foreground italic">
-              Zenvix IT-AM: Managed via LAN-first physical mapping. Last scanned: {new Date().toISOString().slice(0, 10)}.
+              Zenvix IT-AM: Managed via LAN-first physical mapping. Last seen: {selectedDevice ? new Date(selectedDevice.lastSeen).toLocaleString() : "N/A"}.
             </div>
             <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 className="flex-1"
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    setStatusMessage(`Audit signal sent for device ${selectedDevice.id}.`);
-                    setSelectedDevice(null);
+                    if (selectedDevice) {
+                      await itSettingsService.updateDeviceStatus(session.tenantId, session, selectedDevice.id, "audited");
+                      setStatusMessage(`Audit signal sent for device ${selectedDevice.deviceName}.`);
+                      setVersion((prev) => prev + 1);
+                      setSelectedDevice(null);
+                    }
                   } catch (err) {
                     setErrorMessage("Failed to trigger audit.");
                   }
@@ -172,10 +208,14 @@ export default function DeviceDesk() {
                 variant="destructive"
                 size="sm"
                 className="flex-1"
-                onClick={() => {
+                onClick={async () => {
                   try {
-                    setStatusMessage(`Wipe command queued for ${selectedDevice.id}. Security policy enforced.`);
-                    setSelectedDevice(null);
+                    if (selectedDevice) {
+                      await itSettingsService.updateDeviceStatus(session.tenantId, session, selectedDevice.id, "wiped");
+                      setStatusMessage(`Wipe command queued for ${selectedDevice.deviceName}. Security policy enforced.`);
+                      setVersion((prev) => prev + 1);
+                      setSelectedDevice(null);
+                    }
                   } catch (err) {
                     setErrorMessage("Remote wipe failed.");
                   }

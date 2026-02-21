@@ -14,81 +14,88 @@ import type {
 } from "@/core/types/procurement/procurement";
 
 export interface ProcurementRepository {
-  listSupplierMasters: (tenantId: string) => SupplierMaster[];
-  createSupplierMaster: (tenantId: string, payload: SupplierMaster) => SupplierMaster;
+  listSupplierMasters: (tenantId: string) => Promise<SupplierMaster[]>;
+  // Change this to Promise
+  createSupplierMaster: (tenantId: string, payload: SupplierMaster) => Promise<SupplierMaster>; 
   updateSupplierMaster: (
     tenantId: string,
     id: string,
     patch: Partial<SupplierMaster>,
-  ) => SupplierMaster | null;
+  ) => Promise<SupplierMaster | null>;
 
-  listSupplierBranches: (tenantId: string) => SupplierBranch[];
-  createSupplierBranch: (tenantId: string, payload: SupplierBranch) => SupplierBranch;
+  listSupplierBranches: (tenantId: string) => Promise<SupplierBranch[]>;
+  // Change this to Promise
+  createSupplierBranch: (tenantId: string, payload: SupplierBranch) => Promise<SupplierBranch>;
   updateSupplierBranch: (
     tenantId: string,
     id: string,
     patch: Partial<SupplierBranch>,
-  ) => SupplierBranch | null;
+  ) => Promise<SupplierBranch | null>;
 
-  listSupplierProducts: (tenantId: string) => SupplierProduct[];
-  upsertSupplierProduct: (tenantId: string, payload: SupplierProduct) => SupplierProduct;
+  listSupplierProducts: (tenantId: string) => Promise<SupplierProduct[]>;
+  upsertSupplierProduct: (tenantId: string, payload: SupplierProduct) => Promise<SupplierProduct>;
 
-  listRequisitions: (tenantId: string) => Requisition[];
-  createRequisition: (tenantId: string, payload: Requisition) => Requisition;
+  listRequisitions: (tenantId: string) => Promise<Requisition[]>;
+  // Change this to Promise
+  createRequisition: (tenantId: string, payload: Requisition) => Promise<Requisition>;
   updateRequisition: (
     tenantId: string,
     id: string,
     patch: Partial<Requisition>,
-  ) => Requisition | null;
+  ) => Promise<Requisition | null>;
 
-  listDraftPurchaseOrders: (tenantId: string) => DraftPurchaseOrder[];
+  listDraftPurchaseOrders: (tenantId: string) => Promise<DraftPurchaseOrder[]>;
+  // Change this to Promise
   createDraftPurchaseOrder: (
     tenantId: string,
     payload: DraftPurchaseOrder,
-  ) => DraftPurchaseOrder;
+  ) => Promise<DraftPurchaseOrder>;
   updateDraftPurchaseOrder: (
     tenantId: string,
     id: string,
     patch: Partial<DraftPurchaseOrder>,
-  ) => DraftPurchaseOrder | null;
+  ) => Promise<DraftPurchaseOrder | null>;
 
-  listFinalPurchaseOrders: (tenantId: string) => FinalPurchaseOrder[];
+  listFinalPurchaseOrders: (tenantId: string) => Promise<FinalPurchaseOrder[]>;
+  // Change this to Promise
   createFinalPurchaseOrder: (
     tenantId: string,
     payload: FinalPurchaseOrder,
-  ) => FinalPurchaseOrder;
+  ) => Promise<FinalPurchaseOrder>;
   updateFinalPurchaseOrder: (
     tenantId: string,
     id: string,
     patch: Partial<FinalPurchaseOrder>,
-  ) => FinalPurchaseOrder | null;
+  ) => Promise<FinalPurchaseOrder | null>;
 
-  listContracts: (tenantId: string) => ContractRecord[];
-  createContract: (tenantId: string, payload: ContractRecord) => ContractRecord;
+  listContracts: (tenantId: string) => Promise<ContractRecord[]>;
+  // Change this to Promise
+  createContract: (tenantId: string, payload: ContractRecord) => Promise<ContractRecord>;
   updateContract: (
     tenantId: string,
     id: string,
     patch: Partial<ContractRecord>,
-  ) => ContractRecord | null;
+  ) => Promise<ContractRecord | null>;
 
-  listReceipts: (tenantId: string) => ReceiptRecord[];
-  createReceipt: (tenantId: string, payload: ReceiptRecord) => ReceiptRecord;
+  listReceipts: (tenantId: string) => Promise<ReceiptRecord[]>;
+  createReceipt: (tenantId: string, payload: ReceiptRecord) => Promise<ReceiptRecord>;
 
-  listRatingLogs: (tenantId: string) => RatingLog[];
-  createRatingLog: (tenantId: string, payload: RatingLog) => RatingLog;
+  listRatingLogs: (tenantId: string) => Promise<RatingLog[]>;
+  createRatingLog: (tenantId: string, payload: RatingLog) => Promise<RatingLog>;
 
-  listRiskSignals: (tenantId: string) => RiskSignal[];
-  createRiskSignal: (tenantId: string, payload: RiskSignal) => RiskSignal;
+  listRiskSignals: (tenantId: string) => Promise<RiskSignal[]>;
+  // Change this to Promise
+  createRiskSignal: (tenantId: string, payload: RiskSignal) => Promise<RiskSignal>;
   updateRiskSignal: (
     tenantId: string,
     id: string,
     patch: Partial<RiskSignal>,
-  ) => RiskSignal | null;
+  ) => Promise<RiskSignal | null>;
 
-  listPortalMessages: (tenantId: string) => SupplierPortalMessage[];
-  createPortalMessage: (tenantId: string, payload: SupplierPortalMessage) => SupplierPortalMessage;
+  listPortalMessages: (tenantId: string) => Promise<SupplierPortalMessage[]>;
+  createPortalMessage: (tenantId: string, payload: SupplierPortalMessage) => Promise<SupplierPortalMessage>;
 
-  listAuditEvents: (tenantId: string) => ProcurementAuditEvent[];
-  createAuditEvent: (tenantId: string, payload: ProcurementAuditEvent) => ProcurementAuditEvent;
+  listAuditEvents: (tenantId: string) => Promise<ProcurementAuditEvent[]>;
+  createAuditEvent: (tenantId: string, payload: ProcurementAuditEvent) => Promise<ProcurementAuditEvent>;
 }
 

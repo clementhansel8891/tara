@@ -9,6 +9,6 @@ export interface Department extends HRAuditFields {
   code: string;
   parentId?: string;
   headId?: string;
-  costCenter?: string;
+  description?: string;
   status: DepartmentStatus;
 }

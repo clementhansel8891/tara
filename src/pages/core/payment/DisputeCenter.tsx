@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +6,7 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PaymentDispute } from "@/core/types/payment/payment";
+import type { PaymentDispute, PaymentTransaction, PaymentChargeback } from "@/core/types/payment/payment";
 
 export default function DisputeCenter() {
   const session = useSession();
@@ -15,20 +15,29 @@ export default function DisputeCenter() {
   const [amount, setAmount] = useState("0");
   const [reason, setReason] = useState("");
   const [evidence, setEvidence] = useState("");
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([]);
+  const [disputes, setDisputes] = useState<PaymentDispute[]>([]);
+  const [chargebacks, setChargebacks] = useState<PaymentChargeback[]>([]);
 
-  const transactions = useMemo(
-    () => paymentService.listTransactions(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const disputes = useMemo(
-    () => paymentService.listDisputes(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const chargebacks = useMemo(
-    () => paymentService.listChargebacks(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const eligible = transactions.filter((item) => item.status === "SETTLED");
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [transactionsData, disputesData, chargebacksData] = await Promise.all([
+          paymentService.listTransactions(session.tenantId),
+          paymentService.listDisputes(session.tenantId),
+          paymentService.listChargebacks(session.tenantId),
+        ]);
+        setTransactions(transactionsData);
+        setDisputes(disputesData);
+        setChargebacks(chargebacksData);
+      } catch (error) {
+        console.error("Failed to fetch dispute data:", error);
+      }
+    };
+    fetchData();
+  }, [refreshKey, session.tenantId]);
+
+  const eligible = useMemo(() => transactions.filter((item) => item.status === "SETTLED"), [transactions]);
 
   const nextStatus = (status: PaymentDispute["status"]): PaymentDispute["status"] => {
     if (status === "OPENED") return "EVIDENCE_ATTACHED";

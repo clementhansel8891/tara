@@ -21,8 +21,8 @@ export class InventoryService {
     return this.repository.createItem(tenantId, data);
   }
 
-  async getBalances(tenantId: string, locationId?: string) {
-    return this.repository.getBalances(tenantId, locationId);
+  async getBalances(tenantId: string, locationId?: string, departmentId?: string) {
+    return this.repository.getBalances(tenantId, locationId, departmentId);
   }
 
   async getMovements(tenantId: string, itemId?: string) {
@@ -59,6 +59,56 @@ export class InventoryService {
     status: 'open' | 'acknowledged' | 'resolved',
   ) {
     return this.repository.setAlertStatus(tenantId, alertId, status);
+  }
+
+  async getAuditCycles(tenantId: string) {
+    return this.repository.getAuditCycles(tenantId);
+  }
+
+  async createAuditCycle(tenantId: string, data: any) {
+    return this.repository.createAuditCycle(tenantId, data);
+  }
+
+  async updateAuditCycle(tenantId: string, id: string, data: any) {
+    return this.repository.updateAuditCycle(tenantId, id, data);
+  }
+
+  async getIntegrationEvents(tenantId: string) {
+    return this.repository.getIntegrationEvents(tenantId);
+  }
+
+  async createIntegrationEvent(tenantId: string, data: any) {
+    return this.repository.createIntegrationEvent(tenantId, data);
+  }
+
+  async runLowStockScan(tenantId: string) {
+    const balances = await this.repository.getBalances(tenantId);
+    // Placeholder logic: just return scanned count for now as per mock requirement speed
+    return { scanned: balances.length, lowStockFound: balances.filter(b => b.quantity <= 50).length };
+  }
+
+  async runExpiryScan(tenantId: string) {
+     return { scanned: 0, expiryFound: 0 };
+  }
+
+  async consumeStock(tenantId: string, data: any) {
+    return this.repository.consumeStock(tenantId, data);
+  }
+
+  async deleteItem(tenantId: string, itemId: string) {
+    return this.repository.deleteItem(tenantId, itemId);
+  }
+
+  async batchDeleteItems(tenantId: string, itemIds: string[]) {
+    return this.repository.batchDeleteItems(tenantId, itemIds);
+  }
+
+  async batchIntakeStock(tenantId: string, data: StockIntakeDto[]) {
+    return this.repository.batchIntakeStock(tenantId, data);
+  }
+
+  async requestProcurement(tenantId: string, data: any) {
+    return this.repository.requestProcurement(tenantId, data);
   }
 }
 

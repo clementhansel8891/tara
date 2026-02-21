@@ -43,5 +43,29 @@ export class ProcurementService {
   async runRiskScan(tenantId: string) {
     return this.repository.runRiskScan(tenantId);
   }
+
+  async getSupplierBranches(tenantId: string) {
+    return this.repository.getSupplierBranches(tenantId);
+  }
+
+  async getSupplierProducts(tenantId: string) {
+    return this.repository.getSupplierProducts(tenantId);
+  }
+
+  async getDraftPurchaseOrders(tenantId: string) {
+    return this.repository.getDraftPurchaseOrders(tenantId);
+  }
+
+  async getContracts(tenantId: string) {
+    return this.repository.getContracts(tenantId);
+  }
+
+  async getAuditEvents(tenantId: string) {
+    return this.repository.getAuditEvents(tenantId);
+  }
+
+  async getSpendInsights(tenantId: string) {
+    return this.repository.getSpendInsights(tenantId);
+  }
 }
 

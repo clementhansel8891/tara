@@ -10,69 +10,57 @@ import type {
 } from "@/core/types/marketing/marketing";
 
 export interface MarketingRepository {
-  listCampaigns: (tenantId: string) => MarketingCampaign[];
-  createCampaign: (tenantId: string, payload: MarketingCampaign) => MarketingCampaign;
+  listCampaigns: (tenantId: string) => Promise<MarketingCampaign[]>;
+  createCampaign: (tenantId: string, payload: MarketingCampaign) => Promise<MarketingCampaign>;
   updateCampaign: (
     tenantId: string,
     id: string,
     patch: Partial<MarketingCampaign>,
-  ) => MarketingCampaign | null;
+  ) => Promise<MarketingCampaign | null>;
 
-  listExecutions: (tenantId: string) => CampaignExecutionRun[];
-  createExecution: (
-    tenantId: string,
-    payload: CampaignExecutionRun,
-  ) => CampaignExecutionRun;
+  listExecutions: (tenantId: string) => Promise<CampaignExecutionRun[]>;
+  createExecution: (tenantId: string, payload: CampaignExecutionRun) => Promise<CampaignExecutionRun>;
   updateExecution: (
     tenantId: string,
     id: string,
     patch: Partial<CampaignExecutionRun>,
-  ) => CampaignExecutionRun | null;
+  ) => Promise<CampaignExecutionRun | null>;
 
-  listLeads: (tenantId: string) => MarketingLead[];
-  createLead: (tenantId: string, payload: MarketingLead) => MarketingLead;
+  listLeads: (tenantId: string) => Promise<MarketingLead[]>;
+  createLead: (tenantId: string, payload: MarketingLead) => Promise<MarketingLead>;
   updateLead: (
     tenantId: string,
     id: string,
     patch: Partial<MarketingLead>,
-  ) => MarketingLead | null;
+  ) => Promise<MarketingLead | null>;
 
-  listWorkflows: (tenantId: string) => NurtureWorkflow[];
-  createWorkflow: (tenantId: string, payload: NurtureWorkflow) => NurtureWorkflow;
+  listWorkflows: (tenantId: string) => Promise<NurtureWorkflow[]>;
+  createWorkflow: (tenantId: string, payload: NurtureWorkflow) => Promise<NurtureWorkflow>;
   updateWorkflow: (
     tenantId: string,
     id: string,
     patch: Partial<NurtureWorkflow>,
-  ) => NurtureWorkflow | null;
+  ) => Promise<NurtureWorkflow | null>;
 
-  listConnectedAccounts: (tenantId: string) => ConnectedAccount[];
-  createConnectedAccount: (
-    tenantId: string,
-    payload: ConnectedAccount,
-  ) => ConnectedAccount;
+  listConnectedAccounts: (tenantId: string) => Promise<ConnectedAccount[]>;
+  createConnectedAccount: (tenantId: string, payload: ConnectedAccount) => Promise<ConnectedAccount>;
   updateConnectedAccount: (
     tenantId: string,
     id: string,
     patch: Partial<ConnectedAccount>,
-  ) => ConnectedAccount | null;
+  ) => Promise<ConnectedAccount | null>;
 
-  listAttribution: (tenantId: string) => AttributionRecord[];
-  createAttribution: (
-    tenantId: string,
-    payload: AttributionRecord,
-  ) => AttributionRecord;
+  listAttribution: (tenantId: string) => Promise<AttributionRecord[]>;
+  createAttribution: (tenantId: string, payload: AttributionRecord) => Promise<AttributionRecord>;
 
-  listAlerts: (tenantId: string) => MarketingAlert[];
-  createAlert: (tenantId: string, payload: MarketingAlert) => MarketingAlert;
+  listAlerts: (tenantId: string) => Promise<MarketingAlert[]>;
+  createAlert: (tenantId: string, payload: MarketingAlert) => Promise<MarketingAlert>;
   updateAlert: (
     tenantId: string,
     id: string,
     patch: Partial<MarketingAlert>,
-  ) => MarketingAlert | null;
+  ) => Promise<MarketingAlert | null>;
 
-  listAuditEvents: (tenantId: string) => MarketingAuditEvent[];
-  createAuditEvent: (
-    tenantId: string,
-    payload: MarketingAuditEvent,
-  ) => MarketingAuditEvent;
+  listAuditEvents: (tenantId: string) => Promise<MarketingAuditEvent[]>;
+  createAuditEvent: (tenantId: string, payload: MarketingAuditEvent) => Promise<MarketingAuditEvent>;
 }

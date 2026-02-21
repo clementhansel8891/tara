@@ -22,3 +22,14 @@ export type Payable = {
   createdAt: string;
   updatedAt: string;
 };
+
+export interface FinancePayableRow {
+  id: string;
+  vendorName: string;
+  billNumber: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  status: "RECEIVED" | "APPROVED" | "SCHEDULED_FOR_PAYMENT" | "PAID";
+}
+

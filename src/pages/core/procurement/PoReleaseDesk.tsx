@@ -6,6 +6,7 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
+import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
 import type { DraftPurchaseOrder, FinalPurchaseOrder, Requisition } from "@/core/types/procurement/procurement";
@@ -20,12 +21,32 @@ export default function PoReleaseDesk() {
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [drafts, setDrafts] = useState<DraftPurchaseOrder[]>([]);
   const [finalPos, setFinalPos] = useState<FinalPurchaseOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    setRequisitions(procurementService.listRequisitions(session.tenantId));
-    setDrafts(procurementService.listDraftPurchaseOrders(session.tenantId));
-    setFinalPos(procurementService.listFinalPurchaseOrders(session.tenantId));
-  }, [session.tenantId]);
+  const clearStatus = () => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+  };
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [r, d, f] = await Promise.all([
+        procurementService.listRequisitions(session.tenantId, session),
+        procurementService.listDraftPurchaseOrders(session.tenantId, session),
+        procurementService.listFinalPurchaseOrders(session.tenantId, session),
+      ]);
+      setRequisitions(r);
+      setDrafts(d);
+      setFinalPos(f);
+    } catch (err) {
+      setErrorMessage("Failed to load PO release data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -61,35 +82,50 @@ export default function PoReleaseDesk() {
     [finalPos, search],
   );
 
-  const confirmQuote = () => {
+  const confirmQuote = async () => {
     if (!selectedDraftId) return;
-    procurementService.confirmSupplierQuote(session.tenantId, session, {
-      draftPoId: selectedDraftId,
-      quoteReference: quoteReference || `Q-${Date.now()}`,
-      quoteNotes,
-    });
-    setQuoteDialogOpen(false);
-    setSelectedDraftId("");
-    setQuoteReference("");
-    setQuoteNotes("");
-    refresh();
+    try {
+      await procurementService.confirmSupplierQuote(session.tenantId, session, {
+        draftPoId: selectedDraftId,
+        quoteReference: quoteReference || `Q-${Date.now()}`,
+        quoteNotes,
+      });
+      setStatusMessage("Supplier quote confirmed.");
+      setQuoteDialogOpen(false);
+      setSelectedDraftId("");
+      setQuoteReference("");
+      setQuoteNotes("");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Quote confirmation failed.");
+    }
   };
 
-  const releasePo = (requisitionId: string) => {
-    procurementService.releasePurchaseOrder(session.tenantId, session, requisitionId);
-    refresh();
+  const releasePo = async (requisitionId: string) => {
+    try {
+      await procurementService.releasePurchaseOrder(session.tenantId, session, requisitionId);
+      setStatusMessage("Purchase Order released and synchronized with Payable/Receipt systems.");
+      refresh();
+    } catch (err) {
+      setErrorMessage("PO release failed.");
+    }
   };
 
-  const recordReceipt = (finalPoId: string) => {
-    procurementService.recordReceipt(session.tenantId, session, {
-      finalPoId,
-      deliveryOnTime: true,
-      quantityAccuracy: 96,
-      qualityScore: 92,
-      issueCount: 0,
-      invoiceMismatch: false,
-    });
-    refresh();
+  const recordReceipt = async (finalPoId: string) => {
+    try {
+      await procurementService.recordReceipt(session.tenantId, session, {
+        finalPoId,
+        deliveryOnTime: true,
+        quantityAccuracy: 96,
+        qualityScore: 92,
+        issueCount: 0,
+        invoiceMismatch: false,
+      });
+      setStatusMessage("Receipt record posted and rating engine updated.");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Receipt recording failed.");
+    }
   };
 
   return (
@@ -107,6 +143,8 @@ export default function PoReleaseDesk() {
         }
       />
 
+      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+
       <WorkspacePanel title="Supplier Quote Gate" description="Procurement HOD approved drafts require supplier quote confirmation.">
         <DataTableShell total={filteredDrafts.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -120,30 +158,36 @@ export default function PoReleaseDesk() {
               </tr>
             </thead>
             <tbody>
-              {filteredDrafts.map((draft) => (
-                <tr key={draft.id} className="border-t">
-                  <td className="p-3 font-medium">{draft.id}</td>
-                  <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
-                  <td className="p-3 text-muted-foreground">{draft.quotedTotal.toLocaleString()}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={draft.status} />
-                  </td>
-                  <td className="p-3">
-                    {draft.status === "PROCUREMENT_HOD_APPROVED" ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedDraftId(draft.id);
-                          setQuoteDialogOpen(true);
-                        }}
-                      >
-                        Confirm Supplier Quote
-                      </Button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : filteredDrafts.length === 0 ? (
+                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No draft POs found.</td></tr>
+              ) : (
+                filteredDrafts.map((draft) => (
+                  <tr key={draft.id} className="border-t">
+                    <td className="p-3 font-medium">{draft.id}</td>
+                    <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
+                    <td className="p-3 text-muted-foreground">{draft.quotedTotal.toLocaleString()}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={draft.status} />
+                    </td>
+                    <td className="p-3">
+                      {draft.status === "PROCUREMENT_HOD_APPROVED" ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedDraftId(draft.id);
+                            setQuoteDialogOpen(true);
+                          }}
+                        >
+                          Confirm Supplier Quote
+                        </Button>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -162,23 +206,29 @@ export default function PoReleaseDesk() {
               </tr>
             </thead>
             <tbody>
-              {filteredRequisitions.map((request) => (
-                <tr key={request.id} className="border-t">
-                  <td className="p-3 font-medium">{request.id}</td>
-                  <td className="p-3 text-muted-foreground">{request.branchCode}</td>
-                  <td className="p-3 text-muted-foreground">{request.amount.toLocaleString()}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={request.status} />
-                  </td>
-                  <td className="p-3">
-                    {request.status === "FINAL_APPROVED" ? (
-                      <Button size="sm" onClick={() => releasePo(request.id)}>
-                        Release PO
-                      </Button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : filteredRequisitions.length === 0 ? (
+                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No requisitions found.</td></tr>
+              ) : (
+                filteredRequisitions.map((request) => (
+                  <tr key={request.id} className="border-t">
+                    <td className="p-3 font-medium">{request.id}</td>
+                    <td className="p-3 text-muted-foreground">{request.branchCode}</td>
+                    <td className="p-3 text-muted-foreground">{request.amount.toLocaleString()}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={request.status} />
+                    </td>
+                    <td className="p-3">
+                      {request.status === "FINAL_APPROVED" ? (
+                        <Button size="sm" onClick={() => releasePo(request.id)}>
+                          Release PO
+                        </Button>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -197,23 +247,29 @@ export default function PoReleaseDesk() {
               </tr>
             </thead>
             <tbody>
-              {filteredFinalPos.map((po) => (
-                <tr key={po.id} className="border-t">
-                  <td className="p-3 font-medium">{po.id}</td>
-                  <td className="p-3 text-muted-foreground">{po.requisitionId}</td>
-                  <td className="p-3 text-muted-foreground">{po.totalAmount.toLocaleString()}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={po.status} />
-                  </td>
-                  <td className="p-3">
-                    {po.status === "RELEASED" || po.status === "DELIVERING" ? (
-                      <Button size="sm" variant="outline" onClick={() => recordReceipt(po.id)}>
-                        Record Receipt
-                      </Button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+              ) : filteredFinalPos.length === 0 ? (
+                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No final POs found.</td></tr>
+              ) : (
+                filteredFinalPos.map((po) => (
+                  <tr key={po.id} className="border-t">
+                    <td className="p-3 font-medium">{po.id}</td>
+                    <td className="p-3 text-muted-foreground">{po.requisitionId}</td>
+                    <td className="p-3 text-muted-foreground">{po.totalAmount.toLocaleString()}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={po.status} />
+                    </td>
+                    <td className="p-3">
+                      {po.status === "RELEASED" || po.status === "DELIVERING" ? (
+                        <Button size="sm" variant="outline" onClick={() => recordReceipt(po.id)}>
+                          Record Receipt
+                        </Button>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

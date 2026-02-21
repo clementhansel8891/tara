@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: zenvix-suite-v2-db
+    environment:
+      POSTGRES_USER: zenvix
+      POSTGRES_PASSWORD: zenvix_dev_password
+      POSTGRES_DB: zenvix_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_v2:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zenvix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: zenvix-suite-v2-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@zenvix.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5051:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  postgres_data_v2:

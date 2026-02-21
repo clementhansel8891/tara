@@ -24,20 +24,33 @@ const RefundReturnDesk = () => {
   const [activeShift, setActiveShift] = useState<any | null>(null);
 
   React.useEffect(() => {
+  const fetchData = async () => {
+    if (!session.tenantId || !session.userId) return; // Guard clause
+    
     try {
-      const shifts = retailService.listShifts(session.tenantId!);
-      const openShift = shifts.find(s => s.status === "open" && s.employeeId === session.userId);
+      // FIX: Ensure parameters match service definition
+      const shifts = await retailService.listShifts(session.tenantId, session);
+      const openShift = shifts.find(
+        (s) => s.status === "open" && s.employeeId === session.userId
+      );
       setActiveShift(openShift || null);
     } catch (e) {
       console.error("Failed to fetch shift", e);
+      toast({ 
+        title: "Connection Error", 
+        description: "Could not sync with Nexus Shift Control.", 
+        variant: "destructive" 
+      });
     }
-  }, [session.tenantId, session.userId]);
+  };
+  fetchData();
+}, [session.tenantId, session.userId, session]);
 
   const handleLookup = async () => {
     if (!ticketId) return;
     setIsSearching(true);
     try {
-      const orders = await retailService.listOrders(session.tenantId!);
+      const orders = await retailService.listOrders(session.tenantId!, session);
       const order = orders.find(o => o.id === ticketId || o.id.includes(ticketId));
       
       if (order) {

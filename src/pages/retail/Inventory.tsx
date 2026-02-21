@@ -39,6 +39,8 @@ import {
 import { cn } from '@/lib/utils';
 import { mockRetailProducts, productCategories, Product, formatCurrency, generateId } from '@/lib/mock-data';
 import { toast } from '@/hooks/use-toast';
+import { useSession } from '@/core/security/session';
+import { emitRetailPushEvent } from '@/modules/retail/api/retailGatewayPush';
 
 interface InventoryItem extends Product {
   minStock: number;
@@ -91,6 +93,7 @@ const retailers = ['All', ...productCategories];
 const suppliers = ['Bean Brothers', 'Merch Supply Co', 'Gift Direct', 'Direct Import'];
 
 export default function RetailInventory() {
+  const session = useSession();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
@@ -180,6 +183,18 @@ export default function RetailInventory() {
 
     setInventory((prev) => [...prev, newItem]);
     toast({ title: 'Item added', description: `${newItem.name} has been added to inventory` });
+    void emitRetailPushEvent({
+      type: 'inventory.item.created',
+      tenantId: session.tenantId,
+      payload: {
+        id: newItem.id,
+        name: newItem.name,
+        category: newItem.category,
+        price: newItem.price,
+        stock: newItem.stock,
+        barcode: newItem.barcode,
+      },
+    });
     setIsAddOpen(false);
     resetForm();
   };
@@ -191,26 +206,42 @@ export default function RetailInventory() {
       return;
     }
 
+    const updatedItem: InventoryItem = {
+      ...selectedProduct,
+      name: formData.name,
+      category: formData.category,
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock) || 0,
+      barcode: formData.barcode,
+      minStock: parseInt(formData.minStock),
+      maxStock: parseInt(formData.maxStock),
+      reorderPoint: parseInt(formData.reorderPoint),
+      supplier: formData.supplier,
+    };
+
     setInventory((prev) =>
       prev.map((item) =>
         item.id === selectedProduct.id
-          ? {
-              ...item,
-              name: formData.name,
-              category: formData.category,
-              price: parseFloat(formData.price),
-              stock: parseInt(formData.stock) || 0,
-              barcode: formData.barcode,
-              minStock: parseInt(formData.minStock),
-              maxStock: parseInt(formData.maxStock),
-              reorderPoint: parseInt(formData.reorderPoint),
-              supplier: formData.supplier,
-            }
+          ? updatedItem
           : item
       )
     );
 
     toast({ title: 'Item updated', description: `${formData.name} has been updated` });
+    void emitRetailPushEvent({
+      type: 'inventory.item.updated',
+      tenantId: session.tenantId,
+      payload: {
+        id: updatedItem.id,
+        name: updatedItem.name,
+        category: updatedItem.category,
+        price: updatedItem.price,
+        stock: updatedItem.stock,
+        barcode: updatedItem.barcode,
+        previousCategory: selectedProduct.category,
+        categoryChanged: selectedProduct.category !== updatedItem.category,
+      },
+    });
     setIsEditOpen(false);
     setSelectedProduct(null);
     resetForm();
@@ -222,6 +253,18 @@ export default function RetailInventory() {
 
     setInventory((prev) => prev.filter((item) => item.id !== selectedProduct.id));
     toast({ title: 'Item deleted', description: `${selectedProduct.name} has been removed from inventory` });
+    void emitRetailPushEvent({
+      type: 'inventory.item.deleted',
+      tenantId: session.tenantId,
+      payload: {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        category: selectedProduct.category,
+        price: selectedProduct.price,
+        stock: selectedProduct.stock,
+        barcode: selectedProduct.barcode,
+      },
+    });
     setIsDeleteOpen(false);
     setSelectedProduct(null);
   };
@@ -230,10 +273,12 @@ export default function RetailInventory() {
   const handleAdjustStock = () => {
     if (!selectedProduct || adjustQuantity === 0) return;
 
+    const previousStock = selectedProduct.stock || 0;
+    const newStock = Math.max(0, previousStock + adjustQuantity);
     setInventory((prev) =>
       prev.map((item) =>
         item.id === selectedProduct.id
-          ? { ...item, stock: Math.max(0, (item.stock || 0) + adjustQuantity) }
+          ? { ...item, stock: newStock }
           : item
       )
     );
@@ -241,6 +286,19 @@ export default function RetailInventory() {
     toast({
       title: 'Stock adjusted',
       description: `${selectedProduct.name}: ${adjustQuantity > 0 ? '+' : ''}${adjustQuantity} units`,
+    });
+    void emitRetailPushEvent({
+      type: 'inventory.stock.adjusted',
+      tenantId: session.tenantId,
+      payload: {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        category: selectedProduct.category,
+        previousStock,
+        newStock,
+        delta: adjustQuantity,
+        reason: adjustReason || 'manual_adjustment',
+      },
     });
 
     setIsAdjustOpen(false);
@@ -284,13 +342,31 @@ export default function RetailInventory() {
     if (status === 'received') {
       const request = reorderRequests.find((r) => r.id === id);
       if (request) {
-        setInventory((prev) =>
-          prev.map((item) =>
+        setInventory((prev) => {
+          const next = prev.map((item) =>
             item.id === request.productId
               ? { ...item, stock: (item.stock || 0) + request.quantity, lastRestocked: new Date().toISOString() }
               : item
-          )
-        );
+          );
+          const updated = next.find((item) => item.id === request.productId);
+          if (updated) {
+            void emitRetailPushEvent({
+              type: 'inventory.stock.adjusted',
+              tenantId: session.tenantId,
+              payload: {
+                id: updated.id,
+                name: updated.name,
+                category: updated.category,
+                previousStock: (updated.stock || 0) - request.quantity,
+                newStock: updated.stock,
+                delta: request.quantity,
+                reason: 'reorder.received',
+                reorderId: request.id,
+              },
+            });
+          }
+          return next;
+        });
         toast({
           title: 'Stock received',
           description: `${request.quantity} units of ${request.productName} added to inventory`,

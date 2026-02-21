@@ -29,6 +29,11 @@ export type PermissionKey =
    * ============================================================
    */
   | "core.tools.access"
+  | "core.procurement.access"
+  | "core.it.access"
+  | "core.sales.access"
+  | "core.marketing.access"
+  | "core.admin.requests"
 
   /**
    * ============================================================
@@ -91,6 +96,7 @@ export type PermissionKey =
 
   /** Payments Engine */
   | "finance.payments.view"
+  | "finance.payments.manage"
   | "finance.payments.execute"
   | "finance.payments.refund"
 
@@ -100,10 +106,16 @@ export type PermissionKey =
   /** Financial Reporting */
   | "finance.reports.view"
   | "finance.reports.publish"
+  | "finance.insights.view"
+  | "finance.docs.view"
 
   /** Closing + Compliance */
   | "finance.closing.run"
+  | "finance.close.manage"
   | "finance.audit.view"
+  | "finance.invoices.manage"
+  | "finance.assets.view"
+  | "finance.policy.manage"
 
   /**
    * ============================================================
@@ -184,6 +196,7 @@ export const FINANCE_PERMISSIONS: PermissionKey[] = [
 
   /** Payments */
   "finance.payments.view",
+  "finance.payments.manage",
   "finance.payments.execute",
   "finance.payments.refund",
 
@@ -193,8 +206,14 @@ export const FINANCE_PERMISSIONS: PermissionKey[] = [
   /** Reporting */
   "finance.reports.view",
   "finance.reports.publish",
+  "finance.insights.view",
+  "finance.docs.view",
 
   /** Closing + Audit */
   "finance.closing.run",
+  "finance.close.manage",
   "finance.audit.view",
+  "finance.invoices.manage",
+  "finance.assets.view",
+  "finance.policy.manage",
 ];

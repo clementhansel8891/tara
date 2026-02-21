@@ -39,9 +39,9 @@ const DeviceControlCenter = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const data = retailService.listDevices(session.tenantId);
+        const data = await retailService.listDevices(session.tenantId, session);
         setDevices(data);
       } catch (error) {
         console.error("Failed to fetch devices", error);
@@ -50,7 +50,7 @@ const DeviceControlCenter = () => {
       }
     };
     fetchData();
-  }, [session.tenantId]);
+  }, [session.tenantId, session]);
 
   const handlePing = async (deviceId: string) => {
     try {

@@ -9,9 +9,10 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
+import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-import type { ContractRecord, Requisition } from "@/core/types/procurement/procurement";
+import type { ContractRecord, Requisition, SupplierMaster } from "@/core/types/procurement/procurement";
 
 export default function ContractDesk() {
   const session = useSession();
@@ -22,13 +23,33 @@ export default function ContractDesk() {
   const [notes, setNotes] = useState("");
   const [contracts, setContracts] = useState<ContractRecord[]>([]);
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierMaster[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const suppliers = procurementService.listSupplierMasters(session.tenantId);
+  const clearStatus = () => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+  };
 
-  const refresh = useCallback(() => {
-    setContracts(procurementService.listContracts(session.tenantId));
-    setRequisitions(procurementService.listRequisitions(session.tenantId));
-  }, [session.tenantId]);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [c, r, s] = await Promise.all([
+        procurementService.listContracts(session.tenantId, session),
+        procurementService.listRequisitions(session.tenantId, session),
+        procurementService.listSupplierMasters(session.tenantId, session),
+      ]);
+      setContracts(c);
+      setRequisitions(r);
+      setSuppliers(s);
+    } catch (err) {
+      setErrorMessage("Failed to load contract data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -46,29 +67,44 @@ export default function ContractDesk() {
     [contracts, search],
   );
 
-  const upsertContract = () => {
+  const upsertContract = async () => {
     if (!requisitionId || !supplierId) return;
-    procurementService.upsertContractForRequisition(session.tenantId, session, {
-      requisitionId,
-      supplierId,
-      notes,
-      attachmentIds: [],
-    });
-    setDialogOpen(false);
-    setRequisitionId("");
-    setSupplierId("");
-    setNotes("");
-    refresh();
+    try {
+      await procurementService.upsertContractForRequisition(session.tenantId, session, {
+        requisitionId,
+        supplierId,
+        notes,
+        attachmentIds: [],
+      });
+      setStatusMessage("Contract packet created or updated successfully.");
+      setDialogOpen(false);
+      setRequisitionId("");
+      setSupplierId("");
+      setNotes("");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Failed to save contract packet.");
+    }
   };
 
-  const approveLegal = (contractId: string) => {
-    procurementService.approveLegalContract(session.tenantId, session, contractId);
-    refresh();
+  const approveLegal = async (contractId: string) => {
+    try {
+      await procurementService.approveLegalContract(session.tenantId, session, contractId);
+      setStatusMessage("Legal approval recorded.");
+      refresh();
+    } catch (err) {
+      setErrorMessage("Legal approval failed.");
+    }
   };
 
-  const sign = (contractId: string, party: "SUPPLIER" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
-    procurementService.signContractParty(session.tenantId, session, contractId, party);
-    refresh();
+  const sign = async (contractId: string, party: "SUPPLIER" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
+    try {
+      await procurementService.signContractParty(session.tenantId, session, contractId, party);
+      setStatusMessage(`Contract signed by ${party}.`);
+      refresh();
+    } catch (err) {
+      setErrorMessage(`Signature by ${party} failed.`);
+    }
   };
 
   return (
@@ -87,6 +123,8 @@ export default function ContractDesk() {
         }
       />
 
+      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+
       <WorkspacePanel title="Contract Governance" description="Track legal review and mandatory signatures before PO release.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredContracts.length} page={1} pageSize={10}>
@@ -102,45 +140,51 @@ export default function ContractDesk() {
               </tr>
             </thead>
             <tbody>
-              {filteredContracts.map((contract) => (
-                <tr key={contract.id} className="border-t">
-                  <td className="p-3 font-medium">{contract.id}</td>
-                  <td className="p-3 text-muted-foreground">{contract.requisitionId}</td>
-                  <td className="p-3 text-muted-foreground">{contract.supplierId}</td>
-                  <td className="p-3 text-muted-foreground">v{contract.version}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={contract.status} />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {contract.status === "LEGAL_REVIEW" ? (
-                        <Button size="sm" variant="outline" onClick={() => approveLegal(contract.id)}>
-                          Approve Legal
-                        </Button>
-                      ) : null}
-                      {contract.status === "LEGAL_APPROVED" ? (
-                        <>
-                          {!contract.signedBySupplier ? (
-                            <Button size="sm" variant="outline" onClick={() => sign(contract.id, "SUPPLIER")}>
-                              Supplier Sign
-                            </Button>
-                          ) : null}
-                          {!contract.signedByProcurementHod ? (
-                            <Button size="sm" variant="outline" onClick={() => sign(contract.id, "PROCUREMENT_HOD")}>
-                              Procurement HOD Sign
-                            </Button>
-                          ) : null}
-                          {!contract.signedByFinanceHod ? (
-                            <Button size="sm" variant="outline" onClick={() => sign(contract.id, "FINANCE_HOD")}>
-                              Finance HOD Sign
-                            </Button>
-                          ) : null}
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : filteredContracts.length === 0 ? (
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No contracts found.</td></tr>
+              ) : (
+                filteredContracts.map((contract) => (
+                  <tr key={contract.id} className="border-t">
+                    <td className="p-3 font-medium">{contract.id}</td>
+                    <td className="p-3 text-muted-foreground">{contract.requisitionId}</td>
+                    <td className="p-3 text-muted-foreground">{contract.supplierId}</td>
+                    <td className="p-3 text-muted-foreground">v{contract.version}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={contract.status} />
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {contract.status === "LEGAL_REVIEW" ? (
+                          <Button size="sm" variant="outline" onClick={() => approveLegal(contract.id)}>
+                            Approve Legal
+                          </Button>
+                        ) : null}
+                        {contract.status === "LEGAL_APPROVED" || contract.status === "PARTIAL_SIGNED" ? (
+                          <>
+                            {!contract.signedBySupplier ? (
+                              <Button size="sm" variant="outline" onClick={() => sign(contract.id, "SUPPLIER")}>
+                                Supplier Sign
+                              </Button>
+                            ) : null}
+                            {!contract.signedByProcurementHod ? (
+                              <Button size="sm" variant="outline" onClick={() => sign(contract.id, "PROCUREMENT_HOD")}>
+                                Procurement HOD Sign
+                              </Button>
+                            ) : null}
+                            {!contract.signedByFinanceHod ? (
+                              <Button size="sm" variant="outline" onClick={() => sign(contract.id, "FINANCE_HOD")}>
+                                Finance HOD Sign
+                              </Button>
+                            ) : null}
+                          </>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -151,7 +195,7 @@ export default function ContractDesk() {
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Legal Approved</p>
             <p className="text-lg font-semibold">
-              {contracts.filter((item) => item.status === "LEGAL_APPROVED" || item.status === "SIGNED").length}
+              {contracts.filter((item) => item.status === "LEGAL_APPROVED" || item.status === "SIGNED" || item.status === "PARTIAL_SIGNED").length}
             </p>
           </div>
           <div className="rounded-lg border p-3">

@@ -12,7 +12,7 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-import type { DraftPurchaseOrder, Requisition } from "@/core/types/procurement/procurement";
+import type { DraftPurchaseOrder, Requisition, SupplierMaster, SupplierBranch } from "@/core/types/procurement/procurement";
 
 export default function PurchaseRequestDesk() {
   const session = useSession();
@@ -35,6 +35,9 @@ export default function PurchaseRequestDesk() {
   const [linePrice, setLinePrice] = useState("0");
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
   const [draftPos, setDraftPos] = useState<DraftPurchaseOrder[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierMaster[]>([]);
+  const [branches, setBranches] = useState<SupplierBranch[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedRequisition, setSelectedRequisition] = useState<Requisition | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -43,13 +46,26 @@ export default function PurchaseRequestDesk() {
     setStatusMessage(null);
     setErrorMessage(null);
   };
-  const suppliers = procurementService.listSupplierMasters(session.tenantId);
-  const branches = procurementService.listSupplierBranches(session.tenantId);
 
-  const refresh = useCallback(() => {
-    setRequisitions(procurementService.listRequisitions(session.tenantId));
-    setDraftPos(procurementService.listDraftPurchaseOrders(session.tenantId));
-  }, [session.tenantId]);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [reqs, pos, m, b] = await Promise.all([
+        procurementService.listRequisitions(session.tenantId, session),
+        procurementService.listDraftPurchaseOrders(session.tenantId, session),
+        procurementService.listSupplierMasters(session.tenantId, session),
+        procurementService.listSupplierBranches(session.tenantId, session),
+      ]);
+      setRequisitions(reqs);
+      setDraftPos(pos);
+      setSuppliers(m);
+      setBranches(b);
+    } catch (err) {
+      setErrorMessage("Failed to load requisition data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refresh();
@@ -67,9 +83,9 @@ export default function PurchaseRequestDesk() {
     [requisitions, search],
   );
 
-  const createRequisition = () => {
+  const createRequisition = async () => {
     try {
-      procurementService.createRequisition(session.tenantId, session, {
+      await procurementService.createRequisition(session.tenantId, session, {
         title,
         description,
         category,
@@ -86,13 +102,13 @@ export default function PurchaseRequestDesk() {
       setAmount("0");
       refresh();
     } catch (err) {
-      setErrorMessage("Failed to create requisition. Budget limit exceeded.");
+      setErrorMessage("Failed to create requisition. Budget limit exceeded or server error.");
     }
   };
 
-  const approveRequesterHod = (requisitionId: string) => {
+  const approveRequesterHod = async (requisitionId: string) => {
     try {
-      procurementService.approveRequesterHod(session.tenantId, session, requisitionId);
+      await procurementService.approveRequesterHod(session.tenantId, session, requisitionId);
       setStatusMessage("Requisition approved by Department HOD.");
       refresh();
     } catch (err) {
@@ -100,9 +116,9 @@ export default function PurchaseRequestDesk() {
     }
   };
 
-  const buildDraftPo = () => {
+  const buildDraftPo = async () => {
     try {
-      procurementService.buildDraftPurchaseOrder(session.tenantId, session, {
+      await procurementService.buildDraftPurchaseOrder(session.tenantId, session, {
         requisitionId: selectedRequisitionId,
         supplierId,
         supplierBranchId,
@@ -132,9 +148,9 @@ export default function PurchaseRequestDesk() {
     }
   };
 
-  const approveDraft = (draftId: string) => {
+  const approveDraft = async (draftId: string) => {
     try {
-      procurementService.approveDraftByProcurementHod(session.tenantId, session, draftId);
+      await procurementService.approveDraftByProcurementHod(session.tenantId, session, draftId);
       setStatusMessage("Draft PO approved at Procurement HOD gate.");
       refresh();
     } catch (err) {
@@ -142,9 +158,9 @@ export default function PurchaseRequestDesk() {
     }
   };
 
-  const setFinal = (requisitionId: string, approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
+  const setFinal = async (requisitionId: string, approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
     try {
-      procurementService.setFinalApproval(session.tenantId, session, requisitionId, approver);
+      await procurementService.setFinalApproval(session.tenantId, session, requisitionId, approver);
       setStatusMessage(`Final approval recorded for ${approver}.`);
       refresh();
     } catch (err) {
@@ -152,9 +168,9 @@ export default function PurchaseRequestDesk() {
     }
   };
 
-  const runRiskScan = () => {
+  const runRiskScan = async () => {
     try {
-      procurementService.runRiskScan(session.tenantId, session);
+      await procurementService.runRiskScan(session.tenantId, session);
       setStatusMessage("Anti-fraud risk scan completed. No critical threats found.");
     } catch (err) {
       setErrorMessage("Risk scan failed.");
@@ -194,87 +210,93 @@ export default function PurchaseRequestDesk() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
-                <tr
-                  key={item.id}
-                  className="cursor-pointer border-t hover:bg-muted/50"
-                  onClick={() => setSelectedRequisition(item)}
-                >
-                  <td className="p-3">
-                    <p className="font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">{item.id}</p>
-                  </td>
-                  <td className="p-3 text-muted-foreground">{item.requesterDept}</td>
-                  <td className="p-3 text-muted-foreground">{item.branchCode}</td>
-                  <td className="p-3 text-muted-foreground">{item.amount.toLocaleString()}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={item.status} />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      {item.status === "PENDING_REQUESTER_HOD" ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            approveRequesterHod(item.id);
-                          }}
-                        >
-                          Approve Requester HOD
-                        </Button>
-                      ) : null}
-                      {(item.status === "APPROVED_REQUESTER_HOD" || item.status === "DRAFT_PO_PREPARED") ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedRequisitionId(item.id);
-                            setDraftDialogOpen(true);
-                          }}
-                        >
-                          Build Draft PO
-                        </Button>
-                      ) : null}
-                      {(item.status === "LEGAL_APPROVED" || item.status === "FINAL_APPROVAL_PENDING") ? (
-                        <>
+              {loading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : filtered.length === 0 ? (
+                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No requisitions found.</td></tr>
+              ) : (
+                filtered.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="cursor-pointer border-t hover:bg-muted/50"
+                    onClick={() => setSelectedRequisition(item)}
+                  >
+                    <td className="p-3">
+                      <p className="font-medium">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.id}</p>
+                    </td>
+                    <td className="p-3 text-muted-foreground">{item.requesterDept}</td>
+                    <td className="p-3 text-muted-foreground">{item.branchCode}</td>
+                    <td className="p-3 text-muted-foreground">{item.amount.toLocaleString()}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={item.status} />
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-wrap gap-2">
+                        {item.status === "PENDING_REQUESTER_HOD" ? (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setFinal(item.id, "REQUESTER_HOD");
+                              approveRequesterHod(item.id);
                             }}
                           >
-                            Final Requester HOD
+                            Approve Requester HOD
                           </Button>
+                        ) : null}
+                        {(item.status === "APPROVED_REQUESTER_HOD" || item.status === "DRAFT_PO_PREPARED") ? (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setFinal(item.id, "PROCUREMENT_HOD");
+                              setSelectedRequisitionId(item.id);
+                              setDraftDialogOpen(true);
                             }}
                           >
-                            Final Procurement HOD
+                            Build Draft PO
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setFinal(item.id, "FINANCE_HOD");
-                            }}
-                          >
-                            Final Finance HOD
-                          </Button>
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        ) : null}
+                        {(item.status === "LEGAL_APPROVED" || item.status === "FINAL_APPROVAL_PENDING") ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFinal(item.id, "REQUESTER_HOD");
+                              }}
+                            >
+                              Final Requester HOD
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFinal(item.id, "PROCUREMENT_HOD");
+                              }}
+                            >
+                              Final Procurement HOD
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFinal(item.id, "FINANCE_HOD");
+                              }}
+                            >
+                              Final Finance HOD
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>
@@ -294,24 +316,30 @@ export default function PurchaseRequestDesk() {
               </tr>
             </thead>
             <tbody>
-              {draftPos.map((draft) => (
-                <tr key={draft.id} className="border-t">
-                  <td className="p-3 font-medium">{draft.id}</td>
-                  <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
-                  <td className="p-3 text-muted-foreground">{draft.supplierId}</td>
-                  <td className="p-3 text-muted-foreground">{draft.quotedTotal.toLocaleString()}</td>
-                  <td className="p-3">
-                    <ApprovalStatusBadge status={draft.status} />
-                  </td>
-                  <td className="p-3">
-                    {draft.status === "DRAFT" ? (
-                      <Button size="sm" variant="outline" onClick={() => approveDraft(draft.id)}>
-                        Approve Draft Gate
-                      </Button>
-                    ) : null}
-                  </td>
-                </tr>
-              ))}
+              {loading ? (
+                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+              ) : draftPos.length === 0 ? (
+                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No draft POs found.</td></tr>
+              ) : (
+                draftPos.map((draft) => (
+                  <tr key={draft.id} className="border-t">
+                    <td className="p-3 font-medium">{draft.id}</td>
+                    <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
+                    <td className="p-3 text-muted-foreground">{draft.supplierId}</td>
+                    <td className="p-3 text-muted-foreground">{draft.quotedTotal.toLocaleString()}</td>
+                    <td className="p-3">
+                      <ApprovalStatusBadge status={draft.status} />
+                    </td>
+                    <td className="p-3">
+                      {draft.status === "DRAFT" ? (
+                        <Button size="sm" variant="outline" onClick={() => approveDraft(draft.id)}>
+                          Approve Draft Gate
+                        </Button>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </DataTableShell>

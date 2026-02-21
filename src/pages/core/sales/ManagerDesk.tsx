@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -7,24 +7,40 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesAlert, SalesManagerMetrics, SalesOpportunity } from "@/core/types/sales/sales";
 
 export default function ManagerDesk() {
   const session = useSession();
   const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  
+  const [metrics, setMetrics] = useState<SalesManagerMetrics | null>(null);
+  const [opportunities, setOpportunities] = useState<SalesOpportunity[]>([]);
+  const [alerts, setAlerts] = useState<SalesAlert[]>([]);
 
-  const metrics = useMemo(
-    () => salesService.getManagerMetrics(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const opportunities = useMemo(
-    () => salesService.listOpportunities(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const alerts = useMemo(
-    () => salesService.listAlerts(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [m, o, a] = await Promise.all([
+        salesService.getManagerMetrics(session.tenantId, session),
+        salesService.listOpportunities(session.tenantId, session),
+        salesService.listAlerts(session.tenantId, session),
+      ]);
+      setMetrics(m);
+      setOpportunities(o);
+      setAlerts(a);
+    } catch (err) {
+      console.error("Failed to fetch manager desk data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, refreshKey]);
+
   const filteredOpportunities = useMemo(
     () =>
       opportunities.filter((item) =>
@@ -46,8 +62,8 @@ export default function ManagerDesk() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => {
-                salesService.runSlaSweep(session.tenantId, session);
+              onClick={async () => {
+                await salesService.runSlaSweep(session.tenantId, session);
                 setRefreshKey((value) => value + 1);
               }}
             >
@@ -67,33 +83,36 @@ export default function ManagerDesk() {
         <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Total reps</p>
-            <p className="text-2xl font-semibold">{metrics.totalReps}</p>
+            <p className="text-2xl font-semibold">{metrics?.totalReps ?? 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Open pipeline</p>
-            <p className="text-2xl font-semibold">{metrics.openPipeline.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{metrics ? metrics.openPipeline.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Weighted forecast</p>
-            <p className="text-2xl font-semibold">{metrics.weightedForecast.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">{metrics ? metrics.weightedForecast.toLocaleString() : 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Stalled deals</p>
-            <p className="text-2xl font-semibold">{metrics.stalledDeals}</p>
+            <p className="text-2xl font-semibold">{metrics?.stalledDeals ?? 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">SLA breaches</p>
-            <p className="text-2xl font-semibold">{metrics.slaBreaches}</p>
+            <p className="text-2xl font-semibold">{metrics?.slaBreaches ?? 0}</p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Approval pending</p>
-            <p className="text-2xl font-semibold">{metrics.approvalsPending}</p>
+            <p className="text-2xl font-semibold">{metrics?.approvalsPending ?? 0}</p>
           </div>
         </div>
       </WorkspacePanel>
 
       <WorkspacePanel title="Deal Risk Watchlist" description="Stalled and high-risk opportunities requiring manager intervention.">
         <DataTableShell total={filteredOpportunities.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing watchlist...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -122,38 +141,43 @@ export default function ManagerDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
 
       <WorkspacePanel title="Alert Queue" description="Actionable SLA, follow-up, and risk alert records.">
         <div className="space-y-2">
-          {alerts.map((alert) => (
-            <div key={alert.id} className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{alert.type}</p>
-                <p className="text-xs text-muted-foreground">{alert.message}</p>
+          {loading && alerts.length === 0 ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing alerts...</div>
+          ) : (
+            alerts.map((alert) => (
+              <div key={alert.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">{alert.type}</p>
+                  <p className="text-xs text-muted-foreground">{alert.message}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={alert.severity === "HIGH" ? "destructive" : "outline"}>
+                    {alert.severity}
+                  </Badge>
+                  {!alert.acknowledged ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        await salesService.acknowledgeAlert(session.tenantId, session, alert.id);
+                        setRefreshKey((value) => value + 1);
+                      }}
+                    >
+                      Acknowledge
+                    </Button>
+                  ) : (
+                    <Badge variant="secondary">ACKNOWLEDGED</Badge>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant={alert.severity === "HIGH" ? "destructive" : "outline"}>
-                  {alert.severity}
-                </Badge>
-                {!alert.acknowledged ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      salesService.acknowledgeAlert(session.tenantId, session, alert.id);
-                      setRefreshKey((value) => value + 1);
-                    }}
-                  >
-                    Acknowledge
-                  </Button>
-                ) : (
-                  <Badge variant="secondary">ACKNOWLEDGED</Badge>
-                )}
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </WorkspacePanel>
     </div>

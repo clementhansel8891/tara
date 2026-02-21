@@ -1,11 +1,14 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, HttpException } from '@nestjs/common';
 import { AppModule } from './app.module';
+
+import { Rfc7807ExceptionFilter } from './shared/filters/rfc7807.filter';
 
 /**
  * Bootstrap the Zenvix Backend Application
  * 
  * Configuration:
+ * - RFC 7807 Standardized Error Responses
  * - Global ValidationPipe with whitelist and transform enabled
  * - CORS enabled for frontend communication
  * - Port 3001 (to avoid conflict with Vite dev server)
@@ -13,27 +16,45 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Align with frontend proxy (/api/*)
+  app.setGlobalPrefix('api');
+
+  // RFC 7807 Exception Filter
+  app.useGlobalFilters(new Rfc7807ExceptionFilter());
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Strip properties that don't have decorators
-      transform: true, // Automatically transform payloads to DTO instances
-      forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
+      whitelist: true, 
+      transform: true, 
+      forbidNonWhitelisted: true, 
+      exceptionFactory: (errors) => {
+        return new HttpException(
+          { 
+            message: 'Validation failed', 
+            errors: errors.map(err => ({
+              property: err.property,
+              constraints: err.constraints
+            })) 
+          }, 
+          400
+        );
+      },
       transformOptions: {
-        enableImplicitConversion: true, // Enable implicit type conversion
+        enableImplicitConversion: true, 
       },
     }),
   );
 
   // Enable CORS for frontend
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite and potential Next.js
+    origin: ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
   });
 
   // Start server
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   console.log('');
   console.log('╔════════════════════════════════════════════════════════╗');

@@ -37,9 +37,8 @@ export const runFinanceDepreciationSchedulerTick = async () => {
 
   for (const tenantId of tenantIds) {
     const session = getSystemSession(tenantId);
-    const duePeriods = financeService
-      .listPeriods(tenantId)
-      .filter(
+    const allPeriods = await financeService.listPeriods(tenantId, session);
+    const duePeriods = allPeriods.filter(
         (period) =>
           (period.status === "OPEN" || period.status === "CLOSING") &&
           period.endDate <= today,

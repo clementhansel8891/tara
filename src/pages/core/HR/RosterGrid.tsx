@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,19 +66,58 @@ export default function RosterGrid() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
 
-  const departments = useMemo(() => staffService.listDepartments(session.tenantId, session), [session]);
-  const statusOptions = useMemo(() => staffService.getStatusOptions(), []);
-  const roleTitles = useMemo(() => staffService.listRoleTitles(session.tenantId, session), [session]);
-  const programs = useMemo(() => trainingService.listPrograms(session.tenantId, session), [session]);
+  const [departments, setDepartments] = useState<any[]>([]); // Using any[] for now to avoid import issues if types aren't exported
+  const [roleTitles, setRoleTitles] = useState<string[]>([]);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [staff, setStaff] = useState<{ items: any[]; total: number; page: number; pageSize: number }>({
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 10
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const staff = useMemo(() => {
-    return staffService.listStaff(
-      session.tenantId,
-      session,
-      { search, departmentId: department, status: status as "all", roleTitle },
-      { page, pageSize: 10 },
-    );
-  }, [session, search, department, status, roleTitle, page, version]);
+  const statusOptions = useMemo(() => staffService.getStatusOptions(), []);
+
+  // Load initial filters
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const [depts, roles, progs] = await Promise.all([
+          staffService.listDepartments(session.tenantId, session),
+          staffService.listRoleTitles(session.tenantId, session),
+          trainingService.listPrograms(session.tenantId, session)
+        ]);
+        setDepartments(depts);
+        setRoleTitles(roles);
+        setPrograms(progs);
+      } catch (err) {
+        console.error("Failed to load filters", err);
+      }
+    };
+    loadFilters();
+  }, [session.tenantId, session]); // Dependencies correct? session object might be stable but tenantId is key.
+
+  // Load staff list
+  useEffect(() => {
+    const loadStaff = async () => {
+      setIsLoading(true);
+      try {
+        const result = await staffService.listStaff(
+          session.tenantId,
+          session,
+          { search, departmentId: department, status: status as "all", roleTitle },
+          { page, pageSize: 10 },
+        );
+        setStaff(result);
+      } catch (err) {
+        setErrorMessage("Failed to load staff list.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadStaff();
+  }, [session.tenantId, session, search, department, status, roleTitle, page, version]);
 
   const selectedEmployee = useMemo(
     () => staff.items.find((emp) => emp.id === editEmployeeId) ?? null,

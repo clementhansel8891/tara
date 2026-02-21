@@ -46,15 +46,18 @@ const OrderFulfillment = () => {
   const [isFastTrackMode, setIsFastTrackMode] = useState(false);
 
   React.useEffect(() => {
-    try {
-      const data = retailService.listOrders(session.tenantId!);
-      setOrders(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session.tenantId]);
+    const fetchData = async () => {
+      try {
+        const data = await retailService.listOrders(session.tenantId!, session);
+        setOrders(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [session.tenantId, session]);
 
   const handleReallocate = (orderId: string) => {
     toast({ title: "Stock Re-allocated", description: `Reserved units for ${orderId} have been prioritized from buffer zone A-4.` });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,7 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
-import type { CampaignExecutionRun } from "@/core/types/marketing/marketing";
+import type { CampaignExecutionRun, MarketingCampaign } from "@/core/types/marketing/marketing";
 
 const CHANNELS: CampaignExecutionRun["channel"][] = [
   "META_ADS",
@@ -29,19 +29,37 @@ const CHANNELS: CampaignExecutionRun["channel"][] = [
 
 export default function ExecutionDesk() {
   const session = useSession();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [search, setSearch] = useState("");
-  const campaigns = marketingService.listCampaigns(session.tenantId);
-  const [campaignId, setCampaignId] = useState(campaigns[0]?.id ?? "");
+  const [campaignId, setCampaignId] = useState("");
   const [channel, setChannel] = useState<CampaignExecutionRun["channel"]>("META_ADS");
   const [scheduledAt, setScheduledAt] = useState(
     new Date(Date.now() + 1000 * 60 * 60 * 4).toISOString().slice(0, 16),
   );
+  const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
+  const [executions, setExecutions] = useState<CampaignExecutionRun[]>([]);
 
-  const executions = useMemo(
-    () => marketingService.listExecutions(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      const [c, e] = await Promise.all([
+        marketingService.listCampaigns(session.tenantId),
+        marketingService.listExecutions(session.tenantId),
+      ]);
+      setCampaigns(c);
+      setExecutions(e);
+      if (c.length > 0 && !campaignId) {
+        setCampaignId(c[0].id);
+      }
+    } catch (err) {
+      console.error("Failed to fetch execution desk data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, campaignId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filtered = useMemo(
     () =>
@@ -52,6 +70,14 @@ export default function ExecutionDesk() {
       ),
     [executions, search],
   );
+
+  if (loading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading execution runs...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -100,14 +126,14 @@ export default function ExecutionDesk() {
             onChange={(event) => setScheduledAt(event.target.value)}
           />
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!campaignId) return;
-              marketingService.scheduleExecution(session.tenantId, session, {
+              await marketingService.scheduleExecution(session.tenantId, session, {
                 campaignId,
                 channel,
                 scheduledAt: new Date(scheduledAt).toISOString(),
               });
-              setRefreshKey((value) => value + 1);
+              refresh();
             }}
           >
             Schedule
@@ -158,9 +184,9 @@ export default function ExecutionDesk() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          marketingService.runExecution(session.tenantId, session, item.id);
-                          setRefreshKey((value) => value + 1);
+                        onClick={async () => {
+                          await marketingService.runExecution(session.tenantId, session, item.id);
+                          refresh();
                         }}
                       >
                         Run
@@ -168,11 +194,11 @@ export default function ExecutionDesk() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          marketingService.runExecution(session.tenantId, session, item.id, {
+                        onClick={async () => {
+                          await marketingService.runExecution(session.tenantId, session, item.id, {
                             failed: true,
                           });
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Mark Failed

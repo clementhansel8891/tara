@@ -11,7 +11,8 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { financeService, type FinanceReceivableRow } from "@/core/services/finance/financeService";
+import { financeApiClient } from "@/core/services/finance/financeApiClient";
+import type { FinanceReceivableRow } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
 
 type ReceivableTab = "PENDING" | "APPROVED" | "OVERDUE";
@@ -36,9 +37,9 @@ export default function ReceivableDesk() {
     setErrorMessage(null);
   };
 
-  const refreshReceivables = useCallback(() => {
-    setReceivables(financeService.listReceivables(session.tenantId));
-  }, [session.tenantId]);
+  const refreshReceivables = useCallback(async () => {
+    setReceivables(await financeApiClient.listReceivables(session.tenantId, session));
+  }, [session.tenantId, session]);
 
   useEffect(() => {
     refreshReceivables();
@@ -64,9 +65,9 @@ export default function ReceivableDesk() {
     return next;
   }, [filtered]);
 
-  const createReceivable = () => {
+  const createReceivable = async () => {
     try {
-      financeService.createReceivable(session.tenantId, session, {
+      await financeApiClient.createReceivable(session.tenantId, session, {
         customer,
         amount: Number(amount || "0"),
         dueDate,
@@ -88,9 +89,9 @@ export default function ReceivableDesk() {
     }
   };
 
-  const markReceived = (id: string) => {
+  const markReceived = async (id: string) => {
     try {
-      financeService.markReceived(session.tenantId, id);
+      await financeApiClient.markReceived(session.tenantId, session, id);
       logService.log(session.tenantId, session.userId, "Marked receivable received", id);
       setStatusMessage("Receivable marked as received and settled.");
       refreshReceivables();
@@ -99,9 +100,9 @@ export default function ReceivableDesk() {
     }
   };
 
-  const sendReminder = (id: string) => {
+  const sendReminder = async (id: string) => {
     try {
-      financeService.sendReceivableReminder(session.tenantId, session, id);
+      await financeApiClient.sendReceivableReminder(session.tenantId, session, id);
       logService.log(session.tenantId, session.userId, "Sent receivable reminder", id);
       setStatusMessage("Collection reminder sent to customer contact.");
     } catch (err) {

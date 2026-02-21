@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -7,14 +7,30 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesAuditLogEvent } from "@/core/types/sales/sales";
 
 export default function SalesAuditLog() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const events = useMemo(
-    () => salesService.listAuditEvents(session.tenantId),
-    [session.tenantId],
-  );
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<SalesAuditLogEvent[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await salesService.listAuditEvents(session.tenantId, session);
+      setEvents(data);
+    } catch (err) {
+      console.error("Failed to fetch audit log:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const filtered = useMemo(
     () =>
       events.filter((item) =>
@@ -45,6 +61,9 @@ export default function SalesAuditLog() {
       <WorkspacePanel title="Audit Events" description="Compliance trail for every material sales action.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={20}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing audit log...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -73,6 +92,7 @@ export default function SalesAuditLog() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

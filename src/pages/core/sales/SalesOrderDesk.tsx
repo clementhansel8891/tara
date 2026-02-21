@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,20 +8,39 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
+import type { SalesOrder } from "@/core/types/sales/sales";
 
 export default function SalesOrderDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const orders = useMemo(
-    () => salesService.listOrders(session.tenantId),
-    [session.tenantId],
-  );
-  const filtered = orders.filter((order) =>
-    search
-      ? `${order.id} ${order.customerName} ${order.status} ${order.inventoryCheck}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      : true,
+  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<SalesOrder[]>([]);
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await salesService.listOrders(session.tenantId, session);
+      setOrders(data);
+    } catch (err) {
+      console.error("Failed to fetch sales orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId, session]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const filtered = useMemo(() => 
+    orders.filter((order) =>
+      search
+        ? `${order.id} ${order.customerName} ${order.status} ${order.inventoryCheck}`
+            .toLowerCase()
+            .includes(search.toLowerCase())
+        : true,
+    ),
+    [orders, search]
   );
 
   return (
@@ -43,6 +62,9 @@ export default function SalesOrderDesk() {
       <WorkspacePanel title="Order queue" description="Orders awaiting approval and invoicing.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
+          {loading ? (
+             <div className="p-8 text-center text-muted-foreground italic">Refreshing order queue...</div>
+          ) : (
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
@@ -79,6 +101,7 @@ export default function SalesOrderDesk() {
               ))}
             </tbody>
           </table>
+          )}
         </DataTableShell>
       </WorkspacePanel>
     </div>

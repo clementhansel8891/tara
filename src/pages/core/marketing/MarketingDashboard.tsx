@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,24 +8,37 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
+import type { MarketingAlert, MarketingCampaign, MarketingDashboardMetrics } from "@/core/types/marketing/marketing";
 
 export default function MarketingDashboard() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState<MarketingDashboardMetrics | null>(null);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
+  const [alerts, setAlerts] = useState<MarketingAlert[]>([]);
 
-  const metrics = useMemo(
-    () => marketingService.getDashboard(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const campaigns = useMemo(
-    () => marketingService.listCampaigns(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
-  const alerts = useMemo(
-    () => marketingService.listAlerts(session.tenantId),
-    [refreshKey, session.tenantId],
-  );
+  const refresh = useCallback(async () => {
+    try {
+      const [m, c, a] = await Promise.all([
+        marketingService.getDashboard(session.tenantId, session),
+        marketingService.listCampaigns(session.tenantId, session),
+        marketingService.listAlerts(session.tenantId, session),
+      ]);
+      setMetrics(m);
+      setCampaigns(c);
+      setAlerts(a);
+    } catch (err) {
+      console.error("Failed to fetch marketing dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [session.tenantId]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
   const filteredAlerts = useMemo(
     () =>
       alerts.filter((item) =>
@@ -38,6 +51,14 @@ export default function MarketingDashboard() {
     [alerts, search],
   );
 
+  if (loading || !metrics) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-muted-foreground">Loading marketing command center...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -47,9 +68,9 @@ export default function MarketingDashboard() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => {
-                marketingService.runHealthSweep(session.tenantId, session);
-                setRefreshKey((value) => value + 1);
+              onClick={async () => {
+                await marketingService.runHealthSweep(session.tenantId, session);
+                refresh();
               }}
             >
               Run Health Sweep
@@ -150,13 +171,13 @@ export default function MarketingDashboard() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          marketingService.acknowledgeAlert(
+                        onClick={async () => {
+                          await marketingService.acknowledgeAlert(
                             session.tenantId,
                             session,
                             item.id,
                           );
-                          setRefreshKey((value) => value + 1);
+                          refresh();
                         }}
                       >
                         Acknowledge
