@@ -568,5 +568,55 @@ export class InventoryDbRepository implements IInventoryRepository {
       }
     });
   }
+
+  async batchCreateItems(tenantId: string, data: CreateItemDto[]): Promise<InventoryItem[]> {
+    return this.prisma.$transaction(async (tx) => {
+      const results: InventoryItem[] = [];
+      for (const itemData of data) {
+        // Find or create category
+        let category = await tx.productCategory.findFirst({
+          where: { companyId: tenantId, name: itemData.category }
+        });
+        
+        if (!category) {
+          category = await tx.productCategory.create({
+            data: { companyId: tenantId, name: itemData.category }
+          });
+        }
+
+        const product = await tx.product.create({
+          data: {
+            companyId: tenantId,
+            categoryId: category.id,
+            name: itemData.name,
+            sku: itemData.sku,
+            barcode: itemData.sku,
+            description: itemData.description ?? null,
+            unit: itemData.uom ?? 'unit',
+            basePrice: itemData.basePrice ?? 0,
+            taxRate: itemData.taxRate ?? 0,
+            moduleTags: itemData.moduleTags ?? [],
+          },
+          include: { category: true }
+        });
+
+        results.push({
+          id: product.id,
+          tenantId: product.companyId,
+          sku: product.sku,
+          name: product.name,
+          category: product.category.name as any,
+          uom: product.unit,
+          barcode: product.barcode,
+          qrCode: product.barcode,
+          moduleTags: (product as any).moduleTags || [],
+          active: product.status === 'active',
+          createdAt: product.createdAt,
+          updatedAt: product.updatedAt,
+        });
+      }
+      return results;
+    });
+  }
 }
 

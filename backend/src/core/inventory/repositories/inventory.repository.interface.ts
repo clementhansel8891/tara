@@ -62,6 +62,7 @@ export abstract class IInventoryRepository {
   abstract deleteItem(tenantId: string, itemId: string): Promise<void>;
   abstract batchDeleteItems(tenantId: string, itemIds: string[]): Promise<void>;
   abstract batchIntakeStock(tenantId: string, data: StockIntakeDto[]): Promise<StockMovement[]>;
+  abstract batchCreateItems(tenantId: string, data: CreateItemDto[]): Promise<InventoryItem[]>;
   abstract requestProcurement(tenantId: string, data: any): Promise<any>;
 }
 

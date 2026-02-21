@@ -11,6 +11,7 @@ import { MarketingModule } from './core/marketing/marketing.module';
 import { PaymentModule } from './core/payment/payment.module';
 import { RetailModule } from './core/retail/retail.module';
 import { PersistenceModule } from './persistence/persistence.module';
+import { AuditModule } from './shared/audit/audit.module';
 
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -47,6 +48,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     MarketingModule,
     PaymentModule,
     RetailModule,
+    AuditModule,
   ],
   controllers: [],
   providers: [

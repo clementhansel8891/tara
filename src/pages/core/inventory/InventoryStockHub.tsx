@@ -18,6 +18,9 @@ import { TransferDialog } from "./components/TransferDialog";
 import { BatchIntakeDialog } from "./components/BatchIntakeDialog";
 import { BatchTransferDialog } from "./components/BatchTransferDialog";
 import { AdjustmentDialog } from "./components/AdjustmentDialog";
+import { ExportButton } from "@/components/shared/ExportButton";
+import { ImportDialog } from "@/components/shared/ImportDialog";
+import { Upload } from "lucide-react";
 
 type ViewMode = "total" | "branch" | "ecommerce";
 
@@ -37,6 +40,7 @@ export default function InventoryStockHub() {
   const [isBatchIntakeOpen, setIsBatchIntakeOpen] = useState(false);
   const [isBatchTransferOpen, setIsBatchTransferOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -142,19 +146,29 @@ export default function InventoryStockHub() {
         title="Stock Hub"
         subtitle="Global -> location -> department stock visibility with module-aware context tags."
         primaryAction={
-          <Button
-            onClick={async () => {
-              try {
-                await inventoryService.runLowStockScan(session.tenantId, session);
-                setStatusMessage("Low stock scan completed. Alerts refreshed.");
-                refresh();
-              } catch (err) {
-                setErrorMessage("Stock scan failed.");
-              }
-            }}
-          >
-            Recompute alerts
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportButton 
+              endpoint="/inventory/items/export" 
+              filename={`zenvix_inventory_${session.tenantId}.xlsx`} 
+            />
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" /> Import Items
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  await inventoryService.runLowStockScan(session.tenantId, session);
+                  setStatusMessage("Low stock scan completed. Alerts refreshed.");
+                  refresh();
+                } catch (err) {
+                  setErrorMessage("Stock scan failed.");
+                }
+              }}
+            >
+              Recompute alerts
+            </Button>
+            <Button onClick={() => setStatusMessage("Creation dialog not yet implemented.")}>+ New Item</Button>
+          </div>
         }
         secondaryActions={
           <div className="flex items-center gap-2">
@@ -332,6 +346,17 @@ export default function InventoryStockHub() {
         onSuccess={() => {
           setStatusMessage("Adjustment request submitted for approval.");
           refresh();
+        }}
+      />
+
+      <ImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        endpoint="/inventory/items/import"
+        title="Import Inventory Items"
+        onSuccess={() => {
+          refresh();
+          setIsImportOpen(false);
         }}
       />
     </div>

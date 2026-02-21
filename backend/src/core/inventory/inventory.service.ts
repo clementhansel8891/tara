@@ -110,5 +110,9 @@ export class InventoryService {
   async requestProcurement(tenantId: string, data: any) {
     return this.repository.requestProcurement(tenantId, data);
   }
+
+  async batchCreateItems(tenantId: string, data: CreateItemDto[]) {
+    return this.repository.batchCreateItems(tenantId, data);
+  }
 }
 

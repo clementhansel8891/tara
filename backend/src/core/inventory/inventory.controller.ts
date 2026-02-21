@@ -8,16 +8,23 @@ import {
   Put,
   Query,
   Req,
+  Res,
+  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { TenantContext } from '../../gateway/tenant-context.interface';
 import { TenantInterceptor } from '../../gateway/tenant.interceptor';
 import { CreateAdjustmentDto } from './dto/create-adjustment.dto';
 import { CreateItemDto } from './dto/create-item.dto';
 import { StockIntakeDto } from './dto/stock-intake.dto';
 import { TransferStockDto } from './dto/transfer-stock.dto';
+import { ImportItemDto } from './dto/import-item.dto';
 import { InventoryService } from './inventory.service';
+import { FileProcessingService } from '../../shared/file-processing/file-processing.service';
+import { AuditService } from '../../shared/audit/audit.service';
+import { v4 as uuidv4 } from 'uuid';
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -26,7 +33,11 @@ interface RequestWithTenant extends Request {
 @Controller('inventory')
 @UseInterceptors(TenantInterceptor)
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(
+    private readonly inventoryService: InventoryService,
+    private readonly fileProcessingService: FileProcessingService,
+    private readonly auditService: AuditService,
+  ) {}
 
   @Get('dashboard')
   async getDashboard(@Req() request: RequestWithTenant) {
@@ -76,6 +87,96 @@ export class InventoryController {
       tenantId,
       message: 'Inventory item deleted',
     };
+  }
+
+  @Post('items/import')
+  @UseInterceptors(FileInterceptor('file'))
+  async importItems(
+    @Req() request: RequestWithTenant,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const { tenantId } = request.tenantContext;
+    if (!file) {
+      return { success: false, message: 'No file uploaded' };
+    }
+
+    let result;
+    if (file.originalname.endsWith('.csv')) {
+      result = await this.fileProcessingService.parseCsv(file.buffer, ImportItemDto);
+    } else {
+      result = await this.fileProcessingService.parseExcel(file.buffer, ImportItemDto);
+    }
+
+    if (result.errors.length > 0) {
+      return { success: false, message: 'Validation failed', errors: result.errors };
+    }
+
+    const imported = await this.inventoryService.batchCreateItems(tenantId, result.data);
+
+    await this.auditService.log({
+      tenantId,
+      userId: request.tenantContext.userId || 'system',
+      module: 'INVENTORY',
+      action: 'IMPORT',
+      entityType: 'ITEM',
+      entityId: 'BATCH',
+      metadata: {
+        filename: file.originalname,
+        count: imported.length,
+        traceId: uuidv4(),
+      },
+    });
+
+    return {
+      success: true,
+      tenantId,
+      message: `${imported.length} items imported successfully`,
+      data: imported,
+    };
+  }
+
+  @Get('items/export')
+  async exportItems(
+    @Req() request: RequestWithTenant, 
+    @Res() res: Response,
+    @Query('watermarkText') watermarkText?: string,
+    @Query('wmX') wmX?: string,
+    @Query('wmY') wmY?: string,
+  ) {
+    const { tenantId } = request.tenantContext;
+    const items = await this.inventoryService.getItems(tenantId);
+    
+    const traceId = uuidv4();
+    const buffer = await this.fileProcessingService.generateExcel(items, [
+      { header: 'SKU', key: 'sku', width: 20 },
+      { header: 'Name', key: 'name', width: 40 },
+      { header: 'Category', key: 'category', width: 20 },
+      { header: 'UOM', key: 'uom', width: 10 },
+      { header: 'Active', key: 'active', width: 10 },
+    ], {
+      traceId,
+      watermark: watermarkText ? {
+        text: watermarkText,
+        position: { x: parseInt(wmX || '1'), y: parseInt(wmY || '1') }
+      } : undefined
+    });
+
+    await this.auditService.log({
+      tenantId,
+      userId: request.tenantContext.userId || 'system',
+      module: 'INVENTORY',
+      action: 'EXPORT',
+      entityType: 'ITEM',
+      entityId: 'BATCH',
+      metadata: {
+        traceId,
+        watermark: watermarkText,
+      },
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=inventory_export_${tenantId}.xlsx`);
+    res.send(buffer);
   }
 
   @Get('balances')
