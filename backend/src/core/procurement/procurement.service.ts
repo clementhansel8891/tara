@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { CreateRequisitionDto } from './dto/create-requisition.dto';
-import { CreateSupplierDto } from './dto/create-supplier.dto';
-import { ReleasePoDto } from './dto/release-po.dto';
-import { IProcurementRepository } from './repositories/procurement.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { CreateRequisitionDto } from "./dto/create-requisition.dto";
+import { CreateSupplierDto } from "./dto/create-supplier.dto";
+import { ReleasePoDto } from "./dto/release-po.dto";
+import { IProcurementRepository } from "./repositories/procurement.repository.interface";
 
 @Injectable()
 export class ProcurementService {
@@ -72,4 +72,3 @@ export class ProcurementService {
     return this.repository.getSpendInsights(tenantId);
   }
 }
-

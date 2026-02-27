@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class CreateLeadDto {
   @IsString()
@@ -19,7 +26,7 @@ export class CreateLeadDto {
 
   @IsString()
   @IsOptional()
-  source?: 'marketing' | 'referral' | 'inbound' | 'outbound' | 'partner';
+  source?: "marketing" | "referral" | "inbound" | "outbound" | "partner";
 
   @IsNumber()
   @Min(0)
@@ -27,9 +34,9 @@ export class CreateLeadDto {
 
   @IsString()
   @IsOptional()
-  currency?: 'IDR' | 'USD';
+  currency?: "IDR" | "USD";
 
   @IsString()
   @IsOptional()
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  priority?: "low" | "medium" | "high" | "urgent";
 }

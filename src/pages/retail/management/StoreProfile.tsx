@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import {
   Store,
   MapPin,
@@ -13,12 +12,20 @@ import {
   Lock,
   Globe,
   Building2,
-  ChevronRight,
   Save,
-  Trash2,
   RefreshCw,
   Plus,
-  CheckCircle2,
+  BarChart3,
+  Activity,
+  Zap,
+  Layout,
+  HardDrive,
+  UserCheck,
+  PackageCheck,
+  Signal,
+  ArrowRight,
+  Monitor,
+  ShieldAlert,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,19 +36,17 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@/core/security/session";
 import { retailService } from "@/core/services/retail/retailService";
-import type { RetailStore, RetailStoreType } from "@/core/types/retail/retail";
+import type { RetailStore } from "@/core/types/retail/retail";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { useRetail } from "../context/RetailContext";
+import { Progress } from "@/components/ui/progress";
 import { RegisterStoreDialog } from "./modals/RegisterStoreDialog";
 import { cn } from "@/lib/utils";
 
@@ -50,11 +55,8 @@ const StoreProfile = () => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [stores, setStores] = useState<RetailStore[]>([]);
-  const [selectedStore, setSelectedStore] = useState<RetailStore | null>(null);
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const { activeStore } = useRetail();
-  const activeStoreId = activeStore?.id;
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("all_stores");
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -62,22 +64,45 @@ const StoreProfile = () => {
       try {
         const data = await retailService.listStores(session.tenantId!, session);
         setStores(data);
-
-        // Priority: Active Store from Context > First Store in List
-        if (activeStore) {
-          const match = data.find((s) => s.id === activeStore.id);
-          if (match) setSelectedStore(match);
-          else if (data.length > 0) setSelectedStore(data[0]);
-        } else if (data.length > 0) {
-          setSelectedStore(data[0]);
-        }
       } catch (error) {
         console.error("Failed to fetch stores", error);
       }
     };
     fetchStores();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenantId, activeStoreId]);
+  }, [session.tenantId, session]);
+
+  const selectedStore = useMemo(() => {
+    if (selectedStoreId === "all_stores") return null;
+    return stores.find((s) => s.id === selectedStoreId) || null;
+  }, [selectedStoreId, stores]);
+
+  const stats = useMemo(() => {
+    const active = stores.filter((s) => s.status === "active").length;
+    const flagshipCount = stores.filter((s) => s.type === "flagship").length;
+    const totalArea = stores.length * 1250; // Mocked
+    return { active, flagshipCount, totalArea };
+  }, [stores]);
+
+  const handleUpdate = (updatedStore: RetailStore) => {
+    setStores((prev) =>
+      prev.map((s) => (s.id === updatedStore.id ? updatedStore : s)),
+    );
+  };
+
+  const handleDecommission = () => {
+    if (!selectedStore) return;
+    if (
+      !confirm(
+        `Permanently decommission ${selectedStore.name}? This cannot be undone.`,
+      )
+    )
+      return;
+    toast({
+      title: "Decommission Initiated",
+      description: `${selectedStore.name} has been flagged for operational freeze. IT review required.`,
+      variant: "destructive",
+    });
+  };
 
   const handleSave = async () => {
     if (!selectedStore) return;
@@ -89,13 +114,13 @@ const StoreProfile = () => {
         selectedStore,
       );
       toast({
-        title: "Profile Updated",
-        description: "Store metadata and compliance settings synchronized.",
+        title: "Node Synchronized",
+        description: `Configuration parameters for ${selectedStore.name} updated globally.`,
       });
     } catch (e) {
       toast({
-        title: "Error",
-        description: "Failed to update store.",
+        title: "Handshake Failed",
+        description: "Consistency check failed during persistence.",
         variant: "destructive",
       });
     } finally {
@@ -103,591 +128,727 @@ const StoreProfile = () => {
     }
   };
 
-  const handleRegisterSuccess = (created: RetailStore) => {
-    setStores((prev) => [...prev, created]);
-    setSelectedStore(created);
-    toast({
-      title: "Store Registered",
-      description: `${created.name} is now active in your tenant.`,
-    });
-  };
-
-  const handleDecommission = async () => {
-    if (!selectedStore) return;
-    if (
-      !confirm(
-        "CRITICAL WARNING: This will immediately freeze all POS operations and invalidate fiscal connectivity for this store. Authorize decommissioning?",
-      )
-    )
-      return;
-
-    try {
-      await retailService.deleteStore(
-        session.tenantId!,
-        session,
-        selectedStore.id,
-      );
-      const remaining = stores.filter((s) => s.id !== selectedStore.id);
-      setStores(remaining);
-      setSelectedStore(remaining[0] || null);
-      toast({
-        title: "Decommissioning Protocol Started",
-        description:
-          "Fiscal bridge disconnected. Store status moved to TERMINATED.",
-        variant: "destructive",
-      });
-    } catch (e) {
-      toast({
-        title: "Error",
-        description: "Failed to decommission store.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Store Profile & Configuration"
-        subtitle="Manage store identity, legal entity mapping, and operational security."
-      />
-
-      <WorkspacePanel>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8 relative">
-            {!selectedStore && (
-              <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[1px] rounded-3xl flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-slate-300 mr-2">
-                <Store className="w-16 h-16 text-slate-300 mb-6" />
-                <h3 className="text-2xl font-black italic text-slate-700 uppercase tracking-tighter">
-                  No Branch Selected
-                </h3>
-                <p className="text-sm font-medium text-slate-500 max-w-sm mb-6 mt-2">
-                  The profile configuration is currently locked. Please select
-                  an existing branch from the Store Registry on the right, or
-                  click "Register New" to create your first branch.
-                </p>
-              </div>
-            )}
-            <Card
-              className={cn(
-                "shadow-xl border-slate-200 rounded-3xl overflow-hidden text-left",
-                !selectedStore && "opacity-50 pointer-events-none",
-              )}
-            >
-              <CardHeader className="bg-slate-900 text-white p-6">
-                <CardTitle className="flex items-center gap-2 text-xl font-black italic tracking-tighter">
-                  <Building2 className="w-6 h-6 text-blue-400" />
-                  BRANCH IDENTITY
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Store Name
-                    </Label>
-                    <Input
-                      value={selectedStore?.name || ""}
-                      onChange={(e) =>
-                        setSelectedStore((prev) =>
-                          prev ? { ...prev, name: e.target.value } : null,
-                        )
-                      }
-                      className="h-12 font-bold italic border-slate-200 focus:border-blue-500 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Store Type
-                    </Label>
-                    <select
-                      value={selectedStore?.type || "flagship"}
-                      onChange={(e) =>
-                        setSelectedStore((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                type: e.target.value as RetailStoreType,
-                              }
-                            : null,
-                        )
-                      }
-                      className="w-full h-12 rounded-xl border border-slate-200 px-3 font-bold italic text-sm bg-white"
-                    >
-                      <option value="flagship">Flagship</option>
-                      <option value="express">Express</option>
-                      <option value="kiosk">Kiosk</option>
-                      <option value="pop-up">Pop-Up</option>
-                    </select>
-                  </div>
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      {/* Header Context Switcher */}
+      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between gap-6">
+        <PageHeader
+          title={selectedStore ? selectedStore.name : "Fleet Intelligence"}
+          subtitle={
+            selectedStore
+              ? `Operational Node: ${selectedStore.code} • ${selectedStore.type?.toUpperCase() || "STOREFRONT"}`
+              : `Consolidated Management Hub • ${stores.length} Nodes Active`
+          }
+        />
+        <div className="flex items-center gap-3">
+          <Select value={selectedStoreId} onValueChange={setSelectedStoreId}>
+            <SelectTrigger className="w-[320px] h-12 rounded-2xl border-slate-200 bg-slate-50 font-black italic text-sm shadow-sm hover:bg-white transition-all ring-offset-white focus:ring-4 focus:ring-blue-500/10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl border-slate-200 shadow-2xl p-2">
+              <SelectItem
+                value="all_stores"
+                className="font-black italic py-3 cursor-pointer rounded-xl"
+              >
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Globe className="w-4 h-4" /> GLOBAL FLEET VIEW
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Store Global ID
-                    </Label>
-                    <div className="relative">
-                      <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input
-                        defaultValue="ZVX-RE-JKT-001"
-                        disabled
-                        className="h-12 pl-12 font-mono text-xs bg-slate-50 border-slate-200 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Tax ID (NPWP)
-                    </Label>
-                    <Input
-                      defaultValue="01.234.567.8-901.000"
-                      className="h-12 font-mono text-xs border-slate-200 focus:border-blue-500 rounded-xl"
+              </SelectItem>
+              <Separator className="my-2" />
+              {stores.map((s) => (
+                <SelectItem
+                  key={s.id}
+                  value={s.id}
+                  className="font-bold italic py-3 cursor-pointer rounded-xl"
+                >
+                  <div className="flex items-center gap-2 text-left">
+                    <div
+                      className={cn(
+                        "w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm",
+                        s.status === "active"
+                          ? "bg-emerald-500"
+                          : "bg-slate-300",
+                      )}
                     />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    Physical Address
-                  </Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
-                    <Input
-                      value={selectedStore?.address || ""}
-                      onChange={(e) =>
-                        setSelectedStore((prev) =>
-                          prev ? { ...prev, address: e.target.value } : null,
-                        )
-                      }
-                      className="h-12 pl-12 font-bold italic border-slate-200 focus:border-blue-500 rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Phone
-                    </Label>
-                    <Input
-                      value={selectedStore?.phone || ""}
-                      onChange={(e) =>
-                        setSelectedStore((prev) =>
-                          prev ? { ...prev, phone: e.target.value } : null,
-                        )
-                      }
-                      className="h-12 font-bold border-slate-200 rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      Email
-                    </Label>
-                    <Input
-                      value={selectedStore?.email || ""}
-                      onChange={(e) =>
-                        setSelectedStore((prev) =>
-                          prev ? { ...prev, email: e.target.value } : null,
-                        )
-                      }
-                      className="h-12 font-bold border-slate-200 rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <Badge className="bg-blue-600 font-black italic px-4 py-1">
-                    HYBRID_BRANCH
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="border-slate-300 text-slate-500 font-black italic px-4 py-1"
-                  >
-                    VAT_REGISTERED
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden">
-              <CardHeader className="bg-slate-50 border-b p-6">
-                <CardTitle className="flex items-center gap-2 text-sm font-black italic uppercase tracking-widest text-slate-500">
-                  <Clock className="w-5 h-5 text-indigo-600" />
-                  Operational Schedule
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-4">
-                {[
-                  {
-                    day: "Weekday Schedule",
-                    time: "09:00 - 22:00",
-                    active: true,
-                  },
-                  {
-                    day: "Weekend Schedule",
-                    time: "10:00 - 23:00",
-                    active: true,
-                  },
-                  {
-                    day: "Public Holidays",
-                    time: "12:00 - 20:00",
-                    active: false,
-                  },
-                ].map((sched, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all"
-                  >
-                    <span className="text-sm font-black italic text-slate-700">
-                      {sched.day}
-                    </span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-mono font-bold text-slate-500 bg-white px-3 py-1 rounded-lg border">
-                        {sched.time}
+                    <div className="flex flex-col">
+                      <span>{s.name}</span>
+                      <span className="text-[9px] opacity-40 uppercase tracking-widest">
+                        {s.code}
                       </span>
-                      <div
-                        className={`w-2 h-2 rounded-full ${sched.active ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-slate-300"}`}
-                      />
                     </div>
                   </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <RegisterStoreDialog
+            onSuccess={(s) => {
+              setStores((p) => [...p, s]);
+              setSelectedStoreId(s.id);
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto bg-slate-50/50 p-8 lg:p-12">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <div className="flex items-center justify-between border-b pb-px mb-12">
+              <TabsList className="bg-transparent h-auto p-0 gap-16 rounded-none justify-start">
+                {[
+                  { id: "overview", label: "Metadata", icon: Layout },
+                  { id: "operations", label: "Capabilities", icon: Zap },
+                  {
+                    id: "inventory",
+                    label: "Logistics Hub",
+                    icon: PackageCheck,
+                  },
+                  {
+                    id: "infrastructure",
+                    label: "Hardware Grid",
+                    icon: Monitor,
+                  },
+                ].map((tab) => (
+                  <TabsTrigger
+                    key={tab.id}
+                    value={tab.id}
+                    className={cn(
+                      "data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-4 font-black italic uppercase tracking-[0.2em] text-[10px] pb-6 px-0 flex items-center gap-3 transition-all group",
+                      activeTab === tab.id
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-400 hover:text-slate-600",
+                    )}
+                  >
+                    <tab.icon className="w-4 h-4" /> {tab.label}
+                  </TabsTrigger>
                 ))}
-              </CardContent>
-            </Card>
+              </TabsList>
+              {selectedStore && (
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="h-11 px-8 rounded-2xl bg-slate-900 font-black italic uppercase tracking-widest text-[10px] gap-2 mb-4 shadow-xl hover:shadow-blue-900/10 transition-all active:scale-95"
+                >
+                  {isSaving ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 text-blue-400" />
+                  )}
+                  Push Global Sync
+                </Button>
+              )}
+            </div>
 
-            <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden mt-8">
-              <CardHeader className="bg-slate-50 border-b p-6">
-                <CardTitle className="flex items-center gap-2 text-sm font-black italic uppercase tracking-widest text-slate-500">
-                  <Globe className="w-5 h-5 text-indigo-600" />
-                  Store Specific Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <Tabs defaultValue="general" className="w-full">
-                  <TabsList className="mb-6">
-                    <TabsTrigger
-                      value="general"
-                      className="font-bold italic text-xs uppercase"
-                    >
-                      General Rules
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="inventory"
-                      className="font-bold italic text-xs uppercase"
-                    >
-                      Inventory Mapping
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="tax"
-                      className="font-bold italic text-xs uppercase"
-                    >
-                      Tax & Compliance
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="general" className="space-y-6">
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100">
+            <TabsContent
+              value="overview"
+              className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              {!selectedStore ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  <Card className="rounded-[2.5rem] p-8 border-none shadow-2xl bg-slate-900 text-white relative overflow-hidden group">
+                    <Globe className="absolute -right-8 -bottom-8 w-48 h-48 opacity-10 group-hover:scale-110 transition-transform duration-700" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-8 italic">
+                        Fleet Coverage
+                      </div>
                       <div>
-                        <div className="text-sm font-black italic">
-                          Auto-Generate Receipt
+                        <div className="text-6xl font-black italic tracking-tighter mb-2">
+                          {stores.length}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                          Generate PDF immediately after payment
+                        <div className="text-sm font-black italic text-slate-400">
+                          Nodes Active
                         </div>
                       </div>
-                      <Switch
-                        checked={
-                          (selectedStore?.settings?.autoReceipt as boolean) ||
-                          false
-                        }
-                        onCheckedChange={(checked) =>
-                          setSelectedStore((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  settings: {
-                                    ...prev.settings,
-                                    autoReceipt: checked,
-                                  },
-                                }
-                              : null,
-                          )
-                        }
-                      />
                     </div>
+                  </Card>
 
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100">
-                      <div>
-                        <div className="text-sm font-black italic">
-                          Restricted Returns
+                  <Card className="rounded-[2.5rem] p-8 bg-white border-slate-200 shadow-xl relative overflow-hidden group">
+                    <Activity className="absolute -right-8 -bottom-8 w-48 h-48 opacity-5 text-blue-600 group-hover:rotate-12 transition-transform duration-700" />
+                    <div className="relative z-10">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 italic">
+                        Personnel Density
+                      </div>
+                      <div className="text-6xl font-black italic tracking-tighter text-slate-900 mb-2">
+                        184
+                      </div>
+                      <div className="text-sm font-black italic text-emerald-600">
+                        Optimal Coverage
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="rounded-[2.5rem] p-8 bg-white border-slate-200 shadow-xl relative overflow-hidden group">
+                    <Building2 className="absolute -right-8 -bottom-8 w-48 h-48 opacity-5 text-blue-600 group-hover:translate-x-4 transition-transform duration-700" />
+                    <div className="relative z-10">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-8 italic">
+                        Physical Footprint
+                      </div>
+                      <div className="text-4xl font-black italic tracking-tighter text-slate-900 mb-2">
+                        {stats.totalArea.toLocaleString()} m²
+                      </div>
+                      <div className="text-sm font-black italic text-slate-400 uppercase tracking-widest">
+                        Premium Retail Space
+                      </div>
+                    </div>
+                  </Card>
+
+                  <Card className="rounded-[2.5rem] p-8 bg-emerald-600 text-white shadow-2xl relative overflow-hidden group cursor-pointer hover:bg-emerald-700 transition-all">
+                    <ShieldCheck className="absolute -right-8 -bottom-8 w-48 h-48 opacity-20" />
+                    <div className="relative z-10 flex flex-col justify-between h-full">
+                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-8 italic">
+                        Security Integrity
+                      </div>
+                      <div className="text-4xl font-black italic tracking-tighter mb-2">
+                        CERTIFIED
+                      </div>
+                      <div className="text-xs font-black italic opacity-60 flex items-center gap-2">
+                        <Signal className="w-3 h-3 text-white animate-pulse" />{" "}
+                        100% Biometric Sync
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                  <div className="lg:col-span-8 space-y-12">
+                    <Card className="rounded-[2.5rem] p-10 bg-white border-slate-200 shadow-xl">
+                      <div className="flex items-center gap-3 mb-10">
+                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                          <Fingerprint className="w-6 h-6" />
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                          Only allow returns within 7 days
+                        <h3 className="text-lg font-black italic uppercase tracking-widest text-slate-900">
+                          Core Identity Module
+                        </h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-3">
+                          <Label
+                            htmlFor="store-name"
+                            className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic ml-1"
+                          >
+                            Branch Nomenclature
+                          </Label>
+                          <Input
+                            id="store-name"
+                            placeholder="e.g., Central Plaza Store"
+                            aria-label="Branch name"
+                            value={selectedStore.name}
+                            onChange={(e) =>
+                              handleUpdate({
+                                ...selectedStore,
+                                name: e.target.value,
+                              })
+                            }
+                            className="h-14 lg:h-16 text-xl font-black italic border-slate-200 rounded-2xl bg-white shadow-sm ring-offset-white focus:ring-4 focus:ring-blue-500/10 transition-all"
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic ml-1">
+                            Unique Identifier [Immutable]
+                          </Label>
+                          <div className="h-14 lg:h-16 flex items-center px-6 bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 font-black italic uppercase tracking-widest">
+                            {selectedStore.code}
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 space-y-3">
+                          <Label
+                            htmlFor="geo-distribution-point"
+                            className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic ml-1"
+                          >
+                            Geospatial Distribution Point
+                          </Label>
+                          <textarea
+                            id="geo-distribution-point"
+                            placeholder="Enter the geospatial distribution address..."
+                            value={selectedStore.address || ""}
+                            onChange={(e) =>
+                              handleUpdate({
+                                ...selectedStore,
+                                address: e.target.value,
+                              })
+                            }
+                            className="w-full min-h-[140px] p-6 lg:p-8 font-bold italic border border-slate-200 rounded-[2rem] bg-white shadow-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                          />
                         </div>
                       </div>
-                      <Switch
-                        checked={
-                          (selectedStore?.settings
-                            ?.restrictedReturns as boolean) || false
-                        }
-                        onCheckedChange={(checked) =>
-                          setSelectedStore((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  settings: {
-                                    ...prev.settings,
-                                    restrictedReturns: checked,
-                                  },
-                                }
-                              : null,
-                          )
-                        }
-                      />
-                    </div>
-                  </TabsContent>
+                    </Card>
 
-                  <TabsContent value="inventory" className="space-y-4">
-                    <div className="space-y-4">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        Available Categories
-                      </Label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {[
-                          "Apparel",
-                          "Footwear",
-                          "Accessories",
-                          "Electronics",
-                          "Home & Garden",
-                          "Beauty",
-                        ].map((cat) => {
-                          const visibleCategories =
-                            (selectedStore?.settings
-                              ?.visibleCategories as string[]) || [];
-                          const isSelected = visibleCategories.includes(cat);
-                          return (
-                            <div
-                              key={cat}
-                              onClick={() => {
-                                if (!selectedStore) return;
-                                const current =
-                                  (selectedStore?.settings
-                                    ?.visibleCategories as string[]) || [];
-                                const updated = isSelected
-                                  ? current.filter((c: string) => c !== cat)
-                                  : [...current, cat];
-                                setSelectedStore({
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <Card className="rounded-[2.5rem] p-10 bg-white border-slate-200 shadow-xl">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic mb-8">
+                          Communication Vector
+                        </h4>
+                        <div className="space-y-6">
+                          <div className="relative group">
+                            <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                            <Input
+                              aria-label="Store hotline"
+                              placeholder="+62 812 3456 7890"
+                              title="Store phone number"
+                              value={selectedStore.phone || ""}
+                              onChange={(e) =>
+                                handleUpdate({
                                   ...selectedStore,
-                                  settings: {
-                                    ...(selectedStore.settings || {}),
-                                    visibleCategories: updated,
-                                  },
-                                });
-                              }}
-                              className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? "border-indigo-600 bg-indigo-50/50 text-indigo-900 shadow-sm" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"}`}
-                            >
-                              <span className="text-xs font-bold italic tracking-tight">
-                                {cat}
+                                  phone: e.target.value,
+                                })
+                              }
+                              className="h-14 pl-16 rounded-2xl border-slate-200 font-bold italic"
+                            />
+                          </div>
+                          <div className="relative group">
+                            <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                            <Input
+                              aria-label="Store contact email"
+                              placeholder="store@example.com"
+                              title="Store contact email"
+                              value={selectedStore.email || ""}
+                              onChange={(e) =>
+                                handleUpdate({
+                                  ...selectedStore,
+                                  email: e.target.value,
+                                })
+                              }
+                              className="h-14 pl-16 rounded-2xl border-slate-200 font-bold italic"
+                            />
+                          </div>
+                        </div>
+                      </Card>
+
+                      <Card className="rounded-[2.5rem] p-10 bg-slate-900 border-none shadow-2xl relative overflow-hidden group">
+                        <Building2 className="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 text-white" />
+                        <div className="relative z-10">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-400 italic mb-10">
+                            Operational Spec
+                          </h4>
+                          <div className="space-y-8">
+                            <div className="flex justify-between items-end border-b border-white/5 pb-4">
+                              <span className="text-[10px] font-black text-slate-400 uppercase">
+                                Gross Area
                               </span>
-                              <div
-                                className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-300"}`}
-                              >
-                                {isSelected && (
-                                  <CheckCircle2 className="w-3 h-3" />
-                                )}
+                              <span className="text-xl font-black italic text-white tracking-tighter">
+                                1,240 m²
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-end border-b border-white/5 pb-4">
+                              <span className="text-[10px] font-black text-slate-400 uppercase">
+                                Ceiling Height
+                              </span>
+                              <span className="text-xl font-black italic text-white tracking-tighter">
+                                4.5 m
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-end">
+                              <span className="text-[10px] font-black text-slate-400 uppercase">
+                                Loading Dock
+                              </span>
+                              <Badge className="bg-emerald-500/20 text-emerald-400 border-none font-black italic text-[8px] uppercase">
+                                EQUIPPED
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-4 space-y-12">
+                    <Card className="rounded-[2.5rem] p-10 bg-blue-600 text-white shadow-2xl relative overflow-hidden group cursor-pointer hover:bg-blue-700 transition-all">
+                      <MapPin className="absolute -right-12 -top-12 w-64 h-64 opacity-10 group-hover:scale-110 transition-transform duration-1000" />
+                      <div className="relative z-10 space-y-6">
+                        <div className="flex items-center justify-between">
+                          <Badge className="bg-white/10 font-bold italic text-[9px] border-none px-4">
+                            REGIONAL HUB
+                          </Badge>
+                          <Globe className="w-5 h-5 opacity-40" />
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="text-3xl font-black italic tracking-tighter uppercase leading-tight">
+                            Jakarta Alpha Sector
+                          </h4>
+                          <p className="text-xs font-bold opacity-60 leading-relaxed italic">
+                            Primary distribution node for the South Jakarta
+                            operational cluster.
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="w-full bg-white/10 border-white/20 text-white hover:bg-white hover:text-blue-600 font-black italic h-14 rounded-2xl text-[11px] uppercase tracking-widest group"
+                        >
+                          View Sector Map{" "}
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </div>
+                    </Card>
+
+                    <Card className="rounded-[2.5rem] p-10 bg-white border-slate-200 shadow-xl space-y-8">
+                      <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                        Personnel Roster
+                      </div>
+                      <div className="space-y-6">
+                        {[
+                          {
+                            name: "Hendrik Wijaya",
+                            role: "Store Manager",
+                            status: "online",
+                          },
+                          {
+                            name: "Siti Amelia",
+                            role: "Shift Supervisor",
+                            status: "online",
+                          },
+                          {
+                            name: "Budi Santoso",
+                            role: "Logistics Lead",
+                            status: "offline",
+                          },
+                        ].map((person, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black italic shadow-lg">
+                                {person.name.charAt(0)}
+                              </div>
+                              <div>
+                                <div className="text-sm font-black italic text-slate-900 group-hover:text-blue-600 transition-colors">
+                                  {person.name}
+                                </div>
+                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                  {person.role}
+                                </div>
                               </div>
                             </div>
-                          );
-                        })}
+                            <div
+                              className={cn(
+                                "w-2 h-2 rounded-full",
+                                person.status === "online"
+                                  ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                  : "bg-slate-300",
+                              )}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="tax" className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        Fiscal ID / NPWP
-                      </Label>
-                      <Input
-                        value={(selectedStore?.settings?.taxId as string) || ""}
-                        onChange={(e) =>
-                          setSelectedStore((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  settings: {
-                                    ...prev.settings,
-                                    taxId: e.target.value,
-                                  },
-                                }
-                              : null,
-                          )
-                        }
-                        placeholder="01.234.567.8-901.000"
-                        className="h-12 border-slate-200 rounded-xl font-mono text-xs"
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-8">
-            <Card className="bg-slate-900 text-white shadow-2xl rounded-3xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform">
-                <ShieldCheck className="w-24 h-24" />
-              </div>
-              <CardHeader className="p-8 pb-0">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 italic flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Compliance Vault
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-4">
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10 shadow-inner group cursor-pointer hover:bg-white/10 transition-all">
-                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">
-                      Store Fingerprint
-                    </div>
-                    <div className="text-sm font-mono flex items-center gap-2">
-                      sha256:JKT_9921_...88a
-                      <ChevronRight className="w-4 h-4 ml-auto text-slate-700" />
-                    </div>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10 shadow-inner group cursor-pointer hover:bg-white/10 transition-all">
-                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">
-                      Fiscal Connection
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      <span className="text-xs font-black italic uppercase tracking-tighter text-green-400">
-                        Direct Tax Interface
-                      </span>
-                    </div>
+                      <Button
+                        variant="ghost"
+                        className="w-full h-14 border-2 border-dashed border-slate-200 rounded-2xl font-black italic uppercase text-[9px] text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all"
+                      >
+                        Manage Full Roster
+                      </Button>
+                    </Card>
                   </div>
                 </div>
+              )}
+            </TabsContent>
 
-                <Separator className="bg-white/10" />
-
-                <div className="space-y-2">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    Authorized Officer
-                  </div>
+            <TabsContent
+              value="operations"
+              className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <Card className="rounded-[2.5rem] p-10 bg-white border-slate-200 shadow-xl space-y-8">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-black italic border-2 border-white/10">
-                      SA
-                    </div>
-                    <div>
-                      <div className="text-xs font-black italic">
-                        System Architect
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <h4 className="text-[10px] font-black uppercase tracking-widest italic">
+                      Temporal Grid
+                    </h4>
+                  </div>
+                  <div className="space-y-4">
+                    {[
+                      { day: "Mon-Fri", hours: "09:00 - 22:00", active: true },
+                      { day: "Saturday", hours: "08:00 - 23:00", active: true },
+                      { day: "Sunday", hours: "10:00 - 21:00", active: false },
+                    ].map((time, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-slate-50/50"
+                      >
+                        <span className="text-xs font-black italic text-slate-900">
+                          {time.day}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <code className="text-[10px] font-black bg-white px-3 py-1 rounded-lg border shadow-sm">
+                            {time.hours}
+                          </code>
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              time.active ? "bg-emerald-500" : "bg-red-500",
+                            )}
+                          />
+                        </div>
                       </div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter italic">
-                        Lvl 9 Clearance
+                    ))}
+                  </div>
+                  <Button className="w-full h-12 bg-slate-900 font-black italic uppercase text-[9px] tracking-widest rounded-xl">
+                    Adjust Operational Windows
+                  </Button>
+                </Card>
+
+                <Card className="rounded-[2.5rem] p-10 bg-white border-slate-200 shadow-xl space-y-8">
+                  <div className="flex items-center gap-3">
+                    <Monitor className="w-5 h-5 text-emerald-600" />
+                    <h4 className="text-[10px] font-black uppercase tracking-widest italic">
+                      Service Nodes
+                    </h4>
+                  </div>
+                  <div className="space-y-4">
+                    {[
+                      { label: "POS Clusters", value: 6, status: "stable" },
+                      {
+                        label: "Self-Checkout",
+                        value: 2,
+                        status: "restricted",
+                      },
+                      { label: "Weighing Scales", value: 4, status: "stable" },
+                      { label: "Mobile Scanners", value: 12, status: "stable" },
+                    ].map((node, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-4 rounded-xl border border-slate-50 bg-white shadow-sm"
+                      >
+                        <span className="text-xs font-black italic text-slate-600">
+                          {node.label}
+                        </span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm font-black italic">
+                            {node.value}
+                          </span>
+                          <Badge
+                            className={cn(
+                              "text-[8px] font-black italic border-none h-4",
+                              node.status === "stable"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-amber-50 text-amber-700",
+                            )}
+                          >
+                            {node.status.toUpperCase()}
+                          </Badge>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <Card className="rounded-[2.5rem] p-10 bg-slate-900 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                  <Activity className="absolute -right-8 -top-8 w-48 h-48 opacity-10 animate-pulse" />
+                  <div className="relative z-10">
+                    <Badge className="bg-emerald-600 font-black italic text-[9px] uppercase tracking-widest border-none px-4">
+                      Handshake Verified
+                    </Badge>
+                  </div>
+                  <div className="relative z-10 space-y-6">
+                    <h4 className="text-3xl font-black italic uppercase tracking-tighter">
+                      Latency Pulse
+                    </h4>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400">
+                        <span>Fleet Average</span>
+                        <span className="text-white">12 ms</span>
+                      </div>
+                      <Progress value={92} className="h-1 bg-white/10" />
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <Button className="relative z-10 h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white font-black italic uppercase text-[10px] tracking-widest rounded-2xl">
+                    Execute Node Diagnostics
+                  </Button>
+                </Card>
+              </div>
+            </TabsContent>
 
-            <Card className="shadow-lg border-indigo-100 rounded-3xl overflow-hidden">
-              <CardHeader className="p-6 pb-2">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-indigo-900 italic">
-                  Support & Escalation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-indigo-50 transition-all cursor-pointer">
-                    <Phone className="w-4 h-4 text-indigo-500" />
-                    <span className="text-xs font-bold italic tracking-tight text-slate-600">
-                      +62 21 555 0199
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-indigo-50 transition-all cursor-pointer">
-                    <Mail className="w-4 h-4 text-indigo-500" />
-                    <span className="text-xs font-bold italic tracking-tight text-slate-600">
-                      jakarta.hub@zenvix.io
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full h-10 rounded-xl text-[10px] font-black uppercase border-indigo-200 text-indigo-700 hover:bg-indigo-100 italic gap-2 transition-all"
-                >
-                  <Users className="w-4 h-4" /> Regional Contacts
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[2rem] border-slate-200 overflow-hidden shadow-xl">
-              <CardHeader className="bg-slate-50 border-b py-6">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500">
-                    Store Registry
-                  </CardTitle>
-                  <RegisterStoreDialog onSuccess={handleRegisterSuccess} />
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-slate-100">
-                  {stores.map((s) => (
-                    <div
-                      key={s.id}
-                      className={`p-6 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-50 ${selectedStore?.id === s.id ? "bg-blue-50 border-r-4 border-blue-600" : ""}`}
-                      onClick={() => setSelectedStore(s)}
-                    >
+            <TabsContent
+              value="inventory"
+              className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                  <Card className="rounded-[2.5rem] bg-white border-slate-200 shadow-xl overflow-hidden">
+                    <div className="p-10 border-b bg-slate-50/50 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div
-                          className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black italic text-[10px] ${selectedStore?.id === s.id ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"}`}
-                        >
-                          {s.code}
-                        </div>
-                        <div>
-                          <div className="text-sm font-black italic tracking-tight">
-                            {s.name}
+                        <PackageCheck className="w-6 h-6 text-blue-600" />
+                        <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-900">
+                          Inventory Distribution Channel
+                        </h3>
+                      </div>
+                      <Badge className="bg-blue-600 text-white font-black italic text-[9px] uppercase border-none px-4">
+                        Primary Flow
+                      </Badge>
+                    </div>
+                    <div className="p-10 space-y-10">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                            Inbound source
+                          </h4>
+                          <div className="space-y-4">
+                            <div className="text-xl font-black italic text-slate-900 uppercase">
+                              JKT-DC-ALPHA-01
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 italic leading-relaxed">
+                              Main distribution hub located in West Jakarta.
+                              Estimated lead time: 4.5 hours.
+                            </p>
+                            <Button
+                              variant="outline"
+                              className="w-full h-12 rounded-xl text-[9px] font-black italic uppercase tracking-widest border-slate-200"
+                            >
+                              Re-Route Source
+                            </Button>
                           </div>
-                          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                            {s.status}
+                        </div>
+                        <div className="p-8 rounded-[2rem] bg-blue-50 border border-blue-100 space-y-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-400 italic">
+                            Storage Capacity
+                          </h4>
+                          <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                              <span className="text-4xl font-black italic text-blue-900 tracking-tighter">
+                                84%
+                              </span>
+                              <span className="text-[10px] font-black text-blue-400 uppercase">
+                                Capacity Utilized
+                              </span>
+                            </div>
+                            <Progress
+                              value={84}
+                              className="h-2 bg-blue-200/50"
+                            />
+                            <p className="text-[10px] font-bold text-blue-600/60 italic leading-relaxed uppercase">
+                              Buffer threshold engaged. Auto-replenishment
+                              restricted.
+                            </p>
                           </div>
                         </div>
                       </div>
-                      <ChevronRight
-                        className={`w-4 h-4 ${selectedStore?.id === s.id ? "text-blue-600" : "text-slate-300"}`}
-                      />
+                      <div className="p-8 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex items-center justify-center">
+                        <Button
+                          variant="ghost"
+                          className="h-16 px-12 font-black italic uppercase text-[10px] tracking-widest text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all rounded-2xl gap-3"
+                        >
+                          <Plus className="w-4 h-4" /> Register Secondary Supply
+                          Path
+                        </Button>
+                      </div>
                     </div>
-                  ))}
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-8">
+                  <Card className="rounded-[2.5rem] p-10 bg-white shadow-xl space-y-8">
+                    <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                      Inventory Integrity Pulse
+                    </div>
+                    <div className="space-y-6">
+                      {[
+                        { label: "Audit Accuracy", value: 99.8, trend: "UP" },
+                        {
+                          label: "Cycle Count Progress",
+                          value: 65,
+                          trend: "STABLE",
+                        },
+                        { label: "Shrinkage Rate", value: 0.2, trend: "DOWN" },
+                      ].map((stat, i) => (
+                        <div key={i} className="space-y-2">
+                          <div className="flex justify-between items-center italic">
+                            <span className="text-[10px] font-black text-slate-500 uppercase">
+                              {stat.label}
+                            </span>
+                            <span className="text-sm font-black text-slate-900">
+                              {stat.value}%
+                            </span>
+                          </div>
+                          <Progress
+                            value={stat.value === 0.2 ? 98 : stat.value}
+                            className="h-1 bg-slate-100"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <Button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black italic uppercase tracking-widest rounded-2xl shadow-lg">
+                      Request Physical Audit
+                    </Button>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
 
-            <div className="flex flex-col gap-3">
-              <Button
-                className="w-full h-16 rounded-2xl bg-slate-900 hover:bg-slate-800 font-black italic uppercase tracking-widest shadow-2xl gap-3"
-                onClick={handleSave}
-                disabled={isSaving || !selectedStore}
-              >
-                {isSaving ? (
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Save className="w-6 h-6 text-blue-500" /> Save All Changes
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full h-12 rounded-2xl text-[10px] font-black uppercase text-red-500 hover:bg-red-50 italic gap-2"
-                onClick={handleDecommission}
-                disabled={!selectedStore}
-              >
-                <Trash2 className="w-4 h-4" /> Decommission Store
-              </Button>
+            <TabsContent
+              value="infrastructure"
+              className="mt-0 animate-in fade-in slide-in-from-bottom-4 duration-500"
+            >
+              <div className="p-32 rounded-[3.5rem] border-2 border-dashed border-slate-200 text-center bg-white shadow-inner flex flex-col items-center justify-center space-y-10 group">
+                <div className="relative">
+                  <div className="w-32 h-32 bg-slate-900 border-4 border-white rounded-[3rem] flex items-center justify-center shadow-[0_20px_40px_rgba(0,0,0,0.1)] group-hover:scale-110 transition-transform duration-500">
+                    <HardDrive className="w-14 h-14 text-blue-400" />
+                  </div>
+                  <div className="absolute -right-4 -top-4 w-12 h-12 bg-emerald-500 border-4 border-white rounded-2xl flex items-center justify-center">
+                    <Signal className="w-6 h-6 text-white animate-pulse" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-4xl font-black italic text-slate-900 tracking-tighter uppercase leading-tight">
+                    Branch Node Infrastructure
+                  </h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] max-w-sm mx-auto leading-loose italic">
+                    Real-time hardware topology mapping and peripheral control
+                    required specific node authentication.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <Button className="h-16 px-12 rounded-[2rem] bg-slate-900 font-black italic uppercase text-xs tracking-widest shadow-2xl hover:shadow-blue-900/10 active:scale-95 transition-all">
+                    Initialize Grid Scan
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-16 px-12 rounded-[2rem] border-2 border-slate-200 font-black italic uppercase text-xs tracking-widest hover:bg-slate-50 active:scale-95 transition-all"
+                  >
+                    Hardware Registry
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Danger Zone at the very bottom for selected store */}
+          {selectedStore && (
+            <div className="pt-24 border-t">
+              <div className="flex items-center gap-4 mb-10">
+                <Badge
+                  variant="destructive"
+                  className="font-black italic px-4 py-1 text-[10px] tracking-widest uppercase"
+                >
+                  Critical Operations
+                </Badge>
+                <Separator className="flex-1 opacity-20" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <Card className="rounded-[2.5rem] p-8 border-red-100 bg-red-50/20 flex items-center justify-between group overflow-hidden relative">
+                  <ShieldAlert className="absolute -right-4 -bottom-4 w-24 h-24 opacity-5 text-red-600 group-hover:scale-110 transition-transform" />
+                  <div className="relative z-10 text-left">
+                    <h4 className="text-sm font-black italic text-red-900 uppercase">
+                      Terminate Branch Node
+                    </h4>
+                    <p className="text-[10px] font-bold text-red-400 mt-1 uppercase tracking-tight italic">
+                      Permanent operational freeze for this location.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDecommission}
+                    className="relative z-10 h-12 px-8 rounded-xl font-black italic uppercase tracking-widest text-[9px] shadow-lg shadow-red-900/10"
+                  >
+                    Execute
+                  </Button>
+                </Card>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      </WorkspacePanel>
+      </div>
     </div>
   );
 };

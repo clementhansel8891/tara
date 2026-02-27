@@ -1,9 +1,14 @@
-import { Injectable, UnauthorizedException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../persistence/prisma.service';
-import { RetailGatewayService } from './retail-gateway.service';
-import { createHash, randomBytes } from 'crypto';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
+import { PrismaService } from "../../persistence/prisma.service";
+import { RetailGatewayService } from "./retail-gateway.service";
+import { createHash, randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 type ConnectorScope = {
   channelId: string;
@@ -26,8 +31,8 @@ export class RetailPublicAuthService {
   private readonly jwtSecret =
     process.env.RETAIL_AUTH_JWT_SECRET ||
     process.env.JWT_SECRET ||
-    'dev_retail_auth_secret';
-  private readonly accessTokenTtl = '15m';
+    "dev_retail_auth_secret";
+  private readonly accessTokenTtl = "15m";
   private readonly refreshTokenTtlDays = 30;
   private readonly maxLoginAttempts = 5;
   private readonly lockoutMinutes = 15;
@@ -48,14 +53,16 @@ export class RetailPublicAuthService {
       clientSecret,
     );
 
-    const credentials = channel.credentials as
-      | { branchId?: string; connector?: string; gatewayUrl?: string }
-      | null;
+    const credentials = channel.credentials as {
+      branchId?: string;
+      connector?: string;
+      gatewayUrl?: string;
+    } | null;
 
     return {
       channelId: channel.id,
       tenantId: channel.tenantId,
-      branchId: credentials?.branchId ?? 'branch_main',
+      branchId: credentials?.branchId ?? "branch_main",
       connector: credentials?.connector ?? channel.name ?? null,
       gatewayUrl: credentials?.gatewayUrl ?? null,
     };
@@ -71,14 +78,14 @@ export class RetailPublicAuthService {
     const passwordValue = payload.password.trim();
 
     if (passwordValue.length < 8) {
-      throw new ForbiddenException('Password must be at least 8 characters');
+      throw new ForbiddenException("Password must be at least 8 characters");
     }
 
     const existing = await this.prisma.retailCustomer.findFirst({
       where: { tenantId: tenantId, email: normalizedEmail },
     });
     if (existing) {
-      throw new ForbiddenException('Email already registered');
+      throw new ForbiddenException("Email already registered");
     }
 
     const customer = await this.prisma.retailCustomer.create({
@@ -87,8 +94,8 @@ export class RetailPublicAuthService {
         name: payload.name.trim(),
         email: normalizedEmail,
         phone: payload.phone?.trim() || null,
-        address: '',
-        tier: 'regular',
+        address: "",
+        tier: "regular",
         points: 0,
       },
     });
@@ -122,21 +129,26 @@ export class RetailPublicAuthService {
       where: { tenantId: tenantId, email: normalizedEmail },
     });
     if (!customer) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     const auth = await this.prisma.retailCustomerAuth.findUnique({
       where: { customerId: customer.id },
     });
     if (!auth) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     if (auth.lockedUntil && auth.lockedUntil > new Date()) {
-      throw new ForbiddenException('Account temporarily locked. Try again later.');
+      throw new ForbiddenException(
+        "Account temporarily locked. Try again later.",
+      );
     }
 
-    const passwordMatch = await bcrypt.compare(payload.password, auth.passwordHash);
+    const passwordMatch = await bcrypt.compare(
+      payload.password,
+      auth.passwordHash,
+    );
     if (!passwordMatch) {
       const nextAttempts = auth.failedAttempts + 1;
       const shouldLock = nextAttempts >= this.maxLoginAttempts;
@@ -150,7 +162,7 @@ export class RetailPublicAuthService {
             : null,
         },
       });
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException("Invalid credentials");
     }
 
     await this.prisma.retailCustomerAuth.update({
@@ -186,14 +198,14 @@ export class RetailPublicAuthService {
       },
     });
     if (!session) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const customer = await this.prisma.retailCustomer.findFirst({
       where: { id: session.customerId, tenantId: tenantId },
     });
     if (!customer) {
-      throw new UnauthorizedException('Invalid session');
+      throw new UnauthorizedException("Invalid session");
     }
 
     await this.prisma.retailCustomerSession.update({
@@ -227,7 +239,7 @@ export class RetailPublicAuthService {
       where: { id: payload.sub, tenantId: payload.tenantId },
     });
     if (!customer) {
-      throw new NotFoundException('Customer not found');
+      throw new NotFoundException("Customer not found");
     }
     return customer;
   }
@@ -243,13 +255,13 @@ export class RetailPublicAuthService {
         tenantId: customer.tenantId,
         connectorId: scope.channelId,
         branchId: scope.branchId,
-        scope: 'retail.public',
+        scope: "retail.public",
       },
       this.jwtSecret,
       { expiresIn: this.accessTokenTtl },
     );
 
-    const refreshToken = randomBytes(48).toString('hex');
+    const refreshToken = randomBytes(48).toString("hex");
     const refreshHash = this.hashToken(refreshToken);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + this.refreshTokenTtlDays);
@@ -281,6 +293,6 @@ export class RetailPublicAuthService {
   }
 
   private hashToken(token: string) {
-    return createHash('sha256').update(token).digest('hex');
+    return createHash("sha256").update(token).digest("hex");
   }
 }

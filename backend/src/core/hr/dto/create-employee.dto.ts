@@ -1,17 +1,26 @@
-import { IsString, IsNotEmpty, IsEmail, IsEnum, IsOptional, IsNumber, Min, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  Min,
+  IsDateString,
+} from "class-validator";
 
 export enum EmploymentStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  TERMINATED = 'terminated',
-  ON_LEAVE = 'on_leave',
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  TERMINATED = "terminated",
+  ON_LEAVE = "on_leave",
 }
 
 export enum EmploymentType {
-  FULL_TIME = 'full_time',
-  PART_TIME = 'part_time',
-  CONTRACTOR = 'contractor',
-  INTERN = 'intern',
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+  CONTRACTOR = "contractor",
+  INTERN = "intern",
 }
 
 /**

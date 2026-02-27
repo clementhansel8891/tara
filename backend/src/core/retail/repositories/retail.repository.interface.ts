@@ -90,7 +90,22 @@ export abstract class IRetailRepository {
   // ============================================================
   // PRODUCTS
   // ============================================================
-  abstract listProducts(tenantId: string): Promise<RetailProduct[]>;
+  abstract listProducts(
+    tenantId: string,
+    options?: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string;
+      q?: string;
+      sortBy?: "name" | "price" | "createdAt";
+      sortDir?: "asc" | "desc";
+    },
+  ): Promise<{
+    items: RetailProduct[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }>;
   abstract getProduct(
     tenantId: string,
     productId: string,
@@ -136,6 +151,24 @@ export abstract class IRetailRepository {
     tenantId: string,
     productId: string,
   ): Promise<{ available: number; status: string }>;
+
+  abstract getInventoryStats(
+    tenantId: string,
+    options?: { categoryId?: string; q?: string },
+  ): Promise<{
+    total: number;
+    critical: number;
+    lowStock: number;
+    overstock: number;
+    outOfStock: number;
+    totalSOH: number;
+    totalATS: number;
+    // User requested fields:
+    totalItems: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+    totalValue: number;
+  }>;
 
   // ============================================================
   // SHIFTS

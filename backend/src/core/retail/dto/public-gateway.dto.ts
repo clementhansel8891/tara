@@ -1,5 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, ValidateNested, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  ValidateNested,
+  IsNumber,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 // --- Product Enrichment DTOs ---
 
@@ -50,7 +58,7 @@ export class ProductDeepDiveDto {
   prices: MultiCurrencyPriceDto[];
   variants: ProductVariantDto[];
   seo?: SEOMetadataDto;
-  stockLevel: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
+  stockLevel: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
 }
 
 // --- Category DTOs ---
@@ -73,9 +81,9 @@ export class PromotionDto {
   id: string;
   code: string;
   label: string;
-  discountType: 'PERCENT' | 'FIXED';
+  discountType: "PERCENT" | "FIXED";
   value: number;
-  scope: 'GLOBAL' | 'CATEGORY';
+  scope: "GLOBAL" | "CATEGORY";
 }
 
 // --- Existing DTO Updates ---
@@ -131,13 +139,13 @@ export class RetailPublicOrderRequestDto {
   @IsString()
   paymentMethod?: string;
 
-  @IsEnum(['PAID', 'PENDING'])
-  paymentStatus: 'PAID' | 'PENDING';
+  @IsEnum(["PAID", "PENDING"])
+  paymentStatus: "PAID" | "PENDING";
 }
 
 export class PublicOrderResponseDto {
   orderId: string;
-  status: 'RECEIVED' | 'RESERVED' | 'PROCESSING' | 'REJECTED';
+  status: "RECEIVED" | "RESERVED" | "PROCESSING" | "REJECTED";
   reservationTimeout?: string;
   totals: {
     subtotal: number;

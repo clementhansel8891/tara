@@ -1,11 +1,17 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+} from "class-validator";
 
 export enum DeviceType {
-  POS = 'pos',
-  BIOMETRIC = 'biometric',
-  PRINTER = 'printer',
-  SCANNER = 'scanner',
-  TERMINAL = 'terminal',
+  POS = "pos",
+  BIOMETRIC = "biometric",
+  PRINTER = "printer",
+  SCANNER = "scanner",
+  TERMINAL = "terminal",
 }
 
 export class RegisterDeviceDto {

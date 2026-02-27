@@ -3,9 +3,15 @@ export class MarketingAuditEvent {
   tenantId: string;
   actorId: string;
   action: string;
-  entityType: 'campaign' | 'execution' | 'lead' | 'workflow' | 'account' | 'attribution' | 'alert';
+  entityType:
+    | "campaign"
+    | "execution"
+    | "lead"
+    | "workflow"
+    | "account"
+    | "attribution"
+    | "alert";
   entityId: string;
   detail: string;
   createdAt: Date;
 }
-

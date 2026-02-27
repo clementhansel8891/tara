@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateAdjustmentDto {
   @IsString()
@@ -24,4 +24,3 @@ export class CreateAdjustmentDto {
   @IsOptional()
   requestedBy?: string;
 }
-

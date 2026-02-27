@@ -3,7 +3,7 @@ export class PaymentSettlement {
   tenantId: string;
   paymentId: string;
   providerReference: string;
-  status: 'pending' | 'confirmed' | 'failed';
+  status: "pending" | "confirmed" | "failed";
   confirmedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -26,16 +26,15 @@ export class PaymentAuditEvent {
   actorId: string;
   action: string;
   entityType:
-    | 'transaction'
-    | 'refund'
-    | 'dispute'
-    | 'chargeback'
-    | 'settlement'
-    | 'routing'
-    | 'device'
-    | 'evidence';
+    | "transaction"
+    | "refund"
+    | "dispute"
+    | "chargeback"
+    | "settlement"
+    | "routing"
+    | "device"
+    | "evidence";
   entityId: string;
   detail: string;
   createdAt: Date;
 }
-

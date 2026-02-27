@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import {
   Users,
   UserPlus,
@@ -16,11 +15,11 @@ import {
   Filter,
   ShieldHalf,
   ExternalLink,
-  Save,
   Trash2,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTableShell } from "@/core/tools/DataTableShell";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -35,12 +34,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { hrService } from "@/core/services/hr/hrService";
 import { useSession } from "@/core/security/session";
-import { useRetail } from "../context/RetailContext";
 import type { Employee } from "@/core/types/hr/employee";
 
 const StaffAssignments = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [staff, setStaff] = useState<Employee[]>([]);
@@ -49,6 +46,7 @@ const StaffAssignments = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await hrService.listEmployees(
           session.tenantId,
           session,
@@ -81,7 +79,7 @@ const StaffAssignments = () => {
         title: "Access Revoked",
         description: "Security credentials have been purged from Zenvix Vault.",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to revoke access.",
@@ -98,6 +96,7 @@ const StaffAssignments = () => {
     });
   };
 
+  const activeCount = staff.filter((s) => s.status === "active").length;
   const filteredStaff = staff.filter(
     (s) =>
       s.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,357 +104,369 @@ const StaffAssignments = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Staff & Role Governance"
-        subtitle={`${activeStore?.name || activeChannel?.name || session.tenantId} • Unified Access Control • Permission Matrix`}
-      />
-
-      <WorkspacePanel>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-lg border-slate-200 hover:border-blue-200 transition-all border-l-4 border-l-blue-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-                  <Users className="w-5 h-5" />
-                </div>
-                <Badge className="bg-slate-100 text-slate-600 border-none font-black italic">
-                  TOTAL
-                </Badge>
-              </div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">
-                {staff.length}
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic flex items-center gap-1">
-                <UserCheck className="w-3 h-3" />{" "}
-                {staff.filter((s) => s.status === "active").length} Active
-                Personnel
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-slate-200 hover:border-indigo-200 transition-all border-l-4 border-l-indigo-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <Badge className="bg-indigo-100 text-indigo-700 border-none font-black italic text-[9px]">
-                  SECURED
-                </Badge>
-              </div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">
-                100%
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic tracking-tighter uppercase">
-                Biometric Sync Verified
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-slate-200 hover:border-amber-200 transition-all border-l-4 border-l-amber-500">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-amber-50 p-2 rounded-xl text-amber-600">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <Badge
-                  variant="destructive"
-                  className="border-none font-black italic text-[9px]"
-                >
-                  TEMP_ACCESS
-                </Badge>
-              </div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">
-                3 Active
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">
-                Supervisor Overrides Last 24h
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-lg border-slate-200 hover:border-emerald-200 transition-all border-l-4 border-l-emerald-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-emerald-50 p-2 rounded-xl text-emerald-600">
-                  <Activity className="w-5 h-5" />
-                </div>
-                <Badge className="bg-emerald-100 text-emerald-700 border-none font-black italic text-[9px]">
-                  RELIABLE
-                </Badge>
-              </div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">
-                98.2%
-              </div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">
-                Avg. Roster Adherence
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex items-center gap-4 mb-8 bg-slate-50 p-4 rounded-3xl border border-slate-200">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              className="pl-12 h-14 bg-white border-slate-200 rounded-2xl text-sm font-bold italic placeholder:text-slate-300 focus-visible:ring-blue-500 shadow-sm"
-              placeholder="Search Personnel, Role, or ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      {/* Header */}
+      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
+        <PageHeader
+          title="Staff & Access Governance"
+          subtitle={`${session.locationId || "GLOBAL"} • ${staff.length} Personnel • Workforce Access Control`}
+        />
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            className="h-14 px-6 rounded-2xl gap-2 font-black italic border-slate-200 hover:bg-slate-100"
-          >
-            <Filter className="w-4 h-4" /> Groups
-          </Button>
-          <Button
-            className="h-14 px-8 rounded-2xl gap-2 bg-slate-900 hover:bg-slate-800 font-black italic shadow-xl"
+            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
             onClick={handleProvision}
           >
-            <UserPlus className="w-5 h-5" /> Provision New
+            <UserPlus className="w-3.5 h-3.5" /> Provision New
           </Button>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <DataTableShell
-              title="Store Personnel Registry"
-              subtitle="Global access management for this location"
-            >
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                      Personnel
-                    </th>
-                    <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                      Role & Location
-                    </th>
-                    <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                      Security
-                    </th>
-                    <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                      Access Scope
-                    </th>
-                    <th className="px-6 py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                      Status
-                    </th>
-                    <th className="px-6 py-5"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {isLoading ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-20 text-center text-slate-400 font-black italic uppercase text-xs tracking-widest animate-pulse"
-                      >
-                        Syncing Personnel Data...
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredStaff.map((s, i) => (
-                      <tr
-                        key={i}
-                        className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
-                        onClick={() =>
-                          toast({
-                            title: "Personnel Profile",
-                            description: `Viewing clearance for ${s.fullName}`,
-                          })
-                        }
-                      >
-                        <td className="px-6 py-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black italic text-slate-400 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-all">
-                              {s.fullName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </div>
-                            <div className="font-black italic text-sm text-slate-900">
-                              {s.fullName}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="text-xs font-bold text-slate-600 italic leading-tight">
-                            {s.roleTitle}
-                          </div>
-                          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                            {s.location}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5">
-                          <Badge
-                            variant="outline"
-                            className="border-slate-300 text-slate-500 font-black italic px-3 uppercase"
-                          >
-                            {s.employmentType}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-5">
-                          <div className="flex gap-1 flex-wrap">
-                            {["RETAIL_CORE", "POS_EXEC"].map((acc, index) => (
-                              <Badge
-                                key={index}
-                                className="bg-blue-50 text-blue-600 border-none text-[8px] font-black italic"
-                              >
-                                {acc}
-                              </Badge>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <div
-                              className={`w-2 h-2 rounded-full ${s.status === "active" ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-slate-300"}`}
-                            />
-                            <span className="text-[10px] font-black italic uppercase text-slate-500">
-                              {s.status}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-slate-400 hover:text-slate-900 transition-all"
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="w-48 p-2 rounded-2xl border-slate-200 shadow-2xl"
-                            >
-                              <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
-                                <ShieldHalf className="w-4 h-4 text-blue-600" />{" "}
-                                Modify Permissions
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
-                                <Key className="w-4 h-4 text-amber-600" /> Reset
-                                Credentials
-                              </DropdownMenuItem>
-                              <Separator className="my-1" />
-                              <DropdownMenuItem
-                                className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
-                                onClick={() => handleDelete(s.id)}
-                              >
-                                <Trash2 className="w-4 h-4" /> Revoke Access
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </DataTableShell>
+      <div className="flex-1 overflow-y-auto bg-slate-50/50 p-8 lg:p-12">
+        <div className="max-w-7xl mx-auto space-y-10">
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                label: "Total Roster",
+                val: staff.length,
+                sub: `${activeCount} Active`,
+                icon: Users,
+                color: "blue",
+              },
+              {
+                label: "Biometric Sync",
+                val: "100%",
+                sub: "All Verified",
+                icon: ShieldCheck,
+                color: "emerald",
+              },
+              {
+                label: "Temp Overrides",
+                val: "3 Active",
+                sub: "Last 24h",
+                icon: Lock,
+                color: "amber",
+              },
+              {
+                label: "Adherence Rate",
+                val: "98.2%",
+                sub: "Avg. Roster Score",
+                icon: Activity,
+                color: "indigo",
+              },
+            ].map((m, i) => (
+              <Card
+                key={i}
+                className="rounded-[2rem] bg-white border-none shadow-xl p-6 group hover:shadow-2xl transition-all"
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div
+                    className={`w-12 h-12 rounded-2xl bg-${m.color}-50 flex items-center justify-center`}
+                  >
+                    <m.icon className={`w-5 h-5 text-${m.color}-600`} />
+                  </div>
+                  <Badge className="bg-slate-50 text-slate-400 font-black italic text-[8px] uppercase tracking-widest border-none">
+                    Live
+                  </Badge>
+                </div>
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                  {m.label}
+                </div>
+                <div className="text-3xl font-black italic tracking-tighter text-slate-900 uppercase">
+                  {m.val}
+                </div>
+                <div className="text-[10px] font-bold italic text-slate-400 mt-1 uppercase">
+                  {m.sub}
+                </div>
+              </Card>
+            ))}
           </div>
 
-          <div className="space-y-8">
-            <Card className="bg-slate-900 text-white shadow-2xl rounded-3xl overflow-hidden relative border-t-4 border-t-amber-500">
-              <CardHeader className="p-8 pb-0">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 italic flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4" /> Critical Alerts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-4">
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10 group">
-                    <div className="text-[10px] text-amber-500 font-black uppercase mb-1 flex items-center gap-2">
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Personnel Table */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Search Bar */}
+              <div className="flex items-center gap-3 bg-white rounded-[2rem] p-3 border border-slate-100 shadow-lg">
+                <div className="relative flex-1">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                  <Input
+                    className="pl-12 h-12 bg-slate-50 border-none rounded-xl text-sm font-bold italic placeholder:text-slate-300 focus-visible:ring-blue-500"
+                    placeholder="Search Personnel, Role, or ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  className="h-12 px-5 rounded-xl gap-2 font-black italic border-slate-100 hover:bg-slate-50 text-[10px] uppercase tracking-widest"
+                >
+                  <Filter className="w-4 h-4" /> Groups
+                </Button>
+              </div>
+
+              {/* Table Shell */}
+              <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
+                <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-black italic uppercase tracking-tight text-slate-900">
+                      Store Personnel Registry
+                    </h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                      Access governance for this location
+                    </p>
+                  </div>
+                  <Badge className="bg-slate-900 text-white border-none font-black italic text-[9px] uppercase tracking-widest px-4 py-2">
+                    {filteredStaff.length} Records
+                  </Badge>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-50">
+                        {[
+                          "Personnel",
+                          "Role & Location",
+                          "Security",
+                          "Access Scope",
+                          "Status",
+                          "",
+                        ].map((h, i) => (
+                          <th
+                            key={i}
+                            className="px-8 py-5 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoading ? (
+                        <tr>
+                          <td colSpan={6} className="px-8 py-20 text-center">
+                            <div className="flex flex-col items-center gap-3">
+                              <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+                              <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                                Syncing Personnel Data...
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : filteredStaff.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="px-8 py-20 text-center text-[10px] font-black italic uppercase tracking-widest text-slate-400"
+                          >
+                            No personnel found
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredStaff.map((s, i) => (
+                          <tr
+                            key={i}
+                            className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none"
+                          >
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black italic text-slate-500 text-sm shadow-inner group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                  {s.fullName
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .slice(0, 2)}
+                                </div>
+                                <div>
+                                  <div className="font-black italic text-sm text-slate-900">
+                                    {s.fullName}
+                                  </div>
+                                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                    {s.employmentType}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="text-xs font-black italic text-slate-700">
+                                {s.roleTitle}
+                              </div>
+                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
+                                {s.location}
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                <span className="text-[10px] font-black italic text-emerald-600 uppercase">
+                                  VERIFIED
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex gap-1.5 flex-wrap">
+                                {["RETAIL_CORE", "POS_EXEC"].map((acc, idx) => (
+                                  <Badge
+                                    key={idx}
+                                    className="bg-blue-50 text-blue-600 border-none text-[8px] font-black italic tracking-widest"
+                                  >
+                                    {acc}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${s.status === "active" ? "bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "bg-slate-300"}`}
+                                />
+                                <span className="text-[10px] font-black italic uppercase text-slate-500">
+                                  {s.status}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-xl text-slate-300 hover:text-slate-700 hover:bg-slate-100"
+                                  >
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-48 p-2 rounded-2xl border-none shadow-2xl"
+                                >
+                                  <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
+                                    <ShieldHalf className="w-4 h-4 text-blue-600" />{" "}
+                                    Modify Permissions
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
+                                    <Key className="w-4 h-4 text-amber-600" />{" "}
+                                    Reset Credentials
+                                  </DropdownMenuItem>
+                                  <Separator className="my-1" />
+                                  <DropdownMenuItem
+                                    className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                                    onClick={() => handleDelete(s.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" /> Revoke Access
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="space-y-6">
+              {/* Critical Alerts */}
+              <Card className="bg-slate-900 text-white shadow-2xl rounded-[2.5rem] overflow-hidden">
+                <CardHeader className="p-7 pb-0">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 italic flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4" /> Critical Alerts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-7 space-y-4">
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="text-[10px] text-amber-400 font-black uppercase mb-2 flex items-center gap-2 italic">
                       <Clock className="w-3 h-3" /> Policy Verification
                     </div>
-                    <div className="text-xs font-bold leading-relaxed mb-3">
+                    <div className="text-xs font-bold leading-relaxed text-white/80 mb-4">
                       3 staff members have not completed biometric onboarding
                       for new POS hardware.
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-full border border-white/10 text-white font-black italic text-[9px] gap-1 hover:bg-white/10 rounded-lg transition-all"
+                      className="h-8 w-full border border-white/10 text-white font-black italic text-[9px] gap-1 hover:bg-white/10 rounded-xl uppercase tracking-widest"
                     >
                       Send Reminder <ExternalLink className="w-3 h-3" />
                     </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden">
-              <CardHeader className="p-6">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
-                  Audit Log Stream
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 pt-0 space-y-6">
-                {[
-                  {
-                    user: "SA",
-                    action: "Updated Permissions",
-                    target: "Amelia Hart",
-                    time: "10m ago",
-                  },
-                  {
-                    user: "SA",
-                    action: "Login Success",
-                    target: "Back Office",
-                    time: "1h ago",
-                  },
-                  {
-                    user: "VL",
-                    action: "Policy Ack",
-                    target: "Retail Terminal",
-                    time: "3h ago",
-                  },
-                ].map((log, i) => (
-                  <div key={i} className="flex gap-4 relative">
-                    {i !== 2 && (
-                      <div className="absolute left-[15px] top-10 bottom-0 w-px bg-slate-100" />
-                    )}
-                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center font-black italic text-slate-400 text-[9px] shrink-0">
-                      {log.user}
-                    </div>
-                    <div>
-                      <div className="text-[10px] font-black italic text-slate-900">
-                        {log.action}
+              {/* Audit Log Stream */}
+              <Card className="shadow-xl border-none rounded-[2.5rem] overflow-hidden bg-white">
+                <CardHeader className="p-7 pb-4 border-b border-slate-50">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                    Audit Stream
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-7 space-y-6">
+                  {[
+                    {
+                      actor: "SA",
+                      action: "Updated Permissions",
+                      target: "Amelia Hart",
+                      time: "10m ago",
+                    },
+                    {
+                      actor: "SA",
+                      action: "Login Success",
+                      target: "Back Office",
+                      time: "1h ago",
+                    },
+                    {
+                      actor: "VL",
+                      action: "Policy Ack",
+                      target: "Retail Terminal",
+                      time: "3h ago",
+                    },
+                  ].map((log, i) => (
+                    <div key={i} className="flex gap-4 relative">
+                      {i < 2 && (
+                        <div className="absolute left-[15px] top-10 bottom-0 w-px bg-slate-100" />
+                      )}
+                      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center font-black italic text-slate-400 text-[9px] shrink-0">
+                        {log.actor}
                       </div>
-                      <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-                        On: {log.target} • {log.time}
+                      <div>
+                        <div className="text-[10px] font-black italic text-slate-900">
+                          {log.action}
+                        </div>
+                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
+                          {log.target} • {log.time}
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Vault Sync Status */}
+              <Card className="bg-blue-600 text-white shadow-2xl rounded-[2.5rem] overflow-hidden group border-none">
+                <CardContent className="p-8 text-center space-y-4">
+                  <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center mx-auto group-hover:rotate-6 transition-transform">
+                    <ShieldCheck className="w-8 h-8" />
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-xl bg-blue-600 text-white rounded-[2.5rem] overflow-hidden group border-4 border-blue-500">
-              <CardContent className="p-8 text-center space-y-4">
-                <div className="bg-white/20 w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4 group-hover:rotate-6 transition-transform">
-                  <ShieldCheck className="w-8 h-8" />
-                </div>
-                <div className="text-xl font-black italic tracking-tighter">
-                  Zenvix Vault Sync
-                </div>
-                <p className="text-[10px] opacity-70 leading-relaxed font-bold italic">
-                  This location is currently synchronized with the Global HR
-                  directory. All local changes will reflect in core reports.
-                </p>
-                <Button className="w-full bg-white text-blue-600 hover:bg-slate-100 font-black italic h-12 rounded-xl shadow-xl">
-                  Manual Force Sync
-                </Button>
-              </CardContent>
-            </Card>
+                  <div className="text-xl font-black italic tracking-tighter">
+                    Vault Sync Active
+                  </div>
+                  <p className="text-[10px] opacity-70 leading-relaxed font-bold italic uppercase tracking-widest">
+                    Synchronized with Global HR directory. All changes reflect
+                    in core reports.
+                  </p>
+                  <Button className="w-full bg-white text-blue-600 hover:bg-slate-100 font-black italic h-12 rounded-2xl shadow-xl uppercase tracking-widest text-[10px]">
+                    Force Sync
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </WorkspacePanel>
+      </div>
     </div>
   );
 };

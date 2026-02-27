@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
 
 export class ReleasePoDto {
   @IsString()
@@ -13,4 +13,3 @@ export class ReleasePoDto {
   @Min(0)
   totalAmount: number;
 }
-

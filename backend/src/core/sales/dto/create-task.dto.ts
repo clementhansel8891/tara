@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateTaskDto {
   @IsString()
@@ -27,5 +27,5 @@ export class CreateTaskDto {
 
   @IsString()
   @IsOptional()
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  priority?: "low" | "medium" | "high" | "urgent";
 }

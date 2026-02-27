@@ -5,9 +5,9 @@ export class SalesOrder {
   quoteId?: string;
   customerName: string;
   amount: number;
-  currency: 'IDR' | 'USD';
-  status: 'draft' | 'pending_finance_handoff' | 'invoiced' | 'closed';
-  inventoryCheck: 'available' | 'partial' | 'unavailable';
+  currency: "IDR" | "USD";
+  status: "draft" | "pending_finance_handoff" | "invoiced" | "closed";
+  inventoryCheck: "available" | "partial" | "unavailable";
   financeInvoiceId?: string;
   createdBy: string;
   createdAt: Date;

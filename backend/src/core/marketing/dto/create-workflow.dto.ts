@@ -1,9 +1,9 @@
-import { IsArray, IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsIn, IsNotEmpty, IsString } from "class-validator";
 
 export type WorkflowStepInput = {
   id: string;
   order: number;
-  channel: 'email' | 'whatsapp' | 'retargeting';
+  channel: "email" | "whatsapp" | "retargeting";
   waitHours: number;
   messageTemplate: string;
 };
@@ -14,10 +14,9 @@ export class CreateWorkflowDto {
   name: string;
 
   @IsString()
-  @IsIn(['new_lead', 'score_below_threshold', 'reengagement'])
-  trigger: 'new_lead' | 'score_below_threshold' | 'reengagement';
+  @IsIn(["new_lead", "score_below_threshold", "reengagement"])
+  trigger: "new_lead" | "score_below_threshold" | "reengagement";
 
   @IsArray()
   steps: WorkflowStepInput[];
 }
-

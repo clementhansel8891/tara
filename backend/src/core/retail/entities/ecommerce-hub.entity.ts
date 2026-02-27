@@ -9,12 +9,12 @@ export class EcommerceConnector {
   tenantId: string;
   branchIds: string[];
   name: string;
-  platform: string; 
+  platform: string;
   domain: string;
   inventoryPoolId?: string | null;
   managerId?: string | null;
   apiKeyHash?: string;
-  status: 'active' | 'revoked' | 'suspended';
+  status: "active" | "revoked" | "suspended";
   settings?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
@@ -37,7 +37,7 @@ export class EcommerceChannel {
   adapterType: string;
   status: string;
   syncFrequency: string;
-  integrationCategory: 'HEADLESS' | 'PREMADE' | 'PRESET';
+  integrationCategory: "HEADLESS" | "PREMADE" | "PRESET";
   lastSyncAt?: Date | null;
   webhookUrl?: string | null;
   /** clientId, clientSecretHash, branchId, domain, settings — stored as JSON. */

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAdminRequestDto } from './dto/create-admin-request.dto';
-import { ToggleModuleDto } from './dto/toggle-module.dto';
-import { IAdminRepository } from './repositories/admin.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { CreateAdminRequestDto } from "./dto/create-admin-request.dto";
+import { ToggleModuleDto } from "./dto/toggle-module.dto";
+import { IAdminRepository } from "./repositories/admin.repository.interface";
 
 @Injectable()
 export class AdminService {
@@ -23,7 +23,11 @@ export class AdminService {
     return this.repository.createRequest(tenantId, dto);
   }
 
-  async resolveRequest(tenantId: string, requestId: string, resolvedBy: string) {
+  async resolveRequest(
+    tenantId: string,
+    requestId: string,
+    resolvedBy: string,
+  ) {
     return this.repository.resolveRequest(tenantId, requestId, resolvedBy);
   }
 
@@ -31,4 +35,3 @@ export class AdminService {
     return this.repository.getAuditEvents(tenantId);
   }
 }
-

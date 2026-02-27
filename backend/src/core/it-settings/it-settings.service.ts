@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { IITSettingsRepository } from './repositories/it-settings.repository.interface';
-import { Device } from './entities/device.entity';
-import { Setting } from './entities/setting.entity';
-import { RegisterDeviceDto } from './dto/register-device.dto';
-import { UpdateSettingDto } from './dto/update-setting.dto';
+import { Injectable } from "@nestjs/common";
+import { IITSettingsRepository } from "./repositories/it-settings.repository.interface";
+import { Device } from "./entities/device.entity";
+import { Setting } from "./entities/setting.entity";
+import { RegisterDeviceDto } from "./dto/register-device.dto";
+import { UpdateSettingDto } from "./dto/update-setting.dto";
 
 @Injectable()
 export class ITSettingsService {
@@ -13,11 +13,18 @@ export class ITSettingsService {
     return this.repository.getDevices(tenantId, locationId);
   }
 
-  async registerDevice(tenantId: string, data: RegisterDeviceDto): Promise<Device> {
+  async registerDevice(
+    tenantId: string,
+    data: RegisterDeviceDto,
+  ): Promise<Device> {
     return this.repository.registerDevice(tenantId, data);
   }
 
-  async updateDeviceStatus(tenantId: string, deviceId: string, status: string): Promise<Device> {
+  async updateDeviceStatus(
+    tenantId: string,
+    deviceId: string,
+    status: string,
+  ): Promise<Device> {
     return this.repository.updateDeviceStatus(tenantId, deviceId, status);
   }
 
@@ -29,7 +36,11 @@ export class ITSettingsService {
     return this.repository.getSetting(tenantId, key);
   }
 
-  async updateSetting(tenantId: string, key: string, data: UpdateSettingDto): Promise<Setting> {
+  async updateSetting(
+    tenantId: string,
+    key: string,
+    data: UpdateSettingDto,
+  ): Promise<Setting> {
     return this.repository.updateSetting(tenantId, key, data);
   }
 }

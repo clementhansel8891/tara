@@ -5,20 +5,20 @@ export class SalesLead {
   contactName: string;
   contactEmail?: string;
   contactPhone?: string;
-  source: 'marketing' | 'referral' | 'inbound' | 'outbound' | 'partner';
+  source: "marketing" | "referral" | "inbound" | "outbound" | "partner";
   ownerId: string;
   ownerName: string;
   score: number;
   potentialValue: number;
-  currency: 'IDR' | 'USD';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  currency: "IDR" | "USD";
+  priority: "low" | "medium" | "high" | "urgent";
   status:
-    | 'new'
-    | 'assigned'
-    | 'contacted'
-    | 'qualified'
-    | 'disqualified'
-    | 'converted';
+    | "new"
+    | "assigned"
+    | "contacted"
+    | "qualified"
+    | "disqualified"
+    | "converted";
   slaDueAt: Date;
   firstResponseAt?: Date;
   createdAt: Date;

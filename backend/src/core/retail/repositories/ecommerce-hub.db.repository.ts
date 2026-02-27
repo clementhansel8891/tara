@@ -1,28 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomBytes, createHash } from 'crypto';
-import { PrismaService } from '../../../persistence/prisma.service';
-import { IEcommerceHubRepository } from './ecommerce-hub.repository.interface';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { randomBytes, createHash } from "crypto";
+import { PrismaService } from "../../../persistence/prisma.service";
+import { IEcommerceHubRepository } from "./ecommerce-hub.repository.interface";
 import {
   EcommerceConnector,
   ConnectorWithPlainKey,
   EcommerceChannel,
   ChannelWithPlainCredentials,
-} from '../entities/ecommerce-hub.entity';
+} from "../entities/ecommerce-hub.entity";
 import {
   CreateEcommerceConnectorDto,
   UpdateEcommerceConnectorDto,
   CreateRetailChannelDto,
   UpdateRetailChannelDto,
-} from '../dto/ecommerce-hub.dto';
+} from "../dto/ecommerce-hub.dto";
 
 // ── Helpers ───────────────────────────────────────────────────
 
 function generateKey(prefix: string, bytes = 32): string {
-  return `${prefix}_${randomBytes(bytes).toString('hex')}`;
+  return `${prefix}_${randomBytes(bytes).toString("hex")}`;
 }
 
 function hashSecret(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function mapConnector(row: any): EcommerceConnector {
@@ -31,11 +31,11 @@ function mapConnector(row: any): EcommerceConnector {
     tenantId: row.tenantId,
     branchIds: row.branches?.map((b: any) => b.id) ?? [],
     name: row.name ?? row.domain,
-    platform: (row as any).platform ?? 'custom',
+    platform: (row as any).platform ?? "custom",
     domain: row.domain,
     inventoryPoolId: row.inventoryPoolId,
     managerId: row.managerId,
-    status: row.status as EcommerceConnector['status'],
+    status: row.status as EcommerceConnector["status"],
     settings: (row as any).settings ?? undefined,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -49,8 +49,8 @@ function mapChannel(row: any): EcommerceChannel {
     tenantId: row.tenantId,
     name: row.name,
     type: row.type,
-    adapterType: row.adapterType ?? 'CUSTOM',
-    integrationCategory: row.integrationCategory ?? 'PRESET',
+    adapterType: row.adapterType ?? "CUSTOM",
+    integrationCategory: row.integrationCategory ?? "PRESET",
     status: row.status,
     syncFrequency: row.syncFrequency,
     lastSyncAt: row.lastSyncAt ?? null,
@@ -73,12 +73,15 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     const rows = await this.prisma.ecommerceConnector.findMany({
       where: { tenantId: tenantId, deletedAt: null },
       include: { branches: { select: { id: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return rows.map(mapConnector);
   }
 
-  async getConnector(tenantId: string, id: string): Promise<EcommerceConnector | null> {
+  async getConnector(
+    tenantId: string,
+    id: string,
+  ): Promise<EcommerceConnector | null> {
     const row = await this.prisma.ecommerceConnector.findFirst({
       where: { id, tenantId: tenantId, deletedAt: null },
       include: { branches: { select: { id: true } } },
@@ -90,7 +93,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     tenantId: string,
     data: CreateEcommerceConnectorDto,
   ): Promise<ConnectorWithPlainKey> {
-    const plainApiKey = generateKey('znx_ec_gw'); 
+    const plainApiKey = generateKey("znx_ec_gw");
     const apiKeyHash = hashSecret(plainApiKey);
 
     const row = await (this.prisma.ecommerceConnector as any).create({
@@ -100,7 +103,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
         platform: data.platform,
         domain: data.domain,
         apiKey: apiKeyHash,
-        status: 'active',
+        status: "active",
         inventoryPoolId: data.inventoryPoolId,
         settings: (data.settings ?? {}) as any,
         branches: data.branchIds?.length
@@ -126,7 +129,9 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
         ...(data.domain !== undefined && { domain: data.domain }),
         ...(data.status !== undefined && { status: data.status }),
         ...(data.settings !== undefined && { settings: data.settings }),
-        ...(data.inventoryPoolId !== undefined && { inventoryPoolId: data.inventoryPoolId }),
+        ...(data.inventoryPoolId !== undefined && {
+          inventoryPoolId: data.inventoryPoolId,
+        }),
         ...(data.branchIds !== undefined && {
           branches: {
             set: data.branchIds.map((id) => ({ id })),
@@ -143,7 +148,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     id: string,
   ): Promise<{ plainApiKey: string }> {
     await this.requireConnector(tenantId, id);
-    const plainApiKey = generateKey('zvx_ec');
+    const plainApiKey = generateKey("zvx_ec");
     const apiKeyHash = hashSecret(plainApiKey);
     await (this.prisma.ecommerceConnector as any).update({
       where: { id },
@@ -156,7 +161,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     await this.requireConnector(tenantId, id);
     await (this.prisma.ecommerceConnector as any).update({
       where: { id },
-      data: { deletedAt: new Date(), status: 'revoked' },
+      data: { deletedAt: new Date(), status: "revoked" },
     });
   }
 
@@ -173,12 +178,15 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
   async listChannels(tenantId: string): Promise<EcommerceChannel[]> {
     const rows = await this.prisma.retailChannel.findMany({
       where: { tenantId: tenantId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return rows.map(mapChannel);
   }
 
-  async getChannel(tenantId: string, id: string): Promise<EcommerceChannel | null> {
+  async getChannel(
+    tenantId: string,
+    id: string,
+  ): Promise<EcommerceChannel | null> {
     const row = await this.prisma.retailChannel.findFirst({
       where: { id, tenantId: tenantId },
     });
@@ -189,8 +197,8 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     tenantId: string,
     data: CreateRetailChannelDto,
   ): Promise<ChannelWithPlainCredentials> {
-    const plainClientId = generateKey('znx_chid', 16); // Channel ID
-    const plainClientSecret = generateKey('znx_chcs', 32); // Channel Secret
+    const plainClientId = generateKey("znx_chid", 16); // Channel ID
+    const plainClientSecret = generateKey("znx_chcs", 32); // Channel Secret
     const clientSecretHash = hashSecret(plainClientSecret);
 
     const row = await this.prisma.retailChannel.create({
@@ -198,15 +206,15 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
         tenantId: tenantId,
         name: data.name,
         type: data.type,
-        adapterType: data.adapterType ?? 'CUSTOM',
-        integrationCategory: data.integrationCategory ?? 'PRESET',
-        syncFrequency: data.syncFrequency ?? '15min',
+        adapterType: data.adapterType ?? "CUSTOM",
+        integrationCategory: data.integrationCategory ?? "PRESET",
+        syncFrequency: data.syncFrequency ?? "15min",
         webhookUrl: data.webhookUrl ?? null,
-        status: 'active',
+        status: "active",
         credentials: {
           clientId: plainClientId,
           clientSecretHash,
-          branchId: 'branch_main',
+          branchId: "branch_main",
           revoked: false,
           settings: (data.settings ?? {}) as any,
         } as any,
@@ -225,16 +233,25 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     data: UpdateRetailChannelDto,
   ): Promise<EcommerceChannel> {
     const existing = await this.requireChannel(tenantId, id);
-    const currentCreds = (existing.credentials ?? {}) as Record<string, unknown>;
+    const currentCreds = (existing.credentials ?? {}) as Record<
+      string,
+      unknown
+    >;
 
     const row = await this.prisma.retailChannel.update({
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.type !== undefined && { type: data.type }),
-        ...(data.adapterType !== undefined && { adapterType: data.adapterType }),
-        ...(data.integrationCategory !== undefined && { integrationCategory: data.integrationCategory }),
-        ...(data.syncFrequency !== undefined && { syncFrequency: data.syncFrequency }),
+        ...(data.adapterType !== undefined && {
+          adapterType: data.adapterType,
+        }),
+        ...(data.integrationCategory !== undefined && {
+          integrationCategory: data.integrationCategory,
+        }),
+        ...(data.syncFrequency !== undefined && {
+          syncFrequency: data.syncFrequency,
+        }),
         ...(data.webhookUrl !== undefined && { webhookUrl: data.webhookUrl }),
         ...(data.status !== undefined && { status: data.status }),
         ...(data.settings !== undefined && {
@@ -250,10 +267,13 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     id: string,
   ): Promise<{ plainClientId: string; plainClientSecret: string }> {
     const existing = await this.requireChannel(tenantId, id);
-    const currentCreds = (existing.credentials ?? {}) as Record<string, unknown>;
+    const currentCreds = (existing.credentials ?? {}) as Record<
+      string,
+      unknown
+    >;
 
-    const plainClientId = generateKey('znx_cid', 16);
-    const plainClientSecret = generateKey('znx_cs', 32);
+    const plainClientId = generateKey("znx_cid", 16);
+    const plainClientSecret = generateKey("znx_cs", 32);
     const clientSecretHash = hashSecret(plainClientSecret);
 
     await this.prisma.retailChannel.update({
@@ -273,13 +293,16 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
 
   async revokeChannelCredentials(tenantId: string, id: string): Promise<void> {
     const existing = await this.requireChannel(tenantId, id);
-    const currentCreds = (existing.credentials ?? {}) as Record<string, unknown>;
+    const currentCreds = (existing.credentials ?? {}) as Record<
+      string,
+      unknown
+    >;
 
     await this.prisma.retailChannel.update({
       where: { id },
       data: {
         credentials: { ...currentCreds, revoked: true } as any,
-        status: 'suspended',
+        status: "suspended",
       },
     });
   }

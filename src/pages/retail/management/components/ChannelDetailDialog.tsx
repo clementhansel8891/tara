@@ -5,6 +5,14 @@ import {
   AlertCircle,
   RefreshCw,
   ShieldOff,
+  Zap,
+  Activity,
+  Server,
+  Key,
+  Database,
+  ShieldCheck,
+  ArrowRight,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,9 +34,14 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { CredentialField } from "./SharedUI";
 import { Roles } from "@/core/security/roles";
-import type { ChannelRecord } from "@/core/services/retail/ecommerceHubService";
+import { type SessionContext } from "@/core/security/session";
+import type {
+  ChannelRecord,
+  RetailChannel,
+} from "@/core/services/retail/ecommerceHubService";
 
 interface ChannelDetailDialogProps {
   isOpen: boolean;
@@ -38,8 +51,8 @@ interface ChannelDetailDialogProps {
   setDetailName: (val: string) => void;
   detailSyncFreq: string;
   setDetailSyncFreq: (val: string) => void;
-  detailSettings: any;
-  setDetailSettings: (val: any) => void;
+  detailSettings: Partial<RetailChannel["settings"]>;
+  setDetailSettings: (val: Partial<RetailChannel["settings"]>) => void;
   detailClientId: string;
   detailClientSecret: string;
   approvalStatus: string;
@@ -48,7 +61,7 @@ interface ChannelDetailDialogProps {
   isSaving: boolean;
   rotationLoading: string | null;
   revocationLoading: string | null;
-  session: any;
+  session: SessionContext;
   branchIds: string[];
   gatewayUrl: string;
   handleRotateChannel: (id: string, options: { showDialog?: boolean }) => void;
@@ -91,353 +104,324 @@ export const ChannelDetailDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl rounded-[2rem] p-0 overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-900 p-8 text-white">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <DialogTitle className="text-2xl font-black italic uppercase tracking-tight flex items-center gap-3">
-                {selectedChannel.type === "OWNED" ? (
-                  <Globe className="w-6 h-6 text-indigo-300" />
-                ) : (
-                  <ShoppingBag className="w-6 h-6 text-emerald-300" />
-                )}
-                {selectedChannel.name || "Channel Setup"}
-              </DialogTitle>
-              <DialogDescription className="text-slate-300 mt-2 text-sm">
-                View setup details, rotate secrets, and manage sync rules for
-                this connector.
-              </DialogDescription>
-            </div>
-            <Badge
-              className={`text-[9px] font-black uppercase tracking-widest ${
-                selectedChannel.status === "active"
-                  ? "bg-emerald-400/20 text-emerald-200 border border-emerald-400/40"
-                  : "bg-slate-700/40 text-slate-200 border border-slate-600"
-              }`}
-            >
-              {selectedChannel.status}
-            </Badge>
+      <DialogContent className="max-w-4xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
+        <div className="bg-slate-900 p-12 text-white relative overflow-hidden shrink-0">
+          <div className="absolute top-0 right-0 p-12 opacity-10">
+            {selectedChannel.type === "OWNED" ? (
+              <Globe className="w-32 h-32 text-blue-400" />
+            ) : (
+              <ShoppingBag className="w-32 h-32 text-emerald-400" />
+            )}
           </div>
-          <div className="mt-4 text-[11px] text-slate-300">
-            Record ID:{" "}
-            <span className="font-mono text-slate-100">
-              {selectedChannel.id}
-            </span>
+
+          <div className="relative z-10 flex items-start justify-between">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Badge className="bg-blue-500/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1">
+                  Channel Configuration
+                </Badge>
+                <Badge
+                  className={
+                    selectedChannel.status === "active"
+                      ? "bg-emerald-500/20 text-emerald-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
+                      : "bg-slate-700 text-slate-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
+                  }
+                >
+                  {selectedChannel.status}
+                </Badge>
+              </div>
+              <DialogTitle className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+                {selectedChannel.name || "UNNAMED_NODE"}
+              </DialogTitle>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">
+                Node {selectedChannel.id} • {selectedChannel.type}
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="p-8 space-y-6 flex-1 overflow-y-auto">
-          <div className="grid gap-5 md:grid-cols-2">
-            <CredentialField
-              label="Tenant ID"
-              value={selectedChannel.tenantId ?? session.tenantId}
-              tooltip="Tenant ID identifies the business tenant inside Zenvix."
-              helperText="Scope for this connector."
-              copyable
-              onCopy={() =>
-                copyCredential(
-                  selectedChannel.tenantId ?? session.tenantId,
-                  "Tenant ID",
-                )
-              }
-            />
-            <CredentialField
-              label="Branch IDs"
-              value={
-                (selectedChannel as any).branchIds?.join(", ") ??
-                (selectedChannel as any).branchId ??
-                branchIds.join(", ")
-              }
-              tooltip="Branch IDs identify the physical stores or branches this channel belongs to."
-              helperText="Fulfillment branches."
-              copyable
-              onCopy={() =>
-                copyCredential(
-                  (selectedChannel as any).branchIds?.join(", ") ??
-                    (selectedChannel as any).branchId ??
-                    branchIds.join(", "),
-                  "Branch IDs",
-                )
-              }
-            />
-            <CredentialField
-              label="Channel Client ID"
-              value={detailClientId}
-              placeholder="Rotate to issue a client ID"
-              tooltip="Channel Client ID used by your storefront to authenticate with Zenvix."
-              helperText="Paste into storefront 'Client ID'."
-              copyable={Boolean(detailClientId)}
-              onCopy={() => copyCredential(detailClientId, "Channel Client ID")}
-            />
-            <CredentialField
-              label="Storefront API Key"
-              value={detailClientSecret}
-              placeholder="Rotate to generate a new API key"
-              tooltip="API Key used by your storefront to authenticate with Zenvix."
-              helperText="Paste into storefront 'Client Secret'."
-              copyable={Boolean(detailClientSecret)}
-              onCopy={() =>
-                copyCredential(detailClientSecret, "Storefront API Key")
-              }
-            />
-            <CredentialField
-              label="Gateway URL"
-              value={selectedChannel.gatewayUrl ?? gatewayUrl}
-              tooltip="Gateway URL this is the endpoint your storefront posts events to."
-              helperText="Public endpoint."
-              copyable
-              onCopy={() =>
-                copyCredential(
-                  selectedChannel.gatewayUrl ?? gatewayUrl,
-                  "Gateway URL",
-                )
-              }
-            />
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                Channel Nexus Control
+        <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar controls */}
+          <div className="w-72 border-r border-slate-100 bg-slate-50/50 p-8 space-y-8 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">
+                Security Actions
               </div>
-              <Badge
-                variant="outline"
-                className="text-[9px] font-bold uppercase tracking-widest"
-              >
-                {session.role === Roles.SUPERADMIN
-                  ? "SUPERADMIN BYPASS"
-                  : approvalStatus === "APPROVED"
-                    ? "APPROVED"
-                    : approvalStatus === "PENDING"
-                      ? "PENDING"
-                      : "LOCKED"}
-              </Badge>
+              <div className="space-y-3">
+                <Button
+                  variant="ghost"
+                  onClick={() =>
+                    handleRotateChannel(selectedChannel.id, {
+                      showDialog: false,
+                    })
+                  }
+                  disabled={!canEdit || !!rotationLoading}
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-slate-600 hover:bg-white hover:text-blue-600 transition-all border border-transparent hover:border-slate-200"
+                >
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 ${rotationLoading === selectedChannel.id ? "animate-spin" : ""}`}
+                  />
+                  Rotate Secret
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleRevokeChannel(selectedChannel.id)}
+                  disabled={!canEdit || !!revocationLoading}
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-slate-600 hover:bg-white hover:text-red-600 transition-all border border-transparent hover:border-slate-200"
+                >
+                  <ShieldOff className="w-3.5 h-3.5" />
+                  Revoke Access
+                </Button>
+                <Separator className="bg-slate-200" />
+                <Button
+                  variant="ghost"
+                  onClick={() => handleDelete(selectedChannel.id)}
+                  disabled={!canEdit}
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Destroy Node
+                </Button>
+              </div>
             </div>
 
-            <Tabs defaultValue="identity" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger
-                  value="identity"
-                  className="text-[10px] font-black uppercase"
+            {!canEdit && (
+              <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 space-y-4">
+                <div className="flex items-center gap-2 text-amber-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-[9px] font-black uppercase tracking-widest italic">
+                    LOCKED
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold text-amber-700 leading-relaxed italic uppercase italic tracking-tighter">
+                  Approval required to modify vault configurations.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={handleRequestApproval}
+                  className="w-full bg-amber-600 text-white font-black italic uppercase text-[8px] h-8 rounded-lg"
                 >
-                  Identity
-                </TabsTrigger>
-                <TabsTrigger
-                  value="sync"
-                  className="text-[10px] font-black uppercase"
-                >
-                  Sync Rules
-                </TabsTrigger>
-                <TabsTrigger
-                  value="catalog"
-                  className="text-[10px] font-black uppercase"
-                >
-                  Catalog
-                </TabsTrigger>
-              </TabsList>
+                  Request Unlock
+                </Button>
+              </div>
+            )}
+          </div>
 
-              <TabsContent value="identity" className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase text-slate-400">
-                      Channel Name
-                    </Label>
-                    <Input
-                      value={detailName}
-                      onChange={(e) => setDetailName(e.target.value)}
-                      className="h-12 rounded-xl font-bold"
-                      disabled={!canEdit}
-                    />
+          {/* Main Content Areas */}
+          <div className="flex-1 overflow-y-auto p-12 pb-24 relative bg-white">
+            <Tabs defaultValue="vault" className="space-y-12">
+              <div className="px-1">
+                <TabsList className="bg-slate-100 rounded-2xl p-1 h-14 w-full">
+                  <TabsTrigger
+                    value="vault"
+                    className="flex-1 rounded-xl font-black italic uppercase text-[10px] tracking-widest"
+                  >
+                    Secret Vault
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="sync"
+                    className="flex-1 rounded-xl font-black italic uppercase text-[10px] tracking-widest"
+                  >
+                    Sync Pulse
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="metadata"
+                    className="flex-1 rounded-xl font-black italic uppercase text-[10px] tracking-widest"
+                  >
+                    Metadata
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent
+                value="vault"
+                className="space-y-12 m-0 border-none outline-none"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="space-y-8">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                      <Database className="w-3 h-3" /> Core Identity
+                    </div>
+                    <div className="space-y-4">
+                      <CredentialField
+                        label="Tenant Scope"
+                        value={selectedChannel.tenantId ?? session.tenantId}
+                        copyable
+                      />
+                      <CredentialField
+                        label="Fulfillment Scope"
+                        value={branchIds.join(", ")}
+                        copyable
+                      />
+                      <CredentialField
+                        label="API Endpoint"
+                        value={selectedChannel.gatewayUrl ?? gatewayUrl}
+                        copyable
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase text-slate-400">
-                      Sync Frequency
-                    </Label>
+                  <div className="space-y-8">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic flex items-center gap-3">
+                      <Key className="w-3 h-3" /> Handshake Keys
+                    </div>
+                    <div className="space-y-4">
+                      <CredentialField
+                        label="Client ID"
+                        value={detailClientId}
+                        placeholder="PENDING_ROTATION"
+                        copyable={!!detailClientId}
+                      />
+                      <CredentialField
+                        label="Client Secret"
+                        value={detailClientSecret}
+                        placeholder="PENDING_ROTATION"
+                        copyable={!!detailClientSecret}
+                        isMasked
+                      />
+                      <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 mt-6">
+                        <p className="text-[9px] font-black text-slate-400 uppercase leading-relaxed italic uppercase italic tracking-widest">
+                          Keys are rotate-only. Previous secrets are immediately
+                          invalidated upon rotation.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="sync"
+                className="space-y-12 m-0 border-none outline-none"
+              >
+                <div className="space-y-8">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                    <Activity className="w-3 h-3" /> Propagation Rules
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[
+                      {
+                        id: "autoSyncStock",
+                        label: "Inventory Mirroring",
+                        desc: "Push stock levels in real-time",
+                      },
+                      {
+                        id: "overwritePrices",
+                        label: "Price Overlays",
+                        desc: "Allow channel-specific pricing",
+                      },
+                      {
+                        id: "syncOrders",
+                        label: "Order Polling",
+                        desc: "Fetch orders automatically",
+                      },
+                      {
+                        id: "notifyStatus",
+                        label: "Webhooks",
+                        desc: "Send status updates to node",
+                      },
+                    ].map((rule) => (
+                      <div
+                        key={rule.id}
+                        className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white transition-all"
+                      >
+                        <div>
+                          <div className="text-sm font-black italic text-slate-900 uppercase italic tracking-tighter">
+                            {rule.label}
+                          </div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                            {rule.desc}
+                          </div>
+                        </div>
+                        <Switch
+                          checked={detailSettings?.[rule.id] || false}
+                          onCheckedChange={(val) =>
+                            setDetailSettings({
+                              ...detailSettings,
+                              [rule.id]: val,
+                            })
+                          }
+                          disabled={!canEdit}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                value="metadata"
+                className="space-y-8 m-0 border-none outline-none"
+              >
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                    Identity Mapping
+                  </Label>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="col-span-2 space-y-2">
+                      <Input
+                        placeholder="Channel Display Name"
+                        value={detailName}
+                        onChange={(e) => setDetailName(e.target.value)}
+                        disabled={!canEdit}
+                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-black italic text-lg text-slate-900 shadow-inner"
+                      />
+                    </div>
                     <Select
                       value={detailSyncFreq}
                       onValueChange={setDetailSyncFreq}
                       disabled={!canEdit}
                     >
-                      <SelectTrigger className="h-12 rounded-xl font-bold">
+                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black italic uppercase text-[10px] tracking-widest text-slate-900 shadow-inner">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="5min">5 Minutes</SelectItem>
-                        <SelectItem value="15min">15 Minutes</SelectItem>
-                        <SelectItem value="1h">1 Hour</SelectItem>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl p-2 bg-white">
+                        <SelectItem
+                          value="5min"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          5m Pulse
+                        </SelectItem>
+                        <SelectItem
+                          value="15min"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          15m Pulse
+                        </SelectItem>
+                        <SelectItem
+                          value="1h"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          60m Pulse
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
               </TabsContent>
-
-              <TabsContent value="sync" className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100">
-                  <div>
-                    <div className="text-sm font-black italic">
-                      Auto-Sync Inventory
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                      Push stock changes immediately
-                    </div>
-                  </div>
-                  <Switch
-                    checked={detailSettings?.autoSyncStock || false}
-                    onCheckedChange={(val) =>
-                      setDetailSettings({
-                        ...detailSettings,
-                        autoSyncStock: val,
-                      })
-                    }
-                    disabled={!canEdit}
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100">
-                  <div>
-                    <div className="text-sm font-black italic">
-                      Overwrite Prices
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
-                      Allow channel-specific pricing levels
-                    </div>
-                  </div>
-                  <Switch
-                    checked={detailSettings?.overwritePrices || false}
-                    onCheckedChange={(val) =>
-                      setDetailSettings({
-                        ...detailSettings,
-                        overwritePrices: val,
-                      })
-                    }
-                    disabled={!canEdit}
-                  />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="catalog" className="space-y-4">
-                <Label className="text-xs font-black uppercase text-slate-400 block">
-                  Category Filter
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    "Apparel",
-                    "Footwear",
-                    "Accessories",
-                    "Electronics",
-                    "Home & Garden",
-                    "Beauty",
-                  ].map((cat) => {
-                    const isSelected =
-                      detailSettings?.visibleCategories?.includes(cat) ?? false;
-                    return (
-                      <div
-                        key={cat}
-                        onClick={() => {
-                          if (!canEdit) return;
-                          const current =
-                            detailSettings?.visibleCategories || [];
-                          const updated = isSelected
-                            ? current.filter((c: string) => c !== cat)
-                            : [...current, cat];
-                          setDetailSettings({
-                            ...detailSettings,
-                            visibleCategories: updated,
-                          });
-                        }}
-                        className={`px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all ${!canEdit ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${isSelected ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 text-slate-500 hover:border-slate-300"}`}
-                      >
-                        {cat}
-                      </div>
-                    );
-                  })}
-                </div>
-              </TabsContent>
             </Tabs>
-
-            {!canEdit && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex flex-col gap-3">
-                <div className="flex items-start gap-2 text-amber-700 text-xs font-semibold">
-                  <AlertCircle className="w-4 h-4 mt-0.5" />
-                  <div>
-                    <div className="font-bold">
-                      Approval required to edit this connector.
-                    </div>
-                    <div className="text-[11px] text-amber-700/80">
-                      {approvalStatus === "PENDING"
-                        ? `Approval request ${approvalRequestId ?? ""} is pending.`
-                        : "Request IT approval to unlock edits."}
-                    </div>
-                  </div>
-                </div>
-                {approvalStatus !== "PENDING" && (
-                  <Button
-                    size="sm"
-                    className="self-start bg-amber-600 hover:bg-amber-500 text-white font-bold"
-                    onClick={handleRequestApproval}
-                  >
-                    Request Approval
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-12 rounded-xl border-slate-200 font-bold gap-2"
-              onClick={() =>
-                handleRotateChannel(selectedChannel.id, { showDialog: false })
-              }
-              disabled={!canEdit || rotationLoading === selectedChannel.id}
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${
-                  rotationLoading === selectedChannel.id ? "animate-spin" : ""
-                }`}
-              />
-              Rotate Client Secret
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 rounded-xl border-slate-200 font-bold text-red-600 hover:text-red-600"
-              onClick={() => handleRevokeChannel(selectedChannel.id)}
-              disabled={!canEdit || revocationLoading === selectedChannel.id}
-            >
-              <ShieldOff className="w-4 h-4" />
-              Disable Secret
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 rounded-xl border-red-200 font-bold text-red-600 hover:text-red-600"
-              onClick={() => handleDelete(selectedChannel.id)}
-              disabled={!canEdit}
-            >
-              <AlertCircle className="w-4 h-4" />
-              Delete Channel
-            </Button>
-          </div>
-
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:justify-end">
-            <Button
-              onClick={handleSaveChannel}
-              disabled={!canEdit || isSaving}
-              className="h-12 rounded-xl bg-slate-900 text-white font-bold"
-            >
-              {isSaving ? (
-                <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
-              Save Changes
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="h-12 rounded-xl font-bold"
-            >
-              Close
-            </Button>
-          </DialogFooter>
         </div>
+
+        <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100 flex flex-row items-center justify-end gap-6 shrink-0">
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            className="font-black italic uppercase text-[10px] tracking-[0.2em] text-slate-500"
+          >
+            CANCEL SESSION
+          </Button>
+          <Button
+            onClick={handleSaveChannel}
+            disabled={!canEdit || isSaving}
+            className="h-16 px-12 rounded-2xl bg-slate-900 text-white font-black italic uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl hover:scale-[1.02] transition-transform"
+          >
+            {isSaving ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              "COMMIT CHANGES"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

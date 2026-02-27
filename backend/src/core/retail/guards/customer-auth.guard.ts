@@ -1,5 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { RetailPublicAuthService } from '../retail-public-auth.service';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { RetailPublicAuthService } from "../retail-public-auth.service";
 
 @Injectable()
 export class CustomerAuthGuard implements CanActivate {
@@ -8,13 +13,12 @@ export class CustomerAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization as string | undefined;
-    const token =
-      authHeader?.startsWith('Bearer ')
-        ? authHeader.slice(7)
-        : (request.headers['x-access-token'] as string | undefined);
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : (request.headers["x-access-token"] as string | undefined);
 
     if (!token) {
-      throw new UnauthorizedException('Missing access token');
+      throw new UnauthorizedException("Missing access token");
     }
 
     try {
@@ -22,7 +26,7 @@ export class CustomerAuthGuard implements CanActivate {
       request.customerAuth = payload;
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired access token');
+      throw new UnauthorizedException("Invalid or expired access token");
     }
   }
 }

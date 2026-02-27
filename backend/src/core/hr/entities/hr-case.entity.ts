@@ -5,8 +5,8 @@ export class HRCase {
   departmentId?: string;
   title: string;
   type: string;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: "open" | "in_progress" | "resolved" | "closed";
+  priority: "low" | "medium" | "high" | "critical";
   ownerId?: string;
   createdAt: Date;
   updatedAt: Date;

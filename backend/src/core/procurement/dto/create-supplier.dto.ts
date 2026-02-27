@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class CreateSupplierDto {
   @IsString()
@@ -17,4 +17,3 @@ export class CreateSupplierDto {
   @IsNotEmpty()
   branchCode: string;
 }
-

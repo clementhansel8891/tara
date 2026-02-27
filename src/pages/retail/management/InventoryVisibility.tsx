@@ -1,567 +1,567 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { 
-  Eye, 
-  Package, 
-  AlertTriangle, 
-  ArrowRight, 
-  Layers, 
-  Globe, 
-  Store, 
-  ShieldAlert, 
-  Search, 
-  RefreshCw,
-  Plus,
-  ArrowDownToLine,
-  Truck,
-  Trash2, 
-  Edit3, 
-  ChevronRight,
-  MoreVertical,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Card } from "@/components/ui/card";
+import { Layers, ClipboardCheck, ArrowLeftRight, Upload } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
-import { nextId } from "@/core/persistence";
-import { emitRetailPushEvent } from "@/modules/retail/api/retailGatewayPush";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ItemDetailModal } from "./modals/ItemDetailModal";
-import { TransferTrackingModal } from "./modals/TransferTrackingModal";
+import { Roles } from "@/core/security/roles";
+import type { RetailStore } from "@/core/types/retail/retail";
 
-type InventoryItemView = {
-  id: string;
-  sku: string;
-  name: string;
-  stock: number;
-  category?: string;
+// ── Sub-components ───────────────────────────────────────────
+import { InventoryPageHeader } from "./components/inventory/InventoryPageHeader";
+import { InventoryKpiBar } from "./components/inventory/InventoryKpiBar";
+import { FiltersBar } from "./components/inventory/FiltersBar";
+import { InventoryTable } from "./components/inventory/InventoryTable";
+import {
+  StockOpnameTab,
+  type OpnameEntry,
+} from "./components/inventory/StockOpnameTab";
+import {
+  MovementsTab,
+  type AuditEntry,
+} from "./components/inventory/MovementsTab";
+import { ImportExportTab } from "./components/inventory/ImportExportTab";
+import {
+  InventoryMovementDialog,
+  type MovementPayload,
+} from "./components/InventoryMovementDialog";
+import {
+  InventoryStockEditDialog,
+  type BufferUpdatePayload,
+} from "./components/InventoryStockEditDialog";
+import { MOVEMENT_META, type MovementType } from "./components/movementMeta";
+import type {
+  InventoryItemView,
+  InventoryFilters,
+} from "./components/inventory/types";
+
+// ── Constants ────────────────────────────────────────────────
+const WRITE_ROLES = [Roles.OWNER, Roles.COMPANY_ADMIN, Roles.DEPT_HEAD];
+const PAGE_SIZE = 20;
+const STATS_PAGE_SIZE = 1000; // large fetch for accurate KPI aggregation
+
+const statusBadge = (s: InventoryItemView["status"]) => {
+  const map = {
+    ok: "bg-emerald-50 text-emerald-700",
+    low: "bg-amber-50 text-amber-700",
+    critical: "bg-red-50 text-red-700",
+    overstock: "bg-blue-50 text-blue-700",
+  };
+  return map[s];
 };
 
+const getItemStatus = (
+  item: InventoryItemView,
+): InventoryItemView["status"] => {
+  if (item.available <= 0) return "critical";
+  if (item.available < item.minBuffer) return "low";
+  if (item.onHand > item.minBuffer * 5) return "overstock";
+  return "ok";
+};
+
+const mapProduct = (p: any): InventoryItemView => {
+  // Comprehensive fallback chain for stock field across API shapes
+  const onHand = (p.metadata?.stock_on_hand as number) ?? Number(p.stock ?? 0);
+  const reserved = (p.metadata?.reserved as number) ?? Math.floor(onHand * 0.1);
+  const available = (p.metadata?.available as number) ?? onHand - reserved;
+
+  const base: InventoryItemView = {
+    id: p.id,
+    sku: p.sku,
+    name: p.name,
+    category: p.categoryName ?? p.categoryId ?? "Uncategorized",
+    onHand,
+    reserved,
+    available,
+    minBuffer: p.minBuffer ?? 15,
+    status: "ok",
+  };
+  base.status = getItemStatus(base);
+  return base;
+};
+
+// ── Mock audit log (replace with API call when endpoint exists) ──
+const MOCK_AUDIT_LOG: AuditEntry[] = [
+  {
+    id: "a1",
+    actor: "Budi S.",
+    action: "STOCK_ADJUST",
+    sku: "SKU-001",
+    qty: -5,
+    reason: "Damaged goods write-off",
+    ts: "2026-02-26 14:10",
+    status: "approved",
+  },
+  {
+    id: "a2",
+    actor: "System",
+    action: "SYNC_PULL",
+    reason: "Core inventory sync",
+    ts: "2026-02-26 13:00",
+    status: "approved",
+  },
+  {
+    id: "a3",
+    actor: "Dewi K.",
+    action: "TRANSFER_OUT",
+    sku: "SKU-042",
+    qty: 20,
+    reason: "Branch rebalancing",
+    ts: "2026-02-26 11:30",
+    status: "pending",
+  },
+];
+
+// ── Main Component ────────────────────────────────────────────
 const InventoryVisibility = () => {
   const session = useSession();
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [inventory, setInventory] = useState<InventoryItemView[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCorrecting, setIsCorrecting] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItemView | null>(null);
-  const [correctionQty, setCorrectionQty] = useState<number>(0);
-  const [newItem, setNewItem] = useState<{ name?: string; sku?: string; category: string }>({ category: 'FINISHED_GOOD' });
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const [editingItem, setEditingItem] = useState<InventoryItemView | null>(null);
-  const [isItemDetailOpen, setIsItemDetailOpen] = useState(false);
-  const [selectedDetailItem, setSelectedDetailItem] = useState<InventoryItemView | null>(null);
-  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
-  const [trackingTransferId, setTrackingTransferId] = useState<string>("");
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await retailService.listInventory(session.tenantId, session);
-        setInventory(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Failed to fetch inventory", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [session.tenantId, session]);
-
-  const stats = useMemo(() => {
-    const totalSOH = inventory.reduce((sum, item) => sum + item.stock, 0);
-    const ats = Math.floor(totalSOH * 0.85); // Mock 85% ATS
-    const critical = inventory.filter(item => item.stock < 15).length;
-    const reserved = totalSOH - ats;
-
-    return { totalSOH, ats, critical, reserved };
-  }, [inventory]);
-
-  const filteredInventory = inventory.filter(item => 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchQuery.toLowerCase())
+  const canWrite = WRITE_ROLES.includes(
+    session.role as (typeof WRITE_ROLES)[number],
   );
 
-  const handleManualCorrection = () => {
-    if (!selectedItem) return;
-    const previousStock = selectedItem.stock;
-    setIsCorrecting(true);
-    try {
-      // In a real app, this would hit repository
-      toast({ 
-        title: "Correction Logged", 
-        description: `Manual adjustment of ${correctionQty} units for ${selectedItem.name} has been synchronized.` 
+  // ── Store ─────────────────────────────────────────────────
+  const [stores, setStores] = useState<RetailStore[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
+
+  // ── Display — paginated data ───────────────────────────────
+  const [inventory, setInventory] = useState<InventoryItemView[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastSync, setLastSync] = useState<string>("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // ── Filters — server-side (search, category, sort) ────────
+  const [filters, setFilters] = useState<InventoryFilters>({
+    search: "",
+    status: "all",
+    category: "all",
+    sortBy: "name-asc",
+  });
+
+  console.log("[InventoryVisibility] Render:", {
+    tenantId: session.tenantId,
+    selectedStoreId,
+    isLoading,
+    hasSession: !!session.token,
+  });
+
+  // ── Debounced search — prevents API call on every keystroke ─
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(filters.search), 400);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  // ── Stats — server-side aggregation ───────────────────────
+  const [serverStats, setServerStats] = useState({
+    total: 0,
+    critical: 0,
+    lowStock: 0,
+    overstock: 0,
+    outOfStock: 0,
+    totalSOH: 0,
+    totalATS: 0,
+  });
+  const [isAggregating, setIsAggregating] = useState(false);
+
+  // ── Dialogs ───────────────────────────────────────────────
+  const [editItem, setEditItem] = useState<InventoryItemView | null>(null);
+  const [movementType, setMovementType] = useState<MovementType | null>(null);
+
+  // ── Opname ────────────────────────────────────────────────
+  const [opnameActive, setOpnameActive] = useState(false);
+  const [opnameEntries, setOpnameEntries] = useState<OpnameEntry[]>([]);
+  const [barcodeInput, setBarcodeInput] = useState("");
+
+  // ── Load stores ───────────────────────────────────────────
+  useEffect(() => {
+    if (!session.tenantId) return;
+
+    console.log("[InventoryVisibility] Fetching stores for:", session.tenantId);
+    retailService
+      .listStores(session.tenantId, session)
+      .then((data) => {
+        setStores(data);
+        if (data.length > 0) setSelectedStoreId(data[0].id);
+      })
+      .catch((err) => {
+        console.error("[InventoryVisibility] Store fetch failed:", err);
+        toast({
+          title: "Store Fetch Failed",
+          description: "Could not load stores for your tenant.",
+          variant: "destructive",
+        });
       });
-      setInventory(prev => prev.map(item => 
-        item.sku === selectedItem.sku ? { ...item, stock: correctionQty } : item
-      ));
-      void emitRetailPushEvent({
-        type: "inventory.stock.adjusted",
-        tenantId: session.tenantId,
-        payload: {
-          sku: selectedItem.sku,
-          name: selectedItem.name,
-          category: selectedItem.category,
-          previousStock,
-          newStock: correctionQty,
-          adjustmentType: "absolute",
-          reason: "manual_correction",
-        },
+  }, [session.tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load display inventory (paginated, server filters) ─────
+  useEffect(() => {
+    if (!selectedStoreId || !session.tenantId) return;
+    setIsLoading(true);
+    retailService
+      .listInventory(session.tenantId, session, {
+        page,
+        pageSize: PAGE_SIZE,
+        categoryId: filters.category !== "all" ? filters.category : undefined,
+        q: debouncedSearch.trim() || undefined,
+        sortBy: filters.sortBy.startsWith("name") ? "name" : "price",
+        sortDir: filters.sortBy.endsWith("desc") ? "desc" : "asc",
+      })
+      .then((data) => {
+        const meta = (data as any).meta ?? {
+          total: data.length,
+          page: 1,
+          pageSize: data.length || 1,
+        };
+        setTotal(meta.total);
+        setInventory((Array.isArray(data) ? data : []).map(mapProduct));
+        setLastSync(new Date().toLocaleTimeString());
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [
+    selectedStoreId,
+    session.tenantId,
+    page,
+    filters.category,
+    debouncedSearch,
+    filters.sortBy,
+  ]);
+
+  // ── Load Server Stats for KPI ─────────────────────────────
+  useEffect(() => {
+    if (!selectedStoreId || !session.tenantId) return;
+    setIsAggregating(true);
+    retailService
+      .getInventoryStats(session.tenantId, session, {
+        categoryId: filters.category !== "all" ? filters.category : undefined,
+        q: debouncedSearch.trim() || undefined,
+      })
+      .then((stats) => {
+        setServerStats(stats);
+      })
+      .catch(console.error)
+      .finally(() => setIsAggregating(false));
+  }, [selectedStoreId, session.tenantId, filters.category, debouncedSearch]);
+
+  // ── Reset page when search/filter changes ────────────────
+  useEffect(() => {
+    setPage(1);
+  }, [filters.category, filters.sortBy, debouncedSearch]);
+
+  // ── KPI stats — from the server-side aggregation dataset ──
+  const stats = useMemo(
+    () => ({
+      totalSKUs: serverStats.total,
+      totalSOH: serverStats.totalSOH,
+      totalATS: serverStats.totalATS,
+      critical: serverStats.critical,
+      low: serverStats.lowStock,
+    }),
+    [serverStats],
+  );
+
+  // ── Client-side status filter applied on returned page data ─
+  // BUG FIX: only statusFilter is client-side (not search/category — those are server-side)
+  const filtered = useMemo(
+    () =>
+      filters.status === "all"
+        ? inventory
+        : inventory.filter((i) => i.status === filters.status),
+    [inventory, filters.status],
+  );
+
+  const categoryOptions = useMemo(
+    () => [
+      "all",
+      "Electronics",
+      "Clothing",
+      "Furniture",
+      "Accessories",
+      "Home & Garden",
+    ],
+    [],
+  );
+
+  const totalPages = Math.max(1, Math.ceil((total || 1) / PAGE_SIZE));
+
+  // ── Handlers ──────────────────────────────────────────────
+  const handleSync = useCallback(() => {
+    setIsLoading(true);
+    setIsAggregating(true);
+    Promise.all([
+      retailService.listInventory(session.tenantId!, session, {
+        page,
+        pageSize: PAGE_SIZE,
+        categoryId: filters.category !== "all" ? filters.category : undefined,
+        q: debouncedSearch.trim() || undefined,
+        sortBy: filters.sortBy.startsWith("name") ? "name" : "price",
+        sortDir: filters.sortBy.endsWith("desc") ? "desc" : "asc",
+      }),
+      retailService.getInventoryStats(session.tenantId!, session, {
+        categoryId: filters.category !== "all" ? filters.category : undefined,
+        q: debouncedSearch.trim() || undefined,
+      }),
+    ])
+      .then(([display, stats]) => {
+        const meta = (display as any).meta ?? {
+          total: (display as any).length || 0,
+          page: 1,
+        };
+        setTotal(meta.total);
+        setInventory((Array.isArray(display) ? display : []).map(mapProduct));
+        setServerStats((prev) => ({ ...prev, ...stats }));
+        setLastSync(new Date().toLocaleTimeString());
+        toast({ title: "Synced", description: "Inventory pulled from Core." });
+      })
+      .catch(console.error)
+      .finally(() => {
+        setIsLoading(false);
+        setIsAggregating(false);
       });
-      setSelectedItem(null);
-    } catch (e) {
-      toast({ title: "Error", description: "Failed to apply correction.", variant: "destructive" });
-    } finally {
-      setIsCorrecting(false);
-    }
-  };
+  }, [session, page, filters, debouncedSearch, toast]);
 
-  const handleRegisterItem = () => {
-    if (!newItem.name || !newItem.sku) return;
-    setIsRegistering(true);
-    const item = {
-      id: nextId("ITM"),
-      sku: newItem.sku,
-      name: newItem.name,
-      category: newItem.category,
-      stock: 0, // Fresh items start with 0 stock
-    };
-
-    try {
-      // Mocking inventory add (since it usually joins with inventory repo)
-      setInventory([...inventory, item]);
-      setNewItem({ category: 'FINISHED_GOOD' });
-      toast({ title: "SKU Registered", description: `${item.name} added to Item Master.` });
-      void emitRetailPushEvent({
-        type: "inventory.item.created",
-        tenantId: session.tenantId,
-        payload: {
-          id: item.id,
-          sku: item.sku,
-          name: item.name,
-          category: item.category,
-          stock: item.stock,
-        },
+  const handleMovementSubmit = useCallback(
+    ({
+      lines,
+      ref,
+      reason,
+      destinationStoreId,
+      expectedDate,
+      uom,
+    }: MovementPayload) => {
+      const label = MOVEMENT_META[movementType!].label;
+      toast({
+        title: `${label} Request Submitted`,
+        description: `${lines.length} line(s), ${uom}. Ref: ${ref || "N/A"}. ${reason}${
+          destinationStoreId ? ` • To store ${destinationStoreId}` : ""
+        }${expectedDate ? ` • ETA ${expectedDate}` : ""}`,
       });
-    } catch (e) {
-      toast({ title: "Error", description: "Registration failed.", variant: "destructive" });
-    } finally {
-      setIsRegistering(false);
-    }
-  };
+    },
+    [movementType, toast],
+  );
 
-  const handleDeleteItem = (sku: string) => {
-    if (!confirm("Are you sure you want to remove this item from the Master? All associated stock will be written off.")) return;
-    const removedItem = inventory.find(i => i.sku === sku);
-    setInventory(inventory.filter(i => i.sku !== sku));
-    toast({ title: "Item Removed", description: "SKU has been decommissioned from active inventory.", variant: "destructive" });
-    if (removedItem) {
-      void emitRetailPushEvent({
-        type: "inventory.item.deleted",
-        tenantId: session.tenantId,
-        payload: {
-          id: removedItem.id,
-          sku: removedItem.sku,
-          name: removedItem.name,
-          category: removedItem.category,
-          stock: removedItem.stock,
-        },
+  const handleEditSubmit = useCallback(
+    ({
+      id,
+      minBuffer,
+      reason,
+      effectiveDate,
+      notifyProcurement,
+    }: BufferUpdatePayload) => {
+      setInventory((prev) =>
+        prev.map((i) =>
+          i.id === id
+            ? { ...i, minBuffer, status: getItemStatus({ ...i, minBuffer }) }
+            : i,
+        ),
+      );
+      toast({
+        title: canWrite ? "Buffer Updated" : "Change Request Sent",
+        description: `${reason} • Effective ${effectiveDate}${
+          notifyProcurement ? " • Procurement alerted" : ""
+        }`,
       });
-    }
-  };
+    },
+    [canWrite, toast],
+  );
 
-  const handleItemClick = (item: InventoryItemView) => {
-    setSelectedDetailItem(item);
-    setIsItemDetailOpen(true);
-  };
+  // ── Opname handlers ───────────────────────────────────────
+  const startOpname = useCallback(() => {
+    setOpnameEntries(
+      inventory.map((i) => ({
+        sku: i.sku,
+        name: i.name,
+        expected: i.onHand,
+        counted: "",
+      })),
+    );
+    setOpnameActive(true);
+  }, [inventory]);
 
-  const handleTrackTransfer = (transferId: string) => {
-    setTrackingTransferId(transferId);
-    setIsTrackingOpen(true);
-  };
+  const handleBarcodeKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key !== "Enter") return;
+      const sku = barcodeInput.trim();
+      setBarcodeInput("");
+      setOpnameEntries((prev) => {
+        const idx = prev.findIndex((entry) => entry.sku === sku);
+        if (idx === -1) {
+          toast({
+            title: "SKU Not Found",
+            description: sku,
+            variant: "destructive",
+          });
+          return prev;
+        }
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          counted: Number(updated[idx].counted || 0) + 1,
+        };
+        return updated;
+      });
+    },
+    [barcodeInput, toast],
+  );
 
-  const handleItemEdit = (item: InventoryItemView) => {
-    setEditingItem(item);
-    toast({ title: "Edit Mode", description: `Editing ${item.name}` });
-  };
-
-  const handleItemDelete = (sku: string) => {
-    handleDeleteItem(sku);
-  };
-
-  const handleInitiatePO = (item: InventoryItemView) => {
-    toast({ 
-      title: "P.O. Draft Created", 
-      description: `Draft Purchase Order for ${item.name} has been dispatched to Zenvix Procurement Hub.` 
+  const submitOpname = useCallback(() => {
+    const variances = opnameEntries.filter(
+      (e) => e.counted !== "" && Number(e.counted) !== e.expected,
+    );
+    toast({
+      title: "Stock Opname Submitted",
+      description: `${variances.length} variance(s) found. Pending reconciliation approval.`,
     });
-  };
+    setOpnameActive(false);
+  }, [opnameEntries, toast]);
 
+  const handleCountChange = useCallback((index: number, value: string) => {
+    setOpnameEntries((prev) =>
+      prev.map((entry, i) =>
+        i === index
+          ? { ...entry, counted: value === "" ? "" : Number(value) }
+          : entry,
+      ),
+    );
+  }, []);
+
+  const selectedStore = stores.find((s) => s.id === selectedStoreId);
+
+  // ── Render ────────────────────────────────────────────────
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Inventory Visibility" 
-        subtitle={`${session.tenantId} • Available-to-Sell (ATS) • Channel Allocation Control`}
-      />
-      
-      <WorkspacePanel>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-lg border-slate-200 hover:border-blue-200 transition-all border-l-4 border-l-blue-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-                  <Package className="w-5 h-5" />
-                </div>
-                <Badge className="bg-slate-100 text-slate-600 border-none font-black italic">SOH</Badge>
-              </div>
-              <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Stock On-Hand</div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">{stats.totalSOH.toLocaleString()}</div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic flex items-center gap-1">
-                <Globe className="w-3 h-3" /> Global Valuation: Rp {(stats.totalSOH * 85000 / 1000000).toFixed(1)}M
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-lg border-slate-200 hover:border-emerald-200 transition-all border-l-4 border-l-emerald-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-emerald-50 p-2 rounded-xl text-emerald-600">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <Badge className="bg-emerald-100 text-emerald-700 border-none font-black italic text-[9px]">ATS_ACTIVE</Badge>
-              </div>
-              <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Available to Sell</div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">{stats.ats.toLocaleString()}</div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Excl. Damage & Reservations</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-lg border-slate-200 hover:border-amber-200 transition-all border-l-4 border-l-amber-500">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-amber-50 p-2 rounded-xl text-amber-600">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <Badge variant="destructive" className="border-none font-black italic text-[9px]">CRITICAL</Badge>
-              </div>
-              <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Stockouts Immersion</div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">{stats.critical} SKUs</div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Est. Revenue Loss Potential</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-lg border-slate-200 hover:border-indigo-200 transition-all border-l-4 border-l-indigo-600">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <Badge className="bg-indigo-100 text-indigo-700 border-none font-black italic text-[9px]">SYNCED</Badge>
-              </div>
-              <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Reserved Stock</div>
-              <div className="text-3xl font-black italic text-slate-900 tracking-tighter">{stats.reserved.toLocaleString()}</div>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Ecommerce & B2B Contracts</p>
-            </CardContent>
-          </Card>
-        </div>
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      {/* ── Header ── */}
+      <div className="px-8 py-5 border-b bg-white shrink-0">
+        <InventoryPageHeader
+          stores={stores}
+          selectedStoreId={selectedStoreId}
+          onStoreChange={setSelectedStoreId}
+          lastSync={lastSync}
+          isLoading={isLoading}
+          canWrite={canWrite}
+          onSync={handleSync}
+        />
+        <InventoryKpiBar stats={stats} isAggregating={isAggregating} />
+      </div>
 
-        <div className="flex items-center gap-4 mb-8 bg-slate-50 p-4 rounded-3xl border border-slate-200">
-           <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                className="pl-12 h-14 bg-white border-slate-200 rounded-2xl text-sm font-bold italic placeholder:text-slate-300 focus-visible:ring-blue-500" 
-                placeholder="Search Item ID, Barcode, or Category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-           </div>
-            <div className="flex gap-2">
-               <Dialog>
-                 <DialogTrigger asChild>
-                   <Button variant="outline" className="h-14 px-6 rounded-2xl gap-2 font-black italic border-slate-200 hover:bg-slate-100">
-                     <Plus className="w-5 h-5 text-blue-600" /> New SKU
-                   </Button>
-                 </DialogTrigger>
-                 <DialogContent className="rounded-[2rem]">
-                   <DialogHeader>
-                     <DialogTitle className="font-black italic text-2xl uppercase tracking-tighter">SKU Master Registry</DialogTitle>
-                     <DialogDescription className="font-bold italic">Add new identifiable item to global inventory.</DialogDescription>
-                   </DialogHeader>
-                   <div className="grid gap-4 py-4">
-                     <div className="space-y-1">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Item Name</Label>
-                       <Input value={newItem.name || ""} onChange={e => setNewItem({...newItem, name: e.target.value})} className="h-12 rounded-xl font-bold italic" placeholder="e.g. Premium Coffee Beans" />
-                     </div>
-                     <div className="space-y-1">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">SKU Code</Label>
-                       <Input value={newItem.sku || ""} onChange={e => setNewItem({...newItem, sku: e.target.value})} className="h-12 rounded-xl font-bold italic" placeholder="e.g. COF-PR-99" />
-                     </div>
-                     <div className="space-y-1">
-                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category</Label>
-                       <Input value={newItem.category || ""} onChange={e => setNewItem({...newItem, category: e.target.value})} className="h-12 rounded-xl font-bold italic" placeholder="e.g. Beverages" />
-                     </div>
-                   </div>
-                   <DialogFooter>
-                     <Button 
-                       className="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white font-black italic rounded-xl shadow-xl uppercase tracking-widest"
-                       onClick={handleRegisterItem}
-                       disabled={isRegistering || !newItem.name || !newItem.sku}
-                     >
-                       {isRegistering ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Authorize Global SKU"}
-                     </Button>
-                   </DialogFooter>
-                 </DialogContent>
-               </Dialog>
-
-               <Dialog>
-                 <DialogTrigger asChild>
-                   <Button className="h-14 px-8 rounded-2xl gap-2 bg-slate-900 hover:bg-slate-800 font-black italic shadow-xl">
-                     <RefreshCw className="w-5 h-5" /> Stock Correction
-                   </Button>
-                 </DialogTrigger>
-                 <DialogContent className="rounded-[2rem] border-slate-200">
-                <DialogHeader>
-                  <DialogTitle className="font-black italic text-2xl tracking-tighter uppercase">Inventory Adjustment</DialogTitle>
-                  <DialogDescription className="font-bold italic">Override system stock totals. All changes are logged for forensic audit.</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 py-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target SKU / Item</Label>
-                    <select 
-                      className="w-full h-12 rounded-xl border-slate-200 font-bold italic text-sm px-4 focus:ring-blue-500"
-                      onChange={(e) => {
-                        const item = inventory.find(i => i.sku === e.target.value);
-                        setSelectedItem(item);
-                        setCorrectionQty(item?.stock || 0);
-                      }}
-                    >
-                      <option value="">Select Item...</option>
-                      {inventory.map(i => <option key={i.sku} value={i.sku}>{i.name} ({i.sku})</option>)}
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Actual Count (Physical)</Label>
-                    <Input 
-                      type="number" 
-                      value={correctionQty} 
-                      onChange={(e) => setCorrectionQty(parseInt(e.target.value) || 0)}
-                      className="h-12 rounded-xl font-bold italic" 
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button 
-                    className="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white font-black italic rounded-xl shadow-xl uppercase tracking-widest"
-                    onClick={handleManualCorrection}
-                    disabled={!selectedItem || isCorrecting}
-                  >
-                    {isCorrecting ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Commit Adjustment"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <Card className="shadow-xl border-slate-200 rounded-3xl overflow-hidden">
-            <CardHeader className="bg-slate-900 text-white p-6">
-              <CardTitle className="flex items-center gap-2 text-xl font-black italic tracking-tighter">
-                <ShieldAlert className="w-6 h-6 text-red-500" />
-                CRITICAL THRESHOLDS
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-                {isLoading ? (
-                  <div className="text-center py-12 text-slate-400 font-black italic uppercase text-xs tracking-widest animate-pulse">Scanning Inventory...</div>
-                ) : filteredInventory.length > 0 ? (
-                  filteredInventory.filter(i => i.stock < 50).map((item, i) => (
-                    <div 
-                      key={i} 
-                      onClick={() => handleItemClick(item)}
-                      className="group p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:border-red-200 hover:bg-red-50/20 transition-all cursor-pointer"
-                    >
-                       <div className="flex justify-between items-start mb-4">
-                          <div>
-                             <div className="text-sm font-black italic tracking-tight">{item.name}</div>
-                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.sku} • Category: {item.category}</div>
-                          </div>
-                          <Badge variant="outline" className="border-red-600 text-red-600 font-black italic text-[10px]">{Math.round((item.stock/50)*100)}% SAFETY</Badge>
-                       </div>
-                       <Progress value={(item.stock / 50) * 100} className="h-3 bg-slate-200" />
-                       <div className="flex justify-between mt-3 gap-2">
-                          <div className="text-[10px] font-black italic text-slate-500 uppercase flex-1 mt-2">Available: <span className="text-red-600">{item.stock} Units</span></div>
-                          <div className="flex gap-2">
-                             <Button 
-                               variant="ghost" 
-                               size="sm" 
-                               className="h-9 px-3 text-[10px] font-black uppercase text-blue-600 gap-1 italic hover:bg-blue-100"
-                               onClick={() => handleInitiatePO(item)}
-                             >
-                                <ArrowDownToLine className="w-4 h-4" /> P.O.
-                             </Button>
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                   <Button variant="ghost" size="sm" className="h-9 w-9 text-slate-400 hover:text-slate-900">
-                                      <MoreVertical className="w-4 h-4" />
-                                   </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-xl font-bold italic">
-                                   <DropdownMenuItem className="text-blue-600 focus:text-blue-600 cursor-pointer">
-                                      <Edit3 className="w-4 h-4 mr-2" /> Quick Edit
-                                   </DropdownMenuItem>
-                                   <DropdownMenuItem 
-                                     className="text-red-600 focus:text-red-600 cursor-pointer"
-                                     onClick={() => handleDeleteItem(item.sku)}
-                                   >
-                                      <Trash2 className="w-4 h-4 mr-2" /> Remove SKU
-                                   </DropdownMenuItem>
-                                </DropdownMenuContent>
-                             </DropdownMenu>
-                          </div>
-                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 text-slate-400 font-black italic uppercase text-xs tracking-widest">No Critical Alerts</div>
-                )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-xl border-slate-200 rounded-3xl overflow-hidden">
-            <CardHeader className="bg-slate-100 text-slate-600 p-6">
-              <CardTitle className="flex items-center gap-2 text-xl font-black italic tracking-tighter">
-                <Globe className="w-6 h-6 text-indigo-600" />
-                CHANNEL ALLOCATION
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-8">
-               <div className="space-y-4">
-                  <div className="flex justify-between items-center bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100 border-dashed">
-                     <div className="flex items-center gap-4">
-                        <div className="bg-indigo-600 p-3 rounded-2xl text-white">
-                           <Globe className="w-6 h-6" />
-                        </div>
-                        <div>
-                           <div className="text-sm font-black italic uppercase">Ecommerce Sync</div>
-                           <div className="text-[10px] text-indigo-600 font-bold tracking-tighter uppercase">ATS Buffer: 10% Reserve</div>
-                        </div>
-                     </div>
-                     <Badge className="bg-emerald-100 text-emerald-700 font-black italic border-none">ACTIVE</Badge>
-                  </div>
-
-                  <div className="flex justify-between items-center bg-blue-50/50 p-6 rounded-3xl border border-blue-100 border-dashed">
-                     <div className="flex items-center gap-4">
-                        <div className="bg-blue-600 p-3 rounded-2xl text-white">
-                           <Store className="w-6 h-6" />
-                        </div>
-                        <div>
-                           <div className="text-sm font-black italic uppercase">Walk-in Retail</div>
-                           <div className="text-[10px] text-blue-600 font-bold tracking-tighter uppercase">Physical Store Priority</div>
-                        </div>
-                     </div>
-                     <Badge className="bg-emerald-100 text-emerald-700 font-black italic border-none">ACTIVE</Badge>
-                  </div>
-               </div>
-
-               <Separator />
-
-               <div className="p-8 rounded-[2.5rem] bg-indigo-900 text-white relative overflow-hidden group">
-                  <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:rotate-12 transition-transform">
-                     <RefreshCw className="w-32 h-32" />
-                  </div>
-                  <div className="relative space-y-4">
-                     <div className="text-3xl font-black italic tracking-tighter">Smart AI Reordering</div>
-                     <p className="text-xs opacity-70 italic leading-relaxed">System predicts stockouts in <strong>4 locations</strong> based on festive season trends. Proactive transfer suggested.</p>
-                     <Button className="w-full bg-white text-indigo-900 hover:bg-indigo-50 font-black italic h-14 rounded-2xl shadow-xl">
-                        Review Transfer Suggestions <ArrowRight className="w-5 h-5 ml-2" />
-                     </Button>
-                  </div>
-               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-           <div className="p-6 border-b bg-slate-50 flex items-center justify-between">
-              <div className="text-sm font-black italic uppercase tracking-widest text-slate-500">Live Intake & Transfer Stream</div>
-              <Badge className="bg-blue-600 font-black italic">3 IN TRANSIT</Badge>
-           </div>
-           <div className="divide-y divide-slate-100">
+      {/* ── Tabs ── */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs defaultValue="ledger" className="h-full flex flex-col">
+          <div className="px-8 pt-4 border-b bg-white shrink-0">
+            <TabsList className="bg-slate-100 rounded-xl p-1 h-10">
               {[
-                { id: "TF-8802", from: "Surabaya DC", status: "IN_TRANSIT", eta: "2 Hours", type: "Replenishment" },
-                { id: "TF-8803", from: "Jakarta North", status: "PICKING", eta: "Tomorrow", type: "Inter-store" },
-              ].map((transfer, i) => (
-                <div key={i} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-all">
-                   <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-black italic">
-                         <Truck className="w-6 h-6" />
-                      </div>
-                      <div>
-                         <div className="text-sm font-black italic flex items-center gap-2">
-                           {transfer.id}
-                           <Badge variant="outline" className="text-[8px] font-black h-4 px-1">{transfer.type}</Badge>
-                         </div>
-                         <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Orig: {transfer.from} • ETA: {transfer.eta}</div>
-                      </div>
-                   </div>
-                   <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-blue-600 font-black italic text-xs gap-1 group"
-                      onClick={() => handleTrackTransfer(transfer.id)}
-                   >
-                      Track <ArrowUpRight className="group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform w-3 h-3" />
-                   </Button>
-                </div>
+                { val: "ledger", label: "Stock Ledger", icon: Layers },
+                { val: "opname", label: "Stock Opname", icon: ClipboardCheck },
+                { val: "movements", label: "Movements", icon: ArrowLeftRight },
+                { val: "import", label: "Import / Export", icon: Upload },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.val}
+                  value={t.val}
+                  className="rounded-lg font-black italic text-xs uppercase tracking-widest gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                >
+                  <t.icon className="w-3.5 h-3.5" /> {t.label}
+                </TabsTrigger>
               ))}
-           </div>
-        </div>
-      </WorkspacePanel>
+            </TabsList>
+          </div>
 
-      <ItemDetailModal
-        item={selectedDetailItem}
-        isOpen={isItemDetailOpen}
-        onClose={() => setIsItemDetailOpen(false)}
-        onEdit={handleItemEdit}
-        onDelete={handleItemDelete}
+          {/* TAB 1: Stock Ledger */}
+          <TabsContent
+            value="ledger"
+            className="flex-1 overflow-y-auto m-0 p-8"
+          >
+            <div className="max-w-7xl mx-auto space-y-6">
+              <FiltersBar
+                canWrite={canWrite}
+                filters={filters}
+                categoryOptions={categoryOptions}
+                onFiltersChange={(patch) =>
+                  setFilters((prev) => ({ ...prev, ...patch }))
+                }
+              />
+              <Card className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white">
+                <InventoryTable
+                  items={filtered}
+                  isLoading={isLoading}
+                  page={page}
+                  pageSize={PAGE_SIZE}
+                  totalPages={totalPages}
+                  totalItems={total || inventory.length}
+                  currentCount={filtered.length}
+                  statusBadge={statusBadge}
+                  onEdit={(item) => setEditItem(item)}
+                  onMovement={(type) => setMovementType(type)}
+                  onPageChange={(pNum) =>
+                    setPage(Math.max(1, Math.min(totalPages, pNum)))
+                  }
+                />
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* TAB 2: Stock Opname */}
+          <TabsContent value="opname" className="flex-1 m-0 p-8">
+            <div className="max-w-5xl mx-auto space-y-8">
+              <StockOpnameTab
+                storeName={selectedStore?.name}
+                opnameActive={opnameActive}
+                opnameEntries={opnameEntries}
+                barcodeInput={barcodeInput}
+                onStart={startOpname}
+                onDiscard={() => setOpnameActive(false)}
+                onSubmit={submitOpname}
+                onBarcodeChange={setBarcodeInput}
+                onBarcodeKeyDown={handleBarcodeKeyDown}
+                onCountChange={handleCountChange}
+              />
+            </div>
+          </TabsContent>
+
+          {/* TAB 3: Movements */}
+          <TabsContent
+            value="movements"
+            className="flex-1 overflow-y-auto m-0 p-8"
+          >
+            <MovementsTab
+              canWrite={canWrite}
+              auditLog={MOCK_AUDIT_LOG}
+              onMovement={(type) => setMovementType(type)}
+            />
+          </TabsContent>
+
+          {/* TAB 4: Import / Export */}
+          <TabsContent
+            value="import"
+            className="flex-1 overflow-y-auto m-0 p-8"
+          >
+            <ImportExportTab canWrite={canWrite} />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* ── Dialogs ── */}
+      <InventoryMovementDialog
+        type={movementType ?? "request_po"}
+        open={!!movementType}
+        onClose={() => setMovementType(null)}
+        stores={stores}
+        selectedStoreId={selectedStoreId}
+        items={inventory}
+        onSubmit={handleMovementSubmit}
       />
-
-      <TransferTrackingModal
-        transferId={trackingTransferId}
-        isOpen={isTrackingOpen}
-        onClose={() => setIsTrackingOpen(false)}
+      <InventoryStockEditDialog
+        item={editItem}
+        open={!!editItem}
+        onClose={() => setEditItem(null)}
+        canWrite={canWrite}
+        onSubmit={handleEditSubmit}
       />
     </div>
   );
 };
-
-// Internal icon for consistency
-const ArrowUpRight = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M7 7h10v10"/><path d="M7 17 17 7"/>
-  </svg>
-);
 
 export default InventoryVisibility;

@@ -54,16 +54,16 @@ const SECTIONS: MenuSection[] = [
         to: "/m/retail/management/profile",
         icon: Store,
       },
+      {
+        label: "Commerce Channels",
+        to: "/m/retail/management/ecommerce",
+        icon: Globe,
+      },
       { label: "Staff Roles", to: "/m/retail/management/staff", icon: Users },
       {
         label: "Shift Control",
         to: "/m/retail/management/shifts",
         icon: Clock,
-      },
-      {
-        label: "Commerce Channels",
-        to: "/m/retail/management/ecommerce",
-        icon: Globe,
       },
     ],
   },

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsOptional, Min } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, Min } from "class-validator";
 
 export class RunExecutionDto {
   @IsNumber()
@@ -15,4 +15,3 @@ export class RunExecutionDto {
   @IsOptional()
   failed?: boolean;
 }
-

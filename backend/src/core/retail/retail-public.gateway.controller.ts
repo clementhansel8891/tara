@@ -1,121 +1,156 @@
-import { Controller, Get, Post, Patch, Delete, Headers, Req, Body, UseInterceptors, Param, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
-import { TenantInterceptor } from '../../gateway/tenant.interceptor';
-import { TenantContext } from '../../gateway/tenant-context.interface';
-import { RetailGatewayService } from './retail-gateway.service';
-import { 
-  RetailPublicOrderRequestDto, 
-  CustomerRegisterDto, 
-  CustomerLoginDto, 
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Headers,
+  Req,
+  Body,
+  UseInterceptors,
+  Param,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Request } from "express";
+import { TenantInterceptor } from "../../gateway/tenant.interceptor";
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { RetailGatewayService } from "./retail-gateway.service";
+import {
+  RetailPublicOrderRequestDto,
+  CustomerRegisterDto,
+  CustomerLoginDto,
   CustomerRefreshDto,
   CartItemDto,
   UpdateCartItemDto,
-  WishlistItemDto
-} from './dto/public-gateway.dto';
-import * as jwt from 'jsonwebtoken';
+  WishlistItemDto,
+} from "./dto/public-gateway.dto";
+import * as jwt from "jsonwebtoken";
 
-const AUTH_JWT_SECRET = process.env.RETAIL_AUTH_JWT_SECRET || process.env.JWT_SECRET || 'dev_retail_auth_secret';
+const AUTH_JWT_SECRET =
+  process.env.RETAIL_AUTH_JWT_SECRET ||
+  process.env.JWT_SECRET ||
+  "dev_retail_auth_secret";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
   customerAuth?: { sub: string; tenantId: string };
 }
 
-@Controller('retail/public')
+@Controller("retail/public")
 @UseInterceptors(TenantInterceptor)
 export class RetailPublicGatewayController {
   constructor(private readonly gatewayService: RetailGatewayService) {}
 
   // --- Auth & Customer ---
 
-  @Post('auth/register')
+  @Post("auth/register")
   async register(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
     @Body() payload: CustomerRegisterDto,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.registerCustomer(tenantId, clientId, clientSecret, payload);
+    return this.gatewayService.registerCustomer(
+      tenantId,
+      clientId,
+      clientSecret,
+      payload,
+    );
   }
 
-  @Post('auth/login')
+  @Post("auth/login")
   async login(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
     @Body() payload: CustomerLoginDto,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.loginCustomer(tenantId, clientId, clientSecret, payload);
+    return this.gatewayService.loginCustomer(
+      tenantId,
+      clientId,
+      clientSecret,
+      payload,
+    );
   }
 
-  @Post('auth/refresh')
+  @Post("auth/refresh")
   async refresh(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
     @Body() payload: CustomerRefreshDto,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.refreshTokens(tenantId, clientId, clientSecret, payload);
+    return this.gatewayService.refreshTokens(
+      tenantId,
+      clientId,
+      clientSecret,
+      payload,
+    );
   }
 
-  @Post('auth/logout')
+  @Post("auth/logout")
   async logout(
     @Req() request: RequestWithTenant,
-    @Body('refreshToken') refreshToken: string,
+    @Body("refreshToken") refreshToken: string,
   ) {
     const { tenantId } = request.tenantContext;
     return this.gatewayService.logoutCustomer(tenantId, refreshToken);
   }
 
-  @Get('auth/me')
+  @Get("auth/me")
   async getMe(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.mapToPublicCustomer(
-      await this.gatewayService.findCustomerById(auth.tenantId, auth.sub)
+      await this.gatewayService.findCustomerById(auth.tenantId, auth.sub),
     );
   }
 
   // --- Products ---
 
-  @Get('products')
+  @Get("products")
   async getProducts(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenantId } = request.tenantContext;
     return this.gatewayService.getProducts(tenantId, clientId, clientSecret);
   }
 
-  @Get('products/:id')
+  @Get("products/:id")
   async getProduct(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
-    @Param('id') productId: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
+    @Param("id") productId: string,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.getProductById(tenantId, clientId, clientSecret, productId);
+    return this.gatewayService.getProductById(
+      tenantId,
+      clientId,
+      clientSecret,
+      productId,
+    );
   }
 
-  @Get('categories')
+  @Get("categories")
   async getCategories(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenantId } = request.tenantContext;
     return this.gatewayService.getCategories(tenantId, clientId, clientSecret);
   }
 
-  @Get('promotions')
+  @Get("promotions")
   async getPromotions(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenantId } = request.tenantContext;
     return this.gatewayService.getPromotions(tenantId, clientId, clientSecret);
@@ -123,13 +158,13 @@ export class RetailPublicGatewayController {
 
   // --- Cart ---
 
-  @Get('cart')
+  @Get("cart")
   async getCart(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.getCart(auth.tenantId, auth.sub);
   }
 
-  @Post('cart/items')
+  @Post("cart/items")
   async addToCart(
     @Req() request: RequestWithTenant,
     @Body() payload: CartItemDto,
@@ -138,26 +173,35 @@ export class RetailPublicGatewayController {
     return this.gatewayService.addToCart(auth.tenantId, auth.sub, payload);
   }
 
-  @Patch('cart/items/:id')
+  @Patch("cart/items/:id")
   async updateCartItem(
     @Req() request: RequestWithTenant,
-    @Param('id') itemId: string,
+    @Param("id") itemId: string,
     @Body() payload: UpdateCartItemDto,
   ) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.updateCartItem(auth.tenantId, auth.sub, itemId, payload);
+    return this.gatewayService.updateCartItem(
+      auth.tenantId,
+      auth.sub,
+      itemId,
+      payload,
+    );
   }
 
-  @Delete('cart/items/:id')
+  @Delete("cart/items/:id")
   async removeFromCart(
     @Req() request: RequestWithTenant,
-    @Param('id') itemId: string,
+    @Param("id") itemId: string,
   ) {
     const authCtx = this.getCustomerAuth(request);
-    return this.gatewayService.removeFromCart(authCtx.tenantId, authCtx.sub, itemId);
+    return this.gatewayService.removeFromCart(
+      authCtx.tenantId,
+      authCtx.sub,
+      itemId,
+    );
   }
 
-  @Delete('cart')
+  @Delete("cart")
   async clearCart(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.clearCart(auth.tenantId, auth.sub);
@@ -165,13 +209,13 @@ export class RetailPublicGatewayController {
 
   // --- Wishlist ---
 
-  @Get('wishlist')
+  @Get("wishlist")
   async getWishlist(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.getWishlist(auth.tenantId, auth.sub);
   }
 
-  @Post('wishlist/items')
+  @Post("wishlist/items")
   async addToWishlist(
     @Req() request: RequestWithTenant,
     @Body() payload: WishlistItemDto,
@@ -180,54 +224,73 @@ export class RetailPublicGatewayController {
     return this.gatewayService.addToWishlist(auth.tenantId, auth.sub, payload);
   }
 
-  @Delete('wishlist/items/:id')
+  @Delete("wishlist/items/:id")
   async removeFromWishlist(
     @Req() request: RequestWithTenant,
-    @Param('id') itemId: string,
+    @Param("id") itemId: string,
   ) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.removeFromWishlist(auth.tenantId, auth.sub, itemId);
+    return this.gatewayService.removeFromWishlist(
+      auth.tenantId,
+      auth.sub,
+      itemId,
+    );
   }
 
   // --- Checkout ---
 
-  @Post('orders')
+  @Post("orders")
   async createOrder(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
     @Body() payload: RetailPublicOrderRequestDto,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.createOrder(tenantId, clientId, clientSecret, payload);
+    return this.gatewayService.createOrder(
+      tenantId,
+      clientId,
+      clientSecret,
+      payload,
+    );
   }
 
   // --- Events ---
 
-  @Post('events')
+  @Post("events")
   async logEvent(
     @Req() request: RequestWithTenant,
-    @Headers('x-client-id') clientId: string,
-    @Headers('x-client-secret') clientSecret: string,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
     @Body() payload: any,
   ) {
     const { tenantId } = request.tenantContext;
-    return this.gatewayService.logEvent(tenantId, clientId, clientSecret, payload);
+    return this.gatewayService.logEvent(
+      tenantId,
+      clientId,
+      clientSecret,
+      payload,
+    );
   }
 
   // --- internal helper (simulating middleware) ---
 
   private getCustomerAuth(req: RequestWithTenant) {
-    const authHeader = req.headers.authorization ?? '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : (req.headers['x-access-token'] as string);
+    const authHeader = req.headers.authorization ?? "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : (req.headers["x-access-token"] as string);
 
-    if (!token) throw new UnauthorizedException('Missing access token');
+    if (!token) throw new UnauthorizedException("Missing access token");
 
     try {
-      const payload = jwt.verify(token, AUTH_JWT_SECRET) as { sub: string; tenantId: string };
+      const payload = jwt.verify(token, AUTH_JWT_SECRET) as {
+        sub: string;
+        tenantId: string;
+      };
       return payload;
     } catch (e) {
-      throw new UnauthorizedException('Invalid or expired access token');
+      throw new UnauthorizedException("Invalid or expired access token");
     }
   }
 }

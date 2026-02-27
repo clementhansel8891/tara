@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { FinanceMockRepository } from './finance.mock.repository';
+import { Injectable } from "@nestjs/common";
+import { FinanceMockRepository } from "./finance.mock.repository";
 
 /**
  * Finance DB Repository (DB-ready placeholder)
@@ -10,4 +10,3 @@ import { FinanceMockRepository } from './finance.mock.repository';
  */
 @Injectable()
 export class FinanceDbRepository extends FinanceMockRepository {}
-

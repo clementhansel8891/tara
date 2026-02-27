@@ -4,13 +4,13 @@ export class SalesAuditEvent {
   actorId: string;
   action: string;
   entityType:
-    | 'lead'
-    | 'opportunity'
-    | 'quote'
-    | 'timeline'
-    | 'task'
-    | 'order'
-    | 'alert';
+    | "lead"
+    | "opportunity"
+    | "quote"
+    | "timeline"
+    | "task"
+    | "order"
+    | "alert";
   entityId: string;
   detail: string;
   createdAt: Date;

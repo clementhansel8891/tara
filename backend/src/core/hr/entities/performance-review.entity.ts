@@ -4,7 +4,7 @@ export class PerformanceReview {
   cycleId: string;
   employeeId: string;
   reviewerId: string;
-  status: 'pending' | 'submitted' | 'calibrated' | 'approved';
+  status: "pending" | "submitted" | "calibrated" | "approved";
   rating?: number;
   comments?: string;
   createdAt: Date;

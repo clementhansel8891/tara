@@ -48,7 +48,10 @@ export class RetailGatewayService {
     clientSecret: string | undefined,
   ): Promise<PublicProductView[]> {
     await this.authenticateChannel(tenantId, clientId, clientSecret);
-    const products = await this.retailService.listProducts(tenantId);
+    const { items: products } = await this.retailService.listProducts(
+      tenantId,
+      { page: 1, pageSize: 200 },
+    );
     return products.map((product) => ({
       id: product.id,
       name: product.name,
@@ -67,9 +70,11 @@ export class RetailGatewayService {
     productId: string,
   ): Promise<any> {
     await this.authenticateChannel(tenantId, clientId, clientSecret);
-    const product = await this.retailService
-      .listProducts(tenantId)
-      .then((ps) => ps.find((p) => p.id === productId));
+    const { items: products } = await this.retailService.listProducts(
+      tenantId,
+      { page: 1, pageSize: 200 },
+    );
+    const product = products.find((p) => p.id === productId);
     if (!product) throw new NotFoundException("Product not found");
 
     const stock = await this.retailService.getStockStatus(tenantId, productId);
@@ -262,9 +267,11 @@ export class RetailGatewayService {
       cart = await this.retailService.createCart(tenantId, customerId);
     }
 
-    const product = await this.retailService
-      .listProducts(tenantId)
-      .then((ps) => ps.find((p) => p.id === data.productId));
+    const { items: products } = await this.retailService.listProducts(
+      tenantId,
+      { page: 1, pageSize: 200 },
+    );
+    const product = products.find((p) => p.id === data.productId);
     if (!product) throw new NotFoundException("Product not found");
 
     await this.retailService.updateCartItem(tenantId, cart.id, data.productId, {
@@ -333,9 +340,11 @@ export class RetailGatewayService {
 
     let productId = data.productId;
     if (!productId && data.sku) {
-      const product = await this.retailService
-        .listProducts(tenantId)
-        .then((ps) => ps.find((p) => p.sku === data.sku));
+      const { items: products } = await this.retailService.listProducts(
+        tenantId,
+        { page: 1, pageSize: 200 },
+      );
+      const product = products.find((p) => p.sku === data.sku);
       if (product) productId = product.id;
     }
 
@@ -375,7 +384,10 @@ export class RetailGatewayService {
       );
     }
 
-    const availableProducts = await this.retailService.listProducts(tenantId);
+    const { items: availableProducts } = await this.retailService.listProducts(
+      tenantId,
+      { page: 1, pageSize: 200 },
+    );
     const items = payload.items.map((item) => {
       const product = availableProducts.find((p) => p.sku === item.sku);
       if (!product) {

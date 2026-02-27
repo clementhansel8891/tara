@@ -3,14 +3,23 @@ import {
   ConnectorWithPlainKey,
   EcommerceChannel,
   ChannelWithPlainCredentials,
-} from '../entities/ecommerce-hub.entity';
-import { CreateEcommerceConnectorDto, UpdateEcommerceConnectorDto } from '../dto/ecommerce-hub.dto';
-import { CreateRetailChannelDto, UpdateRetailChannelDto } from '../dto/ecommerce-hub.dto';
+} from "../entities/ecommerce-hub.entity";
+import {
+  CreateEcommerceConnectorDto,
+  UpdateEcommerceConnectorDto,
+} from "../dto/ecommerce-hub.dto";
+import {
+  CreateRetailChannelDto,
+  UpdateRetailChannelDto,
+} from "../dto/ecommerce-hub.dto";
 
 export abstract class IEcommerceHubRepository {
   // ── EcommerceConnector (API-key auth) ───────────────────────
   abstract listConnectors(tenantId: string): Promise<EcommerceConnector[]>;
-  abstract getConnector(tenantId: string, id: string): Promise<EcommerceConnector | null>;
+  abstract getConnector(
+    tenantId: string,
+    id: string,
+  ): Promise<EcommerceConnector | null>;
   abstract createConnector(
     tenantId: string,
     data: CreateEcommerceConnectorDto,
@@ -28,7 +37,10 @@ export abstract class IEcommerceHubRepository {
 
   // ── RetailChannel (clientId/secret auth) ────────────────────
   abstract listChannels(tenantId: string): Promise<EcommerceChannel[]>;
-  abstract getChannel(tenantId: string, id: string): Promise<EcommerceChannel | null>;
+  abstract getChannel(
+    tenantId: string,
+    id: string,
+  ): Promise<EcommerceChannel | null>;
   abstract createChannel(
     tenantId: string,
     data: CreateRetailChannelDto,
@@ -42,6 +54,9 @@ export abstract class IEcommerceHubRepository {
     tenantId: string,
     id: string,
   ): Promise<{ plainClientId: string; plainClientSecret: string }>;
-  abstract revokeChannelCredentials(tenantId: string, id: string): Promise<void>;
+  abstract revokeChannelCredentials(
+    tenantId: string,
+    id: string,
+  ): Promise<void>;
   abstract deleteChannel(tenantId: string, id: string): Promise<void>;
 }

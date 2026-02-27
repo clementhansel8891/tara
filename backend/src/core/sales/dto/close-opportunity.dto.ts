@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CloseOpportunityDto {
   @IsString()
   @IsNotEmpty()
-  result: 'won' | 'lost';
+  result: "won" | "lost";
 
   @IsString()
   @IsOptional()

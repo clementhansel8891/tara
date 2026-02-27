@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: zenvix-suite-v2-db
+  db:
+    image: postgres:15
+    restart: always
     environment:
       POSTGRES_USER: zenvix
       POSTGRES_PASSWORD: zenvix_dev_password
@@ -11,52 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data_v2:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zenvix"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: zenvix-suite-v2-pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@zenvix.local
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "5051:80"
-    depends_on:
-      - postgres
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    container_name: zenvix-suite-v2-backend
-    environment:
-      - DATABASE_URL=postgresql://zenvix:zenvix_dev_password@postgres:5432/zenvix_dev?schema=public
-      - PORT=3000
-      - PERSISTENCE_MODE=database
-    ports:
-      - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: zenvix-suite-v2-frontend
-    ports:
-      - "8081:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data_v2:
+  postgres_data:

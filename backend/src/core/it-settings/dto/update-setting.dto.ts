@@ -1,11 +1,17 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+} from "class-validator";
 
 export enum SettingCategory {
-  GENERAL = 'general',
-  FINANCE = 'finance',
-  HR = 'hr',
-  SECURITY = 'security',
-  INTEGRATION = 'integration',
+  GENERAL = "general",
+  FINANCE = "finance",
+  HR = "hr",
+  SECURITY = "security",
+  INTEGRATION = "integration",
 }
 
 export class UpdateSettingDto {

@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class CreateRequisitionDto {
   @IsString()
@@ -19,10 +25,9 @@ export class CreateRequisitionDto {
 
   @IsString()
   @IsOptional()
-  currency?: 'IDR' | 'USD';
+  currency?: "IDR" | "USD";
 
   @IsString()
   @IsOptional()
   createdBy?: string;
 }
-

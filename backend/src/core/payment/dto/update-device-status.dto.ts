@@ -1,8 +1,7 @@
-import { IsIn, IsString } from 'class-validator';
+import { IsIn, IsString } from "class-validator";
 
 export class UpdateDeviceStatusDto {
   @IsString()
-  @IsIn(['online', 'offline', 'maintenance'])
-  status: 'online' | 'offline' | 'maintenance';
+  @IsIn(["online", "offline", "maintenance"])
+  status: "online" | "offline" | "maintenance";
 }
-

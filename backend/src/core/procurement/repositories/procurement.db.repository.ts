@@ -1,12 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../persistence/prisma.service';
-import { CreateRequisitionDto } from '../dto/create-requisition.dto';
-import { CreateSupplierDto } from '../dto/create-supplier.dto';
-import { ReleasePoDto } from '../dto/release-po.dto';
-import { ProcurementRisk } from '../entities/procurement-risk.entity';
-import { PurchaseOrder } from '../entities/purchase-order.entity';
-import { Requisition } from '../entities/requisition.entity';
-import { Supplier } from '../entities/supplier.entity';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { PrismaService } from "../../../persistence/prisma.service";
+import { CreateRequisitionDto } from "../dto/create-requisition.dto";
+import { CreateSupplierDto } from "../dto/create-supplier.dto";
+import { ReleasePoDto } from "../dto/release-po.dto";
+import { ProcurementRisk } from "../entities/procurement-risk.entity";
+import { PurchaseOrder } from "../entities/purchase-order.entity";
+import { Requisition } from "../entities/requisition.entity";
+import { Supplier } from "../entities/supplier.entity";
 import {
   SupplierMaster,
   ProcurementRequisition,
@@ -17,8 +21,8 @@ import {
   ProcurementDraftPO,
   ProcurementContract,
   ProcurementAuditEvent,
-} from '@prisma/client';
-import { IProcurementRepository } from './procurement.repository.interface';
+} from "@prisma/client";
+import { IProcurementRepository } from "./procurement.repository.interface";
 
 @Injectable()
 export class ProcurementDbRepository extends IProcurementRepository {
@@ -42,9 +46,9 @@ export class ProcurementDbRepository extends IProcurementRepository {
       id: s.id,
       tenantId: s.tenantId,
       name: s.name,
-      taxId: s.taxId || '',
-      category: s.categories[0] || 'General',
-      branchCode: 'JKT',
+      taxId: s.taxId || "",
+      category: s.categories[0] || "General",
+      branchCode: "JKT",
       complianceStatus: s.complianceStatus.toLowerCase() as any,
       rating: s.globalRating,
       createdAt: s.createdAt,
@@ -52,16 +56,19 @@ export class ProcurementDbRepository extends IProcurementRepository {
     }));
   }
 
-  async createSupplier(tenantId: string, data: CreateSupplierDto): Promise<Supplier> {
+  async createSupplier(
+    tenantId: string,
+    data: CreateSupplierDto,
+  ): Promise<Supplier> {
     const created = await this.prisma.supplierMaster.create({
       data: {
         tenantId: tenantId,
         name: data.name,
         taxId: data.taxId,
         categories: [data.category],
-        complianceStatus: 'PENDING',
+        complianceStatus: "PENDING",
         globalRating: 70,
-        riskTier: 'MEDIUM',
+        riskTier: "MEDIUM",
       },
     });
 
@@ -69,10 +76,10 @@ export class ProcurementDbRepository extends IProcurementRepository {
       id: created.id,
       tenantId: created.tenantId,
       name: created.name,
-      taxId: created.taxId || '',
+      taxId: created.taxId || "",
       category: created.categories[0],
       branchCode: data.branchCode,
-      complianceStatus: 'pending',
+      complianceStatus: "pending",
       rating: created.globalRating,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
@@ -99,20 +106,23 @@ export class ProcurementDbRepository extends IProcurementRepository {
     }));
   }
 
-  async createRequisition(tenantId: string, data: CreateRequisitionDto): Promise<Requisition> {
+  async createRequisition(
+    tenantId: string,
+    data: CreateRequisitionDto,
+  ): Promise<Requisition> {
     const created = await this.prisma.procurementRequisition.create({
       data: {
         tenantId: tenantId,
-        requesterId: data.createdBy || 'system',
+        requesterId: data.createdBy || "system",
         departmentId: data.requesterDept,
         branchCode: data.branchCode,
         title: data.title,
         description: data.title,
-        category: 'General',
-        budgetClass: 'OPEX',
+        category: "General",
+        budgetClass: "OPEX",
         amount: data.amount,
-        currency: data.currency || 'IDR',
-        status: 'PENDING_REQUESTER_HOD',
+        currency: data.currency || "IDR",
+        status: "PENDING_REQUESTER_HOD",
       },
     });
 
@@ -124,17 +134,20 @@ export class ProcurementDbRepository extends IProcurementRepository {
       branchCode: created.branchCode,
       amount: Number(created.amount),
       currency: created.currency as any,
-      status: 'pending_requester_hod',
+      status: "pending_requester_hod",
       createdBy: created.requesterId,
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     };
   }
 
-  async approveRequesterHod(tenantId: string, requisitionId: string): Promise<Requisition> {
+  async approveRequesterHod(
+    tenantId: string,
+    requisitionId: string,
+  ): Promise<Requisition> {
     const updated = await this.prisma.procurementRequisition.update({
       where: { id: requisitionId, tenantId: tenantId },
-      data: { status: 'APPROVED_REQUESTER_HOD' },
+      data: { status: "APPROVED_REQUESTER_HOD" },
     });
 
     return {
@@ -145,36 +158,39 @@ export class ProcurementDbRepository extends IProcurementRepository {
       branchCode: updated.branchCode,
       amount: Number(updated.amount),
       currency: updated.currency as any,
-      status: 'approved_requester_hod',
+      status: "approved_requester_hod",
       createdBy: updated.requesterId,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };
   }
 
-  async releasePurchaseOrder(tenantId: string, data: ReleasePoDto): Promise<PurchaseOrder> {
+  async releasePurchaseOrder(
+    tenantId: string,
+    data: ReleasePoDto,
+  ): Promise<PurchaseOrder> {
     const requisition = await this.prisma.procurementRequisition.findUnique({
       where: { id: data.requisitionId, tenantId: tenantId },
     });
 
-    if (!requisition) throw new NotFoundException('Requisition not found');
+    if (!requisition) throw new NotFoundException("Requisition not found");
 
     const po = await this.prisma.procurementFinalPO.create({
       data: {
         tenantId: tenantId,
         requisitionId: requisition.id,
-        draftPoId: 'placeholder',
+        draftPoId: "placeholder",
         supplierId: data.supplierId,
-        supplierBranchId: 'placeholder',
+        supplierBranchId: "placeholder",
         branchCode: requisition.branchCode,
         totalAmount: data.totalAmount,
-        status: 'RELEASED',
+        status: "RELEASED",
       },
     });
 
     await this.prisma.procurementRequisition.update({
       where: { id: requisition.id },
-      data: { status: 'PO_RELEASED' },
+      data: { status: "PO_RELEASED" },
     });
 
     return {
@@ -184,7 +200,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
       supplierId: po.supplierId,
       branchCode: po.branchCode,
       totalAmount: Number(po.totalAmount),
-      status: 'released',
+      status: "released",
       issuedAt: po.issuedAt,
       createdAt: po.createdAt,
       updatedAt: po.updatedAt,
@@ -233,24 +249,24 @@ export class ProcurementDbRepository extends IProcurementRepository {
       where: {
         tenantId: tenantId,
         amount: { gt: 1000000000 },
-        status: 'PO_RELEASED',
+        status: "PO_RELEASED",
       },
     });
 
     for (const req of highAmountReqs) {
       const existing = await this.prisma.procurementRiskSignal.findFirst({
-        where: { tenantId: tenantId, entityId: req.id, code: 'PRICE_SPIKE' },
+        where: { tenantId: tenantId, entityId: req.id, code: "PRICE_SPIKE" },
       });
 
       if (!existing) {
         await this.prisma.procurementRiskSignal.create({
           data: {
             tenantId: tenantId,
-            code: 'PRICE_SPIKE',
-            severity: 'HIGH',
-            status: 'OPEN',
+            code: "PRICE_SPIKE",
+            severity: "HIGH",
+            status: "OPEN",
             entityId: req.id,
-            detail: 'Released PO has high spend spike.',
+            detail: "Released PO has high spend spike.",
           },
         });
       }
@@ -337,7 +353,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
   async getAuditEvents(tenantId: string): Promise<any[]> {
     const events = await this.prisma.procurementAuditEvent.findMany({
       where: { tenantId: tenantId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 100,
     });
     return events.map((e: ProcurementAuditEvent) => ({
@@ -354,13 +370,20 @@ export class ProcurementDbRepository extends IProcurementRepository {
 
   async getSpendInsights(tenantId: string): Promise<any[]> {
     const requisitions = await this.prisma.procurementRequisition.findMany({
-      where: { tenantId: tenantId, status: 'PO_RELEASED' },
+      where: { tenantId: tenantId, status: "PO_RELEASED" },
     });
 
-    const categories = Array.from(new Set(requisitions.map((r: ProcurementRequisition) => r.category)));
+    const categories = Array.from(
+      new Set(requisitions.map((r: ProcurementRequisition) => r.category)),
+    );
     const insights = categories.map((cat) => {
-      const catReqs = requisitions.filter((r: ProcurementRequisition) => r.category === cat);
-      const totalSpend = catReqs.reduce((sum: number, r: ProcurementRequisition) => sum + Number(r.amount), 0);
+      const catReqs = requisitions.filter(
+        (r: ProcurementRequisition) => r.category === cat,
+      );
+      const totalSpend = catReqs.reduce(
+        (sum: number, r: ProcurementRequisition) => sum + Number(r.amount),
+        0,
+      );
       return {
         category: cat,
         totalSpend,

@@ -1,24 +1,30 @@
-import { AttachDisputeEvidenceDto } from '../dto/attach-dispute-evidence.dto';
-import { CreateDisputeDto } from '../dto/create-dispute.dto';
-import { CreatePaymentTransactionDto } from '../dto/create-payment-transaction.dto';
-import { CreateRefundDto } from '../dto/create-refund.dto';
-import { ExecutePaymentDto } from '../dto/execute-payment.dto';
-import { ProgressDisputeDto } from '../dto/progress-dispute.dto';
-import { ResolveDisputeDto } from '../dto/resolve-dispute.dto';
-import { RoutePaymentDto } from '../dto/route-payment.dto';
-import { UpdateDeviceStatusDto } from '../dto/update-device-status.dto';
-import { UpdateProviderStatusDto } from '../dto/update-provider-status.dto';
-import { PaymentDevice, PaymentDevicePool } from '../entities/payment-device.entity';
-import { PaymentChargeback, PaymentDispute } from '../entities/payment-dispute.entity';
-import { PaymentProvider } from '../entities/payment-provider.entity';
-import { PaymentRefund } from '../entities/payment-refund.entity';
+import { AttachDisputeEvidenceDto } from "../dto/attach-dispute-evidence.dto";
+import { CreateDisputeDto } from "../dto/create-dispute.dto";
+import { CreatePaymentTransactionDto } from "../dto/create-payment-transaction.dto";
+import { CreateRefundDto } from "../dto/create-refund.dto";
+import { ExecutePaymentDto } from "../dto/execute-payment.dto";
+import { ProgressDisputeDto } from "../dto/progress-dispute.dto";
+import { ResolveDisputeDto } from "../dto/resolve-dispute.dto";
+import { RoutePaymentDto } from "../dto/route-payment.dto";
+import { UpdateDeviceStatusDto } from "../dto/update-device-status.dto";
+import { UpdateProviderStatusDto } from "../dto/update-provider-status.dto";
+import {
+  PaymentDevice,
+  PaymentDevicePool,
+} from "../entities/payment-device.entity";
+import {
+  PaymentChargeback,
+  PaymentDispute,
+} from "../entities/payment-dispute.entity";
+import { PaymentProvider } from "../entities/payment-provider.entity";
+import { PaymentRefund } from "../entities/payment-refund.entity";
 import {
   PaymentAuditEvent,
   PaymentEvidencePack,
   PaymentSettlement,
-} from '../entities/payment-settlement.entity';
-import { PaymentRoutingPolicy } from '../entities/payment-routing-policy.entity';
-import { PaymentTransaction } from '../entities/payment-transaction.entity';
+} from "../entities/payment-settlement.entity";
+import { PaymentRoutingPolicy } from "../entities/payment-routing-policy.entity";
+import { PaymentTransaction } from "../entities/payment-transaction.entity";
 
 export type PaymentDashboard = {
   pendingApprovals: number;
@@ -75,9 +81,14 @@ export abstract class IPaymentRepository {
     dto: UpdateProviderStatusDto,
     actorId: string,
   ): Promise<PaymentProvider>;
-  abstract runProviderHealthSweep(tenantId: string, actorId: string): Promise<PaymentProvider[]>;
+  abstract runProviderHealthSweep(
+    tenantId: string,
+    actorId: string,
+  ): Promise<PaymentProvider[]>;
 
-  abstract getRoutingPolicies(tenantId: string): Promise<PaymentRoutingPolicy[]>;
+  abstract getRoutingPolicies(
+    tenantId: string,
+  ): Promise<PaymentRoutingPolicy[]>;
   abstract getDevices(tenantId: string): Promise<PaymentDevice[]>;
   abstract getDevicePools(tenantId: string): Promise<PaymentDevicePool[]>;
   abstract updateDeviceStatus(
@@ -134,4 +145,3 @@ export abstract class IPaymentRepository {
   abstract getEvidencePacks(tenantId: string): Promise<PaymentEvidencePack[]>;
   abstract getAuditEvents(tenantId: string): Promise<PaymentAuditEvent[]>;
 }
-

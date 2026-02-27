@@ -2,7 +2,7 @@ export class PaymentRetryAttempt {
   attempt: number;
   attemptedAt: Date;
   providerId: string;
-  result: 'success' | 'failed';
+  result: "success" | "failed";
   reason?: string;
 }
 
@@ -11,30 +11,30 @@ export class PaymentTransaction {
   tenantId: string;
   externalReference?: string;
   type:
-    | 'vendor_payout'
-    | 'customer_collection'
-    | 'treasury_transfer'
-    | 'pos_payment'
-    | 'payroll_payout'
-    | 'refund_payout';
+    | "vendor_payout"
+    | "customer_collection"
+    | "treasury_transfer"
+    | "pos_payment"
+    | "payroll_payout"
+    | "refund_payout";
   amount: number;
-  currency: 'IDR' | 'USD';
+  currency: "IDR" | "USD";
   destination: string;
   source?: string;
-  channel: 'bank_transfer' | 'card_online' | 'card_pos' | 'wallet' | 'qr';
+  channel: "bank_transfer" | "card_online" | "card_pos" | "wallet" | "qr";
   providerId?: string;
   idempotencyKey: string;
   status:
-    | 'request_created'
-    | 'approval_pending'
-    | 'approved'
-    | 'provider_selected'
-    | 'executing'
-    | 'settlement_pending'
-    | 'settled'
-    | 'failed'
-    | 'rejected'
-    | 'cancelled';
+    | "request_created"
+    | "approval_pending"
+    | "approved"
+    | "provider_selected"
+    | "executing"
+    | "settlement_pending"
+    | "settled"
+    | "failed"
+    | "rejected"
+    | "cancelled";
   retryAttempts: PaymentRetryAttempt[];
   settlementId?: string;
   ledgerSyncTriggeredAt?: Date;
@@ -45,4 +45,3 @@ export class PaymentTransaction {
   createdAt: Date;
   updatedAt: Date;
 }
-

@@ -5,9 +5,8 @@ export class Supplier {
   taxId: string;
   category: string;
   branchCode: string;
-  complianceStatus: 'pending' | 'verified' | 'expired';
+  complianceStatus: "pending" | "verified" | "expired";
   rating: number;
   createdAt: Date;
   updatedAt: Date;
 }
-

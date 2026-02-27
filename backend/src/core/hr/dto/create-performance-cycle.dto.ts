@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsDateString } from "class-validator";
 
 export class CreatePerformanceCycleDto {
   @IsString()

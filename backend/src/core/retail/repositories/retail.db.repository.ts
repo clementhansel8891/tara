@@ -308,12 +308,76 @@ export class RetailDbRepository implements IRetailRepository {
   // PRODUCTS
   // ============================================================
 
-  async listProducts(tenantId: string): Promise<RetailProduct[]> {
-    const products = await this.prisma.product.findMany({
-      where: { tenantId: tenantId, status: "active" },
-      orderBy: { name: "asc" },
-    });
-    return products.map((p: Product) => this.mapProduct(p));
+  async listProducts(
+    tenantId: string,
+    options?: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string;
+      q?: string;
+      sortBy?: "name" | "price" | "createdAt";
+      sortDir?: "asc" | "desc";
+      locationId?: string;
+    },
+  ): Promise<{
+    items: RetailProduct[];
+    display_labels?: any;
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    const page = Math.max(1, options?.page ?? 1);
+    const pageSize = Math.max(1, Math.min(options?.pageSize ?? 20, 100));
+    const skip = (page - 1) * pageSize;
+    const orderField =
+      options?.sortBy === "price"
+        ? "basePrice"
+        : options?.sortBy === "createdAt"
+          ? "createdAt"
+          : "name";
+    const orderDir = options?.sortDir === "desc" ? "desc" : "asc";
+
+    const where: any = { tenantId: tenantId, status: "active" };
+    if (options?.categoryId) where.categoryId = options.categoryId;
+    if (options?.q) {
+      const q = options.q;
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { sku: { contains: q, mode: "insensitive" } },
+        { barcode: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const [total, products, configs] = await this.prisma.$transaction([
+      this.prisma.product.count({
+        where,
+      }),
+      this.prisma.product.findMany({
+        where,
+        orderBy: { [orderField]: orderDir },
+        skip,
+        take: pageSize,
+        include: { category: true, stockLevels: true, projections: true },
+      }),
+      this.prisma.labelConfig.findMany({
+        where: { tenantId, moduleType: "RETAIL" },
+      }),
+    ]);
+
+    let display_labels = {};
+    const locConfig = configs.find((c) => c.locationId === options?.locationId);
+    const globalConfig = configs.find((c) => c.locationId === null);
+    if (locConfig) display_labels = locConfig.labels as any;
+    else if (globalConfig) display_labels = globalConfig.labels as any;
+
+    return {
+      items: products.map((p: any) => this.mapProduct(p, options?.locationId)),
+      display_labels,
+      total,
+      page,
+      pageSize,
+    };
   }
 
   async getProduct(
@@ -453,20 +517,109 @@ export class RetailDbRepository implements IRetailRepository {
     tenantId: string,
     productId: string,
   ): Promise<{ available: number; status: string }> {
-    const product = await this.prisma.product.findFirst({
-      where: { id: productId, tenantId: tenantId },
+    const stock = await this.prisma.stockLevel.findFirst({
+      where: { tenantId, productId },
     });
-    if (!product) return { available: 0, status: "OUT_OF_STOCK" };
-    const available = 100;
+
+    const available = stock?.available ?? 0;
     return {
       available,
-      status:
-        available > 10
-          ? "IN_STOCK"
-          : available > 0
-            ? "LOW_STOCK"
-            : "OUT_OF_STOCK",
+      status: available <= 0 ? "out_of_stock" : "in_stock",
     };
+  }
+
+  async getInventoryStats(
+    tenantId: string,
+    options?: { categoryId?: string; q?: string },
+  ): Promise<{
+    total: number;
+    critical: number;
+    lowStock: number;
+    overstock: number;
+    outOfStock: number;
+    totalSOH: number;
+    totalATS: number;
+    totalItems: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+    totalValue: number;
+  }> {
+    const where: any = { tenantId, status: "active" };
+    if (options?.categoryId) where.categoryId = options.categoryId;
+    if (options?.q) {
+      const q = options.q;
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { sku: { contains: q, mode: "insensitive" } },
+        { barcode: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    const products = await this.prisma.product.findMany({
+      where,
+      select: {
+        basePrice: true,
+        stockLevels: {
+          select: {
+            onHand: true,
+            available: true,
+            minBuffer: true,
+            maxCapacity: true,
+          },
+        },
+      },
+    });
+
+    const stats = {
+      total: products.length,
+      critical: 0,
+      lowStock: 0,
+      overstock: 0,
+      outOfStock: 0,
+      totalSOH: 0,
+      totalATS: 0,
+      totalItems: products.length,
+      lowStockCount: 0,
+      outOfStockCount: 0,
+      totalValue: 0,
+    };
+
+    products.forEach((p) => {
+      const totalOnHand = p.stockLevels.reduce(
+        (sum, s) => sum + (s.onHand || 0),
+        0,
+      );
+      const totalAvailable = p.stockLevels.reduce(
+        (sum, s) => sum + (s.available || 0),
+        0,
+      );
+      const minBuffer = p.stockLevels.reduce(
+        (sum, s) => sum + (s.minBuffer || 0),
+        0,
+      );
+      const maxCapacity = p.stockLevels.reduce(
+        (sum, s) => sum + (s.maxCapacity || 0),
+        0,
+      );
+
+      stats.totalSOH += totalOnHand;
+      stats.totalATS += totalAvailable;
+      stats.totalValue += totalOnHand * (p.basePrice as any).toNumber();
+
+      if (totalAvailable <= 0) {
+        stats.critical++;
+        stats.outOfStock++;
+        stats.outOfStockCount++;
+      } else if (totalAvailable < minBuffer) {
+        stats.lowStock++;
+        stats.lowStockCount++;
+      } else if (maxCapacity > 0 && totalAvailable > maxCapacity) {
+        stats.overstock++;
+      }
+    });
+
+    return stats;
   }
 
   // ============================================================
@@ -1126,18 +1279,55 @@ export class RetailDbRepository implements IRetailRepository {
     };
   }
 
-  private mapProduct(p: any): RetailProduct {
+  private mapProduct(p: any, locationId?: string): RetailProduct {
+    const stockLevels = p.stockLevels || [];
+    const soh = stockLevels.reduce(
+      (sum: number, s: any) => sum + (s.onHand || 0),
+      0,
+    );
+    const reserved = stockLevels.reduce(
+      (sum: number, s: any) => sum + (s.reserved || 0),
+      0,
+    );
+    const available = stockLevels.reduce(
+      (sum: number, s: any) => sum + (s.available || 0),
+      0,
+    );
+
+    let customName = p.name;
+    let customDesc = p.description || "";
+    let customPrice = Number(p.basePrice);
+
+    if (p.projections && p.projections.length > 0) {
+      const locProj = p.projections.find(
+        (proj: any) =>
+          proj.locationId === locationId && proj.moduleType === "RETAIL",
+      );
+      const globalProj = p.projections.find(
+        (proj: any) => proj.locationId === null && proj.moduleType === "RETAIL",
+      );
+      const activeProj = locProj || globalProj;
+
+      if (activeProj) {
+        if (activeProj.customName) customName = activeProj.customName;
+        if (activeProj.customDescription)
+          customDesc = activeProj.customDescription;
+        if (activeProj.price) customPrice = Number(activeProj.price);
+      }
+    }
+
     return {
       id: p.id,
       tenant_id: p.tenantId,
       sku: p.sku,
       barcode: p.barcode,
-      name: p.name,
-      description: p.description || "",
+      name: customName,
+      description: customDesc,
       category_id: p.categoryId,
-      base_price: Number(p.basePrice),
+      category_name: p.category?.name,
+      base_price: customPrice,
       currency: "IDR",
-      prices: [{ amount: Number(p.basePrice), currency: "IDR" }],
+      prices: [{ amount: customPrice, currency: "IDR" }],
       tax_rate: Number(p.taxRate),
       unit: p.unit,
       status: p.status as any,
@@ -1146,6 +1336,11 @@ export class RetailDbRepository implements IRetailRepository {
         title: `${p.name} | Zenvix Store`,
         metaDescription: p.description || `Buy ${p.name} at the best price.`,
         keywords: [p.name],
+      },
+      metadata: {
+        stock_on_hand: soh,
+        reserved: reserved,
+        available: available,
       },
       created_at: p.createdAt,
       updated_at: p.updatedAt,

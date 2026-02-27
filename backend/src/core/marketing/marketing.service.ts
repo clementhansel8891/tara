@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { CaptureLeadDto } from './dto/capture-lead.dto';
-import { ConnectAccountDto } from './dto/connect-account.dto';
-import { CreateCampaignDto } from './dto/create-campaign.dto';
-import { CreateWorkflowDto } from './dto/create-workflow.dto';
-import { RunExecutionDto } from './dto/run-execution.dto';
-import { ScheduleExecutionDto } from './dto/schedule-execution.dto';
-import { UpdateAccountStatusDto } from './dto/update-account-status.dto';
-import { UpdateCampaignStatusDto } from './dto/update-campaign-status.dto';
-import { UpdateWorkflowStatusDto } from './dto/update-workflow-status.dto';
-import { IMarketingRepository } from './repositories/marketing.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { CaptureLeadDto } from "./dto/capture-lead.dto";
+import { ConnectAccountDto } from "./dto/connect-account.dto";
+import { CreateCampaignDto } from "./dto/create-campaign.dto";
+import { CreateWorkflowDto } from "./dto/create-workflow.dto";
+import { RunExecutionDto } from "./dto/run-execution.dto";
+import { ScheduleExecutionDto } from "./dto/schedule-execution.dto";
+import { UpdateAccountStatusDto } from "./dto/update-account-status.dto";
+import { UpdateCampaignStatusDto } from "./dto/update-campaign-status.dto";
+import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
+import { IMarketingRepository } from "./repositories/marketing.repository.interface";
 
 @Injectable()
 export class MarketingService {
@@ -26,7 +26,11 @@ export class MarketingService {
     return this.repository.getCampaigns(tenantId);
   }
 
-  async createCampaign(tenantId: string, dto: CreateCampaignDto, actorId: string) {
+  async createCampaign(
+    tenantId: string,
+    dto: CreateCampaignDto,
+    actorId: string,
+  ) {
     return this.repository.createCampaign(tenantId, dto, actorId);
   }
 
@@ -36,14 +40,23 @@ export class MarketingService {
     dto: UpdateCampaignStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateCampaignStatus(tenantId, campaignId, dto, actorId);
+    return this.repository.updateCampaignStatus(
+      tenantId,
+      campaignId,
+      dto,
+      actorId,
+    );
   }
 
   async getExecutions(tenantId: string) {
     return this.repository.getExecutions(tenantId);
   }
 
-  async scheduleExecution(tenantId: string, dto: ScheduleExecutionDto, actorId: string) {
+  async scheduleExecution(
+    tenantId: string,
+    dto: ScheduleExecutionDto,
+    actorId: string,
+  ) {
     return this.repository.scheduleExecution(tenantId, dto, actorId);
   }
 
@@ -64,7 +77,11 @@ export class MarketingService {
     return this.repository.captureLead(tenantId, dto, actorId);
   }
 
-  async markLeadHandoffReady(tenantId: string, leadId: string, actorId: string) {
+  async markLeadHandoffReady(
+    tenantId: string,
+    leadId: string,
+    actorId: string,
+  ) {
     return this.repository.markLeadHandoffReady(tenantId, leadId, actorId);
   }
 
@@ -76,7 +93,11 @@ export class MarketingService {
     return this.repository.getWorkflows(tenantId);
   }
 
-  async createWorkflow(tenantId: string, dto: CreateWorkflowDto, actorId: string) {
+  async createWorkflow(
+    tenantId: string,
+    dto: CreateWorkflowDto,
+    actorId: string,
+  ) {
     return this.repository.createWorkflow(tenantId, dto, actorId);
   }
 
@@ -86,14 +107,23 @@ export class MarketingService {
     dto: UpdateWorkflowStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateWorkflowStatus(tenantId, workflowId, dto, actorId);
+    return this.repository.updateWorkflowStatus(
+      tenantId,
+      workflowId,
+      dto,
+      actorId,
+    );
   }
 
   async getConnectedAccounts(tenantId: string) {
     return this.repository.getConnectedAccounts(tenantId);
   }
 
-  async connectAccount(tenantId: string, dto: ConnectAccountDto, actorId: string) {
+  async connectAccount(
+    tenantId: string,
+    dto: ConnectAccountDto,
+    actorId: string,
+  ) {
     return this.repository.connectAccount(tenantId, dto, actorId);
   }
 
@@ -103,7 +133,12 @@ export class MarketingService {
     dto: UpdateAccountStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateAccountStatus(tenantId, accountId, dto, actorId);
+    return this.repository.updateAccountStatus(
+      tenantId,
+      accountId,
+      dto,
+      actorId,
+    );
   }
 
   async getAttribution(tenantId: string) {
@@ -126,4 +161,3 @@ export class MarketingService {
     return this.repository.getAuditEvents(tenantId);
   }
 }
-

@@ -10,11 +10,20 @@ export interface Asset {
   acquisitionDate: string;
   usefulLifeYears: number;
   residualValue: number;
-  depreciationMethod: "STRAIGHT_LINE" | "DECLINING_BALANCE" | "UNITS_OF_PRODUCTION";
+  depreciationMethod:
+    | "STRAIGHT_LINE"
+    | "DECLINING_BALANCE"
+    | "UNITS_OF_PRODUCTION";
   accumulatedDepreciation: number;
   carryingValue: number;
   revaluationReserve: number;
-  status: "DRAFT" | "PENDING_APPROVAL" | "APPROVED_FOR_CAPITALIZATION" | "ACTIVE" | "DISPOSED" | "WRITTEN_OFF";
+  status:
+    | "DRAFT"
+    | "PENDING_APPROVAL"
+    | "APPROVED_FOR_CAPITALIZATION"
+    | "ACTIVE"
+    | "DISPOSED"
+    | "WRITTEN_OFF";
   serialNumber?: string;
   vendor?: string;
   warrantyExpiry?: string;
@@ -27,7 +36,12 @@ export interface CapexRequest {
   department: string;
   projectCode: string;
   justification?: string;
-  status: "PENDING" | "PENDING_HOD_APPROVAL" | "PENDING_CFO_APPROVAL" | "APPROVED" | "REJECTED";
+  status:
+    | "PENDING"
+    | "PENDING_HOD_APPROVAL"
+    | "PENDING_CFO_APPROVAL"
+    | "APPROVED"
+    | "REJECTED";
   currentApprovalStage?: "HOD" | "CFO";
   budgetMatched: boolean;
   createdAt: string;
@@ -129,61 +143,61 @@ export interface PaymentRequest {
 }
 
 export interface FinancePolicyRow {
-    id: string;
-    name: string;
-    description: string;
-    status: "ACTIVE" | "DRAFT" | "ARCHIVED";
-    enforced: boolean;
+  id: string;
+  name: string;
+  description: string;
+  status: "ACTIVE" | "DRAFT" | "ARCHIVED";
+  enforced: boolean;
 }
 
 export interface AccountingPeriod {
-    id: string;
-    name: string;
-    startDate: string;
-    endDate: string;
-    status: "OPEN" | "CLOSED" | "LOCKED" | "ADJUSTING";
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: "OPEN" | "CLOSED" | "LOCKED" | "ADJUSTING";
 }
 
 export interface FinanceInsight {
-    id: string;
-    title: string;
-    type: "INFO" | "WARNING" | "CRITICAL";
-    message: string;
-    date: string;
+  id: string;
+  title: string;
+  type: "INFO" | "WARNING" | "CRITICAL";
+  message: string;
+  date: string;
 }
 
 export interface FinanceAlert {
-    id: string;
-    message: string;
-    severity: "LOW" | "MEDIUM" | "HIGH";
-    createdAt: string;
-    read: boolean;
+  id: string;
+  message: string;
+  severity: "LOW" | "MEDIUM" | "HIGH";
+  createdAt: string;
+  read: boolean;
 }
 
 export interface PayrollEntry {
-    id: string; // Employee ID
-    name: string;
-    department: string;
-    salary: number; // Base salary
-    bonus: number;
-    deductions: number;
-    netPay: number;
-    status: "PENDING" | "PROCESSED" | "PAID";
-    paymentDate?: string;
+  id: string; // Employee ID
+  name: string;
+  department: string;
+  salary: number; // Base salary
+  bonus: number;
+  deductions: number;
+  netPay: number;
+  status: "PENDING" | "PROCESSED" | "PAID";
+  paymentDate?: string;
 }
 
 export interface ReceivableInvoice {
-    id: string;
-    customer: string;
-    amount: number;
-    dueDate: string;
-    status: "DRAFT" | "SENT" | "PAID";
+  id: string;
+  customer: string;
+  amount: number;
+  dueDate: string;
+  status: "DRAFT" | "SENT" | "PAID";
 }
 
 export interface PayableBill {
-    id: string;
-    vendor: string;
-    amount: number;
-    dueDate: string;
-    status: "RECEIVED" | "APPROVED" | "PAID";
+  id: string;
+  vendor: string;
+  amount: number;
+  dueDate: string;
+  status: "RECEIVED" | "APPROVED" | "PAID";
 }

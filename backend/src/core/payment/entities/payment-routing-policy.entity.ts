@@ -10,4 +10,3 @@ export class PaymentRoutingPolicy {
   createdAt: Date;
   updatedAt: Date;
 }
-

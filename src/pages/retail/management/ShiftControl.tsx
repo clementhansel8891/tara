@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import {
@@ -14,21 +14,31 @@ import {
   UserPlus,
   RefreshCw,
   Power,
+  Activity,
+  Award,
+  BarChart3,
+  Search,
+  MessageSquare,
+  Flame,
+  UserCheck,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import { useRetail } from "../context/RetailContext";
 import type { RetailShift } from "@/core/types/retail/retail";
+import { cn } from "@/lib/utils";
 
 const ShiftControl = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
+  const { activeStore } = useRetail();
   const [shifts, setShifts] = useState<RetailShift[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,12 +46,13 @@ const ShiftControl = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await retailService.listShifts(
           session.tenantId!,
           session,
           session.locationId,
         );
-        setShifts(data);
+        setShifts(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch shifts", error);
       } finally {
@@ -51,18 +62,15 @@ const ShiftControl = () => {
     fetchData();
   }, [session.tenantId, session.locationId, session]);
 
-  const activeShift = shifts.find((s) => s.status === "open");
+  const stats = useMemo(() => {
+    const active = shifts.filter((s) => s.status === "open").length;
+    const efficiency = 84.5; // Mocked
+    const attendance = 100; // Mocked
+    return { active, efficiency, attendance };
+  }, [shifts]);
 
   const handleToggleStore = async () => {
-    if (!session.locationId) {
-      toast({
-        title: "Location Not Selected",
-        description: "Please select a branch before opening a shift.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    const activeShift = shifts.find((s) => s.status === "open");
     setIsSyncing(true);
     try {
       if (activeShift) {
@@ -70,25 +78,25 @@ const ShiftControl = () => {
           session.tenantId!,
           session,
           activeShift.id,
-          5000,
-        ); // Mock closing balance
+          0,
+        );
         toast({
-          title: "Shift Session Closed",
-          description: `All terminals for shift ${activeShift.id} have been synchronized.`,
+          title: "Terminal Lock Engaged",
+          description: "All active sessions synchronized and terminated.",
         });
       } else {
-        const newShift = await retailService.openShift(
+        await retailService.openShift(
           session.tenantId!,
           session,
-          session.locationId,
+          session.locationId!,
           1000,
         );
         toast({
-          title: "New Shift Opened",
-          description: `Shift ${newShift.id} is now live mapping to ${session.locationId}.`,
+          title: "Grid Initialized",
+          description: "Node endpoints are now accepting operational traffic.",
         });
       }
-      // Refresh data
+      // Refresh
       const data = await retailService.listShifts(
         session.tenantId!,
         session,
@@ -96,10 +104,9 @@ const ShiftControl = () => {
       );
       setShifts(data);
     } catch (error) {
-      console.error("Shift toggle failed", error);
       toast({
-        title: "Operation Failed",
-        description: "Could not update shift state.",
+        title: "Protocol Refused",
+        description: "System handshake failed.",
         variant: "destructive",
       });
     } finally {
@@ -107,272 +114,330 @@ const ShiftControl = () => {
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Workforce & Session Control"
-        subtitle={`${activeStore?.name || activeChannel?.name || session.tenantId} • Operational Gatekeeping • Roster Enforcement`}
-      />
-
-      <WorkspacePanel>
-        <div
-          className={`flex flex-col md:flex-row items-center justify-between p-8 rounded-[2.5rem] mb-8 shadow-2xl transition-all border-4 ${activeShift ? "bg-slate-900 border-green-500/30" : "bg-red-950/20 border-red-500/30"}`}
-        >
-          <div className="flex items-center gap-6 mb-6 md:mb-0">
-            <div
-              className={`w-20 h-20 rounded-full flex items-center justify-center border-2 ${activeShift ? "bg-green-500/10 border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.2)]" : "bg-red-500/10 border-red-500/50"}`}
-            >
-              {activeShift ? (
-                <Unlock className="w-10 h-10 text-green-400" />
-              ) : (
-                <Lock className="w-10 h-10 text-red-500" />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h2
-                  className={`text-3xl font-black italic tracking-tighter ${activeShift ? "text-white" : "text-red-500"}`}
-                >
-                  {activeShift ? "STORE LIVE" : "TERMINALS LOCKED"}
-                </h2>
-                {activeShift && (
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                )}
-              </div>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-                {activeShift
-                  ? `Session ID: ${activeShift.id}`
-                  : "NO ACTIVE SESSION"}{" "}
-                • {activeStore?.name || activeChannel?.name || "Global Hub"}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <Button
-              variant={activeShift ? "destructive" : "default"}
-              className={`h-16 px-10 rounded-2xl font-black italic tracking-widest uppercase gap-3 shadow-xl ${!activeShift && "bg-green-600 hover:bg-green-700"}`}
-              onClick={handleToggleStore}
-              disabled={isSyncing || isLoading}
-            >
-              {isSyncing ? (
-                <RefreshCw className="w-6 h-6 animate-spin" />
-              ) : activeShift ? (
-                <>
-                  <Power className="w-6 h-6" /> Terminate Day
-                </>
-              ) : (
-                <>
-                  <Zap className="w-6 h-6" /> Initialize Day
-                </>
-              )}
-            </Button>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Activity className="w-8 h-8 text-emerald-600 animate-pulse" />
+          <p className="text-sm font-black italic uppercase tracking-widest text-slate-400">
+            Synchronizing Biometrics...
+          </p>
         </div>
+      </div>
+    );
+  }
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <Card className="shadow-xl border-slate-200 rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-slate-50 border-b p-6 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-black italic uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                  <Timer className="w-5 h-5 text-blue-600" />
-                  Active Shift Timeline
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-blue-600 font-bold italic text-xs gap-1 hover:bg-blue-50"
-                >
-                  <UserPlus className="w-3 h-3" /> Adjust Roster
-                </Button>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="space-y-6">
-                  {isLoading ? (
-                    <div className="py-10 text-center text-slate-400 font-black italic uppercase tracking-widest animate-pulse">
-                      Scanning Roster Hub...
-                    </div>
-                  ) : shifts.length > 0 ? (
-                    shifts.map((s, i) => (
-                      <div
-                        key={i}
-                        className="group p-6 rounded-2xl border border-slate-100 hover:border-blue-100 transition-all bg-white relative"
-                      >
-                        <div className="flex justify-between items-start mb-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-white font-black italic shadow-lg">
-                              {s.employeeId.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="text-sm font-black italic text-slate-900 tracking-tight">
-                                {s.employeeId}
-                              </div>
-                              <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                Store: {s.storeId} • Open:{" "}
-                                {new Date(s.startTime).toLocaleTimeString()}
-                              </div>
-                            </div>
+  const activeShift = shifts.find((s) => s.status === "open");
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
+        <PageHeader
+          title="Workforce Intelligence Hub"
+          subtitle={`Node: ${session.locationId || "CENTRAL"} • Labor Efficiency: ${stats.efficiency}% • Risk: LOW`}
+        />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+          >
+            <Calendar className="w-3.5 h-3.5" /> Roster Policy
+          </Button>
+          <Button
+            variant={activeShift ? "destructive" : "default"}
+            onClick={handleToggleStore}
+            disabled={isSyncing}
+            className={cn(
+              "h-11 px-6 rounded-xl font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg transition-all",
+              !activeShift &&
+                "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/10",
+            )}
+          >
+            {isSyncing ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : activeShift ? (
+              <Power className="w-4 h-4" />
+            ) : (
+              <Zap className="w-4 h-4" />
+            )}
+            {activeShift ? "Terminate Session" : "Deploy Workforce"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50/50">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Workforce Vitals */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl relative overflow-hidden">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-emerald-50 text-emerald-600">
+                  <Users className="w-5 h-5" />
+                </div>
+                <Badge className="bg-emerald-50 text-emerald-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                  LIVE
+                </Badge>
+              </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Personnel on Grid
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                {stats.active} Members
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase flex items-center gap-1">
+                <Activity className="w-3 h-3 text-emerald-500" /> Optimal
+                Coverage
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl relative overflow-hidden">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <Badge className="bg-blue-50 text-blue-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                  TARGET: 85%
+                </Badge>
+              </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Labor Efficiency
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                {stats.efficiency}%
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase flex items-center gap-1">
+                <Flame className="w-3 h-3 text-amber-500" /> Near Peak Capacity
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl relative overflow-hidden">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
+                  <Award className="w-5 h-5" />
+                </div>
+                <Badge className="bg-amber-50 text-amber-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                  ELITE
+                </Badge>
+              </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Service Velocity
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                1.8m
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+                Avg. Interaction Time
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] p-6 bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
+              <ShieldAlert className="absolute -right-8 -bottom-8 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
+              <div className="relative z-10">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-amber-400 mb-4">
+                  Compliance Guard
+                </div>
+                <div className="text-4xl font-black italic tracking-tighter text-emerald-400">
+                  SECURE
+                </div>
+                <div className="text-[10px] font-bold italic opacity-60 mt-4 uppercase">
+                  No Overtime Violations
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <Card className="rounded-[2.5rem] bg-white shadow-2xl border-none overflow-hidden">
+                <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-500">
+                      Live Infrastructure Map
+                    </h3>
+                    <Badge className="bg-emerald-600 font-black italic text-[8px] uppercase">
+                      Biometric Sync
+                    </Badge>
+                  </div>
+                  <div className="relative w-64">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      className="pl-12 h-10 bg-white border-slate-200 rounded-xl text-xs font-bold italic"
+                      placeholder="Search Roster..."
+                    />
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {shifts.map((s, i) => (
+                    <div
+                      key={i}
+                      className="group p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all"
+                    >
+                      <div className="flex items-center gap-6">
+                        <div className="relative">
+                          <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm font-black italic">
+                            {s.employeeId.charAt(0).toUpperCase()}
                           </div>
-                          <Badge
-                            className={`${s.status === "open" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"} font-black italic border-none text-[8px] tracking-widest uppercase`}
-                          >
-                            {s.status}
-                          </Badge>
+                          <div
+                            className={cn(
+                              "absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white flex items-center justify-center",
+                              s.status === "open"
+                                ? "bg-emerald-500"
+                                : "bg-slate-300",
+                            )}
+                          />
                         </div>
-                        <Progress
-                          value={s.status === "open" ? 45 : 100}
-                          className="h-1.5 bg-slate-100"
-                        />
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-red-500"
-                          >
-                            <Power className="w-4 h-4" />
-                          </Button>
+                        <div>
+                          <div className="text-base font-black italic tracking-tight text-slate-900">
+                            {s.employeeId}
+                          </div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-3 mt-1">
+                            {s.storeId} • Terminal B-1 • Level 2
+                            <Badge
+                              className={cn(
+                                "text-[8px] font-black italic border-none h-4 px-1 ml-2",
+                                s.status === "open"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-50 text-slate-500",
+                              )}
+                            >
+                              {s.status.toUpperCase()}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="py-10 text-center text-slate-400 font-black italic uppercase tracking-widest">
-                      No Recent Shift Activity
+                      <div className="flex items-center gap-8 text-right">
+                        <div>
+                          <div className="text-xs font-black italic text-slate-900 mb-1">
+                            Attendance Integrity
+                          </div>
+                          <div className="w-32 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500"
+                              style={{ width: "98%" }}
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-slate-400 hover:text-slate-900 rounded-xl"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {shifts.length === 0 && (
+                    <div className="p-20 text-center">
+                      <div className="text-xs font-black italic uppercase tracking-widest text-slate-400">
+                        Node Inactive • Awaiting Workforce Deployment
+                      </div>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-slate-900 text-white shadow-xl rounded-3xl overflow-hidden group">
-                <CardHeader>
-                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 italic">
-                    Labor Compliance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex justify-between items-end">
-                    <div className="text-5xl font-black italic tracking-tighter">
-                      100%
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] font-black opacity-40 uppercase">
-                        Safe Hours
-                      </div>
-                      <Badge className="bg-amber-600 font-black italic text-[9px]">
-                        NO_VIOLATIONS
-                      </Badge>
-                    </div>
-                  </div>
-                  <Progress value={100} className="h-2 bg-slate-800" />
-                  <p className="text-[10px] text-slate-400 italic">
-                    All break protocols verified by biometric attendance sync.
-                  </p>
-                </CardContent>
               </Card>
+            </div>
 
-              <Card className="border-indigo-100 bg-indigo-50/20 shadow-xl rounded-3xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-indigo-900 italic">
-                    Auto-Verification
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="bg-white/60 p-4 rounded-xl border border-indigo-100">
-                    <div className="text-xs font-black italic mb-1">
-                      Terminal Auth Pulse
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3 h-3 text-indigo-400" />
-                      <span className="text-[10px] font-bold text-slate-500 tracking-tighter uppercase italic">
-                        Matched with JD Roster Entry
-                      </span>
-                    </div>
+            <div className="space-y-8">
+              {/* Emergency Override */}
+              <Card className="rounded-[2.5rem] bg-red-900 text-white p-8 shadow-2xl relative overflow-hidden group">
+                <ShieldAlert className="absolute -right-8 -top-8 w-40 h-40 opacity-10 group-hover:rotate-12 transition-transform" />
+                <div className="relative space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Badge className="bg-red-700 font-black italic text-[9px] uppercase tracking-widest border-none px-3">
+                      Restriction Gate
+                    </Badge>
+                    <Lock className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-xl font-black italic tracking-tighter uppercase leading-tight">
+                      Terminal Shutdown
+                    </h4>
+                    <p className="text-[10px] opacity-70 leading-relaxed font-bold italic">
+                      Instantly terminate all active point-of-sale sessions and
+                      lock hardware peripherals.
+                    </p>
                   </div>
                   <Button
-                    variant="outline"
-                    className="w-full text-[10px] font-black uppercase border-indigo-200 text-indigo-700 hover:bg-indigo-100 italic h-10 transition-all"
+                    variant="destructive"
+                    className="w-full bg-red-600 hover:bg-red-700 font-black italic h-12 rounded-xl text-xs uppercase shadow-xl transition-all"
                   >
-                    Verification Logs
+                    Emergency Lockout
                   </Button>
-                </CardContent>
+                </div>
+              </Card>
+
+              {/* Performance Feed */}
+              <Card className="rounded-[2.5rem] bg-white border-slate-200 shadow-xl p-8 space-y-8">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                  Operational Pulse
+                </div>
+                <div className="space-y-6">
+                  {[
+                    { label: "Check-in Accuracy", value: 100, trend: "UP" },
+                    { label: "Roster Adherence", value: 92, trend: "STABLE" },
+                    {
+                      label: "Service Score",
+                      value: 4.8,
+                      trend: "UP",
+                      suffix: "/5",
+                    },
+                  ].map((item, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between items-end italic">
+                        <span className="text-[10px] font-black text-slate-500 uppercase">
+                          {item.label}
+                        </span>
+                        <span className="text-sm font-black text-slate-900">
+                          {item.value}
+                          {item.suffix || "%"}
+                        </span>
+                      </div>
+                      <Progress
+                        value={item.value > 5 ? item.value * 20 : item.value}
+                        className="h-1 bg-slate-100"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center gap-4 group cursor-pointer hover:bg-indigo-100 transition-all">
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-black text-indigo-900 uppercase italic">
+                      Broadcast to Team
+                    </div>
+                    <div className="text-[10px] text-indigo-400 font-bold uppercase italic tracking-tighter">
+                      Sync motivation rituals...
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Shift Suggestion */}
+              <Card className="rounded-[2.5rem] bg-indigo-600 text-white p-8 group cursor-pointer hover:bg-indigo-700 transition-all overflow-hidden relative">
+                <UserCheck className="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 group-hover:scale-110 transition-transform" />
+                <div className="relative space-y-6 text-center">
+                  <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto shadow-xl backdrop-blur-sm">
+                    <Timer className="w-7 h-7" />
+                  </div>
+                  <h4 className="text-xl font-black italic tracking-tighter uppercase">
+                    Optimal Roster
+                  </h4>
+                  <p className="text-xs font-medium opacity-70 leading-relaxed italic px-4">
+                    Traffic peak detected at 17:00. Suggested: Add 2 cashiers to
+                    Front End.
+                  </p>
+                  <Button className="w-full bg-white text-indigo-900 hover:bg-white/90 h-12 font-black italic uppercase tracking-widest rounded-xl text-[10px]">
+                    Adjust Tomorrow's Grid
+                  </Button>
+                </div>
               </Card>
             </div>
           </div>
-
-          <div className="space-y-8">
-            <Card className="border-red-200 bg-red-50/20 shadow-xl rounded-[2.5rem] overflow-hidden border-2">
-              <CardHeader className="p-8 pb-0">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-red-700 italic flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4" /> Emergency Protocol
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-3">
-                  <div className="text-sm font-black italic tracking-tight text-red-950">
-                    Immediate Terminal Shutdown
-                  </div>
-                  <p className="text-xs text-red-800/80 leading-relaxed font-medium">
-                    Instantly lock all point-of-sale systems, weighing scales,
-                    and receiving terminals across the branch.
-                  </p>
-                </div>
-                <Button className="w-full h-14 bg-red-600 hover:bg-red-700 text-white font-black italic uppercase tracking-widest shadow-lg shadow-red-900/20 gap-2">
-                  <Lock className="w-5 h-5" /> LOCK BRANCH NOW
-                </Button>
-                <Separator className="bg-red-200" />
-                <div className="bg-white p-4 rounded-xl border border-red-100">
-                  <div className="text-[10px] font-black text-red-700 uppercase mb-2 italic">
-                    Policy Override Required
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">
-                    Use this only for verified security breaches or regulatory
-                    enforcement.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden group">
-              <CardHeader className="p-6 pb-2">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">
-                  Workforce Pulse
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="w-10 h-10 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center font-black italic text-slate-300 text-xs shadow-sm"
-                      >
-                        U{i}
-                      </div>
-                    ))}
-                    <div className="w-10 h-10 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center text-white font-black text-xs shadow-sm">
-                      +2
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-black italic">
-                      {shifts.filter((s) => s.status === "open").length} Online
-                    </div>
-                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                      Active Terminal Coverage
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  className="w-full h-12 text-[10px] font-black uppercase text-blue-600 gap-2 italic hover:bg-blue-50 border-2 border-dashed border-slate-200 group-hover:border-blue-200 transition-all rounded-2xl"
-                >
-                  Broadcast to Team <Zap className="w-3 h-3" />
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
-      </WorkspacePanel>
+      </div>
     </div>
   );
 };

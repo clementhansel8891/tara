@@ -16,7 +16,7 @@ export class Payroll {
   deductions?: number;
   grossPay: number;
   netPay: number;
-  status: 'draft' | 'approved' | 'paid';
+  status: "draft" | "approved" | "paid";
   paidAt?: Date;
   createdAt: Date;
   updatedAt: Date;

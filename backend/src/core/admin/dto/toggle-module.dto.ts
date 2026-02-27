@@ -1,12 +1,18 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from "class-validator";
 
 export enum AdminModuleKey {
-  FINANCE = 'finance',
-  HR = 'hr',
-  INVENTORY = 'inventory',
-  PROCUREMENT = 'procurement',
-  ADMIN = 'admin',
-  IT = 'it',
+  FINANCE = "finance",
+  HR = "hr",
+  INVENTORY = "inventory",
+  PROCUREMENT = "procurement",
+  ADMIN = "admin",
+  IT = "it",
 }
 
 export class ToggleModuleDto {
@@ -21,4 +27,3 @@ export class ToggleModuleDto {
   @IsOptional()
   updatedBy?: string;
 }
-

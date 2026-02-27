@@ -3,13 +3,13 @@ export class MarketingLead {
   tenantId: string;
   campaignId?: string;
   source:
-    | 'landing_page'
-    | 'embedded_form'
-    | 'chatbot'
-    | 'webinar'
-    | 'meta_lead_ads'
-    | 'google_ads'
-    | 'partner_api';
+    | "landing_page"
+    | "embedded_form"
+    | "chatbot"
+    | "webinar"
+    | "meta_lead_ads"
+    | "google_ads"
+    | "partner_api";
   companyName: string;
   contactName: string;
   email?: string;
@@ -19,11 +19,16 @@ export class MarketingLead {
   employeeBand?: string;
   dedupKey: string;
   score: number;
-  intent: 'low' | 'medium' | 'high';
-  status: 'captured' | 'enriched' | 'scored' | 'qualified' | 'handoff_ready' | 'handoff_sent';
+  intent: "low" | "medium" | "high";
+  status:
+    | "captured"
+    | "enriched"
+    | "scored"
+    | "qualified"
+    | "handoff_ready"
+    | "handoff_sent";
   qualificationReason: string;
   salesHandoffId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
-

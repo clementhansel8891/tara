@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { CloseOpportunityDto } from './dto/close-opportunity.dto';
-import { CreateLeadDto } from './dto/create-lead.dto';
-import { CreateOpportunityDto } from './dto/create-opportunity.dto';
-import { CreateQuoteDto } from './dto/create-quote.dto';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { CreateTimelineEventDto } from './dto/create-timeline-event.dto';
-import { MoveOpportunityStageDto } from './dto/move-opportunity-stage.dto';
-import { QuoteDecisionDto } from './dto/quote-decision.dto';
-import { UpdateLeadStatusDto } from './dto/update-lead-status.dto';
-import { SalesNextAction } from './entities/sales-next-action.entity';
-import { ISalesRepository } from './repositories/sales.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { CloseOpportunityDto } from "./dto/close-opportunity.dto";
+import { CreateLeadDto } from "./dto/create-lead.dto";
+import { CreateOpportunityDto } from "./dto/create-opportunity.dto";
+import { CreateQuoteDto } from "./dto/create-quote.dto";
+import { CreateTaskDto } from "./dto/create-task.dto";
+import { CreateTimelineEventDto } from "./dto/create-timeline-event.dto";
+import { MoveOpportunityStageDto } from "./dto/move-opportunity-stage.dto";
+import { QuoteDecisionDto } from "./dto/quote-decision.dto";
+import { UpdateLeadStatusDto } from "./dto/update-lead-status.dto";
+import { SalesNextAction } from "./entities/sales-next-action.entity";
+import { ISalesRepository } from "./repositories/sales.repository.interface";
 
 @Injectable()
 export class SalesService {
@@ -39,7 +39,11 @@ export class SalesService {
     return this.repository.createLead(tenantId, dto);
   }
 
-  async updateLeadStatus(tenantId: string, leadId: string, dto: UpdateLeadStatusDto) {
+  async updateLeadStatus(
+    tenantId: string,
+    leadId: string,
+    dto: UpdateLeadStatusDto,
+  ) {
     return this.repository.updateLeadStatus(tenantId, leadId, dto);
   }
 
@@ -63,7 +67,11 @@ export class SalesService {
     return this.repository.moveOpportunityStage(tenantId, opportunityId, dto);
   }
 
-  async closeOpportunity(tenantId: string, opportunityId: string, dto: CloseOpportunityDto) {
+  async closeOpportunity(
+    tenantId: string,
+    opportunityId: string,
+    dto: CloseOpportunityDto,
+  ) {
     return this.repository.closeOpportunity(tenantId, opportunityId, dto);
   }
 

@@ -45,6 +45,20 @@ interface RequestWithTenant extends Request {
 export class RetailController {
   constructor(private readonly retailService: RetailService) {}
 
+  @Get("inventory/stats")
+  async getInventoryStats(
+    @Req() request: RequestWithTenant,
+    @Query("categoryId") categoryId?: string,
+    @Query("q") q?: string,
+  ) {
+    const { tenantId } = request.tenantContext;
+    const stats = await this.retailService.getInventoryStats(tenantId, {
+      categoryId,
+      q,
+    });
+    return this.respond(tenantId, stats);
+  }
+
   private respond<T>(tenantId: string, payload: T) {
     return {
       success: true,
@@ -262,9 +276,25 @@ export class RetailController {
   }
 
   @Get("products")
-  async listProducts(@Req() request: RequestWithTenant) {
-    const { tenantId } = request.tenantContext;
-    const products = await this.retailService.listProducts(tenantId);
+  async listProducts(
+    @Req() request: RequestWithTenant,
+    @Query("page") page?: string,
+    @Query("pageSize") pageSize?: string,
+    @Query("categoryId") categoryId?: string,
+    @Query("q") q?: string,
+    @Query("sortBy") sortBy?: "name" | "price" | "createdAt",
+    @Query("sortDir") sortDir?: "asc" | "desc",
+  ) {
+    const { tenantId, locationId } = request.tenantContext;
+    const products = await this.retailService.listProducts(tenantId, {
+      page: page ? parseInt(page, 10) : undefined,
+      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
+      categoryId: categoryId || undefined,
+      q: q || undefined,
+      sortBy,
+      sortDir,
+      locationId: locationId || undefined,
+    });
     return this.respond(tenantId, products);
   }
 

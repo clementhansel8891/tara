@@ -4,7 +4,7 @@ export class PaymentDevice {
   location: string;
   deviceCode: string;
   approved: boolean;
-  status: 'online' | 'offline' | 'maintenance';
+  status: "online" | "offline" | "maintenance";
   providerId: string;
   lastUsedAt?: Date;
 }
@@ -18,4 +18,3 @@ export class PaymentDevicePool {
   createdAt: Date;
   updatedAt: Date;
 }
-

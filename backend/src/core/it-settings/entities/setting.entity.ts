@@ -7,7 +7,7 @@ export class Setting {
   tenantId: string;
   key: string;
   value: string;
-  category: 'general' | 'finance' | 'hr' | 'security' | 'integration';
+  category: "general" | "finance" | "hr" | "security" | "integration";
   isPublic: boolean;
   description?: string;
   createdAt: Date;

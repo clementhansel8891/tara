@@ -7,7 +7,7 @@ export class LedgerEntry {
   tenantId: string;
   locationId?: string;
   amount: number;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   description: string;
   timestamp: Date;
   balance: number; // Running balance after this transaction

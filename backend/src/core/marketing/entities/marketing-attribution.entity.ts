@@ -10,4 +10,3 @@ export class MarketingAttribution {
   roiPercent: number;
   createdAt: Date;
 }
-

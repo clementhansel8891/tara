@@ -1,0 +1,243 @@
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { RefreshCw, MoreVertical, Edit3, Truck, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { InventoryItemView } from "./types";
+
+type PaginationProps = {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  currentCount: number;
+  onPageChange: (page: number) => void;
+};
+
+type TableProps = {
+  items: InventoryItemView[];
+  isLoading: boolean;
+  page: number;
+  pageSize: number;
+  statusBadge: (status: string) => string;
+  onEdit: (item: InventoryItemView) => void;
+  onMovement: (type: "transfer_out", item: InventoryItemView) => void;
+} & PaginationProps;
+
+const PaginationBar: React.FC<PaginationProps> = ({
+  page,
+  totalPages,
+  totalItems,
+  currentCount,
+  onPageChange,
+}) => {
+  const windowPages = Array.from({ length: totalPages }, (_, idx) => idx + 1)
+    .filter((p) => {
+      const start = Math.max(1, page - 3);
+      const end = Math.min(totalPages, page + 3);
+      return p >= start && p <= end;
+    });
+
+  return (
+    <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/30 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+          Page {page} of {totalPages} • Total {totalItems} items
+        </span>
+        <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+          Showing {currentCount} on this page
+        </span>
+      </div>
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+          >
+            ←
+          </Button>
+          {windowPages.map((pNum) => (
+            <Button
+              key={pNum}
+              size="sm"
+              variant={pNum === page ? "default" : "outline"}
+              className="h-8 w-10"
+              onClick={() => onPageChange(pNum)}
+            >
+              {pNum}
+            </Button>
+          ))}
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
+          >
+            →
+          </Button>
+          <div className="flex items-center gap-1 text-[10px] uppercase font-black italic text-slate-500">
+            Jump:
+            <Input
+              type="number"
+              min={1}
+              max={totalPages}
+              className="h-8 w-16 text-center text-[11px]"
+              defaultValue={page}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const val = Number((e.target as HTMLInputElement).value);
+                  if (Number.isInteger(val) && val >= 1 && val <= totalPages) {
+                    onPageChange(val);
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const InventoryTable: React.FC<TableProps> = ({
+  items,
+  isLoading,
+  page,
+  pageSize,
+  totalPages,
+  totalItems,
+  currentCount,
+  statusBadge,
+  onEdit,
+  onMovement,
+  onPageChange,
+}) => {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-slate-50">
+            {["#", "SKU", "Name / Category", "On Hand", "Reserved", "ATS", "Buffer Min", "Status", ""].map(
+              (h, i) => (
+                <th
+                  key={i}
+                  className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                >
+                  {h}
+                </th>
+              ),
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
+            <tr>
+              <td colSpan={9} className="px-6 py-16 text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+                  <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                    Pulling from Core...
+                  </span>
+                </div>
+              </td>
+            </tr>
+          ) : (
+            items.map((item, i) => {
+              const number = (page - 1) * pageSize + i + 1;
+              return (
+                <tr
+                  key={item.id}
+                  className="group border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"
+                >
+                  <td className="px-4 py-4 text-[11px] text-slate-400 font-bold">{number}</td>
+                  <td className="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">{item.sku}</td>
+                  <td className="px-6 py-4">
+                    <div className="font-black italic text-sm text-slate-900">{item.name}</div>
+                    <div className="text-[9px] text-slate-400 uppercase font-bold tracking-widest">
+                      {item.category}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 font-black italic text-slate-900">{item.onHand}</td>
+                  <td className="px-6 py-4 text-slate-500 font-bold italic text-sm">{item.reserved}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={cn(
+                        "font-black italic",
+                        item.available <= 0 ? "text-red-600" : "text-emerald-700",
+                      )}
+                    >
+                      {item.available}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-slate-500 font-bold italic text-sm">{item.minBuffer}</td>
+                  <td className="px-6 py-4">
+                    <Badge
+                      className={cn(
+                        "border-none font-black italic text-[9px] uppercase tracking-widest",
+                        statusBadge(item.status),
+                      )}
+                    >
+                      {item.status}
+                    </Badge>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-xl text-slate-300 hover:text-slate-700"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-48 rounded-2xl p-2 border-none shadow-2xl"
+                      >
+                        <DropdownMenuItem
+                          className="rounded-xl gap-2 font-black italic text-xs py-3"
+                          onClick={() => onEdit(item)}
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-blue-600" /> Edit Buffer
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="rounded-xl gap-2 font-black italic text-xs py-3"
+                          onClick={() => onMovement("transfer_out", item)}
+                        >
+                          <Truck className="w-3.5 h-3.5 text-indigo-600" /> Transfer Out
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 text-red-600 focus:bg-red-50">
+                          <Trash2 className="w-3.5 h-3.5" /> Request Write-off
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+      <PaginationBar
+        page={page}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        currentCount={currentCount}
+        onPageChange={onPageChange}
+      />
+    </div>
+  );
+};

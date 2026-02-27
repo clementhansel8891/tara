@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, Min } from "class-validator";
 
 export class CreateDisputeDto {
   @IsString()
@@ -13,4 +13,3 @@ export class CreateDisputeDto {
   @IsNotEmpty()
   reason: string;
 }
-

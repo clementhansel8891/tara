@@ -7,4 +7,3 @@ export class AdminAuditEvent {
   actorId: string;
   createdAt: Date;
 }
-

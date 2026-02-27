@@ -1,3 +1,10 @@
+import * as dotenv from "dotenv";
+import path from "path";
+
+// Load environment variables before anything else
+const envPath = path.resolve(process.cwd(), ".env");
+dotenv.config({ path: envPath });
+
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe, HttpException } from "@nestjs/common";
 import helmet from "helmet";

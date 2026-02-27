@@ -1,6 +1,6 @@
-import { Module, Global } from '@nestjs/common';
-import { AuditService } from './audit.service';
-import { PersistenceModule } from '../../persistence/persistence.module';
+import { Module, Global } from "@nestjs/common";
+import { AuditService } from "./audit.service";
+import { PersistenceModule } from "../../persistence/persistence.module";
 
 @Global()
 @Module({

@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class ScheduleExecutionDto {
   @IsString()
@@ -6,8 +6,23 @@ export class ScheduleExecutionDto {
   campaignId: string;
 
   @IsString()
-  @IsIn(['meta_ads', 'google_ads', 'email', 'whatsapp', 'webinar', 'landing_page', 'event'])
-  channel: 'meta_ads' | 'google_ads' | 'email' | 'whatsapp' | 'webinar' | 'landing_page' | 'event';
+  @IsIn([
+    "meta_ads",
+    "google_ads",
+    "email",
+    "whatsapp",
+    "webinar",
+    "landing_page",
+    "event",
+  ])
+  channel:
+    | "meta_ads"
+    | "google_ads"
+    | "email"
+    | "whatsapp"
+    | "webinar"
+    | "landing_page"
+    | "event";
 
   @IsString()
   @IsNotEmpty()
@@ -17,4 +32,3 @@ export class ScheduleExecutionDto {
   @IsOptional()
   notes?: string;
 }
-

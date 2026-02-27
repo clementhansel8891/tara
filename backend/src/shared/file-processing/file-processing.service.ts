@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import csv from 'csv-parser';
-import * as ExcelJS from 'exceljs';
-import { Readable } from 'stream';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { Injectable } from "@nestjs/common";
+import csv from "csv-parser";
+import * as ExcelJS from "exceljs";
+import { Readable } from "stream";
+import { plainToInstance } from "class-transformer";
+import { validate } from "class-validator";
 
 @Injectable()
 export class FileProcessingService {
@@ -12,7 +12,7 @@ export class FileProcessingService {
    * Strips prefix characters: =, +, -, @
    */
   private sanitizeValue(value: any): any {
-    if (typeof value === 'string' && /^[=+\-@\t\r]/.test(value)) {
+    if (typeof value === "string" && /^[=+\-@\t\r]/.test(value)) {
       return `'${value}`; // Prepend single quote as per Excel security best practices
     }
     return value;
@@ -21,14 +21,17 @@ export class FileProcessingService {
   /**
    * Parses a CSV buffer into an array of DTO instances and validates them.
    */
-  async parseCsv<T>(buffer: Buffer, dtoClass: new () => T): Promise<{ data: T[]; errors: any[] }> {
+  async parseCsv<T>(
+    buffer: Buffer,
+    dtoClass: new () => T,
+  ): Promise<{ data: T[]; errors: any[] }> {
     const results: any[] = [];
     const stream = Readable.from(buffer as any);
 
     await new Promise((resolve, reject) => {
       stream
         .pipe(csv())
-        .on('data', (data: any) => {
+        .on("data", (data: any) => {
           // Sanitize incoming data
           const sanitized: any = {};
           for (const key in data) {
@@ -36,8 +39,8 @@ export class FileProcessingService {
           }
           results.push(sanitized);
         })
-        .on('end', () => resolve(results))
-        .on('error', (err: any) => reject(err));
+        .on("end", () => resolve(results))
+        .on("error", (err: any) => reject(err));
     });
 
     return this.validateData(results, dtoClass);
@@ -46,19 +49,22 @@ export class FileProcessingService {
   /**
    * Parses an Excel buffer into an array of DTO instances and validates them.
    */
-  async parseExcel<T>(buffer: Buffer, dtoClass: new () => T): Promise<{ data: T[]; errors: any[] }> {
+  async parseExcel<T>(
+    buffer: Buffer,
+    dtoClass: new () => T,
+  ): Promise<{ data: T[]; errors: any[] }> {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer as any);
     const worksheet = workbook.getWorksheet(1);
     const results: any[] = [];
 
     if (!worksheet) {
-      return { data: [], errors: [{ message: 'No worksheet found' }] };
+      return { data: [], errors: [{ message: "No worksheet found" }] };
     }
 
     const headers: string[] = [];
     worksheet.getRow(1).eachCell((cell: ExcelJS.Cell, colNumber: number) => {
-      headers[colNumber] = cell.value?.toString() || '';
+      headers[colNumber] = cell.value?.toString() || "";
     });
 
     worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
@@ -80,47 +86,51 @@ export class FileProcessingService {
    * Generates a CSV string from data.
    */
   async generateCsv(data: any[]): Promise<string> {
-    if (data.length === 0) return '';
+    if (data.length === 0) return "";
     const headers = Object.keys(data[0]);
-    const rows = data.map(obj => 
-      headers.map(header => JSON.stringify(this.sanitizeValue(obj[header]) ?? '')).join(',')
+    const rows = data.map((obj) =>
+      headers
+        .map((header) => JSON.stringify(this.sanitizeValue(obj[header]) ?? ""))
+        .join(","),
     );
-    return [headers.join(','), ...rows].join('\n');
+    return [headers.join(","), ...rows].join("\n");
   }
 
   /**
    * Generates an Excel buffer from data with forensic marks and watermarks.
    */
   async generateExcel(
-    data: any[], 
+    data: any[],
     columns: { header: string; key: string; width?: number }[],
     options?: {
-      traceId?: string,
+      traceId?: string;
       watermark?: {
         text: string;
         opacity?: number;
-        position?: { x: number, y: number }; // cell location etc
-      }
-    }
+        position?: { x: number; y: number }; // cell location etc
+      };
+    },
   ): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Zenvix Export');
-    
+    const worksheet = workbook.addWorksheet("Zenvix Export");
+
     // 1. Forensic Traceability (Hidden)
     if (options?.traceId) {
-      workbook.creator = 'Zenvix System';
-      workbook.lastModifiedBy = 'Zenvix System';
+      workbook.creator = "Zenvix System";
+      workbook.lastModifiedBy = "Zenvix System";
       // Fallback: Embed trace info in a hidden sheet since custom properties types are tricky
-      const hiddenSheet = workbook.addWorksheet('_system_meta', { state: 'veryHidden' });
-      hiddenSheet.getCell('A1').value = 'Zenvix-Trace-ID';
-      hiddenSheet.getCell('B1').value = options.traceId;
-      hiddenSheet.getCell('A2').value = 'Export-Timestamp';
-      hiddenSheet.getCell('B2').value = new Date().toISOString();
+      const hiddenSheet = workbook.addWorksheet("_system_meta", {
+        state: "veryHidden",
+      });
+      hiddenSheet.getCell("A1").value = "Zenvix-Trace-ID";
+      hiddenSheet.getCell("B1").value = options.traceId;
+      hiddenSheet.getCell("A2").value = "Export-Timestamp";
+      hiddenSheet.getCell("B2").value = new Date().toISOString();
 
       // Hidden System Mark at Z999
-      const forensicCell = worksheet.getCell('Z999');
+      const forensicCell = worksheet.getCell("Z999");
       forensicCell.value = `TRACE:${options.traceId}`;
-      forensicCell.font = { color: { argb: 'FFFFFFFF' }, size: 2 }; // Invisible font
+      forensicCell.font = { color: { argb: "FFFFFFFF" }, size: 2 }; // Invisible font
       forensicCell.protection = { locked: true };
     }
 
@@ -134,44 +144,55 @@ export class FileProcessingService {
       // For drag & drop flexibility in Excel, we can use a "Note" or a specific cell styling
       const wmCell = worksheet.getCell(posY, posX);
       wmCell.value = wmText;
-      wmCell.font = { 
-        size: 72, 
-        bold: true, 
-        color: { argb: '20808080' } // Low opacity gray
+      wmCell.font = {
+        size: 72,
+        bold: true,
+        color: { argb: "20808080" }, // Low opacity gray
       };
-      wmCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      wmCell.alignment = { vertical: "middle", horizontal: "center" };
     }
 
     worksheet.columns = columns;
-    worksheet.addRows(data.map(row => {
-      const sanitized: any = {};
-      for (const key in row) {
-        sanitized[key] = this.sanitizeValue(row[key]);
-      }
-      return sanitized;
-    }));
+    worksheet.addRows(
+      data.map((row) => {
+        const sanitized: any = {};
+        for (const key in row) {
+          sanitized[key] = this.sanitizeValue(row[key]);
+        }
+        return sanitized;
+      }),
+    );
 
     // Styling
     worksheet.getRow(1).font = { bold: true };
     worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE0E0E0" },
     };
 
     return (await workbook.xlsx.writeBuffer()) as any;
   }
 
-  private async validateData<T>(rawResults: any[], dtoClass: new () => T): Promise<{ data: T[]; errors: any[] }> {
+  private async validateData<T>(
+    rawResults: any[],
+    dtoClass: new () => T,
+  ): Promise<{ data: T[]; errors: any[] }> {
     const validData: T[] = [];
     const allErrors: any[] = [];
 
     for (let i = 0; i < rawResults.length; i++) {
       const instance = plainToInstance(dtoClass, rawResults[i]);
       const errors = await validate(instance as any);
-      
+
       if (errors.length > 0) {
-        allErrors.push({ row: i + 2, errors: errors.map(e => ({ property: e.property, constraints: e.constraints })) });
+        allErrors.push({
+          row: i + 2,
+          errors: errors.map((e) => ({
+            property: e.property,
+            constraints: e.constraints,
+          })),
+        });
       } else {
         validData.push(instance);
       }

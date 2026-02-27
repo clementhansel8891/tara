@@ -5,16 +5,16 @@ export class PaymentDispute {
   reason: string;
   amount: number;
   status:
-    | 'opened'
-    | 'evidence_attached'
-    | 'finance_review'
-    | 'provider_submitted'
-    | 'resolved'
-    | 'rejected';
+    | "opened"
+    | "evidence_attached"
+    | "finance_review"
+    | "provider_submitted"
+    | "resolved"
+    | "rejected";
   openedBy: string;
   evidence: string[];
   providerCaseId?: string;
-  resolution?: 'won' | 'lost' | 'settled';
+  resolution?: "won" | "lost" | "settled";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,8 +25,7 @@ export class PaymentChargeback {
   paymentId: string;
   disputeId: string;
   amount: number;
-  status: 'open' | 'submitted' | 'won' | 'lost';
+  status: "open" | "submitted" | "won" | "lost";
   createdAt: Date;
   updatedAt: Date;
 }
-

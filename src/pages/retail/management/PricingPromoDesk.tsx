@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { 
-  Tag, 
-  Zap, 
-  Percent, 
-  ShieldCheck, 
-  Clock, 
-  TrendingUp, 
-  TrendingDown, 
-  BarChart3, 
-  ChevronRight, 
-  Plus, 
-  Search, 
+import {
+  Tag,
+  Zap,
+  Percent,
+  ShieldCheck,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  ChevronRight,
+  Plus,
+  Search,
   Lock,
-  Calculator
+  Calculator,
+  MoreVertical,
+  Filter,
+  CheckSquare,
+  Square,
+  Play,
+  RotateCcw,
+  ShieldAlert,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,21 +29,34 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import type { RetailPromotion } from "@/core/types/retail/retail";
+import { cn } from "@/lib/utils";
 
 const PricingPromoDesk = () => {
   const session = useSession();
-  const [activeTab, setActiveTab] = useState("CAMPAIGNS");
   const [promotions, setPromotions] = useState<RetailPromotion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPromos, setSelectedPromos] = useState<string[]>([]);
+  const [governancePhase, setGovernancePhase] = useState(2); // Mocking current approval phase
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await retailService.listPromotions(session.tenantId, session);
+        setIsLoading(true);
+        const data = await retailService.listPromotions(
+          session.tenantId!,
+          session,
+        );
         setPromotions(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to fetch promotions", error);
@@ -47,292 +67,426 @@ const PricingPromoDesk = () => {
     fetchData();
   }, [session.tenantId, session]);
 
-  const handleCreateProposal = async () => {
-    setIsLoading(true);
-    try {
-      const newPromo: RetailPromotion = {
-        id: `PRM-${Math.floor(Math.random() * 1000)}`,
-        title: "New Flash Sale Proposal",
-        type: "percentage",
-        value: 20,
-        startDate: new Date().toISOString(),
-        endDate: new Date(Date.now() + 86400000).toISOString(),
-        status: "draft",
-        target: "category",
-        tenantId: session.tenantId!,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      await retailService.updatePromotion(session.tenantId!, session, newPromo);
-      setPromotions(prev => [newPromo, ...prev]);
-      toast({ title: "Proposal Created", description: "A new pricing proposal has been logged for review." });
-    } catch (error: unknown) {
-      console.error("Failed to create proposal", error);
-      toast({
-        title: "Proposal Failed",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const stats = useMemo(() => {
+    const active = promotions.filter((p) => p.status === "active").length;
+    const marginImpact = -2.4; // Mocked aggregate impact
+    const pending = promotions.filter((p) => p.status === "draft").length;
+
+    return { active, marginImpact, pending };
+  }, [promotions]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedPromos((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
   };
 
-  const handlePromoClick = (promo: RetailPromotion) => {
-    toast({ title: "Campaign Details", description: `Opening analytics for ${promo.title}` });
+  const handleBatchAction = (action: string) => {
+    toast({
+      title: "Batch Action Ritual",
+      description: `${action} executed for ${selectedPromos.length} entities. Syncing to edge nodes...`,
+    });
+    setSelectedPromos([]);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <RotateCcw className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-sm font-black italic uppercase tracking-widest text-slate-400">
+            Calibrating Revenue Ratios...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Pricing & Promotion Desk" 
-        subtitle="Tactical pricing governance • Campaign ROI estimation • Approval workflows"
-      />
-      
-      <WorkspacePanel>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-           <Card className="shadow-lg border-slate-200 hover:border-blue-200 transition-all border-l-4 border-l-blue-600">
-             <CardContent className="p-6">
-               <div className="flex justify-between items-start mb-4">
-                 <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
-                   <Percent className="w-5 h-5" />
-                 </div>
-                 <Badge className="bg-slate-100 text-slate-600 border-none font-black italic text-[9px]">LIVE</Badge>
-               </div>
-               <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Active Promos</div>
-               <div className="text-3xl font-black italic text-slate-900 tracking-tighter">
-                 {promotions.filter(p => p.status === 'active').length} Active
-               </div>
-               <p className="text-[10px] font-bold text-slate-400 mt-2 italic flex items-center gap-1">
-                 <TrendingUp className="w-3 h-3 text-emerald-500" /> +15.2% Sales Volume
-               </p>
-             </CardContent>
-           </Card>
-
-           <Card className="shadow-lg border-slate-200 hover:border-amber-200 transition-all border-l-4 border-l-amber-500">
-             <CardContent className="p-6">
-               <div className="flex justify-between items-start mb-4">
-                 <div className="bg-amber-50 p-2 rounded-xl text-amber-600">
-                   <Zap className="w-5 h-5" />
-                 </div>
-                 <Badge variant="destructive" className="border-none font-black italic text-[9px]">PENDING</Badge>
-               </div>
-               <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Awaiting Review</div>
-               <div className="text-3xl font-black italic text-slate-900 tracking-tighter">4 Requests</div>
-               <p className="text-[10px] font-bold text-slate-400 mt-2 italic tracking-tighter uppercase">High Urgency: 1 Flash Sale</p>
-             </CardContent>
-           </Card>
-
-           <Card className="shadow-lg border-slate-200 hover:border-indigo-200 transition-all border-l-4 border-l-indigo-600">
-             <CardContent className="p-6">
-               <div className="flex justify-between items-start mb-4">
-                 <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
-                   <BarChart3 className="w-5 h-5" />
-                 </div>
-                 <Badge className="bg-indigo-100 text-indigo-700 border-none font-black italic text-[9px]">PROJECTED</Badge>
-               </div>
-               <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Gross Margin Impact</div>
-               <div className="text-3xl font-black italic text-slate-900 tracking-tighter">-2.4%</div>
-               <p className="text-[10px] font-bold text-slate-400 mt-2 italic tracking-tighter uppercase">Trade-off for Volume</p>
-             </CardContent>
-           </Card>
-
-           <Card className="shadow-lg border-slate-200 hover:border-emerald-200 transition-all border-l-4 border-l-emerald-600">
-             <CardContent className="p-6">
-               <div className="flex justify-between items-start mb-4">
-                 <div className="bg-emerald-50 p-2 rounded-xl text-emerald-600">
-                   <ShieldCheck className="w-5 h-5" />
-                 </div>
-                 <Badge className="bg-emerald-100 text-emerald-700 border-none font-black italic text-[9px]">ENFORCED</Badge>
-               </div>
-               <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Governance Drift</div>
-               <div className="text-3xl font-black italic text-slate-900 tracking-tighter">0.0%</div>
-               <p className="text-[10px] font-bold text-slate-400 mt-2 italic">No un-authorized overrides today</p>
-             </CardContent>
-           </Card>
+    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
+        <PageHeader
+          title="Revenue Control Desk"
+          subtitle={`Governance Layer: ROBUST • Margin Integrity: ${stats.marginImpact > -3 ? "OPTIMAL" : "CRITICAL"}`}
+        />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+          >
+            <Filter className="w-3.5 h-3.5" /> Strategy Filter
+          </Button>
+          <Button className="h-11 px-6 rounded-xl bg-slate-900 font-black italic uppercase text-xs tracking-widest gap-2">
+            <Plus className="w-4 h-4" /> Create Proposal
+          </Button>
         </div>
+      </div>
 
-        <div className="flex items-center gap-4 mb-8 bg-slate-50 p-4 rounded-3xl border border-slate-200">
-           <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                className="pl-12 h-14 bg-white border-slate-200 rounded-2xl text-sm font-bold italic placeholder:text-slate-300 focus-visible:ring-blue-500 shadow-sm" 
-                placeholder="Search Active Coupons, Flash Sales, or SKU Overrides..."
-              />
-           </div>
-            <Button 
-              className="h-14 px-8 rounded-2xl gap-2 bg-slate-900 hover:bg-slate-800 font-black italic shadow-xl"
-              onClick={handleCreateProposal}
-            >
-               <Plus className="w-5 h-5" /> Create New Proposal
-            </Button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-           <div className="lg:col-span-2 space-y-8">
-              <Card className="shadow-xl border-slate-200 rounded-[2.5rem] overflow-hidden">
-                 <CardHeader className="bg-slate-900 text-white p-8">
-                    <CardTitle className="text-xl font-black italic tracking-tighter flex items-center gap-2">
-                       <Tag className="w-6 h-6 text-blue-400" />
-                       ACTIVE CAMPAIGNS & DEALS
-                    </CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-8 space-y-6">
-                    {isLoading ? (
-                      <div className="flex flex-col items-center justify-center p-12 space-y-4">
-                        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        <div className="text-slate-400 font-black italic uppercase text-xs tracking-widest">Loading Campaigns...</div>
-                      </div>
-                    ) : promotions.length > 0 ? (
-                      promotions.map((promo) => (
-                        <div 
-                          key={promo.id} 
-                          onClick={() => handlePromoClick(promo)}
-                          className="group p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/20 transition-all cursor-pointer"
-                        >
-                           <div className="flex justify-between items-start mb-4">
-                              <div className="flex items-center gap-4">
-                                 <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
-                                    <Percent className="w-6 h-6" />
-                                 </div>
-                                 <div>
-                                    <div className="text-sm font-black italic tracking-tight text-slate-900">{promo.title}</div>
-                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{promo.type} • {promo.target || "All Grocery"}</div>
-                                 </div>
-                              </div>
-                              <div className="text-right">
-                                 <div className="text-2xl font-black italic text-blue-600 tracking-tighter">
-                                   {promo.type === 'percentage' ? `${promo.value}%` : `Rp ${promo.value.toLocaleString()}`}
-                                 </div>
-                                 <Badge className={`${promo.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} border-none font-black italic text-[8px] tracking-widest uppercase`}>{promo.status}</Badge>
-                              </div>
-                           </div>
-                           <Separator className="bg-slate-200 opacity-50" />
-                           <div className="flex justify-between items-center mt-4">
-                              <div className="text-[10px] font-black italic text-slate-500 uppercase flex items-center gap-1">
-                                 <Clock className="w-3 h-3 text-slate-400" /> Validity: <span className="text-slate-600">{new Date(promo.startDate).toLocaleDateString()} - {new Date(promo.endDate).toLocaleDateString()}</span>
-                              </div>
-                              <Button variant="ghost" size="sm" className="h-8 text-[10px] font-black uppercase text-blue-600 gap-2 italic hover:bg-blue-100 rounded-xl">
-                                 Audit Logs <ChevronRight className="w-3 h-3" />
-                              </Button>
-                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center p-12 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                        <div className="text-slate-400 font-black italic uppercase text-sm tracking-widest">No Active Campaigns Found</div>
-                      </div>
-                    )}
-                 </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <Card className="shadow-lg border-amber-100 bg-amber-50/20 rounded-3xl overflow-hidden group">
-                    <CardHeader>
-                       <CardTitle className="text-[10px] font-black uppercase tracking-widest text-amber-900 italic">Immediate Action Required</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                       <div className="p-4 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                          <div className="text-xs font-black italic mb-1 flex items-center gap-2">
-                             <TrendingDown className="w-4 h-4 text-red-500" /> Category Loss-Leader Alert
-                          </div>
-                          <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">"Imported Chocolates" margin fell below 5%. Automatic markdown triggered.</p>
-                       </div>
-                       <Button className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white font-black italic uppercase tracking-widest shadow-lg shadow-amber-900/10 gap-2">
-                          REVIEW MARKDOWNS
-                       </Button>
-                    </CardContent>
-                 </Card>
-
-                 <Card className="shadow-lg border-indigo-100 bg-indigo-50/20 rounded-3xl overflow-hidden group">
-                    <CardHeader>
-                       <CardTitle className="text-[10px] font-black uppercase tracking-widest text-indigo-900 italic">Campaign ROI Engine</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                       <div className="space-y-2">
-                          <div className="flex justify-between text-[10px] font-black italic uppercase tracking-widest text-indigo-600">
-                             <span>Budget Utilization</span>
-                             <span>72%</span>
-                          </div>
-                          <Progress value={72} className="h-2 bg-slate-200" />
-                       </div>
-                       <Button variant="outline" className="w-full h-12 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-black italic uppercase text-[10px] tracking-widest rounded-2xl">
-                          VIEW IMPACT HEATMAP
-                       </Button>
-                    </CardContent>
-                 </Card>
+      <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50/50">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Tactical Intelligence Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-l-4 border-l-blue-600">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                  <Percent className="w-5 h-5" />
+                </div>
+                <Badge className="bg-emerald-50 text-emerald-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                  LIVE
+                </Badge>
               </div>
-           </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Active Tactical Pricing
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                {stats.active} Promos
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-emerald-500" /> +15.2%
+                Volume Index
+              </div>
+            </Card>
 
-           <div className="space-y-8">
-              <Card className="bg-slate-900 text-white shadow-2xl rounded-[3rem] overflow-hidden relative">
-                 <div className="absolute top-0 right-0 p-8 opacity-10">
-                    <ShieldCheck className="w-24 h-24" />
-                 </div>
-                 <CardHeader className="p-8 pb-0">
-                   <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 italic">Governance Vault</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-8 space-y-8">
-                    <div className="relative pl-8 border-l-2 border-slate-700 space-y-10">
-                       <div className="relative">
-                          <div className="absolute -left-[41px] top-0 w-6 h-6 rounded-full bg-blue-500 border-4 border-slate-900 shadow-lg shadow-blue-500/20 flex items-center justify-center">
-                             <Calculator className="w-2.5 h-2.5 text-white" />
-                          </div>
-                          <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 italic">Phase 1: MAKER</div>
-                          <div className="text-sm font-black italic">Store Pricing Specialist</div>
-                          <div className="text-[9px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">Drafted Proposal: PRIC-9921</div>
-                       </div>
-                       <div className="relative">
-                          <div className="absolute -left-[41px] top-0 w-6 h-6 rounded-full bg-amber-500 border-4 border-slate-900 animate-pulse">
-                             <Search className="w-2.5 h-2.5 text-white" />
-                          </div>
-                          <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1 italic">Phase 2: CHECKER</div>
-                          <div className="text-sm font-black italic">Regional Marketing Manager</div>
-                          <div className="text-[9px] text-amber-500/50 mt-1 uppercase font-bold tracking-tighter italic">Awaiting Compliance Review</div>
-                       </div>
-                       <div className="relative">
-                          <div className="absolute -left-[41px] top-0 w-6 h-6 rounded-full bg-slate-700 border-4 border-slate-900">
-                             <Lock className="w-2.5 h-2.5 text-white" />
-                          </div>
-                          <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Phase 3: FINALIZER</div>
-                          <div className="text-sm font-black italic opacity-40">Group Finance HOD</div>
-                          <div className="text-[9px] text-slate-700 mt-1 uppercase font-bold tracking-tighter">Pending Phase 2 Approval</div>
-                       </div>
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-l-4 border-l-amber-500">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <Badge
+                  variant="destructive"
+                  className="font-black italic text-[8px] tracking-widest"
+                >
+                  URGENT
+                </Badge>
+              </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Pending Governance
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                {stats.pending} Requests
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+                Awaiting Compliance Ritual
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-l-4 border-l-indigo-600">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <Badge className="bg-indigo-50 text-indigo-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                  AGGREGATE
+                </Badge>
+              </div>
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+                Margin Erosion
+              </div>
+              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+                {stats.marginImpact}%
+              </div>
+              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+                Balanced for Liquidity
+              </div>
+            </Card>
+
+            <Card className="rounded-[2rem] p-6 bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
+              <ShieldCheck className="absolute -right-8 -bottom-8 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
+              <div className="relative z-10">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-blue-400 mb-4">
+                  Guardrail Status
+                </div>
+                <div className="text-4xl font-black italic tracking-tighter">
+                  SECURED
+                </div>
+                <div className="text-[10px] font-bold italic opacity-60 mt-4 uppercase">
+                  No Policy Violations Detected
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Batch Action Bar */}
+              {selectedPromos.length > 0 && (
+                <div className="bg-slate-900 text-white p-6 rounded-[2rem] flex items-center justify-between shadow-[0_20px_50px_rgba(15,23,42,0.3)] animate-in fade-in slide-in-from-bottom-4">
+                  <div className="flex items-center gap-6">
+                    <div className="text-xs font-black italic uppercase tracking-widest text-blue-400">
+                      {selectedPromos.length} Promos Selected
                     </div>
-
-                    <Separator className="bg-white/10" />
-
-                    <div className="p-6 rounded-3xl bg-white/5 border border-white/10 space-y-3">
-                       <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">Compliance Status</div>
-                       <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="text-xs font-black italic text-emerald-400">Policy: ROI_POSITIVE_ENFORCED</span>
-                       </div>
+                    <Separator
+                      orientation="vertical"
+                      className="h-4 bg-white/20"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleBatchAction("Activate")}
+                        className="bg-emerald-600 hover:bg-emerald-700 h-9 px-4 rounded-xl font-black italic text-[10px] uppercase gap-2"
+                      >
+                        <Play className="w-3 h-3" /> Execute
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleBatchAction("Archive")}
+                        className="bg-white/10 hover:bg-white/20 h-9 px-4 rounded-xl font-black italic text-[10px] uppercase"
+                      >
+                        Archive
+                      </Button>
                     </div>
-                 </CardContent>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedPromos([])}
+                    className="text-white/40 hover:text-white font-black italic text-[10px] uppercase"
+                  >
+                    Deselect All
+                  </Button>
+                </div>
+              )}
+
+              <Card className="rounded-[2.5rem] shadow-2xl border-none bg-white overflow-hidden">
+                <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-sm font-black italic uppercase tracking-widest text-slate-500">
+                      Tactical Campaign Registry
+                    </h3>
+                    <Badge className="bg-blue-600 font-black italic text-[8px] uppercase">
+                      SYNCED
+                    </Badge>
+                  </div>
+                  <div className="relative w-64">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input
+                      className="pl-12 h-10 bg-white border-slate-200 rounded-xl text-xs font-bold italic"
+                      placeholder="Search Strategy..."
+                    />
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {promotions.map((promo) => (
+                    <div
+                      key={promo.id}
+                      className={cn(
+                        "group p-8 flex items-center justify-between transition-all cursor-pointer",
+                        selectedPromos.includes(promo.id)
+                          ? "bg-blue-50/50"
+                          : "hover:bg-slate-50/50",
+                      )}
+                    >
+                      <div className="flex items-center gap-6">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelect(promo.id);
+                          }}
+                          className={cn(
+                            "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                            selectedPromos.includes(promo.id)
+                              ? "bg-blue-600 border-blue-600 text-white"
+                              : "border-slate-200 bg-white",
+                          )}
+                        >
+                          {selectedPromos.includes(promo.id) && (
+                            <CheckSquare className="w-4 h-4" />
+                          )}
+                        </div>
+                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-105 transition-transform">
+                          <Tag className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="text-base font-black italic tracking-tight text-slate-900">
+                            {promo.title}
+                          </div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-3 mt-1">
+                            {promo.id} • {promo.type} •{" "}
+                            {promo.target || "GENERAL"}
+                            <Badge
+                              className={cn(
+                                "text-[8px] font-black italic border-none h-4 px-1 ml-2",
+                                promo.status === "active"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-amber-50 text-amber-700",
+                              )}
+                            >
+                              {promo.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-8">
+                        <div className="text-right">
+                          <div className="text-2xl font-black italic text-slate-900 tracking-tighter">
+                            {promo.type === "percentage"
+                              ? `${promo.value}%`
+                              : `Rp ${promo.value.toLocaleString()}`}
+                          </div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase italic">
+                            Markdown Applied
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-slate-400 hover:text-slate-900 rounded-xl"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+
+            <div className="space-y-8">
+              {/* Margin Guard Widget */}
+              <Card className="rounded-[2.5rem] bg-white border-slate-200 shadow-xl overflow-hidden p-8">
+                <div className="flex justify-between items-center mb-8">
+                  <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                    Margin Guard Sensor
+                  </div>
+                  <Badge className="bg-emerald-50 text-emerald-700 font-black italic border-none">
+                    OPTIMAL
+                  </Badge>
+                </div>
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-4xl font-black italic tracking-tighter text-slate-900">
+                        42.4%
+                      </div>
+                      <div className="text-[10px] font-bold text-slate-400 uppercase italic">
+                        Current Gross Profit
+                      </div>
+                    </div>
+                    <div className="h-12 w-12 rounded-full border-4 border-emerald-500 border-t-slate-100 animate-spin" />
+                  </div>
+                  <Separator />
+                  <div className="space-y-4">
+                    {[
+                      {
+                        label: "Category: Beverages",
+                        impact: "-1.2%",
+                        status: "safe",
+                      },
+                      {
+                        label: "Category: Electronics",
+                        impact: "0.0%",
+                        status: "neutral",
+                      },
+                      {
+                        label: "Category: Apparels",
+                        impact: "-4.5%",
+                        status: "critical",
+                      },
+                    ].map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex justify-between items-center text-[10px] font-black uppercase italic"
+                      >
+                        <span className="text-slate-500">{item.label}</span>
+                        <span
+                          className={cn(
+                            item.status === "critical"
+                              ? "text-red-500"
+                              : "text-emerald-500",
+                          )}
+                        >
+                          {item.impact}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </Card>
 
-              <Card className="shadow-lg border-slate-200 rounded-3xl overflow-hidden relative group cursor-pointer hover:border-blue-300 transition-all">
-                 <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
-                 <CardContent className="p-8 space-y-4">
-                    <div className="flex items-center gap-4">
-                       <div className="bg-blue-50 p-3 rounded-2xl text-blue-600">
-                          <Zap className="w-6 h-6" />
-                       </div>
-                       <div>
-                          <div className="text-sm font-black italic text-slate-900 tracking-tight">Smart AI Scheduling</div>
-                          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Recommended Flash Sale</div>
-                       </div>
+              {/* Governance Timeline */}
+              <Card className="rounded-[2.5rem] bg-slate-900 text-white shadow-2xl overflow-hidden p-8">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-blue-400 mb-8 mt-2">
+                  Governance Workflow
+                </div>
+                <div className="relative space-y-12 pl-6 border-l border-slate-800">
+                  {[
+                    {
+                      phase: "MAKER",
+                      role: "Pricing Specialist",
+                      status: "COMPLETED",
+                      icon: Calculator,
+                      color: "blue",
+                    },
+                    {
+                      phase: "CHECKER",
+                      role: "Category Head",
+                      status: "ACTIVE",
+                      icon: Search,
+                      color: "amber",
+                    },
+                    {
+                      phase: "FINALIZER",
+                      role: "Finance HOD",
+                      status: "LOCKED",
+                      icon: Lock,
+                      color: "slate",
+                    },
+                  ].map((p, i) => (
+                    <div key={i} className="relative">
+                      <div
+                        className={cn(
+                          "absolute -left-[35px] top-0 w-8 h-8 rounded-full border-4 border-slate-900 flex items-center justify-center shadow-lg",
+                          p.status === "ACTIVE"
+                            ? `bg-${p.color}-500 animate-pulse`
+                            : p.status === "COMPLETED"
+                              ? "bg-emerald-500"
+                              : "bg-slate-700",
+                        )}
+                      >
+                        <p.icon className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <div
+                        className={cn(
+                          "text-[9px] font-black uppercase italic mb-1",
+                          `text-${p.color}-400`,
+                        )}
+                      >
+                        {p.phase}
+                      </div>
+                      <div className="text-sm font-black italic text-slate-100">
+                        {p.role}
+                      </div>
+                      <div className="text-[9px] font-bold opacity-40 uppercase tracking-tighter mt-1">
+                        {p.status}
+                      </div>
                     </div>
-                    <p className="text-[10px] text-slate-500 leading-relaxed font-medium italic">System detects excess inventory in Fresh Produce. Propose 50% markdown for next 24 hours?</p>
-                    <Button className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-black italic h-10 rounded-xl gap-2 transition-all">
-                       GENERATE PROPOSAL <ChevronRight className="w-4 h-4" />
-                    </Button>
-                 </CardContent>
+                  ))}
+                </div>
               </Card>
-           </div>
+
+              {/* Strategy Suggestion */}
+              <Card className="rounded-[2.5rem] bg-indigo-600 text-white p-8 group cursor-pointer hover:bg-indigo-700 transition-all overflow-hidden relative">
+                <Target className="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 group-hover:scale-110 transition-transform" />
+                <div className="relative space-y-6">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-xl font-black italic tracking-tighter uppercase">
+                    Elasticity Suggestion
+                  </h4>
+                  <p className="text-xs font-medium opacity-70 leading-relaxed italic">
+                    Increasing "Artisan Coffee" by 5% will yield 2.4% margin
+                    growth with minimal volume disruption.
+                  </p>
+                  <Button className="w-full bg-white text-indigo-900 hover:bg-white/90 h-12 font-black italic uppercase tracking-widest rounded-xl text-[10px]">
+                    Generate Impact Draft
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
-      </WorkspacePanel>
+      </div>
     </div>
   );
 };

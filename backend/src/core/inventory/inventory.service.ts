@@ -13,19 +13,19 @@ export class InventoryService {
     private readonly auditService: AuditService,
   ) {}
 
-  async getDashboard(tenantId: string) {
-    return this.repository.getDashboard(tenantId);
+  async getDashboard(tenant_id: string) {
+    return this.repository.getDashboard(tenant_id);
   }
 
-  async getItems(tenantId: string) {
-    return this.repository.getItems(tenantId);
+  async getItems(tenant_id: string) {
+    return this.repository.getItems(tenant_id);
   }
 
-  async createItem(tenantId: string, data: CreateItemDto, userId?: string) {
-    const item = await this.repository.createItem(tenantId, data);
+  async createItem(tenant_id: string, data: CreateItemDto, userId?: string) {
+    const item = await this.repository.createItem(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "CREATE",
@@ -38,22 +38,22 @@ export class InventoryService {
   }
 
   async getBalances(
-    tenantId: string,
+    tenant_id: string,
     locationId?: string,
     departmentId?: string,
   ) {
-    return this.repository.getBalances(tenantId, locationId, departmentId);
+    return this.repository.getBalances(tenant_id, locationId, departmentId);
   }
 
-  async getMovements(tenantId: string, itemId?: string) {
-    return this.repository.getMovements(tenantId, itemId);
+  async getMovements(tenant_id: string, itemId?: string) {
+    return this.repository.getMovements(tenant_id, itemId);
   }
 
-  async intakeStock(tenantId: string, data: StockIntakeDto, userId?: string) {
-    const result = await this.repository.intakeStock(tenantId, data);
+  async intakeStock(tenant_id: string, data: StockIntakeDto, userId?: string) {
+    const result = await this.repository.intakeStock(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "INTAKE",
@@ -66,14 +66,14 @@ export class InventoryService {
   }
 
   async transferStock(
-    tenantId: string,
+    tenant_id: string,
     data: TransferStockDto,
     userId?: string,
   ) {
-    const result = await this.repository.transferStock(tenantId, data);
+    const result = await this.repository.transferStock(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "TRANSFER",
@@ -89,19 +89,19 @@ export class InventoryService {
     return result;
   }
 
-  async getAdjustments(tenantId: string) {
-    return this.repository.getAdjustments(tenantId);
+  async getAdjustments(tenant_id: string) {
+    return this.repository.getAdjustments(tenant_id);
   }
 
   async createAdjustment(
-    tenantId: string,
+    tenant_id: string,
     data: CreateAdjustmentDto,
     userId?: string,
   ) {
-    const adjustment = await this.repository.createAdjustment(tenantId, data);
+    const adjustment = await this.repository.createAdjustment(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "ADJUST_CREATE",
@@ -118,51 +118,51 @@ export class InventoryService {
   }
 
   async approveAdjustment(
-    tenantId: string,
+    tenant_id: string,
     adjustmentId: string,
     approvedBy: string,
   ) {
     return this.repository.approveAdjustment(
-      tenantId,
+      tenant_id,
       adjustmentId,
       approvedBy,
     );
   }
 
-  async getAlerts(tenantId: string) {
-    return this.repository.getAlerts(tenantId);
+  async getAlerts(tenant_id: string) {
+    return this.repository.getAlerts(tenant_id);
   }
 
   async setAlertStatus(
-    tenantId: string,
+    tenant_id: string,
     alertId: string,
     status: "open" | "acknowledged" | "resolved",
   ) {
-    return this.repository.setAlertStatus(tenantId, alertId, status);
+    return this.repository.setAlertStatus(tenant_id, alertId, status);
   }
 
-  async getAuditCycles(tenantId: string) {
-    return this.repository.getAuditCycles(tenantId);
+  async getAuditCycles(tenant_id: string) {
+    return this.repository.getAuditCycles(tenant_id);
   }
 
-  async createAuditCycle(tenantId: string, data: any) {
-    return this.repository.createAuditCycle(tenantId, data);
+  async createAuditCycle(tenant_id: string, data: any) {
+    return this.repository.createAuditCycle(tenant_id, data);
   }
 
-  async updateAuditCycle(tenantId: string, id: string, data: any) {
-    return this.repository.updateAuditCycle(tenantId, id, data);
+  async updateAuditCycle(tenant_id: string, id: string, data: any) {
+    return this.repository.updateAuditCycle(tenant_id, id, data);
   }
 
-  async getIntegrationEvents(tenantId: string) {
-    return this.repository.getIntegrationEvents(tenantId);
+  async getIntegrationEvents(tenant_id: string) {
+    return this.repository.getIntegrationEvents(tenant_id);
   }
 
-  async createIntegrationEvent(tenantId: string, data: any) {
-    return this.repository.createIntegrationEvent(tenantId, data);
+  async createIntegrationEvent(tenant_id: string, data: any) {
+    return this.repository.createIntegrationEvent(tenant_id, data);
   }
 
-  async runLowStockScan(tenantId: string) {
-    const balances = await this.repository.getBalances(tenantId);
+  async runLowStockScan(tenant_id: string) {
+    const balances = await this.repository.getBalances(tenant_id);
     // Placeholder logic: just return scanned count for now as per mock requirement speed
     return {
       scanned: balances.length,
@@ -170,19 +170,19 @@ export class InventoryService {
     };
   }
 
-  async runExpiryScan(tenantId: string) {
+  async runExpiryScan(tenant_id: string) {
     return { scanned: 0, expiryFound: 0 };
   }
 
-  async consumeStock(tenantId: string, data: any) {
-    return this.repository.consumeStock(tenantId, data);
+  async consumeStock(tenant_id: string, data: any) {
+    return this.repository.consumeStock(tenant_id, data);
   }
 
-  async deleteItem(tenantId: string, itemId: string, userId?: string) {
-    const result = await this.repository.deleteItem(tenantId, itemId);
+  async deleteItem(tenant_id: string, itemId: string, userId?: string) {
+    const result = await this.repository.deleteItem(tenant_id, itemId);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "DELETE",
@@ -193,11 +193,15 @@ export class InventoryService {
     return result;
   }
 
-  async batchDeleteItems(tenantId: string, itemIds: string[], userId?: string) {
-    const result = await this.repository.batchDeleteItems(tenantId, itemIds);
+  async batchDeleteItems(
+    tenant_id: string,
+    itemIds: string[],
+    userId?: string,
+  ) {
+    const result = await this.repository.batchDeleteItems(tenant_id, itemIds);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "BATCH_DELETE",
@@ -210,14 +214,14 @@ export class InventoryService {
   }
 
   async batchIntakeStock(
-    tenantId: string,
+    tenant_id: string,
     data: StockIntakeDto[],
     userId?: string,
   ) {
-    const result = await this.repository.batchIntakeStock(tenantId, data);
+    const result = await this.repository.batchIntakeStock(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "BATCH_INTAKE",
@@ -229,19 +233,19 @@ export class InventoryService {
     return result;
   }
 
-  async requestProcurement(tenantId: string, data: any) {
-    return this.repository.requestProcurement(tenantId, data);
+  async requestProcurement(tenant_id: string, data: any) {
+    return this.repository.requestProcurement(tenant_id, data);
   }
 
   async batchCreateItems(
-    tenantId: string,
+    tenant_id: string,
     data: CreateItemDto[],
     userId?: string,
   ) {
-    const items = await this.repository.batchCreateItems(tenantId, data);
+    const items = await this.repository.batchCreateItems(tenant_id, data);
     if (userId) {
       await this.auditService.log({
-        tenantId,
+        tenantId: tenant_id,
         userId,
         module: "inventory",
         action: "BATCH_CREATE",

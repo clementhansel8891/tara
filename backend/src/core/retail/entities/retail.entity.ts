@@ -4,8 +4,8 @@ export class RetailStore {
   location_id: string;
   name: string;
   code: string;
-  type: 'flagship' | 'express' | 'kiosk' | 'pop-up' | 'warehouse';
-  status: 'active' | 'inactive' | 'maintenance' | 'decommissioned';
+  type: "flagship" | "express" | "kiosk" | "pop-up" | "warehouse";
+  status: "active" | "inactive" | "maintenance" | "decommissioned";
   address: string;
   phone?: string;
   email?: string;
@@ -24,7 +24,7 @@ export class InventoryPool {
   tenant_id: string;
   name: string;
   description?: string;
-  type: 'shared' | 'exclusive';
+  type: "shared" | "exclusive";
   stock?: InventoryPoolStock[];
   created_at: Date;
   updated_at: Date;
@@ -69,12 +69,13 @@ export class RetailProduct {
   name: string;
   description: string;
   category_id: string;
+  category_name?: string;
   base_price: number;
   currency: string;
   prices: MultiCurrencyPrice[];
   tax_rate: number;
   unit: string;
-  status: 'active' | 'discontinued' | 'draft';
+  status: "active" | "discontinued" | "draft";
   variants: ProductVariant[];
   seo?: SEOData;
   metadata?: Record<string, any>;
@@ -82,7 +83,14 @@ export class RetailProduct {
   updated_at: Date;
 }
 
-export type OrderStatus = 'pending' | 'reserved' | 'paid' | 'shipped' | 'completed' | 'cancelled' | 'refunded';
+export type OrderStatus =
+  | "pending"
+  | "reserved"
+  | "paid"
+  | "shipped"
+  | "completed"
+  | "cancelled"
+  | "refunded";
 
 export class RetailOrder {
   id: string;
@@ -99,8 +107,8 @@ export class RetailOrder {
   discount_total: number;
   grand_total: number;
   currency: string;
-  payment_method: 'cash' | 'card' | 'qr' | 'wallet';
-  payment_status: 'unpaid' | 'paid' | 'partial';
+  payment_method: "cash" | "card" | "qr" | "wallet";
+  payment_status: "unpaid" | "paid" | "partial";
   reservation_expires_at?: Date;
   metadata?: Record<string, any>;
   created_at: Date;
@@ -131,7 +139,7 @@ export class RetailShift {
   opening_cash: number;
   closing_cash?: number;
   expected_cash?: number;
-  status: 'open' | 'closed' | 'reconciled';
+  status: "open" | "closed" | "reconciled";
   notes?: string;
 }
 
@@ -142,7 +150,7 @@ export class RetailGatewayNode {
   node_name: string;
   ip_address?: string;
   port: number;
-  status: 'ACTIVE' | 'STANDBY' | 'DOWN';
+  status: "ACTIVE" | "STANDBY" | "DOWN";
   health_score: number;
   last_heartbeat?: Date;
   version?: string;
@@ -157,8 +165,32 @@ export class RetailLoadBalancer {
   name: string;
   virtual_ip?: string;
   algorithm: string;
-  status: 'ONLINE' | 'OFFLINE';
+  status: "ONLINE" | "OFFLINE";
   created_at: Date;
   updated_at: Date;
   nodes?: RetailGatewayNode[];
+}
+
+export class ProductProjection {
+  id: string;
+  item_master_id: string;
+  tenant_id: string;
+  location_id?: string;
+  module_type: string;
+  custom_name?: string;
+  custom_description?: string;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export class LabelConfig {
+  id: string;
+  tenant_id: string;
+  location_id?: string;
+  module_type: string;
+  field_key: string;
+  display_label: string;
+  created_at: Date;
+  updated_at: Date;
 }

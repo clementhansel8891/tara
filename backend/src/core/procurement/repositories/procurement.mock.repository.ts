@@ -1,12 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateRequisitionDto } from '../dto/create-requisition.dto';
-import { CreateSupplierDto } from '../dto/create-supplier.dto';
-import { ReleasePoDto } from '../dto/release-po.dto';
-import { ProcurementRisk } from '../entities/procurement-risk.entity';
-import { PurchaseOrder } from '../entities/purchase-order.entity';
-import { Requisition } from '../entities/requisition.entity';
-import { Supplier } from '../entities/supplier.entity';
-import { IProcurementRepository } from './procurement.repository.interface';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { CreateRequisitionDto } from "../dto/create-requisition.dto";
+import { CreateSupplierDto } from "../dto/create-supplier.dto";
+import { ReleasePoDto } from "../dto/release-po.dto";
+import { ProcurementRisk } from "../entities/procurement-risk.entity";
+import { PurchaseOrder } from "../entities/purchase-order.entity";
+import { Requisition } from "../entities/requisition.entity";
+import { Supplier } from "../entities/supplier.entity";
+import { IProcurementRepository } from "./procurement.repository.interface";
 
 @Injectable()
 export class ProcurementMockRepository extends IProcurementRepository {
@@ -17,19 +21,19 @@ export class ProcurementMockRepository extends IProcurementRepository {
 
   constructor() {
     super();
-    this.seed('tenant-001');
-    this.seed('tenant-002');
+    this.seed("tenant-001");
+    this.seed("tenant-002");
   }
 
   private seed(tenantId: string): void {
     this.suppliers.push({
       id: `${tenantId}-sup-1`,
       tenantId,
-      name: 'Nusantara Industrial Supply',
-      taxId: 'NPWP-01.234.567.8-091.000',
-      category: 'machinery',
-      branchCode: 'JKT',
-      complianceStatus: 'verified',
+      name: "Nusantara Industrial Supply",
+      taxId: "NPWP-01.234.567.8-091.000",
+      category: "machinery",
+      branchCode: "JKT",
+      complianceStatus: "verified",
       rating: 88,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -37,13 +41,13 @@ export class ProcurementMockRepository extends IProcurementRepository {
     this.requisitions.push({
       id: `${tenantId}-req-1`,
       tenantId,
-      title: 'Packaging line motor replacement',
-      requesterDept: 'operations',
-      branchCode: 'JKT',
+      title: "Packaging line motor replacement",
+      requesterDept: "operations",
+      branchCode: "JKT",
       amount: 310000000,
-      currency: 'IDR',
-      status: 'pending_requester_hod',
-      createdBy: 'user-demo',
+      currency: "IDR",
+      status: "pending_requester_hod",
+      createdBy: "user-demo",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -53,7 +57,10 @@ export class ProcurementMockRepository extends IProcurementRepository {
     return this.suppliers.filter((item) => item.tenantId === tenantId);
   }
 
-  async createSupplier(tenantId: string, data: CreateSupplierDto): Promise<Supplier> {
+  async createSupplier(
+    tenantId: string,
+    data: CreateSupplierDto,
+  ): Promise<Supplier> {
     const created: Supplier = {
       id: `${tenantId}-sup-${this.suppliers.length + 1}`,
       tenantId,
@@ -61,7 +68,7 @@ export class ProcurementMockRepository extends IProcurementRepository {
       taxId: data.taxId,
       category: data.category,
       branchCode: data.branchCode.toUpperCase(),
-      complianceStatus: 'pending',
+      complianceStatus: "pending",
       rating: 70,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -74,7 +81,10 @@ export class ProcurementMockRepository extends IProcurementRepository {
     return this.requisitions.filter((item) => item.tenantId === tenantId);
   }
 
-  async createRequisition(tenantId: string, data: CreateRequisitionDto): Promise<Requisition> {
+  async createRequisition(
+    tenantId: string,
+    data: CreateRequisitionDto,
+  ): Promise<Requisition> {
     const created: Requisition = {
       id: `${tenantId}-req-${this.requisitions.length + 1}`,
       tenantId,
@@ -82,9 +92,9 @@ export class ProcurementMockRepository extends IProcurementRepository {
       requesterDept: data.requesterDept,
       branchCode: data.branchCode.toUpperCase(),
       amount: data.amount,
-      currency: data.currency || 'IDR',
-      status: 'pending_requester_hod',
-      createdBy: data.createdBy || 'system',
+      currency: data.currency || "IDR",
+      status: "pending_requester_hod",
+      createdBy: data.createdBy || "system",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -93,11 +103,11 @@ export class ProcurementMockRepository extends IProcurementRepository {
       this.risks.push({
         id: `${tenantId}-risk-${this.risks.length + 1}`,
         tenantId,
-        code: 'price_spike',
-        severity: 'high',
-        status: 'open',
+        code: "price_spike",
+        severity: "high",
+        status: "open",
         entityId: created.id,
-        detail: 'Requisition amount exceeds OPEX control threshold.',
+        detail: "Requisition amount exceeds OPEX control threshold.",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -105,27 +115,40 @@ export class ProcurementMockRepository extends IProcurementRepository {
     return created;
   }
 
-  async approveRequesterHod(tenantId: string, requisitionId: string): Promise<Requisition> {
+  async approveRequesterHod(
+    tenantId: string,
+    requisitionId: string,
+  ): Promise<Requisition> {
     const requisition = this.requisitions.find(
       (item) => item.tenantId === tenantId && item.id === requisitionId,
     );
-    if (!requisition) throw new NotFoundException('Requisition not found');
-    requisition.status = 'approved_requester_hod';
+    if (!requisition) throw new NotFoundException("Requisition not found");
+    requisition.status = "approved_requester_hod";
     requisition.updatedAt = new Date();
     return requisition;
   }
 
-  async releasePurchaseOrder(tenantId: string, data: ReleasePoDto): Promise<PurchaseOrder> {
+  async releasePurchaseOrder(
+    tenantId: string,
+    data: ReleasePoDto,
+  ): Promise<PurchaseOrder> {
     const requisition = this.requisitions.find(
       (item) => item.tenantId === tenantId && item.id === data.requisitionId,
     );
-    if (!requisition) throw new NotFoundException('Requisition not found');
-    if (requisition.status !== 'approved_requester_hod' && requisition.status !== 'final_approved') {
-      throw new BadRequestException('Requisition is not approved for PO release.');
+    if (!requisition) throw new NotFoundException("Requisition not found");
+    if (
+      requisition.status !== "approved_requester_hod" &&
+      requisition.status !== "final_approved"
+    ) {
+      throw new BadRequestException(
+        "Requisition is not approved for PO release.",
+      );
     }
 
-    const supplier = this.suppliers.find((item) => item.tenantId === tenantId && item.id === data.supplierId);
-    if (!supplier) throw new NotFoundException('Supplier not found');
+    const supplier = this.suppliers.find(
+      (item) => item.tenantId === tenantId && item.id === data.supplierId,
+    );
+    if (!supplier) throw new NotFoundException("Supplier not found");
 
     const po: PurchaseOrder = {
       id: `${tenantId}-po-${this.purchaseOrders.length + 1}`,
@@ -134,13 +157,13 @@ export class ProcurementMockRepository extends IProcurementRepository {
       supplierId: supplier.id,
       branchCode: requisition.branchCode,
       totalAmount: data.totalAmount,
-      status: 'released',
+      status: "released",
       issuedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     this.purchaseOrders.push(po);
-    requisition.status = 'po_released';
+    requisition.status = "po_released";
     requisition.updatedAt = new Date();
     return po;
   }
@@ -154,21 +177,26 @@ export class ProcurementMockRepository extends IProcurementRepository {
   }
 
   async runRiskScan(tenantId: string): Promise<ProcurementRisk[]> {
-    const tenantReqs = this.requisitions.filter((item) => item.tenantId === tenantId);
+    const tenantReqs = this.requisitions.filter(
+      (item) => item.tenantId === tenantId,
+    );
     tenantReqs.forEach((req) => {
-      if (req.status === 'po_released' && req.amount > 2000000000) {
+      if (req.status === "po_released" && req.amount > 2000000000) {
         const exists = this.risks.some(
-          (risk) => risk.tenantId === tenantId && risk.entityId === req.id && risk.code === 'price_spike',
+          (risk) =>
+            risk.tenantId === tenantId &&
+            risk.entityId === req.id &&
+            risk.code === "price_spike",
         );
         if (!exists) {
           this.risks.push({
             id: `${tenantId}-risk-${this.risks.length + 1}`,
             tenantId,
-            code: 'price_spike',
-            severity: 'high',
-            status: 'open',
+            code: "price_spike",
+            severity: "high",
+            status: "open",
             entityId: req.id,
-            detail: 'Released PO has high spend spike.',
+            detail: "Released PO has high spend spike.",
             createdAt: new Date(),
             updatedAt: new Date(),
           });
@@ -186,18 +214,21 @@ export class ProcurementMockRepository extends IProcurementRepository {
     return [];
   }
 
-  async getSupplierRecommendations(tenantId: string, params: any): Promise<any[]> {
+  async getSupplierRecommendations(
+    tenantId: string,
+    params: any,
+  ): Promise<any[]> {
     const recommendations = [];
     const suppliers = this.suppliers.filter(
-      (s) => s.tenantId === tenantId && s.category === params.category
+      (s) => s.tenantId === tenantId && s.category === params.category,
     );
     for (const supplier of suppliers) {
-       recommendations.push({
-         supplierId: supplier.id,
-         supplierName: supplier.name,
-         matchScore: supplier.rating,
-         reasons: ["High compliance rating", "In selected category"],
-       });
+      recommendations.push({
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        matchScore: supplier.rating,
+        reasons: ["High compliance rating", "In selected category"],
+      });
     }
     return recommendations;
   }
@@ -218,4 +249,3 @@ export class ProcurementMockRepository extends IProcurementRepository {
     return [];
   }
 }
-

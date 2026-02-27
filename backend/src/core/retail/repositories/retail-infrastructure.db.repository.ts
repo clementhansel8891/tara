@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../persistence/prisma.service';
-import { IRetailInfrastructureRepository } from './retail-infrastructure.repository.interface';
-import { RetailGatewayNode, RetailLoadBalancer } from '../entities/retail.entity';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../persistence/prisma.service";
+import { IRetailInfrastructureRepository } from "./retail-infrastructure.repository.interface";
+import {
+  RetailGatewayNode,
+  RetailLoadBalancer,
+} from "../entities/retail.entity";
 
 @Injectable()
 export class RetailInfrastructureDbRepository implements IRetailInfrastructureRepository {
@@ -14,33 +17,44 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
   async listGatewayNodes(tenantId: string): Promise<RetailGatewayNode[]> {
     const nodes = await this.prisma.retailGatewayNode.findMany({
       where: { tenantId: tenantId },
-      orderBy: { nodeName: 'asc' }
+      orderBy: { nodeName: "asc" },
     });
     return nodes.map(this.mapNode);
   }
 
-  async getGatewayNode(tenantId: string, nodeId: string): Promise<RetailGatewayNode | null> {
+  async getGatewayNode(
+    tenantId: string,
+    nodeId: string,
+  ): Promise<RetailGatewayNode | null> {
     const node = await this.prisma.retailGatewayNode.findFirst({
-      where: { id: nodeId, tenantId: tenantId }
+      where: { id: nodeId, tenantId: tenantId },
     });
     return node ? this.mapNode(node) : null;
   }
 
-  async updateGatewayStatus(tenantId: string, nodeId: string, status: string): Promise<RetailGatewayNode> {
+  async updateGatewayStatus(
+    tenantId: string,
+    nodeId: string,
+    status: string,
+  ): Promise<RetailGatewayNode> {
     const node = await this.prisma.retailGatewayNode.update({
       where: { id: nodeId, tenantId: tenantId },
-      data: { status }
+      data: { status },
     });
     return this.mapNode(node);
   }
 
-  async heartbeat(tenantId: string, nodeId: string, healthScore: number): Promise<void> {
+  async heartbeat(
+    tenantId: string,
+    nodeId: string,
+    healthScore: number,
+  ): Promise<void> {
     await this.prisma.retailGatewayNode.update({
       where: { id: nodeId, tenantId: tenantId },
-      data: { 
+      data: {
         lastHeartbeat: new Date(),
-        healthScore
-      }
+        healthScore,
+      },
     });
   }
 
@@ -52,42 +66,52 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
     const lbs = await this.prisma.retailLoadBalancer.findMany({
       where: { tenantId: tenantId },
       include: { nodes: true },
-      orderBy: { name: 'asc' }
+      orderBy: { name: "asc" },
     });
     return lbs.map(this.mapLoadBalancer);
   }
 
-  async getLoadBalancer(tenantId: string, lbId: string): Promise<RetailLoadBalancer | null> {
+  async getLoadBalancer(
+    tenantId: string,
+    lbId: string,
+  ): Promise<RetailLoadBalancer | null> {
     const lb = await this.prisma.retailLoadBalancer.findFirst({
       where: { id: lbId, tenantId: tenantId },
-      include: { nodes: true }
+      include: { nodes: true },
     });
     return lb ? this.mapLoadBalancer(lb) : null;
   }
 
-  async createLoadBalancer(tenantId: string, data: any): Promise<RetailLoadBalancer> {
+  async createLoadBalancer(
+    tenantId: string,
+    data: any,
+  ): Promise<RetailLoadBalancer> {
     const lb = await this.prisma.retailLoadBalancer.create({
       data: {
         tenantId: tenantId,
         name: data.name,
         virtualIp: data.virtualIp,
-        algorithm: data.algorithm || 'ROUND_ROBIN',
-        status: 'ONLINE'
+        algorithm: data.algorithm || "ROUND_ROBIN",
+        status: "ONLINE",
       },
-      include: { nodes: true }
+      include: { nodes: true },
     });
     return this.mapLoadBalancer(lb);
   }
 
-  async updateLoadBalancer(tenantId: string, lbId: string, data: any): Promise<RetailLoadBalancer> {
+  async updateLoadBalancer(
+    tenantId: string,
+    lbId: string,
+    data: any,
+  ): Promise<RetailLoadBalancer> {
     const lb = await this.prisma.retailLoadBalancer.update({
       where: { id: lbId, tenantId: tenantId },
       data: {
         ...(data.name && { name: data.name }),
         ...(data.status && { status: data.status }),
-        ...(data.algorithm && { algorithm: data.algorithm })
+        ...(data.algorithm && { algorithm: data.algorithm }),
       },
-      include: { nodes: true }
+      include: { nodes: true },
     });
     return this.mapLoadBalancer(lb);
   }
@@ -110,7 +134,7 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
       version: n.version,
       region: n.region,
       created_at: n.createdAt,
-      updated_at: n.updatedAt
+      updated_at: n.updatedAt,
     };
   }
 
@@ -124,7 +148,7 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
       status: l.status as any,
       created_at: l.createdAt,
       updated_at: l.updatedAt,
-      nodes: l.nodes?.map(this.mapNode)
+      nodes: l.nodes?.map(this.mapNode),
     };
   }
 }

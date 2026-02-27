@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class StockIntakeDto {
   @IsString()
@@ -37,4 +43,3 @@ export class StockIntakeDto {
   @IsOptional()
   createdBy?: string;
 }
-

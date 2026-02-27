@@ -1,6 +1,6 @@
 export class StockBalance {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   itemId: string;
   locationId: string;
   departmentId?: string;
@@ -11,4 +11,3 @@ export class StockBalance {
   safetyStock: number;
   updatedAt: Date;
 }
-

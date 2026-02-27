@@ -1,5 +1,12 @@
-import { IsString, IsEnum, IsOptional, IsNumber, Min, IsDateString } from 'class-validator';
-import { EmploymentStatus, EmploymentType } from './create-employee.dto';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsNumber,
+  Min,
+  IsDateString,
+} from "class-validator";
+import { EmploymentStatus, EmploymentType } from "./create-employee.dto";
 
 /**
  * Update Employee DTO

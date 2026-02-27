@@ -6,8 +6,8 @@ export class SalesTask {
   title: string;
   ownerId: string;
   ownerName: string;
-  status: 'pending' | 'in_progress' | 'done' | 'overdue';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: "pending" | "in_progress" | "done" | "overdue";
+  priority: "low" | "medium" | "high" | "urgent";
   dueAt: Date;
   completedAt?: Date;
   createdAt: Date;

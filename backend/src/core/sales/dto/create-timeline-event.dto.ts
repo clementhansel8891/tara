@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateTimelineEventDto {
   @IsString()
@@ -11,11 +11,11 @@ export class CreateTimelineEventDto {
 
   @IsString()
   @IsNotEmpty()
-  channel: 'note' | 'email' | 'whatsapp' | 'sms' | 'call' | 'meeting';
+  channel: "note" | "email" | "whatsapp" | "sms" | "call" | "meeting";
 
   @IsString()
   @IsNotEmpty()
-  direction: 'outbound' | 'inbound' | 'internal';
+  direction: "outbound" | "inbound" | "internal";
 
   @IsString()
   @IsNotEmpty()

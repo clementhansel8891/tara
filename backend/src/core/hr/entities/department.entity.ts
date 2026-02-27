@@ -5,7 +5,7 @@ export class Department {
   code: string;
   headId?: string;
   description?: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   createdAt: Date;
   updatedAt: Date;
 }

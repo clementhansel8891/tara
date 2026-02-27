@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class TransferStockDto {
   @IsString()
@@ -33,4 +39,3 @@ export class TransferStockDto {
   @IsOptional()
   createdBy?: string;
 }
-

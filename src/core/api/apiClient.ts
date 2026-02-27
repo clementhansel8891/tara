@@ -27,6 +27,11 @@ export async function apiRequest<T>(
     }
   }
 
+  console.log(`[apiClient] Request: ${method} ${API_BASE_URL}${path}`, {
+    tenantHeader: headers["x-tenant-id"],
+    hasAuth: !!headers["Authorization"],
+  });
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
@@ -35,9 +40,15 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `API request failed with status ${response.status}`,
+    const message =
+      errorData.detail ||
+      errorData.message ||
+      `API request failed with status ${response.status}`;
+    console.error(
+      `[apiClient] Error ${response.status}: ${message}`,
+      errorData,
     );
+    throw new Error(message);
   }
 
   const result = await response.json();

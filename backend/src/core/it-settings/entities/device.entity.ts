@@ -6,11 +6,11 @@ export class Device {
   id: string;
   tenantId: string;
   locationId: string;
-  deviceType: 'pos' | 'biometric' | 'printer' | 'scanner' | 'terminal';
+  deviceType: "pos" | "biometric" | "printer" | "scanner" | "terminal";
   deviceName: string;
   ipAddress?: string;
   macAddress?: string;
-  status: 'online' | 'offline' | 'maintenance';
+  status: "online" | "offline" | "maintenance";
   lastSeen: Date;
   metadata?: Record<string, any>;
   createdAt: Date;

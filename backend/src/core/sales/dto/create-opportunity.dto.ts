@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class CreateOpportunityDto {
   @IsString()
@@ -15,7 +21,7 @@ export class CreateOpportunityDto {
 
   @IsString()
   @IsOptional()
-  currency?: 'IDR' | 'USD';
+  currency?: "IDR" | "USD";
 
   @IsString()
   @IsOptional()

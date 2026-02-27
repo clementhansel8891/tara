@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../persistence/prisma.service';
-import { createHash } from 'crypto';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../persistence/prisma.service";
+import { createHash } from "crypto";
 
 type RetailEventActor = {
   id: string;
@@ -29,10 +29,10 @@ export class RetailEventsService {
   async appendEvent(event: RetailEvent) {
     const auditEntry = await this.prisma.auditLog.create({
       data: {
-        tenantId: event.scope?.tenantId ?? 'tenant-demo',
-        module: 'retail',
+        tenantId: event.scope?.tenantId ?? "tenant-demo",
+        module: "retail",
         action: event.type,
-        entityType: 'event',
+        entityType: "event",
         entityId: event.audit?.traceId ?? crypto.randomUUID(),
         userId: event.actor.id,
         changes: event.payload ?? {},
@@ -53,40 +53,43 @@ export class RetailEventsService {
 
   async processEvent(event: RetailEvent) {
     switch (event.type) {
-      case 'payment_success': {
+      case "payment_success": {
         return this.processPaymentSuccess(event);
       }
-      case 'cart_add': {
-        return { action: 'interest_logged', sku: event.payload?.sku };
+      case "cart_add": {
+        return { action: "interest_logged", sku: event.payload?.sku };
       }
-      case 'user_register': {
-        return { action: 'customer_registration_received', customerId: event.actor.id };
+      case "user_register": {
+        return {
+          action: "customer_registration_received",
+          customerId: event.actor.id,
+        };
       }
       default:
-        return { action: 'event_recorded', type: event.type };
+        return { action: "event_recorded", type: event.type };
     }
   }
 
   private async processPaymentSuccess(event: RetailEvent) {
     const payload = event.payload ?? {};
-    const tenantId = payload.tenantId ?? event.scope?.tenantId ?? 'tenant-demo';
+    const tenantId = payload.tenantId ?? event.scope?.tenantId ?? "tenant-demo";
     const orderId = payload.orderId ?? `ord_${Date.now()}`;
-    const storeId = payload.storeId ?? event.scope?.branchId ?? 'store-001';
+    const storeId = payload.storeId ?? event.scope?.branchId ?? "store-001";
 
     const existing = await this.prisma.retailOrder.findFirst({
       where: { id: orderId, tenantId: tenantId },
     });
     if (existing) {
-      return { action: 'ignored_duplicate', orderId };
+      return { action: "ignored_duplicate", orderId };
     }
 
     const itemsPayload = Array.isArray(payload.items) ? payload.items : [];
     const fallbackProduct = await this.prisma.product.findFirst({
       where: { tenantId: tenantId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
     if (!fallbackProduct) {
-      return { action: 'skipped', reason: 'no_products' };
+      return { action: "skipped", reason: "no_products" };
     }
 
     const resolvedItems = await Promise.all(
@@ -100,9 +103,8 @@ export class RetailEventsService {
           item.unitPrice ??
           item.unit_price ??
           Number(
-            (
-              await this.prisma.product.findUnique({ where: { id: productId } })
-            )?.basePrice ?? 0,
+            (await this.prisma.product.findUnique({ where: { id: productId } }))
+              ?.basePrice ?? 0,
           );
         const quantity = Number(item.quantity ?? 1);
         return {
@@ -126,9 +128,9 @@ export class RetailEventsService {
         id: orderId,
         tenantId: tenantId,
         storeId,
-        deviceId: payload.deviceId ?? 'api-gateway',
+        deviceId: payload.deviceId ?? "api-gateway",
         cashierId: payload.cashierId ?? event.actor.id,
-        status: payload.status ?? 'paid',
+        status: payload.status ?? "paid",
         subtotal,
         tax,
         totalAmount,
@@ -147,7 +149,7 @@ export class RetailEventsService {
       },
     });
 
-    return { action: 'order_created', orderId };
+    return { action: "order_created", orderId };
   }
 
   private async resolveProductId(

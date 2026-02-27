@@ -15,8 +15,8 @@ export class Employee {
   departmentId: string;
   managerId?: string;
   roleTitle: string;
-  status: 'active' | 'inactive' | 'terminated' | 'on_leave';
-  employmentType: 'full_time' | 'part_time' | 'contractor' | 'intern';
+  status: "active" | "inactive" | "terminated" | "on_leave";
+  employmentType: "full_time" | "part_time" | "contractor" | "intern";
   baseSalary?: number;
   hourlyRate?: number;
   hireDate: Date;

@@ -8,14 +8,14 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { TenantInterceptor } from '../../gateway/tenant.interceptor';
-import { RetailPublicAuthService } from './retail-public-auth.service';
-import { ChannelCredentialsGuard } from './guards/channel-credentials.guard';
-import { CustomerAuthGuard } from './guards/customer-auth.guard';
+} from "@nestjs/common";
+import { Request } from "express";
+import { TenantInterceptor } from "../../gateway/tenant.interceptor";
+import { RetailPublicAuthService } from "./retail-public-auth.service";
+import { ChannelCredentialsGuard } from "./guards/channel-credentials.guard";
+import { CustomerAuthGuard } from "./guards/customer-auth.guard";
 
-@Controller('retail/public/auth')
+@Controller("retail/public/auth")
 @UseInterceptors(TenantInterceptor)
 export class RetailPublicAuthController {
   constructor(private readonly authService: RetailPublicAuthService) {}
@@ -34,21 +34,21 @@ export class RetailPublicAuthController {
     };
   }
 
-  @Post('register')
+  @Post("register")
   @UseGuards(ChannelCredentialsGuard)
   async register(@Req() request: Request, @Body() body: any) {
     const { tenantId } = (request as any).tenantContext;
     const scope = (request as any).connectorScope;
     const { name, email, password, phone } = body ?? {};
     if (!name || !email || !password) {
-      throw new BadRequestException('name, email, and password are required');
+      throw new BadRequestException("name, email, and password are required");
     }
 
     const result = await this.authService.registerCustomer(
       tenantId,
       scope,
       { name, email, password, phone },
-      { ip: request.ip, userAgent: request.headers['user-agent'] ?? null },
+      { ip: request.ip, userAgent: request.headers["user-agent"] ?? null },
     );
 
     return {
@@ -62,21 +62,21 @@ export class RetailPublicAuthController {
     };
   }
 
-  @Post('login')
+  @Post("login")
   @UseGuards(ChannelCredentialsGuard)
   async login(@Req() request: Request, @Body() body: any) {
     const { tenantId } = (request as any).tenantContext;
     const scope = (request as any).connectorScope;
     const { email, password } = body ?? {};
     if (!email || !password) {
-      throw new BadRequestException('email and password are required');
+      throw new BadRequestException("email and password are required");
     }
 
     const result = await this.authService.loginCustomer(
       tenantId,
       scope,
       { email, password },
-      { ip: request.ip, userAgent: request.headers['user-agent'] ?? null },
+      { ip: request.ip, userAgent: request.headers["user-agent"] ?? null },
     );
 
     return {
@@ -90,25 +90,25 @@ export class RetailPublicAuthController {
     };
   }
 
-  @Post('refresh')
+  @Post("refresh")
   @UseGuards(ChannelCredentialsGuard)
   async refresh(
     @Req() request: Request,
     @Body() body: any,
-    @Headers('x-refresh-token') headerToken?: string,
+    @Headers("x-refresh-token") headerToken?: string,
   ) {
     const { tenantId } = (request as any).tenantContext;
     const scope = (request as any).connectorScope;
     const refreshToken = body?.refreshToken ?? headerToken;
     if (!refreshToken) {
-      throw new BadRequestException('refreshToken is required');
+      throw new BadRequestException("refreshToken is required");
     }
 
     const tokens = await this.authService.refreshTokens(
       tenantId,
       scope,
       refreshToken,
-      { ip: request.ip, userAgent: request.headers['user-agent'] ?? null },
+      { ip: request.ip, userAgent: request.headers["user-agent"] ?? null },
     );
 
     return {
@@ -121,15 +121,18 @@ export class RetailPublicAuthController {
     };
   }
 
-  @Post('logout')
+  @Post("logout")
   @UseGuards(ChannelCredentialsGuard)
-  async logout(@Body() body: any, @Headers('x-refresh-token') headerToken?: string) {
+  async logout(
+    @Body() body: any,
+    @Headers("x-refresh-token") headerToken?: string,
+  ) {
     const refreshToken = body?.refreshToken ?? headerToken;
     const result = await this.authService.logout(refreshToken);
     return { success: true, data: result };
   }
 
-  @Get('me')
+  @Get("me")
   @UseGuards(ChannelCredentialsGuard, CustomerAuthGuard)
   async me(@Req() request: Request) {
     const payload = (request as any).customerAuth;

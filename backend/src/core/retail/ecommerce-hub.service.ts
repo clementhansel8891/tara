@@ -3,20 +3,20 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { IEcommerceHubRepository } from './repositories/ecommerce-hub.repository.interface';
+} from "@nestjs/common";
+import { IEcommerceHubRepository } from "./repositories/ecommerce-hub.repository.interface";
 import {
   EcommerceConnector,
   ConnectorWithPlainKey,
   EcommerceChannel,
   ChannelWithPlainCredentials,
-} from './entities/ecommerce-hub.entity';
+} from "./entities/ecommerce-hub.entity";
 import {
   CreateEcommerceConnectorDto,
   UpdateEcommerceConnectorDto,
   CreateRetailChannelDto,
   UpdateRetailChannelDto,
-} from './dto/ecommerce-hub.dto';
+} from "./dto/ecommerce-hub.dto";
 
 @Injectable()
 export class EcommerceHubService {
@@ -28,7 +28,10 @@ export class EcommerceHubService {
     return this.repo.listConnectors(tenantId);
   }
 
-  async getConnector(tenantId: string, id: string): Promise<EcommerceConnector> {
+  async getConnector(
+    tenantId: string,
+    id: string,
+  ): Promise<EcommerceConnector> {
     const connector = await this.repo.getConnector(tenantId, id);
     if (!connector) {
       throw new NotFoundException(`EcommerceConnector ${id} not found`);
@@ -41,7 +44,7 @@ export class EcommerceHubService {
     dto: CreateEcommerceConnectorDto,
   ): Promise<ConnectorWithPlainKey> {
     if (!dto.name || !dto.platform || !dto.domain) {
-      throw new BadRequestException('name, platform, and domain are required');
+      throw new BadRequestException("name, platform, and domain are required");
     }
     return this.repo.createConnector(tenantId, dto);
   }
@@ -63,31 +66,46 @@ export class EcommerceHubService {
     return this.repo.rotateConnectorApiKey(tenantId, id);
   }
 
-  async deleteConnector(tenantId: string, id: string): Promise<{ deleted: boolean }> {
+  async deleteConnector(
+    tenantId: string,
+    id: string,
+  ): Promise<{ deleted: boolean }> {
     await this.getConnector(tenantId, id);
     await this.repo.deleteConnector(tenantId, id);
     return { deleted: true };
   }
 
   /** Lightweight domain-level ping to verify connectivity. Only for PRESET (Marketplace) channels. */
-  async testConnector(tenantId: string, id: string): Promise<{ reachable: boolean; latencyMs: number; error?: string }> {
+  async testConnector(
+    tenantId: string,
+    id: string,
+  ): Promise<{ reachable: boolean; latencyMs: number; error?: string }> {
     const channel = await this.repo.getChannel(tenantId, id);
-    if (!channel || channel.integrationCategory !== 'PRESET') {
-      return { reachable: false, latencyMs: 0, error: 'Connectivity tests only supported for PRESET channels' };
+    if (!channel || channel.integrationCategory !== "PRESET") {
+      return {
+        reachable: false,
+        latencyMs: 0,
+        error: "Connectivity tests only supported for PRESET channels",
+      };
     }
 
-    const url = channel.webhookUrl ?? '';
-    if (!url.startsWith('http')) return { reachable: false, latencyMs: 0, error: 'Invalid webhook URL' };
+    const url = channel.webhookUrl ?? "";
+    if (!url.startsWith("http"))
+      return { reachable: false, latencyMs: 0, error: "Invalid webhook URL" };
 
     const start = Date.now();
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
-      await fetch(url, { method: 'HEAD', signal: controller.signal });
+      await fetch(url, { method: "HEAD", signal: controller.signal });
       clearTimeout(timeout);
       return { reachable: true, latencyMs: Date.now() - start };
     } catch (err: any) {
-      return { reachable: false, latencyMs: Date.now() - start, error: err?.message ?? 'unreachable' };
+      return {
+        reachable: false,
+        latencyMs: Date.now() - start,
+        error: err?.message ?? "unreachable",
+      };
     }
   }
 
@@ -110,26 +128,38 @@ export class EcommerceHubService {
     dto: CreateRetailChannelDto,
   ): Promise<ChannelWithPlainCredentials> {
     if (!dto.name || !dto.type) {
-      throw new BadRequestException('name and type are required');
+      throw new BadRequestException("name and type are required");
     }
 
     // Determine category if not explicitly provided
     if (!dto.integrationCategory) {
-      dto.integrationCategory = this.determineCategory(dto.type, dto.adapterType);
+      dto.integrationCategory = this.determineCategory(
+        dto.type,
+        dto.adapterType,
+      );
     }
 
     return this.repo.createChannel(tenantId, dto);
   }
 
-  private determineCategory(type: string, adapterType?: string): 'HEADLESS' | 'PREMADE' | 'PRESET' {
+  private determineCategory(
+    type: string,
+    adapterType?: string,
+  ): "HEADLESS" | "PREMADE" | "PRESET" {
     const t = type.toLowerCase();
     const a = adapterType?.toUpperCase();
 
-    if (t === 'headless' || a === 'CUSTOM') return 'HEADLESS';
-    if (t === 'marketplace' || a === 'SHOPEE' || a === 'TOKOPEDIA' || a === 'LAZADA' || a === 'TIKTOK') {
-      return 'PRESET';
+    if (t === "headless" || a === "CUSTOM") return "HEADLESS";
+    if (
+      t === "marketplace" ||
+      a === "SHOPEE" ||
+      a === "TOKOPEDIA" ||
+      a === "LAZADA" ||
+      a === "TIKTOK"
+    ) {
+      return "PRESET";
     }
-    return 'PREMADE'; // Default for standard e-commerce integrations like WooCommerce/Shopify
+    return "PREMADE"; // Default for standard e-commerce integrations like WooCommerce/Shopify
   }
 
   async updateChannel(
@@ -148,18 +178,26 @@ export class EcommerceHubService {
     const channel = await this.getChannel(tenantId, id);
     const creds = channel.credentials as { revoked?: boolean } | null;
     if (creds?.revoked) {
-      throw new ConflictException('Channel credentials are revoked — re-create the channel instead');
+      throw new ConflictException(
+        "Channel credentials are revoked — re-create the channel instead",
+      );
     }
     return this.repo.rotateChannelCredentials(tenantId, id);
   }
 
-  async revokeChannelCredentials(tenantId: string, id: string): Promise<{ revoked: boolean }> {
+  async revokeChannelCredentials(
+    tenantId: string,
+    id: string,
+  ): Promise<{ revoked: boolean }> {
     await this.getChannel(tenantId, id);
     await this.repo.revokeChannelCredentials(tenantId, id);
     return { revoked: true };
   }
 
-  async deleteChannel(tenantId: string, id: string): Promise<{ deleted: boolean }> {
+  async deleteChannel(
+    tenantId: string,
+    id: string,
+  ): Promise<{ deleted: boolean }> {
     await this.getChannel(tenantId, id);
     await this.repo.deleteChannel(tenantId, id);
     return { deleted: true };

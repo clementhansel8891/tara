@@ -4,9 +4,9 @@ import {
   ExecutionContext,
   CallHandler,
   BadRequestException,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { TenantContext } from './tenant-context.interface';
+} from "@nestjs/common";
+import { Observable } from "rxjs";
+import { TenantContext } from "./tenant-context.interface";
 
 /**
  * Tenant Interceptor
@@ -17,20 +17,20 @@ import { TenantContext } from './tenant-context.interface';
 export class TenantInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    
+
     // Extract tenant ID from header (required)
-    const tenantId = request.headers['x-tenant-id'];
-    
+    const tenantId = request.headers["x-tenant-id"];
+
     if (!tenantId) {
       throw new BadRequestException(
-        'Missing required header: x-tenant-id. All requests must include a tenant identifier.',
+        "Missing required header: x-tenant-id. All requests must include a tenant identifier.",
       );
     }
 
     // Extract valid headers
-    const locationId = request.headers['x-location-id'];
-    const userId = request.headers['x-actor-id'];
-    const role = request.headers['x-user-role'];
+    const locationId = request.headers["x-location-id"];
+    const userId = request.headers["x-actor-id"];
+    const role = request.headers["x-user-role"];
 
     // Attach tenant context to request object
     const tenantContext: TenantContext = {

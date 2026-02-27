@@ -1,9 +1,9 @@
-import { IsArray, IsIn, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsIn, IsNotEmpty, IsString } from "class-validator";
 
 export class ConnectAccountDto {
   @IsString()
-  @IsIn(['meta', 'google'])
-  provider: 'meta' | 'google';
+  @IsIn(["meta", "google"])
+  provider: "meta" | "google";
 
   @IsString()
   @IsNotEmpty()
@@ -12,4 +12,3 @@ export class ConnectAccountDto {
   @IsArray()
   scopes: string[];
 }
-

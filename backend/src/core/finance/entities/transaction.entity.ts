@@ -7,12 +7,12 @@ export class Transaction {
   tenantId: string;
   locationId?: string;
   amount: number;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   description: string;
   category?: string;
   createdAt: Date;
   createdBy?: string; // User ID who created the transaction
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   approvedBy?: string; // User ID who approved (for threshold gates)
   approvedAt?: Date;
 }

@@ -6,21 +6,21 @@ import {
   IsObject,
   MinLength,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 // ─────────────────────────────────────────────
 // EcommerceConnector DTOs (API-key based)
 // ─────────────────────────────────────────────
 
 export const SUPPORTED_PLATFORMS = [
-  'bambusilver',
-  'shopee',
-  'tokopedia',
-  'lazada',
-  'tiktok_shop',
-  'woocommerce',
-  'shopify',
-  'custom',
+  "bambusilver",
+  "shopee",
+  "tokopedia",
+  "lazada",
+  "tiktok_shop",
+  "woocommerce",
+  "shopify",
+  "custom",
 ] as const;
 
 export type EcommercePlatform = (typeof SUPPORTED_PLATFORMS)[number];
@@ -85,22 +85,34 @@ export class UpdateEcommerceConnectorDto {
 // RetailChannel DTOs (clientId/secret based)
 // ─────────────────────────────────────────────
 
-export const SYNC_FREQUENCIES = ['realtime', '5min', '15min', '30min', '1h', '6h', '24h'] as const;
+export const SYNC_FREQUENCIES = [
+  "realtime",
+  "5min",
+  "15min",
+  "30min",
+  "1h",
+  "6h",
+  "24h",
+] as const;
 export type SyncFrequency = (typeof SYNC_FREQUENCIES)[number];
 
 export const CHANNEL_ADAPTER_TYPES = [
-  'BAMBUSILVER',
-  'SHOPEE',
-  'TOKOPEDIA',
-  'LAZADA',
-  'TIKTOK',
-  'WOOCOMMERCE',
-  'SHOPIFY',
-  'CUSTOM',
+  "BAMBUSILVER",
+  "SHOPEE",
+  "TOKOPEDIA",
+  "LAZADA",
+  "TIKTOK",
+  "WOOCOMMERCE",
+  "SHOPIFY",
+  "CUSTOM",
 ] as const;
 export type ChannelAdapterType = (typeof CHANNEL_ADAPTER_TYPES)[number];
 
-export const INTEGRATION_CATEGORIES = ['HEADLESS', 'PREMADE', 'PRESET'] as const;
+export const INTEGRATION_CATEGORIES = [
+  "HEADLESS",
+  "PREMADE",
+  "PRESET",
+] as const;
 export type IntegrationCategory = (typeof INTEGRATION_CATEGORIES)[number];
 
 export class CreateRetailChannelDto {
@@ -120,7 +132,7 @@ export class CreateRetailChannelDto {
   @IsOptional()
   syncFrequency?: SyncFrequency;
 
-  @IsUrl({}, { message: 'webhookUrl must be a valid URL' })
+  @IsUrl({}, { message: "webhookUrl must be a valid URL" })
   @IsOptional()
   webhookUrl?: string;
 
@@ -153,7 +165,7 @@ export class UpdateRetailChannelDto {
   @IsOptional()
   syncFrequency?: SyncFrequency;
 
-  @IsUrl({}, { message: 'webhookUrl must be a valid URL' })
+  @IsUrl({}, { message: "webhookUrl must be a valid URL" })
   @IsOptional()
   webhookUrl?: string;
 

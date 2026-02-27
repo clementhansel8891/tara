@@ -1,9 +1,9 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
-import { EcommerceConnectorGuard } from './guards/ecommerce-connector.guard';
-import { RetailEventsService, RetailEvent } from './retail-events.service';
+import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
+import { EcommerceConnectorGuard } from "./guards/ecommerce-connector.guard";
+import { RetailEventsService, RetailEvent } from "./retail-events.service";
 
-@Controller('retail/events')
+@Controller("retail/events")
 @UseGuards(EcommerceConnectorGuard)
 export class RetailEventsController {
   constructor(private readonly eventsService: RetailEventsService) {}
@@ -13,7 +13,7 @@ export class RetailEventsController {
     if (!body?.type || !body?.actor || !body?.timestamp) {
       return {
         success: false,
-        error: 'Invalid Event Schema',
+        error: "Invalid Event Schema",
       };
     }
 

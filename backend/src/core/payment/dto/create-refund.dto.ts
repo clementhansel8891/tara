@@ -1,4 +1,11 @@
-import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+} from "class-validator";
 
 export class CreateRefundDto {
   @IsString()
@@ -6,8 +13,8 @@ export class CreateRefundDto {
   paymentId: string;
 
   @IsString()
-  @IsIn(['full', 'partial', 'scheduled'])
-  type: 'full' | 'partial' | 'scheduled';
+  @IsIn(["full", "partial", "scheduled"])
+  type: "full" | "partial" | "scheduled";
 
   @IsNumber()
   @Min(0)
@@ -21,4 +28,3 @@ export class CreateRefundDto {
   @IsOptional()
   scheduledAt?: string;
 }
-

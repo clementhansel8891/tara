@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { AttachDisputeEvidenceDto } from './dto/attach-dispute-evidence.dto';
-import { CreateDisputeDto } from './dto/create-dispute.dto';
-import { CreatePaymentTransactionDto } from './dto/create-payment-transaction.dto';
-import { CreateRefundDto } from './dto/create-refund.dto';
-import { ExecutePaymentDto } from './dto/execute-payment.dto';
-import { ProgressDisputeDto } from './dto/progress-dispute.dto';
-import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
-import { RoutePaymentDto } from './dto/route-payment.dto';
-import { UpdateDeviceStatusDto } from './dto/update-device-status.dto';
-import { UpdateProviderStatusDto } from './dto/update-provider-status.dto';
-import { IPaymentRepository } from './repositories/payment.repository.interface';
+import { Injectable } from "@nestjs/common";
+import { AttachDisputeEvidenceDto } from "./dto/attach-dispute-evidence.dto";
+import { CreateDisputeDto } from "./dto/create-dispute.dto";
+import { CreatePaymentTransactionDto } from "./dto/create-payment-transaction.dto";
+import { CreateRefundDto } from "./dto/create-refund.dto";
+import { ExecutePaymentDto } from "./dto/execute-payment.dto";
+import { ProgressDisputeDto } from "./dto/progress-dispute.dto";
+import { ResolveDisputeDto } from "./dto/resolve-dispute.dto";
+import { RoutePaymentDto } from "./dto/route-payment.dto";
+import { UpdateDeviceStatusDto } from "./dto/update-device-status.dto";
+import { UpdateProviderStatusDto } from "./dto/update-provider-status.dto";
+import { IPaymentRepository } from "./repositories/payment.repository.interface";
 
 @Injectable()
 export class PaymentService {
@@ -23,15 +23,27 @@ export class PaymentService {
     return this.repository.getTransactions(tenantId);
   }
 
-  async createTransaction(tenantId: string, dto: CreatePaymentTransactionDto, actorId: string) {
+  async createTransaction(
+    tenantId: string,
+    dto: CreatePaymentTransactionDto,
+    actorId: string,
+  ) {
     return this.repository.createTransaction(tenantId, dto, actorId);
   }
 
-  async approveTransaction(tenantId: string, paymentId: string, actorId: string) {
+  async approveTransaction(
+    tenantId: string,
+    paymentId: string,
+    actorId: string,
+  ) {
     return this.repository.approveTransaction(tenantId, paymentId, actorId);
   }
 
-  async rejectTransaction(tenantId: string, paymentId: string, actorId: string) {
+  async rejectTransaction(
+    tenantId: string,
+    paymentId: string,
+    actorId: string,
+  ) {
     return this.repository.rejectTransaction(tenantId, paymentId, actorId);
   }
 
@@ -50,10 +62,19 @@ export class PaymentService {
     dto: ExecutePaymentDto,
     actorId: string,
   ) {
-    return this.repository.executeTransaction(tenantId, paymentId, dto, actorId);
+    return this.repository.executeTransaction(
+      tenantId,
+      paymentId,
+      dto,
+      actorId,
+    );
   }
 
-  async settleTransaction(tenantId: string, paymentId: string, actorId: string) {
+  async settleTransaction(
+    tenantId: string,
+    paymentId: string,
+    actorId: string,
+  ) {
     return this.repository.settleTransaction(tenantId, paymentId, actorId);
   }
 
@@ -67,7 +88,12 @@ export class PaymentService {
     dto: UpdateProviderStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateProviderStatus(tenantId, providerId, dto, actorId);
+    return this.repository.updateProviderStatus(
+      tenantId,
+      providerId,
+      dto,
+      actorId,
+    );
   }
 
   async runProviderHealthSweep(tenantId: string, actorId: string) {
@@ -115,7 +141,11 @@ export class PaymentService {
     return this.repository.getDisputes(tenantId);
   }
 
-  async createDispute(tenantId: string, dto: CreateDisputeDto, actorId: string) {
+  async createDispute(
+    tenantId: string,
+    dto: CreateDisputeDto,
+    actorId: string,
+  ) {
     return this.repository.createDispute(tenantId, dto, actorId);
   }
 
@@ -125,7 +155,12 @@ export class PaymentService {
     dto: AttachDisputeEvidenceDto,
     actorId: string,
   ) {
-    return this.repository.attachDisputeEvidence(tenantId, disputeId, dto, actorId);
+    return this.repository.attachDisputeEvidence(
+      tenantId,
+      disputeId,
+      dto,
+      actorId,
+    );
   }
 
   async progressDispute(
@@ -162,4 +197,3 @@ export class PaymentService {
     return this.repository.getAuditEvents(tenantId);
   }
 }
-

@@ -1,8 +1,15 @@
-import { IsString, IsNotEmpty, IsNumber, Min, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  Min,
+  IsEnum,
+  IsOptional,
+} from "class-validator";
 
 export enum TransactionType {
-  DEBIT = 'debit',
-  CREDIT = 'credit',
+  DEBIT = "debit",
+  CREDIT = "credit",
 }
 
 /**

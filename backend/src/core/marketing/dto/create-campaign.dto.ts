@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsString,
   Min,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateCampaignDto {
   @IsString()
@@ -14,12 +14,18 @@ export class CreateCampaignDto {
   name: string;
 
   @IsString()
-  @IsIn(['lead_generation', 'awareness', 'nurture', 'remarketing'])
-  objective: 'lead_generation' | 'awareness' | 'nurture' | 'remarketing';
+  @IsIn(["lead_generation", "awareness", "nurture", "remarketing"])
+  objective: "lead_generation" | "awareness" | "nurture" | "remarketing";
 
   @IsArray()
   channelMix: Array<
-    'meta_ads' | 'google_ads' | 'email' | 'whatsapp' | 'webinar' | 'landing_page' | 'event'
+    | "meta_ads"
+    | "google_ads"
+    | "email"
+    | "whatsapp"
+    | "webinar"
+    | "landing_page"
+    | "event"
   >;
 
   @IsNumber()
@@ -28,7 +34,7 @@ export class CreateCampaignDto {
 
   @IsString()
   @IsOptional()
-  currency?: 'IDR' | 'USD';
+  currency?: "IDR" | "USD";
 
   @IsString()
   @IsNotEmpty()
@@ -42,4 +48,3 @@ export class CreateCampaignDto {
   @IsNotEmpty()
   audience: string;
 }
-

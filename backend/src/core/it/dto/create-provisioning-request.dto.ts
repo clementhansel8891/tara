@@ -1,10 +1,10 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export enum ProvisioningScope {
-  QUOTE = 'quote',
-  INVOICE = 'invoice',
-  DELIVERY_PROOF = 'delivery_proof',
-  FULL_PORTAL = 'full_portal',
+  QUOTE = "quote",
+  INVOICE = "invoice",
+  DELIVERY_PROOF = "delivery_proof",
+  FULL_PORTAL = "full_portal",
 }
 
 export class CreateProvisioningRequestDto {
@@ -31,4 +31,3 @@ export class CreateProvisioningRequestDto {
   @IsOptional()
   requestedBy?: string;
 }
-

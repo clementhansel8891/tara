@@ -1,12 +1,12 @@
-import { CreateAdjustmentDto } from '../dto/create-adjustment.dto';
-import { CreateItemDto } from '../dto/create-item.dto';
-import { StockIntakeDto } from '../dto/stock-intake.dto';
-import { TransferStockDto } from '../dto/transfer-stock.dto';
-import { InventoryAlert } from '../entities/inventory-alert.entity';
-import { InventoryItem } from '../entities/inventory-item.entity';
-import { StockAdjustment } from '../entities/stock-adjustment.entity';
-import { StockBalance } from '../entities/stock-balance.entity';
-import { StockMovement } from '../entities/stock-movement.entity';
+import { CreateAdjustmentDto } from "../dto/create-adjustment.dto";
+import { CreateItemDto } from "../dto/create-item.dto";
+import { StockIntakeDto } from "../dto/stock-intake.dto";
+import { TransferStockDto } from "../dto/transfer-stock.dto";
+import { InventoryAlert } from "../entities/inventory-alert.entity";
+import { InventoryItem } from "../entities/inventory-item.entity";
+import { StockAdjustment } from "../entities/stock-adjustment.entity";
+import { StockBalance } from "../entities/stock-balance.entity";
+import { StockMovement } from "../entities/stock-movement.entity";
 
 export {
   CreateAdjustmentDto,
@@ -33,36 +33,67 @@ export type InventoryDashboard = {
 };
 
 export abstract class IInventoryRepository {
-  abstract getDashboard(tenantId: string): Promise<InventoryDashboard>;
-  abstract getItems(tenantId: string): Promise<InventoryItem[]>;
-  abstract createItem(tenantId: string, data: CreateItemDto): Promise<InventoryItem>;
-  abstract getBalances(tenantId: string, locationId?: string, departmentId?: string): Promise<StockBalance[]>;
-  abstract getMovements(tenantId: string, itemId?: string): Promise<StockMovement[]>;
-  abstract intakeStock(tenantId: string, data: StockIntakeDto): Promise<StockMovement>;
-  abstract transferStock(tenantId: string, data: TransferStockDto): Promise<StockMovement[]>;
-  abstract getAdjustments(tenantId: string): Promise<StockAdjustment[]>;
-  abstract createAdjustment(tenantId: string, data: CreateAdjustmentDto): Promise<StockAdjustment>;
+  abstract getDashboard(tenant_id: string): Promise<InventoryDashboard>;
+  abstract getItems(tenant_id: string): Promise<InventoryItem[]>;
+  abstract createItem(
+    tenant_id: string,
+    data: CreateItemDto,
+  ): Promise<InventoryItem>;
+  abstract getBalances(
+    tenant_id: string,
+    locationId?: string,
+    departmentId?: string,
+  ): Promise<StockBalance[]>;
+  abstract getMovements(
+    tenant_id: string,
+    itemId?: string,
+  ): Promise<StockMovement[]>;
+  abstract intakeStock(
+    tenant_id: string,
+    data: StockIntakeDto,
+  ): Promise<StockMovement>;
+  abstract transferStock(
+    tenant_id: string,
+    data: TransferStockDto,
+  ): Promise<StockMovement[]>;
+  abstract getAdjustments(tenant_id: string): Promise<StockAdjustment[]>;
+  abstract createAdjustment(
+    tenant_id: string,
+    data: CreateAdjustmentDto,
+  ): Promise<StockAdjustment>;
   abstract approveAdjustment(
-    tenantId: string,
+    tenant_id: string,
     adjustmentId: string,
     approvedBy: string,
   ): Promise<StockAdjustment>;
-  abstract getAlerts(tenantId: string): Promise<InventoryAlert[]>;
+  abstract getAlerts(tenant_id: string): Promise<InventoryAlert[]>;
   abstract setAlertStatus(
-    tenantId: string,
+    tenant_id: string,
     alertId: string,
-    status: InventoryAlert['status'],
+    status: InventoryAlert["status"],
   ): Promise<InventoryAlert>;
-  abstract getAuditCycles(tenantId: string): Promise<any[]>;
-  abstract createAuditCycle(tenantId: string, data: any): Promise<any>;
-  abstract updateAuditCycle(tenantId: string, id: string, data: any): Promise<any>;
-  abstract getIntegrationEvents(tenantId: string): Promise<any[]>;
-  abstract createIntegrationEvent(tenantId: string, data: any): Promise<any>;
-  abstract consumeStock(tenantId: string, data: any): Promise<any>;
-  abstract deleteItem(tenantId: string, itemId: string): Promise<void>;
-  abstract batchDeleteItems(tenantId: string, itemIds: string[]): Promise<void>;
-  abstract batchIntakeStock(tenantId: string, data: StockIntakeDto[]): Promise<StockMovement[]>;
-  abstract batchCreateItems(tenantId: string, data: CreateItemDto[]): Promise<InventoryItem[]>;
-  abstract requestProcurement(tenantId: string, data: any): Promise<any>;
+  abstract getAuditCycles(tenant_id: string): Promise<any[]>;
+  abstract createAuditCycle(tenant_id: string, data: any): Promise<any>;
+  abstract updateAuditCycle(
+    tenant_id: string,
+    id: string,
+    data: any,
+  ): Promise<any>;
+  abstract getIntegrationEvents(tenant_id: string): Promise<any[]>;
+  abstract createIntegrationEvent(tenant_id: string, data: any): Promise<any>;
+  abstract consumeStock(tenant_id: string, data: any): Promise<any>;
+  abstract deleteItem(tenant_id: string, itemId: string): Promise<void>;
+  abstract batchDeleteItems(
+    tenant_id: string,
+    itemIds: string[],
+  ): Promise<void>;
+  abstract batchIntakeStock(
+    tenant_id: string,
+    data: StockIntakeDto[],
+  ): Promise<StockMovement[]>;
+  abstract batchCreateItems(
+    tenant_id: string,
+    data: CreateItemDto[],
+  ): Promise<InventoryItem[]>;
+  abstract requestProcurement(tenant_id: string, data: any): Promise<any>;
 }
-

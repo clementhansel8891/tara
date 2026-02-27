@@ -109,39 +109,73 @@ export const retailService = {
   async listInventory(
     tenantId: string,
     session: SessionContext,
-  ): Promise<RetailProduct[]> {
-    const products = await apiRequest<
-      Array<{
-        id: string;
-        tenant_id: string;
-        sku: string;
-        barcode: string;
-        name: string;
-        description: string;
-        category_id: string;
-        base_price: number;
-        currency: string;
-        tax_rate: number;
-        unit: string;
-        status: string;
-        created_at: string;
-        updated_at: string;
-        metadata?: Record<string, unknown>;
-      }>
-    >("/retail/products", "GET", session);
-    return (products || []).map((p) => ({
+    options?: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string;
+      q?: string;
+      sortBy?: "name" | "price" | "createdAt";
+      sortDir?: "asc" | "desc";
+    },
+  ): Promise<
+    RetailProduct[] & {
+      meta: { total: number; page: number; pageSize: number };
+    }
+  > {
+    type PaginatedArray<T> = T[] & {
+      meta: { total: number; page: number; pageSize: number };
+    };
+
+    const qs = new URLSearchParams();
+    if (options?.page) qs.set("page", String(options.page));
+    if (options?.pageSize) qs.set("pageSize", String(options.pageSize));
+    if (options?.categoryId) qs.set("categoryId", options.categoryId);
+    if (options?.q) qs.set("q", options.q);
+    if (options?.sortBy) qs.set("sortBy", options.sortBy);
+    if (options?.sortDir) qs.set("sortDir", options.sortDir);
+    const path = qs.toString()
+      ? `/retail/products?${qs.toString()}`
+      : "/retail/products";
+
+    const response = await apiRequest<any>(path, "GET", session);
+
+    // apiRequest already extracts result.data.
+    // Backend respond(payload) wraps payload in { success, data }.
+    // So response IS the payload { items, total, page, pageSize }
+    // or sometimes an array in legacy endpoints.
+
+    const payload = Array.isArray(response)
+      ? {
+          items: response,
+          total: response.length,
+          page: 1,
+          pageSize: response.length || 1,
+        }
+      : response || {};
+
+    const items = payload.items || [];
+    const totalCount = payload.total ?? items.length;
+    const pageNum = payload.page ?? 1;
+    const pageSizeNum = payload.pageSize ?? (items.length || 1);
+
+    const mapped = (items || []).map((p: any) => ({
       ...p,
-      tenantId: p.tenant_id || tenantId,
-      categoryId: p.category_id,
-      basePrice: p.base_price,
-      taxRate: p.tax_rate,
+      tenantId: p.tenant_id || p.tenantId || tenantId,
+      categoryId: p.category_id || p.categoryId,
+      categoryName: p.category_name || p.categoryName || p.category?.name,
+      basePrice: p.base_price ?? p.basePrice ?? 0,
+      taxRate: p.tax_rate ?? p.taxRate ?? 0,
       unit: p.unit,
-      status: p.status as RetailProduct["status"],
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
-      price: p.base_price || 0, // Convenience mapping
-      stock: (p.metadata?.stock_on_hand as number) || 100, // Mock stock until pool integration
-    }));
+      status: (p.status as RetailProduct["status"]) ?? "active",
+      createdAt: p.created_at ?? p.createdAt,
+      updatedAt: p.updated_at ?? p.updatedAt,
+      price: p.base_price ?? p.basePrice ?? 0,
+      stock: (p.metadata?.stock_on_hand as number) ?? p.stock ?? 0,
+    })) as RetailProduct[];
+
+    const result = mapped as PaginatedArray<RetailProduct>;
+    result.meta = { total: totalCount, page: pageNum, pageSize: pageSizeNum };
+    return result;
   },
 
   // --- 2. Order Processing ---
@@ -376,6 +410,7 @@ export const retailService = {
       session,
       {
         itemIds,
+        clientSecret: undefined,
         shiftId,
       },
     );
@@ -428,5 +463,34 @@ export const retailService = {
       session,
     );
     return response.data;
+  },
+
+  async getInventoryStats(
+    tenantId: string,
+    session: SessionContext,
+    options?: { categoryId?: string; q?: string },
+  ) {
+    const qs = new URLSearchParams();
+    if (options?.categoryId) qs.set("categoryId", options.categoryId);
+    if (options?.q) qs.set("q", options.q);
+    const path = qs.toString()
+      ? `/retail/inventory/stats?${qs.toString()}`
+      : "/retail/inventory/stats";
+
+    const response = await apiRequest<{
+      total: number;
+      critical: number;
+      lowStock: number;
+      overstock: number;
+      outOfStock: number;
+      totalSOH: number;
+      totalATS: number;
+      // Added user requested fields
+      totalItems: number;
+      lowStockCount: number;
+      outOfStockCount: number;
+      totalValue: number;
+    }>(path, "GET", session);
+    return response;
   },
 };

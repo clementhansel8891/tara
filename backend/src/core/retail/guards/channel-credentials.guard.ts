@@ -1,5 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import { RetailPublicAuthService } from '../retail-public-auth.service';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { RetailPublicAuthService } from "../retail-public-auth.service";
 
 @Injectable()
 export class ChannelCredentialsGuard implements CanActivate {
@@ -8,11 +13,13 @@ export class ChannelCredentialsGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const tenantId = request.tenantContext?.tenantId;
-    const clientId = request.headers['x-client-id'] as string | undefined;
-    const clientSecret = request.headers['x-client-secret'] as string | undefined;
+    const clientId = request.headers["x-client-id"] as string | undefined;
+    const clientSecret = request.headers["x-client-secret"] as
+      | string
+      | undefined;
 
     if (!tenantId) {
-      throw new UnauthorizedException('Missing x-tenant-id');
+      throw new UnauthorizedException("Missing x-tenant-id");
     }
 
     const scope = await this.authService.validateConnector(

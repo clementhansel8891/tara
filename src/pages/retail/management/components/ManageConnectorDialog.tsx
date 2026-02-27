@@ -1,5 +1,16 @@
-import React from "react";
-import { Globe, ShoppingBag, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Globe,
+  ShoppingBag,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  Key,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  Server,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,32 +21,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { CredentialField } from "./SharedUI";
+import { ecommerceHubService } from "@/core/services/retail/ecommerceHubService";
+import { useSession } from "@/core/security/session";
+import { useToast } from "@/hooks/use-toast";
 
 interface ManageConnectorDialogProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  channelType: string;
-  channelName: string;
-  setChannelName: (val: string) => void;
-  syncFreq: string;
-  setSyncFreq: (val: string) => void;
-  marketplaceApiKey: string;
-  setMarketplaceApiKey: (val: string) => void;
-  marketplaceApiSecret: string;
-  setMarketplaceApiSecret: (val: string) => void;
-  isProcessing: boolean;
-  handleCreateChannel: () => void;
-  generatedCreds: {
-    connectorId: string;
-    apiKey: string; // Gateway Key
-    channelId: string;
-    clientId: string;
-    clientSecret: string; // Storefront Secret
-  } | null;
-  session: any;
+  onClose: () => void;
+  onSuccess?: () => void;
   branchIds: string[];
   gatewayUrl: string;
   copyCredential: (value: string, label: string) => void;
@@ -43,235 +46,337 @@ interface ManageConnectorDialogProps {
 
 export const ManageConnectorDialog = ({
   isOpen,
-  onOpenChange,
-  channelType,
-  channelName,
-  setChannelName,
-  syncFreq,
-  setSyncFreq,
-  marketplaceApiKey,
-  setMarketplaceApiKey,
-  marketplaceApiSecret,
-  setMarketplaceApiSecret,
-  isProcessing,
-  handleCreateChannel,
-  generatedCreds,
-  session,
+  onClose,
+  onSuccess,
   branchIds,
   gatewayUrl,
   copyCredential,
 }: ManageConnectorDialogProps) => {
+  const session = useSession();
+  const { toast } = useToast();
+
+  // State
+  const [step, setStep] = useState<"CONFIG" | "SUCCESS">("CONFIG");
+  const [channelType, setChannelType] = useState<string>("OWNED");
+  const [channelName, setChannelName] = useState("");
+  const [syncFreq, setSyncFreq] = useState("15min");
+  const [platform, setPlatform] = useState("custom");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [marketplaceApiKey, setMarketplaceApiKey] = useState("");
+  const [marketplaceApiSecret, setMarketplaceApiSecret] = useState("");
+
+  const [generatedCreds, setGeneratedCreds] = useState<{
+    connectorId: string;
+    apiKey: string;
+    channelId: string;
+    clientId: string;
+    clientSecret: string;
+  } | null>(null);
+
+  const handleCreate = async () => {
+    if (!channelName) {
+      toast({
+        title: "Missing Name",
+        description: "Channel name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsProcessing(true);
+    try {
+      if (channelType === "OWNED") {
+        const conn = await ecommerceHubService.createConnector(session, {
+          name: channelName,
+          platform: platform,
+          domain: `${channelName.toLowerCase().replace(/\s+/g, "-")}.zenvix.io`,
+          branchIds,
+        });
+
+        const ch = await ecommerceHubService.createChannel(session, {
+          name: channelName,
+          type: "OWNED",
+          adapterType: platform.toUpperCase() as RetailChannel["adapterType"],
+          integrationCategory: "HEADLESS",
+          syncFrequency: syncFreq,
+          settings: { connectorId: conn.connector.id },
+        });
+
+        setGeneratedCreds({
+          connectorId: conn.connector.id,
+          apiKey: conn.plainApiKey,
+          channelId: ch.channel.id,
+          clientId: ch.plainClientId,
+          clientSecret: ch.plainClientSecret,
+        });
+        setStep("SUCCESS");
+      } else {
+        await ecommerceHubService.createChannel(session, {
+          name: channelName,
+          type: "MARKETPLACE",
+          adapterType: platform.toUpperCase() as RetailChannel["adapterType"],
+          integrationCategory: "PRESET",
+          syncFrequency: syncFreq,
+          settings: {
+            apiKey: marketplaceApiKey,
+            apiSecret: marketplaceApiSecret,
+          },
+        });
+        toast({
+          title: "Marketplace Linked",
+          description: "Connection established successfully.",
+        });
+        onSuccess?.();
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Provisioning Failed",
+        description: "Could not establish secure handshake.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleClose = () => {
+    setStep("CONFIG");
+    setChannelName("");
+    setGeneratedCreds(null);
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-[2rem] p-0 overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="bg-slate-900 p-8 text-white">
-          <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-            {channelType === "OWNED" ? (
-              <Globe className="w-6 h-6 text-indigo-400" />
-            ) : (
-              <ShoppingBag className="w-6 h-6 text-emerald-400" />
-            )}
-            {channelType === "OWNED" ? "Provision Headless Store" : "Connect Marketplace"}
-          </DialogTitle>
-          <DialogDescription className="text-slate-400 font-medium italic mt-2">
-            {channelType === "OWNED"
-              ? "Generate distinct client and gateway credentials for your storefront."
-              : "Authorize Zenvix to manage products and orders on this external channel."}
-          </DialogDescription>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="max-w-3xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
+        <div className="bg-slate-900 p-12 text-white relative overflow-hidden shrink-0">
+          <Zap className="absolute -right-12 -top-12 w-64 h-64 opacity-10 text-blue-400" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="space-y-2">
+              <Badge className="bg-blue-500/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1 mb-4">
+                Secure Channel Provisioning
+              </Badge>
+              <DialogTitle className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+                {step === "CONFIG" ? "New Digital Node" : "Deployment Status"}
+              </DialogTitle>
+              <DialogDescription className="text-sm font-bold text-slate-400 italic">
+                {step === "CONFIG"
+                  ? "Initialize a secure handshake between Zenvix and your external commerce storefront."
+                  : "All secure keys have been issued. Critical data is now active in your vault."}
+              </DialogDescription>
+            </div>
+          </div>
         </div>
 
-        <div className="p-8 space-y-6 flex-1 overflow-y-auto">
-          {generatedCreds ? (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" />
+        <div className="p-12 space-y-12 flex-1 overflow-y-auto bg-white">
+          {step === "SUCCESS" && generatedCreds ? (
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+              <div className="bg-emerald-50 border-2 border-emerald-100 rounded-[2rem] p-8 flex items-center gap-6">
+                <div className="w-16 h-16 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-900/10">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
                 <div>
-                  <div className="font-bold text-emerald-800 text-sm">
-                    Channel Provisioned Successfully
+                  <div className="text-xl font-black italic text-emerald-900 uppercase italic">
+                    Handshake Successful
                   </div>
-                  <div className="text-xs text-emerald-600 mt-1">
-                    Copy these credentials. They will not be shown again.
+                  <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mt-1">
+                    Credentials Issued • Vault Update Complete
                   </div>
                 </div>
               </div>
 
-              <div className="grid gap-6">
-                <CredentialField
-                  label="Tenant ID"
-                  value={session.tenantId}
-                  tooltip="Tenant ID identifies the business tenant inside Zenvix. This must match the Tenant ID configured in your storefront."
-                  helperText="Company scope."
-                  copyable
-                  onCopy={() => copyCredential(session.tenantId, "Tenant ID")}
-                />
-                <CredentialField
-                  label="Branch IDs"
-                  value={branchIds.join(", ")}
-                  tooltip="Branch IDs identify the physical stores or branches this ecommerce channel belongs to."
-                  helperText="Linked fulfillment branches."
-                  copyable
-                  onCopy={() => copyCredential(branchIds.join(", "), "Branch IDs")}
-                />
-                <CredentialField
-                  label="Connector"
-                  value={channelName}
-                  tooltip="Connector identifies this ecommerce storefront connection."
-                  helperText="Website label."
-                  copyable
-                  onCopy={() => copyCredential(channelName, "Connector")}
-                />
-                <CredentialField
-                  label="Gateway URL"
-                  value={gatewayUrl}
-                  tooltip="Gateway URL is the endpoint your storefront posts events to."
-                  helperText="Public API Gateway."
-                  copyable
-                  onCopy={() => copyCredential(gatewayUrl, "Gateway URL")}
-                />
-                <Separator className="my-2" />
-                <div className="text-[10px] font-black uppercase tracking-widest text-indigo-600 px-1">
-                  Secure Credentials
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-8">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                    <Globe className="w-3 h-3" /> Gateway Identity
+                  </div>
+                  <div className="space-y-4">
+                    <CredentialField
+                      label="Tenant ID"
+                      value={session.tenantId}
+                      copyable
+                    />
+                    <CredentialField
+                      label="Branch Scope"
+                      value={branchIds.join(", ")}
+                      copyable
+                    />
+                    <CredentialField
+                      label="API Endpoint"
+                      value={gatewayUrl}
+                      copyable
+                    />
+                    <CredentialField
+                      label="Gateway API Key"
+                      value={generatedCreds.apiKey}
+                      copyable
+                      isMasked
+                    />
+                  </div>
                 </div>
-                <CredentialField
-                  label="Storefront Client ID"
-                  value={generatedCreds.clientId}
-                  tooltip="Storefront Client ID is the unique identifier for this specific channel."
-                  helperText="Paste into storefront 'Client ID'."
-                  copyable
-                  onCopy={() => copyCredential(generatedCreds.clientId, "Storefront Client ID")}
-                />
-                <CredentialField
-                  label="Storefront Client Secret"
-                  value={generatedCreds.clientSecret}
-                  tooltip="Storefront Client Secret used to authenticate the Client ID."
-                  helperText="Paste into storefront 'Client Secret'."
-                  copyable
-                  onCopy={() => copyCredential(generatedCreds.clientSecret, "Storefront Client Secret")}
-                />
-                <CredentialField
-                  label="Gateway API Key"
-                  value={generatedCreds.apiKey}
-                  tooltip="Gateway API Key provides top-level access to the retail gateway. Separate from the Client Secret for enhanced security."
-                  helperText="Paste into storefront 'API Key'."
-                  copyable
-                  onCopy={() => copyCredential(generatedCreds.apiKey, "Gateway API Key")}
-                />
-                <Separator className="my-2" />
-                <CredentialField
-                  label="Channel Record ID"
-                  value={generatedCreds.channelId}
-                  tooltip="Internal Zenvix identifier for this record."
-                  helperText="System reference only."
-                  copyable
-                  onCopy={() => copyCredential(generatedCreds.channelId, "Channel Record ID")}
-                />
-
-                <div className="text-[10px] text-amber-600 font-black flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 mt-0.5" />
-                  Keep these secrets secure. They provide critical access to your store data.
+                <div className="space-y-8">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic flex items-center gap-3">
+                    <Key className="w-3 h-3" /> Storefront Secrets
+                  </div>
+                  <div className="space-y-4">
+                    <CredentialField
+                      label="Client ID"
+                      value={generatedCreds.clientId}
+                      copyable
+                    />
+                    <CredentialField
+                      label="Client Secret"
+                      value={generatedCreds.clientSecret}
+                      copyable
+                      isMasked
+                    />
+                    <Separator className="my-4" />
+                    <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 space-y-3">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-indigo-900 uppercase tracking-widest">
+                        <AlertCircle className="w-4 h-4 text-indigo-500" />{" "}
+                        Security Notice
+                      </div>
+                      <p className="text-[10px] font-bold text-indigo-600 leading-relaxed italic uppercase italic tracking-tighter">
+                        Client secrets are only visible once. Ensure they are
+                        safely stored in your application vault.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <DialogFooter>
-                <Button
-                  onClick={() => onOpenChange(false)}
-                  className="w-full h-12 rounded-xl font-bold bg-slate-900 text-white"
-                >
-                  Done
-                </Button>
-              </DialogFooter>
+              <Button
+                onClick={handleClose}
+                className="w-full h-20 rounded-[2rem] bg-slate-900 text-white font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-[0.98] transition-transform"
+              >
+                CLOSE SESSION & HANDOVER
+              </Button>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase text-slate-400">Channel Name</Label>
-                <Input
-                  value={channelName}
-                  onChange={(e) => setChannelName(e.target.value)}
-                  className="h-12 rounded-xl font-bold"
-                  placeholder={
-                    channelType === "OWNED"
-                      ? "e.g. My Flagship Website"
-                      : "e.g. Tokopedia Official"
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase text-slate-400">Channel Type</Label>
-                  <div className="h-12 flex items-center px-4 bg-slate-50 rounded-xl font-bold text-sm text-slate-500 border border-slate-200">
-                    {channelType}
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid grid-cols-2 gap-8">
+                <div
+                  onClick={() => setChannelType("OWNED")}
+                  className={`p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer group ${channelType === "OWNED" ? "border-blue-600 bg-blue-50/30" : "border-slate-100 hover:border-slate-200"}`}
+                >
+                  <Globe
+                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "OWNED" ? "text-blue-600 scale-110" : "text-slate-300"}`}
+                  />
+                  <div
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "OWNED" ? "text-blue-900" : "text-slate-400"}`}
+                  >
+                    Headless API
+                  </div>
+                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                    Next.js / Custom App
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase text-slate-400">
-                    Sync Frequency
-                  </Label>
-                  <Select value={syncFreq} onValueChange={setSyncFreq}>
-                    <SelectTrigger className="h-12 rounded-xl font-bold">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5min">5 Minutes</SelectItem>
-                      <SelectItem value="15min">15 Minutes</SelectItem>
-                      <SelectItem value="1h">1 Hour</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div
+                  onClick={() => setChannelType("MARKETPLACE")}
+                  className={`p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer group ${channelType === "MARKETPLACE" ? "border-emerald-600 bg-emerald-50/30" : "border-slate-100 hover:border-slate-200"}`}
+                >
+                  <ShoppingBag
+                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "MARKETPLACE" ? "text-emerald-600 scale-110" : "text-slate-300"}`}
+                  />
+                  <div
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "MARKETPLACE" ? "text-emerald-900" : "text-slate-400"}`}
+                  >
+                    Marketplace Hub
+                  </div>
+                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                    Shopee / Tokopedia
+                  </div>
                 </div>
               </div>
 
-              {channelType === "MARKETPLACE" && (
-                <>
-                  <Separator className="my-2" />
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg text-xs font-bold">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Enter your marketplace API credentials below.</span>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-400">
-                        API Key / Shop ID
-                      </Label>
+              <div className="space-y-8">
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                    Core Specifications
+                  </Label>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="col-span-2 space-y-2">
                       <Input
+                        placeholder="Deployment Name (e.g. Flagship Store)"
+                        value={channelName}
+                        onChange={(e) => setChannelName(e.target.value)}
+                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-black italic text-lg text-slate-900 placeholder:text-slate-300 shadow-inner"
+                      />
+                    </div>
+                    <Select value={syncFreq} onValueChange={setSyncFreq}>
+                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black italic uppercase text-[10px] tracking-widest text-slate-900 shadow-inner">
+                        <SelectValue placeholder="Sync Pulse" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl p-2 bg-white">
+                        <SelectItem
+                          value="5min"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          5m Pulse
+                        </SelectItem>
+                        <SelectItem
+                          value="15min"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          15m Pulse
+                        </SelectItem>
+                        <SelectItem
+                          value="1h"
+                          className="rounded-xl font-black italic uppercase text-[10px] py-4"
+                        >
+                          60m Pulse
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {channelType === "MARKETPLACE" && (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-4 p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                      <ShieldCheck className="w-6 h-6 text-amber-500" />
+                      <p className="text-[10px] font-bold text-amber-700 uppercase italic tracking-tighter">
+                        External authorization required. Provide your platform
+                        API secrets.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <Input
+                        type="password"
+                        placeholder="Marketplace API Key"
                         value={marketplaceApiKey}
                         onChange={(e) => setMarketplaceApiKey(e.target.value)}
-                        className="h-12 rounded-xl font-bold"
-                        type="password"
+                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-mono text-sm text-slate-700 shadow-inner"
                       />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase text-slate-400">
-                        API Secret
-                      </Label>
                       <Input
-                        value={marketplaceApiSecret}
-                        onChange={(e) => setMarketplaceApiSecret(e.target.value)}
-                        className="h-12 rounded-xl font-bold"
                         type="password"
+                        placeholder="Marketplace Secret"
+                        value={marketplaceApiSecret}
+                        onChange={(e) =>
+                          setMarketplaceApiSecret(e.target.value)
+                        }
+                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-mono text-sm text-slate-700 shadow-inner"
                       />
                     </div>
                   </div>
-                </>
-              )}
-
-              <div className="pt-4">
-                <Button
-                  onClick={handleCreateChannel}
-                  disabled={isProcessing || !channelName}
-                  className="w-full h-14 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black italic uppercase tracking-widest shadow-xl"
-                >
-                  {isProcessing ? (
-                    <>
-                      <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Processing...
-                    </>
-                  ) : channelType === "OWNED" ? (
-                    "Generate Storefront Keys"
-                  ) : (
-                    "Authenticate & Connect"
-                  )}
-                </Button>
+                )}
               </div>
+
+              <Button
+                onClick={handleCreate}
+                disabled={isProcessing || !channelName}
+                className="w-full h-20 rounded-[2rem] bg-blue-600 text-white font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:bg-blue-700 hover:scale-[0.98] transition-all"
+              >
+                {isProcessing ? (
+                  <RefreshCw className="w-6 h-6 animate-spin" />
+                ) : (
+                  <div className="flex items-center gap-3">
+                    EXECUTE HANDSHAKE <ArrowRight className="w-4 h-4" />
+                  </div>
+                )}
+              </Button>
             </div>
           )}
         </div>
@@ -279,21 +384,3 @@ export const ManageConnectorDialog = ({
     </Dialog>
   );
 };
-
-const ShieldCheck = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <path d="m9 12 2 2 4-4" />
-  </svg>
-);

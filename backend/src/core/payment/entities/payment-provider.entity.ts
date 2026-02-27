@@ -3,10 +3,9 @@ export class PaymentProvider {
   tenantId: string;
   name: string;
   channels: string[];
-  status: 'healthy' | 'degraded' | 'down';
+  status: "healthy" | "degraded" | "down";
   maxAmountPerTxn: number;
   settlementSlaHours: number;
   priority: number;
   lastHeartbeatAt: Date;
 }
-

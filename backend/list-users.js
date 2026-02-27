@@ -1,0 +1,1 @@
+const {PrismaClient}=require("@prisma/client"); const p=new PrismaClient(); async function main(){ const users=await p.user.findMany({take:5}); console.log(users); } main().finally(()=>p.$disconnect());

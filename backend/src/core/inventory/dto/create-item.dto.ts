@@ -1,11 +1,17 @@
-import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from "class-validator";
 
 export enum InventoryCategory {
-  RAW_MATERIAL = 'raw_material',
-  FINISHED_GOOD = 'finished_good',
-  CONSUMABLE = 'consumable',
-  ASSET = 'asset',
-  SPARE_PART = 'spare_part',
+  RAW_MATERIAL = "raw_material",
+  FINISHED_GOOD = "finished_good",
+  CONSUMABLE = "consumable",
+  ASSET = "asset",
+  SPARE_PART = "spare_part",
 }
 
 export class CreateItemDto {
@@ -46,4 +52,3 @@ export class CreateItemDto {
   @IsOptional()
   moduleTags?: string[];
 }
-

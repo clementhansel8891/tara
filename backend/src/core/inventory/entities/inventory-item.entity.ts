@@ -1,9 +1,14 @@
 export class InventoryItem {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   sku: string;
   name: string;
-  category: 'raw_material' | 'finished_good' | 'consumable' | 'asset' | 'spare_part';
+  category:
+    | "raw_material"
+    | "finished_good"
+    | "consumable"
+    | "asset"
+    | "spare_part";
   uom: string;
   barcode: string;
   qrCode: string;
@@ -12,4 +17,3 @@ export class InventoryItem {
   createdAt: Date;
   updatedAt: Date;
 }
-

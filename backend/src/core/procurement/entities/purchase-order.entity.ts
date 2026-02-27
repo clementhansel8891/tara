@@ -5,9 +5,8 @@ export class PurchaseOrder {
   supplierId: string;
   branchCode: string;
   totalAmount: number;
-  status: 'released' | 'delivering' | 'received' | 'closed';
+  status: "released" | "delivering" | "received" | "closed";
   issuedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
-

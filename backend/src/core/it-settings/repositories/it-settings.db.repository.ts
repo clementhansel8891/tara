@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { ITDevice, ITSetting } from '@prisma/client';
-import { PrismaService } from '../../../persistence/prisma.service';
-import { RegisterDeviceDto } from '../dto/register-device.dto';
-import { UpdateSettingDto } from '../dto/update-setting.dto';
-import { Device } from '../entities/device.entity';
-import { Setting } from '../entities/setting.entity';
-import { IITSettingsRepository } from './it-settings.repository.interface';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { ITDevice, ITSetting } from "@prisma/client";
+import { PrismaService } from "../../../persistence/prisma.service";
+import { RegisterDeviceDto } from "../dto/register-device.dto";
+import { UpdateSettingDto } from "../dto/update-setting.dto";
+import { Device } from "../entities/device.entity";
+import { Setting } from "../entities/setting.entity";
+import { IITSettingsRepository } from "./it-settings.repository.interface";
 
 @Injectable()
 export class ITSettingsDbRepository extends IITSettingsRepository {
@@ -24,7 +24,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     return devices.map((d: ITDevice) => ({
       id: d.id,
       tenantId: d.tenantId,
-      locationId: d.locationId || '',
+      locationId: d.locationId || "",
       deviceType: d.deviceType as any,
       deviceName: d.deviceName,
       ipAddress: d.ipAddress || undefined,
@@ -37,7 +37,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     }));
   }
 
-  async registerDevice(tenantId: string, data: RegisterDeviceDto): Promise<Device> {
+  async registerDevice(
+    tenantId: string,
+    data: RegisterDeviceDto,
+  ): Promise<Device> {
     const created = await this.prisma.iTDevice.create({
       data: {
         tenantId: tenantId,
@@ -46,7 +49,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
         deviceName: data.deviceName,
         ipAddress: data.ipAddress,
         macAddress: data.macAddress,
-        status: 'active',
+        status: "active",
         lastSeen: new Date(),
       },
     });
@@ -54,12 +57,12 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     return {
       id: created.id,
       tenantId: created.tenantId,
-      locationId: created.locationId || '',
+      locationId: created.locationId || "",
       deviceType: created.deviceType as any,
       deviceName: created.deviceName,
       ipAddress: created.ipAddress || undefined,
       macAddress: created.macAddress || undefined,
-      status: 'online',
+      status: "online",
       lastSeen: created.lastSeen,
       metadata: (created.metadata as any) || {},
       createdAt: created.createdAt,
@@ -67,7 +70,11 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     };
   }
 
-  async updateDeviceStatus(tenantId: string, deviceId: string, status: string): Promise<Device> {
+  async updateDeviceStatus(
+    tenantId: string,
+    deviceId: string,
+    status: string,
+  ): Promise<Device> {
     const updated = await this.prisma.iTDevice.update({
       where: { id: deviceId, tenantId: tenantId },
       data: { status, lastSeen: new Date() },
@@ -76,7 +83,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     return {
       id: updated.id,
       tenantId: updated.tenantId,
-      locationId: updated.locationId || '',
+      locationId: updated.locationId || "",
       deviceType: updated.deviceType as any,
       deviceName: updated.deviceName,
       ipAddress: updated.ipAddress || undefined,
@@ -130,7 +137,11 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     };
   }
 
-  async updateSetting(tenantId: string, key: string, data: UpdateSettingDto): Promise<Setting> {
+  async updateSetting(
+    tenantId: string,
+    key: string,
+    data: UpdateSettingDto,
+  ): Promise<Setting> {
     const updated = await this.prisma.iTSetting.upsert({
       where: { tenantId_key: { tenantId: tenantId, key } },
       update: {
@@ -143,7 +154,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
         tenantId: tenantId,
         key,
         value: data.value,
-        category: data.category || 'general',
+        category: data.category || "general",
         isPublic: data.isPublic || false,
         description: data.description,
       },

@@ -1,8 +1,7 @@
-import { IsIn, IsString } from 'class-validator';
+import { IsIn, IsString } from "class-validator";
 
 export class ResolveDisputeDto {
   @IsString()
-  @IsIn(['won', 'lost', 'settled'])
-  resolution: 'won' | 'lost' | 'settled';
+  @IsIn(["won", "lost", "settled"])
+  resolution: "won" | "lost" | "settled";
 }
-

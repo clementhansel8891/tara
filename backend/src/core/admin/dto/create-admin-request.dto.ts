@@ -1,10 +1,10 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export enum AdminRequestType {
-  ACCESS = 'access',
-  MODULE_TOGGLE = 'module_toggle',
-  COMPLIANCE = 'compliance',
-  OTHER = 'other',
+  ACCESS = "access",
+  MODULE_TOGGLE = "module_toggle",
+  COMPLIANCE = "compliance",
+  OTHER = "other",
 }
 
 export class CreateAdminRequestDto {
@@ -23,4 +23,3 @@ export class CreateAdminRequestDto {
   @IsOptional()
   requestedBy?: string;
 }
-

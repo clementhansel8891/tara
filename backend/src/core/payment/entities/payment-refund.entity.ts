@@ -2,10 +2,16 @@ export class PaymentRefund {
   id: string;
   tenantId: string;
   paymentId: string;
-  type: 'full' | 'partial' | 'scheduled';
+  type: "full" | "partial" | "scheduled";
   amount: number;
   reason: string;
-  status: 'requested' | 'approved' | 'executing' | 'settled' | 'failed' | 'rejected';
+  status:
+    | "requested"
+    | "approved"
+    | "executing"
+    | "settled"
+    | "failed"
+    | "rejected";
   requestedBy: string;
   approvedBy?: string;
   scheduledAt?: Date;
@@ -13,4 +19,3 @@ export class PaymentRefund {
   createdAt: Date;
   updatedAt: Date;
 }
-

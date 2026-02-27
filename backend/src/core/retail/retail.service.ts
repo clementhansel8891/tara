@@ -176,8 +176,19 @@ export class RetailService {
   }
 
   // Products
-  async listProducts(tenantId: string): Promise<RetailProduct[]> {
-    return this.retailRepository.listProducts(tenantId);
+  async listProducts(
+    tenantId: string,
+    options?: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string;
+      q?: string;
+      sortBy?: "name" | "price" | "createdAt";
+      sortDir?: "asc" | "desc";
+      locationId?: string;
+    },
+  ) {
+    return this.retailRepository.listProducts(tenantId, options);
   }
 
   // Orders
@@ -268,6 +279,13 @@ export class RetailService {
 
   async getStockStatus(tenantId: string, productId: string) {
     return this.retailRepository.checkStock(tenantId, productId);
+  }
+
+  async getInventoryStats(
+    tenantId: string,
+    options?: { categoryId?: string; q?: string },
+  ) {
+    return this.retailRepository.getInventoryStats(tenantId, options);
   }
 
   // Shifts

@@ -4,7 +4,7 @@ export class Contract {
   employeeId?: string;
   title: string;
   type: string;
-  status: 'active' | 'draft' | 'expired' | 'terminated';
+  status: "active" | "draft" | "expired" | "terminated";
   startDate: Date;
   endDate?: Date;
   url?: string;

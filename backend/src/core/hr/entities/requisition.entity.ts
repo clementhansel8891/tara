@@ -3,7 +3,7 @@ export class JobRequisition {
   tenantId: string;
   departmentId?: string;
   title: string;
-  status: 'open' | 'closed' | 'screening' | 'interview' | 'offer' | 'rejected';
+  status: "open" | "closed" | "screening" | "interview" | "offer" | "rejected";
   openings: number;
   createdAt: Date;
   updatedAt: Date;

@@ -11,7 +11,7 @@ export class Attendance {
   clockOut?: Date;
   date: string; // YYYY-MM-DD format
   hoursWorked?: number;
-  status: 'present' | 'absent' | 'late' | 'half_day';
+  status: "present" | "absent" | "late" | "half_day";
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

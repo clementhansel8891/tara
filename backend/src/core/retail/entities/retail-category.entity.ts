@@ -7,7 +7,7 @@ export class RetailCategory {
   description?: string;
   image_url?: string;
   order: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   children?: RetailCategory[];
   created_at: Date;
   updated_at: Date;

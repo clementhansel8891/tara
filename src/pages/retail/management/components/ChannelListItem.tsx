@@ -1,8 +1,19 @@
 import React from "react";
 import { CopyPill } from "./SharedUI";
 import { Badge } from "@/components/ui/badge";
-import { Globe, ShoppingBag, Link2 } from "lucide-react";
+import {
+  Globe,
+  ShoppingBag,
+  Link2,
+  Activity,
+  ShieldCheck,
+  ArrowRight,
+  Settings2,
+  Key,
+} from "lucide-react";
 import type { ChannelRecord } from "@/core/services/retail/ecommerceHubService";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface ChannelListItemProps {
   channel: ChannelRecord;
@@ -25,22 +36,25 @@ export const ChannelListItem = ({
 }: ChannelListItemProps) => {
   const resolveChannelClientId = (ch: ChannelRecord) =>
     ch.clientId ?? (ch.credentials as any)?.clientId ?? ch.channelId ?? "";
-  
+
   const resolveChannelSecret = (ch: ChannelRecord) =>
     channelSecrets[ch.id]?.clientSecret ??
     (ch.credentials as any)?.clientSecret ??
     ch.clientSecret ??
     "";
-  
+
   const resolveChannelConnector = (ch: ChannelRecord) =>
     ch.connector ?? ch.name ?? "";
-  
+
   const resolveChannelTenantId = (ch: ChannelRecord) =>
     ch.tenantId ?? ch.tenantId ?? session.tenantId;
-  
+
   const resolveChannelBranchId = (ch: any) =>
-    ch.branchIds?.[0] ?? ch.branchId ?? (ch.credentials as any)?.branchId ?? branchIds[0];
-  
+    ch.branchIds?.[0] ??
+    ch.branchId ??
+    (ch.credentials as any)?.branchId ??
+    branchIds[0];
+
   const resolveChannelGatewayUrl = (ch: ChannelRecord) =>
     ch.gatewayUrl ?? (ch.credentials as any)?.gatewayUrl ?? gatewayUrl;
 
@@ -52,99 +66,116 @@ export const ChannelListItem = ({
   const gateway = resolveChannelGatewayUrl(channel);
 
   return (
-    <div key={channel.id} className="border-t border-slate-100">
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => onOpenDetail(channel)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onOpenDetail(channel);
-          }
-        }}
-        className="grid grid-cols-[2fr_1fr_1fr_1fr_1.6fr] gap-4 px-6 py-4 items-center hover:bg-slate-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-      >
-        <div>
-          <div className="text-sm font-semibold text-slate-900">{channel.name}</div>
-          <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1">
-            <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest">
-              {channel.type}
-            </Badge>
-            <span>
-              Channel ID (Record):{" "}
-              <span className="font-bold text-slate-900">{channel.id}</span>
-            </span>
+    <div
+      key={channel.id}
+      className="group hover:bg-slate-50/50 transition-all border-b border-slate-100 last:border-none"
+    >
+      <div className="flex flex-col lg:flex-row lg:items-center gap-6 p-8">
+        <div className="flex items-center gap-6 flex-1">
+          <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
+            {channel.integrationCategory === "PRESET" ? (
+              <ShoppingBag className="w-8 h-8 text-blue-400" />
+            ) : (
+              <Globe className="w-8 h-8 text-emerald-400" />
+            )}
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h4 className="text-lg font-black italic text-slate-900 tracking-tight uppercase italic">
+                {channel.name}
+              </h4>
+              <Badge
+                className={
+                  channel.status === "active"
+                    ? "bg-emerald-50 text-emerald-600 border-none font-black italic text-[8px] uppercase"
+                    : "bg-slate-100 text-slate-500 border-none font-black italic text-[8px] uppercase"
+                }
+              >
+                {channel.status}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+              {channel.type} • Node {channel.id.slice(0, 8)}
+              <Separator orientation="vertical" className="h-2 bg-slate-200" />
+              <span className="text-blue-500">
+                {channel.syncFrequency || "LIVE"} SYNC
+              </span>
+            </div>
           </div>
         </div>
-        <div className="text-sm font-bold text-slate-900">{tenantId}</div>
-        <div className="text-sm font-bold text-slate-900">{branch}</div>
-        <div>
-          <Badge
-            className={`text-[9px] font-black uppercase tracking-widest ${
-              channel.status === "active"
-                ? "bg-emerald-100 text-emerald-700 border-none"
-                : "bg-slate-100 text-slate-500 border-none"
-            }`}
-          >
-            {channel.status}
-          </Badge>
-        </div>
-        <div className="text-xs font-mono font-bold text-slate-700 truncate">
-          {clientId || "Not issued"}
+
+        <div className="grid grid-cols-2 lg:flex items-center gap-4 lg:gap-8">
+          <div className="space-y-1">
+            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              Tenant Scope
+            </div>
+            <div className="text-[11px] font-black text-slate-700 italic">
+              {tenantId}
+            </div>
+          </div>
+          <Separator
+            orientation="vertical"
+            className="hidden lg:block h-8 bg-slate-200"
+          />
+          <div className="space-y-1">
+            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              Operational Unit
+            </div>
+            <div className="text-[11px] font-black text-slate-700 italic">
+              {branch}
+            </div>
+          </div>
+          <Separator
+            orientation="vertical"
+            className="hidden lg:block h-8 bg-slate-200"
+          />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => onOpenDetail(channel)}
+              className="w-12 h-12 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all p-0"
+            >
+              <Settings2 className="w-5 h-5" />
+            </Button>
+            <Button
+              onClick={() => onOpenDetail(channel)}
+              className="h-12 px-6 rounded-xl bg-slate-900 border-none font-black italic uppercase text-[9px] tracking-widest flex items-center gap-2 group/btn"
+            >
+              Vault{" "}
+              <Key className="w-3 h-3 group-hover/btn:rotate-12 transition-transform text-amber-400" />
+            </Button>
+          </div>
         </div>
       </div>
-      <div className="px-6 pb-4">
-        <div className="flex flex-wrap gap-2">
-          <CopyPill
-            label="Gateway URL"
-            value={gateway}
+
+      {/* Credentials Quick-Access */}
+      <div className="px-8 pb-8 flex flex-wrap gap-2">
+        {[
+          { label: "Gateway", value: gateway, icon: Globe },
+          { label: "Client ID", value: clientId, icon: ShieldCheck },
+          { label: "Secret", value: secret, icon: Key, isMasked: true },
+        ].map((cred, idx) => (
+          <button
+            key={idx}
             onClick={(e) => {
               e.stopPropagation();
-              copyCredential(gateway, "Gateway URL");
+              copyCredential(cred.value, cred.label);
             }}
-          />
-          <CopyPill
-            label="Storefront Client ID"
-            value={clientId}
-            onClick={(e) => {
-              e.stopPropagation();
-              copyCredential(clientId, "Storefront Client ID");
-            }}
-          />
-          <CopyPill
-            label="Storefront Client Secret"
-            value={secret}
-            onClick={(e) => {
-              e.stopPropagation();
-              copyCredential(secret, "Storefront Client Secret");
-            }}
-          />
-          <CopyPill
-            label="Tenant ID"
-            value={tenantId}
-            onClick={(e) => {
-              e.stopPropagation();
-              copyCredential(tenantId, "Tenant ID");
-            }}
-          />
-          <CopyPill
-            label="Branch ID"
-            value={branch}
-            onClick={(e) => {
-              e.stopPropagation();
-              copyCredential(branch, "Branch ID");
-            }}
-          />
-          <CopyPill
-            label="Connector"
-            value={connector}
-            onClick={(e) => {
-              e.stopPropagation();
-              copyCredential(connector, "Connector");
-            }}
-          />
-        </div>
+            className="h-10 px-4 bg-white border border-slate-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/50 transition-all flex items-center gap-3 group/cred"
+          >
+            <cred.icon className="w-3.5 h-3.5 text-slate-400 group-hover/cred:text-blue-500 transition-colors" />
+            <div className="flex flex-col items-start leading-none text-left">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                {cred.label}
+              </span>
+              <span className="text-[10px] font-bold text-slate-700 font-mono truncate max-w-[120px]">
+                {cred.isMasked && cred.value
+                  ? "••••••••"
+                  : cred.value || "NOT_ISSUED"}
+              </span>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -1,6 +1,12 @@
-import { IsString, IsOptional, IsArray, IsBoolean, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
-import { InventoryCategory } from './create-item.dto';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { InventoryCategory } from "./create-item.dto";
 
 export class ImportItemDto {
   @IsString()

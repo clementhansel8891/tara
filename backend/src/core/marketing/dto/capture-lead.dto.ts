@@ -4,27 +4,27 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-} from 'class-validator';
+} from "class-validator";
 
 export class CaptureLeadDto {
   @IsString()
   @IsIn([
-    'landing_page',
-    'embedded_form',
-    'chatbot',
-    'webinar',
-    'meta_lead_ads',
-    'google_ads',
-    'partner_api',
+    "landing_page",
+    "embedded_form",
+    "chatbot",
+    "webinar",
+    "meta_lead_ads",
+    "google_ads",
+    "partner_api",
   ])
   source:
-    | 'landing_page'
-    | 'embedded_form'
-    | 'chatbot'
-    | 'webinar'
-    | 'meta_lead_ads'
-    | 'google_ads'
-    | 'partner_api';
+    | "landing_page"
+    | "embedded_form"
+    | "chatbot"
+    | "webinar"
+    | "meta_lead_ads"
+    | "google_ads"
+    | "partner_api";
 
   @IsString()
   @IsNotEmpty()
@@ -58,4 +58,3 @@ export class CaptureLeadDto {
   @IsOptional()
   employeeBand?: string;
 }
-

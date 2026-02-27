@@ -1,47 +1,83 @@
 import React from "react";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-interface Marketplace {
-  id: string;
-  name: string;
-  color: string;
-  icon: any;
-}
+const marketplaces = [
+  {
+    id: "tokopedia",
+    name: "Tokopedia",
+    color: "emerald",
+    slug: "Official Store",
+  },
+  { id: "shopee", name: "Shopee", color: "orange", slug: "Power Merchant" },
+  { id: "lazada", name: "Lazada", color: "blue", slug: "LazMall" },
+  { id: "tiktok", name: "TikTok Shop", color: "slate", slug: "Verified Shop" },
+];
 
 interface MarketplaceGalleryProps {
-  marketplaces: Marketplace[];
-  onSelect: (name: string, type: string, platform: string) => void;
+  onSelect?: (name: string, type: string, platform: string) => void;
 }
 
-export const MarketplaceGallery = ({ marketplaces, onSelect }: MarketplaceGalleryProps) => {
+export const MarketplaceGallery = ({ onSelect }: MarketplaceGalleryProps) => {
   return (
-    <div className="mb-6">
-      <div className="text-sm font-black italic tracking-widest text-slate-400 uppercase mb-4">
-        Connect Marketplace
+    <div className="space-y-8">
+      <div className="flex items-center justify-between px-2">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">
+          Pre-Integrated Marketplace Hub
+        </h3>
+        <Badge
+          variant="outline"
+          className="font-black italic text-[9px] border-slate-200 uppercase opacity-60"
+        >
+          Regional Presets
+        </Badge>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {marketplaces.map((mp) => (
           <Card
             key={mp.id}
-            onClick={() => onSelect(mp.name, "MARKETPLACE", mp.id)}
-            className="border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer transition-all group rounded-2xl"
+            onClick={() => onSelect?.(mp.name, "MARKETPLACE", mp.id)}
+            className="rounded-[2.5rem] bg-white border-none shadow-xl hover:shadow-2xl hover:scale-[1.02] cursor-pointer transition-all group overflow-hidden"
           >
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
+            <CardContent className="p-10 flex flex-col items-center justify-center text-center">
               <div
-                className={`w-12 h-12 bg-${mp.color}-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
+                className={`w-20 h-20 bg-${mp.color}-50 rounded-[2rem] flex items-center justify-center mb-6 group-hover:rotate-12 transition-transform duration-500`}
               >
-                <mp.icon className={`w-6 h-6 text-${mp.color}-600`} />
+                <ShoppingBag className={`w-8 h-8 text-${mp.color}-600`} />
               </div>
-              <div className="font-black italic text-slate-700 text-sm group-hover:text-blue-700">
-                {mp.name}
+              <div className="space-y-2 mb-8">
+                <div className="font-black italic text-slate-900 text-xl tracking-tighter uppercase italic">
+                  {mp.name}
+                </div>
+                <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                  {mp.slug}
+                </div>
               </div>
-              <div className="text-[10px] text-slate-400 font-bold uppercase mt-1">
-                Ready to Connect
+
+              <div className="w-full h-[1px] bg-slate-100 mb-8" />
+
+              <div className="flex items-center gap-2 text-[9px] font-black text-blue-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                Connect Channel <ArrowRight className="w-3 h-3" />
               </div>
             </CardContent>
           </Card>
         ))}
+
+        <Card className="rounded-[2.5rem] border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col justify-center items-center p-10 text-center space-y-4 hover:bg-white transition-all group">
+          <div className="w-16 h-16 rounded-3xl border-2 border-dashed border-slate-300 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <ShoppingBag className="w-8 h-8 text-slate-300" />
+          </div>
+          <div>
+            <div className="font-black italic text-slate-500 text-xs uppercase tracking-widest">
+              Request API
+            </div>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1 italic">
+              Missing a platform?
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   );

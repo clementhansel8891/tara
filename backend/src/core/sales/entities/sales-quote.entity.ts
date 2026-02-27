@@ -7,15 +7,15 @@ export class SalesQuote {
   amount: number;
   discountPercent: number;
   netAmount: number;
-  currency: 'IDR' | 'USD';
+  currency: "IDR" | "USD";
   status:
-    | 'draft'
-    | 'pending_approval'
-    | 'approved'
-    | 'rejected'
-    | 'sent'
-    | 'accepted'
-    | 'expired';
+    | "draft"
+    | "pending_approval"
+    | "approved"
+    | "rejected"
+    | "sent"
+    | "accepted"
+    | "expired";
   validUntil: Date;
   approvalBy?: string;
   approvalAt?: Date;
