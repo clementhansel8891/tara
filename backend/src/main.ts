@@ -24,8 +24,18 @@ import { Rfc7807ExceptionFilter } from "./shared/filters/rfc7807.filter";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 1. Extreme CORS Middleware (Run before everything else)
+  // 1. Resilience & Health Check Middleware (Run before prefix)
   app.use((req: any, res: any, next: any) => {
+    // Standard Health Check at root /
+    if (req.url === "/" || req.url === "") {
+      return res.status(200).json({
+        status: "alive",
+        service: "zenvix-backend",
+        mode: process.env.PERSISTENCE_MODE || "mock",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // ALWAYS Log
     console.log(
       `[REQUEST] ${req.method} ${req.url} | Origin: ${req.headers.origin}`,

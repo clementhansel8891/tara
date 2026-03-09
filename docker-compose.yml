@@ -19,10 +19,10 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://zenvix:zenvix_dev_password@db:5432/zenvix_dev
-      # For production build, we can override PORT if needed
-      - PORT=3001
+      # These will be provided by Railway/Docker if not set here
+      # DATABASE_URL is only needed for 'db' mode
       - NODE_ENV=production
+      - PERSISTENCE_MODE=mock
     depends_on:
       - db
 
