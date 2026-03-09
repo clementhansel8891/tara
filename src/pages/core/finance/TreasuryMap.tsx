@@ -55,15 +55,14 @@ export default function TreasuryMap() {
 
   const isHighLevelRole = useMemo(() => {
     const role = session.role;
-    return (
-      [
-        Roles.SUPERADMIN,
-        Roles.OWNER,
-        Roles.COMPANY_ADMIN,
-        Roles.FINANCE_ADMIN,
-        Roles.FINANCE_DEPT_HEAD,
-      ] as Role[]
-    ).includes(role as Role);
+    const allowed: Role[] = [
+      Roles.SUPERADMIN,
+      Roles.OWNER,
+      Roles.COMPANY_ADMIN,
+      Roles.FINANCE_ADMIN,
+      Roles.FINANCE_DEPT_HEAD,
+    ];
+    return allowed.includes(role);
   }, [session.role]);
 
   const { sources, transfers, createTransfer, reconcileSettlement } =
