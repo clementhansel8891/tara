@@ -23,6 +23,7 @@ import {
   FinanceInsight,
   FinanceAlert,
   PayrollEntry,
+  FinanceMoneySourceRow, // Added this import
 } from "../finance.types";
 
 @Injectable()
@@ -44,6 +45,22 @@ export class FinanceMockRepository extends IFinanceRepository {
   private periods: AccountingPeriod[] = [];
   private alerts: FinanceAlert[] = [];
   private payroll: PayrollEntry[] = [];
+  private moneySources: FinanceMoneySourceRow[] = [
+    {
+      id: "ms-1",
+      name: "Main Operating Account",
+      type: "BANK_ACCOUNT",
+      currency: "USD",
+      balance: 150000,
+    },
+    {
+      id: "ms-2",
+      name: "Payroll Account",
+      type: "BANK_ACCOUNT",
+      currency: "USD",
+      balance: 50000,
+    },
+  ];
 
   constructor() {
     super();
@@ -139,6 +156,11 @@ export class FinanceMockRepository extends IFinanceRepository {
         (t) => t.tenantId === tenantId && t.id === transactionId,
       ) || null
     );
+  }
+
+  // Money Sources
+  async listMoneySources(tenantId: string): Promise<FinanceMoneySourceRow[]> {
+    return this.moneySources;
   }
 
   // Assets

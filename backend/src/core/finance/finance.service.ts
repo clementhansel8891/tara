@@ -412,6 +412,11 @@ export class FinanceService {
     });
   }
 
+  // Money Sources
+  async getMoneySources(tenantId: string) {
+    return this.financeRepository.listMoneySources(tenantId);
+  }
+
   // Payments
   async listPayments(tenantId: string): Promise<FinancePaymentRow[]> {
     return this.financeRepository.listPayments(tenantId);
@@ -420,8 +425,44 @@ export class FinanceService {
   async createPaymentRequest(
     tenantId: string,
     request: Partial<PaymentRequest>,
+    userId: string,
+    userRole: string,
   ): Promise<PaymentRequest> {
-    return this.financeRepository.createPaymentRequest(tenantId, request);
+    const isHighLevelRole = ["OWNER", "FINANCE_HOD", "ADMIN"].includes(
+      userRole.toUpperCase(),
+    );
+
+    // Auto-approve if high level role, otherwise mark as pending
+    request.status = isHighLevelRole ? "APPROVED" : "DRAFT";
+
+    // Convert internal status if needed (DRAFT -> PENDING_APPROVAL based on types)
+    // The DB repo creates 'DRAFT' by default if status is empty, but we override it here.
+    if (!isHighLevelRole) {
+      request.status = "SUBMITTED"; // or DRAFT based on UI intention
+    }
+
+    const created = await this.financeRepository.createPaymentRequest(
+      tenantId,
+      request,
+    );
+
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "FINANCE",
+      action: "CREATE_PAYMENT_REQUEST",
+      entityType: "PAYMENT_TRANSACTION",
+      entityId: created.id,
+      metadata: {
+        amount: created.amount,
+        destination: created.beneficiary,
+        departmentId: created.departmentId,
+        purpose: created.purpose,
+        status: created.status,
+      },
+    });
+
+    return created;
   }
 
   async updatePaymentStatus(

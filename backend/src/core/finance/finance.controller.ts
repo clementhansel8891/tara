@@ -107,7 +107,7 @@ export class FinanceController {
       },
     ];
 
-    const billingQueue = pendingReceivables.map((r) => ({
+    const billingQueue = pendingReceivables.map((r: any) => ({
       id: r.id,
       title: `Invoice (INV-${r.id.substring(0, 4)})`,
       amount: formatCurrency(Number(r.amount)),
@@ -597,6 +597,14 @@ export class FinanceController {
     return { success: true };
   }
 
+  // Money Sources
+  @Get("money-sources")
+  async getMoneySources(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.financeService.getMoneySources(tenantId);
+    return { success: true, data };
+  }
+
   // Payments
   @Get("payments")
   async listPayments(@Req() request: RequestWithTenant) {
@@ -611,7 +619,14 @@ export class FinanceController {
     @Body() body: any,
   ) {
     const { tenantId } = request.tenantContext;
-    const data = await this.financeService.createPaymentRequest(tenantId, body);
+    const userId = (request.tenantContext as any).userId || "system";
+    const tenantRole = (request as any).headers?.["x-tenant-role"] || "MEMBER";
+    const data = await this.financeService.createPaymentRequest(
+      tenantId,
+      body,
+      userId,
+      tenantRole,
+    );
     return { success: true, data };
   }
 

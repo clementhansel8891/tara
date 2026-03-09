@@ -2,9 +2,20 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 // cspell:ignore qris gopay shopeepay
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -15,9 +26,13 @@ import { WorkflowRequestCard } from "@/core/tools/WorkflowRequestCard";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
 import { workflowService } from "@/core/services/hr/workflowService";
-import { financeService, type FinanceAlert } from "@/core/services/finance/financeService";
+import { financeService } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
-import type { PaymentMethod } from "@/core/types/finance/payments";
+import type { FinanceAlert } from "@/core/types/finance/assets";
+import type {
+  PaymentMethod,
+  FinancePaymentRow,
+} from "@/core/types/finance/payments";
 import type { WorkflowRequest } from "@/core/tools/workflows/workflowTypes";
 
 const PAYMENT_METHODS: PaymentMethod[] = [
@@ -40,17 +55,33 @@ export default function MoneyDesk() {
   const [destination, setDestination] = useState("");
   const [purpose, setPurpose] = useState("");
 
+  const [source, setSource] = useState("");
+  const [department, setDepartment] = useState("");
+  const [extraInfo, setExtraInfo] = useState("");
+
   const [alerts, setAlerts] = useState<FinanceAlert[]>([]);
   const [tasks, setTasks] = useState<WorkflowRequest[]>([]);
   const [approvals, setApprovals] = useState<WorkflowRequest[]>([]);
+  const [moneySources, setMoneySources] = useState<
+    Array<{ id: string; name: string; currency: string }>
+  >([]);
+  const [payments, setPayments] = useState<FinancePaymentRow[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowRequest | null>(null);
+  const [selectedWorkflow, setSelectedWorkflow] =
+    useState<WorkflowRequest | null>(null);
   const [selectedAlert, setSelectedAlert] = useState<FinanceAlert | null>(null);
 
   const refreshDesk = useCallback(() => {
     financeService.getAlerts(session.tenantId, session).then(setAlerts);
     financeService.getInbox(session.tenantId, session).then(setTasks);
+    financeService
+      .getMoneySources(session.tenantId, session)
+      .then(setMoneySources);
+    financeService
+      .listPayments(session.tenantId, session)
+      .then(setPayments)
+      .catch(() => {});
     setApprovals(
       workflowService
         .listInbox(session.tenantId, session, "PENDING")
@@ -65,7 +96,9 @@ export default function MoneyDesk() {
   const filteredApprovals = useMemo(
     () =>
       approvals.filter((item) =>
-        search ? item.entityId.toLowerCase().includes(search.toLowerCase()) : true,
+        search
+          ? item.entityId.toLowerCase().includes(search.toLowerCase())
+          : true,
       ),
     [approvals, search],
   );
@@ -81,18 +114,44 @@ export default function MoneyDesk() {
   const filteredTasks = useMemo(
     () =>
       tasks.filter((item) =>
-        search ? item.entityId.toLowerCase().includes(search.toLowerCase()) : true,
+        search
+          ? item.entityId.toLowerCase().includes(search.toLowerCase())
+          : true,
       ),
     [tasks, search],
   );
 
+  const filteredPayments = useMemo(
+    () =>
+      payments.filter((item) =>
+        search
+          ? item.beneficiary.toLowerCase().includes(search.toLowerCase())
+          : true,
+      ),
+    [payments, search],
+  );
+
+  const isHighLevel = ["OWNER", "FINANCE_HOD", "ADMIN"].includes(
+    session.role?.toUpperCase() || "",
+  );
+
   const submitPaymentRequest = async () => {
     try {
+      let parsedExtra = undefined;
+      try {
+        if (extraInfo) parsedExtra = JSON.parse(extraInfo);
+      } catch (e) {
+        // Skip
+      }
+
       await financeService.createPaymentRequest(session.tenantId, session, {
         amount: Number(amount || "0"),
         method,
-        destination,
+        source: source || undefined,
+        beneficiary: destination,
+        departmentId: department || undefined,
         purpose,
+        extraInfo: parsedExtra,
       });
       logService.log(
         session.tenantId,
@@ -101,38 +160,70 @@ export default function MoneyDesk() {
         `${destination} - ${amount}`,
       );
       setErrorMessage(null);
-      setStatusMessage("Payment request created and routed.");
+      setStatusMessage(
+        isHighLevel
+          ? "Payment request directly processed."
+          : "Payment request routed for approval.",
+      );
       setDialogOpen(false);
       refreshDesk();
     } catch (error) {
       setStatusMessage(null);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to create payment request.");
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to create payment request.",
+      );
     }
   };
 
   const approveTask = (workflowId: string) => {
     try {
-      workflowService.approveRequest(session.tenantId, workflowId, session, "Approved from MoneyDesk");
-      logService.log(session.tenantId, session.userId, "Workflow approved", workflowId);
+      workflowService.approveRequest(
+        session.tenantId,
+        workflowId,
+        session,
+        "Approved from MoneyDesk",
+      );
+      logService.log(
+        session.tenantId,
+        session.userId,
+        "Workflow approved",
+        workflowId,
+      );
       setErrorMessage(null);
       setStatusMessage(`Workflow ${workflowId} approved.`);
       refreshDesk();
     } catch (error) {
       setStatusMessage(null);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to approve workflow.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to approve workflow.",
+      );
     }
   };
 
   const rejectTask = (workflowId: string) => {
     try {
-      workflowService.rejectRequest(session.tenantId, workflowId, session, "Rejected from MoneyDesk");
-      logService.log(session.tenantId, session.userId, "Workflow rejected", workflowId);
+      workflowService.rejectRequest(
+        session.tenantId,
+        workflowId,
+        session,
+        "Rejected from MoneyDesk",
+      );
+      logService.log(
+        session.tenantId,
+        session.userId,
+        "Workflow rejected",
+        workflowId,
+      );
       setErrorMessage(null);
       setStatusMessage(`Workflow ${workflowId} rejected.`);
       refreshDesk();
     } catch (error) {
       setStatusMessage(null);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to reject workflow.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to reject workflow.",
+      );
     }
   };
 
@@ -141,7 +232,11 @@ export default function MoneyDesk() {
       <PageHeader
         title="Money Desk"
         subtitle="Finance operating inbox for approvals, alerts, and routed tasks."
-        primaryAction={<Button onClick={() => setDialogOpen(true)}>Create Payment Request</Button>}
+        primaryAction={
+          <Button onClick={() => setDialogOpen(true)}>
+            Create Payment Request
+          </Button>
+        }
         secondaryActions={
           <Input
             placeholder="Search approvals, alerts, or tasks"
@@ -152,7 +247,10 @@ export default function MoneyDesk() {
         }
       />
 
-      <WorkspacePanel title="Work Queue" description="Cross-module approvals and operational alerts.">
+      <WorkspacePanel
+        title="Work Queue"
+        description="Cross-module approvals and operational alerts."
+      >
         {statusMessage ? (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
             {statusMessage}
@@ -163,11 +261,15 @@ export default function MoneyDesk() {
             {errorMessage}
           </div>
         ) : null}
-        <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as typeof tab)}
+        >
           <TabsList>
             <TabsTrigger value="approvals">Approvals</TabsTrigger>
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
           </TabsList>
 
           <TabsContent value="approvals" className="mt-4">
@@ -183,11 +285,22 @@ export default function MoneyDesk() {
                   actionLabel="Review"
                   onAction={() => setSelectedWorkflow(flow)}
                   footer={
-                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                      <Button size="sm" variant="outline" onClick={() => approveTask(flow.id)}>
+                    <div
+                      className="flex gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => approveTask(flow.id)}
+                      >
                         Approve
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => rejectTask(flow.id)}>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => rejectTask(flow.id)}
+                      >
                         Reject
                       </Button>
                     </div>
@@ -207,11 +320,17 @@ export default function MoneyDesk() {
                 >
                   <div>
                     <p className="font-medium text-foreground">{alert.title}</p>
-                    <p className="text-xs text-muted-foreground">{alert.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {alert.description}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ApprovalStatusBadge status={alert.severity.toUpperCase()} />
-                    {alert.action ? <Badge variant="outline">{alert.action}</Badge> : null}
+                    <ApprovalStatusBadge
+                      status={alert.severity.toUpperCase()}
+                    />
+                    {alert.action ? (
+                      <Badge variant="outline">{alert.action}</Badge>
+                    ) : null}
                   </div>
                 </div>
               ))
@@ -247,10 +366,44 @@ export default function MoneyDesk() {
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="payments" className="mt-4">
+            {filteredPayments.length ? (
+              <div className="space-y-2">
+                {filteredPayments.map((p) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {p.beneficiary}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.currency} {p.amount.toLocaleString()} •{" "}
+                        {new Date(p.scheduledDate || "").toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{p.method}</Badge>
+                      <ApprovalStatusBadge status={p.status} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                No payment transactions found.
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Active Records" description="Live table for finance workflows.">
+      <WorkspacePanel
+        title="Active Records"
+        description="Live table for finance workflows."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredTasks.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -270,11 +423,15 @@ export default function MoneyDesk() {
                   onClick={() => setSelectedWorkflow(task)}
                 >
                   <td className="p-3">{task.entityId}</td>
-                  <td className="p-3 text-muted-foreground">{task.entityType}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {task.entityType}
+                  </td>
                   <td className="p-3">
                     <ApprovalStatusBadge status={task.status} />
                   </td>
-                  <td className="p-3 text-muted-foreground">{task.requestedBy}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {task.requestedBy}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -288,33 +445,89 @@ export default function MoneyDesk() {
             <DialogTitle>Create Payment Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Amount" />
-            <Select value={method} onValueChange={(value) => setMethod(value as PaymentMethod)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Method" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_METHODS.map((paymentMethod) => (
-                  <SelectItem key={paymentMethod} value={paymentMethod}>
-                    {paymentMethod}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="Amount"
+              type="number"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <Select
+                value={method}
+                onValueChange={(value) => setMethod(value as PaymentMethod)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Payment Method" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS.map((paymentMethod) => (
+                    <SelectItem key={paymentMethod} value={paymentMethod}>
+                      {paymentMethod.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={source} onValueChange={setSource}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Source Account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {moneySources.map((ms) => (
+                    <SelectItem key={ms.id} value={ms.id}>
+                      {ms.name} ({ms.currency})
+                    </SelectItem>
+                  ))}
+                  {moneySources.length === 0 && (
+                    <SelectItem value="none" disabled>
+                      No accounts available
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             <Input
               value={destination}
               onChange={(event) => setDestination(event.target.value)}
-              placeholder="Destination"
+              placeholder="Destination Account / Beneficiary"
             />
-            <Textarea value={purpose} onChange={(event) => setPurpose(event.target.value)} placeholder="Purpose" />
-            <div className="flex justify-end gap-2">
-              <Button onClick={submitPaymentRequest}>Create and Route</Button>
+
+            <Input
+              value={department}
+              onChange={(event) => setDepartment(event.target.value)}
+              placeholder="Requesting Department ID"
+            />
+
+            <Textarea
+              value={purpose}
+              onChange={(event) => setPurpose(event.target.value)}
+              placeholder="Purpose of payment"
+            />
+
+            <Textarea
+              value={extraInfo}
+              onChange={(event) => setExtraInfo(event.target.value)}
+              placeholder='Extra Info (Valid JSON format e.g. {"invoiceId": "123"})'
+              className="font-mono text-xs"
+            />
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button onClick={() => setDialogOpen(false)} variant="outline">
+                Cancel
+              </Button>
+              <Button onClick={submitPaymentRequest}>
+                {isHighLevel ? "Create Payment" : "Request Approval"}
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!selectedWorkflow} onOpenChange={() => setSelectedWorkflow(null)}>
+      <Dialog
+        open={!!selectedWorkflow}
+        onOpenChange={() => setSelectedWorkflow(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Workflow Detail</DialogTitle>
@@ -324,19 +537,28 @@ export default function MoneyDesk() {
               <span className="text-muted-foreground">Flow ID:</span>
               <span className="font-mono">{selectedWorkflow?.id}</span>
               <span className="text-muted-foreground">Entity:</span>
-              <span className="font-semibold">{selectedWorkflow?.entityType} | {selectedWorkflow?.entityId}</span>
+              <span className="font-semibold">
+                {selectedWorkflow?.entityType} | {selectedWorkflow?.entityId}
+              </span>
               <span className="text-muted-foreground">Maker Dept:</span>
               <span>{selectedWorkflow?.makerDept}</span>
               <span className="text-muted-foreground">Requested By:</span>
               <span>{selectedWorkflow?.requestedBy}</span>
               <span className="text-muted-foreground">Status:</span>
-              <span><ApprovalStatusBadge status={selectedWorkflow?.status || "PENDING"} /></span>
+              <span>
+                <ApprovalStatusBadge
+                  status={selectedWorkflow?.status || "PENDING"}
+                />
+              </span>
             </div>
             <div className="border-t pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Finance Review Notes</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Finance Review Notes
+              </p>
               <p className="text-xs text-muted-foreground">
-                This request was automatically routed based on departmental thresholds.
-                Verify supporting documentation in Finance Docs if required.
+                This request was automatically routed based on departmental
+                thresholds. Verify supporting documentation in Finance Docs if
+                required.
               </p>
               {selectedWorkflow?.status === "PENDING" && (
                 <div className="mt-4 flex gap-2">
@@ -370,7 +592,10 @@ export default function MoneyDesk() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!selectedAlert} onOpenChange={() => setSelectedAlert(null)}>
+      <Dialog
+        open={!!selectedAlert}
+        onOpenChange={() => setSelectedAlert(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Operational Alert</DialogTitle>
@@ -382,12 +607,19 @@ export default function MoneyDesk() {
             </div>
             <div className="grid grid-cols-2 text-sm gap-y-2">
               <span className="text-muted-foreground">Severity:</span>
-              <span className="font-bold uppercase">{selectedAlert?.severity}</span>
+              <span className="font-bold uppercase">
+                {selectedAlert?.severity}
+              </span>
               <span className="text-muted-foreground">Action Needed:</span>
-              <span className="font-semibold">{selectedAlert?.action || "None"}</span>
+              <span className="font-semibold">
+                {selectedAlert?.action || "None"}
+              </span>
             </div>
             <div className="border-t pt-2 text-xs text-muted-foreground">
-              <p>Triggered by automated treasury monitoring. System suggests immediate review of linked accounts.</p>
+              <p>
+                Triggered by automated treasury monitoring. System suggests
+                immediate review of linked accounts.
+              </p>
             </div>
           </div>
         </DialogContent>

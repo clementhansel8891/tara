@@ -15,7 +15,10 @@ import type {
   ScheduledDepreciationRunResult,
   FinanceAlert,
 } from "@/core/types/finance/assets";
-import type { PaymentRequest } from "@/core/types/finance/payments";
+import type {
+  PaymentRequest,
+  FinancePaymentRow,
+} from "@/core/types/finance/payments";
 import { PaymentMethod } from "@/core/types/finance/payments";
 import type {
   ReceivableInvoice,
@@ -57,6 +60,31 @@ export const financeService = {
     return apiRequest<WorkflowRequest[]>("/finance/inbox", "GET", session);
   },
 
+  async getMoneySources(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<
+    Array<{
+      id: string;
+      name: string;
+      type: string;
+      currency: string;
+      balance: number;
+      provider?: string | null;
+    }>
+  > {
+    return apiRequest<
+      Array<{
+        id: string;
+        name: string;
+        type: string;
+        currency: string;
+        balance: number;
+        provider?: string | null;
+      }>
+    >("/finance/money-sources", "GET", session);
+  },
+
   async getAlerts(
     tenantId: string,
     session: SessionContext,
@@ -69,9 +97,13 @@ export const financeService = {
     session: SessionContext,
     payload: {
       amount: number;
-      method: PaymentMethod;
-      destination: string;
-      purpose: string;
+      currency?: string;
+      method?: PaymentMethod;
+      source?: string;
+      beneficiary: string;
+      departmentId?: string;
+      purpose?: string;
+      extraInfo?: Record<string, unknown>;
     },
   ): Promise<PaymentRequest> {
     return apiRequest<PaymentRequest>(
@@ -87,6 +119,13 @@ export const financeService = {
     session: SessionContext,
   ): Promise<Asset[]> {
     return apiRequest<Asset[]>("/finance/assets", "GET", session);
+  },
+
+  async listPayments(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<FinancePaymentRow[]> {
+    return apiRequest<FinancePaymentRow[]>("/finance/payments", "GET", session);
   },
 
   async listCapexRequests(
@@ -527,7 +566,11 @@ export const financeService = {
   async getFinanceOverview(
     tenantId: string,
     session: SessionContext,
-  ): Promise<any> {
-    return apiRequest<any>("/finance/overview", "GET", session);
+  ): Promise<Record<string, unknown>> {
+    return apiRequest<Record<string, unknown>>(
+      "/finance/overview",
+      "GET",
+      session,
+    );
   },
 };

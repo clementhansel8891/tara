@@ -56,6 +56,15 @@ export interface FinanceCapexBudgetRow {
   fiscalYear: string;
 }
 
+export interface FinanceMoneySourceRow {
+  id: string;
+  name: string;
+  type: string;
+  currency: string;
+  balance: number;
+  provider?: string | null;
+}
+
 export interface AssetDepreciationEntry {
   id: string;
   assetId: string;
@@ -136,7 +145,10 @@ export interface PaymentRequest {
   amount: number;
   currency: string;
   beneficiary: string;
+  source?: string;
+  departmentId?: string;
   purpose: string;
+  extraInfo?: Record<string, any>;
   status: "DRAFT" | "SUBMITTED" | "APPROVED" | "PAID" | "REJECTED";
   requestedBy: string;
   requestedAt: string;

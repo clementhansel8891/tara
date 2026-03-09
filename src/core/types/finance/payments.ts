@@ -41,3 +41,13 @@ export type PaymentApproval = {
   status: "approved" | "rejected";
   notes?: string;
 };
+
+export interface FinancePaymentRow {
+  id: string;
+  beneficiary: string;
+  amount: number;
+  currency: string;
+  status: "PENDING_APPROVAL" | "PROCESSING" | "COMPLETED" | "FAILED";
+  method: PaymentMethod;
+  scheduledDate?: string;
+}

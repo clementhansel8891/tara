@@ -144,7 +144,7 @@ export interface AssetAuditPack {
   evidence: string[];
   checksum: string;
   signature: string;
-// ... (previous content)
+  // ... (previous content)
   signatureVersion: "v1";
 }
 
@@ -180,8 +180,10 @@ export interface ScheduledDepreciationRunResult {
 export interface FinanceAlert {
   id: string;
   message: string;
+  title?: string;
+  description?: string;
+  action?: string;
   severity: "LOW" | "MEDIUM" | "HIGH";
   createdAt: string;
   read: boolean;
 }
-

@@ -6,7 +6,13 @@ import { LedgerEntry } from "../entities/ledger-entry.entity";
 import { Transaction } from "../entities/transaction.entity";
 import { Balance } from "../entities/balance.entity";
 import { CreateTransactionDto } from "../dto/create-transaction.dto";
-import { Asset, CapexRequest } from "../finance.types";
+import {
+  Asset,
+  CapexRequest,
+  FinanceMoneySourceRow,
+  FinancePaymentRow,
+  PaymentRequest,
+} from "../finance.types";
 
 @Injectable()
 export class FinanceDbRepository extends FinanceMockRepository {
@@ -107,7 +113,7 @@ export class FinanceDbRepository extends FinanceMockRepository {
     });
 
     const totalCash = moneySources.reduce(
-      (sum, source) => sum + Number(source.balance),
+      (sum: number, source: any) => sum + Number(source.balance),
       0,
     );
 
@@ -245,6 +251,93 @@ export class FinanceDbRepository extends FinanceMockRepository {
       },
     });
     return this.mapCapexRequest(updated);
+  }
+
+  // Money Sources
+  async listMoneySources(tenantId: string): Promise<FinanceMoneySourceRow[]> {
+    const sources = await this.prisma.moneySource.findMany({
+      where: { tenantId },
+    });
+    return sources.map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      type: s.type,
+      currency: s.currency,
+      balance: s.balance.toNumber(),
+      provider: s.provider,
+    }));
+  }
+
+  // Payments
+  async listPayments(tenantId: string): Promise<FinancePaymentRow[]> {
+    const payments = await this.prisma.paymentTransaction.findMany({
+      where: { tenantId, type: "PAYMENT_REQUEST" },
+      orderBy: { createdAt: "desc" },
+    });
+    return payments.map((p: any) => ({
+      id: p.id,
+      beneficiary: p.destination,
+      amount: p.amount.toNumber(),
+      currency: p.currency,
+      status: p.status as
+        | "PENDING_APPROVAL"
+        | "PROCESSING"
+        | "COMPLETED"
+        | "FAILED",
+      method: (p.channel as any) || "BANK_TRANSFER",
+      scheduledDate: p.createdAt.toISOString(),
+    }));
+  }
+
+  async createPaymentRequest(
+    tenantId: string,
+    request: Partial<PaymentRequest>,
+  ): Promise<PaymentRequest> {
+    const created = await this.prisma.paymentTransaction.create({
+      data: {
+        tenantId,
+        idempotencyKey: `pay-req-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        type: "PAYMENT_REQUEST",
+        amount: request.amount!,
+        currency: request.currency || "IDR",
+        destination: request.beneficiary!,
+        source: request.source,
+        channel: "BANK_TRANSFER",
+        status: request.status || "DRAFT",
+        departmentId: request.departmentId,
+        purpose: request.purpose,
+        extraInfo: request.extraInfo ? (request.extraInfo as any) : undefined,
+        createdBy: request.requestedBy!,
+      },
+      include: {
+        department: true,
+      },
+    });
+
+    return {
+      id: created.id,
+      amount: created.amount.toNumber(),
+      currency: created.currency,
+      beneficiary: created.destination,
+      source: created.source || undefined,
+      purpose: created.purpose || "",
+      departmentId: created.departmentId || undefined,
+      extraInfo: (created.extraInfo as Record<string, any>) || undefined,
+      status: created.status as any,
+      requestedBy: created.createdBy,
+      requestedAt: created.createdAt.toISOString(),
+    };
+  }
+
+  async updatePaymentStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<void> {
+    await this.prisma.paymentTransaction.updateMany({
+      where: { id, tenantId },
+      data: { status },
+    });
   }
 
   // Mappers

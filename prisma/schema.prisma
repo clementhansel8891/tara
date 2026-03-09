@@ -200,6 +200,7 @@ model Department {
   inventoryAdjustments    InventoryAdjustment[]
   fromMovements           StockMovement[]          @relation("FromDepartment")
   toMovements             StockMovement[]          @relation("ToDepartment")
+  paymentTransactions     PaymentTransaction[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1880,6 +1881,9 @@ model PaymentTransaction {
   evidencePackId        String?               @map("evidence_pack_id")
   idempotencyKey        String                @unique @map("idempotency_key")
   status                String                @default("REQUEST_CREATED")
+  departmentId          String?               @map("department_id")
+  purpose               String?
+  extraInfo             Json?                 @map("extra_info")
   ledgerSyncAt          DateTime?             @map("ledger_sync_at")
   ledgerSyncTriggeredAt DateTime?             @map("ledger_sync_triggered_at")
   createdBy             String                @map("created_by")
@@ -1895,6 +1899,7 @@ model PaymentTransaction {
   settlement            PaymentSettlement?    @relation(fields: [settlementId], references: [id])
   company               Company               @relation(fields: [tenantId], references: [id])
   provider              PaymentProvider?      @relation(fields: [providerId], references: [id])
+  department            Department?           @relation(fields: [departmentId], references: [id])
 
   @@index([tenantId])
   @@index([status])
