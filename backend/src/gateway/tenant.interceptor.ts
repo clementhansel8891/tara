@@ -18,6 +18,11 @@ export class TenantInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
 
+    // Skip validation for preflight OPTIONS requests
+    if (request.method === "OPTIONS") {
+      return next.handle();
+    }
+
     // Extract tenant ID from header (required)
     const tenantId = request.headers["x-tenant-id"];
 

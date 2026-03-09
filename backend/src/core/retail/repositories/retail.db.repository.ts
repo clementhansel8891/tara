@@ -17,6 +17,7 @@ import {
   CreateEcommerceStoreDto,
   UpdateEcommerceStoreDto,
   CreateInventoryPoolDto,
+  UpdateProductDto,
 } from "../dto/retail.dto";
 import { createHash } from "crypto";
 import {
@@ -56,6 +57,13 @@ export class RetailDbRepository implements IRetailRepository {
       orderBy: { createdAt: "desc" },
     });
     return stores.map((s: Store) => this.mapStore(s));
+  }
+
+  async listCategories(tenantId: string): Promise<any[]> {
+    return this.prisma.productCategory.findMany({
+      where: { tenantId },
+      orderBy: { name: "asc" },
+    });
   }
 
   async getStore(
@@ -106,10 +114,16 @@ export class RetailDbRepository implements IRetailRepository {
             phone: data.phone,
             email: data.email,
             timezone: data.timezone ?? "Asia/Jakarta",
-            operatingHours: data.operatingHours as any,
+            operatingHours: (data as any).operatingHours as any,
             inventoryPoolId: data.inventoryPoolId,
             managerId: data.managerId,
-            settings: data.settings as any,
+            settings: {
+              operational_config: data.operational_config,
+              supply_config: data.supply_config,
+              infrastructure_registry: data.infrastructure_registry,
+              channel_binding: data.channel_binding,
+              governance: data.governance,
+            } as any,
             country: data.country,
             currency: data.currency,
           },
@@ -124,18 +138,39 @@ export class RetailDbRepository implements IRetailRepository {
     storeId: string,
     data: UpdateStoreDto,
   ): Promise<RetailStore> {
+    const existing = await this.prisma.store.findUnique({
+      where: { id: storeId, tenantId: tenantId },
+    });
+    if (!existing) throw new Error("Store not found");
+
+    const currentSettings = (existing.settings as any) || {};
+
     const store = await this.prisma.store.update({
       where: { id: storeId, tenantId: tenantId },
       data: {
         name: data.name,
+        locationId: data.locationId,
+        currency: data.currency,
         type: data.type,
         phone: data.phone,
         email: data.email,
         timezone: data.timezone,
         managerId: data.managerId,
         inventoryPoolId: data.inventoryPoolId,
-        operatingHours: data.operatingHours as any,
-        settings: data.settings as any,
+        operatingHours: (data as any).operatingHours as any,
+        settings: {
+          ...currentSettings,
+          operational_config:
+            data.operational_config ?? currentSettings.operational_config,
+          supply_config: data.supply_config ?? currentSettings.supply_config,
+          infrastructure_registry:
+            data.infrastructure_registry ??
+            currentSettings.infrastructure_registry,
+          channel_binding:
+            data.channel_binding ?? currentSettings.channel_binding,
+          governance: data.governance ?? currentSettings.governance,
+          tax_zone: data.tax_zone ?? currentSettings.tax_zone,
+        } as any,
         status: data.status,
       },
     });
@@ -314,6 +349,9 @@ export class RetailDbRepository implements IRetailRepository {
       page?: number;
       pageSize?: number;
       categoryId?: string;
+      type?: string;
+      minPrice?: number;
+      maxPrice?: number;
       q?: string;
       sortBy?: "name" | "price" | "createdAt";
       sortDir?: "asc" | "desc";
@@ -327,7 +365,7 @@ export class RetailDbRepository implements IRetailRepository {
     pageSize: number;
   }> {
     const page = Math.max(1, options?.page ?? 1);
-    const pageSize = Math.max(1, Math.min(options?.pageSize ?? 20, 100));
+    const pageSize = Math.max(1, Math.min(options?.pageSize ?? 20, 50000));
     const skip = (page - 1) * pageSize;
     const orderField =
       options?.sortBy === "price"
@@ -339,6 +377,15 @@ export class RetailDbRepository implements IRetailRepository {
 
     const where: any = { tenantId: tenantId, status: "active" };
     if (options?.categoryId) where.categoryId = options.categoryId;
+    if (options?.type) where.type = options.type;
+
+    if (options?.minPrice !== undefined || options?.maxPrice !== undefined) {
+      where.basePrice = {};
+      if (options.minPrice !== undefined)
+        where.basePrice.gte = options.minPrice;
+      if (options.maxPrice !== undefined)
+        where.basePrice.lte = options.maxPrice;
+    }
     if (options?.q) {
       const q = options.q;
       where.OR = [
@@ -390,9 +437,160 @@ export class RetailDbRepository implements IRetailRepository {
     return product ? this.mapProduct(product) : null;
   }
 
-  // ============================================================
-  // ORDERS
-  // ============================================================
+  async updateProduct(
+    tenantId: string,
+    productId: string,
+    data: UpdateProductDto,
+    locationId?: string,
+  ): Promise<RetailProduct> {
+    const txOperations: any[] = [
+      this.prisma.product.update({
+        where: { id: productId, tenantId: tenantId },
+        data: {
+          name: data.name,
+          description: data.description,
+          categoryId: data.category_id,
+          basePrice: data.base_price,
+          unit: data.unit,
+          sku: data.sku,
+          barcode: data.barcode,
+          type: data.type,
+          status: data.status,
+        },
+      }),
+      // Sync global projection (locationId: null) if it exists
+      this.prisma.productProjection.updateMany({
+        where: {
+          itemMasterId: productId,
+          tenantId: tenantId,
+          locationId: null,
+          moduleType: "RETAIL",
+        },
+        data: {
+          customName: data.name,
+          customDescription: data.description,
+          price: data.base_price,
+        },
+      }),
+    ];
+
+    if (
+      (data.stock_on_hand !== undefined || data.reserved !== undefined) &&
+      locationId
+    ) {
+      const existingStock = await this.prisma.stockLevel.findFirst({
+        where: { tenantId, locationId, productId },
+      });
+
+      const onHand =
+        data.stock_on_hand !== undefined
+          ? data.stock_on_hand
+          : existingStock?.onHand || 0;
+      const reserved =
+        data.reserved !== undefined
+          ? data.reserved
+          : existingStock?.reserved || 0;
+      const available = onHand - reserved;
+
+      if (existingStock) {
+        txOperations.push(
+          this.prisma.stockLevel.update({
+            where: { id: existingStock.id },
+            data: { onHand, reserved, available },
+          }),
+        );
+      } else {
+        txOperations.push(
+          this.prisma.stockLevel.create({
+            data: {
+              tenantId,
+              locationId,
+              productId,
+              onHand,
+              reserved,
+              available,
+            },
+          }),
+        );
+      }
+    }
+
+    await this.prisma.$transaction(txOperations);
+
+    // Re-fetch with all necessary fields for mapProduct logic
+    const fullProduct = await this.prisma.product.findUnique({
+      where: { id: productId },
+      include: { category: true, stockLevels: true, projections: true },
+    });
+
+    if (!fullProduct) throw new Error("Product re-fetch failed");
+    return this.mapProduct(fullProduct);
+  }
+
+  // ─── SKU Generator Engine ────────────────────────────────────────────────────
+  // Queries the DB to produce the next unique, sequential SKU for a category.
+  // Format:  <PREFIX>-<YYYYMMDD>-<SEQUENCE>
+  //   PREFIX   = up to 6 chars from the category name (A-Z0-9)
+  //   SEQUENCE = zero-padded 4-digit counter, incrementing from highest in DB
+  //
+  // Retries up to 5 times to handle rare concurrent insertion races.
+  async generateNextSku(
+    tenantId: string,
+    categoryId: string,
+  ): Promise<{ sku: string; barcode: string }> {
+    // 1. Resolve category name → prefix
+    const category = await this.prisma.productCategory.findFirst({
+      where: { id: categoryId, tenantId },
+      select: { name: true },
+    });
+    const prefix =
+      (category?.name ?? "ITEM")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 6) || "ITEM";
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+    // 2. Find the highest sequence already used for this prefix on this date
+    const pattern = `${prefix}-${dateStr}-%`;
+    const latest = await this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        sku: { startsWith: `${prefix}-${dateStr}-` },
+      },
+      orderBy: { sku: "desc" },
+      select: { sku: true },
+    });
+
+    // 3. Parse the sequence from the last SKU and increment
+    let seq = 1;
+    if (latest?.sku) {
+      const parts = latest.sku.split("-");
+      const lastSeq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSeq)) seq = lastSeq + 1;
+    }
+
+    // 4. Build candidate SKU and verify uniqueness (retry on collision)
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const candidateSku = `${prefix}-${dateStr}-${String(seq + attempt).padStart(4, "0")}`;
+      const existing = await this.prisma.product.findUnique({
+        where: { tenantId_sku: { tenantId, sku: candidateSku } },
+        select: { id: true },
+      });
+      if (!existing) {
+        const barcode =
+          candidateSku.replace(/[^A-Z0-9]/g, "") + String(Date.now()).slice(-4);
+        return { sku: candidateSku, barcode };
+      }
+    }
+
+    // 5. Absolute fallback: timestamp-based SKU (should never reach here in practice)
+    const fallbackSku = `${prefix}-${dateStr}-${Date.now().toString().slice(-6)}`;
+    return {
+      sku: fallbackSku,
+      barcode: fallbackSku.replace(/[^A-Z0-9]/g, "") + "0000",
+    };
+  }
 
   async listOrders(tenantId: string, storeId?: string): Promise<RetailOrder[]> {
     const where: any = { tenantId: tenantId };
@@ -400,7 +598,10 @@ export class RetailDbRepository implements IRetailRepository {
 
     const orders = await this.prisma.retailOrder.findMany({
       where,
-      include: { items: { include: { product: true } } },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+      },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -420,7 +621,10 @@ export class RetailDbRepository implements IRetailRepository {
   ): Promise<RetailOrder | null> {
     const order = await this.prisma.retailOrder.findFirst({
       where: { id: orderId, tenantId: tenantId },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: { include: { product: true } },
+        customer: true,
+      },
     });
     return order ? this.mapOrder(order) : null;
   }
@@ -429,6 +633,7 @@ export class RetailDbRepository implements IRetailRepository {
     tenantId: string,
     locationId: string,
     data: CreateOrderDto,
+    userId: string,
   ): Promise<RetailOrder> {
     let subtotal = 0;
 
@@ -456,16 +661,16 @@ export class RetailDbRepository implements IRetailRepository {
       data: {
         tenantId: tenantId,
         storeId: data.storeId,
-        deviceId: data.terminalId,
-        cashierId: "emp-001",
-        customerId: data.customerId,
+        deviceId: data.terminalId || undefined,
+        cashierId: userId || undefined,
+        customerId: data.customerId || undefined,
         status: "pending",
         subtotal,
-        tax: 0,
-        totalAmount: subtotal,
+        tax: Number(data.grandTotal) - subtotal,
+        totalAmount: data.grandTotal,
         paymentMethod: data.paymentMethod,
         items: { create: itemsData },
-      },
+      } as any,
       include: { items: { include: { product: true } } },
     });
 
@@ -498,11 +703,34 @@ export class RetailDbRepository implements IRetailRepository {
     productId: string,
     quantity: number,
   ): Promise<{ success: boolean; reservationId?: string }> {
-    const product = await this.prisma.product.findFirst({
-      where: { id: productId, tenantId: tenantId },
-    });
-    if (!product) return { success: false };
-    return { success: true, reservationId: `res_${Date.now()}` };
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const stock = await tx.stockLevel.findFirst({
+          where: { tenantId, productId },
+          // Multi-location: For now, we take from the first available location
+          // In a real production environment, this would be scoped to a specific store's location
+        });
+
+        if (!stock || stock.available < quantity) {
+          return { success: false };
+        }
+
+        await tx.stockLevel.update({
+          where: { id: stock.id },
+          data: {
+            reserved: { increment: quantity },
+            available: { decrement: quantity },
+          },
+        });
+
+        return {
+          success: true,
+          reservationId: `res_${Date.now()}_${productId.slice(0, 4)}`,
+        };
+      });
+    } catch (error) {
+      return { success: false };
+    }
   }
 
   async releaseStock(
@@ -510,7 +738,21 @@ export class RetailDbRepository implements IRetailRepository {
     productId: string,
     quantity: number,
   ): Promise<void> {
-    return;
+    await this.prisma.$transaction(async (tx) => {
+      const stock = await tx.stockLevel.findFirst({
+        where: { tenantId, productId },
+      });
+
+      if (!stock) return;
+
+      await tx.stockLevel.update({
+        where: { id: stock.id },
+        data: {
+          reserved: { decrement: Math.min(stock.reserved, quantity) },
+          available: { increment: quantity },
+        },
+      });
+    });
   }
 
   async checkStock(
@@ -956,6 +1198,60 @@ export class RetailDbRepository implements IRetailRepository {
     }));
   }
 
+  async registerDevice(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any> {
+    return null; // DB logic deferred for Phase 3
+  }
+
+  async listCCTVs(tenantId: string, storeId?: string): Promise<any[]> {
+    return []; // DB logic deferred for Phase 3
+  }
+
+  async validateCCTVConnection(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<{ success: boolean; message?: string }> {
+    throw new Error(
+      "DB integration for validateCCTVConnection pending Phase 3",
+    );
+  }
+
+  async registerCCTV(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any> {
+    return null; // DB logic deferred for Phase 3
+  }
+
+  async listSensors(tenantId: string, storeId?: string): Promise<any[]> {
+    return []; // DB logic deferred for Phase 3
+  }
+
+  async registerSensor(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any> {
+    return null; // DB logic deferred for Phase 3
+  }
+
+  async scanDevices(tenantId: string, locationId: string): Promise<any[]> {
+    return []; // DB logic deferred for Phase 3
+  }
+
+  async commitScannedDevice(
+    tenantId: string,
+    locationId: string,
+    discoveryId: string,
+  ): Promise<any> {
+    return null; // DB logic deferred for Phase 3
+  }
+
   async pingDevice(
     tenantId: string,
     deviceId: string,
@@ -976,16 +1272,130 @@ export class RetailDbRepository implements IRetailRepository {
     orderId: string,
     data: { amount: number; method: string; shiftId?: string },
   ): Promise<any> {
-    const order = await this.prisma.retailOrder.update({
-      where: { id: orderId, tenantId: tenantId },
-      data: { paymentMethod: data.method, status: "paid" },
+    return this.prisma.$transaction(async (tx) => {
+      // 0. Fetch the order with items
+      const order = await tx.retailOrder.findUnique({
+        where: { id: orderId, tenantId },
+        include: { items: true, store: true },
+      });
+
+      if (!order) throw new Error("Order not found");
+
+      const locationId = order.store?.locationId || "default";
+
+      // 1. Ensure a Retail department exists
+      let dept = await tx.department.findFirst({
+        where: { tenantId, code: "RET" },
+      });
+      if (!dept) {
+        dept = await tx.department.findFirst({ where: { tenantId } });
+      }
+      if (!dept) {
+        dept = await tx.department.create({
+          data: {
+            tenantId,
+            name: "Retail Operations",
+            code: "RET",
+            status: "active",
+          },
+        });
+      }
+      const departmentId = dept.id;
+
+      // 2. Consume Stock (Upsert prevents silent failures for missed seeding)
+      for (const item of order.items) {
+        if (!item.productId) continue;
+
+        await tx.stockLevel.upsert({
+          where: {
+            locationId_productId_departmentId: {
+              locationId,
+              productId: item.productId,
+              departmentId,
+            },
+          },
+          create: {
+            tenantId,
+            locationId,
+            departmentId,
+            productId: item.productId,
+            onHand: -item.quantity, // Negative because we just sold it
+            available: -item.quantity,
+          },
+          update: {
+            onHand: { decrement: item.quantity },
+            available: { decrement: item.quantity },
+          },
+        });
+
+        // Record Stock Movement
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            productId: item.productId,
+            fromLocationId: locationId,
+            quantity: item.quantity,
+            type: "OUT",
+            referenceId: `POS-${order.id}`,
+            performedBy: "POS_SYSTEM",
+          },
+        });
+      }
+
+      // 3. Update Order Status
+      const completedOrder = await tx.retailOrder.update({
+        where: { id: orderId, tenantId },
+        data: {
+          paymentMethod: data.method,
+          status: "completed",
+        },
+      });
+
+      // 4. Update Shift Totals
+      if (data.shiftId) {
+        await tx.retailShift.update({
+          where: { id: data.shiftId, tenantId },
+          data: {
+            expectedCash: {
+              increment: data.method.toLowerCase() === "cash" ? data.amount : 0,
+            },
+          },
+        });
+      }
+
+      // 5. Finance Ledger Entry
+      await tx.journalEntry.create({
+        data: {
+          tenantId,
+          ref: `POS-${Date.now()}-${order.id.slice(-6)}`,
+          description: `POS Sales Transaction (${data.method})`,
+          status: "POSTED",
+          lines: {
+            create: [
+              {
+                accountCode: "4000", // Sales Revenue
+                description: `Order ${order.id}`,
+                debit: 0,
+                credit: data.amount,
+              },
+              {
+                accountCode: "1001", // Cash/Bank
+                description: `Payment via ${data.method}`,
+                debit: data.amount,
+                credit: 0,
+              },
+            ],
+          },
+        },
+      });
+
+      return {
+        success: true,
+        order_id: completedOrder.id,
+        amount: Number(completedOrder.totalAmount),
+        method: data.method,
+      };
     });
-    return {
-      success: true,
-      order_id: order.id,
-      amount: Number(order.totalAmount),
-      method: data.method,
-    };
   }
 
   async processReturn(
@@ -1008,6 +1418,63 @@ export class RetailDbRepository implements IRetailRepository {
     tenantId: string,
     data: { storeId: string; adjustments: any[]; shiftId?: string },
   ): Promise<{ success: boolean }> {
+    await this.prisma.$transaction(async (tx) => {
+      const store = await tx.store.findUnique({
+        where: { id: data.storeId },
+        select: { locationId: true },
+      });
+
+      if (!store) throw new Error("Store not found");
+
+      for (const adj of data.adjustments) {
+        const stock = await tx.stockLevel.findUnique({
+          where: {
+            locationId_productId_departmentId: {
+              locationId: store.locationId,
+              productId: adj.productId,
+              departmentId: "DEFAULT", // Use a sentinel or ensure it matches schema expectation
+            },
+          },
+        });
+
+        if (stock) {
+          await tx.stockLevel.update({
+            where: { id: stock.id },
+            data: {
+              onHand: adj.actualCount,
+              available: adj.actualCount - stock.reserved,
+              lastStockTakeAt: new Date(),
+            },
+          });
+        } else {
+          await tx.stockLevel.create({
+            data: {
+              tenantId,
+              locationId: store.locationId,
+              productId: adj.productId,
+              departmentId: "DEFAULT",
+              onHand: adj.actualCount,
+              available: adj.actualCount,
+              lastStockTakeAt: new Date(),
+            },
+          });
+        }
+
+        // Log movement
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            productId: adj.productId,
+            toLocationId: store.locationId,
+            quantity: adj.actualCount - (stock?.onHand || 0),
+            type: "STOCK_OPNAME",
+            referenceId: data.shiftId || "OPNAME",
+            performedBy: "system", // Should ideally be actorId
+          },
+        });
+      }
+    });
+
     return { success: true };
   }
 
@@ -1020,6 +1487,61 @@ export class RetailDbRepository implements IRetailRepository {
       shiftId?: string;
     },
   ): Promise<{ success: boolean }> {
+    await this.prisma.$transaction(async (tx) => {
+      const store = await tx.store.findUnique({
+        where: { id: data.storeId },
+        select: { locationId: true },
+      });
+
+      if (!store) throw new Error("Store not found");
+
+      for (const item of data.items) {
+        const stock = await tx.stockLevel.findUnique({
+          where: {
+            locationId_productId_departmentId: {
+              locationId: store.locationId,
+              productId: item.productId,
+              departmentId: "DEFAULT",
+            },
+          },
+        });
+
+        if (stock) {
+          await tx.stockLevel.update({
+            where: { id: stock.id },
+            data: {
+              onHand: { increment: item.quantity },
+              available: { increment: item.quantity },
+            },
+          });
+        } else {
+          await tx.stockLevel.create({
+            data: {
+              tenantId,
+              locationId: store.locationId,
+              productId: item.productId,
+              departmentId: "DEFAULT",
+              onHand: item.quantity,
+              available: item.quantity,
+            },
+          });
+        }
+
+        // Log movement
+        await tx.stockMovement.create({
+          data: {
+            tenantId,
+            productId: item.productId,
+            toLocationId: store.locationId,
+            quantity: item.quantity,
+            type: "RECEIVE_GOODS",
+            referenceId: data.shipmentId,
+            performedBy: "system",
+          },
+        });
+      }
+    });
+
     return { success: true };
   }
 
@@ -1177,6 +1699,7 @@ export class RetailDbRepository implements IRetailRepository {
       include: { items: { include: { product: true } } },
     });
   }
+  // Duplicate getWishlist removed
 
   async upsertWishlist(tenantId: string, customerId: string): Promise<any> {
     return this.prisma.retailWishlist.upsert({
@@ -1239,10 +1762,11 @@ export class RetailDbRepository implements IRetailRepository {
   // ============================================================
 
   private mapStore(s: any): RetailStore {
+    const settings = (s.settings as any) || {};
     return {
       id: s.id,
-      tenant_id: s.tenantId,
-      location_id: s.locationId,
+      tenantId: s.tenantId,
+      locationId: s.locationId,
       name: s.name,
       code: s.code,
       type: s.type as any,
@@ -1251,13 +1775,17 @@ export class RetailDbRepository implements IRetailRepository {
       phone: s.phone,
       email: s.email,
       timezone: s.timezone ?? "Asia/Jakarta",
-      currency: "IDR",
-      manager_id: s.managerId,
-      inventory_pool_id: s.inventoryPoolId,
-      operating_hours: s.operatingHours,
-      settings: s.settings,
-      created_at: s.createdAt,
-      updated_at: s.updatedAt,
+      currency: s.currency || "IDR",
+      taxZone: settings.tax_zone,
+      managerId: s.managerId,
+      inventoryPoolId: s.inventoryPoolId,
+      operationalConfig: settings.operational_config,
+      supplyConfig: settings.supply_config,
+      infrastructureRegistry: settings.infrastructure_registry,
+      channelBinding: settings.channel_binding,
+      governance: settings.governance,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
     };
   }
 
@@ -1280,7 +1808,10 @@ export class RetailDbRepository implements IRetailRepository {
   }
 
   private mapProduct(p: any, locationId?: string): RetailProduct {
-    const stockLevels = p.stockLevels || [];
+    const stockLevels = locationId
+      ? (p.stockLevels || []).filter((s: any) => s.locationId === locationId)
+      : p.stockLevels || [];
+
     const soh = stockLevels.reduce(
       (sum: number, s: any) => sum + (s.onHand || 0),
       0,
@@ -1330,6 +1861,7 @@ export class RetailDbRepository implements IRetailRepository {
       prices: [{ amount: customPrice, currency: "IDR" }],
       tax_rate: Number(p.taxRate),
       unit: p.unit,
+      type: p.type as any,
       status: p.status as any,
       variants: [],
       seo: {
@@ -1350,53 +1882,54 @@ export class RetailDbRepository implements IRetailRepository {
   private mapOrder(o: any): RetailOrder {
     return {
       id: o.id,
-      tenant_id: o.tenantId,
-      location_id: "",
-      store_id: o.storeId,
-      terminal_id: o.deviceId,
-      cashier_id: o.cashierId,
-      customer_id: o.customerId,
+      tenantId: o.tenantId,
+      locationId: "",
+      storeId: o.storeId,
+      terminalId: o.deviceId,
+      cashierId: o.cashierId,
+      customerId: o.customerId,
+      customerName: o.customer?.name,
       status: o.status as any,
       items: o.items?.map((item: any) => this.mapOrderItem(item)) || [],
       subtotal: Number(o.subtotal),
-      tax_total: Number(o.tax),
-      discount_total: 0,
-      grand_total: Number(o.totalAmount),
+      taxTotal: Number(o.tax),
+      discountTotal: 0,
+      grandTotal: Number(o.totalAmount),
       currency: "IDR",
-      payment_method: o.paymentMethod as any,
-      payment_status: "paid",
-      created_at: o.createdAt,
-      updated_at: o.updatedAt,
+      paymentMethod: o.paymentMethod as any,
+      paymentStatus: "paid",
+      createdAt: o.createdAt,
+      updatedAt: o.updatedAt,
     };
   }
 
   private mapOrderItem(item: any): RetailOrderItem {
     return {
-      product_id: item.productId,
-      variant_id: undefined,
+      productId: item.productId,
+      variantId: undefined,
       sku: item.product?.sku || "",
       name: item.product?.name || "",
       quantity: item.quantity,
-      unit_price: Number(item.unitPrice),
-      tax_amount: 0,
-      discount_amount: Number(item.discount),
-      total_price: Number(item.totalPrice),
+      unitPrice: Number(item.unitPrice),
+      taxAmount: 0,
+      discountAmount: Number(item.discount),
+      totalPrice: Number(item.totalPrice),
     };
   }
 
   private mapShift(s: any): RetailShift {
     return {
       id: s.id,
-      tenant_id: s.tenantId,
-      location_id: "",
-      store_id: s.storeId,
-      employee_id: s.employeeId,
-      terminal_id: "",
-      start_time: s.startTime,
-      end_time: s.endTime,
-      opening_cash: Number(s.openingCash),
-      closing_cash: s.closingCash ? Number(s.closingCash) : undefined,
-      expected_cash: s.expectedCash ? Number(s.expectedCash) : undefined,
+      tenantId: s.tenantId,
+      locationId: "",
+      storeId: s.storeId,
+      employeeId: s.employeeId,
+      terminalId: "",
+      startTime: s.startTime,
+      endTime: s.endTime,
+      openingCash: Number(s.openingCash),
+      closingCash: s.closingCash ? Number(s.closingCash) : undefined,
+      expectedCash: s.expectedCash ? Number(s.expectedCash) : undefined,
       status: s.status as any,
       notes: s.notes,
     };

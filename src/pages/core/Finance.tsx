@@ -3,74 +3,18 @@ import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/core/ui/PageShell";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { FileText, Receipt, ShieldCheck, Wallet } from "lucide-react";
-
-const financialSummary = [
-  { id: "sum-1", label: "Revenue YTD", value: "$8.42M", delta: "+5.8%" },
-  { id: "sum-2", label: "Operating expenses", value: "$5.31M", delta: "-2.1%" },
-  { id: "sum-3", label: "Net margin", value: "18.7%", delta: "+0.9%" },
-  { id: "sum-4", label: "Cash position", value: "$1.96M", delta: "Stable" },
-];
-
-const billingQueue = [
-  {
-    id: "inv-1",
-    title: "INV-4021 - Apex Hospitality",
-    amount: "$24,880",
-    status: "Pending approval",
-    due: "Due in 3 days",
-  },
-  {
-    id: "inv-2",
-    title: "INV-4018 - Northline Group",
-    amount: "$8,420",
-    status: "Overdue",
-    due: "2 days overdue",
-  },
-  {
-    id: "inv-3",
-    title: "INV-4012 - Zenith Partners",
-    amount: "$14,900",
-    status: "Processing",
-    due: "Due tomorrow",
-  },
-];
-
-const taxReports = [
-  {
-    id: "tax-1",
-    title: "Monthly VAT Summary",
-    status: "Ready",
-    due: "Submit by Feb 10, 2026",
-  },
-  {
-    id: "tax-2",
-    title: "Quarterly GST Return",
-    status: "In review",
-    due: "Review by Feb 14, 2026",
-  },
-];
-
-const auditReadiness = [
-  {
-    id: "audit-1",
-    label: "Ledger reconciliation",
-    status: "Complete",
-    note: "Jan close complete",
-  },
-  {
-    id: "audit-2",
-    label: "Revenue recognition",
-    status: "In progress",
-    note: "2 adjustments pending",
-  },
-  {
-    id: "audit-3",
-    label: "Expense approvals",
-    status: "Attention",
-    note: "5 approvals overdue",
-  },
-];
+import {
+  FileText,
+  Receipt,
+  ShieldCheck,
+  Wallet,
+  TrendingUp,
+  ShoppingBag,
+  ArrowUpRight,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSession } from "@/core/security/session";
+import { financeService } from "@/core/services";
 
 const statusTone = (status: string) => {
   if (status === "Complete" || status === "Ready") {
@@ -83,75 +27,194 @@ const statusTone = (status: string) => {
 };
 
 export default function CoreFinance() {
+  const session = useSession();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{
+    financialSummary: any[];
+    billingQueue: any[];
+    taxReports: any[];
+    auditReadiness: any[];
+    moduleContributions?: {
+      retail?: Record<string, any>;
+    };
+  } | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await financeService.getFinanceOverview(
+          session.tenantId,
+          session,
+        );
+        setData(res);
+      } catch (e) {
+        console.error("Failed to load finance overview", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [session]);
+
+  if (loading || !data) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading finance overview...</p>
+      </div>
+    );
+  }
+
+  const {
+    financialSummary,
+    billingQueue,
+    taxReports,
+    auditReadiness,
+    moduleContributions,
+  } = data;
+  const retailStats = moduleContributions?.retail;
+
   return (
     <PageShell
       header={
         <PageHeader
-          title="Finance"
-          subtitle="Consolidated financial oversight, billing, and audit readiness."
-          primaryAction={<Button>New invoice</Button>}
-          secondaryActions={<Button variant="outline">Export report</Button>}
+          title="Finance & Treasury"
+          description="Consolidated view of tenant financial health and compliance."
         />
       }
     >
       <div className="space-y-6">
         <WorkspacePanel
-          title="Financial summary"
-          description="Key metrics across all business units."
+          title="Consolidated statement"
+          description="High-level metrics across all business units."
         >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {financialSummary.map((item) => (
-              <div key={item.id} className="rounded-lg border p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-foreground">
-                      {item.value}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{item.delta}</p>
-                  </div>
-                  <div className="rounded-lg border bg-muted/40 p-2">
-                    <Wallet className="h-5 w-5 text-muted-foreground" />
-                  </div>
+              <div
+                key={item.id}
+                className="rounded-xl border bg-card p-5 shadow-sm"
+              >
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="text-sm font-medium">{item.label}</span>
+                  <Wallet className="h-4 w-4" />
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-2xl font-semibold tracking-tight">
+                    {item.value}
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                  <span>{item.delta}</span>
                 </div>
               </div>
             ))}
           </div>
         </WorkspacePanel>
 
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        {/* --- MODULE CONTRIBUTIONS --- */}
+        {retailStats && (
           <WorkspacePanel
-            title="Invoice & billing queue"
-            description="Outstanding invoices and approvals."
+            title="Module Contributions: Retail Operations"
+            description="Live revenue and performance metrics pulled dynamically from the active Retail module."
+          >
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-5 dark:border-blue-900/30 dark:bg-blue-950/20">
+                <div className="flex items-center justify-between text-blue-700 dark:text-blue-400">
+                  <span className="text-sm font-medium">
+                    Weekly Retail Revenue
+                  </span>
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl font-bold tracking-tight text-blue-900 dark:text-blue-100">
+                    {retailStats.weeklyRevenue}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                  <ArrowUpRight className="h-3 w-3" /> Retail orders this week
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="text-sm font-medium">Orders Today</span>
+                  <ShoppingBag className="h-4 w-4" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl font-semibold tracking-tight">
+                    {retailStats.ordersToday}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Processed across all stores
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="text-sm font-medium">Avg Basket Value</span>
+                  <Receipt className="h-4 w-4" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-2xl font-semibold tracking-tight">
+                    {retailStats.avgBasketValue}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Weekly rolling average
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="text-sm font-medium">Top Category</span>
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="mt-4">
+                  <span className="text-xl font-semibold tracking-tight line-clamp-1 py-1">
+                    {retailStats.topCategory}
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Highest grossing this week
+                </div>
+              </div>
+            </div>
+          </WorkspacePanel>
+        )}
+        {/* ----------------------------- */}
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <WorkspacePanel
+            title="Billing queue"
+            description="Pending receivables and payables requiring action."
           >
             <div className="space-y-4">
               {billingQueue.map((item) => (
                 <div key={item.id} className="rounded-lg border p-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.due}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.due}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">{item.amount}</p>
-                      <Badge variant="outline" className={statusTone(item.status)}>
+                      <p className="text-sm font-medium">{item.amount}</p>
+                      <Badge
+                        variant="secondary"
+                        className={`mt-1 ${statusTone(item.status)}`}
+                      >
                         {item.status}
                       </Badge>
                     </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Receipt className="h-4 w-4" />
-                      Billing workflow
-                    </div>
-                    <Button size="sm" variant="outline">
-                      Review
-                    </Button>
-                  </div>
                 </div>
               ))}
+              <Button variant="outline" className="w-full">
+                View full queue
+              </Button>
             </div>
           </WorkspacePanel>
 
@@ -164,10 +227,17 @@ export default function CoreFinance() {
                 <div key={report.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{report.title}</p>
-                      <p className="text-xs text-muted-foreground">{report.due}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {report.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {report.due}
+                      </p>
                     </div>
-                    <Badge variant="outline" className={statusTone(report.status)}>
+                    <Badge
+                      variant="outline"
+                      className={statusTone(report.status)}
+                    >
                       {report.status}
                     </Badge>
                   </div>
@@ -199,7 +269,9 @@ export default function CoreFinance() {
               <div key={item.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">{item.label}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {item.label}
+                    </p>
                     <p className="text-xs text-muted-foreground">{item.note}</p>
                   </div>
                   <Badge variant="outline" className={statusTone(item.status)}>

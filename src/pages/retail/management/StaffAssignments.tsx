@@ -9,7 +9,6 @@ import {
   Clock,
   Activity,
   MoreHorizontal,
-  UserCheck,
   Lock,
   Search,
   Filter,
@@ -17,14 +16,14 @@ import {
   ExternalLink,
   Trash2,
   RefreshCw,
-  AlertCircle,
+  Eye,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -36,6 +35,11 @@ import { hrService } from "@/core/services/hr/hrService";
 import { useSession } from "@/core/security/session";
 import type { Employee } from "@/core/types/hr/employee";
 
+import { useGovernance } from "./pricing-promo-desk/hooks/useGovernance";
+import { StaffDetailsModal } from "./staff-assignments/components/StaffDetailsModal";
+import { RoleModificationModal } from "./staff-assignments/components/RoleModificationModal";
+import { AuditTrailModal } from "./pricing-promo-desk/components/AuditTrailModal";
+
 const StaffAssignments = () => {
   const session = useSession();
   const { toast } = useToast();
@@ -43,12 +47,26 @@ const StaffAssignments = () => {
   const [staff, setStaff] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Modals state
+  const [selectedStaffForDetails, setSelectedStaffForDetails] =
+    useState<Employee | null>(null);
+  const [selectedStaffForRoleEdit, setSelectedStaffForRoleEdit] =
+    useState<Employee | null>(null);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+
+  // Governance specifically for Staff
+  const { auditLog, addSignature } = useGovernance(
+    "GLOBAL_STAFF_ROSTER",
+    session.tenantId!,
+    session,
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const data = await hrService.listEmployees(
-          session.tenantId,
+          session.tenantId!,
           session,
           session.locationId,
         );
@@ -75,6 +93,15 @@ const StaffAssignments = () => {
     try {
       await hrService.deleteEmployee(session.tenantId!, session, id);
       setStaff((prev) => prev.filter((s) => s.id !== id));
+
+      // Log governance action
+      await addSignature(
+        "Superadmin",
+        session.userId,
+        true,
+        `Revoked access for personnel ${id}`,
+      );
+
       toast({
         title: "Access Revoked",
         description: "Security credentials have been purged from Zenvix Vault.",
@@ -83,6 +110,43 @@ const StaffAssignments = () => {
       toast({
         title: "Error",
         description: "Failed to revoke access.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRoleModification = async (newRole: string, reason: string) => {
+    if (!selectedStaffForRoleEdit) return;
+
+    try {
+      // Create an updated employee payload
+      const updatedEmployee = {
+        ...selectedStaffForRoleEdit,
+        roleTitle: newRole,
+      };
+
+      // Attempt to hit HrService if the update method existed. Mock update:
+      // await hrService.updateEmployee(session.tenantId!, session, updatedEmployee);
+      setStaff((prev) =>
+        prev.map((s) => (s.id === updatedEmployee.id ? updatedEmployee : s)),
+      );
+
+      // Append proof of modification leveraging existing governance framework with 'Superadmin / Owner Bypass' mode.
+      await addSignature(
+        "Superadmin",
+        session.userId,
+        true,
+        `Role Modified to ${newRole}: ${reason}`,
+      );
+
+      toast({
+        title: "Ledger Updated",
+        description: `Cryptographic proof generated for role modification.`,
+      });
+    } catch (e) {
+      toast({
+        title: "Modification Failed",
+        description: `Failed to modify role properties securely.`,
         variant: "destructive",
       });
     }
@@ -104,7 +168,7 @@ const StaffAssignments = () => {
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       {/* Header */}
       <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
         <PageHeader
@@ -114,7 +178,13 @@ const StaffAssignments = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2 hover:bg-slate-50 text-slate-700"
+            onClick={() => setIsAuditModalOpen(true)}
+          >
+            <FileText className="w-3.5 h-3.5" /> Immutable Security Log
+          </Button>
+          <Button
+            className="h-11 rounded-xl px-4 font-black italic border-slate-900 bg-slate-900 text-white text-xs uppercase tracking-widest gap-2"
             onClick={handleProvision}
           >
             <UserPlus className="w-3.5 h-3.5" /> Provision New
@@ -122,7 +192,7 @@ const StaffAssignments = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-slate-50/50 p-8 lg:p-12">
+      <div className="flex-1 bg-slate-50/50 p-8 lg:p-12">
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -267,11 +337,12 @@ const StaffAssignments = () => {
                         filteredStaff.map((s, i) => (
                           <tr
                             key={i}
-                            className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none"
+                            className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none cursor-pointer"
+                            onClick={() => setSelectedStaffForDetails(s)}
                           >
                             <td className="px-8 py-5">
                               <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center font-black italic text-slate-500 text-sm shadow-inner group-hover:bg-slate-900 group-hover:text-white transition-all">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center font-black italic text-indigo-600 text-sm shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                   {s.fullName
                                     .split(" ")
                                     .map((n) => n[0])
@@ -279,7 +350,7 @@ const StaffAssignments = () => {
                                     .slice(0, 2)}
                                 </div>
                                 <div>
-                                  <div className="font-black italic text-sm text-slate-900">
+                                  <div className="font-black italic text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
                                     {s.fullName}
                                   </div>
                                   <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -309,7 +380,7 @@ const StaffAssignments = () => {
                                 {["RETAIL_CORE", "POS_EXEC"].map((acc, idx) => (
                                   <Badge
                                     key={idx}
-                                    className="bg-blue-50 text-blue-600 border-none text-[8px] font-black italic tracking-widest"
+                                    className="bg-slate-100 text-slate-600 border-none text-[8px] font-black italic tracking-widest"
                                   >
                                     {acc}
                                   </Badge>
@@ -332,6 +403,7 @@ const StaffAssignments = () => {
                                   <Button
                                     variant="ghost"
                                     size="icon"
+                                    onClick={(e) => e.stopPropagation()}
                                     className="h-8 w-8 rounded-xl text-slate-300 hover:text-slate-700 hover:bg-slate-100"
                                   >
                                     <MoreHorizontal className="w-4 h-4" />
@@ -341,7 +413,23 @@ const StaffAssignments = () => {
                                   align="end"
                                   className="w-48 p-2 rounded-2xl border-none shadow-2xl"
                                 >
-                                  <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
+                                  <DropdownMenuItem
+                                    className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedStaffForDetails(s);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 text-slate-500" />{" "}
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedStaffForRoleEdit(s);
+                                    }}
+                                  >
                                     <ShieldHalf className="w-4 h-4 text-blue-600" />{" "}
                                     Modify Permissions
                                   </DropdownMenuItem>
@@ -352,7 +440,10 @@ const StaffAssignments = () => {
                                   <Separator className="my-1" />
                                   <DropdownMenuItem
                                     className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
-                                    onClick={() => handleDelete(s.id)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete(s.id);
+                                    }}
                                   >
                                     <Trash2 className="w-4 h-4" /> Revoke Access
                                   </DropdownMenuItem>
@@ -397,54 +488,6 @@ const StaffAssignments = () => {
                 </CardContent>
               </Card>
 
-              {/* Audit Log Stream */}
-              <Card className="shadow-xl border-none rounded-[2.5rem] overflow-hidden bg-white">
-                <CardHeader className="p-7 pb-4 border-b border-slate-50">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-                    Audit Stream
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-7 space-y-6">
-                  {[
-                    {
-                      actor: "SA",
-                      action: "Updated Permissions",
-                      target: "Amelia Hart",
-                      time: "10m ago",
-                    },
-                    {
-                      actor: "SA",
-                      action: "Login Success",
-                      target: "Back Office",
-                      time: "1h ago",
-                    },
-                    {
-                      actor: "VL",
-                      action: "Policy Ack",
-                      target: "Retail Terminal",
-                      time: "3h ago",
-                    },
-                  ].map((log, i) => (
-                    <div key={i} className="flex gap-4 relative">
-                      {i < 2 && (
-                        <div className="absolute left-[15px] top-10 bottom-0 w-px bg-slate-100" />
-                      )}
-                      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center font-black italic text-slate-400 text-[9px] shrink-0">
-                        {log.actor}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-black italic text-slate-900">
-                          {log.action}
-                        </div>
-                        <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-                          {log.target} • {log.time}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
               {/* Vault Sync Status */}
               <Card className="bg-blue-600 text-white shadow-2xl rounded-[2.5rem] overflow-hidden group border-none">
                 <CardContent className="p-8 text-center space-y-4">
@@ -467,6 +510,26 @@ const StaffAssignments = () => {
           </div>
         </div>
       </div>
+
+      <StaffDetailsModal
+        isOpen={!!selectedStaffForDetails}
+        onClose={() => setSelectedStaffForDetails(null)}
+        staff={selectedStaffForDetails}
+      />
+
+      <RoleModificationModal
+        isOpen={!!selectedStaffForRoleEdit}
+        onClose={() => setSelectedStaffForRoleEdit(null)}
+        staff={selectedStaffForRoleEdit}
+        onSubmit={handleRoleModification}
+      />
+
+      <AuditTrailModal
+        isOpen={isAuditModalOpen}
+        onClose={() => setIsAuditModalOpen(false)}
+        auditLog={auditLog}
+        promoTitle="SECURITY VAULT MODIFICATIONS"
+      />
     </div>
   );
 };

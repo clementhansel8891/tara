@@ -7,7 +7,11 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
-import type { InventoryAuditCycle, InventoryIntegrationEvent, InventoryMovement } from "@/core/types/inventory/inventory";
+import type {
+  InventoryAuditCycle,
+  InventoryIntegrationEvent,
+  InventoryMovement,
+} from "@/core/types/inventory/inventory";
 
 export default function InventoryAuditLog() {
   const session = useSession();
@@ -15,14 +19,16 @@ export default function InventoryAuditLog() {
   const [loading, setLoading] = useState(true);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [cycles, setCycles] = useState<InventoryAuditCycle[]>([]);
-  const [integrations, setIntegrations] = useState<InventoryIntegrationEvent[]>([]);
+  const [integrations, setIntegrations] = useState<InventoryIntegrationEvent[]>(
+    [],
+  );
 
   const refresh = useCallback(async () => {
     try {
       const [m, c, i] = await Promise.all([
-        inventoryService.listMovements(session.tenantId),
-        inventoryService.listAuditCycles(session.tenantId),
-        inventoryService.listIntegrationEvents(session.tenantId),
+        inventoryService.listMovements(session.tenantId, session),
+        inventoryService.listAuditCycles(session.tenantId, session),
+        inventoryService.listIntegrationEvents(session.tenantId, session),
       ]);
       setMovements(m);
       setCycles(c);
@@ -66,10 +72,14 @@ export default function InventoryAuditLog() {
         primaryAction={
           <Button
             onClick={async () => {
-              await inventoryService.startAuditCycle(session.tenantId, session, {
-                locationCode: "JKT-WH",
-                scope: "LOCATION",
-              });
+              await inventoryService.startAuditCycle(
+                session.tenantId,
+                session,
+                {
+                  locationCode: "JKT-WH",
+                  scope: "LOCATION",
+                },
+              );
               refresh();
             }}
           >
@@ -86,7 +96,10 @@ export default function InventoryAuditLog() {
         }
       />
       {/* ... rest of the tables (Movement Ledger, Audit Cycles, Integration Events) remain the same structure ... */}
-      <WorkspacePanel title="Movement Ledger" description="Every stock movement is traceable with actor and reason.">
+      <WorkspacePanel
+        title="Movement Ledger"
+        description="Every stock movement is traceable with actor and reason."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredMovements.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -103,12 +116,16 @@ export default function InventoryAuditLog() {
             <tbody>
               {filteredMovements.map((item) => (
                 <tr key={item.id} className="border-t">
-                  <td className="p-3 text-muted-foreground">{item.createdAt.slice(0, 16).replace("T", " ")}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {item.createdAt.slice(0, 16).replace("T", " ")}
+                  </td>
                   <td className="p-3 font-medium">{item.type}</td>
                   <td className="p-3 text-muted-foreground">{item.itemId}</td>
                   <td className="p-3">{item.quantity}</td>
                   <td className="p-3">{item.reason}</td>
-                  <td className="p-3 text-muted-foreground">{item.performedBy}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {item.performedBy}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -117,7 +134,10 @@ export default function InventoryAuditLog() {
       </WorkspacePanel>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <WorkspacePanel title="Audit Cycles" description="Open and completed stock count cycles by scope.">
+        <WorkspacePanel
+          title="Audit Cycles"
+          description="Open and completed stock count cycles by scope."
+        >
           <DataTableShell total={cycles.length} page={1} pageSize={10}>
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
@@ -134,7 +154,9 @@ export default function InventoryAuditLog() {
                   <tr key={cycle.id} className="border-t">
                     <td className="p-3 font-medium">{cycle.id}</td>
                     <td className="p-3 text-muted-foreground">{cycle.scope}</td>
-                    <td className="p-3 text-muted-foreground">{cycle.locationCode}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {cycle.locationCode}
+                    </td>
                     <td className="p-3">{cycle.status}</td>
                     <td className="p-3">
                       {cycle.status === "OPEN" ? (
@@ -142,10 +164,15 @@ export default function InventoryAuditLog() {
                           size="sm"
                           variant="outline"
                           onClick={async () => {
-                            await inventoryService.closeAuditCycle(session.tenantId, session, cycle.id, {
-                              expectedValue: 1000,
-                              countedValue: 990,
-                            });
+                            await inventoryService.closeAuditCycle(
+                              session.tenantId,
+                              session,
+                              cycle.id,
+                              {
+                                expectedValue: 1000,
+                                countedValue: 990,
+                              },
+                            );
                             refresh();
                           }}
                         >
@@ -160,7 +187,10 @@ export default function InventoryAuditLog() {
           </DataTableShell>
         </WorkspacePanel>
 
-        <WorkspacePanel title="Integration Events" description="Cross-module inventory synchronization events.">
+        <WorkspacePanel
+          title="Integration Events"
+          description="Cross-module inventory synchronization events."
+        >
           <DataTableShell total={integrations.length} page={1} pageSize={10}>
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
@@ -174,9 +204,13 @@ export default function InventoryAuditLog() {
               <tbody>
                 {integrations.map((event) => (
                   <tr key={event.id} className="border-t">
-                    <td className="p-3 text-muted-foreground">{event.createdAt.slice(0, 16).replace("T", " ")}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {event.createdAt.slice(0, 16).replace("T", " ")}
+                    </td>
                     <td className="p-3 font-medium">{event.target}</td>
-                    <td className="p-3 text-muted-foreground">{event.eventType}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {event.eventType}
+                    </td>
                     <td className="p-3">{event.status}</td>
                   </tr>
                 ))}

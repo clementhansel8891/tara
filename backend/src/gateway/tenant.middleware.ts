@@ -35,13 +35,33 @@ export class TenantMiddleware implements NestMiddleware {
 
     // 1.5 Dev Bypass for verification
     if (bypass === "true") {
-      console.log(`[V3001] BYPASS ACTIVE for ${tenantId}`);
+      const devRole = req.headers["x-dev-role"] || "OWNER";
+      const devTenantId = req.headers["x-dev-tenant-id"] || tenantId;
+      const devUserId = req.headers["x-dev-user-id"] || "dev-user";
+
+      console.log(
+        `[V3001] BYPASS ACTIVE for ${tenantId}, Role: ${devRole}, User: ${devUserId}`,
+      );
+
+      const devUser = {
+        id: devUserId,
+        email: "dev@zenvix.com",
+        firstName: "Dev",
+        lastName: "User",
+        userCompanies: [
+          {
+            tenantId: devTenantId,
+            role: devRole,
+          },
+        ],
+      };
+
       req.tenantContext = {
         tenantId: tenantId as string,
-        userId: "dev-user",
-        role: "OWNER",
+        userId: devUserId as string,
+        role: devRole as string,
       };
-      req.user = { id: "dev-user", role: "OWNER", email: "dev@zenvix.com" };
+      req.user = devUser;
       return next();
     }
 
@@ -71,8 +91,44 @@ export class TenantMiddleware implements NestMiddleware {
     }
 
     const userId = verifiedUser.id;
-    const role = verifiedUser.role;
     const locationId = req.headers["x-location-id"];
+
+    // 4. Role Extraction & Verification logic
+    // We look for the user's role in the context of the requested tenantId
+    let role = "MEMBER";
+    const userCompanies = verifiedUser.userCompanies || [];
+
+    console.log(
+      `[V3001] Extracting role for user ${userId} on tenant ${tenantId}`,
+    );
+    console.log(
+      `[V3001] User associations: ${JSON.stringify(userCompanies.map((uc: any) => ({ t: uc.tenantId, r: uc.role })))}`,
+    );
+
+    // Check if user is a Global Superadmin
+    const superadminAssoc = userCompanies.find(
+      (uc: any) => uc.role === "SUPERADMIN",
+    );
+
+    if (superadminAssoc) {
+      role = "SUPERADMIN";
+      console.log(`[V3001] User ${userId} is a GLOBAL SUPERADMIN`);
+    } else {
+      // Find association for requested tenant
+      const tenantAssoc = userCompanies.find(
+        (uc: any) => uc.tenantId === tenantId,
+      );
+      if (tenantAssoc) {
+        role = tenantAssoc.role;
+        console.log(
+          `[V3001] User ${userId} has role ${role} for tenant ${tenantId}`,
+        );
+      } else {
+        console.warn(
+          `[V3001] User ${userId} is NOT associated with tenant ${tenantId}. Defaulting to MEMBER.`,
+        );
+      }
+    }
 
     // Attach tenant context to request object
     const tenantContext: TenantContext = {

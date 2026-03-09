@@ -7,6 +7,9 @@ import type {
   RetailChannel,
   RetailShift,
   POSDevice,
+  BranchDevice,
+  CCTVCamera,
+  BranchSensor,
   RetailOrderItem,
   RetailProduct,
 } from "@/core/types/retail/retail";
@@ -47,6 +50,14 @@ export const retailService = {
     return apiRequest<RetailStore[]>("/retail/stores", "GET", session);
   },
 
+  async listCategories(tenantId: string, session: SessionContext) {
+    return apiRequest<{ id: string; name: string }[]>(
+      "/retail/categories",
+      "GET",
+      session,
+    );
+  },
+
   async getStore(tenantId: string, storeId: string, session: SessionContext) {
     return apiRequest<RetailStore>(`/retail/stores/${storeId}`, "GET", session);
   },
@@ -64,11 +75,106 @@ export const retailService = {
     session: SessionContext,
     store: RetailStore,
   ) {
+    const pickAndClean = (obj: unknown, keys: string[]) => {
+      if (!obj || typeof obj !== "object") return undefined;
+      const res = {} as Record<string, unknown>;
+      keys.forEach((k) => {
+        const val = (obj as Record<string, unknown>)[k];
+        if (val !== undefined && val !== null) {
+          res[k] = val;
+        }
+      });
+      return Object.keys(res).length > 0 ? res : undefined;
+    };
+
+    const payload = pickAndClean(
+      {
+        name: store.name,
+        locationId: store.locationId,
+        type: store.type,
+        status: store.status,
+        phone: store.phone,
+        email: store.email,
+        timezone: store.timezone,
+        managerId: store.managerId,
+        inventoryPoolId: store.inventoryPoolId,
+        currency: store.currency,
+        tax_zone: store.taxZone,
+
+        operational_config: pickAndClean(store.operationalConfig, [
+          "business_hours_template",
+          "default_shift_model",
+          "enabled_modules",
+          "pos_device_limit",
+          "self_checkout_enabled",
+          "payment_methods_allowed",
+          "refund_policy_mode",
+          "auto_close_shift_setting",
+        ]),
+
+        supply_config: pickAndClean(store.supplyConfig, [
+          "default_inbound_warehouse_id",
+          "transfer_priority_policy",
+          "replenishment_rule_set",
+          "safety_stock_policy",
+          "auto_reorder_threshold_template",
+          "fulfillment_fallback_routing",
+        ]),
+
+        infrastructure_registry: pickAndClean(store.infrastructureRegistry, [
+          "registered_device_ids",
+          "pos_clusters",
+          "scanner_pools",
+          "local_server_binding",
+          "sync_interval",
+          "offline_tolerance_threshold",
+        ]),
+
+        channel_binding: pickAndClean(store.channelBinding, [
+          "linked_ecommerce_store_id",
+          "marketplace_integrations",
+          "channel_priority",
+          "order_routing_logic",
+          "online_to_offline_sync_policy",
+        ]),
+
+        governance: pickAndClean(store.governance, [
+          "license_status",
+          "activation_date",
+          "activation_source",
+          "compliance_level",
+          "audit_frequency_tier",
+          "data_retention_policy",
+          "decommission_trigger",
+        ]),
+      },
+      [
+        "name",
+        "locationId",
+        "type",
+        "status",
+        "phone",
+        "email",
+        "timezone",
+        "managerId",
+        "inventoryPoolId",
+        "currency",
+        "tax_zone",
+        "operational_config",
+        "supply_config",
+        "infrastructure_registry",
+        "channel_binding",
+        "governance",
+      ],
+    );
+
+    console.log("[retailService] updateStore payload:", payload);
+
     return apiRequest<RetailStore>(
       `/retail/stores/${store.id}`,
       "PUT",
       session,
-      store,
+      payload,
     );
   },
 
@@ -103,7 +209,62 @@ export const retailService = {
     const path = storeId
       ? `/retail/devices?store_id=${storeId}`
       : "/retail/devices";
-    return apiRequest<POSDevice[]>(path, "GET", session);
+    return apiRequest<BranchDevice[]>(path, "GET", session);
+  },
+
+  async registerDevice(
+    tenantId: string,
+    session: SessionContext,
+    device: Partial<BranchDevice>,
+  ) {
+    return apiRequest<BranchDevice>("/retail/devices", "POST", session, device);
+  },
+
+  async listCCTVs(tenantId: string, session: SessionContext, storeId?: string) {
+    const path = storeId
+      ? `/retail/cctvs?store_id=${storeId}`
+      : "/retail/cctvs";
+    return apiRequest<CCTVCamera[]>(path, "GET", session);
+  },
+
+  async validateCCTVConnection(
+    tenantId: string,
+    session: SessionContext,
+    camera: Partial<CCTVCamera>,
+  ) {
+    return apiRequest<{ success: boolean; message?: string }>(
+      "/retail/cctvs/validate",
+      "POST",
+      session,
+      camera,
+    );
+  },
+
+  async registerCCTV(
+    tenantId: string,
+    session: SessionContext,
+    camera: Partial<CCTVCamera>,
+  ) {
+    return apiRequest<CCTVCamera>("/retail/cctvs", "POST", session, camera);
+  },
+
+  async listSensors(
+    tenantId: string,
+    session: SessionContext,
+    storeId?: string,
+  ) {
+    const path = storeId
+      ? `/retail/sensors?store_id=${storeId}`
+      : "/retail/sensors";
+    return apiRequest<BranchSensor[]>(path, "GET", session);
+  },
+
+  async registerSensor(
+    tenantId: string,
+    session: SessionContext,
+    sensor: Partial<BranchSensor>,
+  ) {
+    return apiRequest<BranchSensor>("/retail/sensors", "POST", session, sensor);
   },
 
   async listInventory(
@@ -113,9 +274,13 @@ export const retailService = {
       page?: number;
       pageSize?: number;
       categoryId?: string;
+      type?: string;
+      minPrice?: number;
+      maxPrice?: number;
       q?: string;
       sortBy?: "name" | "price" | "createdAt";
       sortDir?: "asc" | "desc";
+      locationId?: string;
     },
   ): Promise<
     RetailProduct[] & {
@@ -130,14 +295,25 @@ export const retailService = {
     if (options?.page) qs.set("page", String(options.page));
     if (options?.pageSize) qs.set("pageSize", String(options.pageSize));
     if (options?.categoryId) qs.set("categoryId", options.categoryId);
+    if (options?.type) qs.set("type", options.type);
+    if (options?.minPrice !== undefined)
+      qs.set("minPrice", String(options.minPrice));
+    if (options?.maxPrice !== undefined)
+      qs.set("maxPrice", String(options.maxPrice));
     if (options?.q) qs.set("q", options.q);
     if (options?.sortBy) qs.set("sortBy", options.sortBy);
     if (options?.sortDir) qs.set("sortDir", options.sortDir);
+    if (options?.locationId) qs.set("location_id", options.locationId);
     const path = qs.toString()
       ? `/retail/products?${qs.toString()}`
       : "/retail/products";
 
-    const response = await apiRequest<any>(path, "GET", session);
+    const response = await apiRequest<{
+      items: unknown[]; // replaced any with unknown
+      total: number;
+      page: number;
+      pageSize: number;
+    }>(path, "GET", session);
 
     // apiRequest already extracts result.data.
     // Backend respond(payload) wraps payload in { success, data }.
@@ -151,26 +327,31 @@ export const retailService = {
           page: 1,
           pageSize: response.length || 1,
         }
-      : response || {};
+      : response || { items: [], total: 0, page: 1, pageSize: 1 };
 
     const items = payload.items || [];
     const totalCount = payload.total ?? items.length;
     const pageNum = payload.page ?? 1;
     const pageSizeNum = payload.pageSize ?? (items.length || 1);
 
-    const mapped = (items || []).map((p: any) => ({
+    const mapped = (items || []).map((p: Record<string, unknown>) => ({
       ...p,
-      tenantId: p.tenant_id || p.tenantId || tenantId,
-      categoryId: p.category_id || p.categoryId,
-      categoryName: p.category_name || p.categoryName || p.category?.name,
-      basePrice: p.base_price ?? p.basePrice ?? 0,
-      taxRate: p.tax_rate ?? p.taxRate ?? 0,
-      unit: p.unit,
+      tenantId: (p.tenant_id || p.tenantId || tenantId) as string,
+      categoryId: (p.category_id || p.categoryId) as string,
+      categoryName: (p.category_name ||
+        p.categoryName ||
+        (p.category as { name?: string })?.name) as string,
+      basePrice: (p.base_price ?? p.basePrice ?? 0) as number,
+      taxRate: (p.tax_rate ?? p.taxRate ?? 0) as number,
+      unit: p.unit as string,
       status: (p.status as RetailProduct["status"]) ?? "active",
-      createdAt: p.created_at ?? p.createdAt,
-      updatedAt: p.updated_at ?? p.updatedAt,
-      price: p.base_price ?? p.basePrice ?? 0,
-      stock: (p.metadata?.stock_on_hand as number) ?? p.stock ?? 0,
+      createdAt: (p.created_at ?? p.createdAt) as string,
+      updatedAt: (p.updated_at ?? p.updatedAt) as string,
+      price: (p.base_price ?? p.basePrice ?? 0) as number,
+      stock:
+        (p.metadata as { stock_on_hand?: number })?.stock_on_hand ??
+        (p.stock as number) ??
+        0,
     })) as RetailProduct[];
 
     const result = mapped as PaginatedArray<RetailProduct>;
@@ -185,17 +366,21 @@ export const retailService = {
     storeId: string,
     deviceId: string,
     items: {
-      itemId: string;
+      productId: string;
       quantity: number;
       unitPrice: number;
-      name: string;
+      name?: string;
     }[],
+    paymentMethod: "cash" | "card" | "qr" | "wallet",
+    grandTotal: number,
     shiftId?: string,
   ) {
     return apiRequest<RetailOrder>("/retail/orders", "POST", session, {
       storeId,
-      deviceId,
+      terminalId: deviceId, // Using terminalId to match backend DTO
       items,
+      paymentMethod,
+      grandTotal,
       shiftId,
     });
   },
@@ -241,7 +426,7 @@ export const retailService = {
     );
   },
 
-  // --- 4. Channel & Logic Nexus ---
+  // --- 4. Channel & Logic Zenvix ---
   async listChannels(
     tenantId: string,
     session: SessionContext,
@@ -355,6 +540,22 @@ export const retailService = {
     );
   },
 
+  async scanDevices(tenantId: string, session: SessionContext) {
+    return apiRequest<unknown[]>("/retail/devices/scan", "POST", session);
+  },
+
+  async commitScannedDevice(
+    tenantId: string,
+    session: SessionContext,
+    discoveryId: string,
+  ) {
+    return apiRequest<BranchDevice>(
+      `/retail/devices/commit-scan/${discoveryId}`,
+      "POST",
+      session,
+    );
+  },
+
   // --- 6. Shift & Fiscal Integrity ---
   async openShift(
     tenantId: string,
@@ -457,21 +658,31 @@ export const retailService = {
   },
 
   async listInventoryPools(tenantId: string, session: SessionContext) {
-    const response = await apiRequest<{ data: any[] }>(
+    return apiRequest<Record<string, unknown>[]>(
       "/retail/inventory-pools",
       "GET",
       session,
     );
-    return response.data;
   },
 
   async getInventoryStats(
     tenantId: string,
     session: SessionContext,
-    options?: { categoryId?: string; q?: string },
+    options?: {
+      categoryId?: string;
+      type?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      q?: string;
+    },
   ) {
     const qs = new URLSearchParams();
     if (options?.categoryId) qs.set("categoryId", options.categoryId);
+    if (options?.type) qs.set("type", options.type);
+    if (options?.minPrice !== undefined)
+      qs.set("minPrice", String(options.minPrice));
+    if (options?.maxPrice !== undefined)
+      qs.set("maxPrice", String(options.maxPrice));
     if (options?.q) qs.set("q", options.q);
     const path = qs.toString()
       ? `/retail/inventory/stats?${qs.toString()}`
@@ -492,5 +703,98 @@ export const retailService = {
       totalValue: number;
     }>(path, "GET", session);
     return response;
+  },
+
+  async updateProduct(
+    tenantId: string,
+    session: SessionContext,
+    productId: string,
+    data: Partial<RetailProduct> & {
+      category_id?: string;
+      base_price?: number;
+    },
+  ) {
+    return apiRequest<RetailProduct>(
+      `/retail/products/${productId}`,
+      "PATCH",
+      session,
+      data,
+    );
+  },
+
+  async listPendingItems(tenantId: string, session: SessionContext) {
+    return apiRequest<RetailProduct[]>(
+      "/inventory/items/pending",
+      "GET",
+      session,
+    );
+  },
+
+  async approveItem(tenantId: string, session: SessionContext, itemId: string) {
+    return apiRequest<RetailProduct>(
+      `/inventory/items/${itemId}/approve`,
+      "PUT",
+      session,
+    );
+  },
+
+  async rejectItem(tenantId: string, session: SessionContext, itemId: string) {
+    return apiRequest<RetailProduct>(
+      `/inventory/items/${itemId}/reject`,
+      "PUT",
+      session,
+    );
+  },
+
+  // --- 7. SKU & Barcode Generation (Wired to Backend) ---
+  async generateSku(
+    tenantId: string,
+    session: SessionContext,
+    category: string,
+  ) {
+    return apiRequest<{ sku: string }>(
+      `/inventory/generate-sku?category=${encodeURIComponent(category)}`,
+      "GET",
+      session,
+    );
+  },
+
+  async generateBarcode(
+    tenantId: string,
+    session: SessionContext,
+    sku: string,
+  ) {
+    return apiRequest<{ barcode: string }>(
+      `/inventory/generate-barcode?sku=${encodeURIComponent(sku)}`,
+      "GET",
+      session,
+    );
+  },
+
+  async batchCreateItemsJson(
+    tenantId: string,
+    session: SessionContext,
+    items: unknown[],
+  ) {
+    return apiRequest<{ success: boolean; data: unknown[] }>(
+      "/inventory/items/batch-json",
+      "POST",
+      session,
+      { items },
+    );
+  },
+
+  // --- 8. Governance & Auditing ---
+  async logGovernanceAction(
+    tenantId: string,
+    session: SessionContext,
+    entry: unknown,
+  ) {
+    return apiRequest<{ success: boolean }>(
+      "/retail/governance/log",
+      "POST",
+      session,
+      entry,
+    );
   },
 };

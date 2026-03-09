@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { useDbPersistence } from "../../shared/persistence.mode";
+import { PrismaService } from "../../persistence/prisma.service";
 import { SalesController } from "./sales.controller";
 import { SalesService } from "./sales.service";
 import { SalesDbRepository } from "./repositories/sales.db.repository";
@@ -9,6 +10,7 @@ import { ISalesRepository } from "./repositories/sales.repository.interface";
 @Module({
   controllers: [SalesController],
   providers: [
+    PrismaService,
     SalesService,
     {
       provide: ISalesRepository,

@@ -1,6 +1,17 @@
 import { SessionContext } from "@/core/security/session";
 import { API_BASE_URL } from "@/lib/api-config";
 
+export class ApiError extends Error {
+  constructor(
+    public message: string,
+    public status: number,
+    public data: any = null,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export async function apiRequest<T>(
   path: string,
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" = "GET",
@@ -22,6 +33,9 @@ export async function apiRequest<T>(
   if (session) {
     headers["x-actor-id"] = session.userId;
     headers["x-user-role"] = session.role;
+    if (session.locationId) {
+      headers["x-location-id"] = session.locationId;
+    }
     if (session.token) {
       headers["Authorization"] = `Bearer ${session.token}`;
     }
@@ -44,13 +58,29 @@ export async function apiRequest<T>(
       errorData.detail ||
       errorData.message ||
       `API request failed with status ${response.status}`;
+
     console.error(
       `[apiClient] Error ${response.status}: ${message}`,
       errorData,
     );
-    throw new Error(message);
+    throw new ApiError(message, response.status, errorData);
   }
 
   const result = await response.json();
-  return result.data as T;
+
+  // If the result contains data AND meta (pagination), merge them if possible or return root
+  if (result && typeof result === "object") {
+    if (result.data !== undefined && result.meta !== undefined) {
+      if (Array.isArray(result.data)) {
+        // Return the array with meta attached to match the frontend "paginated array" pattern
+        return Object.assign(result.data, { meta: result.meta }) as T;
+      }
+      return result.data as T;
+    }
+    if (result.data !== undefined) {
+      return result.data as T;
+    }
+  }
+
+  return result as T;
 }

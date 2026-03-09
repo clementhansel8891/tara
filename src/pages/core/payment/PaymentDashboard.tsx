@@ -5,7 +5,11 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { paymentService } from "@/core/services/payment/paymentService";
-import type { PaymentDashboardMetrics, PaymentProvider, PaymentTransaction } from "@/core/types/payment/payment";
+import type {
+  PaymentDashboardMetrics,
+  PaymentProvider,
+  PaymentTransaction,
+} from "@/core/types/payment/payment";
 
 export default function PaymentDashboard() {
   const session = useSession();
@@ -17,11 +21,12 @@ export default function PaymentDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [metricsData, providersData, transactionsData] = await Promise.all([
-          paymentService.getDashboard(session.tenantId),
-          paymentService.listProviders(session.tenantId),
-          paymentService.listTransactions(session.tenantId),
-        ]);
+        const [metricsData, providersData, transactionsData] =
+          await Promise.all([
+            paymentService.getDashboard(session.tenantId, session),
+            paymentService.listProviders(session.tenantId, session),
+            paymentService.listTransactions(session.tenantId, session),
+          ]);
         setMetrics(metricsData);
         setProviders(providersData);
         setTransactions(transactionsData.slice(0, 8));
@@ -33,7 +38,11 @@ export default function PaymentDashboard() {
   }, [refreshKey, session.tenantId]);
 
   if (!metrics) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -54,25 +63,90 @@ export default function PaymentDashboard() {
         }
       />
 
-      <WorkspacePanel title="Execution Metrics" description="Live status of approvals, execution, settlement, and dispute load.">
+      <WorkspacePanel
+        title="Execution Metrics"
+        description="Live status of approvals, execution, settlement, and dispute load."
+      >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Pending approvals</p><p className="text-2xl font-semibold">{metrics.pendingApprovals}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Executing now</p><p className="text-2xl font-semibold">{metrics.executingPayments}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Settlement pending</p><p className="text-2xl font-semibold">{metrics.settlementPending}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Settled today</p><p className="text-2xl font-semibold">{metrics.settledToday}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Failed transactions</p><p className="text-2xl font-semibold">{metrics.failedTransactions}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Open disputes</p><p className="text-2xl font-semibold">{metrics.openDisputes}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Open chargebacks</p><p className="text-2xl font-semibold">{metrics.openChargebacks}</p></div>
-          <div className="rounded-lg border p-3"><p className="text-xs text-muted-foreground">Pending refunds</p><p className="text-2xl font-semibold">{metrics.refundPending}</p></div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Pending approvals</p>
+            <p className="text-2xl font-semibold">{metrics.pendingApprovals}</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Executing now</p>
+            <p className="text-2xl font-semibold">
+              {metrics.executingPayments}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Settlement pending</p>
+            <p className="text-2xl font-semibold">
+              {metrics.settlementPending}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Settled today</p>
+            <p className="text-2xl font-semibold">{metrics.settledToday}</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Failed transactions</p>
+            <p className="text-2xl font-semibold">
+              {metrics.failedTransactions}
+            </p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Open disputes</p>
+            <p className="text-2xl font-semibold">{metrics.openDisputes}</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Open chargebacks</p>
+            <p className="text-2xl font-semibold">{metrics.openChargebacks}</p>
+          </div>
+          <div className="rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">Pending refunds</p>
+            <p className="text-2xl font-semibold">{metrics.refundPending}</p>
+          </div>
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Provider Health" description="Multi-bank/provider routing health and heartbeat state.">
+      {/* --- MODULE CONTRIBUTIONS --- */}
+      {metrics.moduleContributions?.retail && (
+        <WorkspacePanel
+          title="Module Contributions: Retail Payments"
+          description="In-store physical POS device health and retail payment dispute rate."
+        >
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+              <p className="text-xs text-muted-foreground">
+                Active POS Devices
+              </p>
+              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                {metrics.moduleContributions.retail.activePosDevices}
+              </p>
+            </div>
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+              <p className="text-xs text-muted-foreground">
+                Store Payment Disputes
+              </p>
+              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                {metrics.moduleContributions.retail.totalDisputes}
+              </p>
+            </div>
+          </div>
+        </WorkspacePanel>
+      )}
+
+      <WorkspacePanel
+        title="Provider Health"
+        description="Multi-bank/provider routing health and heartbeat state."
+      >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {providers.map((provider) => (
             <div key={provider.id} className="rounded-lg border p-3">
               <p className="text-sm font-medium">{provider.name}</p>
-              <p className="text-xs text-muted-foreground">{provider.channels.join(", ")}</p>
+              <p className="text-xs text-muted-foreground">
+                {provider.channels.join(", ")}
+              </p>
               <div className="mt-2">
                 <Badge
                   variant={
@@ -91,7 +165,10 @@ export default function PaymentDashboard() {
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Recent Executions" description="Latest transaction state transitions and settlement state.">
+      <WorkspacePanel
+        title="Recent Executions"
+        description="Latest transaction state transitions and settlement state."
+      >
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr>
@@ -108,10 +185,18 @@ export default function PaymentDashboard() {
               <tr key={item.id} className="border-t">
                 <td className="p-3 font-medium">{item.id}</td>
                 <td className="p-3 text-muted-foreground">{item.type}</td>
-                <td className="p-3 text-muted-foreground">{item.destination}</td>
-                <td className="p-3 text-muted-foreground">{item.amount.toLocaleString()} {item.currency}</td>
-                <td className="p-3 text-muted-foreground">{item.providerId ?? "-"}</td>
-                <td className="p-3"><Badge variant="outline">{item.status}</Badge></td>
+                <td className="p-3 text-muted-foreground">
+                  {item.destination}
+                </td>
+                <td className="p-3 text-muted-foreground">
+                  {item.amount.toLocaleString()} {item.currency}
+                </td>
+                <td className="p-3 text-muted-foreground">
+                  {item.providerId ?? "-"}
+                </td>
+                <td className="p-3">
+                  <Badge variant="outline">{item.status}</Badge>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -120,4 +205,3 @@ export default function PaymentDashboard() {
     </div>
   );
 }
-

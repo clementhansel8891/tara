@@ -7,24 +7,36 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
-import type { InventoryStockBalance, InventoryMovement, InventoryDashboardMetrics, InventoryIntegrationEvent } from "@/core/types/inventory/inventory";
+import type {
+  InventoryStockBalance,
+  InventoryMovement,
+  InventoryDashboardMetrics,
+  InventoryIntegrationEvent,
+} from "@/core/types/inventory/inventory";
 
 export default function InventoryInsights() {
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [balances, setBalances] = useState<InventoryStockBalance[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
-  const [dashboard, setDashboard] = useState<InventoryDashboardMetrics | null>(null);
-  const [integrationEvents, setIntegrationEvents] = useState<InventoryIntegrationEvent[]>([]);
+  const [dashboard, setDashboard] = useState<InventoryDashboardMetrics | null>(
+    null,
+  );
+  const [integrationEvents, setIntegrationEvents] = useState<
+    InventoryIntegrationEvent[]
+  >([]);
 
   const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [b, m, d, i] = await Promise.all([
-        inventoryService.listBalances(session.tenantId),
-        inventoryService.listMovements(session.tenantId),
-        inventoryService.getDashboard(session.tenantId),
-        inventoryService.listIntegrationEvents(session.tenantId),
+        inventoryService.listBalances(session.tenantId, session),
+        inventoryService.listMovements(session.tenantId, session),
+        inventoryService.getDashboard(session.tenantId, session),
+        inventoryService.listIntegrationEvents(session.tenantId, session),
       ]);
       setBalances(b);
       setMovements(m);
@@ -32,6 +44,7 @@ export default function InventoryInsights() {
       setIntegrationEvents(i);
     } catch (err) {
       console.error("Failed to fetch inventory insights data:", err);
+      setError("Failed to load inventory insights. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -51,42 +64,94 @@ export default function InventoryInsights() {
     return averageOnHand > 0 ? (deductions / averageOnHand).toFixed(2) : "0.00";
   }, [balances, movements]);
 
-  const insightRows = useMemo(
-    () => {
-      if (!dashboard) return [];
-      return [
-        { id: "inv-ins-1", label: "Total on-hand quantity", category: "STOCK", value: String(dashboard.totalOnHandQty) },
-        { id: "inv-ins-2", label: "Total valuation", category: "FINANCE", value: dashboard.totalValuation.toLocaleString() },
-        { id: "inv-ins-3", label: "Low stock alerts", category: "RISK", value: String(dashboard.lowStockCount) },
-        { id: "inv-ins-4", label: "Expiry alerts", category: "RISK", value: String(dashboard.expiryWarningCount) },
-        { id: "inv-ins-5", label: "Pending adjustments", category: "GOVERNANCE", value: String(dashboard.pendingAdjustments) },
-        { id: "inv-ins-6", label: "Pending procurement receipts", category: "INTEGRATION", value: String(dashboard.pendingReceiptSyncs) },
-        { id: "inv-ins-7", label: "Turnover proxy", category: "PERFORMANCE", value: turnoverProxy },
-        {
-          id: "inv-ins-8",
-          label: "Synced integration events",
-          category: "INTEGRATION",
-          value: String(integrationEvents.filter((item) => item.status === "SYNCED").length),
-        },
-      ];
-    },
-    [dashboard, integrationEvents, turnoverProxy],
-  );
+  const insightRows = useMemo(() => {
+    if (!dashboard) return [];
+    return [
+      {
+        id: "inv-ins-1",
+        label: "Total on-hand quantity",
+        category: "STOCK",
+        value: String(dashboard.totalOnHandQty),
+      },
+      {
+        id: "inv-ins-2",
+        label: "Total valuation",
+        category: "FINANCE",
+        value: dashboard.totalValuation.toLocaleString(),
+      },
+      {
+        id: "inv-ins-3",
+        label: "Low stock alerts",
+        category: "RISK",
+        value: String(dashboard.lowStockCount),
+      },
+      {
+        id: "inv-ins-4",
+        label: "Expiry alerts",
+        category: "RISK",
+        value: String(dashboard.expiryWarningCount),
+      },
+      {
+        id: "inv-ins-5",
+        label: "Pending adjustments",
+        category: "GOVERNANCE",
+        value: String(dashboard.pendingAdjustments),
+      },
+      {
+        id: "inv-ins-6",
+        label: "Pending procurement receipts",
+        category: "INTEGRATION",
+        value: String(dashboard.pendingReceiptSyncs),
+      },
+      {
+        id: "inv-ins-7",
+        label: "Turnover proxy",
+        category: "PERFORMANCE",
+        value: turnoverProxy,
+      },
+      {
+        id: "inv-ins-8",
+        label: "Synced integration events",
+        category: "INTEGRATION",
+        value: String(
+          integrationEvents.filter((item) => item.status === "SYNCED").length,
+        ),
+      },
+    ];
+  }, [dashboard, integrationEvents, turnoverProxy]);
 
   const filteredRows = useMemo(
     () =>
       insightRows.filter((item) =>
         search
-          ? `${item.label} ${item.category}`.toLowerCase().includes(search.toLowerCase())
+          ? `${item.label} ${item.category}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
           : true,
       ),
     [insightRows, search],
   );
 
-  if (loading || !dashboard) {
+  if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
         <p className="text-muted-foreground">Loading insights...</p>
+      </div>
+    );
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex h-64 flex-col items-center justify-center space-y-4">
+        <p className="text-destructive font-medium">
+          {error || "Insights data unavailable."}
+        </p>
+        <button
+          onClick={() => refresh()}
+          className="text-sm text-primary hover:underline"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -106,7 +171,10 @@ export default function InventoryInsights() {
         }
       />
       {/* ... rest of the code for boxes and table remain same ... */}
-      <WorkspacePanel title="Insight Cards" description="Inventory performance and governance indicators.">
+      <WorkspacePanel
+        title="Insight Cards"
+        description="Inventory performance and governance indicators."
+      >
         <div className="grid gap-3 md:grid-cols-4">
           {insightRows.map((item) => (
             <div key={item.id} className="rounded-lg border p-3">
@@ -118,7 +186,10 @@ export default function InventoryInsights() {
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Insight Table" description="Filterable inventory analytics for reporting.">
+      <WorkspacePanel
+        title="Insight Table"
+        description="Filterable inventory analytics for reporting."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredRows.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -144,4 +215,3 @@ export default function InventoryInsights() {
     </div>
   );
 }
-

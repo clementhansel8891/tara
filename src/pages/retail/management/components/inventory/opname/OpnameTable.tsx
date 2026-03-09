@@ -1,0 +1,160 @@
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { RefreshCw, ScanLine } from "lucide-react";
+
+export type OpnameEntry = {
+  id: string;
+  sku: string;
+  name: string;
+  expected: number;
+  counted: number | "";
+  status?: string;
+  categoryId?: string;
+};
+
+interface OpnameTableProps {
+  entries: OpnameEntry[];
+  isLoading: boolean;
+  onCountChange: (index: number, value: string) => void;
+  statusBadge: (status: string) => string;
+}
+
+export const OpnameTable: React.FC<OpnameTableProps> = ({
+  entries,
+  isLoading,
+  onCountChange,
+  statusBadge,
+}) => {
+  return (
+    <div className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-slate-50">
+              {[
+                "#",
+                "SKU",
+                "Item Name",
+                "Expected",
+                "Counted",
+                "Variance",
+                "Status",
+              ].map((h, i) => (
+                <th
+                  key={i}
+                  className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-16 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+                    <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                      Syncing Inventory State...
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ) : entries.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-24 text-center">
+                  <div className="flex flex-col items-center gap-4 opacity-30">
+                    <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center">
+                      <ScanLine className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black italic uppercase tracking-tighter">
+                        Awaiting Scans
+                      </div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest mt-1">
+                        Scan barcodes to begin physical count audit
+                      </p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              entries.map((entry, i) => {
+                const variance =
+                  entry.counted !== ""
+                    ? Number(entry.counted) - entry.expected
+                    : null;
+                return (
+                  <tr
+                    key={entry.id || i}
+                    className="group border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-[11px] text-slate-400 font-bold">
+                      {i + 1}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">
+                      {entry.sku}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-black italic text-sm text-slate-900">
+                        {entry.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-bold italic text-slate-600">
+                      {entry.expected}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Input
+                        type="number"
+                        min="0"
+                        value={entry.counted}
+                        onChange={(e) => onCountChange(i, e.target.value)}
+                        className="w-24 h-10 rounded-xl font-black italic text-center border-slate-200 focus:ring-blue-600 bg-slate-50/50"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      {variance !== null ? (
+                        <span
+                          className={cn(
+                            "font-black italic text-sm",
+                            variance === 0
+                              ? "text-emerald-600"
+                              : variance > 0
+                                ? "text-blue-600"
+                                : "text-red-600",
+                          )}
+                        >
+                          {variance > 0 ? "+" : ""}
+                          {variance}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300 font-bold italic text-sm">
+                          —
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {entry.status && (
+                        <Badge
+                          className={cn(
+                            "border-none font-black italic text-[9px] uppercase tracking-widest px-3",
+                            statusBadge(entry.status),
+                          )}
+                        >
+                          {entry.status}
+                        </Badge>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};

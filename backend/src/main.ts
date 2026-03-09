@@ -24,8 +24,46 @@ import { Rfc7807ExceptionFilter } from "./shared/filters/rfc7807.filter";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security headers
-  app.use(helmet());
+  // 1. Extreme CORS Middleware (Run before everything else)
+  app.use((req: any, res: any, next: any) => {
+    // ALWAYS Log
+    console.log(
+      `[REQUEST] ${req.method} ${req.url} | Origin: ${req.headers.origin}`,
+    );
+
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    );
+    res.header("Access-Control-Allow-Headers", "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    if (req.method === "OPTIONS") {
+      return res.status(200).send();
+    }
+
+    next();
+  });
+
+  // 2. Security headers
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      contentSecurityPolicy: false,
+    }),
+  );
+
+  // 3. Normal NestJS CORS (as a fallback)
+  app.enableCors({
+    origin: [
+      "http://localhost:8080",
+      "http://localhost:5173",
+      "http://localhost:3000",
+      "https://bambusilver.netlify.app",
+    ],
+    credentials: true,
+  });
 
   // Align with frontend proxy (/api/*)
   app.setGlobalPrefix("api");
@@ -56,21 +94,6 @@ async function bootstrap() {
       },
     }),
   );
-
-  // Enable CORS for frontend
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",")
-    : [
-        "http://localhost:8080",
-        "http://localhost:8081",
-        "http://localhost:5173",
-        "http://localhost:3000",
-      ];
-
-  app.enableCors({
-    origin: allowedOrigins,
-    credentials: true,
-  });
 
   // Start server
   const port = parseInt(process.env.PORT || "3001", 10);

@@ -23,46 +23,54 @@ const mapMethodToChannel = (method: string): PaymentTransaction["channel"] => {
   const normalized = method.toUpperCase();
   if (normalized.includes("CARD")) return "CARD_ONLINE";
   if (normalized.includes("QR")) return "QR";
-  if (["GOPAY", "OVO", "DANA", "SHOPEEPAY"].includes(normalized)) return "WALLET";
+  if (["GOPAY", "OVO", "DANA", "SHOPEEPAY"].includes(normalized))
+    return "WALLET";
   return "BANK_TRANSFER";
 };
 
 export const paymentService = {
-  listTransactions: async (tenantId: string) =>
-    apiRequest<PaymentTransaction[]>("/payment/transactions", "GET", { tenantId } as any),
+  listTransactions: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentTransaction[]>("/payment/transactions", "GET", session),
 
-  listProviders: async (tenantId: string) =>
-    apiRequest<PaymentProvider[]>("/payment/providers", "GET", { tenantId } as any),
+  listProviders: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentProvider[]>("/payment/providers", "GET", session),
 
-  listRoutingPolicies: async (tenantId: string) =>
-    apiRequest<RoutingPolicy[]>("/payment/routing-policies", "GET", { tenantId } as any),
+  listRoutingPolicies: async (tenantId: string, session: SessionContext) =>
+    apiRequest<RoutingPolicy[]>("/payment/routing-policies", "GET", session),
 
-  listDevices: async (tenantId: string) =>
-    apiRequest<PosDevice[]>("/payment/devices", "GET", { tenantId } as any),
+  listDevices: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PosDevice[]>("/payment/devices", "GET", session),
 
-  listDevicePools: async (tenantId: string) =>
-    apiRequest<DevicePool[]>("/payment/device-pools", "GET", { tenantId } as any),
+  listDevicePools: async (tenantId: string, session: SessionContext) =>
+    apiRequest<DevicePool[]>("/payment/device-pools", "GET", session),
 
-  listSettlements: async (tenantId: string) =>
-    apiRequest<SettlementRecord[]>("/payment/settlements", "GET", { tenantId } as any),
+  listSettlements: async (tenantId: string, session: SessionContext) =>
+    apiRequest<SettlementRecord[]>("/payment/settlements", "GET", session),
 
-  listRefunds: async (tenantId: string) =>
-    apiRequest<PaymentRefund[]>("/payment/refunds", "GET", { tenantId } as any),
+  listRefunds: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentRefund[]>("/payment/refunds", "GET", session),
 
-  listDisputes: async (tenantId: string) =>
-    apiRequest<PaymentDispute[]>("/payment/disputes", "GET", { tenantId } as any),
+  listDisputes: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentDispute[]>("/payment/disputes", "GET", session),
 
-  listChargebacks: async (tenantId: string) =>
-    apiRequest<PaymentChargeback[]>("/payment/chargebacks", "GET", { tenantId } as any),
+  listChargebacks: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentChargeback[]>("/payment/chargebacks", "GET", session),
 
-  listEvidencePacks: async (tenantId: string) =>
-    apiRequest<EvidencePack[]>("/payment/evidence-packs", "GET", { tenantId } as any),
+  listEvidencePacks: async (tenantId: string, session: SessionContext) =>
+    apiRequest<EvidencePack[]>("/payment/evidence-packs", "GET", session),
 
-  listAuditEvents: async (tenantId: string) =>
-    apiRequest<PaymentAuditEvent[]>("/payment/audit-events", "GET", { tenantId } as any),
+  listAuditEvents: async (tenantId: string, session: SessionContext) =>
+    apiRequest<PaymentAuditEvent[]>("/payment/audit-events", "GET", session),
 
-  async getDashboard(tenantId: string): Promise<PaymentDashboardMetrics> {
-    return apiRequest<PaymentDashboardMetrics>("/payment/dashboard", "GET", { tenantId } as any);
+  async getDashboard(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<PaymentDashboardMetrics> {
+    return apiRequest<PaymentDashboardMetrics>(
+      "/payment/dashboard",
+      "GET",
+      session,
+    );
   },
 
   async createExecutionRequest(
@@ -79,11 +87,24 @@ export const paymentService = {
       idempotencyKey?: string;
     },
   ): Promise<PaymentTransaction> {
-    return apiRequest<PaymentTransaction>("/payment/transactions", "POST", session, payload);
+    return apiRequest<PaymentTransaction>(
+      "/payment/transactions",
+      "POST",
+      session,
+      payload,
+    );
   },
 
-  async approveRequest(tenantId: string, session: SessionContext, paymentId: string) {
-    return apiRequest<PaymentTransaction>(`/payment/transactions/${paymentId}/approve`, "PUT", session);
+  async approveRequest(
+    tenantId: string,
+    session: SessionContext,
+    paymentId: string,
+  ) {
+    return apiRequest<PaymentTransaction>(
+      `/payment/transactions/${paymentId}/approve`,
+      "PUT",
+      session,
+    );
   },
 
   async rejectRequest(
@@ -98,7 +119,11 @@ export const paymentService = {
     // I'll check if I need to send reason. Controller doesn't have @Body() for reject.
     // I'll ignore reason for now or pass it if I update controller.
     // For now, match controller signature.
-    return apiRequest<PaymentTransaction>(`/payment/transactions/${paymentId}/reject`, "PUT", session);
+    return apiRequest<PaymentTransaction>(
+      `/payment/transactions/${paymentId}/reject`,
+      "PUT",
+      session,
+    );
   },
 
   async selectProvider(
@@ -107,7 +132,12 @@ export const paymentService = {
     paymentId: string,
     forcedProviderId?: PaymentProviderId,
   ) {
-    return apiRequest<PaymentTransaction>(`/payment/transactions/${paymentId}/route`, "PUT", session, { providerId: forcedProviderId });
+    return apiRequest<PaymentTransaction>(
+      `/payment/transactions/${paymentId}/route`,
+      "PUT",
+      session,
+      { providerId: forcedProviderId },
+    );
   },
 
   async executePayment(
@@ -116,7 +146,12 @@ export const paymentService = {
     paymentId: string,
     options?: { forceFail?: boolean },
   ) {
-    return apiRequest<PaymentTransaction>(`/payment/transactions/${paymentId}/execute`, "PUT", session, options);
+    return apiRequest<PaymentTransaction>(
+      `/payment/transactions/${paymentId}/execute`,
+      "PUT",
+      session,
+      options,
+    );
   },
 
   async confirmSettlement(
@@ -124,7 +159,11 @@ export const paymentService = {
     session: SessionContext,
     paymentId: string,
   ) {
-    return apiRequest<PaymentTransaction>(`/payment/transactions/${paymentId}/settle`, "PUT", session);
+    return apiRequest<PaymentTransaction>(
+      `/payment/transactions/${paymentId}/settle`,
+      "PUT",
+      session,
+    );
   },
 
   async createRefund(
@@ -138,7 +177,12 @@ export const paymentService = {
       scheduledAt?: string;
     },
   ) {
-    return apiRequest<PaymentRefund>("/payment/refunds", "POST", session, payload);
+    return apiRequest<PaymentRefund>(
+      "/payment/refunds",
+      "POST",
+      session,
+      payload,
+    );
   },
 
   async approveRefund(
@@ -146,7 +190,11 @@ export const paymentService = {
     session: SessionContext,
     refundId: string,
   ) {
-    return apiRequest<PaymentRefund>(`/payment/refunds/${refundId}/approve`, "PUT", session);
+    return apiRequest<PaymentRefund>(
+      `/payment/refunds/${refundId}/approve`,
+      "PUT",
+      session,
+    );
   },
 
   async executeRefund(
@@ -154,7 +202,11 @@ export const paymentService = {
     session: SessionContext,
     refundId: string,
   ) {
-    return apiRequest<PaymentRefund>(`/payment/refunds/${refundId}/execute`, "PUT", session);
+    return apiRequest<PaymentRefund>(
+      `/payment/refunds/${refundId}/execute`,
+      "PUT",
+      session,
+    );
   },
 
   async openDispute(
@@ -162,7 +214,12 @@ export const paymentService = {
     session: SessionContext,
     payload: { paymentId: string; amount: number; reason: string },
   ) {
-    return apiRequest<PaymentDispute>("/payment/disputes", "POST", session, payload);
+    return apiRequest<PaymentDispute>(
+      "/payment/disputes",
+      "POST",
+      session,
+      payload,
+    );
   },
 
   async attachDisputeEvidence(
@@ -171,7 +228,12 @@ export const paymentService = {
     disputeId: string,
     evidenceItem: string,
   ) {
-    return apiRequest<PaymentDispute>(`/payment/disputes/${disputeId}/evidence`, "PUT", session, { evidence: evidenceItem });
+    return apiRequest<PaymentDispute>(
+      `/payment/disputes/${disputeId}/evidence`,
+      "PUT",
+      session,
+      { evidence: evidenceItem },
+    );
   },
 
   async progressDispute(
@@ -180,7 +242,12 @@ export const paymentService = {
     disputeId: string,
     status: PaymentDispute["status"],
   ) {
-    return apiRequest<PaymentDispute>(`/payment/disputes/${disputeId}/progress`, "PUT", session, { status });
+    return apiRequest<PaymentDispute>(
+      `/payment/disputes/${disputeId}/progress`,
+      "PUT",
+      session,
+      { status },
+    );
   },
 
   async resolveDispute(
@@ -189,11 +256,20 @@ export const paymentService = {
     disputeId: string,
     resolution: NonNullable<PaymentDispute["resolution"]>,
   ) {
-    return apiRequest<PaymentDispute>(`/payment/disputes/${disputeId}/resolve`, "PUT", session, { resolution });
+    return apiRequest<PaymentDispute>(
+      `/payment/disputes/${disputeId}/resolve`,
+      "PUT",
+      session,
+      { resolution },
+    );
   },
 
   async runProviderHealthCheck(tenantId: string, session: SessionContext) {
-    return apiRequest<PaymentProvider[]>("/payment/providers/health-sweep", "POST", session);
+    return apiRequest<PaymentProvider[]>(
+      "/payment/providers/health-sweep",
+      "POST",
+      session,
+    );
   },
 
   async setProviderStatus(
@@ -202,7 +278,12 @@ export const paymentService = {
     providerId: PaymentProviderId,
     status: PaymentProvider["status"],
   ) {
-    return apiRequest<PaymentProvider>(`/payment/providers/${providerId}/status`, "PUT", session, { status });
+    return apiRequest<PaymentProvider>(
+      `/payment/providers/${providerId}/status`,
+      "PUT",
+      session,
+      { status },
+    );
   },
 
   async setDeviceStatus(
@@ -211,7 +292,12 @@ export const paymentService = {
     deviceId: string,
     status: PosDevice["status"],
   ) {
-    return apiRequest<PosDevice>(`/payment/devices/${deviceId}/status`, "PUT", session, { status });
+    return apiRequest<PosDevice>(
+      `/payment/devices/${deviceId}/status`,
+      "PUT",
+      session,
+      { status },
+    );
   },
 
   async resolveDeviceForLocation(
@@ -228,7 +314,8 @@ export const paymentService = {
 
     for (const deviceId of inOrder) {
       const device = devices.find((item) => item.id === deviceId);
-      if (device && device.approved && device.status === "ONLINE") return device;
+      if (device && device.approved && device.status === "ONLINE")
+        return device;
     }
 
     return null;

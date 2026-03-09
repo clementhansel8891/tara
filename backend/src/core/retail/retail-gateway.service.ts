@@ -384,23 +384,25 @@ export class RetailGatewayService {
       );
     }
 
-    const { items: availableProducts } = await this.retailService.listProducts(
-      tenantId,
-      { page: 1, pageSize: 200 },
+    const resolvedItems = await Promise.all(
+      payload.items.map(async (item) => {
+        // Optimization: Find by SKU directly instead of listing 200 products
+        const product = await this.retailService.findProductBySku(
+          tenantId,
+          item.sku,
+        );
+        if (!product) {
+          throw new NotFoundException(`SKU not found: ${item.sku}`);
+        }
+        return {
+          productId: product.id,
+          quantity: item.quantity,
+          unitPrice: Number(product.base_price),
+        };
+      }),
     );
-    const items = payload.items.map((item) => {
-      const product = availableProducts.find((p) => p.sku === item.sku);
-      if (!product) {
-        throw new NotFoundException(`SKU not found: ${item.sku}`);
-      }
-      return {
-        productId: product.id,
-        quantity: item.quantity,
-        unitPrice: Number(product.base_price),
-      };
-    });
 
-    const grandTotal = items.reduce(
+    const grandTotal = resolvedItems.reduce(
       (sum, current) => sum + current.unitPrice * current.quantity,
       0,
     );
@@ -408,39 +410,46 @@ export class RetailGatewayService {
 
     const order = await this.retailService.createOrder(
       tenantId,
-      store.location_id,
+      store.locationId,
       {
         storeId: store.id,
         terminalId: "api-gateway",
         customerId: payload.customer?.email,
-        items,
+        items: resolvedItems,
         paymentMethod: paymentMethod,
         grandTotal: grandTotal,
       },
-      "retail-gateway",
+      clientId ?? "api-gateway",
     );
 
     // Calculate tax via service
     const taxAmount = await this.retailService.calculateTax(tenantId, order.id);
 
     if (payload.paymentStatus === "PAID") {
-      await this.retailService.processPayment(tenantId, order.id, {
-        amount: Number(order.grand_total) + taxAmount,
-        method: paymentMethod,
-      });
+      // NOTE: In a production environment, this should be verified against a payment provider webhook.
+      // We log this as an 'EXTERNAL_TRUSTED_PAYMENT' for audit visibility.
+      await this.retailService.processPayment(
+        tenantId,
+        order.id,
+        {
+          amount: Number(order.grandTotal) + taxAmount,
+          method: paymentMethod,
+        },
+        clientId ?? "api-gateway",
+      );
     }
 
     return {
       orderId: order.id,
       status: order.status === "reserved" ? "RESERVED" : "RECEIVED",
-      reservationTimeout: order.reservation_expires_at?.toISOString(),
+      reservationTimeout: order.reservationExpiresAt?.toISOString(),
       totals: {
         subtotal: Number(order.subtotal),
         tax: taxAmount,
         grandTotal: Number(order.subtotal) + taxAmount,
       },
       estimatedDelivery: "3-5 Business Days",
-      message: `Order ${order.status} from channel ${clientId ?? "unknown"}.`,
+      message: `Order ${order.status} from channel ${clientId ?? "headless-api"}.`,
     };
   }
 

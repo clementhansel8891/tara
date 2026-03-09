@@ -80,27 +80,6 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     employeeId: string,
   ): Promise<Employee | null> {
-    if (employeeId === "user-demo") {
-      return {
-        id: "user-demo",
-        tenantId: "comp-demo-a",
-        locationId: "loc-demo-1",
-        employeeCode: "EMP-001",
-        firstName: "Demo",
-        lastName: "User",
-        fullName: "Demo User",
-        email: "demo@zenvix.com",
-        phone: "123-456-7890",
-        departmentId: "dept-demo",
-        roleTitle: "Super Admin",
-        status: "active",
-        employmentType: "full_time",
-        hireDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    }
-
     const employee = await this.prisma.employee.findFirst({
       where: {
         id: employeeId,
@@ -117,27 +96,6 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async getGlobalEmployeeById(employeeId: string): Promise<Employee | null> {
-    if (employeeId === "user-demo") {
-      return {
-        id: "user-demo",
-        tenantId: "comp-demo-a",
-        locationId: "loc-demo-1",
-        employeeCode: "EMP-001",
-        firstName: "Demo",
-        lastName: "User",
-        fullName: "Demo User",
-        email: "demo@zenvix.com",
-        phone: "123-456-7890",
-        departmentId: "dept-demo",
-        roleTitle: "Super Admin",
-        status: "active",
-        employmentType: "full_time",
-        hireDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    }
-
     const employee = await this.prisma.employee.findUnique({
       where: {
         id: employeeId,

@@ -3,6 +3,8 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import * as storage from "@/lib/local-storage";
@@ -66,7 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (data.success && data.data) {
             setUser(data.data);
             if (storedSession) {
-              setSessionState(JSON.parse(storedSession));
+              const parsedSession = JSON.parse(storedSession) as SessionContext;
+              setSessionState({
+                ...parsedSession,
+                permissions: parsedSession.permissions || [],
+              });
             } else if (
               data.data.userCompanies &&
               data.data.userCompanies.length > 0
@@ -78,10 +84,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const newSession = {
                 userId: data.data.id,
                 tenantId: defaultCompany.tenantId,
-                locationId: "loc-default", // Will be fetched or provisioned
+                locationId: "", // Default to global scope
                 role: defaultCompany.role as Role,
                 departmentId: "dept-default",
                 token: storedToken,
+                permissions: [
+                  "VIEW_FINANCIALS",
+                  "VIEW_INVENTORY",
+                  "VIEW_DEVICES",
+                  "VIEW_HR",
+                  "VIEW_AUDIT",
+                  "MANAGE_STORE",
+                ],
               };
               setSession(newSession);
             }
@@ -96,49 +110,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setSession = (newSession: SessionContext) => {
+  const setSession = useCallback((newSession: SessionContext) => {
     setSessionState(newSession);
     localStorage.setItem("ZENVIX_SESSION", JSON.stringify(newSession));
-  };
+  }, []);
 
-  const login = async (credentials: any) => {
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(credentials),
-      });
-      const data = await res.json();
+  const logout = useCallback(() => {
+    localStorage.removeItem("ZENVIX_TOKEN");
+    localStorage.removeItem("ZENVIX_SESSION");
+    storage.clearAllData(); // Clear App/POS specific data
+    setUser(null);
+    setSessionState(null);
+  }, []);
 
-      if (data.success) {
-        localStorage.setItem("ZENVIX_TOKEN", data.token);
-        setUser(data.user);
+  const login = useCallback(
+    async (credentials: any) => {
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        });
+        const data = await res.json();
 
-        // If they have companies, setup session
-        if (data.user.userCompanies && data.user.userCompanies.length > 0) {
-          const defaultCompany =
-            data.user.userCompanies.find((c: any) => c.isDefault) ||
-            data.user.userCompanies[0];
-          const newSession = {
-            userId: data.user.id,
-            tenantId: defaultCompany.tenantId,
-            locationId: "loc-default",
-            role: defaultCompany.role as Role,
-            departmentId: "dept-default",
-            token: data.token,
-          };
-          setSession(newSession);
+        if (data.success) {
+          localStorage.setItem("ZENVIX_TOKEN", data.token);
+          setUser(data.user);
+
+          // If they have companies, setup session
+          if (data.user.userCompanies && data.user.userCompanies.length > 0) {
+            const defaultCompany =
+              data.user.userCompanies.find((c: any) => c.isDefault) ||
+              data.user.userCompanies[0];
+            const newSession = {
+              userId: data.user.id,
+              tenantId: defaultCompany.tenantId,
+              locationId: "",
+              role: defaultCompany.role as Role,
+              departmentId: "dept-default",
+              token: data.token,
+              permissions: [
+                "VIEW_FINANCIALS",
+                "VIEW_INVENTORY",
+                "VIEW_DEVICES",
+                "VIEW_HR",
+                "VIEW_AUDIT",
+                "MANAGE_STORE",
+              ],
+            };
+            setSession(newSession);
+          }
+
+          return { success: true };
         }
-
-        return { success: true };
+        return { success: false, error: data.message || "Login failed" };
+      } catch (e: any) {
+        return { success: false, error: e.message };
       }
-      return { success: false, error: data.message || "Login failed" };
-    } catch (e: any) {
-      return { success: false, error: e.message };
-    }
-  };
+    },
+    [setSession],
+  );
 
-  const registerUser = async (formData: any) => {
+  const registerUser = useCallback(async (formData: any) => {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -152,81 +185,103 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       return { success: false, error: e.message };
     }
-  };
+  }, []);
 
-  const provisionCompany = async (formData: any) => {
-    try {
-      const token = localStorage.getItem("ZENVIX_TOKEN");
-      const res = await fetch("/api/auth/company/provision", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      const json = await res.json();
-
-      if (json.success) {
-        // Create active session based on provisioned data
-        const newSession = {
-          userId: user?.id || "unknown",
-          tenantId: json.data.tenantId,
-          locationId: json.data.locationId,
-          role: Roles.SUPERADMIN, // Owner mapped to Superadmin effectively for frontend
-          departmentId: json.data.departmentId,
-          token: token as string,
-        };
-        setSession(newSession);
-
-        // Reload user to get updated userCompanies
-        const meRes = await fetch("/api/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
+  const provisionCompany = useCallback(
+    async (formData: any) => {
+      try {
+        const token = localStorage.getItem("ZENVIX_TOKEN");
+        const res = await fetch("/api/auth/company/provision", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
         });
-        const meData = await meRes.json();
-        if (meData.success) setUser(meData.data);
+        const json = await res.json();
 
-        return { success: true, session: newSession };
+        if (json.success) {
+          // Create active session based on provisioned data
+          const newSession = {
+            userId: user?.id || "unknown",
+            tenantId: json.data.tenantId,
+            locationId: json.data.locationId,
+            role: Roles.SUPERADMIN, // Owner mapped to Superadmin effectively for frontend
+            departmentId: json.data.departmentId,
+            token: token as string,
+            permissions: [
+              "VIEW_FINANCIALS",
+              "VIEW_INVENTORY",
+              "VIEW_DEVICES",
+              "VIEW_HR",
+              "VIEW_AUDIT",
+              "MANAGE_STORE",
+            ],
+          };
+          setSession(newSession);
+
+          // Reload user to get updated userCompanies
+          const meRes = await fetch("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const meData = await meRes.json();
+          if (meData.success) setUser(meData.data);
+
+          return { success: true, session: newSession };
+        }
+        return { success: false, error: json.message };
+      } catch (e: any) {
+        return { success: false, error: e.message };
       }
-      return { success: false, error: json.message };
-    } catch (e: any) {
-      return { success: false, error: e.message };
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("ZENVIX_TOKEN");
-    localStorage.removeItem("ZENVIX_SESSION");
-    storage.clearAllData(); // Clear App/POS specific data
-    setUser(null);
-    setSessionState(null);
-  };
-
-  const updateLocation = (locationId: string) => {
-    if (session) {
-      const newSession = { ...session, locationId };
-      setSession(newSession);
-    }
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated: !!user,
-        isLoading,
-        user,
-        session,
-        login,
-        registerUser,
-        provisionCompany,
-        logout,
-        setSession,
-        updateLocation,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    },
+    [user, setSession],
   );
+
+  /* Replaced by useCallback above */
+
+  const updateLocation = useCallback(
+    (locationId: string) => {
+      // IMPORTANT: Use functional updater to avoid depending on `session` in deps.
+      // If `session` is in the dep array, updateLocation gets a new reference every
+      // time session changes, which would cascade re-renders to all consumers.
+      setSessionState((prev) => {
+        if (!prev || prev.locationId === locationId) return prev; // No change, no re-render
+        const next = { ...prev, locationId };
+        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
+        return next;
+      });
+    },
+    [], // Stable: no deps needed with functional updater
+  );
+
+  const value = useMemo(
+    () => ({
+      isAuthenticated: !!user,
+      isLoading,
+      user,
+      session,
+      login,
+      registerUser,
+      provisionCompany,
+      logout,
+      setSession,
+      updateLocation,
+    }),
+    [
+      user,
+      isLoading,
+      session,
+      login,
+      registerUser,
+      provisionCompany,
+      logout,
+      setSession,
+      updateLocation,
+    ],
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

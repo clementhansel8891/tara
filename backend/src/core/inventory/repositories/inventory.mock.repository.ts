@@ -11,7 +11,9 @@ import {
   StockIntakeDto,
   TransferStockDto,
   CreateAdjustmentDto,
+  CreateMovementRequestDto,
 } from "./inventory.repository.interface";
+import { MovementRequest } from "../entities/movement-request.entity";
 
 @Injectable()
 export class InventoryMockRepository implements IInventoryRepository {
@@ -20,6 +22,7 @@ export class InventoryMockRepository implements IInventoryRepository {
   private movements: StockMovement[] = [];
   private adjustments: StockAdjustment[] = [];
   private alerts: InventoryAlert[] = [];
+  private movementRequests: MovementRequest[] = [];
 
   async getDashboard(tenant_id: string): Promise<InventoryDashboard> {
     return {
@@ -35,8 +38,10 @@ export class InventoryMockRepository implements IInventoryRepository {
     };
   }
 
-  async getItems(tenant_id: string): Promise<InventoryItem[]> {
-    return this.items.filter((item) => item.tenant_id === tenant_id);
+  async getItems(tenantId: string): Promise<InventoryItem[]> {
+    return this.items.filter(
+      (i) => i.tenant_id === tenantId && i.active === true,
+    );
   }
 
   async createItem(
@@ -51,6 +56,9 @@ export class InventoryMockRepository implements IInventoryRepository {
       category: data.category as any,
       uom: data.uom,
       moduleTags: data.moduleTags || [],
+      active: data.active ?? true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     } as any;
     this.items.push(newItem);
     return newItem;
@@ -156,7 +164,14 @@ export class InventoryMockRepository implements IInventoryRepository {
   async consumeStock(tenant_id: string, data: any): Promise<any> {
     return {};
   }
-  async deleteItem(tenant_id: string, itemId: string): Promise<void> {}
+  async deleteItem(tenant_id: string, itemId: string): Promise<void> {
+    this.items = this.items.filter((i) => i.id !== itemId);
+  }
+
+  async itemExistsBySku(tenant_id: string, sku: string): Promise<boolean> {
+    return this.items.some((i) => i.tenant_id === tenant_id && i.sku === sku);
+  }
+
   async batchDeleteItems(tenant_id: string, itemIds: string[]): Promise<void> {}
   async batchIntakeStock(
     tenant_id: string,
@@ -168,9 +183,71 @@ export class InventoryMockRepository implements IInventoryRepository {
     tenant_id: string,
     data: CreateItemDto[],
   ): Promise<InventoryItem[]> {
-    return [];
+    const results: InventoryItem[] = [];
+    for (const item of data) {
+      results.push(await this.createItem(tenant_id, item));
+    }
+    return results;
   }
   async requestProcurement(tenant_id: string, data: any): Promise<any> {
     return {};
+  }
+
+  async createMovementRequest(
+    tenant_id: string,
+    data: CreateMovementRequestDto,
+  ): Promise<MovementRequest> {
+    const request: MovementRequest = {
+      id: "mov-" + Math.random().toString(36).substr(2, 9),
+      tenant_id,
+      type: data.type as any,
+      status: "pending",
+      requestingLocationId: data.requestingLocationId,
+      sourceType: data.sourceType as any,
+      lines: [],
+      reason: data.reason,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any;
+    this.movementRequests.push(request);
+    return request;
+  }
+
+  async getNextSequence(tenant_id: string, category: string): Promise<number> {
+    const count = this.items.filter(
+      (i: any) => i.tenant_id === tenant_id && i.category === category,
+    ).length;
+    return count + 1;
+  }
+
+  async updateItemStatus(
+    tenant_id: string,
+    itemId: string,
+    status: string,
+  ): Promise<InventoryItem> {
+    const item = this.items.find(
+      (i) => i.id === itemId && i.tenant_id === tenant_id,
+    );
+    if (!item) throw new Error("Item not found");
+    (item as any).active = status === "active";
+    (item as any).status = status;
+    return item;
+  }
+
+  async getPendingItems(tenant_id: string): Promise<InventoryItem[]> {
+    return this.items.filter(
+      (i: any) => i.tenant_id === tenant_id && i.status === "pending",
+    );
+  }
+
+  async findHighestSkuByCategory(
+    tenant_id: string,
+    category: string,
+  ): Promise<string | null> {
+    const categorySkus = this.items
+      .filter((i: any) => i.tenant_id === tenant_id && i.category === category)
+      .map((i) => i.sku)
+      .sort((a, b) => b.localeCompare(a));
+    return categorySkus[0] || null;
   }
 }

@@ -213,6 +213,12 @@ export type SalesDashboardMetrics = {
   weightedPipelineValue: number;
   pendingQuoteApprovals: number;
   dealRiskCount: number;
+  moduleContributions?: {
+    retail?: {
+      retailRevenue: number;
+      retailOrders: number;
+    };
+  };
 };
 
 export type SalesManagerMetrics = {

@@ -9,10 +9,14 @@ import { UpdateAccountStatusDto } from "./dto/update-account-status.dto";
 import { UpdateCampaignStatusDto } from "./dto/update-campaign-status.dto";
 import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
 import { IMarketingRepository } from "./repositories/marketing.repository.interface";
+import { AuditService } from "../../shared/audit/audit.service";
 
 @Injectable()
 export class MarketingService {
-  constructor(private readonly repository: IMarketingRepository) {}
+  constructor(
+    private readonly repository: IMarketingRepository,
+    private readonly auditService: AuditService,
+  ) {}
 
   async getDashboard(tenantId: string) {
     return this.repository.getDashboard(tenantId);
@@ -31,7 +35,21 @@ export class MarketingService {
     dto: CreateCampaignDto,
     actorId: string,
   ) {
-    return this.repository.createCampaign(tenantId, dto, actorId);
+    const campaign = await this.repository.createCampaign(
+      tenantId,
+      dto,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "CREATE",
+      entityType: "CAMPAIGN",
+      entityId: campaign.id,
+      metadata: { name: dto.name, objective: dto.objective },
+    });
+    return campaign;
   }
 
   async updateCampaignStatus(
@@ -40,12 +58,22 @@ export class MarketingService {
     dto: UpdateCampaignStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateCampaignStatus(
+    const campaign = await this.repository.updateCampaignStatus(
       tenantId,
       campaignId,
       dto,
       actorId,
     );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "UPDATE_STATUS",
+      entityType: "CAMPAIGN",
+      entityId: campaignId,
+      metadata: { status: dto.status },
+    });
+    return campaign;
   }
 
   async getExecutions(tenantId: string) {
@@ -57,7 +85,21 @@ export class MarketingService {
     dto: ScheduleExecutionDto,
     actorId: string,
   ) {
-    return this.repository.scheduleExecution(tenantId, dto, actorId);
+    const execution = await this.repository.scheduleExecution(
+      tenantId,
+      dto,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "SCHEDULE",
+      entityType: "EXECUTION",
+      entityId: execution.id,
+      metadata: { campaignId: dto.campaignId, scheduledAt: dto.scheduledAt },
+    });
+    return execution;
   }
 
   async runExecution(
@@ -66,7 +108,22 @@ export class MarketingService {
     dto: RunExecutionDto,
     actorId: string,
   ) {
-    return this.repository.runExecution(tenantId, executionId, dto, actorId);
+    const execution = await this.repository.runExecution(
+      tenantId,
+      executionId,
+      dto,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "RUN",
+      entityType: "EXECUTION",
+      entityId: executionId,
+      metadata: { failed: dto.failed },
+    });
+    return execution;
   }
 
   async getLeads(tenantId: string) {
@@ -74,7 +131,17 @@ export class MarketingService {
   }
 
   async captureLead(tenantId: string, dto: CaptureLeadDto, actorId: string) {
-    return this.repository.captureLead(tenantId, dto, actorId);
+    const lead = await this.repository.captureLead(tenantId, dto, actorId);
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "CAPTURE",
+      entityType: "LEAD",
+      entityId: lead.id,
+      metadata: { source: dto.source, email: dto.email },
+    });
+    return lead;
   }
 
   async markLeadHandoffReady(
@@ -82,11 +149,37 @@ export class MarketingService {
     leadId: string,
     actorId: string,
   ) {
-    return this.repository.markLeadHandoffReady(tenantId, leadId, actorId);
+    const lead = await this.repository.markLeadHandoffReady(
+      tenantId,
+      leadId,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "HANDOFF_READY",
+      entityType: "LEAD",
+      entityId: leadId,
+    });
+    return lead;
   }
 
   async handoffLeadToSales(tenantId: string, leadId: string, actorId: string) {
-    return this.repository.handoffLeadToSales(tenantId, leadId, actorId);
+    const lead = await this.repository.handoffLeadToSales(
+      tenantId,
+      leadId,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "HANDOFF_TO_SALES",
+      entityType: "LEAD",
+      entityId: leadId,
+    });
+    return lead;
   }
 
   async getWorkflows(tenantId: string) {
@@ -98,7 +191,21 @@ export class MarketingService {
     dto: CreateWorkflowDto,
     actorId: string,
   ) {
-    return this.repository.createWorkflow(tenantId, dto, actorId);
+    const workflow = await this.repository.createWorkflow(
+      tenantId,
+      dto,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "CREATE",
+      entityType: "WORKFLOW",
+      entityId: workflow.id,
+      metadata: { name: dto.name, trigger: dto.trigger },
+    });
+    return workflow;
   }
 
   async updateWorkflowStatus(
@@ -107,12 +214,22 @@ export class MarketingService {
     dto: UpdateWorkflowStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateWorkflowStatus(
+    const workflow = await this.repository.updateWorkflowStatus(
       tenantId,
       workflowId,
       dto,
       actorId,
     );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "UPDATE_STATUS",
+      entityType: "WORKFLOW",
+      entityId: workflowId,
+      metadata: { status: dto.status },
+    });
+    return workflow;
   }
 
   async getConnectedAccounts(tenantId: string) {
@@ -124,7 +241,21 @@ export class MarketingService {
     dto: ConnectAccountDto,
     actorId: string,
   ) {
-    return this.repository.connectAccount(tenantId, dto, actorId);
+    const account = await this.repository.connectAccount(
+      tenantId,
+      dto,
+      actorId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "CONNECT",
+      entityType: "ACCOUNT",
+      entityId: account.id,
+      metadata: { provider: dto.provider, accountName: dto.accountName },
+    });
+    return account;
   }
 
   async updateAccountStatus(
@@ -133,12 +264,22 @@ export class MarketingService {
     dto: UpdateAccountStatusDto,
     actorId: string,
   ) {
-    return this.repository.updateAccountStatus(
+    const account = await this.repository.updateAccountStatus(
       tenantId,
       accountId,
       dto,
       actorId,
     );
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "UPDATE_STATUS",
+      entityType: "ACCOUNT",
+      entityId: accountId,
+      metadata: { status: dto.status },
+    });
+    return account;
   }
 
   async getAttribution(tenantId: string) {
@@ -154,7 +295,17 @@ export class MarketingService {
   }
 
   async runHealthSweep(tenantId: string, actorId: string) {
-    return this.repository.runHealthSweep(tenantId, actorId);
+    const findings = await this.repository.runHealthSweep(tenantId, actorId);
+    await this.auditService.log({
+      tenantId,
+      userId: actorId,
+      module: "marketing",
+      action: "RUN_HEALTH_SWEEP",
+      entityType: "SYSTEM",
+      entityId: "marketing-health",
+      metadata: { findingsCount: findings.length },
+    });
+    return findings;
   }
 
   async getAuditEvents(tenantId: string) {

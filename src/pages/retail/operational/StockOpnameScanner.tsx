@@ -188,8 +188,8 @@ const StockOpnameScanner = () => {
                     />
                   </div>
                   <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] animate-pulse flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" /> Nexus Audit Pulse Active
-                    • Hardware Validated
+                    <ShieldCheck className="w-4 h-4" /> Zenvix Audit Pulse
+                    Active • Hardware Validated
                   </p>
                 </form>
               </CardContent>
@@ -380,7 +380,7 @@ const StockOpnameScanner = () => {
                   </div>
                   <p className="text-[10px] text-slate-400 font-bold leading-relaxed italic uppercase tracking-tight">
                     Audited data is stream-queued to the{" "}
-                    <strong>Nexus Global Ledger</strong>. Local buffer
+                    <strong>Zenvix Global Ledger</strong>. Local buffer
                     encryption active.
                   </p>
                 </div>

@@ -12,6 +12,7 @@ export class ChannelCredentialsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    if (request.method === "OPTIONS") return true;
     const tenantId = request.tenantContext?.tenantId;
     const clientId = request.headers["x-client-id"] as string | undefined;
     const clientSecret = request.headers["x-client-secret"] as

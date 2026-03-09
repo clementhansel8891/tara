@@ -157,7 +157,7 @@ const ReceivingTerminal = () => {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       toast({
-        title: "Nexus Sync Failed",
+        title: "Zenvix Sync Failed",
         description: message,
         variant: "destructive",
       });
@@ -207,7 +207,7 @@ const ReceivingTerminal = () => {
                   <div className="space-y-4">
                     {isLoading ? (
                       <div className="py-20 text-center text-slate-400 font-black italic uppercase animate-pulse">
-                        Scanning Logistics Nexus...
+                        Scanning Logistics Zenvix...
                       </div>
                     ) : (
                       shipments

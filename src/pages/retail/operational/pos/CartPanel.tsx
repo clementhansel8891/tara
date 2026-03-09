@@ -1,0 +1,281 @@
+import React from "react";
+import {
+  ShoppingCart,
+  Trash2,
+  Plus,
+  Minus,
+  Package,
+  CreditCard,
+  Banknote,
+  RefreshCw,
+  Zap,
+} from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  sku: string;
+}
+
+interface CartPanelProps {
+  cart: CartItem[];
+  onUpdateQuantity: (id: string, delta: number) => void;
+  onRemove: (id: string) => void;
+  onCheckout: (method: "cash" | "card") => void;
+  isProcessing: boolean;
+  activeStoreName?: string;
+  selectedItemId?: string | null;
+  onSelectItem?: (id: string) => void;
+}
+
+export const CartPanel: React.FC<CartPanelProps> = ({
+  cart,
+  onUpdateQuantity,
+  onRemove,
+  onCheckout,
+  isProcessing,
+  activeStoreName,
+  selectedItemId,
+  onSelectItem,
+}) => {
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+  const tax = subtotal * 0.11;
+  const total = subtotal + tax;
+
+  const selectedItem = cart.find((item) => item.id === selectedItemId);
+
+  return (
+    <div className="h-full flex flex-col bg-white/30 backdrop-blur-2xl overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-white/40 relative">
+      {/* Gloss Effect overlay */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+
+      {/* Header */}
+      <div className="p-4 border-b border-white/40 bg-white/20 shrink-0 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/40 ring-4 ring-white/50">
+            <ShoppingCart className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black italic tracking-tighter uppercase text-slate-900 leading-none mb-1">
+              {activeStoreName || "POS HUB"}
+            </h2>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
+              <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+                ACTIVE LINK
+              </span>
+            </div>
+          </div>
+        </div>
+        <Badge className="h-8 rounded-xl bg-white border border-slate-100 text-slate-900 px-4 font-black italic shadow-lg shadow-slate-200/50">
+          {cart.length} SKUS
+        </Badge>
+      </div>
+
+      {/* Cart Content */}
+      <ScrollArea className="flex-1 relative z-10">
+        {cart.length === 0 ? (
+          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-200">
+            <div className="relative mb-6">
+              <ShoppingCart className="w-16 h-16 opacity-5" />
+              <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full" />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 italic">
+              CART IS EMPTY
+            </p>
+          </div>
+        ) : (
+          <div className="p-3 space-y-2">
+            {cart.map((item) => {
+              const isActive = selectedItemId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => onSelectItem?.(item.id)}
+                  className={`group relative flex flex-col gap-3 p-3.5 rounded-[1.5rem] transition-all duration-500 cursor-pointer border ${
+                    isActive
+                      ? "bg-indigo-600 shadow-[0_15px_30px_-10px_rgba(79,70,229,0.4)] border-indigo-400 ring-2 ring-white/20 translate-x-1"
+                      : "bg-white/40 border-white/60 hover:bg-white/60 hover:border-indigo-100"
+                  }`}
+                >
+                  {/* Top Row: Core Item Info */}
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4
+                        className={`text-[13px] font-black italic truncate tracking-tight transition-colors ${
+                          isActive
+                            ? "text-white"
+                            : "text-slate-900 group-hover:text-indigo-600"
+                        }`}
+                      >
+                        {item.name}
+                      </h4>
+                      <div
+                        className={`mt-1 text-[9px] font-black uppercase tracking-widest opacity-60 ${
+                          isActive ? "text-white" : "text-slate-500"
+                        }`}
+                      >
+                        UNIT: Rp {item.price.toLocaleString()}
+                      </div>
+                    </div>
+                    {isActive && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemove(item.id);
+                        }}
+                        className="p-1.5 rounded-lg bg-rose-500/20 text-rose-200 hover:text-white hover:bg-rose-500 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Bottom Row: Controls & Line Total */}
+                  <div className="flex items-center justify-between gap-4 mt-auto">
+                    {/* Horizontal Industrial Quantity Controls */}
+                    <div
+                      className={`flex items-center gap-1 p-1 rounded-xl transition-colors ${
+                        isActive ? "bg-white/10" : "bg-slate-900/5 shadow-inner"
+                      }`}
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateQuantity(item.id, -1);
+                        }}
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-90 ${
+                          isActive
+                            ? "bg-white text-rose-500 shadow-sm"
+                            : "bg-white shadow-sm text-slate-400 hover:text-rose-500 font-bold"
+                        }`}
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <div
+                        className={`w-9 h-7 flex items-center justify-center text-sm font-black italic ${
+                          isActive ? "text-white" : "text-slate-900"
+                        }`}
+                      >
+                        {item.quantity}
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUpdateQuantity(item.id, 1);
+                        }}
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-90 ${
+                          isActive
+                            ? "bg-white text-indigo-600 shadow-sm"
+                            : "bg-white shadow-sm text-slate-600 hover:text-indigo-600"
+                        }`}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="text-right flex flex-col items-end">
+                      <span
+                        className={`text-[8px] font-black uppercase tracking-[0.2em] opacity-40 leading-none mb-1 ${
+                          isActive ? "text-white" : "text-slate-400"
+                        }`}
+                      >
+                        LINE TOTAL
+                      </span>
+                      <div
+                        className={`text-lg font-black italic tracking-tighter transition-all duration-300 ${
+                          isActive
+                            ? "text-white drop-shadow-lg scale-105"
+                            : "text-indigo-600"
+                        }`}
+                      >
+                        <span className="text-[10px] not-italic opacity-40 mr-0.5">
+                          RP
+                        </span>
+                        {(item.price * item.quantity).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
+
+      {/* Totals & Payments Section */}
+      <div className="mt-auto shrink-0 relative z-20">
+        {/* Totals & Payments Section */}
+        <div className="p-4 bg-slate-950 text-white rounded-t-[2.5rem] shadow-[0_-30px_100px_rgba(0,0,0,0.4)] relative overflow-hidden">
+          {/* Decorative glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/30 blur-[120px] -mr-40 -mt-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-600/10 blur-[100px] -ml-32 -mb-20 pointer-events-none" />
+
+          {/* Totals */}
+          <div className="space-y-2 mb-4 relative z-10">
+            <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <span>Subtotal</span>
+              <span>Rp {subtotal.toLocaleString()}</span>
+            </div>
+
+            <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <span>Tax (11%)</span>
+              <span>Rp {tax.toLocaleString()}</span>
+            </div>
+
+            <Separator className="bg-white/10 my-1" />
+
+            {/* GRAND TOTAL */}
+            <div className="flex justify-between items-end pt-1">
+              <div className="text-sm font-semibold text-indigo-400 uppercase tracking-widest">
+                Total Due
+              </div>
+
+              <div className="text-right">
+                <div className="text-3xl font-black tracking-tight text-white leading-none">
+                  Rp {total.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Buttons */}
+          <div className="grid grid-cols-2 gap-3 relative z-10">
+            <button
+              disabled={cart.length === 0 || isProcessing}
+              onClick={() => onCheckout("cash")}
+              className="h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold flex items-center justify-center gap-2 rounded-xl uppercase tracking-wide transition-all active:scale-95 disabled:opacity-30"
+            >
+              <Banknote className="w-4 h-4 text-indigo-400" />
+              Cash
+            </button>
+
+            <button
+              disabled={cart.length === 0 || isProcessing}
+              onClick={() => onCheckout("card")}
+              className="h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 rounded-xl shadow-[0_10px_20px_rgba(79,70,229,0.35)] transition-all active:scale-95 disabled:opacity-30"
+            >
+              {isProcessing ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Card
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

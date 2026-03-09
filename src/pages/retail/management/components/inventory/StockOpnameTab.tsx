@@ -1,28 +1,20 @@
-import React, { useRef } from "react";
-import {
-  ClipboardCheck,
-  Edit3,
-  ScanLine,
-  Upload,
-  Zap,
-  CheckCircle2,
-} from "lucide-react";
+import React, { useRef, useMemo } from "react";
+import { ClipboardCheck, Edit3, ScanLine, Upload, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-
-export type OpnameEntry = {
-  sku: string;
-  name: string;
-  expected: number;
-  counted: number | "";
-};
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+import { OpnameSessionHeader } from "./opname/OpnameSessionHeader";
+import { OpnameFilters } from "./opname/OpnameFilters";
+import { OpnameTable, type OpnameEntry } from "./opname/OpnameTable";
+import { InventoryFilters } from "./types";
 
 type Props = {
   storeName?: string;
   opnameActive: boolean;
   opnameEntries: OpnameEntry[];
+  filters: InventoryFilters;
+  categoryOptions: { id: string; name: string }[];
+  onFiltersChange: (patch: Partial<InventoryFilters>) => void;
   barcodeInput: string;
   onStart: () => void;
   onDiscard: () => void;
@@ -30,12 +22,17 @@ type Props = {
   onBarcodeChange: (val: string) => void;
   onBarcodeKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onCountChange: (index: number, value: string) => void;
+  isLoading?: boolean;
+  statusBadge: (status: string) => string;
 };
 
 export const StockOpnameTab: React.FC<Props> = ({
   storeName,
   opnameActive,
   opnameEntries,
+  filters,
+  categoryOptions,
+  onFiltersChange,
   barcodeInput,
   onStart,
   onDiscard,
@@ -43,8 +40,40 @@ export const StockOpnameTab: React.FC<Props> = ({
   onBarcodeChange,
   onBarcodeKeyDown,
   onCountChange,
+  isLoading = false,
+  statusBadge,
 }) => {
   const barcodeRef = useRef<HTMLInputElement>(null);
+
+  // Hook into the global scanner
+  useBarcodeScanner((barcode) => {
+    if (opnameActive) {
+      onBarcodeChange(barcode);
+      // Simulate enter key to trigger the register logic in parent
+      onBarcodeKeyDown({
+        key: "Enter",
+      } as React.KeyboardEvent<HTMLInputElement>);
+    }
+  });
+
+  // Local filtering for the view
+  const filteredEntries = useMemo(() => {
+    return opnameEntries.filter((entry) => {
+      const matchesSearch =
+        !filters.search ||
+        entry.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        entry.sku.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchesCategory =
+        filters.category === "all" || entry.categoryId === filters.category;
+
+      const matchesStatus =
+        filters.status === "all" ||
+        entry.status?.toLowerCase() === filters.status.toLowerCase();
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [opnameEntries, filters]);
 
   if (!opnameActive) {
     return (
@@ -58,7 +87,7 @@ export const StockOpnameTab: React.FC<Props> = ({
               Stock Opname
             </h2>
             <p className="text-sm text-slate-500 font-bold italic mt-2">
-              Physical count &amp; reconciliation for{" "}
+              Physical count & reconciliation for{" "}
               <span className="text-slate-800">{storeName}</span>
             </p>
           </div>
@@ -107,126 +136,37 @@ export const StockOpnameTab: React.FC<Props> = ({
 
   return (
     <div className="space-y-6">
-      {/* Active session header */}
-      <Card className="rounded-[2rem] bg-blue-600 text-white border-none shadow-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-3 h-3 rounded-full bg-white animate-pulse" />
-            <div>
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 italic">
-                ACTIVE OPNAME SESSION
-              </div>
-              <div className="text-xl font-black italic tracking-tighter">
-                {storeName}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={onDiscard}
-              className="text-white/70 hover:text-white font-black italic text-xs uppercase"
-            >
-              Discard
-            </Button>
-            <Button
-              onClick={onSubmit}
-              className="bg-white text-blue-600 hover:bg-blue-50 font-black italic uppercase text-xs gap-2 rounded-xl px-5 h-10"
-            >
-              <CheckCircle2 className="w-4 h-4" /> Submit Count
-            </Button>
-          </div>
-        </div>
-      </Card>
+      <OpnameSessionHeader
+        storeName={storeName}
+        onDiscard={onDiscard}
+        onSubmit={onSubmit}
+      />
 
-      {/* Barcode input */}
-      <Card className="rounded-[2rem] border-none shadow-lg bg-white p-5">
-        <div className="flex items-center gap-4">
-          <ScanLine className="w-5 h-5 text-blue-600 shrink-0" />
-          <Input
-            ref={barcodeRef}
-            className="flex-1 h-12 rounded-xl font-mono font-bold border-slate-200"
-            placeholder="Scan barcode here (press Enter to register)..."
-            value={barcodeInput}
-            onChange={(e) => onBarcodeChange(e.target.value)}
-            onKeyDown={onBarcodeKeyDown}
-          />
-        </div>
-      </Card>
+      <OpnameFilters
+        filters={filters}
+        categoryOptions={categoryOptions}
+        onFiltersChange={onFiltersChange}
+        barcodeInput={barcodeInput}
+        onBarcodeChange={onBarcodeChange}
+        onBarcodeKeyDown={onBarcodeKeyDown}
+        barcodeRef={barcodeRef}
+      />
 
-      {/* Count table */}
-      <Card className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-50">
-              {["SKU", "Item Name", "Expected", "Counted", "Variance"].map(
-                (h, i) => (
-                  <th
-                    key={i}
-                    className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {opnameEntries.map((entry, i) => {
-              const variance =
-                entry.counted !== ""
-                  ? Number(entry.counted) - entry.expected
-                  : null;
-              return (
-                <tr
-                  key={i}
-                  className="border-b border-slate-50 last:border-none"
-                >
-                  <td className="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">
-                    {entry.sku}
-                  </td>
-                  <td className="px-6 py-4 font-black italic text-sm text-slate-900">
-                    {entry.name}
-                  </td>
-                  <td className="px-6 py-4 font-bold italic text-slate-600">
-                    {entry.expected}
-                  </td>
-                  <td className="px-6 py-4">
-                    <Input
-                      type="number"
-                      min="0"
-                      value={entry.counted}
-                      onChange={(e) => onCountChange(i, e.target.value)}
-                      className="w-24 h-9 rounded-xl font-bold text-center border-slate-200"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    {variance !== null ? (
-                      <span
-                        className={cn(
-                          "font-black italic text-sm",
-                          variance === 0
-                            ? "text-emerald-600"
-                            : variance > 0
-                              ? "text-blue-600"
-                              : "text-red-600",
-                        )}
-                      >
-                        {variance > 0 ? "+" : ""}
-                        {variance}
-                      </span>
-                    ) : (
-                      <span className="text-slate-300 font-bold italic text-sm">
-                        —
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Card>
+      <OpnameTable
+        entries={filteredEntries}
+        isLoading={isLoading}
+        onCountChange={(filteredIdx, val) => {
+          // Map filtered index back to original index
+          const originalEntry = filteredEntries[filteredIdx];
+          const originalIdx = opnameEntries.findIndex(
+            (e) => e.sku === originalEntry.sku,
+          );
+          if (originalIdx !== -1) {
+            onCountChange(originalIdx, val);
+          }
+        }}
+        statusBadge={statusBadge}
+      />
     </div>
   );
 };

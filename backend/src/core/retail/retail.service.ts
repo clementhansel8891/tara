@@ -1,5 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { IRetailRepository } from "./repositories/retail.repository.interface";
+import { SkuGeneratorService } from "../inventory/sku-generator.service";
+import { InventoryService } from "../inventory/inventory.service";
+import { FinanceService } from "../finance/finance.service";
+import { TransactionType } from "../finance/dto/create-transaction.dto";
 import {
   RetailStore,
   RetailProduct,
@@ -15,15 +19,24 @@ import {
   CreateEcommerceStoreDto,
   UpdateEcommerceStoreDto,
   CreateInventoryPoolDto,
+  UpdateProductDto,
+  RegisterBranchDeviceDto,
+  RegisterCCTVCameraDto,
+  RegisterBranchSensorDto,
 } from "./dto/retail.dto";
 import { randomBytes, createHash } from "crypto";
 import { AuditService } from "../../shared/audit/audit.service";
+import { PrismaService } from "../../persistence/prisma.service";
 
 @Injectable()
 export class RetailService {
   constructor(
     private readonly retailRepository: IRetailRepository,
     private readonly auditService: AuditService,
+    private readonly skuGenerator: SkuGeneratorService,
+    private readonly inventoryService: InventoryService,
+    private readonly financeService: FinanceService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // Stores (Physical Branches)
@@ -32,6 +45,10 @@ export class RetailService {
     locationId?: string,
   ): Promise<RetailStore[]> {
     return this.retailRepository.listStores(tenantId, locationId);
+  }
+
+  async listCategories(tenantId: string): Promise<any[]> {
+    return this.retailRepository.listCategories(tenantId);
   }
 
   async createStore(
@@ -99,8 +116,22 @@ export class RetailService {
   async createInventoryPool(
     tenantId: string,
     data: CreateInventoryPoolDto,
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.createInventoryPool(tenantId, data);
+    const pool = await this.retailRepository.createInventoryPool(
+      tenantId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CREATE",
+      entityType: "INVENTORY_POOL",
+      entityId: pool.id,
+      metadata: { name: pool.name },
+    });
+    return pool;
   }
 
   async getInventoryPool(tenantId: string, poolId: string): Promise<any> {
@@ -110,8 +141,20 @@ export class RetailService {
     return pool;
   }
 
-  async deleteInventoryPool(tenantId: string, poolId: string): Promise<void> {
-    return this.retailRepository.deleteInventoryPool(tenantId, poolId);
+  async deleteInventoryPool(
+    tenantId: string,
+    poolId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.retailRepository.deleteInventoryPool(tenantId, poolId);
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "DELETE",
+      entityType: "INVENTORY_POOL",
+      entityId: poolId,
+    });
   }
 
   // E-Commerce Stores
@@ -135,44 +178,105 @@ export class RetailService {
   async createEcommerceStore(
     tenantId: string,
     data: CreateEcommerceStoreDto,
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.createEcommerceStore(tenantId, data);
+    const store = await this.retailRepository.createEcommerceStore(
+      tenantId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CREATE",
+      entityType: "ECOMMERCE_STORE",
+      entityId: store.id,
+      metadata: { name: store.name },
+    });
+    return store;
   }
 
   async updateEcommerceStore(
     tenantId: string,
     storeId: string,
     data: UpdateEcommerceStoreDto,
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.updateEcommerceStore(tenantId, storeId, data);
+    const store = await this.retailRepository.updateEcommerceStore(
+      tenantId,
+      storeId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE",
+      entityType: "ECOMMERCE_STORE",
+      entityId: storeId,
+      metadata: { changes: data },
+    });
+    return store;
   }
 
-  async deleteEcommerceStore(tenantId: string, storeId: string): Promise<void> {
-    return this.retailRepository.deleteEcommerceStore(tenantId, storeId);
+  async deleteEcommerceStore(
+    tenantId: string,
+    storeId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.retailRepository.deleteEcommerceStore(tenantId, storeId);
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "DELETE",
+      entityType: "ECOMMERCE_STORE",
+      entityId: storeId,
+    });
   }
 
   async linkEcommerceToBranch(
     tenantId: string,
     ecommerceId: string,
     branchId: string,
+    userId: string,
   ): Promise<void> {
-    return this.retailRepository.linkEcommerceToBranch(
+    await this.retailRepository.linkEcommerceToBranch(
       tenantId,
       ecommerceId,
       branchId,
     );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "LINK",
+      entityType: "ECOMMERCE_BRANCH",
+      entityId: ecommerceId,
+      metadata: { branchId },
+    });
   }
 
   async unlinkEcommerceFromBranch(
     tenantId: string,
     ecommerceId: string,
     branchId: string,
+    userId: string,
   ): Promise<void> {
-    return this.retailRepository.unlinkEcommerceFromBranch(
+    await this.retailRepository.unlinkEcommerceFromBranch(
       tenantId,
       ecommerceId,
       branchId,
     );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UNLINK",
+      entityType: "ECOMMERCE_BRANCH",
+      entityId: ecommerceId,
+      metadata: { branchId },
+    });
   }
 
   // Products
@@ -182,6 +286,9 @@ export class RetailService {
       page?: number;
       pageSize?: number;
       categoryId?: string;
+      type?: string;
+      minPrice?: number;
+      maxPrice?: number;
       q?: string;
       sortBy?: "name" | "price" | "createdAt";
       sortDir?: "asc" | "desc";
@@ -191,7 +298,54 @@ export class RetailService {
     return this.retailRepository.listProducts(tenantId, options);
   }
 
-  // Orders
+  async getProduct(tenantId: string, productId: string) {
+    return this.retailRepository.getProduct(tenantId, productId);
+  }
+
+  async updateProduct(
+    tenantId: string,
+    productId: string,
+    data: UpdateProductDto,
+    userId: string,
+    locationId?: string,
+  ) {
+    const updated = await this.retailRepository.updateProduct(
+      tenantId,
+      productId,
+      data,
+      locationId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE",
+      entityType: "PRODUCT",
+      entityId: productId,
+      metadata: { changes: data, locationId },
+    });
+    return updated;
+  }
+
+  async findProductBySku(tenantId: string, sku: string): Promise<any> {
+    return this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        sku,
+        status: "active",
+      },
+    });
+  }
+
+  async generateNextSku(
+    tenantId: string,
+    categoryId: string,
+  ): Promise<{ sku: string; barcode: string }> {
+    const sku = await this.skuGenerator.generateSku(tenantId, categoryId);
+    const barcode = this.skuGenerator.generateBarcode(tenantId, sku);
+    return { sku, barcode };
+  }
+
   async listOrders(tenantId: string, storeId?: string): Promise<RetailOrder[]> {
     return this.retailRepository.listOrders(tenantId, storeId);
   }
@@ -207,6 +361,7 @@ export class RetailService {
       tenantId,
       locationId,
       data,
+      userId,
     );
 
     // Audit initial creation
@@ -217,7 +372,7 @@ export class RetailService {
       action: "CREATE",
       entityType: "ORDER",
       entityId: order.id,
-      metadata: { total: order.grand_total, itemCount: order.items.length },
+      metadata: { total: order.grandTotal, itemCount: order.items.length },
     });
 
     // 2. Transition to RESERVED if items can be locked
@@ -238,16 +393,20 @@ export class RetailService {
     for (const item of order.items) {
       const res = await this.retailRepository.reserveStock(
         tenantId,
-        item.product_id,
+        item.productId,
         item.quantity,
       );
       if (!res.success) {
-        throw new Error(`Insufficient stock for product ${item.product_id}`);
+        throw new Error(`Insufficient stock for product ${item.productId}`);
       }
     }
   }
 
-  async calculateTax(tenantId: string, orderId: string): Promise<number> {
+  async calculateTax(
+    tenantId: string,
+    orderId: string,
+    userId?: string,
+  ): Promise<number> {
     const order = await this.retailRepository.getOrder(tenantId, orderId);
     if (!order) throw new NotFoundException("Order not found");
 
@@ -260,6 +419,19 @@ export class RetailService {
       order.status,
       { tax_total: taxTotal },
     );
+
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "CALCULATE_TAX",
+        entityType: "ORDER",
+        entityId: orderId,
+        metadata: { taxTotal },
+      });
+    }
+
     return taxTotal;
   }
 
@@ -268,13 +440,26 @@ export class RetailService {
     orderId: string,
     status: string,
     metadata?: any,
+    userId?: string,
   ): Promise<RetailOrder> {
-    return this.retailRepository.updateOrderStatus(
+    const order = await this.retailRepository.updateOrderStatus(
       tenantId,
       orderId,
       status,
       metadata,
     );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "UPDATE_STATUS",
+        entityType: "ORDER",
+        entityId: orderId,
+        metadata: { status, ...metadata },
+      });
+    }
+    return order;
   }
 
   async getStockStatus(tenantId: string, productId: string) {
@@ -302,6 +487,7 @@ export class RetailService {
     locationId: string,
     employeeId: string,
     data: OpenShiftDto,
+    userId?: string,
   ): Promise<RetailShift> {
     // Check if already has an active shift
     const active = await this.retailRepository.getActiveShift(
@@ -312,20 +498,49 @@ export class RetailService {
     if (active) {
       throw new Error("Shift already active for this employee and store.");
     }
-    return this.retailRepository.openShift(
+    const shift = await this.retailRepository.openShift(
       tenantId,
       locationId,
       employeeId,
       data,
     );
+
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "OPEN_SHIFT",
+        entityType: "SHIFT",
+        entityId: shift.id,
+        metadata: { openingCash: data.openingCash, storeId: data.storeId },
+      });
+    }
+
+    return shift;
   }
 
   async closeShift(
     tenantId: string,
     shiftId: string,
     data: CloseShiftDto,
+    userId: string,
   ): Promise<RetailShift> {
-    return this.retailRepository.closeShift(tenantId, shiftId, data);
+    const shift = await this.retailRepository.closeShift(
+      tenantId,
+      shiftId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CLOSE_SHIFT",
+      entityType: "SHIFT",
+      entityId: shiftId,
+      metadata: { closingCash: data.closingCash },
+    });
+    return shift;
   }
 
   async listShifts(tenantId: string, storeId?: string): Promise<RetailShift[]> {
@@ -341,8 +556,23 @@ export class RetailService {
     tenantId: string,
     promotionId: string,
     data: any,
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.updatePromotion(tenantId, promotionId, data);
+    const promo = await this.retailRepository.updatePromotion(
+      tenantId,
+      promotionId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE",
+      entityType: "PROMOTION",
+      entityId: promotionId,
+      metadata: { changes: data },
+    });
+    return promo;
   }
 
   // Channels
@@ -350,7 +580,11 @@ export class RetailService {
     return this.retailRepository.listChannels(tenantId);
   }
 
-  async createChannel(tenantId: string, data: any): Promise<any> {
+  async createChannel(
+    tenantId: string,
+    data: any,
+    userId: string,
+  ): Promise<any> {
     const shouldProvision =
       typeof data?.provisionCredentials === "boolean"
         ? data.provisionCredentials
@@ -376,6 +610,17 @@ export class RetailService {
       tenantId,
       payload,
     );
+
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CREATE",
+      entityType: "CHANNEL",
+      entityId: channel.id,
+      metadata: { name: channel.name, type: channel.type },
+    });
+
     return {
       ...channel,
       ...(clientId ? { clientId } : {}),
@@ -387,22 +632,60 @@ export class RetailService {
     tenantId: string,
     channelId: string,
     data: any,
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.updateChannel(tenantId, channelId, data);
+    const channel = await this.retailRepository.updateChannel(
+      tenantId,
+      channelId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE",
+      entityType: "CHANNEL",
+      entityId: channelId,
+      metadata: { changes: data },
+    });
+    return channel;
   }
 
   async deleteChannel(
     tenantId: string,
     channelId: string,
+    userId: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.deleteChannel(tenantId, channelId);
+    const result = await this.retailRepository.deleteChannel(
+      tenantId,
+      channelId,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "DELETE",
+      entityType: "CHANNEL",
+      entityId: channelId,
+    });
+    return result;
   }
 
   async syncChannel(
     tenantId: string,
     channelId: string,
+    userId: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.syncChannel(tenantId, channelId);
+    const result = await this.retailRepository.syncChannel(tenantId, channelId);
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "SYNC",
+      entityType: "CHANNEL",
+      entityId: channelId,
+    });
+    return result;
   }
 
   async getChannelById(
@@ -415,6 +698,7 @@ export class RetailService {
   async rotateChannelCredentials(
     tenantId: string,
     channelId: string,
+    userId: string,
   ): Promise<{ clientId: string; clientSecret: string }> {
     const channel = await this.retailRepository.getChannelById(
       tenantId,
@@ -449,12 +733,22 @@ export class RetailService {
       credentialsPayload,
     );
 
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "ROTATE_CREDENTIALS",
+      entityType: "CHANNEL",
+      entityId: channelId,
+    });
+
     return { clientId, clientSecret };
   }
 
   async revokeChannelCredentials(
     tenantId: string,
     channelId: string,
+    userId: string,
   ): Promise<{ clientId: string }> {
     const channel = await this.retailRepository.getChannelById(
       tenantId,
@@ -493,6 +787,15 @@ export class RetailService {
       credentialsPayload,
     );
 
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "REVOKE_CREDENTIALS",
+      entityType: "CHANNEL",
+      entityId: channelId,
+    });
+
     return { clientId: existingCredentials.clientId };
   }
 
@@ -520,6 +823,95 @@ export class RetailService {
     return this.retailRepository.listDevices(tenantId, storeId);
   }
 
+  async registerDevice(
+    tenantId: string,
+    locationId: string,
+    data: RegisterBranchDeviceDto,
+    userId: string,
+  ): Promise<any> {
+    const device = await this.retailRepository.registerDevice(
+      tenantId,
+      locationId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "it",
+      action: "REGISTER",
+      entityType: "DEVICE",
+      entityId: device.id,
+      metadata: { name: device.name, type: device.type },
+    });
+    return device;
+  }
+
+  async listCCTVs(tenantId: string, storeId?: string): Promise<any[]> {
+    return this.retailRepository.listCCTVs(tenantId, storeId);
+  }
+
+  async validateCCTVConnection(
+    tenantId: string,
+    locationId: string,
+    data: Partial<RegisterCCTVCameraDto>,
+  ): Promise<{ success: boolean; message?: string }> {
+    return this.retailRepository.validateCCTVConnection(
+      tenantId,
+      locationId,
+      data,
+    );
+  }
+
+  async registerCCTV(
+    tenantId: string,
+    locationId: string,
+    data: RegisterCCTVCameraDto,
+    userId: string,
+  ): Promise<any> {
+    const camera = await this.retailRepository.registerCCTV(
+      tenantId,
+      locationId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "it",
+      action: "REGISTER",
+      entityType: "CCTV",
+      entityId: camera.id,
+      metadata: { name: camera.name, provider: camera.provider },
+    });
+    return camera;
+  }
+
+  async listSensors(tenantId: string, storeId?: string): Promise<any[]> {
+    return this.retailRepository.listSensors(tenantId, storeId);
+  }
+
+  async registerSensor(
+    tenantId: string,
+    locationId: string,
+    data: RegisterBranchSensorDto,
+    userId: string,
+  ): Promise<any> {
+    const sensor = await this.retailRepository.registerSensor(
+      tenantId,
+      locationId,
+      data,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "it",
+      action: "REGISTER",
+      entityType: "SENSOR",
+      entityId: sensor.id,
+      metadata: { name: sensor.name, type: sensor.type },
+    });
+    return sensor;
+  }
+
   async pingDevice(
     tenantId: string,
     deviceId: string,
@@ -527,29 +919,175 @@ export class RetailService {
     return this.retailRepository.pingDevice(tenantId, deviceId);
   }
 
+  async scanDevices(tenantId: string, locationId: string): Promise<any[]> {
+    return this.retailRepository.scanDevices(tenantId, locationId);
+  }
+
+  async commitScannedDevice(
+    tenantId: string,
+    locationId: string,
+    discoveryId: string,
+    userId: string,
+  ): Promise<any> {
+    const device = await this.retailRepository.commitScannedDevice(
+      tenantId,
+      locationId,
+      discoveryId,
+    );
+    if (device) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "it",
+        action: "REGISTER",
+        entityType: "DEVICE",
+        entityId: device.id,
+        metadata: {
+          name: device.name,
+          type: device.type,
+          method: "discovery_commit",
+        },
+      });
+    }
+    return device;
+  }
+
   // Payments & Returns
   async processPayment(
     tenantId: string,
     orderId: string,
     data: { amount: number; method: string; shiftId?: string },
+    userId: string,
   ): Promise<any> {
-    return this.retailRepository.processPayment(tenantId, orderId, data);
+    // 1. Process payment via Repository (Atomically handles DB, Stock, and Finance ledgers)
+    const result = await this.retailRepository.processPayment(
+      tenantId,
+      orderId,
+      data,
+    );
+
+    // 2. Audit Logging
+    const order = await this.retailRepository.getOrder(tenantId, orderId);
+    if (order) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "PAYMENT_COMPLETE",
+        entityType: "ORDER",
+        entityId: orderId,
+        metadata: {
+          total: order.grandTotal,
+          paymentMethod: data.method,
+        },
+      });
+    }
+
+    return result;
   }
 
   async processReturn(
     tenantId: string,
     orderId: string,
     data: { itemIds: string[]; shiftId?: string },
+    userId: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.processReturn(tenantId, orderId, data);
+    // 1. Get Order Details
+    const order = await this.retailRepository.getOrder(tenantId, orderId);
+    if (!order) throw new NotFoundException("Order not found");
+
+    // 2. Update Inventory (Return items)
+    for (const itemId of data.itemIds) {
+      const orderItem = order.items.find((i) => i.productId === itemId);
+      if (orderItem) {
+        await this.inventoryService.intakeStock(
+          tenantId,
+          {
+            itemId: orderItem.productId,
+            quantity: orderItem.quantity,
+            locationId: order.storeId || "default",
+            unitCost: Number(orderItem.unitPrice),
+            reason: "CUSTOMER_RETURN",
+            referenceId: `RETAIL_RETURN_${orderId}`,
+          },
+          userId,
+        );
+      }
+    }
+
+    // 3. Finance Transaction (Refund)
+    // We assume the total amount is refunded for simplicity in this audit phase.
+    await this.financeService.createTransaction(
+      tenantId,
+      {
+        amount: order.grandTotal,
+        type: TransactionType.DEBIT, // Debit Sales Returns
+        description: `Refund for order ${orderId}`,
+        category: "Sales Returns",
+        referenceId: orderId,
+        locationId: order.storeId || undefined,
+      },
+      userId,
+    );
+
+    // 4. Call Repository
+    const result = await this.retailRepository.processReturn(
+      tenantId,
+      orderId,
+      data,
+    );
+
+    // 5. Audit Log
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "RETURN_PROCESS",
+      entityType: "ORDER",
+      entityId: orderId,
+      metadata: { refundedItems: data.itemIds.length },
+    });
+
+    return result;
   }
 
   // Inventory Operations
   async submitOpname(
     tenantId: string,
     data: { storeId: string; adjustments: any[]; shiftId?: string },
+    userId: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.submitOpname(tenantId, data);
+    // 1. Process Adjustments in Inventory
+    for (const adj of data.adjustments) {
+      if (adj.variance !== 0) {
+        await this.inventoryService.createAdjustment(
+          tenantId,
+          {
+            itemId: adj.productId,
+            locationId: data.storeId,
+            requestedDelta: adj.variance,
+            reason: `RETAIL_OPNAME_${adj.sessionId || "SESSION"}`,
+          },
+          userId,
+        );
+      }
+    }
+
+    // 2. Call Repository
+    const result = await this.retailRepository.submitOpname(tenantId, data);
+
+    // 3. Audit Log
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "STOCK_OPNAME",
+      entityType: "STORE",
+      entityId: data.storeId,
+      metadata: { adjustmentCount: data.adjustments.length },
+    });
+
+    return result;
   }
 
   async receiveGoods(
@@ -560,8 +1098,39 @@ export class RetailService {
       items: any[];
       shiftId?: string;
     },
+    userId: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.receiveGoods(tenantId, data);
+    // 1. Update Inventory
+    for (const item of data.items) {
+      await this.inventoryService.intakeStock(
+        tenantId,
+        {
+          itemId: item.productId,
+          quantity: item.quantity,
+          locationId: data.storeId,
+          unitCost: item.unitCost || 0,
+          reason: "RETAIL_STOCK_INTAKE",
+          referenceId: `RETAIL_INTAKE_${data.shipmentId}`,
+        },
+        userId,
+      );
+    }
+
+    // 2. Call Repository
+    const result = await this.retailRepository.receiveGoods(tenantId, data);
+
+    // 3. Audit Log
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "STOCK_INTAKE",
+      entityType: "SHIPMENT",
+      entityId: data.shipmentId,
+      metadata: { itemCount: data.items.length },
+    });
+
+    return result;
   }
 
   // --- Public Gateway (Customer, Cart, Wishlist) ---
@@ -574,12 +1143,45 @@ export class RetailService {
     return this.retailRepository.findCustomerById(tenantId, customerId);
   }
 
-  async createCustomer(tenantId: string, data: any) {
-    return this.retailRepository.createCustomer(tenantId, data);
+  async createCustomer(tenantId: string, data: any, userId?: string) {
+    const customer = await this.retailRepository.createCustomer(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "CREATE",
+        entityType: "CUSTOMER",
+        entityId: customer.id,
+        metadata: { name: customer.name, email: customer.email },
+      });
+    }
+    return customer;
   }
 
-  async updateCustomer(tenantId: string, customerId: string, data: any) {
-    return this.retailRepository.updateCustomer(tenantId, customerId, data);
+  async updateCustomer(
+    tenantId: string,
+    customerId: string,
+    data: any,
+    userId?: string,
+  ) {
+    const customer = await this.retailRepository.updateCustomer(
+      tenantId,
+      customerId,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "retail",
+        action: "UPDATE",
+        entityType: "CUSTOMER",
+        entityId: customerId,
+        metadata: { changes: data },
+      });
+    }
+    return customer;
   }
 
   async createCustomerSession(tenantId: string, data: any) {

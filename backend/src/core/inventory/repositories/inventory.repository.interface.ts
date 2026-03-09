@@ -2,22 +2,26 @@ import { CreateAdjustmentDto } from "../dto/create-adjustment.dto";
 import { CreateItemDto } from "../dto/create-item.dto";
 import { StockIntakeDto } from "../dto/stock-intake.dto";
 import { TransferStockDto } from "../dto/transfer-stock.dto";
+import { CreateMovementRequestDto } from "../dto/create-movement-request.dto";
 import { InventoryAlert } from "../entities/inventory-alert.entity";
 import { InventoryItem } from "../entities/inventory-item.entity";
 import { StockAdjustment } from "../entities/stock-adjustment.entity";
 import { StockBalance } from "../entities/stock-balance.entity";
 import { StockMovement } from "../entities/stock-movement.entity";
+import { MovementRequest } from "../entities/movement-request.entity";
 
 export {
   CreateAdjustmentDto,
   CreateItemDto,
   StockIntakeDto,
   TransferStockDto,
+  CreateMovementRequestDto,
   InventoryAlert,
   InventoryItem,
   StockAdjustment,
   StockBalance,
   StockMovement,
+  MovementRequest,
 };
 
 export type InventoryDashboard = {
@@ -95,5 +99,24 @@ export abstract class IInventoryRepository {
     tenant_id: string,
     data: CreateItemDto[],
   ): Promise<InventoryItem[]>;
+  abstract itemExistsBySku(tenant_id: string, sku: string): Promise<boolean>;
   abstract requestProcurement(tenant_id: string, data: any): Promise<any>;
+  abstract createMovementRequest(
+    tenant_id: string,
+    data: CreateMovementRequestDto,
+  ): Promise<MovementRequest>;
+  abstract getNextSequence(
+    tenant_id: string,
+    category: string,
+  ): Promise<number>;
+  abstract updateItemStatus(
+    tenant_id: string,
+    itemId: string,
+    status: string,
+  ): Promise<InventoryItem>;
+  abstract getPendingItems(tenant_id: string): Promise<InventoryItem[]>;
+  abstract findHighestSkuByCategory(
+    tenant_id: string,
+    category: string,
+  ): Promise<string | null>;
 }

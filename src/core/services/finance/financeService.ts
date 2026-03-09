@@ -17,7 +17,10 @@ import type {
 } from "@/core/types/finance/assets";
 import type { PaymentRequest } from "@/core/types/finance/payments";
 import { PaymentMethod } from "@/core/types/finance/payments";
-import type { ReceivableInvoice, FinanceReceivableRow } from "@/core/types/finance/receivables";
+import type {
+  ReceivableInvoice,
+  FinanceReceivableRow,
+} from "@/core/types/finance/receivables";
 
 export interface FinanceInvoiceRow {
   id: string;
@@ -79,16 +82,33 @@ export const financeService = {
     );
   },
 
-  async listAssets(tenantId: string, session: SessionContext): Promise<Asset[]> {
+  async listAssets(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<Asset[]> {
     return apiRequest<Asset[]>("/finance/assets", "GET", session);
   },
 
-  async listCapexRequests(tenantId: string, session: SessionContext): Promise<CapexRequest[]> {
-    return apiRequest<CapexRequest[]>("/finance/capex/requests", "GET", session);
+  async listCapexRequests(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<CapexRequest[]> {
+    return apiRequest<CapexRequest[]>(
+      "/finance/capex/requests",
+      "GET",
+      session,
+    );
   },
 
-  async listCapexBudgets(tenantId: string, session: SessionContext): Promise<FinanceCapexBudgetRow[]> {
-    return apiRequest<FinanceCapexBudgetRow[]>("/finance/capex/budgets", "GET", session);
+  async listCapexBudgets(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<FinanceCapexBudgetRow[]> {
+    return apiRequest<FinanceCapexBudgetRow[]>(
+      "/finance/capex/budgets",
+      "GET",
+      session,
+    );
   },
 
   async setCapexBudget(
@@ -126,8 +146,8 @@ export const financeService = {
     session: SessionContext,
     input: AssetCapexInput,
   ): Promise<Asset> {
-    // Helper that just delegates to createCapexRequest as per original logic, 
-    // or we can invoke the API if there is a specific endpoint. 
+    // Helper that just delegates to createCapexRequest as per original logic,
+    // or we can invoke the API if there is a specific endpoint.
     // The original logic wrapped createCapexRequest.
     // For API efficiency, we can keep this wrapper if reuse is needed, or just call the API.
     // However, the original returned just the asset.
@@ -293,9 +313,9 @@ export const financeService = {
   },
 
   async generateAssetAuditPack(
-    tenantId: string, 
+    tenantId: string,
     session: SessionContext,
-    assetId: string
+    assetId: string,
   ): Promise<AssetAuditPack> {
     return apiRequest<AssetAuditPack>(
       `/finance/assets/${assetId}/audit-pack`,
@@ -318,9 +338,9 @@ export const financeService = {
   },
 
   async verifyAssetAuditPack(
-    tenantId: string, 
+    tenantId: string,
     session: SessionContext,
-    pack: AssetAuditPack
+    pack: AssetAuditPack,
   ): Promise<boolean> {
     return apiRequest<boolean>(
       "/finance/assets/audit-pack/verify",
@@ -336,16 +356,20 @@ export const financeService = {
     id: string,
     status: Asset["status"],
   ): Promise<Asset | null> {
-    return apiRequest<Asset>(
-      `/finance/assets/${id}/status`,
-      "POST",
-      session,
-      { status },
-    );
+    return apiRequest<Asset>(`/finance/assets/${id}/status`, "POST", session, {
+      status,
+    });
   },
 
-  async listReceivables(tenantId: string, session: SessionContext): Promise<FinanceReceivableRow[]> {
-    return apiRequest<FinanceReceivableRow[]>("/finance/receivables", "GET", session);
+  async listReceivables(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<FinanceReceivableRow[]> {
+    return apiRequest<FinanceReceivableRow[]>(
+      "/finance/receivables",
+      "GET",
+      session,
+    );
   },
 
   async createReceivable(
@@ -379,7 +403,11 @@ export const financeService = {
     );
   },
 
-  async markReceived(tenantId: string, session: SessionContext, id: string): Promise<void> {
+  async markReceived(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
     return apiRequest<void>(
       `/finance/receivables/${id}/mark-received`,
       "POST",
@@ -388,7 +416,10 @@ export const financeService = {
   },
 
   // Invoices (Aggregated)
-  async listInvoices(tenantId: string, session: SessionContext): Promise<FinanceInvoiceRow[]> {
+  async listInvoices(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<FinanceInvoiceRow[]> {
     return apiRequest<FinanceInvoiceRow[]>("/finance/invoices", "GET", session);
   },
 
@@ -430,33 +461,73 @@ export const financeService = {
   },
 
   // Periods
-  async listPeriods(tenantId: string, session: SessionContext): Promise<AccountingPeriod[]> {
+  async listPeriods(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<AccountingPeriod[]> {
     return apiRequest<AccountingPeriod[]>("/finance/periods", "GET", session);
   },
 
-  async lockPeriod(tenantId: string, session: SessionContext, id: string): Promise<void> {
+  async lockPeriod(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
     return apiRequest<void>(`/finance/periods/${id}/lock`, "POST", session);
   },
 
-  async approvePeriodClose(tenantId: string, session: SessionContext, id: string): Promise<void> {
-    return apiRequest<void>(`/finance/periods/${id}/approve-close`, "POST", session);
+  async approvePeriodClose(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
+    return apiRequest<void>(
+      `/finance/periods/${id}/approve-close`,
+      "POST",
+      session,
+    );
   },
 
-  async markPeriodFailed(tenantId: string, session: SessionContext, id: string): Promise<void> {
+  async markPeriodFailed(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
     return apiRequest<void>(`/finance/periods/${id}/fail`, "POST", session);
   },
 
-  async reopenPeriod(tenantId: string, session: SessionContext, id: string): Promise<void> {
+  async reopenPeriod(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
     return apiRequest<void>(`/finance/periods/${id}/reopen`, "POST", session);
   },
 
-  async forceClosePeriod(tenantId: string, session: SessionContext, id: string): Promise<void> {
-    return apiRequest<void>(`/finance/periods/${id}/force-close`, "POST", session);
+  async forceClosePeriod(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
+    return apiRequest<void>(
+      `/finance/periods/${id}/force-close`,
+      "POST",
+      session,
+    );
   },
 
   // Insights
-  async getFinanceInsights(tenantId: string, session: SessionContext): Promise<FinanceInsight[]> {
+  async getFinanceInsights(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<FinanceInsight[]> {
     return apiRequest<FinanceInsight[]>("/finance/insights", "GET", session);
   },
-};
 
+  async getFinanceOverview(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<any> {
+    return apiRequest<any>("/finance/overview", "GET", session);
+  },
+};

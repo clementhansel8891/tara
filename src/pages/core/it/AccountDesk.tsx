@@ -52,7 +52,10 @@ export default function AccountDesk() {
       try {
         const [itReqs, supReqs] = await Promise.all([
           itService.getProvisioningRequests(session.tenantId, session),
-          procurementService.listSupplierAccessProvisioning(session.tenantId),
+          procurementService.listSupplierAccessProvisioning(
+            session.tenantId,
+            session,
+          ),
         ]);
         setProvisioningQueue(itReqs);
         setSupplierQueue(supReqs);

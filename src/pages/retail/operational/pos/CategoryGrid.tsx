@@ -1,0 +1,96 @@
+import React from "react";
+import {
+  Pizza,
+  Coffee,
+  Wine,
+  Package,
+  Tag,
+  LayoutGrid,
+  Smartphone,
+  Utensils,
+  LucideIcon,
+} from "lucide-react";
+
+interface Category {
+  id: string;
+  name: string;
+  icon?: LucideIcon;
+}
+
+interface CategoryGridProps {
+  categories: Category[];
+  onSelect: (category: Category | null) => void;
+  activeCategoryId?: string;
+}
+
+const iconMap: Record<string, LucideIcon> = {
+  Food: Utensils,
+  Drinks: Coffee,
+  Alcohol: Wine,
+  Merch: Package,
+  Tech: Smartphone,
+  Promo: Tag,
+};
+
+export const CategoryGrid: React.FC<CategoryGridProps> = ({
+  categories,
+  onSelect,
+  activeCategoryId,
+}) => {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+      {/* "All" entry */}
+      <button
+        onClick={() => onSelect(null)}
+        className={`group relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300 active:scale-95 ${
+          !activeCategoryId
+            ? "bg-slate-900 border-slate-900 text-white shadow-2xl shadow-slate-900/30 scale-105 z-10"
+            : "bg-white/30 backdrop-blur-xl border-white/40 text-slate-500 hover:border-slate-300 hover:bg-white/50"
+        }`}
+      >
+        <div
+          className={`p-3.5 rounded-xl mb-3 transition-all duration-300 ${!activeCategoryId ? "bg-white/10" : "bg-slate-100/50 group-hover:bg-white shadow-sm"}`}
+        >
+          <LayoutGrid className="w-7 h-7" />
+        </div>
+        <span className="text-[9px] font-black uppercase tracking-[0.2em] italic text-center">
+          ALL SKUS
+        </span>
+      </button>
+
+      {categories.map((cat, i) => {
+        const Icon = iconMap[cat.name] || Package;
+        const isActive = activeCategoryId === cat.id;
+
+        return (
+          <button
+            key={cat.id}
+            onClick={() => onSelect(cat)}
+            className={`group relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 ${
+              isActive
+                ? "bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-500/30 scale-105 z-10"
+                : "bg-white/30 backdrop-blur-xl border-white/40 text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-white/50"
+            }`}
+            style={{ transitionDelay: `${i * 50}ms` }}
+          >
+            <div
+              className={`p-3.5 rounded-xl mb-3 transition-all duration-300 ${
+                isActive
+                  ? "bg-white/20"
+                  : "bg-slate-100/50 group-hover:bg-indigo-50 group-hover:text-indigo-600 shadow-sm"
+              }`}
+            >
+              <Icon className="w-7 h-7" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-[0.2em] italic text-center">
+              {cat.name}
+            </span>
+            {isActive && (
+              <div className="absolute -inset-1 bg-indigo-400/20 blur-xl -z-10 rounded-full animate-pulse" />
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+};

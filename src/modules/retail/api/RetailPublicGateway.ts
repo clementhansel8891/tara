@@ -1,10 +1,10 @@
 import { retailService } from "@/core/services/retail/retailService";
-import type { 
-  ApiAuthHeaders, 
-  PublicProductDTO, 
-  PublicOrderRequestDTO, 
+import type {
+  ApiAuthHeaders,
+  PublicProductDTO,
+  PublicOrderRequestDTO,
   PublicOrderResponseDTO,
-  ApiErrorResponse 
+  ApiErrorResponse,
 } from "@/core/types/retail/api";
 import type { RetailChannel } from "@/core/types/retail/retail";
 import type { SessionContext } from "@/core/security/session";
@@ -13,8 +13,10 @@ import { Roles } from "@/core/security/roles";
 const createSystemSession = (tenantId: string): SessionContext => ({
   userId: "sys-api-gateway",
   tenantId,
+  locationId: "system",
   role: Roles.SYSTEM,
   departmentId: "ops-retail",
+  permissions: ["*"],
 });
 
 const isApiErrorResponse = (value: unknown): value is ApiErrorResponse =>
@@ -44,7 +46,12 @@ export class RetailPublicGateway {
   private pushListeners = new Set<RetailGatewayPushListener>();
   private credentialRegistry = new Map<
     string,
-    { tenantId: string; channelId?: string; clientSecret: string; updatedAt: string }
+    {
+      tenantId: string;
+      channelId?: string;
+      clientSecret: string;
+      updatedAt: string;
+    }
   >();
 
   registerChannelCredentials(
@@ -92,35 +99,64 @@ export class RetailPublicGateway {
     return entry.clientSecret;
   }
 
-  private async validateCredentials(tenantId: string, headers: ApiAuthHeaders): Promise<RetailChannel> {
+  private async validateCredentials(
+    tenantId: string,
+    headers: ApiAuthHeaders,
+  ): Promise<RetailChannel> {
     const clientId = headers["x-client-id"];
     const clientSecret = headers["x-client-secret"];
-    
+
     if ((clientId && !clientSecret) || (!clientId && clientSecret)) {
-      throw { code: 401, error: "Unauthorized", details: "Missing Channel Client Credentials" };
+      throw {
+        code: 401,
+        error: "Unauthorized",
+        details: "Missing Channel Client Credentials",
+      };
     }
 
     if (!clientId && !clientSecret) {
-      throw { code: 401, error: "Unauthorized", details: "Missing Channel Client Credentials" };
+      throw {
+        code: 401,
+        error: "Unauthorized",
+        details: "Missing Channel Client Credentials",
+      };
     }
 
     const resolvedClientSecret = clientSecret ?? "";
     const resolvedClientId = clientId ?? "";
 
     if (resolvedClientId && resolvedClientId === "YOUR_CLIENT_ID") {
-       throw { code: 403, error: "Configuration Error", details: "You must replace 'YOUR_CLIENT_ID' with the actual client id generated in the Commerce Hub." };
+      throw {
+        code: 403,
+        error: "Configuration Error",
+        details:
+          "You must replace 'YOUR_CLIENT_ID' with the actual client id generated in the Commerce Hub.",
+      };
     }
 
     if (resolvedClientSecret === "YOUR_CLIENT_SECRET") {
-       throw { code: 403, error: "Configuration Error", details: "You must replace the placeholder secret with the Channel Client Secret generated in the Commerce Hub." };
+      throw {
+        code: 403,
+        error: "Configuration Error",
+        details:
+          "You must replace the placeholder secret with the Channel Client Secret generated in the Commerce Hub.",
+      };
     }
 
     if (resolvedClientId && !resolvedClientId.startsWith("znx_")) {
-       throw { code: 403, error: "Forbidden", details: `Invalid Client ID Format. Expected 'znx_' but got '${resolvedClientId.substring(0,4)}...'` };
+      throw {
+        code: 403,
+        error: "Forbidden",
+        details: `Invalid Client ID Format. Expected 'znx_' but got '${resolvedClientId.substring(0, 4)}...'`,
+      };
     }
 
     if (!resolvedClientSecret.startsWith("sk_test_")) {
-       throw { code: 403, error: "Forbidden", details: `Invalid Client Secret Format. Expected 'sk_test_' but got '${resolvedClientSecret.substring(0,6)}...'` };
+      throw {
+        code: 403,
+        error: "Forbidden",
+        details: `Invalid Client Secret Format. Expected 'sk_test_' but got '${resolvedClientSecret.substring(0, 6)}...'`,
+      };
     }
 
     const session = createSystemSession(tenantId);
@@ -130,51 +166,82 @@ export class RetailPublicGateway {
     );
 
     if (!matchedChannel) {
-      throw { code: 403, error: "Forbidden", details: "Client ID not recognized for this tenant." };
+      throw {
+        code: 403,
+        error: "Forbidden",
+        details: "Client ID not recognized for this tenant.",
+      };
     }
 
     const storedSecret =
-      matchedChannel.clientSecret ?? this.resolveRegisteredSecret(tenantId, resolvedClientId);
+      matchedChannel.clientSecret ??
+      this.resolveRegisteredSecret(tenantId, resolvedClientId);
 
     if (!storedSecret) {
-      throw { code: 403, error: "Forbidden", details: "Client secret not registered for this channel." };
+      throw {
+        code: 403,
+        error: "Forbidden",
+        details: "Client secret not registered for this channel.",
+      };
     }
 
     if (storedSecret !== resolvedClientSecret) {
-      throw { code: 403, error: "Forbidden", details: "Client secret mismatch." };
+      throw {
+        code: 403,
+        error: "Forbidden",
+        details: "Client secret mismatch.",
+      };
     }
 
     return matchedChannel;
   }
 
-  async getProducts(tenantId: string, headers: ApiAuthHeaders): Promise<PublicProductDTO[] | ApiErrorResponse> {
+  async getProducts(
+    tenantId: string,
+    headers: ApiAuthHeaders,
+  ): Promise<PublicProductDTO[] | ApiErrorResponse> {
     try {
       await this.validateCredentials(tenantId, headers);
 
       const session = createSystemSession(tenantId);
-      const internalProducts = await retailService.listInventory(tenantId, session);
-      
-      return internalProducts.map(p => ({
+      const internalProducts = await retailService.listInventory(
+        tenantId,
+        session,
+      );
+
+      return internalProducts.map((p) => ({
         id: p.id,
         name: p.name,
         sku: p.sku,
         price: p.price,
-        stockLevel: p.stock > 10 ? "IN_STOCK" : (p.stock > 0 ? "LOW_STOCK" : "OUT_OF_STOCK"),
-        category: p.category,
-        maxQuantity: p.stock
+        stockLevel:
+          p.stock > 10
+            ? "IN_STOCK"
+            : p.stock > 0
+              ? "LOW_STOCK"
+              : "OUT_OF_STOCK",
+        categoryId: p.categoryId,
+        maxQuantity: p.stock,
       }));
-
     } catch (error: unknown) {
       return this.handleError(error);
     }
   }
 
-  async createOrder(tenantId: string, headers: ApiAuthHeaders, body: PublicOrderRequestDTO): Promise<PublicOrderResponseDTO | ApiErrorResponse> {
+  async createOrder(
+    tenantId: string,
+    headers: ApiAuthHeaders,
+    body: PublicOrderRequestDTO,
+  ): Promise<PublicOrderResponseDTO | ApiErrorResponse> {
     try {
       await this.validateCredentials(tenantId, headers);
 
       if (!body.items || body.items.length === 0) {
-        throw { code: 400, error: "Bad Request", details: "Order must contain items" };
+        throw {
+          code: 400,
+          error: "Bad Request",
+          details: "Order must contain items",
+        };
       }
 
       // Convert Public DTO to Internal Service Call
@@ -183,44 +250,63 @@ export class RetailPublicGateway {
 
       // We need to resolve SKU to Item ID
       const inventory = await retailService.listInventory(tenantId, session);
-      const orderItems = body.items.map(pubItem => {
-        const internalItem = inventory.find(i => i.sku === pubItem.sku);
+      const orderItems = body.items.map((pubItem) => {
+        const internalItem = inventory.find((i) => i.sku === pubItem.sku);
         if (!internalItem) {
-           throw { code: 404, error: "Not Found", details: `SKU ${pubItem.sku} not found in catalog` };
+          throw {
+            code: 404,
+            error: "Not Found",
+            details: `SKU ${pubItem.sku} not found in catalog`,
+          };
         }
         return {
-          itemId: internalItem.id,
+          productId: internalItem.id,
           quantity: pubItem.quantity,
           unitPrice: internalItem.price,
-          name: internalItem.name
+          name: internalItem.name,
         };
       });
 
       // Pick a default store for online orders (First active store)
       const stores = await retailService.listStores(tenantId, session);
-      const fulfillmentStore = stores[0]; 
-      if (!fulfillmentStore) throw { code: 500, error: "Config Error", details: "No active fulfillment store configured" };
+      const fulfillmentStore = stores[0];
+      if (!fulfillmentStore)
+        throw {
+          code: 500,
+          error: "Config Error",
+          details: "No active fulfillment store configured",
+        };
+
+      // Calculate total amount from items
+      const grandTotal = orderItems.reduce(
+        (sum, item) => sum + item.unitPrice * item.quantity,
+        0,
+      );
 
       // Create Order
-      // Note: We might need to mock a "Device ID" for API orders
       const order = await retailService.createOrder(
         tenantId,
         session,
         fulfillmentStore.id,
-        "dev-api-gateway", 
+        "dev-api-gateway",
         orderItems,
-        undefined
+        (body.paymentMethod?.toLowerCase() || "card") as any,
+        grandTotal,
+        undefined,
       );
 
       // Auto-Process Payment if marked as PAID
       if (body.paymentStatus === "PAID") {
         await retailService.processPayment(
-           tenantId,
-           session,
-           order.id,
-           order.totalAmount,
-           (body.paymentMethod || "card") as "card" | "cash" | "qr",
-           undefined 
+          tenantId,
+          session,
+          order.id,
+          order.totalAmount,
+          (body.paymentMethod?.toLowerCase() || "card") as
+            | "card"
+            | "cash"
+            | "qr",
+          undefined,
         );
       }
 
@@ -229,9 +315,8 @@ export class RetailPublicGateway {
         status: "PROCESSING",
         totalAmount: order.totalAmount,
         estimatedDelivery: "3-5 Business Days",
-        message: "Order received and pushed to fulfillment queue."
+        message: "Order received and pushed to fulfillment queue.",
       };
-
     } catch (error: unknown) {
       return this.handleError(error);
     }
@@ -248,29 +333,47 @@ export class RetailPublicGateway {
   ) {
     try {
       const method = request.method.toUpperCase();
-      const path = request.path.startsWith("/") ? request.path : `/${request.path}`;
+      const path = request.path.startsWith("/")
+        ? request.path
+        : `/${request.path}`;
 
       if (method === "GET" && path === "/products") {
         return await this.getProducts(tenantId, request.headers);
       }
 
       if (method === "POST" && path === "/orders") {
-        return await this.createOrder(tenantId, request.headers, request.body as PublicOrderRequestDTO);
+        return await this.createOrder(
+          tenantId,
+          request.headers,
+          request.body as PublicOrderRequestDTO,
+        );
       }
 
       if (method === "POST") {
         const syncMatch = path.match(/^\/channels\/([^/]+)\/sync$/);
-        const requestedChannelId = syncMatch?.[1] ?? this.resolveChannelIdFromBody(request.body);
+        const requestedChannelId =
+          syncMatch?.[1] ?? this.resolveChannelIdFromBody(request.body);
         if (path === "/sync" || syncMatch) {
-          const channel = await this.validateCredentials(tenantId, request.headers);
+          const channel = await this.validateCredentials(
+            tenantId,
+            request.headers,
+          );
           const channelId = requestedChannelId ?? channel.id;
 
           if (requestedChannelId && requestedChannelId !== channel.id) {
-            throw { code: 403, error: "Forbidden", details: "Channel mismatch for provided credentials." };
+            throw {
+              code: 403,
+              error: "Forbidden",
+              details: "Channel mismatch for provided credentials.",
+            };
           }
 
           const session = createSystemSession(tenantId);
-          const result = await retailService.syncChannel(tenantId, session, channelId);
+          const result = await retailService.syncChannel(
+            tenantId,
+            session,
+            channelId,
+          );
           this.emitPushEvent({
             type: "channel.sync",
             tenantId,
@@ -281,7 +384,11 @@ export class RetailPublicGateway {
         }
       }
 
-      throw { code: 404, error: "Not Found", details: "Endpoint not implemented in simulation" };
+      throw {
+        code: 404,
+        error: "Not Found",
+        details: "Endpoint not implemented in simulation",
+      };
     } catch (error: unknown) {
       return this.handleError(error);
     }
@@ -318,7 +425,10 @@ export class RetailPublicGateway {
     if (typeof error === "object" && error !== null) {
       const errObj = error as Record<string, unknown>;
       return {
-        error: typeof errObj.error === "string" ? errObj.error : "Internal Server Error",
+        error:
+          typeof errObj.error === "string"
+            ? errObj.error
+            : "Internal Server Error",
         code: typeof errObj.code === "number" ? errObj.code : 500,
         details:
           typeof errObj.details === "string"
@@ -348,5 +458,7 @@ if (typeof window !== "undefined") {
   const zenvixWindow = window as RetailWindow;
   zenvixWindow.Zenvix = zenvixWindow.Zenvix || {};
   zenvixWindow.Zenvix.RetailGateway = retailGateway;
-  console.log("🔌 Retail Public Gateway exposed at window.Zenvix.RetailGateway");
+  console.log(
+    "🔌 Retail Public Gateway exposed at window.Zenvix.RetailGateway",
+  );
 }

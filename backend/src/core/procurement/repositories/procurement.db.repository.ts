@@ -32,9 +32,37 @@ export class ProcurementDbRepository extends IProcurementRepository {
 
   async getSupplierRecommendations(
     tenantId: string,
-    criteria: any,
+    params: { branchCode?: string; category?: string },
   ): Promise<any[]> {
-    return [];
+    const products = await this.prisma.supplierProduct.findMany({
+      where: {
+        tenantId,
+        category: params.category,
+        active: true,
+        branch: {
+          active: true,
+          ...(params.branchCode ? { branchCode: params.branchCode } : {}),
+        },
+      },
+      include: {
+        supplier: true,
+        branch: true,
+      },
+      take: 10,
+    });
+
+    return products.map((p) => ({
+      supplierId: p.supplierId,
+      branchId: p.branchId,
+      supplierName: p.supplier.name,
+      branchName: p.branch.branchName,
+      branchCode: p.branch.branchCode,
+      category: p.category,
+      score: p.qualityScore,
+      riskTier: p.branch.riskTier,
+      unitPrice: Number(p.unitPrice),
+      leadTimeDays: p.branch.leadTimeDays,
+    }));
   }
 
   async getSuppliers(tenantId: string): Promise<Supplier[]> {

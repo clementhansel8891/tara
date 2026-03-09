@@ -1,0 +1,101 @@
+import React from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import type { AuditEntry } from "../types/governance";
+import { Clock, ShieldCheck, User } from "lucide-react";
+
+interface AuditTrailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  auditLog: AuditEntry[];
+  promoTitle: string;
+}
+
+export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
+  isOpen,
+  onClose,
+  auditLog,
+  promoTitle,
+}) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-2xl bg-slate-900 border-slate-800 p-8 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+        <DialogHeader className="mb-8">
+          <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3 text-white">
+            <div className="p-2.5 rounded-2xl bg-blue-500/20 text-blue-400">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            IMMUTABLE LEDGER: {promoTitle.toUpperCase()}
+          </DialogTitle>
+          <div className="text-[10px] font-black text-blue-400/80 uppercase tracking-widest mt-2 pl-14">
+            Cryptographic Version History
+          </div>
+        </DialogHeader>
+
+        <ScrollArea className="h-[450px] pr-6">
+          <div className="space-y-6">
+            {auditLog.length === 0 ? (
+              <div className="text-center py-20 text-slate-500 font-black italic uppercase text-xs tracking-widest">
+                No governance events recorded yet.
+              </div>
+            ) : (
+              <div className="relative border-l-2 border-slate-800 pl-8 ml-4 space-y-10 pb-4">
+                {auditLog.map((entry) => (
+                  <div key={entry.id} className="relative group">
+                    <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-slate-800 border-[3px] border-slate-900 group-hover:bg-blue-500 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all z-10" />
+
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-4">
+                        <Badge className="bg-slate-800 text-white font-black italic text-[9px] uppercase border-none px-2 rounded-lg">
+                          V{entry.version}.0
+                        </Badge>
+                        <span className="text-xs font-black italic tracking-widest text-white uppercase">
+                          {entry.action}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest bg-slate-800/50 px-3 py-1 rounded-full">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        {new Date(entry.timestamp).toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-800/30 hover:bg-slate-800/60 transition-colors p-5 rounded-[1.5rem] border border-white/5 space-y-4">
+                      <p className="text-[11px] font-medium text-slate-300 leading-relaxed italic">
+                        "{entry.details}"
+                      </p>
+
+                      <div className="flex items-center gap-6 text-[9px] font-black uppercase tracking-widest text-slate-500 border-t border-white/5 pt-4 mt-2">
+                        <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg">
+                          <User className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400/80">
+                            {entry.actor}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg">
+                          <ShieldCheck className="w-3 h-3 text-blue-400" />
+                          <span className="text-blue-400/80">{entry.role}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+};

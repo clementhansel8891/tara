@@ -4,6 +4,13 @@ import type { Employee } from "@/core/types/hr/employee";
 
 export const hrService = {
   /**
+   * Get HR workspace overview, enriched with retail module contributions
+   */
+  async getHrOverview(tenantId: string, session: SessionContext): Promise<any> {
+    return apiRequest<any>(`/hr/overview`, "GET", session);
+  },
+
+  /**
    * List all employees for the tenant
    */
   async listEmployees(
@@ -79,9 +86,8 @@ export const hrService = {
   ): Promise<
     Array<{ id: string; name: string; code: string; address: string }>
   > {
-    const response = await apiRequest<{
-      data: Array<{ id: string; name: string; code: string; address: string }>;
-    }>(`/hr/locations`, "GET", session);
-    return response.data;
+    return apiRequest<
+      Array<{ id: string; name: string; code: string; address: string }>
+    >(`/hr/locations`, "GET", session);
   },
 };

@@ -4,9 +4,9 @@ import * as bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const tenantId = "04bbc0e0-213d-4af4-9ce8-0e4674a58a90";
+  const tenantId = "comp-demo-a";
   const locationId = "loc-jakarta"; // We will use a mock location ID if one doesn't exist, though typically it relates to a real location. For this seed, we assume it's valid or we'll create a dummy one.
-  const baliLocationId = "loc-bali";
+  const baliLocationId = "loc-bali-demo";
 
   console.log(`Seeding Universal Inventory for tenant: ${tenantId}`);
 
@@ -77,7 +77,7 @@ async function main() {
     where: { tenantId_code: { tenantId: tenantId, code: "BL-01" } },
     update: {},
     create: {
-      id: "sto-bali-001",
+      id: "sto-bali-demo",
       tenantId,
       locationId: baliLocationId,
       name: "Bali Store",

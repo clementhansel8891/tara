@@ -18,9 +18,14 @@ import {
   UpdateRetailChannelDto,
 } from "./dto/ecommerce-hub.dto";
 
+import { AuditService } from "../../shared/audit/audit.service";
+
 @Injectable()
 export class EcommerceHubService {
-  constructor(private readonly repo: IEcommerceHubRepository) {}
+  constructor(
+    private readonly repo: IEcommerceHubRepository,
+    private readonly audit: AuditService,
+  ) {}
 
   // ── EcommerceConnectors ────────────────────────────────────
 
@@ -42,36 +47,85 @@ export class EcommerceHubService {
   async createConnector(
     tenantId: string,
     dto: CreateEcommerceConnectorDto,
+    userId: string = "system",
   ): Promise<ConnectorWithPlainKey> {
     if (!dto.name || !dto.platform || !dto.domain) {
       throw new BadRequestException("name, platform, and domain are required");
     }
-    return this.repo.createConnector(tenantId, dto);
+    const result = await this.repo.createConnector(tenantId, dto);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CREATE_CONNECTOR",
+      entityType: "EcommerceConnector",
+      entityId: result.connector.id,
+      metadata: { platform: dto.platform, domain: dto.domain },
+    });
+
+    return result;
   }
 
   async updateConnector(
     tenantId: string,
     id: string,
     dto: UpdateEcommerceConnectorDto,
+    userId: string = "system",
   ): Promise<EcommerceConnector> {
     await this.getConnector(tenantId, id); // ensure exists
-    return this.repo.updateConnector(tenantId, id, dto);
+    const result = await this.repo.updateConnector(tenantId, id, dto);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE_CONNECTOR",
+      entityType: "EcommerceConnector",
+      entityId: id,
+      metadata: { updates: dto },
+    });
+
+    return result;
   }
 
   async rotateConnectorApiKey(
     tenantId: string,
     id: string,
+    userId: string = "system",
   ): Promise<{ plainApiKey: string }> {
     await this.getConnector(tenantId, id);
-    return this.repo.rotateConnectorApiKey(tenantId, id);
+    const result = await this.repo.rotateConnectorApiKey(tenantId, id);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "ROTATE_CONNECTOR_KEY",
+      entityType: "EcommerceConnector",
+      entityId: id,
+    });
+
+    return result;
   }
 
   async deleteConnector(
     tenantId: string,
     id: string,
+    userId: string = "system",
   ): Promise<{ deleted: boolean }> {
     await this.getConnector(tenantId, id);
     await this.repo.deleteConnector(tenantId, id);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "DELETE_CONNECTOR",
+      entityType: "EcommerceConnector",
+      entityId: id,
+    });
+
     return { deleted: true };
   }
 
@@ -126,6 +180,7 @@ export class EcommerceHubService {
   async createChannel(
     tenantId: string,
     dto: CreateRetailChannelDto,
+    userId: string = "system",
   ): Promise<ChannelWithPlainCredentials> {
     if (!dto.name || !dto.type) {
       throw new BadRequestException("name and type are required");
@@ -139,7 +194,19 @@ export class EcommerceHubService {
       );
     }
 
-    return this.repo.createChannel(tenantId, dto);
+    const result = await this.repo.createChannel(tenantId, dto);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "CREATE_CHANNEL",
+      entityType: "RetailChannel",
+      entityId: result.channel.id,
+      metadata: { type: dto.type, category: dto.integrationCategory },
+    });
+
+    return result;
   }
 
   private determineCategory(
@@ -166,14 +233,28 @@ export class EcommerceHubService {
     tenantId: string,
     id: string,
     dto: UpdateRetailChannelDto,
+    userId: string = "system",
   ): Promise<EcommerceChannel> {
     await this.getChannel(tenantId, id);
-    return this.repo.updateChannel(tenantId, id, dto);
+    const result = await this.repo.updateChannel(tenantId, id, dto);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "UPDATE_CHANNEL",
+      entityType: "RetailChannel",
+      entityId: id,
+      metadata: { updates: dto },
+    });
+
+    return result;
   }
 
   async rotateChannelCredentials(
     tenantId: string,
     id: string,
+    userId: string = "system",
   ): Promise<{ plainClientId: string; plainClientSecret: string }> {
     const channel = await this.getChannel(tenantId, id);
     const creds = channel.credentials as { revoked?: boolean } | null;
@@ -182,24 +263,57 @@ export class EcommerceHubService {
         "Channel credentials are revoked — re-create the channel instead",
       );
     }
-    return this.repo.rotateChannelCredentials(tenantId, id);
+    const result = await this.repo.rotateChannelCredentials(tenantId, id);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "ROTATE_CHANNEL_CREDENTIALS",
+      entityType: "RetailChannel",
+      entityId: id,
+    });
+
+    return result;
   }
 
   async revokeChannelCredentials(
     tenantId: string,
     id: string,
+    userId: string = "system",
   ): Promise<{ revoked: boolean }> {
     await this.getChannel(tenantId, id);
     await this.repo.revokeChannelCredentials(tenantId, id);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "REVOKE_CHANNEL_CREDENTIALS",
+      entityType: "RetailChannel",
+      entityId: id,
+    });
+
     return { revoked: true };
   }
 
   async deleteChannel(
     tenantId: string,
     id: string,
+    userId: string = "system",
   ): Promise<{ deleted: boolean }> {
     await this.getChannel(tenantId, id);
     await this.repo.deleteChannel(tenantId, id);
+
+    await this.audit.log({
+      tenantId,
+      userId,
+      module: "retail",
+      action: "DELETE_CHANNEL",
+      entityType: "RetailChannel",
+      entityId: id,
+    });
+
     return { deleted: true };
   }
 }

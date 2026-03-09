@@ -13,6 +13,7 @@ import {
   CreateEcommerceStoreDto,
   UpdateEcommerceStoreDto,
   CreateInventoryPoolDto,
+  UpdateProductDto,
 } from "../dto/retail.dto";
 
 export abstract class IRetailRepository {
@@ -23,6 +24,7 @@ export abstract class IRetailRepository {
     tenantId: string,
     locationId?: string,
   ): Promise<RetailStore[]>;
+  abstract listCategories(tenantId: string): Promise<any[]>;
   abstract getStore(
     tenantId: string,
     storeId: string,
@@ -96,6 +98,9 @@ export abstract class IRetailRepository {
       page?: number;
       pageSize?: number;
       categoryId?: string;
+      type?: string;
+      minPrice?: number;
+      maxPrice?: number;
       q?: string;
       sortBy?: "name" | "price" | "createdAt";
       sortDir?: "asc" | "desc";
@@ -110,6 +115,16 @@ export abstract class IRetailRepository {
     tenantId: string,
     productId: string,
   ): Promise<RetailProduct | null>;
+  abstract updateProduct(
+    tenantId: string,
+    productId: string,
+    data: UpdateProductDto,
+    locationId?: string,
+  ): Promise<RetailProduct>;
+  abstract generateNextSku(
+    tenantId: string,
+    categoryId: string,
+  ): Promise<{ sku: string; barcode: string }>;
 
   // ============================================================
   // ORDERS
@@ -126,6 +141,7 @@ export abstract class IRetailRepository {
     tenantId: string,
     locationId: string,
     data: CreateOrderDto,
+    userId: string,
   ): Promise<RetailOrder>;
   abstract updateOrderStatus(
     tenantId: string,
@@ -240,10 +256,39 @@ export abstract class IRetailRepository {
   // DEVICES
   // ============================================================
   abstract listDevices(tenantId: string, storeId?: string): Promise<any[]>;
+  abstract registerDevice(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any>;
+  abstract listCCTVs(tenantId: string, storeId?: string): Promise<any[]>;
+  abstract registerCCTV(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any>;
+  abstract validateCCTVConnection(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<{ success: boolean; message?: string }>;
+  abstract listSensors(tenantId: string, storeId?: string): Promise<any[]>;
+  abstract registerSensor(
+    tenantId: string,
+    locationId: string,
+    data: any,
+  ): Promise<any>;
   abstract pingDevice(
     tenantId: string,
     deviceId: string,
   ): Promise<{ success: boolean }>;
+
+  abstract scanDevices(tenantId: string, locationId: string): Promise<any[]>;
+  abstract commitScannedDevice(
+    tenantId: string,
+    locationId: string,
+    discoveryId: string,
+  ): Promise<any>;
 
   // ============================================================
   // PAYMENTS & RETURNS

@@ -40,4 +40,8 @@ export class CreateTransactionDto {
   @IsString()
   @IsOptional()
   createdBy?: string;
+
+  @IsString()
+  @IsOptional()
+  referenceId?: string;
 }

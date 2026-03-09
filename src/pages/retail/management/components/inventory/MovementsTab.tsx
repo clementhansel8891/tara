@@ -3,7 +3,7 @@ import { ArrowDownToLine, Truck, Lock, History } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { MOVEMENT_META, type MovementType } from "../movementMeta";
+import { MOVEMENT_META, type MovementType } from "./movementMeta";
 
 export type AuditEntry = {
   id: string;

@@ -8,7 +8,11 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
-import type { SalesDashboardMetrics, SalesNextAction, SalesLead } from "@/core/types/sales/sales";
+import type {
+  SalesDashboardMetrics,
+  SalesNextAction,
+  SalesLead,
+} from "@/core/types/sales/sales";
 
 export default function SalesDashboard() {
   const session = useSession();
@@ -28,7 +32,11 @@ export default function SalesDashboard() {
       ]);
       setMetrics(m);
       setNextActions(n);
-      setLeads(l.filter((item) => ["NEW", "ASSIGNED", "CONTACTED", "QUALIFIED"].includes(item.status)));
+      setLeads(
+        l.filter((item) =>
+          ["NEW", "ASSIGNED", "CONTACTED", "QUALIFIED"].includes(item.status),
+        ),
+      );
     } catch (err) {
       console.error("Failed to fetch sales dashboard data:", err);
     } finally {
@@ -67,8 +75,8 @@ export default function SalesDashboard() {
         subtitle="Daily sales operations: lead SLA, follow-up queue, AI next actions, and pipeline readiness."
         secondaryActions={
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={async () => {
                 await salesService.runSlaSweep(session.tenantId, session);
                 refresh();
@@ -86,7 +94,10 @@ export default function SalesDashboard() {
         }
       />
 
-      <WorkspacePanel title="Rep Daily Dashboard" description="Leads, follow-ups, pipeline value, and quote approval pressure.">
+      <WorkspacePanel
+        title="Rep Daily Dashboard"
+        description="Leads, follow-ups, pipeline value, and quote approval pressure."
+      >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Open leads</p>
@@ -102,19 +113,29 @@ export default function SalesDashboard() {
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Open opportunities</p>
-            <p className="text-2xl font-semibold">{metrics.openOpportunities}</p>
+            <p className="text-2xl font-semibold">
+              {metrics.openOpportunities}
+            </p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Pipeline value</p>
-            <p className="text-2xl font-semibold">{metrics.pipelineValue.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">
+              {metrics.pipelineValue.toLocaleString()}
+            </p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Weighted pipeline</p>
-            <p className="text-2xl font-semibold">{metrics.weightedPipelineValue.toLocaleString()}</p>
+            <p className="text-2xl font-semibold">
+              {metrics.weightedPipelineValue.toLocaleString()}
+            </p>
           </div>
           <div className="rounded-lg border p-3">
-            <p className="text-xs text-muted-foreground">Pending quote approvals</p>
-            <p className="text-2xl font-semibold">{metrics.pendingQuoteApprovals}</p>
+            <p className="text-xs text-muted-foreground">
+              Pending quote approvals
+            </p>
+            <p className="text-2xl font-semibold">
+              {metrics.pendingQuoteApprovals}
+            </p>
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Deal risk signals</p>
@@ -123,15 +144,51 @@ export default function SalesDashboard() {
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="AI Next Actions" description="Prioritized next best actions for the sales team.">
+      {/* --- MODULE CONTRIBUTIONS --- */}
+      {metrics.moduleContributions?.retail && (
+        <WorkspacePanel
+          title="Module Contributions: Retail Sales"
+          description="Sales performance driven by the active Retail module."
+        >
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+              <p className="text-xs text-muted-foreground">
+                Retail Revenue This Week
+              </p>
+              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                $
+                {metrics.moduleContributions.retail.retailRevenue.toLocaleString()}
+              </p>
+            </div>
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+              <p className="text-xs text-muted-foreground">
+                Retail Orders This Week
+              </p>
+              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                {metrics.moduleContributions.retail.retailOrders.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </WorkspacePanel>
+      )}
+
+      <WorkspacePanel
+        title="AI Next Actions"
+        description="Prioritized next best actions for the sales team."
+      >
         <div className="space-y-2">
           {nextActions.map((item) => (
-            <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+            <div
+              key={item.id}
+              className="flex items-center justify-between rounded-lg border p-3"
+            >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{item.title}</p>
                 <p className="text-xs text-muted-foreground">{item.detail}</p>
               </div>
-              <Badge variant={item.priority === "P1" ? "destructive" : "secondary"}>
+              <Badge
+                variant={item.priority === "P1" ? "destructive" : "secondary"}
+              >
                 {item.priority}
               </Badge>
             </div>
@@ -139,7 +196,10 @@ export default function SalesDashboard() {
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Today's Leads" description="SLA-aware lead queue and ownership assignments.">
+      <WorkspacePanel
+        title="Today's Leads"
+        description="SLA-aware lead queue and ownership assignments."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredLeads.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -156,15 +216,25 @@ export default function SalesDashboard() {
               {filteredLeads.map((item) => (
                 <tr key={item.id} className="border-t">
                   <td className="p-3 font-medium">{item.companyName}</td>
-                  <td className="p-3 text-muted-foreground">{item.contactName}</td>
-                  <td className="p-3 text-muted-foreground">{item.ownerName}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {item.contactName}
+                  </td>
+                  <td className="p-3 text-muted-foreground">
+                    {item.ownerName}
+                  </td>
                   <td className="p-3">
-                    <Badge variant={item.priority === "URGENT" ? "destructive" : "outline"}>
+                    <Badge
+                      variant={
+                        item.priority === "URGENT" ? "destructive" : "outline"
+                      }
+                    >
                       {item.priority}
                     </Badge>
                   </td>
                   <td className="p-3 text-muted-foreground">
-                    {item.slaDueAt ? new Date(item.slaDueAt).toLocaleString() : "N/A"}
+                    {item.slaDueAt
+                      ? new Date(item.slaDueAt).toLocaleString()
+                      : "N/A"}
                   </td>
                 </tr>
               ))}

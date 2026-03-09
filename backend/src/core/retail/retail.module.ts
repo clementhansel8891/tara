@@ -15,6 +15,7 @@ import { RetailPublicCustomerService } from "./retail-public-customer.service";
 import { RetailEventsService } from "./retail-events.service";
 import { EcommerceHubService } from "./ecommerce-hub.service";
 import { IRetailRepository } from "./repositories/retail.repository.interface";
+import { RetailMockRepository } from "./repositories/retail.mock.repository";
 import { RetailDbRepository } from "./repositories/retail.db.repository";
 import { IRetailInfrastructureRepository } from "./repositories/retail-infrastructure.repository.interface";
 import { RetailInfrastructureDbRepository } from "./repositories/retail-infrastructure.db.repository";
@@ -25,9 +26,12 @@ import { ChannelCredentialsGuard } from "./guards/channel-credentials.guard";
 import { CustomerAuthGuard } from "./guards/customer-auth.guard";
 import { EcommerceConnectorGuard } from "./guards/ecommerce-connector.guard";
 import { AuditModule } from "../../shared/audit/audit.module";
+import { InventoryModule } from "../inventory/inventory.module";
+import { FinanceModule } from "../finance/finance.module";
+import { RetailSeeder } from "./seeders/retail.seeder";
 
 @Module({
-  imports: [AdminModule, AuditModule],
+  imports: [AdminModule, AuditModule, InventoryModule, FinanceModule],
   controllers: [
     RetailController,
     RetailInfrastructureController,
@@ -49,6 +53,7 @@ import { AuditModule } from "../../shared/audit/audit.module";
     EcommerceConnectorGuard,
     PrismaService,
     EcommerceHubService,
+    RetailSeeder,
     {
       provide: IRetailRepository,
       useClass: RetailDbRepository,
@@ -62,6 +67,6 @@ import { AuditModule } from "../../shared/audit/audit.module";
       useClass: EcommerceHubDbRepository,
     },
   ],
-  exports: [RetailService, RetailInfrastructureService],
+  exports: [RetailService, RetailInfrastructureService, RetailSeeder],
 })
 export class RetailModule {}

@@ -54,7 +54,7 @@ const RefundReturnDesk = () => {
         console.error("Failed to fetch shift", e);
         toast({
           title: "Connection Error",
-          description: "Could not sync with Nexus Shift Control.",
+          description: "Could not sync with Zenvix Shift Control.",
           variant: "destructive",
         });
       }
@@ -80,7 +80,7 @@ const RefundReturnDesk = () => {
         setSelectedItems([]);
         toast({
           title: "Order Found",
-          description: "Order retrieved successfully from Nexus.",
+          description: "Order retrieved successfully from Zenvix.",
         });
       } else {
         toast({
@@ -319,7 +319,7 @@ const RefundReturnDesk = () => {
             <Card className="shadow-2xl border-slate-200 rounded-[2.5rem] overflow-hidden">
               <CardHeader className="bg-slate-50 p-6 border-b">
                 <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
-                  Nexus Return Stream
+                  Zenvix Return Stream
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
@@ -368,7 +368,7 @@ const RefundReturnDesk = () => {
                   className="w-full text-[10px] font-black uppercase text-slate-400 hover:text-blue-600 transition-all tracking-widest italic h-12 rounded-xl"
                   onClick={() =>
                     toast({
-                      title: "Nexus Registry Access",
+                      title: "Zenvix Registry Access",
                       description: `Audit ledger retrieved. Displaying historical settlement reversals for ${activeStore?.name || activeChannel?.name || "current branch"}.`,
                     })
                   }

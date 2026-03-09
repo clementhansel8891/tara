@@ -26,7 +26,8 @@ import type {
 } from "@/core/types/procurement/procurement";
 
 const nowIso = () => new Date().toISOString();
-const createId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+const createId = (prefix: string) =>
+  `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 const addDays = (days: number) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -60,7 +61,7 @@ const logEvent = (
     entityId,
     detail,
   });
-  
+
   audit.log({
     tenantId,
     actorId: session.userId,
@@ -89,56 +90,113 @@ const createOpenRisk = async (
 };
 
 export const procurementService = {
-  listSupplierMasters: async (tenantId: string, session: SessionContext) => 
+  listSupplierMasters: async (tenantId: string, session: SessionContext) =>
     apiRequest<SupplierMaster[]>("/procurement/suppliers", "GET", session),
-    
-  listSupplierBranches: async (tenantId: string, session: SessionContext) => 
+
+  listSupplierBranches: async (tenantId: string, session: SessionContext) =>
     apiRequest<SupplierBranch[]>("/procurement/branches", "GET", session),
-    
-  listSupplierProducts: async (tenantId: string, session: SessionContext) => 
+
+  listSupplierProducts: async (tenantId: string, session: SessionContext) =>
     apiRequest<SupplierProduct[]>("/procurement/products", "GET", session),
-    
-  listRequisitions: async (tenantId: string, session: SessionContext) => 
+
+  listRequisitions: async (tenantId: string, session: SessionContext) =>
     apiRequest<Requisition[]>("/procurement/requisitions", "GET", session),
-    
-  listDraftPurchaseOrders: async (tenantId: string, session: SessionContext) => 
+
+  listDraftPurchaseOrders: async (tenantId: string, session: SessionContext) =>
     apiRequest<DraftPurchaseOrder[]>("/procurement/draft-pos", "GET", session),
-    
-  listFinalPurchaseOrders: async (tenantId: string, session: SessionContext) => 
-    apiRequest<FinalPurchaseOrder[]>("/procurement/purchase-orders", "GET", session),
-    
-  listContracts: async (tenantId: string, session: SessionContext) => 
+
+  listFinalPurchaseOrders: async (tenantId: string, session: SessionContext) =>
+    apiRequest<FinalPurchaseOrder[]>(
+      "/procurement/purchase-orders",
+      "GET",
+      session,
+    ),
+
+  listContracts: async (tenantId: string, session: SessionContext) =>
     apiRequest<ContractRecord[]>("/procurement/contracts", "GET", session),
-    
+
   listPortalMessages: async (tenantId: string, session: SessionContext) => [], // Backend placeholder
-  
+
   listRatingLogs: async (tenantId: string, session: SessionContext) => [], // Backend placeholder
-  
-  listRiskSignals: async (tenantId: string, session: SessionContext) => 
+
+  listRiskSignals: async (tenantId: string, session: SessionContext) =>
     apiRequest<RiskSignal[]>("/procurement/risk-signals", "GET", session),
-    
-  listAuditEvents: async (tenantId: string, session: SessionContext) => 
-    apiRequest<ProcurementAuditEvent[]>("/procurement/audit-events", "GET", session),
-  
-  listLegalHandoffs: async (tenantId: string) => await procurementIntegrationAdapters.listLegalHandoffs(tenantId),
-  listGoodsReceiptSyncs: async (tenantId: string) => await procurementIntegrationAdapters.listGoodsReceiptSyncs(tenantId),
-  updateGoodsReceiptSyncStatus: async (tenantId: string, session: SessionContext, syncId: string, payload: { status: GoodsReceiptSyncStatus; issueCount: number; invoiceMismatch: boolean }) => 
-    await procurementIntegrationAdapters.setGoodsReceiptSyncStatus(tenantId, session, syncId, payload),
-  updateSupplierAccessProvisioningStatus: async (tenantId: string, session: SessionContext, requestId: string, status: string) => 
-    await procurementIntegrationAdapters.setSupplierAccessProvisioningStatus(tenantId, session, requestId, status as any),
-  listSupplierAccessProvisioning: async (tenantId: string) => await procurementIntegrationAdapters.listSupplierAccessProvisioning(tenantId),
+
+  listAuditEvents: async (tenantId: string, session: SessionContext) =>
+    apiRequest<ProcurementAuditEvent[]>(
+      "/procurement/audit-events",
+      "GET",
+      session,
+    ),
+
+  getOverview: async (tenantId: string, session: SessionContext) =>
+    apiRequest<any>("/procurement/overview", "GET", session),
+
+  listLegalHandoffs: async (tenantId: string, session: SessionContext) =>
+    await procurementIntegrationAdapters.listLegalHandoffs(tenantId, session),
+  listGoodsReceiptSyncs: async (tenantId: string, session: SessionContext) =>
+    await procurementIntegrationAdapters.listGoodsReceiptSyncs(
+      tenantId,
+      session,
+    ),
+  updateGoodsReceiptSyncStatus: async (
+    tenantId: string,
+    session: SessionContext,
+    syncId: string,
+    payload: {
+      status: GoodsReceiptSyncStatus;
+      issueCount: number;
+      invoiceMismatch: boolean;
+    },
+  ) =>
+    await procurementIntegrationAdapters.setGoodsReceiptSyncStatus(
+      tenantId,
+      session,
+      syncId,
+      payload,
+    ),
+  updateSupplierAccessProvisioningStatus: async (
+    tenantId: string,
+    session: SessionContext,
+    requestId: string,
+    status: string,
+  ) =>
+    await procurementIntegrationAdapters.setSupplierAccessProvisioningStatus(
+      tenantId,
+      session,
+      requestId,
+      status as any,
+    ),
+  listSupplierAccessProvisioning: async (
+    tenantId: string,
+    session: SessionContext,
+  ) =>
+    await procurementIntegrationAdapters.listSupplierAccessProvisioning(
+      tenantId,
+      session,
+    ),
 
   async createSupplierMaster(
     tenantId: string,
     session: SessionContext,
-    payload: { name: string; taxId: string; categories: string[]; branchCode: string },
+    payload: {
+      name: string;
+      taxId: string;
+      categories: string[];
+      branchCode: string;
+    },
   ): Promise<SupplierMaster> {
     ensureTenant(tenantId, session);
-    const created = await apiRequest<SupplierMaster>("/procurement/suppliers", "POST", session, {
-      ...payload,
-      category: payload.categories[0] || "General",
-    });
-    
+    const created = await apiRequest<SupplierMaster>(
+      "/procurement/suppliers",
+      "POST",
+      session,
+      {
+        ...payload,
+        category: payload.categories[0] || "General",
+      },
+    );
+
     await workflowService.createRequest(tenantId, session, {
       entityType: "PURCHASE",
       entityId: created.id,
@@ -146,7 +204,14 @@ export const procurementService = {
       destinationDept: "LEGAL",
       notes: "Supplier onboarding compliance verification",
     });
-    logEvent(tenantId, session, "supplier.created", "SUPPLIER", created.id, created.name);
+    logEvent(
+      tenantId,
+      session,
+      "supplier.created",
+      "SUPPLIER",
+      created.id,
+      created.name,
+    );
     return created;
   },
 
@@ -162,8 +227,20 @@ export const procurementService = {
     },
   ): Promise<SupplierBranch> {
     ensureTenant(tenantId, session);
-    const created = await apiRequest<SupplierBranch>("/procurement/branches", "POST", session, payload);
-    logEvent(tenantId, session, "supplier_branch.created", "SUPPLIER_BRANCH", created.id, created.branchName);
+    const created = await apiRequest<SupplierBranch>(
+      "/procurement/branches",
+      "POST",
+      session,
+      payload,
+    );
+    logEvent(
+      tenantId,
+      session,
+      "supplier_branch.created",
+      "SUPPLIER_BRANCH",
+      created.id,
+      created.branchName,
+    );
     return created;
   },
 
@@ -173,8 +250,20 @@ export const procurementService = {
     payload: Omit<SupplierProduct, "tenantId" | "updatedAt">,
   ): Promise<SupplierProduct> {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<SupplierProduct>("/procurement/products", "POST", session, payload);
-    logEvent(tenantId, session, "supplier_product.upserted", "SUPPLIER_BRANCH", updated.id, updated.name);
+    const updated = await apiRequest<SupplierProduct>(
+      "/procurement/products",
+      "POST",
+      session,
+      payload,
+    );
+    logEvent(
+      tenantId,
+      session,
+      "supplier_product.upserted",
+      "SUPPLIER_BRANCH",
+      updated.id,
+      updated.name,
+    );
     return updated;
   },
 
@@ -192,12 +281,17 @@ export const procurementService = {
     },
   ): Promise<Requisition> {
     ensureTenant(tenantId, session);
-    const created = await apiRequest<Requisition>("/procurement/requisitions", "POST", session, {
-      ...payload,
-      requesterDept: session.departmentId,
-      createdBy: session.userId,
-    });
-    
+    const created = await apiRequest<Requisition>(
+      "/procurement/requisitions",
+      "POST",
+      session,
+      {
+        ...payload,
+        requesterDept: session.departmentId,
+        createdBy: session.userId,
+      },
+    );
+
     await workflowService.createRequest(tenantId, session, {
       entityType: "PURCHASE",
       entityId: created.id,
@@ -205,7 +299,7 @@ export const procurementService = {
       destinationDept: "REQUESTER_HOD",
       notes: "Requester HOD approval gate",
     });
-    
+
     if (created.amount > BUDGET_LIMITS[created.budgetClass]) {
       await createOpenRisk(
         tenantId,
@@ -216,14 +310,36 @@ export const procurementService = {
         `Amount exceeds ${created.budgetClass} threshold.`,
       );
     }
-    logEvent(tenantId, session, "requisition.created", "REQUISITION", created.id, created.title);
+    logEvent(
+      tenantId,
+      session,
+      "requisition.created",
+      "REQUISITION",
+      created.id,
+      created.title,
+    );
     return created;
   },
 
-  async approveRequesterHod(tenantId: string, session: SessionContext, requisitionId: string) {
+  async approveRequesterHod(
+    tenantId: string,
+    session: SessionContext,
+    requisitionId: string,
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<Requisition>(`/procurement/requisitions/${requisitionId}/approve-requester-hod`, "PUT", session);
-    logEvent(tenantId, session, "requisition.requester_hod_approved", "REQUISITION", requisitionId, updated.title);
+    const updated = await apiRequest<Requisition>(
+      `/procurement/requisitions/${requisitionId}/approve-requester-hod`,
+      "PUT",
+      session,
+    );
+    logEvent(
+      tenantId,
+      session,
+      "requisition.requester_hod_approved",
+      "REQUISITION",
+      requisitionId,
+      updated.title,
+    );
     return updated;
   },
 
@@ -235,86 +351,192 @@ export const procurementService = {
       supplierId: string;
       supplierBranchId: string;
       contractType: DraftPurchaseOrder["contractType"];
-      lineItems: Array<{ productSku: string; description: string; quantity: number; uom: string; unitPrice: number }>;
+      lineItems: Array<{
+        productSku: string;
+        description: string;
+        quantity: number;
+        uom: string;
+        unitPrice: number;
+      }>;
     },
   ): Promise<DraftPurchaseOrder> {
     ensureTenant(tenantId, session);
-    
+
     // Instead of local find, we send to backend which should handle validation
-    const draft = await apiRequest<DraftPurchaseOrder>("/procurement/draft-pos", "POST", session, payload);
-    
-    logEvent(tenantId, session, "draft_po.created", "DRAFT_PO", draft.id, payload.requisitionId);
+    const draft = await apiRequest<DraftPurchaseOrder>(
+      "/procurement/draft-pos",
+      "POST",
+      session,
+      payload,
+    );
+
+    logEvent(
+      tenantId,
+      session,
+      "draft_po.created",
+      "DRAFT_PO",
+      draft.id,
+      payload.requisitionId,
+    );
     return draft;
   },
 
-  async approveDraftByProcurementHod(tenantId: string, session: SessionContext, draftPoId: string) {
+  async approveDraftByProcurementHod(
+    tenantId: string,
+    session: SessionContext,
+    draftPoId: string,
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<Requisition>(`/procurement/draft-pos/${draftPoId}/approve`, "PUT", session);
-    logEvent(tenantId, session, "draft_po.procurement_hod_approved", "DRAFT_PO", draftPoId, draftPoId);
+    const updated = await apiRequest<Requisition>(
+      `/procurement/draft-pos/${draftPoId}/approve`,
+      "PUT",
+      session,
+    );
+    logEvent(
+      tenantId,
+      session,
+      "draft_po.procurement_hod_approved",
+      "DRAFT_PO",
+      draftPoId,
+      draftPoId,
+    );
     return updated;
   },
 
   async confirmSupplierQuote(
     tenantId: string,
     session: SessionContext,
-    payload: { draftPoId: string; quoteReference: string; quoteNotes: string; quoteAttachment?: string; quotedTotal?: number },
+    payload: {
+      draftPoId: string;
+      quoteReference: string;
+      quoteNotes: string;
+      quoteAttachment?: string;
+      quotedTotal?: number;
+    },
   ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<DraftPurchaseOrder>(`/procurement/draft-pos/${payload.draftPoId}/confirm-quote`, "PUT", session, payload);
+    const updated = await apiRequest<DraftPurchaseOrder>(
+      `/procurement/draft-pos/${payload.draftPoId}/confirm-quote`,
+      "PUT",
+      session,
+      payload,
+    );
     return updated;
   },
 
   async upsertContractForRequisition(
     tenantId: string,
     session: SessionContext,
-    payload: { requisitionId: string; supplierId: string; notes?: string; attachmentIds?: string[] },
+    payload: {
+      requisitionId: string;
+      supplierId: string;
+      notes?: string;
+      attachmentIds?: string[];
+    },
   ): Promise<ContractRecord> {
     ensureTenant(tenantId, session);
-    const contract = await apiRequest<ContractRecord>("/procurement/contracts", "POST", session, payload);
-    
+    const contract = await apiRequest<ContractRecord>(
+      "/procurement/contracts",
+      "POST",
+      session,
+      payload,
+    );
+
     // Legacy workflow trigger
-    const legalWorkflow = await workflowService.createRequest(tenantId, session, {
-      entityType: "CONTRACT",
-      entityId: contract.id,
-      makerDept: session.departmentId,
-      destinationDept: "LEGAL",
-      notes: "Procurement contract ownership handoff",
-    });
-    
-    await procurementIntegrationAdapters.requestLegalContractHandoff(tenantId, session, {
-      requisitionId: payload.requisitionId,
-      contractId: contract.id,
-      supplierId: payload.supplierId,
-      notes: payload.notes,
-      workflowRequestId: legalWorkflow.id,
-    });
-    
-    logEvent(tenantId, session, "contract.upserted", "CONTRACT", contract.id, payload.requisitionId);
+    const legalWorkflow = await workflowService.createRequest(
+      tenantId,
+      session,
+      {
+        entityType: "CONTRACT",
+        entityId: contract.id,
+        makerDept: session.departmentId,
+        destinationDept: "LEGAL",
+        notes: "Procurement contract ownership handoff",
+      },
+    );
+
+    await procurementIntegrationAdapters.requestLegalContractHandoff(
+      tenantId,
+      session,
+      {
+        requisitionId: payload.requisitionId,
+        contractId: contract.id,
+        supplierId: payload.supplierId,
+        notes: payload.notes,
+        workflowRequestId: legalWorkflow.id,
+      },
+    );
+
+    logEvent(
+      tenantId,
+      session,
+      "contract.upserted",
+      "CONTRACT",
+      contract.id,
+      payload.requisitionId,
+    );
     return contract;
   },
 
-  async approveLegalContract(tenantId: string, session: SessionContext, contractId: string) {
+  async approveLegalContract(
+    tenantId: string,
+    session: SessionContext,
+    contractId: string,
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<ContractRecord>(`/procurement/contracts/${contractId}/approve-legal`, "PUT", session);
+    const updated = await apiRequest<ContractRecord>(
+      `/procurement/contracts/${contractId}/approve-legal`,
+      "PUT",
+      session,
+    );
     return updated;
   },
 
-  async signContractParty(tenantId: string, session: SessionContext, contractId: string, party: "SUPPLIER" | "PROCUREMENT_HOD" | "FINANCE_HOD") {
+  async signContractParty(
+    tenantId: string,
+    session: SessionContext,
+    contractId: string,
+    party: "SUPPLIER" | "PROCUREMENT_HOD" | "FINANCE_HOD",
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<ContractRecord>(`/procurement/contracts/${contractId}/sign`, "PUT", session, { party });
+    const updated = await apiRequest<ContractRecord>(
+      `/procurement/contracts/${contractId}/sign`,
+      "PUT",
+      session,
+      { party },
+    );
     return updated;
   },
 
-  async setFinalApproval(tenantId: string, session: SessionContext, requisitionId: string, approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD") {
+  async setFinalApproval(
+    tenantId: string,
+    session: SessionContext,
+    requisitionId: string,
+    approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD",
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<Requisition>(`/procurement/requisitions/${requisitionId}/approve-final`, "PUT", session, { approver });
+    const updated = await apiRequest<Requisition>(
+      `/procurement/requisitions/${requisitionId}/approve-final`,
+      "PUT",
+      session,
+      { approver },
+    );
     return updated;
   },
 
-  async releasePurchaseOrder(tenantId: string, session: SessionContext, requisitionId: string): Promise<FinalPurchaseOrder> {
+  async releasePurchaseOrder(
+    tenantId: string,
+    session: SessionContext,
+    requisitionId: string,
+  ): Promise<FinalPurchaseOrder> {
     ensureTenant(tenantId, session);
-    const finalPo = await apiRequest<FinalPurchaseOrder>("/procurement/purchase-orders/release", "POST", session, { requisitionId });
-    
+    const finalPo = await apiRequest<FinalPurchaseOrder>(
+      "/procurement/purchase-orders/release",
+      "POST",
+      session,
+      { requisitionId },
+    );
+
     // External integrations (Payable & Goods Receipt)
     const payable = await financeService.createPayable(tenantId, session, {
       vendor: finalPo.supplierId,
@@ -323,50 +545,99 @@ export const procurementService = {
       currency: "IDR",
     });
 
-    await procurementIntegrationAdapters.queueGoodsReceiptSync(tenantId, session, {
-      finalPoId: finalPo.id,
-      requisitionId: requisitionId,
-      supplierId: finalPo.supplierId,
-      supplierBranchId: finalPo.supplierBranchId,
-      branchCode: finalPo.branchCode,
-      expectedDeliveryDate: finalPo.expectedDeliveryDate,
-    });
+    await procurementIntegrationAdapters.queueGoodsReceiptSync(
+      tenantId,
+      session,
+      {
+        finalPoId: finalPo.id,
+        requisitionId: requisitionId,
+        supplierId: finalPo.supplierId,
+        supplierBranchId: finalPo.supplierBranchId,
+        branchCode: finalPo.branchCode,
+        expectedDeliveryDate: finalPo.expectedDeliveryDate,
+      },
+    );
 
-    logEvent(tenantId, session, "po.released", "FINAL_PO", finalPo.id, requisitionId);
+    logEvent(
+      tenantId,
+      session,
+      "po.released",
+      "FINAL_PO",
+      finalPo.id,
+      requisitionId,
+    );
     return finalPo;
   },
 
   async recordReceipt(
     tenantId: string,
     session: SessionContext,
-    payload: { finalPoId: string; deliveryOnTime: boolean; quantityAccuracy: number; qualityScore: number; issueCount: number; invoiceMismatch: boolean },
+    payload: {
+      finalPoId: string;
+      deliveryOnTime: boolean;
+      quantityAccuracy: number;
+      qualityScore: number;
+      issueCount: number;
+      invoiceMismatch: boolean;
+    },
   ) {
     ensureTenant(tenantId, session);
-    const result = await apiRequest<{ receipt: ReceiptRecord; rating: RatingLog }>("/procurement/receipts", "POST", session, payload);
+    const result = await apiRequest<{
+      receipt: ReceiptRecord;
+      rating: RatingLog;
+    }>("/procurement/receipts", "POST", session, payload);
     return result;
   },
 
-  async runRiskScan(tenantId: string, session: SessionContext): Promise<RiskSignal[]> {
+  async runRiskScan(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<RiskSignal[]> {
     ensureTenant(tenantId, session);
     return apiRequest<RiskSignal[]>("/procurement/risk-scan", "POST", session);
   },
 
-  async getSupplierRecommendations(tenantId: string, session: SessionContext, params: { branchCode: string; category: string }): Promise<SupplierRecommendation[]> {
+  async getSupplierRecommendations(
+    tenantId: string,
+    session: SessionContext,
+    params: { branchCode: string; category: string },
+  ): Promise<SupplierRecommendation[]> {
     ensureTenant(tenantId, session);
-    return apiRequest<SupplierRecommendation[]>("/procurement/recommendations", "GET", session, params);
+    const queryString = new URLSearchParams(params as any).toString();
+    return apiRequest<SupplierRecommendation[]>(
+      `/procurement/recommendations?${queryString}`,
+      "GET",
+      session,
+    );
   },
 
-  async getSpendInsights(tenantId: string, session: SessionContext): Promise<ProcurementSpendInsight[]> {
+  async getSpendInsights(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<ProcurementSpendInsight[]> {
     ensureTenant(tenantId, session);
-    return apiRequest<ProcurementSpendInsight[]>("/procurement/spend-insights", "GET", session);
+    return apiRequest<ProcurementSpendInsight[]>(
+      "/procurement/spend-insights",
+      "GET",
+      session,
+    );
   },
 
-  async setRiskSignalStatus(tenantId: string, session: SessionContext, riskSignalId: string, status: RiskSignalStatus) {
+  async setRiskSignalStatus(
+    tenantId: string,
+    session: SessionContext,
+    riskSignalId: string,
+    status: RiskSignalStatus,
+  ) {
     ensureTenant(tenantId, session);
-    const updated = await apiRequest<RiskSignal>(`/procurement/risk-signals/${riskSignalId}/status`, "PUT", session, { status });
+    const updated = await apiRequest<RiskSignal>(
+      `/procurement/risk-signals/${riskSignalId}/status`,
+      "PUT",
+      session,
+      { status },
+    );
     return updated;
   },
-
 
   async createPortalMessage(
     tenantId: string,
@@ -381,12 +652,28 @@ export const procurementService = {
     },
   ): Promise<SupplierPortalMessage> {
     ensureTenant(tenantId, session);
-    const created = await apiRequest<SupplierPortalMessage>("/procurement/portal-messages", "POST", session, payload);
-    logEvent(tenantId, session, "portal_message.created", "PORTAL", created.id, payload.type);
+    const created = await apiRequest<SupplierPortalMessage>(
+      "/procurement/portal-messages",
+      "POST",
+      session,
+      payload,
+    );
+    logEvent(
+      tenantId,
+      session,
+      "portal_message.created",
+      "PORTAL",
+      created.id,
+      payload.type,
+    );
     return created;
   },
 
-  async acknowledgeLegalHandoff(tenantId: string, actor: SessionContext, handoffId: string) {
+  async acknowledgeLegalHandoff(
+    tenantId: string,
+    actor: SessionContext,
+    handoffId: string,
+  ) {
     return { id: handoffId, status: "ACKNOWLEDGED" };
   },
 };

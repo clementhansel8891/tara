@@ -12,11 +12,10 @@ import type {
   Permission,
 } from "../shared/contract";
 
-// ============================================================
 // PAGE COMPONENT IMPORTS (MODULE OWNED)
 // ============================================================
 
-import RetailWorkspace from "@/pages/retail/RetailWorkspace";
+import RetailWorkspace from "@/pages/retail/layout/RetailWorkspace";
 
 // Management Pages
 import StoreDashboard from "@/pages/retail/management/StoreDashboard";
@@ -40,7 +39,6 @@ import ReceivingTerminal from "@/pages/retail/operational/ReceivingTerminal";
 import SelfServiceKiosk from "@/pages/retail/operational/SelfServiceKiosk";
 import ShiftCloseTerminal from "@/pages/retail/operational/ShiftCloseTerminal";
 import RetailOperationalGateway from "@/pages/retail/operational/OperationalGateway";
-
 
 // ============================================================
 // MODULE IDENTITY (LOCKED)
@@ -116,7 +114,7 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     id: "mgt-profile",
     moduleId: MODULE_ID,
     title: "Store Profile",
-    route: "/m/retail/management/profile",
+    route: "/m/retail/management/profile/*",
     icon: "Store",
     menuGroup: "management",
     requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
@@ -146,7 +144,7 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
   {
     id: "mgt-ecommerce",
     moduleId: MODULE_ID,
-    title: "E-commerce Hub",
+    title: "Ecommerce Channels",
     route: "/m/retail/management/ecommerce",
     icon: "ShoppingBag",
     menuGroup: "management",

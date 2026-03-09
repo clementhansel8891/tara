@@ -16,21 +16,88 @@ export type RetailStoreType =
   | "pop-up"
   | "warehouse";
 
+export interface StoreOperationalConfig {
+  business_hours_template?: string;
+  default_shift_model?: string;
+  enabled_modules?: string[];
+  pos_device_limit?: number;
+  self_checkout_enabled?: boolean;
+  payment_methods_allowed?: string[];
+  refund_policy_mode?: "strict" | "flexible" | "manager_only";
+  auto_close_shift_setting?: boolean;
+}
+
+export interface StoreSupplyConfig {
+  default_inbound_warehouse_id?: string;
+  transfer_priority_policy?: "speed" | "cost" | "balanced";
+  replenishment_rule_set?: string;
+  safety_stock_policy?: string;
+  auto_reorder_threshold_template?: string;
+  fulfillment_fallback_routing?: string[];
+}
+
+export interface StoreInfrastructureRegistry {
+  registered_device_ids?: string[];
+  pos_clusters?: string[];
+  scanner_pools?: string[];
+  local_server_binding?: string;
+  sync_interval?: number;
+  offline_tolerance_threshold?: number;
+}
+
+export interface StoreChannelBinding {
+  linked_ecommerce_store_id?: string;
+  marketplace_integrations?: string[];
+  channel_priority?: string[];
+  order_routing_logic?: string;
+  online_to_offline_sync_policy?: string;
+}
+
+export interface StoreGovernanceData {
+  license_status: "active" | "expired" | "frozen";
+  activation_date?: string;
+  activation_source: "LAN-first" | "Cloud";
+  compliance_level: number;
+  audit_frequency_tier: "standard" | "high" | "critical";
+  data_retention_policy?: string;
+  decommission_trigger?: string;
+}
+
+export interface StoreConfigVersion {
+  updatedBy: string;
+  updatedAt: string;
+  revisionNumber: number;
+}
+
 export interface RetailStore extends HRAuditFields {
   id: string;
   tenantId: string;
+  locationId: string;
   name: string;
   code: string;
-  locationId: string;
-  type: RetailStoreType;
-  status: RetailStoreStatus;
+  type: "flagship" | "satellite" | "warehouse";
+  status: "active" | "frozen" | "archived" | "decommissioned";
   managerId?: string;
   phone?: string;
   email?: string;
   timezone?: string;
-  address?: string;
+  currency?: string;
+  taxZone?: string;
+  inventoryPoolId?: string;
+
+  // Hierarchical Config
+  operationalConfig?: StoreOperationalConfig;
+  supplyConfig?: StoreSupplyConfig;
+  infrastructureRegistry?: StoreInfrastructureRegistry;
+  channelBinding?: StoreChannelBinding;
+  governance?: StoreGovernanceData;
+
+  // Versioning
+  configVersion?: StoreConfigVersion;
+
+  /** @deprecated use operationalConfig instead */
   operatingHours?: Record<string, unknown>;
-  inventoryPoolId?: string; // null = private per-location inventory
+  /** @deprecated use hierarchical blocks instead */
   settings?: Record<string, unknown>;
 }
 
@@ -84,7 +151,7 @@ export interface InventoryPoolStock {
 }
 
 // ============================================================
-// POS DEVICE
+// POS DEVICE (legacy — kept for backward compat)
 // ============================================================
 
 export type POSDeviceType =
@@ -105,6 +172,147 @@ export interface POSDevice extends HRAuditFields {
 }
 
 // ============================================================
+// BRANCH DEVICE (Device Control Center)
+// ============================================================
+
+export type BranchDeviceType =
+  | "pc"
+  | "tablet"
+  | "scanner"
+  | "thermal_printer"
+  | "dot_matrix_printer"
+  | "kiosk"
+  | "pos_terminal"
+  | "mobile"
+  | "other";
+
+export type BranchDeviceStatus =
+  | "online"
+  | "offline"
+  | "maintenance"
+  | "unknown";
+
+export interface BranchDeviceAssignment {
+  role: string; // e.g. "Cashier", "Stock Counter", "Manager"
+  operatorId?: string;
+  shiftBound?: boolean;
+}
+
+export interface BranchDevice extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  locationId: string; // branch / store id
+  name: string;
+  type: BranchDeviceType;
+  model?: string; // e.g. "Postek C168", "Epson M118D"
+  serialNumber?: string;
+  macAddress?: string;
+  ipAddress?: string;
+  status: BranchDeviceStatus;
+  lastSeen?: string;
+  assignment?: BranchDeviceAssignment;
+  notes?: string;
+  firmwareVersion?: string;
+  driverVersion?: string;
+  isActive: boolean;
+}
+
+// ============================================================
+// CCTV CAMERA
+// ============================================================
+
+export type CCTVStatus =
+  | "live"
+  | "offline"
+  | "recording"
+  | "error"
+  | "maintenance";
+export type CCTVProvider =
+  | "ezviz"
+  | "dahua"
+  | "hikvision"
+  | "axis"
+  | "reolink"
+  | "custom"
+  | "other";
+export type CCTVIntegrationStatus =
+  | "connected"
+  | "not_configured"
+  | "error"
+  | "pending";
+
+export interface CCTVCamera extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  locationId: string;
+  name: string;
+  model?: string;
+  provider: CCTVProvider;
+  /** HLS URL (browser-playable) */
+  hlsUrl?: string;
+  /** RTSP URL (needs server-side proxy) */
+  rtspUrl?: string;
+  snapshotUrl?: string;
+  status: CCTVStatus;
+  integrationStatus?: CCTVIntegrationStatus;
+  cloudAccountId?: string;
+  verificationCode?: string;
+  streamToken?: string;
+  location?: string;
+  resolutionMp?: number;
+  hasNightVision?: boolean;
+  hasPtz?: boolean;
+  ipAddress?: string;
+  port?: number;
+  username?: string;
+  password?: string;
+  isActive: boolean;
+  lastPing?: string;
+  notes?: string;
+}
+
+// ============================================================
+// BRANCH SENSOR
+// ============================================================
+
+export type SensorType =
+  | "temperature"
+  | "humidity"
+  | "fire_alarm"
+  | "smoke"
+  | "motion"
+  | "door_contact"
+  | "vibration"
+  | "co2"
+  | "other";
+
+export type SensorStatus =
+  | "normal"
+  | "warning"
+  | "critical"
+  | "offline"
+  | "unknown";
+
+export interface BranchSensor extends HRAuditFields {
+  id: string;
+  tenantId: string;
+  locationId: string; // branch / store id
+  name: string;
+  type: SensorType;
+  model?: string;
+  serialNumber?: string;
+  status: SensorStatus;
+  currentValue?: number;
+  unit?: string; // e.g. "°C", "%", "ppm"
+  thresholdMin?: number;
+  thresholdMax?: number;
+  lastReading?: string; // ISO timestamp
+  placement?: string; // physical location note
+  isActive: boolean;
+  notes?: string;
+}
+
+// ============================================================
 // ORDERS
 // ============================================================
 
@@ -113,7 +321,10 @@ export type OrderStatus =
   | "pending_payment"
   | "reserved"
   | "paid"
-  | "fulfilled"
+  | "processing"
+  | "ready_for_pickup"
+  | "shipped"
+  | "complete"
   | "cancelled"
   | "refunded";
 
@@ -284,4 +495,10 @@ export interface RetailProduct extends HRAuditFields {
   price: number;
   /** Current stock level (on-hand) */
   stock?: number;
+  /** Category name for display */
+  categoryName?: string;
+  /** Product type (ITEM, SERVICE, etc) */
+  type?: string;
+  /** Custom metadata for stock levels, etc */
+  metadata?: Record<string, any>;
 }

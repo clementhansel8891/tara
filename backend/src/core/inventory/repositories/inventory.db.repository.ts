@@ -12,6 +12,8 @@ import {
   TransferStockDto,
   CreateAdjustmentDto,
   InventoryAlert,
+  CreateMovementRequestDto,
+  MovementRequest,
 } from "./inventory.repository.interface";
 import {
   Product,
@@ -92,7 +94,7 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getItems(tenantId: string): Promise<InventoryItem[]> {
     const products = await this.prisma.product.findMany({
-      where: { tenantId: tenantId },
+      where: { tenantId: tenantId, status: "active" },
       include: { category: true },
     });
 
@@ -139,6 +141,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         basePrice: data.basePrice ?? 0,
         taxRate: data.taxRate ?? 0,
         moduleTags: data.moduleTags ?? [],
+        status: data.status || "active",
       },
       include: { category: true },
     });
@@ -617,6 +620,13 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
+  async itemExistsBySku(tenantId: string, sku: string): Promise<boolean> {
+    const count = await this.prisma.product.count({
+      where: { tenantId: tenantId, sku: sku },
+    });
+    return count > 0;
+  }
+
   async batchIntakeStock(
     tenantId: string,
     data: StockIntakeDto[],
@@ -675,6 +685,7 @@ export class InventoryDbRepository implements IInventoryRepository {
             basePrice: itemData.basePrice ?? 0,
             taxRate: itemData.taxRate ?? 0,
             moduleTags: itemData.moduleTags ?? [],
+            status: itemData.status || "active",
           },
           include: { category: true },
         });
@@ -696,5 +707,97 @@ export class InventoryDbRepository implements IInventoryRepository {
       }
       return results;
     });
+  }
+
+  async getNextSequence(tenantId: string, category: string): Promise<number> {
+    const count = await this.prisma.product.count({
+      where: {
+        tenantId,
+        category: { name: category },
+      },
+    });
+    return count + 1;
+  }
+
+  async updateItemStatus(
+    tenantId: string,
+    itemId: string,
+    status: string,
+  ): Promise<InventoryItem> {
+    const product = await this.prisma.product.update({
+      where: { id: itemId, tenantId },
+      data: { status },
+      include: { category: true },
+    });
+
+    return {
+      id: product.id,
+      tenant_id: product.tenantId,
+      sku: product.sku,
+      name: product.name,
+      category: product.category.name as any,
+      uom: product.unit,
+      barcode: product.barcode,
+      qrCode: product.barcode,
+      moduleTags: (product as any).moduleTags || [],
+      active: product.status === "active",
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
+  }
+
+  async getPendingItems(tenantId: string): Promise<InventoryItem[]> {
+    const products = await this.prisma.product.findMany({
+      where: { tenantId, status: "pending" },
+      include: { category: true },
+    });
+
+    return products.map((p) => ({
+      id: p.id,
+      tenant_id: p.tenantId,
+      sku: p.sku,
+      name: p.name,
+      category: p.category.name as any,
+      uom: p.unit,
+      barcode: p.barcode,
+      qrCode: p.barcode,
+      moduleTags: (p as any).moduleTags || [],
+      active: false,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    }));
+  }
+
+  async createMovementRequest(
+    tenant_id: string,
+    data: CreateMovementRequestDto,
+  ): Promise<MovementRequest> {
+    // Basic implementation for now to satisfy interface
+    // In a real system, this would use a dedicated MovementRequest table if it exists in Prisma
+    console.log("Mocking movement request creation in DB repository");
+    return {
+      id: "mov-" + Math.random().toString(36).substr(2, 9),
+      tenant_id,
+      ...data,
+      status: "pending",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any;
+  }
+
+  async findHighestSkuByCategory(
+    tenantId: string,
+    category: string,
+  ): Promise<string | null> {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        category: {
+          name: category,
+        },
+      },
+      orderBy: { sku: "desc" },
+    });
+    return product?.sku || null;
   }
 }

@@ -17,6 +17,7 @@ import {
 import { Request, Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { HRService } from "./hr.service";
+import { PrismaService } from "../../persistence/prisma.service";
 import { CreateEmployeeDto } from "./dto/create-employee.dto";
 import { UpdateEmployeeDto } from "./dto/update-employee.dto";
 import { ClockInDto } from "./dto/clock-in.dto";
@@ -31,7 +32,9 @@ import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -44,10 +47,134 @@ interface RequestWithTenant extends Request {
  */
 @Controller("hr")
 @UseInterceptors(TenantInterceptor)
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("hr")
 export class HRController {
-  constructor(private readonly hrService: HRService) {}
+  constructor(
+    private readonly hrService: HRService,
+    private readonly prisma: PrismaService,
+  ) {}
+  // ==================== Overview (Module-Aware) ====================
+
+  /**
+   * GET /hr/overview
+   * HR workspace overview — enriched with data from active industry modules.
+   * Always returns core HR metrics; adds retail workforce data when retail is active.
+   */
+  @Get("overview")
+  async getOverview(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+
+    // Core HR metrics
+    const [
+      totalEmployees,
+      activeEmployees,
+      pendingLeaveCount,
+      openCasesCount,
+      openRequisitions,
+    ] = await Promise.all([
+      this.prisma.employee.count({ where: { tenantId } }),
+      this.prisma.employee.count({ where: { tenantId, status: "active" } }),
+      this.prisma.leaveRequest.count({
+        where: { tenantId, status: "PENDING" },
+      }),
+      this.prisma.hRCase.count({ where: { tenantId, status: "OPEN" } }),
+      this.prisma.jobRequisition.count({ where: { tenantId, status: "OPEN" } }),
+    ]);
+
+    const coreWorkforce = {
+      totalEmployees,
+      activeEmployees,
+      attendanceToday: "N/A", // Replaced attendance count due to schema issue
+      pendingLeaveRequests: pendingLeaveCount,
+      openCases: openCasesCount,
+      openRequisitions,
+    };
+
+    // ================================================================
+    // MODULE CONTRIBUTIONS — Retail
+    // ================================================================
+    let retailContribution: Record<string, any> | null = null;
+
+    const retailIsActive = await isModuleActive(
+      this.prisma,
+      tenantId,
+      "retail",
+    );
+    if (retailIsActive) {
+      // Retail staff (employees in the Retail Operations department or with retail role)
+      const retailDept = await this.prisma.department.findFirst({
+        where: {
+          tenantId,
+          OR: [
+            { name: { contains: "Retail", mode: "insensitive" } },
+            { code: { contains: "RET", mode: "insensitive" } },
+          ],
+        },
+        select: { id: true, name: true },
+      });
+
+      const retailStaffCount = retailDept
+        ? await this.prisma.employee.count({
+            where: { tenantId, departmentId: retailDept.id, status: "active" },
+          })
+        : await this.prisma.employee.count({
+            where: { tenantId, status: "active" },
+          });
+
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      // Active shifts today (open retail shifts)
+      const activeShifts = await this.prisma.retailShift.count({
+        where: {
+          tenantId,
+          startTime: { gte: todayStart },
+          endTime: null,
+        },
+      });
+
+      // Shifts closed today (completed)
+      const completedShifts = await this.prisma.retailShift.count({
+        where: {
+          tenantId,
+          startTime: { gte: todayStart },
+          endTime: { not: null },
+        },
+      });
+
+      // Pending shift closures (open shifts older than 8h — likely need closure)
+      const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
+      const pendingShiftClosures = await this.prisma.retailShift.count({
+        where: {
+          tenantId,
+          endTime: null,
+          startTime: { lte: eightHoursAgo },
+        },
+      });
+
+      retailContribution = {
+        moduleId: "retail",
+        moduleName: "Retail Operations",
+        retailStaffCount,
+        departmentName: retailDept?.name ?? "Retail",
+        activeShiftsToday: activeShifts,
+        completedShiftsToday: completedShifts,
+        pendingShiftClosures,
+      };
+    }
+
+    return {
+      success: true,
+      tenantId,
+      data: {
+        coreWorkforce,
+        moduleContributions: {
+          retail: retailContribution,
+        },
+      },
+    };
+  }
 
   // ==================== Employee Management ====================
 
@@ -307,7 +434,7 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() clockInDto: ClockInDto,
   ) {
-    const { tenantId, locationId } = request.tenantContext;
+    const { tenantId, userId, locationId } = request.tenantContext;
     const effectiveLocationId =
       clockInDto.locationId || locationId || "default";
 
@@ -315,6 +442,7 @@ export class HRController {
       tenantId,
       clockInDto.employeeId,
       effectiveLocationId,
+      userId,
     );
 
     return {
@@ -334,8 +462,12 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() body: { employeeId: string },
   ) {
-    const { tenantId } = request.tenantContext;
-    const attendance = await this.hrService.clockOut(tenantId, body.employeeId);
+    const { tenantId, userId } = request.tenantContext;
+    const attendance = await this.hrService.clockOut(
+      tenantId,
+      body.employeeId,
+      userId,
+    );
 
     return {
       success: true,
@@ -395,10 +527,11 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() createLeaveRequestDto: CreateLeaveRequestDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const leaveRequest = await this.hrService.createLeaveRequest(
       tenantId,
       createLeaveRequestDto,
+      userId,
     );
 
     return {
@@ -419,12 +552,13 @@ export class HRController {
     @Param("id") requestId: string,
     @Body() body: { reviewerId: string; notes?: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const leaveRequest = await this.hrService.approveLeaveRequest(
       tenantId,
       requestId,
       body.reviewerId,
       body.notes,
+      userId,
     );
 
     return {
@@ -445,12 +579,13 @@ export class HRController {
     @Param("id") requestId: string,
     @Body() body: { reviewerId: string; notes: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const leaveRequest = await this.hrService.rejectLeaveRequest(
       tenantId,
       requestId,
       body.reviewerId,
       body.notes,
+      userId,
     );
 
     return {
@@ -513,11 +648,12 @@ export class HRController {
     @Param("employeeId") employeeId: string,
     @Body() body: { period: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const payroll = await this.hrService.calculatePayroll(
       tenantId,
       employeeId,
       body.period,
+      userId,
     );
 
     return {
@@ -547,8 +683,12 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateDepartmentDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const department = await this.hrService.createDepartment(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const department = await this.hrService.createDepartment(
+      tenantId,
+      dto,
+      userId,
+    );
     return { success: true, tenantId, data: department };
   }
 
@@ -574,8 +714,12 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateRequisitionDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const requisition = await this.hrService.createRequisition(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const requisition = await this.hrService.createRequisition(
+      tenantId,
+      dto,
+      userId,
+    );
     return { success: true, tenantId, data: requisition };
   }
 
@@ -585,11 +729,12 @@ export class HRController {
     @Param("id") id: string,
     @Body() body: any,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const requisition = await this.hrService.updateRequisition(
       tenantId,
       id,
       body,
+      userId,
     );
     return { success: true, tenantId, data: requisition };
   }
@@ -608,8 +753,12 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreatePerformanceCycleDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const cycle = await this.hrService.createPerformanceCycle(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const cycle = await this.hrService.createPerformanceCycle(
+      tenantId,
+      dto,
+      userId,
+    );
     return { success: true, tenantId, data: cycle };
   }
 
@@ -638,8 +787,12 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: SubmitReviewDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const review = await this.hrService.submitPerformanceReview(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const review = await this.hrService.submitPerformanceReview(
+      tenantId,
+      dto,
+      userId,
+    );
     return { success: true, tenantId, data: review };
   }
 
@@ -681,8 +834,8 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateCaseDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const hrCase = await this.hrService.createCase(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const hrCase = await this.hrService.createCase(tenantId, dto, userId);
     return { success: true, tenantId, data: hrCase };
   }
 
@@ -692,8 +845,8 @@ export class HRController {
     @Param("id") id: string,
     @Body() body: any,
   ) {
-    const { tenantId } = request.tenantContext;
-    const hrCase = await this.hrService.updateCase(tenantId, id, body);
+    const { tenantId, userId } = request.tenantContext;
+    const hrCase = await this.hrService.updateCase(tenantId, id, body, userId);
     return { success: true, tenantId, data: hrCase };
   }
 
@@ -732,8 +885,8 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateContractDto,
   ) {
-    const { tenantId } = request.tenantContext;
-    const contract = await this.hrService.createContract(tenantId, dto);
+    const { tenantId, userId } = request.tenantContext;
+    const contract = await this.hrService.createContract(tenantId, dto, userId);
     return { success: true, tenantId, data: contract };
   }
 
@@ -743,8 +896,13 @@ export class HRController {
     @Param("id") id: string,
     @Body() body: any,
   ) {
-    const { tenantId } = request.tenantContext;
-    const contract = await this.hrService.updateContract(tenantId, id, body);
+    const { tenantId, userId } = request.tenantContext;
+    const contract = await this.hrService.updateContract(
+      tenantId,
+      id,
+      body,
+      userId,
+    );
     return { success: true, tenantId, data: contract };
   }
 

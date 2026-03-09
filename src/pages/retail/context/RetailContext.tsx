@@ -3,6 +3,9 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
+  useMemo,
+  useRef,
   ReactNode,
 } from "react";
 import {
@@ -48,7 +51,28 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
   const [mode, setMode] = useState<RetailMode>("management");
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshState = async () => {
+  // Use refs to read current values inside callbacks WITHOUT adding them as deps.
+  // This is the key fix for the infinite re-render loop: previously activeStore
+  // was a dep of refreshState, and refreshState called setActiveStore, which
+  // recreated the callback, triggering context to re-render all consumers endlessly.
+  const activeStoreRef = useRef(activeStore);
+  const activeChannelRef = useRef(activeChannel);
+  const updateLocationRef = useRef(updateLocation);
+
+  useEffect(() => {
+    activeStoreRef.current = activeStore;
+  }, [activeStore]);
+  useEffect(() => {
+    activeChannelRef.current = activeChannel;
+  }, [activeChannel]);
+  useEffect(() => {
+    updateLocationRef.current = updateLocation;
+  }, [updateLocation]);
+
+  // Track if we've done the initial auto-selection to avoid repeated updateLocation calls
+  const initializedRef = useRef(false);
+
+  const refreshState = useCallback(async () => {
     if (!session.tenantId) return;
 
     try {
@@ -60,18 +84,47 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
       setStores(fetchedStores);
       setChannels(fetchedChannels);
 
-      // Logic for determining active store
-      if (fetchedStores.length > 0 && !activeStore && !activeChannel) {
-        setActiveStore(fetchedStores[0]);
-        updateLocation(fetchedStores[0].id); // Sync with session
-      } else if (activeStore) {
-        const current = fetchedStores.find((s) => s.id === activeStore.id);
-        if (current) setActiveStore(current);
+      // Read current values from refs to avoid dep array issues
+      const currentActiveStore = activeStoreRef.current;
+      const currentActiveChannel = activeChannelRef.current;
+
+      // Auto-select first store only on initial load (not on every refresh)
+      if (
+        fetchedStores.length > 0 &&
+        !currentActiveStore &&
+        !currentActiveChannel &&
+        !initializedRef.current
+      ) {
+        initializedRef.current = true;
+        const defaultStore = fetchedStores[0];
+        setActiveStore(defaultStore);
+        // Only sync location if it actually changed
+        if (session.locationId !== defaultStore.id) {
+          updateLocationRef.current(defaultStore.id);
+        }
+      } else if (currentActiveStore) {
+        // Refresh active store data only if something actually changed (compare IDs)
+        const refreshed = fetchedStores.find(
+          (s) => s.id === currentActiveStore.id,
+        );
+        if (
+          refreshed &&
+          JSON.stringify(refreshed) !== JSON.stringify(currentActiveStore)
+        ) {
+          setActiveStore(refreshed);
+        }
       }
 
-      if (activeChannel) {
-        const current = fetchedChannels.find((c) => c.id === activeChannel.id);
-        if (current) setActiveChannel(current);
+      if (currentActiveChannel) {
+        const refreshed = fetchedChannels.find(
+          (c) => c.id === currentActiveChannel.id,
+        );
+        if (
+          refreshed &&
+          JSON.stringify(refreshed) !== JSON.stringify(currentActiveChannel)
+        ) {
+          setActiveChannel(refreshed);
+        }
       }
 
       const shifts = await retailService.listShifts(session.tenantId, session);
@@ -84,63 +137,90 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    refreshState();
+    // CRITICAL: Only depend on stable primitive session values.
+    // DO NOT add activeStore/activeChannel here - that causes an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.tenantId, session.userId]);
 
-  const setStore = async (storeId: string | null) => {
-    if (!storeId) {
-      setActiveStore(null);
-      return;
-    }
-    if (!session.tenantId) return;
-    const store = await retailService.getStore(
-      session.tenantId,
-      storeId,
-      session,
-    );
-    if (store) {
-      setActiveStore(store);
-      setActiveChannel(null); // Clear channel when store is selected
-      updateLocation(store.id); // Sync with session
-    }
-  };
+  useEffect(() => {
+    refreshState();
+    // Only re-run when the authenticated user/tenant changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.tenantId, session.userId]);
 
-  const setChannel = async (channelId: string | null) => {
-    if (!channelId) {
-      setActiveChannel(null);
-      return;
-    }
-    const channel = channels.find((c) => c.id === channelId);
-    if (channel) {
-      setActiveChannel(channel);
-      setActiveStore(null); // Clear store when channel is selected
-      updateLocation(channel.id); // Sync with session
-    }
-  };
+  const setStore = useCallback(
+    async (storeId: string | null) => {
+      if (!storeId) {
+        setActiveStore(null);
+        return;
+      }
+      if (!session.tenantId) return;
+      const store = await retailService.getStore(
+        session.tenantId,
+        storeId,
+        session,
+      );
+      if (store) {
+        setActiveStore(store);
+        setActiveChannel(null); // Clear channel when store is selected
+        if (session.locationId !== store.id) {
+          updateLocation(store.id); // Sync with session
+        }
+      }
+    },
+    [session, updateLocation],
+  );
+
+  const setChannel = useCallback(
+    async (channelId: string | null) => {
+      if (!channelId) {
+        setActiveChannel(null);
+        return;
+      }
+      const channel = channels.find((c) => c.id === channelId);
+      if (channel) {
+        setActiveChannel(channel);
+        setActiveStore(null); // Clear store when channel is selected
+        if (session.locationId !== channel.id) {
+          updateLocation(channel.id); // Sync with session
+        }
+      }
+    },
+    [channels, session.locationId, updateLocation],
+  );
+
+  const value = useMemo(
+    () => ({
+      activeStore,
+      activeChannel,
+      stores,
+      channels,
+      activeShift,
+      mode,
+      isLoading,
+      isConfigured: stores.length > 0 || channels.length > 0,
+      setMode,
+      setStore,
+      setChannel,
+      refreshState,
+    }),
+    [
+      activeStore,
+      activeChannel,
+      stores,
+      channels,
+      activeShift,
+      mode,
+      isLoading,
+      setMode,
+      setStore,
+      setChannel,
+      refreshState,
+    ],
+  );
 
   return (
-    <RetailContext.Provider
-      value={{
-        activeStore,
-        activeChannel,
-        stores,
-        channels,
-        activeShift,
-        mode,
-        isLoading,
-        isConfigured: stores.length > 0 || channels.length > 0,
-        setMode,
-        setStore,
-        setChannel,
-        refreshState,
-      }}
-    >
-      {children}
-    </RetailContext.Provider>
+    <RetailContext.Provider value={value}>{children}</RetailContext.Provider>
   );
 };
 

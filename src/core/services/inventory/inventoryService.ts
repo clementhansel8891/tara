@@ -13,45 +13,104 @@ import type {
 } from "@/core/types/inventory/inventory";
 
 export const inventoryService = {
-  async listItems(tenantId: string): Promise<InventoryItemMaster[]> {
-    return apiRequest<InventoryItemMaster[]>("/inventory/items", "GET", { tenantId } as any);
+  async listItems(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryItemMaster[]> {
+    return apiRequest<InventoryItemMaster[]>(
+      "/inventory/items",
+      "GET",
+      session,
+    );
   },
 
-  async listBalances(tenantId: string, locationId?: string, departmentId?: string): Promise<InventoryStockBalance[]> {
+  async listBalances(
+    tenantId: string,
+    session: SessionContext,
+    locationId?: string,
+    departmentId?: string,
+  ): Promise<InventoryStockBalance[]> {
     const params = new URLSearchParams();
     if (locationId) params.append("locationId", locationId);
     if (departmentId) params.append("departmentId", departmentId);
     const query = params.toString() ? `?${params.toString()}` : "";
-    return apiRequest<InventoryStockBalance[]>(`/inventory/balances${query}`, "GET", { tenantId } as any);
+    return apiRequest<InventoryStockBalance[]>(
+      `/inventory/balances${query}`,
+      "GET",
+      session,
+    );
   },
 
-  async listMovements(tenantId: string, itemId?: string): Promise<InventoryMovement[]> {
+  async listMovements(
+    tenantId: string,
+    session: SessionContext,
+    itemId?: string,
+  ): Promise<InventoryMovement[]> {
     const query = itemId ? `?itemId=${itemId}` : "";
-    return apiRequest<InventoryMovement[]>(`/inventory/movements${query}`, "GET", { tenantId } as any);
+    return apiRequest<InventoryMovement[]>(
+      `/inventory/movements${query}`,
+      "GET",
+      session,
+    );
   },
 
-  async listAdjustments(tenantId: string): Promise<InventoryAdjustmentRequest[]> {
-    return apiRequest<InventoryAdjustmentRequest[]>("/inventory/adjustments", "GET", { tenantId } as any);
+  async listAdjustments(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryAdjustmentRequest[]> {
+    return apiRequest<InventoryAdjustmentRequest[]>(
+      "/inventory/adjustments",
+      "GET",
+      session,
+    );
   },
 
-  async listAuditCycles(tenantId: string): Promise<InventoryAuditCycle[]> {
-    return apiRequest<InventoryAuditCycle[]>("/inventory/audit-cycles", "GET", { tenantId } as any);
+  async listAuditCycles(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryAuditCycle[]> {
+    return apiRequest<InventoryAuditCycle[]>(
+      "/inventory/audit-cycles",
+      "GET",
+      session,
+    );
   },
 
-  async listAlerts(tenantId: string): Promise<InventoryAlert[]> {
-    return apiRequest<InventoryAlert[]>("/inventory/alerts", "GET", { tenantId } as any);
+  async listAlerts(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryAlert[]> {
+    return apiRequest<InventoryAlert[]>("/inventory/alerts", "GET", session);
   },
 
-  async listIntegrationEvents(tenantId: string): Promise<InventoryIntegrationEvent[]> {
-    return apiRequest<InventoryIntegrationEvent[]>("/inventory/integration-events", "GET", { tenantId } as any);
+  async listIntegrationEvents(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryIntegrationEvent[]> {
+    return apiRequest<InventoryIntegrationEvent[]>(
+      "/inventory/integration-events",
+      "GET",
+      session,
+    );
   },
 
   async createItem(
     tenantId: string,
     session: SessionContext,
-    payload: { sku: string; name: string; category: InventoryItemMaster["category"]; uom: string; moduleTags: string[] },
+    payload: {
+      sku: string;
+      name: string;
+      category: InventoryItemMaster["category"];
+      uom: string;
+      moduleTags: string[];
+    },
   ): Promise<InventoryItemMaster> {
-    return apiRequest<InventoryItemMaster>("/inventory/items", "POST", session, payload);
+    return apiRequest<InventoryItemMaster>(
+      "/inventory/items",
+      "POST",
+      session,
+      payload,
+    );
   },
 
   async recordIntake(
@@ -145,12 +204,16 @@ export const inventoryService = {
     return apiRequest<any>("/inventory/adjustments", "POST", session, dto);
   },
 
-  async approveAdjustment(tenantId: string, session: SessionContext, adjustmentId: string) {
+  async approveAdjustment(
+    tenantId: string,
+    session: SessionContext,
+    adjustmentId: string,
+  ) {
     return apiRequest<any>(
       `/inventory/adjustments/${adjustmentId}/approve`,
       "PUT",
       session,
-      { approvedBy: session.userId }
+      { approvedBy: session.userId },
     );
   },
 
@@ -158,13 +221,25 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     alertId: string,
-    status: InventoryAlertStatus
+    status: InventoryAlertStatus,
   ) {
-    return apiRequest<any>(`/inventory/alerts/${alertId}/status`, "PUT", session, { status });
+    return apiRequest<any>(
+      `/inventory/alerts/${alertId}/status`,
+      "PUT",
+      session,
+      { status },
+    );
   },
 
-  async getDashboard(tenantId: string): Promise<InventoryDashboardMetrics> {
-    return apiRequest<InventoryDashboardMetrics>("/inventory/dashboard", "GET", { tenantId } as any);
+  async getDashboard(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryDashboardMetrics> {
+    return apiRequest<InventoryDashboardMetrics>(
+      "/inventory/dashboard",
+      "GET",
+      session,
+    );
   },
 
   async startAuditCycle(
@@ -174,7 +249,7 @@ export const inventoryService = {
       locationCode: string;
       departmentCode?: string;
       scope: "LOCATION" | "DEPARTMENT" | "ITEM";
-    }
+    },
   ) {
     return apiRequest<any>("/inventory/audit-cycles", "POST", session, payload);
   },
@@ -183,13 +258,18 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     cycleId: string,
-    results: { countedValue: number; varianceValue: number }
+    results: { countedValue: number; varianceValue: number },
   ) {
-    return apiRequest<any>(`/inventory/audit-cycles/${cycleId}`, "PUT", session, {
-      ...results,
-      status: "COMPLETED",
-      closedBy: session.userId,
-    });
+    return apiRequest<any>(
+      `/inventory/audit-cycles/${cycleId}`,
+      "PUT",
+      session,
+      {
+        ...results,
+        status: "COMPLETED",
+        closedBy: session.userId,
+      },
+    );
   },
 
   async runLowStockScan(tenantId: string, session: SessionContext) {
@@ -199,31 +279,56 @@ export const inventoryService = {
   async runExpiryScan(tenantId: string, session: SessionContext) {
     return apiRequest<any>("/inventory/scans/expiry", "POST", session, {});
   },
-  
+
   // Missing implementation for listProcurementReceiptQueue and processProcurementReceipt
   // These likely need new endpoints or just return empty for now since backend doesn't support them fully yet.
   // I'll add placeholders to avoid breaking typed callers.
-  async listProcurementReceiptQueue(tenantId: string) {
-      return Promise.resolve([]);
+  async listProcurementReceiptQueue(tenantId: string, session: SessionContext) {
+    return Promise.resolve([]);
   },
-  
-  async processProcurementReceipt(tenantId: string, session: SessionContext, receiptId: string) {
-      return Promise.resolve();
+
+  async processProcurementReceipt(
+    tenantId: string,
+    session: SessionContext,
+    payload: any,
+  ) {
+    return Promise.resolve();
   },
 
   async deleteItem(tenantId: string, session: SessionContext, itemId: string) {
     return apiRequest<any>(`/inventory/items/${itemId}`, "DELETE", session);
   },
 
-  async batchDeleteItems(tenantId: string, session: SessionContext, itemIds: string[]) {
-    return apiRequest<any>("/inventory/items/batch-delete", "POST", session, { itemIds });
+  async batchDeleteItems(
+    tenantId: string,
+    session: SessionContext,
+    itemIds: string[],
+  ) {
+    return apiRequest<any>("/inventory/items/batch-delete", "POST", session, {
+      itemIds,
+    });
   },
 
-  async batchRecordIntake(tenantId: string, session: SessionContext, items: any[]) {
-    return apiRequest<any>("/inventory/batch-intake", "POST", session, { items });
+  async batchRecordIntake(
+    tenantId: string,
+    session: SessionContext,
+    items: any[],
+  ) {
+    return apiRequest<any>("/inventory/batch-intake", "POST", session, {
+      items,
+    });
   },
 
-  async requestProcurement(tenantId: string, session: SessionContext, payload: any) {
-    return apiRequest<any>("/inventory/procurement-request", "POST", session, payload);
-  }
+  async requestProcurement(
+    tenantId: string,
+    session: SessionContext,
+    payload: any,
+  ) {
+    return apiRequest<any>(
+      "/inventory/procurement-request",
+      "POST",
+      session,
+      payload,
+    );
+  },
 };

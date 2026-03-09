@@ -3,9 +3,25 @@ import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
@@ -25,7 +41,9 @@ export default function PeopleCore() {
   const employeeId = params.id ?? "";
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [workflowType, setWorkflowType] = useState<"PERFORMANCE" | "PAYROLL" | "CONTRACT" | "TRAINING">("PERFORMANCE");
+  const [workflowType, setWorkflowType] = useState<
+    "PERFORMANCE" | "PAYROLL" | "CONTRACT" | "TRAINING"
+  >("PERFORMANCE");
   const [destinationDept, setDestinationDept] = useState("HR");
   const [notes, setNotes] = useState("");
   const [listSearch, setListSearch] = useState("");
@@ -37,9 +55,14 @@ export default function PeopleCore() {
   });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedDetail, setSelectedDetail] = useState<{ type: string; data: any } | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<{
+    type: string;
+    data: any;
+  } | null>(null);
   const [actionOpen, setActionOpen] = useState(false);
-  const [actionType, setActionType] = useState<"MOVE" | "REMOVE" | "TERMINATE">("MOVE");
+  const [actionType, setActionType] = useState<"MOVE" | "REMOVE" | "TERMINATE">(
+    "MOVE",
+  );
   const [actionReason, setActionReason] = useState("");
   const [targetDept, setTargetDept] = useState("HR");
 
@@ -55,7 +78,11 @@ export default function PeopleCore() {
     const loadRecord = async () => {
       setIsLoading(true);
       try {
-        const data = await peopleService.getEmployee360(session.tenantId, employeeId, session);
+        const data = await peopleService.getEmployee360(
+          session.tenantId,
+          employeeId,
+          session,
+        );
         setRecord(data);
       } catch (err) {
         setErrorMessage("Failed to load employee record.");
@@ -70,9 +97,26 @@ export default function PeopleCore() {
 
   if (isLoading) {
     return (
-      <WorkspacePanel title="Loading..." description="Fetching employee record.">
+      <WorkspacePanel
+        title="Loading..."
+        description="Fetching employee record."
+      >
         <div className="flex items-center justify-center p-8">
-           <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        </div>
+      </WorkspacePanel>
+    );
+  }
+
+  if (!record && session.role !== "SUPERADMIN" && session.role !== "OWNER") {
+    return (
+      <WorkspacePanel
+        title="Access restricted"
+        description="You do not have access to this profile."
+      >
+        <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+          This employee record is outside your authorized scope or does not
+          exist.
         </div>
       </WorkspacePanel>
     );
@@ -80,41 +124,73 @@ export default function PeopleCore() {
 
   if (!record) {
     return (
-      <WorkspacePanel title="Access restricted" description="You do not have access to this profile.">
+      <WorkspacePanel
+        title="Not Found"
+        description="Employee record not found."
+      >
         <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          This employee record is outside your authorized scope or does not exist.
+          The requested employee record could not be found in the database.
         </div>
       </WorkspacePanel>
     );
   }
 
-  const { employee, attendance, payrollRuns, contracts, trainings, reviews, workflows } = record;
+  const {
+    employee,
+    attendance,
+    payrollRuns,
+    contracts,
+    trainings,
+    reviews,
+    workflows,
+  } = record;
   const filteredAttendance = attendance.filter((entry) =>
-    listSearch ? entry.status.toLowerCase().includes(listSearch.toLowerCase()) : true,
+    listSearch
+      ? entry.status.toLowerCase().includes(listSearch.toLowerCase())
+      : true,
   );
   const filteredPayroll = payrollRuns.filter((run) =>
-    listSearch ? run.status.toLowerCase().includes(listSearch.toLowerCase()) : true,
+    listSearch
+      ? run.status.toLowerCase().includes(listSearch.toLowerCase())
+      : true,
   );
   const filteredContracts = contracts.filter((contract) =>
-    listSearch ? contract.title.toLowerCase().includes(listSearch.toLowerCase()) : true,
+    listSearch
+      ? contract.title.toLowerCase().includes(listSearch.toLowerCase())
+      : true,
   );
   const filteredReviews = reviews.filter((review) =>
-    listSearch ? review.status.toLowerCase().includes(listSearch.toLowerCase()) : true,
+    listSearch
+      ? review.status.toLowerCase().includes(listSearch.toLowerCase())
+      : true,
   );
 
   return (
     <div className="space-y-6">
-      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+      <FeedbackAlert
+        message={statusMessage}
+        error={errorMessage}
+        onClear={clearStatus}
+      />
       <PageHeader
         title={`PeopleCore - ${employee.fullName}`}
         subtitle={`${employee.roleTitle} - ${employee.departmentId}`}
-        primaryAction={<Button onClick={() => setDialogOpen(true)}>Start Workflow</Button>}
-        secondaryActions={<Input placeholder="Search within record" className="min-w-[200px]" />}
+        primaryAction={
+          <Button onClick={() => setDialogOpen(true)}>Start Workflow</Button>
+        }
+        secondaryActions={
+          <Input placeholder="Search within record" className="min-w-[200px]" />
+        }
       />
 
-      <WorkspacePanel title="WorkQueue" description="Actions and escalations for this employee.">
+      <WorkspacePanel
+        title="WorkQueue"
+        description="Actions and escalations for this employee."
+      >
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setDialogOpen(true)}>Create Request</Button>
+          <Button variant="outline" onClick={() => setDialogOpen(true)}>
+            Create Request
+          </Button>
           <Button
             variant="outline"
             onClick={() => {
@@ -199,7 +275,10 @@ export default function PeopleCore() {
         </div>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Active Records" description="Employee 360 timeline.">
+      <WorkspacePanel
+        title="Active Records"
+        description="Employee 360 timeline."
+      >
         <FilterBar
           searchPlaceholder="Search records"
           searchValue={listSearch}
@@ -219,21 +298,37 @@ export default function PeopleCore() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-lg border p-4 text-sm">
                 <p className="font-semibold text-foreground">Employment</p>
-                <p className="text-muted-foreground">Employee code: {employee.employeeCode}</p>
-                <p className="text-muted-foreground">Location: {employee.location}</p>
-                <p className="text-muted-foreground">Hire date: {employee.hireDate}</p>
+                <p className="text-muted-foreground">
+                  Employee code: {employee.employeeCode}
+                </p>
+                <p className="text-muted-foreground">
+                  Location: {employee.location}
+                </p>
+                <p className="text-muted-foreground">
+                  Hire date: {employee.hireDate}
+                </p>
               </div>
               <div className="rounded-lg border p-4 text-sm">
                 <p className="font-semibold text-foreground">Compensation</p>
-                <p className="text-muted-foreground">Base salary: {employee.baseSalary}</p>
-                <p className="text-muted-foreground">Hourly rate: {employee.hourlyRate}</p>
-                <p className="text-muted-foreground">Status: {employee.status}</p>
+                <p className="text-muted-foreground">
+                  Base salary: {employee.baseSalary}
+                </p>
+                <p className="text-muted-foreground">
+                  Hourly rate: {employee.hourlyRate}
+                </p>
+                <p className="text-muted-foreground">
+                  Status: {employee.status}
+                </p>
               </div>
             </div>
           </TabsContent>
 
           <TabsContent value="attendance">
-            <DataTableShell total={filteredAttendance.length} page={1} pageSize={10}>
+            <DataTableShell
+              total={filteredAttendance.length}
+              page={1}
+              pageSize={10}
+            >
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                   <tr>
@@ -247,11 +342,15 @@ export default function PeopleCore() {
                     <tr
                       key={entry.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedDetail({ type: "Attendance", data: entry })}
+                      onClick={() =>
+                        setSelectedDetail({ type: "Attendance", data: entry })
+                      }
                     >
                       <td className="p-3">{entry.date}</td>
                       <td className="p-3">{entry.status}</td>
-                      <td className="p-3 text-muted-foreground">{(entry as any).notes ?? "--"}</td>
+                      <td className="p-3 text-muted-foreground">
+                        {(entry as any).notes ?? "--"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -260,7 +359,11 @@ export default function PeopleCore() {
           </TabsContent>
 
           <TabsContent value="payroll">
-            <DataTableShell total={filteredPayroll.length} page={1} pageSize={10}>
+            <DataTableShell
+              total={filteredPayroll.length}
+              page={1}
+              pageSize={10}
+            >
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                   <tr>
@@ -273,9 +376,13 @@ export default function PeopleCore() {
                     <tr
                       key={run.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedDetail({ type: "Payroll Period", data: run })}
+                      onClick={() =>
+                        setSelectedDetail({ type: "Payroll Period", data: run })
+                      }
                     >
-                      <td className="p-3">{run.periodStart} - {run.periodEnd}</td>
+                      <td className="p-3">
+                        {run.periodStart} - {run.periodEnd}
+                      </td>
                       <td className="p-3">{run.status}</td>
                     </tr>
                   ))}
@@ -285,7 +392,11 @@ export default function PeopleCore() {
           </TabsContent>
 
           <TabsContent value="contracts">
-            <DataTableShell total={filteredContracts.length} page={1} pageSize={10}>
+            <DataTableShell
+              total={filteredContracts.length}
+              page={1}
+              pageSize={10}
+            >
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                   <tr>
@@ -298,7 +409,9 @@ export default function PeopleCore() {
                     <tr
                       key={contract.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedDetail({ type: "Contract", data: contract })}
+                      onClick={() =>
+                        setSelectedDetail({ type: "Contract", data: contract })
+                      }
                     >
                       <td className="p-3">{contract.title}</td>
                       <td className="p-3">{contract.status}</td>
@@ -310,7 +423,11 @@ export default function PeopleCore() {
           </TabsContent>
 
           <TabsContent value="performance">
-            <DataTableShell total={filteredReviews.length} page={1} pageSize={10}>
+            <DataTableShell
+              total={filteredReviews.length}
+              page={1}
+              pageSize={10}
+            >
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                   <tr>
@@ -324,7 +441,12 @@ export default function PeopleCore() {
                     <tr
                       key={review.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedDetail({ type: "Performance Review", data: review })}
+                      onClick={() =>
+                        setSelectedDetail({
+                          type: "Performance Review",
+                          data: review,
+                        })
+                      }
                     >
                       <td className="p-3">{review.cycleId}</td>
                       <td className="p-3">{review.score ?? "-"}</td>
@@ -339,13 +461,23 @@ export default function PeopleCore() {
       </WorkspacePanel>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <WorkspacePanel title="Pending Approvals" description="Workflow requests tied to this employee.">
+        <WorkspacePanel
+          title="Pending Approvals"
+          description="Workflow requests tied to this employee."
+        >
           <div className="space-y-3">
             {workflows.map((flow) => (
-              <div key={flow.id} className="flex items-center justify-between rounded-lg border p-3">
+              <div
+                key={flow.id}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
                 <div>
-                  <p className="text-sm font-medium text-foreground">{flow.entityType}</p>
-                  <p className="text-xs text-muted-foreground">Cycle {flow.cycle}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {flow.entityType}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Cycle {flow.cycle}
+                  </p>
                 </div>
                 <ApprovalStatusBadge status={flow.status} />
               </div>
@@ -353,21 +485,31 @@ export default function PeopleCore() {
           </div>
         </WorkspacePanel>
 
-        <WorkspacePanel title="Insights" description="Performance and compliance signals.">
+        <WorkspacePanel
+          title="Insights"
+          description="Performance and compliance signals."
+        >
           <div className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center justify-between rounded-lg border p-3">
               <span>Training assignments</span>
-              <span className="font-semibold text-foreground">{trainings.length}</span>
+              <span className="font-semibold text-foreground">
+                {trainings.length}
+              </span>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <span>Open contracts</span>
-              <span className="font-semibold text-foreground">{contracts.length}</span>
+              <span className="font-semibold text-foreground">
+                {contracts.length}
+              </span>
             </div>
           </div>
         </WorkspacePanel>
       </div>
 
-      <WorkspacePanel title="Activity Stream" description="Comments, mentions, and audit context.">
+      <WorkspacePanel
+        title="Activity Stream"
+        description="Comments, mentions, and audit context."
+      >
         <ActivityThread
           tenantId={session.tenantId}
           entityType="employee"
@@ -382,7 +524,12 @@ export default function PeopleCore() {
             <DialogTitle>Create Workflow Request</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Select value={workflowType} onValueChange={(value) => setWorkflowType(value as typeof workflowType)}>
+            <Select
+              value={workflowType}
+              onValueChange={(value) =>
+                setWorkflowType(value as typeof workflowType)
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Request type" />
               </SelectTrigger>
@@ -420,7 +567,9 @@ export default function PeopleCore() {
                     destinationDept,
                     notes,
                   });
-                  setStatusMessage(`Workflow request for ${workflowType} initialized.`);
+                  setStatusMessage(
+                    `Workflow request for ${workflowType} initialized.`,
+                  );
                   setNotes("");
                   setDialogOpen(false);
                 } catch (err) {
@@ -443,21 +592,38 @@ export default function PeopleCore() {
             <Input
               placeholder="Role title"
               value={editForm.roleTitle}
-              onChange={(event) => setEditForm((prev) => ({ ...prev, roleTitle: event.target.value }))}
+              onChange={(event) =>
+                setEditForm((prev) => ({
+                  ...prev,
+                  roleTitle: event.target.value,
+                }))
+              }
             />
             <Input
               placeholder="Department ID"
               value={editForm.departmentId}
-              onChange={(event) => setEditForm((prev) => ({ ...prev, departmentId: event.target.value }))}
+              onChange={(event) =>
+                setEditForm((prev) => ({
+                  ...prev,
+                  departmentId: event.target.value,
+                }))
+              }
             />
             <Input
               placeholder="Location"
               value={editForm.location}
-              onChange={(event) => setEditForm((prev) => ({ ...prev, location: event.target.value }))}
+              onChange={(event) =>
+                setEditForm((prev) => ({
+                  ...prev,
+                  location: event.target.value,
+                }))
+              }
             />
             <Select
               value={editForm.status}
-              onValueChange={(value) => setEditForm((prev) => ({ ...prev, status: value }))}
+              onValueChange={(value) =>
+                setEditForm((prev) => ({ ...prev, status: value }))
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -472,12 +638,18 @@ export default function PeopleCore() {
             <Button
               onClick={() => {
                 try {
-                  staffService.updateEmployee(session.tenantId, session, employee.id, {
-                    roleTitle: editForm.roleTitle || employee.roleTitle,
-                    departmentId: editForm.departmentId || employee.departmentId,
-                    location: editForm.location || employee.location,
-                    status: editForm.status as typeof employee.status,
-                  });
+                  staffService.updateEmployee(
+                    session.tenantId,
+                    session,
+                    employee.id,
+                    {
+                      roleTitle: editForm.roleTitle || employee.roleTitle,
+                      departmentId:
+                        editForm.departmentId || employee.departmentId,
+                      location: editForm.location || employee.location,
+                      status: editForm.status as typeof employee.status,
+                    },
+                  );
                   setEditOpen(false);
                   setStatusMessage("Employee profile updated successfully.");
                 } catch (err) {
@@ -491,7 +663,10 @@ export default function PeopleCore() {
         </SheetContent>
       </Sheet>
 
-      <Dialog open={!!selectedDetail} onOpenChange={() => setSelectedDetail(null)}>
+      <Dialog
+        open={!!selectedDetail}
+        onOpenChange={() => setSelectedDetail(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{selectedDetail?.type} Detail</DialogTitle>
@@ -501,13 +676,19 @@ export default function PeopleCore() {
               <span className="text-muted-foreground">Record ID:</span>
               <span className="font-mono">{selectedDetail?.data.id}</span>
               <span className="text-muted-foreground">Status:</span>
-              <span><ApprovalStatusBadge status={selectedDetail?.data.status || "UNKNOWN"} /></span>
+              <span>
+                <ApprovalStatusBadge
+                  status={selectedDetail?.data.status || "UNKNOWN"}
+                />
+              </span>
               {selectedDetail?.type === "Performance Review" && (
                 <>
                   <span className="text-muted-foreground">Cycle:</span>
                   <span>{selectedDetail?.data.cycleId}</span>
                   <span className="text-muted-foreground">Score:</span>
-                  <span className="font-bold">{selectedDetail?.data.score ?? "Not yet scored"}</span>
+                  <span className="font-bold">
+                    {selectedDetail?.data.score ?? "Not yet scored"}
+                  </span>
                 </>
               )}
               {selectedDetail?.type === "Attendance" && (
@@ -518,7 +699,10 @@ export default function PeopleCore() {
               )}
             </div>
             <div className="border-t pt-2 text-xs text-muted-foreground">
-              <p>This is a historical record from the PeopleCore data layer. For detailed audit logs, check the Activity Stream.</p>
+              <p>
+                This is a historical record from the PeopleCore data layer. For
+                detailed audit logs, check the Activity Stream.
+              </p>
             </div>
           </div>
         </DialogContent>
@@ -562,18 +746,42 @@ export default function PeopleCore() {
                 onClick={() => {
                   try {
                     if (!actionReason) {
-                      setErrorMessage("Reason is required for personnel actions.");
+                      setErrorMessage(
+                        "Reason is required for personnel actions.",
+                      );
                       return;
                     }
                     if (actionType === "MOVE") {
-                      (staffService as any).requestTransfer(employee.tenantId, session, employee.id, targetDept, actionReason);
-                      setStatusMessage(`Transfer request for ${employee.fullName} to ${targetDept} initiated.`);
+                      (staffService as any).requestTransfer(
+                        employee.tenantId,
+                        session,
+                        employee.id,
+                        targetDept,
+                        actionReason,
+                      );
+                      setStatusMessage(
+                        `Transfer request for ${employee.fullName} to ${targetDept} initiated.`,
+                      );
                     } else if (actionType === "REMOVE") {
-                      staffService.updateEmployee(employee.tenantId, session, employee.id, { status: "inactive" });
-                      setStatusMessage(`${employee.fullName} record deactivated (inactive).`);
+                      staffService.updateEmployee(
+                        employee.tenantId,
+                        session,
+                        employee.id,
+                        { status: "inactive" },
+                      );
+                      setStatusMessage(
+                        `${employee.fullName} record deactivated (inactive).`,
+                      );
                     } else if (actionType === "TERMINATE") {
-                      staffService.requestTermination(employee.tenantId, session, employee.id, actionReason);
-                      setStatusMessage(`Termination workflow triggered for ${employee.fullName}.`);
+                      staffService.requestTermination(
+                        employee.tenantId,
+                        session,
+                        employee.id,
+                        actionReason,
+                      );
+                      setStatusMessage(
+                        `Termination workflow triggered for ${employee.fullName}.`,
+                      );
                     }
                     setActionOpen(false);
                     setActionReason("");
@@ -591,5 +799,3 @@ export default function PeopleCore() {
     </div>
   );
 }
-
-

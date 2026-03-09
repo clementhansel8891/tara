@@ -15,6 +15,7 @@ import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { AttachDisputeEvidenceDto } from "./dto/attach-dispute-evidence.dto";
 import { CreateDisputeDto } from "./dto/create-dispute.dto";
 import { CreatePaymentTransactionDto } from "./dto/create-payment-transaction.dto";
@@ -26,6 +27,8 @@ import { RoutePaymentDto } from "./dto/route-payment.dto";
 import { UpdateDeviceStatusDto } from "./dto/update-device-status.dto";
 import { UpdateProviderStatusDto } from "./dto/update-provider-status.dto";
 import { PaymentService } from "./payment.service";
+import { PrismaService } from "../../persistence/prisma.service";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -33,10 +36,13 @@ interface RequestWithTenant extends Request {
 
 @Controller("payment")
 @UseInterceptors(TenantInterceptor)
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("payment")
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private actorId(request: RequestWithTenant) {
     const value = request.headers["x-actor-id"];
@@ -48,10 +54,29 @@ export class PaymentController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenantId } = request.tenantContext;
+    const dashboardData = await this.paymentService.getDashboard(tenantId);
+
+    const moduleContributions: any = {};
+    if (await isModuleActive(this.prisma, tenantId, "retail")) {
+      const activeDevices = await this.prisma.paymentPosDevice.count({
+        where: { tenantId, status: "ONLINE" },
+      });
+      const totalDisputes = await this.prisma.paymentDispute.count({
+        where: { tenantId, status: "OPEN" },
+      });
+      moduleContributions.retail = {
+        activeDevices,
+        totalDisputes,
+      };
+    }
+
     return {
       success: true,
       tenantId,
-      data: await this.paymentService.getDashboard(tenantId),
+      data: {
+        ...dashboardData,
+        moduleContributions,
+      },
     };
   }
 

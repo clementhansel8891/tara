@@ -20,6 +20,10 @@ export class CreateItemDto {
   sku: string;
 
   @IsString()
+  @IsOptional()
+  barcode?: string;
+
+  @IsString()
   @IsNotEmpty()
   name: string;
 
@@ -51,4 +55,8 @@ export class CreateItemDto {
   @IsString({ each: true })
   @IsOptional()
   moduleTags?: string[];
+
+  @IsString()
+  @IsOptional()
+  status?: string;
 }

@@ -112,7 +112,7 @@ const ComplianceAuditLedger = () => {
   }, [searchTerm]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       {/* Header */}
       <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
         <PageHeader
@@ -132,7 +132,7 @@ const ComplianceAuditLedger = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-slate-50/50">
+      <div className="flex-1 bg-slate-50/50">
         <div className="max-w-7xl mx-auto p-8 lg:p-12 space-y-10">
           {/* Integrity Header */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

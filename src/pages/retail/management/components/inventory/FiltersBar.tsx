@@ -14,7 +14,7 @@ import { InventoryFilters } from "./types";
 type Props = {
   canWrite: boolean;
   filters: InventoryFilters;
-  categoryOptions: string[];
+  categoryOptions: { id: string; name: string }[];
   onFiltersChange: (patch: Partial<InventoryFilters>) => void;
   onAddSku?: () => void;
 };
@@ -46,8 +46,8 @@ export const FiltersBar: React.FC<Props> = ({
         </SelectTrigger>
         <SelectContent className="rounded-xl">
           {categoryOptions.map((c) => (
-            <SelectItem key={c} value={c} className="font-bold italic">
-              {c === "all" ? "All Categories" : c}
+            <SelectItem key={c.id} value={c.id} className="font-bold italic">
+              {c.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -76,6 +76,58 @@ export const FiltersBar: React.FC<Props> = ({
           </SelectItem>
         </SelectContent>
       </Select>
+      <Select
+        value={filters.type}
+        onValueChange={(v) => onFiltersChange({ type: v })}
+      >
+        <SelectTrigger className="w-36 h-11 rounded-xl font-black italic text-xs border-slate-100">
+          <SelectValue placeholder="Type" />
+        </SelectTrigger>
+        <SelectContent className="rounded-xl">
+          <SelectItem value="all" className="font-bold italic">
+            All Types
+          </SelectItem>
+          <SelectItem value="ITEM" className="font-bold italic">
+            ITEM
+          </SelectItem>
+          <SelectItem value="SERVICE" className="font-bold italic">
+            SERVICE
+          </SelectItem>
+          <SelectItem value="RAW_MATERIAL" className="font-bold italic">
+            RAW MATERIAL
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <div className="flex items-center gap-2 border border-slate-100 rounded-xl px-2 h-11 bg-slate-50/50">
+        <span className="text-[10px] font-black italic text-slate-400 uppercase">
+          Price
+        </span>
+        <Input
+          type="number"
+          placeholder="Min"
+          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-slate-300"
+          value={filters.minPrice ?? ""}
+          onChange={(e) =>
+            onFiltersChange({
+              minPrice: e.target.value ? parseFloat(e.target.value) : undefined,
+            })
+          }
+        />
+        <span className="text-slate-300">-</span>
+        <Input
+          type="number"
+          placeholder="Max"
+          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-slate-300"
+          value={filters.maxPrice ?? ""}
+          onChange={(e) =>
+            onFiltersChange({
+              maxPrice: e.target.value ? parseFloat(e.target.value) : undefined,
+            })
+          }
+        />
+      </div>
+
       <Select
         value={filters.status}
         onValueChange={(v) => onFiltersChange({ status: v })}

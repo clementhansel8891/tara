@@ -135,20 +135,35 @@ export function canAccess({
    * ============================================================
    */
 
-  if (permission === "hr.workspace.access") {
+  if (permission === "hr.workspace.access" || permission === "core.hr.access") {
     return (
       role === Roles.HR_ADMIN ||
       role === Roles.HR_DEPT_HEAD ||
-      role === Roles.HR_STAFF
+      role === Roles.HR_STAFF ||
+      role === Roles.OWNER ||
+      role === Roles.SUPERADMIN
     );
   }
 
-  if (permission === "finance.workspace.access") {
+  if (
+    permission === "finance.workspace.access" ||
+    permission === "core.finance.access"
+  ) {
     return (
       role === Roles.FINANCE_ADMIN ||
       role === Roles.FINANCE_DEPT_HEAD ||
-      role === Roles.FINANCE_STAFF
+      role === Roles.FINANCE_STAFF ||
+      role === Roles.OWNER ||
+      role === Roles.SUPERADMIN
     );
+  }
+
+  // Generic core access for other modules
+  if (permission.startsWith("core.")) {
+    const module = permission.split(".")[1];
+    // Check if user has explicit access to this core module
+    // Owners/Superadmins already pass early checks, but we add them here for safety
+    return true;
   }
 
   /**

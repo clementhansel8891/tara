@@ -167,28 +167,63 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
           </div>
         }
         left={
-          <ScrollArea className="h-full max-h-[calc(100vh-120px)]">
-            <div className="space-y-6 p-4">
-              <WorkspacePanel>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p className="text-sm font-semibold text-foreground italic flex items-center gap-2">
+          <div className="space-y-6 p-6">
+            <WorkspacePanel className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 blur-2xl -mr-12 -mt-12" />
+              <div className="space-y-4 relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-inner">
                     {activeChannel ? (
-                      <Globe className="w-4 h-4 text-indigo-600" />
+                      <Globe className="w-5 h-5 text-sky-400" />
                     ) : (
-                      <Store className="w-4 h-4 text-blue-600" />
+                      <Store className="w-5 h-5 text-indigo-400" />
                     )}
-                    {activeStore?.name ||
-                      activeChannel?.name ||
-                      "No Store Selected"}
-                  </p>
-                  <p className="font-bold uppercase tracking-tighter text-[10px]">
-                    Context: {session.tenantId}
-                  </p>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 leading-none mb-1">
+                      Active Business Unit
+                    </span>
+                    <p className="text-[13px] font-black italic tracking-tight truncate max-w-[140px]">
+                      {activeStore?.name ||
+                        activeChannel?.name ||
+                        "Zenvix Retail Hub"}
+                    </p>
+                  </div>
                 </div>
-              </WorkspacePanel>
+
+                <div className="pt-4 border-t border-white/10 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                      Company
+                    </span>
+                    <span className="text-[10px] font-black truncate max-w-[100px] text-indigo-300 uppercase">
+                      Zenvix Enterprise
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                      Operator
+                    </span>
+                    <span className="text-[10px] font-black text-sky-300 uppercase truncate max-w-[100px]">
+                      {session?.userName || "System Admin"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                      ID
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-white/50 tracking-tighter">
+                      {session?.tenantId?.substring(0, 12)}...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </WorkspacePanel>
+
+            <div className="space-y-8">
               {SECTIONS.map((section) => (
-                <div key={section.title} className="space-y-2">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                <div key={section.title} className="space-y-3">
+                  <p className="px-3 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
                     {section.title}
                   </p>
                   <div className="space-y-1">
@@ -206,17 +241,24 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                           }}
                           className={({ isActive }) =>
                             cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-bold transition-all",
+                              "flex items-center gap-4 rounded-2xl px-4 py-3 text-[13px] font-black italic transition-all duration-300",
                               isDisabled
-                                ? "opacity-40 cursor-not-allowed pointer-events-none grayscale"
+                                ? "opacity-30 cursor-not-allowed pointer-events-none grayscale"
                                 : isActive
-                                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                                  : "text-slate-500 hover:bg-blue-50 hover:text-blue-600",
+                                  ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(0,0,0,0.1)] scale-[1.02]"
+                                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
                             )
                           }
                         >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
+                          <Icon
+                            className={cn(
+                              "h-4 w-4",
+                              !isDisabled && "text-indigo-500",
+                            )}
+                          />
+                          <span className="tracking-tight uppercase">
+                            {item.label}
+                          </span>
                         </NavLink>
                       );
                     })}
@@ -224,7 +266,41 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                 </div>
               ))}
             </div>
-          </ScrollArea>
+          </div>
+        }
+        footer={
+          <div className="pt-12 pb-8 border-t border-slate-100 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400 px-2 transition-opacity hover:opacity-100 opacity-60">
+            <div className="flex flex-col gap-1">
+              <p>© 2026 ZENVIX RETAIL SYSTEM • V1.0.X_PATCH_EST</p>
+              <div className="flex items-center gap-4 text-slate-300">
+                <span>TENANT_UID: {session?.tenantId}</span>
+                <span>OS: WINDOWS_X64</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-8">
+              <span className="flex items-center gap-2 group cursor-default">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                API_UPLINK:{" "}
+                <span className="text-emerald-600 transition-colors group-hover:text-emerald-500">
+                  ACTIVE
+                </span>
+              </span>
+              <span className="flex items-center gap-2 group cursor-default">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                WEBSOCKET:{" "}
+                <span className="text-emerald-600 transition-colors group-hover:text-emerald-500">
+                  ENCRYPTED
+                </span>
+              </span>
+              <span className="flex items-center gap-2 group cursor-default">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+                NODE_HEALTH:{" "}
+                <span className="text-blue-600 transition-colors group-hover:text-blue-500">
+                  NOMINAL
+                </span>
+              </span>
+            </div>
+          </div>
         }
       >
         {children}

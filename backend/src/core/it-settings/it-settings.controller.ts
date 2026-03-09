@@ -48,10 +48,11 @@ export class ITSettingsController {
     @Req() request: RequestWithTenant,
     @Body() registerDeviceDto: RegisterDeviceDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const device = await this.itSettingsService.registerDevice(
       tenantId,
       registerDeviceDto,
+      userId,
     );
     return {
       success: true,
@@ -67,11 +68,12 @@ export class ITSettingsController {
     @Param("id") deviceId: string,
     @Body() body: { status: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const device = await this.itSettingsService.updateDeviceStatus(
       tenantId,
       deviceId,
       body.status,
+      userId,
     );
     return {
       success: true,
@@ -127,11 +129,12 @@ export class ITSettingsController {
     @Param("key") key: string,
     @Body() updateSettingDto: UpdateSettingDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const setting = await this.itSettingsService.updateSetting(
       tenantId,
       key,
       updateSettingDto,
+      userId,
     );
     return {
       success: true,

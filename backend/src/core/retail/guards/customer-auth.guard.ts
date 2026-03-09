@@ -12,6 +12,7 @@ export class CustomerAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
+    if (request.method === "OPTIONS") return true;
     const authHeader = request.headers.authorization as string | undefined;
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.slice(7)

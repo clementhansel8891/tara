@@ -230,12 +230,45 @@ export class HRService {
     tenantId: string,
     employeeId: string,
     locationId: string,
+    userId?: string,
   ): Promise<Attendance> {
-    return this.hrRepository.clockIn(tenantId, employeeId, locationId);
+    const attendance = await this.hrRepository.clockIn(
+      tenantId,
+      employeeId,
+      locationId,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CLOCK_IN",
+        entityType: "ATTENDANCE",
+        entityId: attendance.id,
+        metadata: { employeeId, locationId },
+      });
+    }
+    return attendance;
   }
 
-  async clockOut(tenantId: string, employeeId: string): Promise<Attendance> {
-    return this.hrRepository.clockOut(tenantId, employeeId);
+  async clockOut(
+    tenantId: string,
+    employeeId: string,
+    userId?: string,
+  ): Promise<Attendance> {
+    const attendance = await this.hrRepository.clockOut(tenantId, employeeId);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CLOCK_OUT",
+        entityType: "ATTENDANCE",
+        entityId: attendance.id,
+        metadata: { employeeId },
+      });
+    }
+    return attendance;
   }
 
   // Leave Management
@@ -263,8 +296,26 @@ export class HRService {
   async createLeaveRequest(
     tenantId: string,
     data: CreateLeaveRequestDto,
+    userId?: string,
   ): Promise<LeaveRequest> {
-    return this.hrRepository.createLeaveRequest(tenantId, data);
+    const request = await this.hrRepository.createLeaveRequest(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "LEAVE_REQUEST",
+        entityId: request.id,
+        metadata: {
+          employeeId: data.employeeId,
+          type: data.leaveType,
+          startDate: data.startDate,
+          endDate: data.endDate,
+        },
+      });
+    }
+    return request;
   }
 
   async approveLeaveRequest(
@@ -272,13 +323,26 @@ export class HRService {
     requestId: string,
     reviewerId: string,
     notes?: string,
+    userId?: string,
   ): Promise<LeaveRequest> {
-    return this.hrRepository.approveLeaveRequest(
+    const request = await this.hrRepository.approveLeaveRequest(
       tenantId,
       requestId,
       reviewerId,
       notes,
     );
+    if (userId || reviewerId) {
+      await this.auditService.log({
+        tenantId,
+        userId: userId || reviewerId,
+        module: "hr",
+        action: "APPROVE",
+        entityType: "LEAVE_REQUEST",
+        entityId: requestId,
+        metadata: { reviewerId, notes },
+      });
+    }
+    return request;
   }
 
   async rejectLeaveRequest(
@@ -286,13 +350,26 @@ export class HRService {
     requestId: string,
     reviewerId: string,
     notes: string,
+    userId?: string,
   ): Promise<LeaveRequest> {
-    return this.hrRepository.rejectLeaveRequest(
+    const request = await this.hrRepository.rejectLeaveRequest(
       tenantId,
       requestId,
       reviewerId,
       notes,
     );
+    if (userId || reviewerId) {
+      await this.auditService.log({
+        tenantId,
+        userId: userId || reviewerId,
+        module: "hr",
+        action: "REJECT",
+        entityType: "LEAVE_REQUEST",
+        entityId: requestId,
+        metadata: { reviewerId, notes },
+      });
+    }
+    return request;
   }
 
   // Payroll Management
@@ -321,8 +398,25 @@ export class HRService {
     tenantId: string,
     employeeId: string,
     period: string,
+    userId?: string,
   ): Promise<Payroll> {
-    return this.hrRepository.calculatePayroll(tenantId, employeeId, period);
+    const payroll = await this.hrRepository.calculatePayroll(
+      tenantId,
+      employeeId,
+      period,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CALCULATE",
+        entityType: "PAYROLL",
+        entityId: payroll.id,
+        metadata: { employeeId, period },
+      });
+    }
+    return payroll;
   }
 
   // Organization Management
@@ -344,8 +438,21 @@ export class HRService {
   async createDepartment(
     tenantId: string,
     data: CreateDepartmentDto,
+    userId?: string,
   ): Promise<Department> {
-    return this.hrRepository.createDepartment(tenantId, data);
+    const department = await this.hrRepository.createDepartment(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "DEPARTMENT",
+        entityId: department.id,
+        metadata: { name: department.name },
+      });
+    }
+    return department;
   }
 
   // Recruitment Management
@@ -363,16 +470,49 @@ export class HRService {
   async createRequisition(
     tenantId: string,
     data: CreateRequisitionDto,
+    userId?: string,
   ): Promise<JobRequisition> {
-    return this.hrRepository.createRequisition(tenantId, data);
+    const requisition = await this.hrRepository.createRequisition(
+      tenantId,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "REQUISITION",
+        entityId: requisition.id,
+        metadata: { title: data.title, departmentId: data.departmentId },
+      });
+    }
+    return requisition;
   }
 
   async updateRequisition(
     tenantId: string,
     id: string,
     data: Partial<JobRequisition>,
+    userId?: string,
   ): Promise<JobRequisition> {
-    return this.hrRepository.updateRequisition(tenantId, id, data);
+    const requisition = await this.hrRepository.updateRequisition(
+      tenantId,
+      id,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "REQUISITION",
+        entityId: id,
+        changes: data,
+      });
+    }
+    return requisition;
   }
 
   // Performance Management
@@ -383,16 +523,49 @@ export class HRService {
   async createPerformanceCycle(
     tenantId: string,
     data: CreatePerformanceCycleDto,
+    userId?: string,
   ): Promise<PerformanceCycle> {
-    return this.hrRepository.createPerformanceCycle(tenantId, data);
+    const cycle = await this.hrRepository.createPerformanceCycle(
+      tenantId,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "PERFORMANCE_CYCLE",
+        entityId: cycle.id,
+        metadata: { name: data.name },
+      });
+    }
+    return cycle;
   }
 
   async updatePerformanceCycle(
     tenantId: string,
     id: string,
     data: Partial<PerformanceCycle>,
+    userId?: string,
   ): Promise<PerformanceCycle> {
-    return this.hrRepository.updatePerformanceCycle(tenantId, id, data);
+    const cycle = await this.hrRepository.updatePerformanceCycle(
+      tenantId,
+      id,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "PERFORMANCE_CYCLE",
+        entityId: id,
+        changes: data,
+      });
+    }
+    return cycle;
   }
 
   async getPerformanceReviews(
@@ -417,8 +590,24 @@ export class HRService {
   async submitPerformanceReview(
     tenantId: string,
     data: SubmitReviewDto,
+    userId?: string,
   ): Promise<PerformanceReview> {
-    return this.hrRepository.submitPerformanceReview(tenantId, data);
+    const review = await this.hrRepository.submitPerformanceReview(
+      tenantId,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "SUBMIT",
+        entityType: "PERFORMANCE_REVIEW",
+        entityId: review.id,
+        metadata: { employeeId: data.employeeId, rating: data.rating },
+      });
+    }
+    return review;
   }
 
   // Case Management
@@ -434,16 +623,45 @@ export class HRService {
     return this.hrRepository.getCaseById(tenantId, id);
   }
 
-  async createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase> {
-    return this.hrRepository.createCase(tenantId, data);
+  async createCase(
+    tenantId: string,
+    data: CreateCaseDto,
+    userId?: string,
+  ): Promise<HRCase> {
+    const hrCase = await this.hrRepository.createCase(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "CASE",
+        entityId: hrCase.id,
+        metadata: { title: data.title, type: data.type },
+      });
+    }
+    return hrCase;
   }
 
   async updateCase(
     tenantId: string,
     id: string,
     data: Partial<HRCase>,
+    userId?: string,
   ): Promise<HRCase> {
-    return this.hrRepository.updateCase(tenantId, id, data);
+    const hrCase = await this.hrRepository.updateCase(tenantId, id, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "CASE",
+        entityId: id,
+        changes: data,
+      });
+    }
+    return hrCase;
   }
 
   // Contract Management
@@ -462,16 +680,42 @@ export class HRService {
   async createContract(
     tenantId: string,
     data: CreateContractDto,
+    userId?: string,
   ): Promise<Contract> {
-    return this.hrRepository.createContract(tenantId, data);
+    const contract = await this.hrRepository.createContract(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "CONTRACT",
+        entityId: contract.id,
+        metadata: { employeeId: data.employeeId, type: data.type },
+      });
+    }
+    return contract;
   }
 
   async updateContract(
     tenantId: string,
     id: string,
     data: Partial<Contract>,
+    userId?: string,
   ): Promise<Contract> {
-    return this.hrRepository.updateContract(tenantId, id, data);
+    const contract = await this.hrRepository.updateContract(tenantId, id, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "CONTRACT",
+        entityId: id,
+        changes: data,
+      });
+    }
+    return contract;
   }
 
   // Location Management

@@ -945,8 +945,8 @@ model RetailOrder {
   id               String            @id @default(uuid())
   tenantId        String            @map("tenant_id")
   storeId          String            @map("store_id")
-  deviceId         String            @map("device_id")
-  cashierId        String            @map("cashier_id")
+  deviceId         String?           @map("device_id")
+  cashierId        String?           @map("cashier_id")
   customerId       String?           @map("customer_id")
   status           String            @default("paid")
   subtotal         Decimal           @db.Decimal(15, 2)
@@ -957,10 +957,10 @@ model RetailOrder {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   items            RetailOrderItem[]
-  cashier          Employee          @relation(fields: [cashierId], references: [id])
+  cashier          Employee?         @relation(fields: [cashierId], references: [id])
   company          Company           @relation(fields: [tenantId], references: [id])
   customer         RetailCustomer?   @relation(fields: [customerId], references: [id])
-  device           POSDevice         @relation(fields: [deviceId], references: [id])
+  device           POSDevice?        @relation(fields: [deviceId], references: [id])
   store            Store             @relation(fields: [storeId], references: [id])
 
   @@index([tenantId])

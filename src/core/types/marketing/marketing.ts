@@ -192,4 +192,10 @@ export type MarketingDashboardMetrics = {
   attributedRevenue: number;
   blendedRoiPercent: number;
   connectedAccountsHealthy: number;
+  moduleContributions?: {
+    retail?: {
+      walkInCustomers: number;
+      loyaltyActive: number;
+    };
+  };
 };

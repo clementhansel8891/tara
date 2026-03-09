@@ -228,5 +228,10 @@ export type PaymentDashboardMetrics = {
   openDisputes: number;
   openChargebacks: number;
   refundPending: number;
+  moduleContributions?: {
+    retail?: {
+      activePosDevices: number;
+      totalDisputes: number;
+    };
+  };
 };
-

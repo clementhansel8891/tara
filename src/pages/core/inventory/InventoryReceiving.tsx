@@ -25,8 +25,8 @@ export default function InventoryReceiving() {
   const refresh = useCallback(async () => {
     try {
       const [q, i] = await Promise.all([
-        inventoryService.listProcurementReceiptQueue(session.tenantId),
-        inventoryService.listItems(session.tenantId),
+        inventoryService.listProcurementReceiptQueue(session.tenantId, session),
+        inventoryService.listItems(session.tenantId, session),
       ]);
       setQueue(q);
       setItems(i);
@@ -76,7 +76,10 @@ export default function InventoryReceiving() {
         }
       />
 
-      <WorkspacePanel title="Procurement Receipt Queue" description="Pending goods receipt confirmations from Procurement PO release.">
+      <WorkspacePanel
+        title="Procurement Receipt Queue"
+        description="Pending goods receipt confirmations from Procurement PO release."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filteredQueue.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -93,7 +96,9 @@ export default function InventoryReceiving() {
               {filteredQueue.map((sync) => (
                 <tr key={sync.id} className="border-t">
                   <td className="p-3 font-medium">{sync.finalPoId}</td>
-                  <td className="p-3 text-muted-foreground">{sync.branchCode}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {sync.branchCode}
+                  </td>
                   <td className="p-3">{sync.status}</td>
                   <td className="p-3">{sync.issueCount}</td>
                   <td className="p-3">
@@ -104,15 +109,19 @@ export default function InventoryReceiving() {
                         onClick={async () => {
                           const selectedItemId = itemId || items[0]?.id;
                           if (!selectedItemId) return;
-                          await inventoryService.processProcurementReceipt(session.tenantId, session, {
-                            syncId: sync.id,
-                            itemId: selectedItemId,
-                            quantity: Number(quantity || "1"),
-                            unitCost: Number(unitCost || "0"),
-                            locationCode,
-                            departmentCode,
-                            mismatch: false,
-                          });
+                          await inventoryService.processProcurementReceipt(
+                            session.tenantId,
+                            session,
+                            {
+                              syncId: sync.id,
+                              itemId: selectedItemId,
+                              quantity: Number(quantity || "1"),
+                              unitCost: Number(unitCost || "0"),
+                              locationCode,
+                              departmentCode,
+                              mismatch: false,
+                            },
+                          );
                           refresh();
                         }}
                       >
@@ -124,16 +133,20 @@ export default function InventoryReceiving() {
                         onClick={async () => {
                           const selectedItemId = itemId || items[0]?.id;
                           if (!selectedItemId) return;
-                          await inventoryService.processProcurementReceipt(session.tenantId, session, {
-                            syncId: sync.id,
-                            itemId: selectedItemId,
-                            quantity: Number(quantity || "1"),
-                            unitCost: Number(unitCost || "0"),
-                            locationCode,
-                            departmentCode,
-                            mismatch: true,
-                            mismatchIssueCount: Math.max(sync.issueCount, 1),
-                          });
+                          await inventoryService.processProcurementReceipt(
+                            session.tenantId,
+                            session,
+                            {
+                              syncId: sync.id,
+                              itemId: selectedItemId,
+                              quantity: Number(quantity || "1"),
+                              unitCost: Number(unitCost || "0"),
+                              locationCode,
+                              departmentCode,
+                              mismatch: true,
+                              mismatchIssueCount: Math.max(sync.issueCount, 1),
+                            },
+                          );
                           refresh();
                         }}
                       >
@@ -148,7 +161,10 @@ export default function InventoryReceiving() {
         </DataTableShell>
       </WorkspacePanel>
       {/* ... rest of the Inputs panel remain same ... */}
-      <WorkspacePanel title="Receipt Inputs" description="Default posting target used by quick confirmation actions.">
+      <WorkspacePanel
+        title="Receipt Inputs"
+        description="Default posting target used by quick confirmation actions."
+      >
         <div className="grid gap-3 md:grid-cols-5">
           <Input
             placeholder="Item ID (optional)"
@@ -158,12 +174,16 @@ export default function InventoryReceiving() {
           <Input
             placeholder="Location"
             value={locationCode}
-            onChange={(event) => setLocationCode(event.target.value.toUpperCase())}
+            onChange={(event) =>
+              setLocationCode(event.target.value.toUpperCase())
+            }
           />
           <Input
             placeholder="Department"
             value={departmentCode}
-            onChange={(event) => setDepartmentCode(event.target.value.toUpperCase())}
+            onChange={(event) =>
+              setDepartmentCode(event.target.value.toUpperCase())
+            }
           />
           <Input
             type="number"
@@ -179,7 +199,8 @@ export default function InventoryReceiving() {
           />
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          Changes are applied to quick actions above and support location/department-level postings.
+          Changes are applied to quick actions above and support
+          location/department-level postings.
         </p>
       </WorkspacePanel>
     </div>

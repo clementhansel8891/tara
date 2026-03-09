@@ -15,6 +15,7 @@ import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { CloseOpportunityDto } from "./dto/close-opportunity.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
 import { CreateOpportunityDto } from "./dto/create-opportunity.dto";
@@ -25,6 +26,8 @@ import { MoveOpportunityStageDto } from "./dto/move-opportunity-stage.dto";
 import { QuoteDecisionDto } from "./dto/quote-decision.dto";
 import { UpdateLeadStatusDto } from "./dto/update-lead-status.dto";
 import { SalesService } from "./sales.service";
+import { PrismaService } from "../../persistence/prisma.service";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -32,18 +35,55 @@ interface RequestWithTenant extends Request {
 
 @Controller("sales")
 @UseInterceptors(TenantInterceptor)
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("sales")
 export class SalesController {
-  constructor(private readonly salesService: SalesService) {}
+  constructor(
+    private readonly salesService: SalesService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenantId } = request.tenantContext;
+    const dashboardData = await this.salesService.getDashboard(tenantId);
+
+    // Core Module Integration: Retail Contributions
+    const moduleContributions: any = {};
+    if (await isModuleActive(this.prisma, tenantId, "retail")) {
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const retailRevenueAgg = await this.prisma.retailOrder.aggregate({
+        where: {
+          tenantId,
+          status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
+          createdAt: { gte: startOfWeek },
+        },
+        _sum: { totalAmount: true },
+      });
+
+      const retailOrders = await this.prisma.retailOrder.count({
+        where: {
+          tenantId,
+          createdAt: { gte: startOfWeek },
+        },
+      });
+
+      moduleContributions.retail = {
+        retailRevenue: retailRevenueAgg._sum.totalAmount?.toNumber() || 0,
+        retailOrders,
+      };
+    }
+
     return {
       success: true,
       tenantId,
-      data: await this.salesService.getDashboard(tenantId),
+      data: {
+        ...dashboardData,
+        moduleContributions,
+      },
     };
   }
 
@@ -89,12 +129,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateLeadDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Lead created",
-      data: await this.salesService.createLead(tenantId, dto),
+      data: await this.salesService.createLead(tenantId, dto, userId),
     };
   }
 
@@ -104,12 +144,17 @@ export class SalesController {
     @Param("id") leadId: string,
     @Body() dto: UpdateLeadStatusDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Lead status updated",
-      data: await this.salesService.updateLeadStatus(tenantId, leadId, dto),
+      data: await this.salesService.updateLeadStatus(
+        tenantId,
+        leadId,
+        dto,
+        userId,
+      ),
     };
   }
 
@@ -118,12 +163,16 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Param("id") leadId: string,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Lead converted to opportunity",
-      data: await this.salesService.convertLead(tenantId, leadId, "system"),
+      data: await this.salesService.convertLead(
+        tenantId,
+        leadId,
+        userId || "system",
+      ),
     };
   }
 
@@ -139,12 +188,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateOpportunityDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Opportunity created",
-      data: await this.salesService.createOpportunity(tenantId, dto),
+      data: await this.salesService.createOpportunity(tenantId, dto, userId),
     };
   }
 
@@ -154,7 +203,7 @@ export class SalesController {
     @Param("id") opportunityId: string,
     @Body() dto: MoveOpportunityStageDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
@@ -163,6 +212,7 @@ export class SalesController {
         tenantId,
         opportunityId,
         dto,
+        userId,
       ),
     };
   }
@@ -173,7 +223,7 @@ export class SalesController {
     @Param("id") opportunityId: string,
     @Body() dto: CloseOpportunityDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
@@ -182,6 +232,7 @@ export class SalesController {
         tenantId,
         opportunityId,
         dto,
+        userId,
       ),
     };
   }
@@ -198,12 +249,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateQuoteDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Quote created",
-      data: await this.salesService.createQuote(tenantId, dto),
+      data: await this.salesService.createQuote(tenantId, dto, userId),
     };
   }
 
@@ -212,12 +263,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Param("id") quoteId: string,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Quote submitted for approval",
-      data: await this.salesService.submitQuote(tenantId, quoteId),
+      data: await this.salesService.submitQuote(tenantId, quoteId, userId),
     };
   }
 
@@ -227,12 +278,12 @@ export class SalesController {
     @Param("id") quoteId: string,
     @Body() dto: QuoteDecisionDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Quote decision recorded",
-      data: await this.salesService.decideQuote(tenantId, quoteId, dto),
+      data: await this.salesService.decideQuote(tenantId, quoteId, dto, userId),
     };
   }
 
@@ -248,12 +299,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateTimelineEventDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Timeline event created",
-      data: await this.salesService.createTimelineEvent(tenantId, dto),
+      data: await this.salesService.createTimelineEvent(tenantId, dto, userId),
     };
   }
 
@@ -269,12 +320,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateTaskDto,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Task created",
-      data: await this.salesService.createTask(tenantId, dto),
+      data: await this.salesService.createTask(tenantId, dto, userId),
     };
   }
 
@@ -283,12 +334,12 @@ export class SalesController {
     @Req() request: RequestWithTenant,
     @Param("id") taskId: string,
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     return {
       success: true,
       tenantId,
       message: "Task marked done",
-      data: await this.salesService.completeTask(tenantId, taskId),
+      data: await this.salesService.completeTask(tenantId, taskId, userId),
     };
   }
 
@@ -308,8 +359,11 @@ export class SalesController {
 
   @Post("sla-sweep")
   async runSlaSweep(@Req() request: RequestWithTenant) {
-    const { tenantId } = request.tenantContext;
-    const data = await this.salesService.runSlaSweep(tenantId, "system");
+    const { tenantId, userId } = request.tenantContext;
+    const data = await this.salesService.runSlaSweep(
+      tenantId,
+      userId || "system",
+    );
     return {
       success: true,
       tenantId,

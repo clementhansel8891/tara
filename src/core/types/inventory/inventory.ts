@@ -14,7 +14,10 @@ export type InventoryMovementType =
   | "ADJUSTMENT_MINUS"
   | "AUDIT_RECONCILIATION";
 
-export type InventoryAdjustmentStatus = "PENDING_APPROVAL" | "APPROVED" | "REJECTED";
+export type InventoryAdjustmentStatus =
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "REJECTED";
 
 export type InventoryAuditCycleStatus = "OPEN" | "COMPLETED";
 
@@ -154,5 +157,10 @@ export type InventoryDashboardMetrics = {
   expiryWarningCount: number;
   pendingAdjustments: number;
   pendingReceiptSyncs: number;
+  moduleContributions?: {
+    retail?: {
+      storeInventoryCount: number;
+      pendingStoreTransfers: number;
+    };
+  };
 };
-

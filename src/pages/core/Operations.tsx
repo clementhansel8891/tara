@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell } from "@/core/ui/PageShell";
@@ -10,7 +11,11 @@ import {
   Globe2,
   Layers,
   Timer,
+  ServerCrash,
+  Link2,
 } from "lucide-react";
+import { useSession } from "@/core/security/session";
+import { itService } from "@/core/services/it/itService";
 
 const moduleActivity = [
   {
@@ -69,7 +74,11 @@ const alertsQueue = [
 
 const checklistItems = [
   { id: "check-1", label: "Morning store health check", status: "Complete" },
-  { id: "check-2", label: "Daily financial reconciliation", status: "In progress" },
+  {
+    id: "check-2",
+    label: "Daily financial reconciliation",
+    status: "In progress",
+  },
   { id: "check-3", label: "Critical alerts review", status: "Complete" },
   { id: "check-4", label: "Vendor SLAs verified", status: "Pending" },
 ];
@@ -91,6 +100,23 @@ const statusBadge = (status: string) => {
 };
 
 export default function CoreOperations() {
+  const session = useSession();
+  const [overviewData, setOverviewData] = useState<any | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await itService.getOverview(session.tenantId, session);
+        setOverviewData(data);
+      } catch (err) {
+        console.error("Failed to load IT overview", err);
+      }
+    }
+    load();
+  }, [session]);
+
+  const retailStats = overviewData?.moduleContributions?.retail;
+
   return (
     <PageShell
       header={
@@ -103,6 +129,81 @@ export default function CoreOperations() {
       }
     >
       <div className="space-y-6">
+        {/* --- MODULE CONTRIBUTIONS --- */}
+        {retailStats && (
+          <WorkspacePanel
+            title="Module Contributions: Retail Infrastructure"
+            description="Live device health and ecommerce channel connectivity from the active Retail module."
+          >
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-5 dark:border-indigo-900/30 dark:bg-indigo-950/20">
+                <div className="flex items-center justify-between text-indigo-700 dark:text-indigo-400">
+                  <span className="text-sm font-medium">
+                    POS Devices Online
+                  </span>
+                </div>
+                <div className="mt-4 flex items-end gap-2">
+                  <span className="text-3xl font-bold tracking-tight text-indigo-900 dark:text-indigo-100">
+                    {retailStats.posDevices?.online || 0}
+                  </span>
+                  <span className="text-sm text-indigo-600 dark:text-indigo-400 mb-1">
+                    of {retailStats.posDevices?.total || 0} total
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-indigo-600 dark:text-indigo-400">
+                  Payment terminals in active stores
+                </div>
+              </div>
+
+              <div
+                className={`rounded-xl border p-5 shadow-sm ${retailStats.posDevices?.offline > 0 ? "border-rose-200 bg-rose-50/50 dark:border-rose-900/50 dark:bg-rose-950/20" : ""}`}
+              >
+                <div
+                  className={`flex items-center justify-between ${retailStats.posDevices?.offline > 0 ? "text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}
+                >
+                  <span className="text-sm font-medium">Offline Devices</span>
+                  <ServerCrash className="h-4 w-4" />
+                </div>
+                <div className="mt-4">
+                  <span
+                    className={`text-2xl font-semibold tracking-tight ${retailStats.posDevices?.offline > 0 ? "text-rose-900 dark:text-rose-100" : ""}`}
+                  >
+                    {retailStats.posDevices?.offline || 0}
+                  </span>
+                </div>
+                <div
+                  className={`mt-2 text-xs ${retailStats.posDevices?.offline > 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"}`}
+                >
+                  {retailStats.posDevices?.offline > 0
+                    ? "Requires technician dispatch"
+                    : "All POS devices healthy"}
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-5 shadow-sm">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span className="text-sm font-medium">
+                    Ecommerce Connectors
+                  </span>
+                  <Link2 className="h-4 w-4" />
+                </div>
+                <div className="mt-4 flex items-end gap-2">
+                  <span className="text-2xl font-semibold tracking-tight">
+                    {retailStats.ecommerceChannels?.active || 0}
+                  </span>
+                  <span className="text-sm text-muted-foreground mb-1">
+                    of {retailStats.ecommerceChannels?.total || 0} active
+                  </span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Syncing inventory and orders
+                </div>
+              </div>
+            </div>
+          </WorkspacePanel>
+        )}
+        {/* ----------------------------- */}
+
         <WorkspacePanel
           title="Live module activity"
           description="Operational throughput and stability by service."
@@ -112,12 +213,17 @@ export default function CoreOperations() {
               <div key={module.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{module.name}</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {module.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Throughput {module.throughput}
                     </p>
                   </div>
-                  <Badge variant="outline" className={statusBadge(module.status)}>
+                  <Badge
+                    variant="outline"
+                    className={statusBadge(module.status)}
+                  >
                     {module.status}
                   </Badge>
                 </div>
@@ -145,8 +251,12 @@ export default function CoreOperations() {
                 <div key={alert.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{alert.title}</p>
-                      <p className="text-xs text-muted-foreground">{alert.detail}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {alert.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {alert.detail}
+                      </p>
                     </div>
                     <Badge variant="secondary">{alert.severity}</Badge>
                   </div>
@@ -183,8 +293,12 @@ export default function CoreOperations() {
                       <Layers className="h-4 w-4 text-muted-foreground" />
                     )}
                     <div>
-                      <p className="text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.status}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.status}
+                      </p>
                     </div>
                   </div>
                   <Button size="sm" variant="outline">
@@ -205,7 +319,9 @@ export default function CoreOperations() {
               <div key={tenant.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{tenant.name}</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {tenant.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Uptime {tenant.uptime}
                     </p>

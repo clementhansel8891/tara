@@ -130,11 +130,13 @@ const SelfServiceKiosk = () => {
         session.locationId || "unassigned",
         "kiosk-self-terminal-01",
         cart.map((item) => ({
-          itemId: item.id,
+          productId: item.id,
           name: item.name,
           quantity: item.quantity,
           unitPrice: item.price,
         })),
+        paymentMethod || "card",
+        total,
       );
 
       await retailService.processPayment(
@@ -194,7 +196,7 @@ const SelfServiceKiosk = () => {
             </div>
             <div>
               <h1 className="text-2xl font-black italic tracking-tighter text-slate-900 uppercase">
-                {activeStore?.name || activeChannel?.name || "Nexus Kiosk V2"}
+                {activeStore?.name || activeChannel?.name || "Zenvix Kiosk V2"}
               </h1>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 italic">
                 Station ID: KIOSK-SELF-{session.locationId} • Secured by Zenvix
@@ -454,7 +456,7 @@ const SelfServiceKiosk = () => {
                 ) : (
                   <div className="space-y-6 animate-pulse">
                     <p className="text-center font-black italic text-sm text-blue-400 uppercase tracking-widest">
-                      Awaiting Nexus Verification...
+                      Awaiting Zenvix Verification...
                     </p>
                     <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
                       <div className="bg-blue-600 h-full w-[60%] transition-all duration-[2s]" />

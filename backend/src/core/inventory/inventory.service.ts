@@ -3,13 +3,16 @@ import { CreateAdjustmentDto } from "./dto/create-adjustment.dto";
 import { CreateItemDto } from "./dto/create-item.dto";
 import { StockIntakeDto } from "./dto/stock-intake.dto";
 import { TransferStockDto } from "./dto/transfer-stock.dto";
+import { CreateMovementRequestDto } from "./dto/create-movement-request.dto";
 import { IInventoryRepository } from "./repositories/inventory.repository.interface";
+import { SkuGeneratorService } from "./sku-generator.service";
 import { AuditService } from "../../shared/audit/audit.service";
 
 @Injectable()
 export class InventoryService {
   constructor(
     private readonly repository: IInventoryRepository,
+    private readonly skuGenerator: SkuGeneratorService,
     private readonly auditService: AuditService,
   ) {}
 
@@ -22,13 +25,29 @@ export class InventoryService {
   }
 
   async createItem(tenant_id: string, data: CreateItemDto, userId?: string) {
-    const item = await this.repository.createItem(tenant_id, data);
+    // Phase 1: Auto-generate SKU if missing or empty
+    if (!data.sku || data.sku.trim() === "") {
+      data.sku = await this.skuGenerator.generateSku(tenant_id, data.category);
+    }
+
+    // Always ensure a barcode exists (tightly coupled)
+    if (!data.barcode || data.barcode.trim() === "") {
+      data.barcode = this.skuGenerator.generateBarcode(tenant_id, data.sku);
+    }
+
+    // Default to pending for HOD approval as per user requirement
+    const itemData = {
+      ...data,
+      status: "pending",
+    };
+
+    const item = await this.repository.createItem(tenant_id, itemData);
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
         userId,
         module: "inventory",
-        action: "CREATE",
+        action: "CREATE_PENDING",
         entityType: "ITEM",
         entityId: item.id,
         metadata: { name: data.name, sku: data.sku },
@@ -57,6 +76,22 @@ export class InventoryService {
         userId,
         module: "inventory",
         action: "INTAKE",
+        entityType: "STOCK",
+        entityId: data.itemId,
+        metadata: { quantity: data.quantity, locationId: data.locationId },
+      });
+    }
+    return result;
+  }
+
+  async consumeStock(tenant_id: string, data: any, userId?: string) {
+    const result = await this.repository.consumeStock(tenant_id, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId: tenant_id,
+        userId,
+        module: "inventory",
+        action: "CONSUME",
         entityType: "STOCK",
         entityId: data.itemId,
         metadata: { quantity: data.quantity, locationId: data.locationId },
@@ -174,10 +209,6 @@ export class InventoryService {
     return { scanned: 0, expiryFound: 0 };
   }
 
-  async consumeStock(tenant_id: string, data: any) {
-    return this.repository.consumeStock(tenant_id, data);
-  }
-
   async deleteItem(tenant_id: string, itemId: string, userId?: string) {
     const result = await this.repository.deleteItem(tenant_id, itemId);
     if (userId) {
@@ -242,18 +273,100 @@ export class InventoryService {
     data: CreateItemDto[],
     userId?: string,
   ) {
-    const items = await this.repository.batchCreateItems(tenant_id, data);
+    // Phase 1: Process each item for auto-generation
+    for (const itemData of data) {
+      if (!itemData.sku || itemData.sku.trim() === "") {
+        itemData.sku = await this.skuGenerator.generateSku(
+          tenant_id,
+          itemData.category,
+        );
+      }
+      if (!itemData.barcode || itemData.barcode.trim() === "") {
+        itemData.barcode = this.skuGenerator.generateBarcode(
+          tenant_id,
+          itemData.sku,
+        );
+      }
+    }
+
+    const items = await this.repository.batchCreateItems(
+      tenant_id,
+      data.map((d) => ({ ...d, status: "pending" })),
+    );
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
         userId,
         module: "inventory",
-        action: "BATCH_CREATE",
+        action: "BATCH_CREATE_PENDING",
         entityType: "ITEM",
         entityId: "batch",
         metadata: { count: data.length },
       });
     }
     return items;
+  }
+
+  async getPendingItems(tenant_id: string) {
+    return this.repository.getPendingItems(tenant_id);
+  }
+
+  async approveItem(tenant_id: string, itemId: string, userId: string) {
+    const item = await this.repository.updateItemStatus(
+      tenant_id,
+      itemId,
+      "active",
+    );
+    await this.auditService.log({
+      tenantId: tenant_id,
+      userId,
+      module: "inventory",
+      action: "APPROVE",
+      entityType: "ITEM",
+      entityId: itemId,
+      metadata: { sku: item.sku },
+    });
+    return item;
+  }
+
+  async rejectItem(tenant_id: string, itemId: string, userId: string) {
+    const item = await this.repository.updateItemStatus(
+      tenant_id,
+      itemId,
+      "rejected",
+    );
+    await this.auditService.log({
+      tenantId: tenant_id,
+      userId,
+      module: "inventory",
+      action: "REJECT",
+      entityType: "ITEM",
+      entityId: itemId,
+      metadata: { sku: item.sku },
+    });
+    return item;
+  }
+
+  async createMovementRequest(
+    tenant_id: string,
+    data: CreateMovementRequestDto,
+    userId?: string,
+  ) {
+    const request = await this.repository.createMovementRequest(
+      tenant_id,
+      data,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId: tenant_id,
+        userId,
+        module: "inventory",
+        action: "REQUEST_MOVEMENT",
+        entityType: "MOVEMENT_REQUEST",
+        entityId: request.id,
+        metadata: { type: data.type, lineCount: data.lines.length },
+      });
+    }
+    return request;
   }
 }

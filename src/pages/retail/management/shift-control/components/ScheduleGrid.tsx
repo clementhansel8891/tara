@@ -1,0 +1,592 @@
+import React, { useState, useRef, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  LayoutGrid,
+  CalendarDays,
+  CalendarRange,
+  Trash2,
+  Calendar as CalendarIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  format,
+  addDays,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  isSameDay,
+} from "date-fns";
+
+export interface ScheduledShift {
+  id: string;
+  employeeId: string;
+  name: string;
+  role: string;
+  startTime: string; // HH:mm format
+  endTime: string;
+  dayOfWeek: number; // 0 (Sun) - 6 (Sat)
+  status: "draft" | "published";
+  date?: Date; // Added for precise date management
+}
+
+interface ScheduleGridProps {
+  shifts: ScheduledShift[];
+  onShiftUpdate: (updatedShift: ScheduledShift) => void;
+  onShiftCreate: (dayOfWeek: number, startHour?: number, date?: Date) => void;
+  onShiftDelete: (shiftId: string) => void;
+  onShiftClick: (shift: ScheduledShift) => void;
+  viewMode: "daily" | "weekly" | "monthly";
+  onViewModeChange: (mode: "daily" | "weekly" | "monthly") => void;
+}
+
+const START_HOUR = 0;
+const END_HOUR = 24;
+const HOURS = Array.from(
+  { length: END_HOUR - START_HOUR },
+  (_, i) => i + START_HOUR,
+);
+const SHORT_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
+  shifts,
+  onShiftUpdate,
+  onShiftCreate,
+  onShiftDelete,
+  onShiftClick,
+  viewMode,
+  onViewModeChange,
+}) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [dragInfo, setDragInfo] = useState<{
+    shift: ScheduledShift;
+    type: "move" | "resizeTop" | "resizeBottom";
+  } | null>(null);
+
+  // Time conversion helpers
+  const timeToDecimal = (timeStr: string) => {
+    const [h, m] = timeStr.split(":").map(Number);
+    return h + m / 60;
+  };
+
+  const decimalToTime = (dec: number) => {
+    const h = Math.floor(dec);
+    const m = Math.round((dec - h) * 60);
+    const clamph = Math.max(0, Math.min(23, h));
+    return `${clamph.toString().padStart(2, "0")}:${m === 0 ? "00" : m.toString().padStart(2, "0")}`;
+  };
+
+  // Drag and Drop Logic
+  const handleDragStart = (
+    e: React.DragEvent,
+    shift: ScheduledShift,
+    type: "move" | "resizeTop" | "resizeBottom",
+  ) => {
+    e.stopPropagation();
+    setDragInfo({ shift, type });
+    const img = new Image();
+    img.src =
+      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    e.dataTransfer.setDragImage(img, 0, 0);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (
+    e: React.DragEvent,
+    targetDay: number,
+    targetHour: number,
+  ) => {
+    e.preventDefault();
+    if (!dragInfo) return;
+
+    const { shift, type } = dragInfo;
+    let newStartStr = shift.startTime;
+    let newEndStr = shift.endTime;
+    const newDay = targetDay;
+
+    const currentStartDec = timeToDecimal(shift.startTime);
+    const currentEndDec = timeToDecimal(shift.endTime);
+    const duration = currentEndDec - currentStartDec;
+
+    if (type === "move") {
+      let newStartDec = targetHour;
+      let newEndDec = newStartDec + duration;
+      if (newEndDec > 24) {
+        newEndDec = 24;
+        newStartDec = 24 - duration;
+      }
+      newStartStr = decimalToTime(newStartDec);
+      newEndStr = decimalToTime(newEndDec);
+    } else if (type === "resizeTop") {
+      if (targetHour < currentEndDec) {
+        newStartStr = decimalToTime(targetHour);
+      }
+    } else if (type === "resizeBottom") {
+      const targetEndDec = targetHour + 1;
+      if (targetEndDec > currentStartDec) {
+        newEndStr = decimalToTime(targetEndDec);
+      }
+    }
+
+    onShiftUpdate({
+      ...shift,
+      dayOfWeek: newDay,
+      startTime: newStartStr,
+      endTime: newEndStr,
+    });
+    setDragInfo(null);
+  };
+
+  // Overlap handling logic (Improved for V2)
+  const getPositionStyles = (
+    shift: ScheduledShift,
+    allShifts: ScheduledShift[],
+  ) => {
+    const dayShifts = allShifts
+      .filter((s) => s.dayOfWeek === shift.dayOfWeek)
+      .sort((a, b) => timeToDecimal(a.startTime) - timeToDecimal(b.startTime));
+
+    const start = timeToDecimal(shift.startTime);
+    const end = timeToDecimal(shift.endTime);
+
+    // Find all shifts that overlap with this shift
+    const overlappingShifts = dayShifts.filter((s) => {
+      const sStart = timeToDecimal(s.startTime);
+      const sEnd = timeToDecimal(s.endTime);
+      return Math.max(start, sStart) < Math.min(end, sEnd);
+    });
+
+    // Grouping logic for columns
+    const columns: string[][] = [];
+    overlappingShifts.forEach((s) => {
+      let placed = false;
+      for (const col of columns) {
+        const lastInCol = col[col.length - 1];
+        const lastShift = dayShifts.find((ds) => ds.id === lastInCol)!;
+        if (timeToDecimal(lastShift.endTime) <= timeToDecimal(s.startTime)) {
+          col.push(s.id);
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        columns.push([s.id]);
+      }
+    });
+
+    const colIndex = columns.findIndex((col) => col.includes(shift.id));
+    const totalCols = columns.length;
+
+    const width = 100 / totalCols;
+    const left = colIndex * width;
+
+    const topPixels = start * 80;
+    const heightPixels = (end - start) * 80;
+
+    return {
+      top: `${topPixels + 2}px`,
+      height: `${heightPixels - 4}px`,
+      width: `calc(${width}% - 8px)`,
+      left: `calc(${left}% + 4px)`,
+    };
+  };
+
+  // Date range helpers
+  const getVisibleDays = () => {
+    if (viewMode === "daily") return [currentDate];
+    if (viewMode === "weekly") {
+      const start = startOfWeek(currentDate);
+      return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+    }
+    return []; // Monthly handled separately
+  };
+
+  if (viewMode === "monthly") {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const days = [];
+    let day = startOfWeek(monthStart);
+    while (day <= endOfWeek(monthEnd)) {
+      days.push(day);
+      day = addDays(day, 1);
+    }
+
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col w-full h-full min-h-[600px]">
+        <ViewControls
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+          currentDate={currentDate}
+          onDateChange={setCurrentDate}
+        />
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="grid grid-cols-7 gap-2">
+            {SHORT_DAYS.map((d) => (
+              <div
+                key={d}
+                className="font-bold text-center text-slate-400 text-xs mb-2 uppercase"
+              >
+                {d}
+              </div>
+            ))}
+            {days.map((d, i) => {
+              const dayShifts = shifts.filter(
+                (s) => s.date && isSameDay(new Date(s.date), d),
+              );
+              const isCurrentMonth = d.getMonth() === currentDate.getMonth();
+              const isToday = isSameDay(d, new Date());
+
+              return (
+                <div
+                  key={i}
+                  onClick={() => onShiftCreate(d.getDay(), 8, d)}
+                  className={cn(
+                    "min-h-[100px] rounded-2xl border p-2 flex flex-col items-start justify-start relative cursor-pointer transition-all group overflow-hidden",
+                    !isCurrentMonth && "opacity-30 grayscale",
+                    isToday
+                      ? "bg-blue-50 border-blue-200"
+                      : "bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "text-xs font-bold mb-1",
+                      isToday ? "text-blue-700" : "text-slate-400",
+                    )}
+                  >
+                    {format(d, "d")}
+                  </span>
+                  <div className="w-full mt-2 space-y-1">
+                    {dayShifts.map((s) => (
+                      <div
+                        key={s.id}
+                        className={cn(
+                          "h-1.5 w-full rounded-full transition-all hover:h-3 group/bar relative",
+                          s.status === "draft"
+                            ? "bg-amber-400 group-hover/bar:bg-amber-500"
+                            : "bg-blue-500 group-hover/bar:bg-blue-600",
+                        )}
+                      >
+                        <div className="absolute inset-0 opacity-0 group-hover/bar:opacity-100 flex items-center px-1 text-[6px] font-black text-white uppercase truncate whitespace-nowrap pointer-events-none">
+                          {s.startTime} - {s.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const visibleDates = getVisibleDays();
+
+  return (
+    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col w-full min-h-full">
+      <ViewControls
+        viewMode={viewMode}
+        onViewModeChange={onViewModeChange}
+        currentDate={currentDate}
+        onDateChange={setCurrentDate}
+      />
+
+      <div className="w-full flex-1 bg-slate-50/50">
+        <div className="flex flex-col w-full relative">
+          {/* Days Header */}
+          <div className="flex border-b border-slate-200 bg-white sticky top-0 z-30">
+            <div className="w-20 shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50/50">
+              <Clock className="w-4 h-4 text-slate-400" />
+            </div>
+            {visibleDates.map((date, idx) => {
+              const isToday = isSameDay(date, new Date());
+              return (
+                <div
+                  key={idx}
+                  className="flex-1 min-w-[150px] p-4 text-center border-r border-slate-200 relative group"
+                >
+                  <div
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest mb-1",
+                      isToday ? "text-blue-600" : "text-slate-400",
+                    )}
+                  >
+                    {format(date, "EEEE")}
+                  </div>
+                  <div
+                    className={cn(
+                      "text-xl font-black italic tracking-tighter",
+                      isToday ? "text-blue-700" : "text-slate-900",
+                    )}
+                  >
+                    {format(date, "MMM d")}
+                  </div>
+                  <Button
+                    onClick={() => onShiftCreate(date.getDay(), 8, date)}
+                    size="icon"
+                    variant="ghost"
+                    className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-blue-50 text-blue-600 hover:bg-blue-100"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex relative">
+            {/* Time Axis */}
+            <div className="w-20 shrink-0 border-r border-slate-200 bg-slate-50/50 flex flex-col pt-2">
+              {HOURS.map((hour) => (
+                <div
+                  key={hour}
+                  className="h-20 border-b border-slate-100 flex items-start justify-center pt-2"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                    {hour.toString().padStart(2, "0")}:00
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Grid Cells */}
+            <div className="flex-1 flex pt-2 bg-white/50">
+              {visibleDates.map((date, dayIdx) => (
+                <div
+                  key={dayIdx}
+                  className="flex-1 min-w-[150px] border-r border-slate-100 relative group h-full"
+                  onDragOver={handleDragOver}
+                >
+                  {HOURS.map((hour) => (
+                    <div
+                      key={hour}
+                      className="h-20 border-b border-slate-50 relative hover:bg-blue-50/30 transition-colors"
+                      onDrop={(e) => handleDrop(e, date.getDay(), hour)}
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget)
+                          onShiftCreate(date.getDay(), hour, date);
+                      }}
+                    />
+                  ))}
+
+                  {shifts
+                    .filter((s) => s.dayOfWeek === date.getDay())
+                    .map((shift) => {
+                      const style = getPositionStyles(shift, shifts);
+                      const isInteracting = dragInfo?.shift.id === shift.id;
+
+                      return (
+                        <div
+                          key={shift.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, shift, "move")}
+                          onClick={() => onShiftClick(shift)}
+                          className={cn(
+                            "absolute rounded-2xl shadow-sm border-2 transition-all z-20 overflow-hidden group/shift backdrop-blur-sm",
+                            shift.status === "draft"
+                              ? "bg-amber-50/90 border-amber-200 hover:border-amber-400"
+                              : "bg-blue-50/90 border-blue-200 hover:border-blue-400",
+                            isInteracting && "opacity-50 scale-95",
+                          )}
+                          style={style}
+                        >
+                          {/* Resize Handles */}
+                          <div
+                            draggable
+                            onDragStart={(e) =>
+                              handleDragStart(e, shift, "resizeTop")
+                            }
+                            className="absolute top-0 inset-x-0 h-2 cursor-ns-resize hover:bg-black/10 z-30"
+                          />
+                          <div
+                            draggable
+                            onDragStart={(e) =>
+                              handleDragStart(e, shift, "resizeBottom")
+                            }
+                            className="absolute bottom-0 inset-x-0 h-2 cursor-ns-resize hover:bg-black/10 z-30"
+                          />
+
+                          {/* Content */}
+                          <div className="p-3 h-full flex flex-col relative select-none">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onShiftDelete(shift.id);
+                              }}
+                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/50 text-slate-400 opacity-0 group-hover/shift:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all z-40"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <div className="flex items-start justify-between mb-1">
+                              <span
+                                className={cn(
+                                  "text-[10px] font-black uppercase tracking-wider",
+                                  shift.status === "draft"
+                                    ? "text-amber-600"
+                                    : "text-blue-600",
+                                )}
+                              >
+                                {shift.startTime} - {shift.endTime}
+                              </span>
+                            </div>
+
+                            <div className="font-black italic text-sm text-slate-900 leading-tight truncate mb-0.5">
+                              {shift.name}
+                            </div>
+                            <div className="text-[10px] font-bold text-slate-500 uppercase truncate mt-auto">
+                              {shift.role}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ViewControls = ({
+  viewMode,
+  onViewModeChange,
+  currentDate,
+  onDateChange,
+}: {
+  viewMode: "daily" | "weekly" | "monthly";
+  onViewModeChange: (mode: "daily" | "weekly" | "monthly") => void;
+  currentDate: Date;
+  onDateChange: (date: Date) => void;
+}) => {
+  return (
+    <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row items-center justify-between gap-6 bg-white sticky top-0 z-40">
+      <div className="flex items-center gap-4 bg-slate-50 p-1 rounded-2xl border border-slate-100">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() =>
+            onDateChange(
+              addDays(
+                currentDate,
+                viewMode === "daily" ? -1 : viewMode === "weekly" ? -7 : -30,
+              ),
+            )
+          }
+          className="h-9 w-9 rounded-xl"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </Button>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-9 px-4 font-black italic uppercase text-xs tracking-widest gap-2"
+            >
+              <CalendarIcon className="w-4 h-4 text-blue-500" />
+              {viewMode === "daily"
+                ? format(currentDate, "MMMM d, yyyy")
+                : viewMode === "weekly"
+                  ? `${format(startOfWeek(currentDate), "MMM d")} - ${format(endOfWeek(currentDate), "MMM d, yyyy")}`
+                  : format(currentDate, "MMMM yyyy")}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto p-0 border-none shadow-2xl rounded-3xl"
+            align="start"
+          >
+            <Calendar
+              mode="single"
+              selected={currentDate}
+              onSelect={(d) => d && onDateChange(d)}
+              initialFocus
+              className="p-4"
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() =>
+            onDateChange(
+              addDays(
+                currentDate,
+                viewMode === "daily" ? 1 : viewMode === "weekly" ? 7 : 30,
+              ),
+            )
+          }
+          className="h-9 w-9 rounded-xl"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </Button>
+      </div>
+
+      <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-[1.25rem]">
+        {(["daily", "weekly", "monthly"] as const).map((mode) => (
+          <Button
+            key={mode}
+            variant={viewMode === mode ? "default" : "ghost"}
+            onClick={() => onViewModeChange(mode)}
+            className={cn(
+              "h-10 px-6 rounded-xl font-black italic uppercase text-[10px] tracking-widest transition-all",
+              viewMode === mode
+                ? "bg-white text-blue-600 shadow-md scale-105"
+                : "text-slate-500 hover:text-slate-900",
+            )}
+          >
+            {mode === "daily" && <LayoutGrid className="w-3.5 h-3.5 mr-2" />}
+            {mode === "weekly" && <CalendarDays className="w-3.5 h-3.5 mr-2" />}
+            {mode === "monthly" && (
+              <CalendarRange className="w-3.5 h-3.5 mr-2" />
+            )}
+            {mode}
+          </Button>
+        ))}
+      </div>
+
+      <div className="hidden sm:flex gap-4">
+        <div className="flex flex-col items-end">
+          <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+            Security Node
+          </div>
+          <div className="text-[10px] font-bold text-blue-600 flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            ACTIVE_ENFORCEMENT
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

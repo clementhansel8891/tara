@@ -309,10 +309,15 @@ export class RetailPublicCustomerService {
     );
 
     if (paymentStatus === "PAID") {
-      await this.retailService.processPayment(tenantId, order.id, {
-        amount: Number(order.grand_total),
-        method: paymentMethod as any,
-      });
+      await this.retailService.processPayment(
+        tenantId,
+        order.id,
+        {
+          amount: Number(order.grandTotal),
+          method: paymentMethod as any,
+        },
+        customerId,
+      );
     }
 
     await this.prisma.retailCartItem.deleteMany({ where: { cartId: cart.id } });

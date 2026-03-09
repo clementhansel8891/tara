@@ -1,10 +1,7 @@
 import { audit } from "@/core/logging/audit";
 import { Roles } from "@/core/security/roles";
 import type { SessionContext } from "@/core/security/session";
-import {
-  loadFromStorage,
-  saveToStorage,
-} from "@/core/persistence";
+import { loadFromStorage, saveToStorage } from "@/core/persistence";
 import type {
   GoodsReceiptSyncRecord,
   GoodsReceiptSyncStatus,
@@ -14,12 +11,16 @@ import type {
   SupplierAccessProvisioningStatus,
 } from "@/core/types/procurement/procurement";
 
-const legalHandoffsKey = (tenantId: string) => `proc:${tenantId}:integrations:legal-handoffs`;
-const inventorySyncKey = (tenantId: string) => `proc:${tenantId}:integrations:inventory-sync`;
-const supplierAccessKey = (tenantId: string) => `proc:${tenantId}:integrations:supplier-access`;
+const legalHandoffsKey = (tenantId: string) =>
+  `proc:${tenantId}:integrations:legal-handoffs`;
+const inventorySyncKey = (tenantId: string) =>
+  `proc:${tenantId}:integrations:inventory-sync`;
+const supplierAccessKey = (tenantId: string) =>
+  `proc:${tenantId}:integrations:supplier-access`;
 
 const nowIso = () => new Date().toISOString();
-const createId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+const createId = (prefix: string) =>
+  `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
@@ -41,8 +42,14 @@ const updateById = <T extends { id: string }>(
 };
 
 export const procurementIntegrationAdapters = {
-  listLegalHandoffs(tenantId: string): LegalContractHandoff[] {
-    return loadFromStorage<LegalContractHandoff[]>(legalHandoffsKey(tenantId), []);
+  listLegalHandoffs(
+    tenantId: string,
+    actor: SessionContext,
+  ): LegalContractHandoff[] {
+    return loadFromStorage<LegalContractHandoff[]>(
+      legalHandoffsKey(tenantId),
+      [],
+    );
   },
 
   requestLegalContractHandoff(
@@ -58,7 +65,9 @@ export const procurementIntegrationAdapters = {
   ): LegalContractHandoff {
     ensureTenantAccess(tenantId, actor);
     const current = this.listLegalHandoffs(tenantId);
-    const existing = current.find((item) => item.contractId === payload.contractId);
+    const existing = current.find(
+      (item) => item.contractId === payload.contractId,
+    );
     const nextStatus: LegalHandoffStatus = "PENDING_LEGAL_ACK";
 
     if (existing) {
@@ -69,7 +78,8 @@ export const procurementIntegrationAdapters = {
               requisitionId: payload.requisitionId,
               supplierId: payload.supplierId,
               notes: payload.notes ?? item.notes,
-              workflowRequestId: payload.workflowRequestId ?? item.workflowRequestId,
+              workflowRequestId:
+                payload.workflowRequestId ?? item.workflowRequestId,
               status: nextStatus,
               updatedAt: nowIso(),
             }
@@ -128,7 +138,10 @@ export const procurementIntegrationAdapters = {
   ): LegalContractHandoff {
     ensureTenantAccess(tenantId, actor);
     const current = this.listLegalHandoffs(tenantId);
-    const patch: Partial<LegalContractHandoff> = { status, updatedAt: nowIso() };
+    const patch: Partial<LegalContractHandoff> = {
+      status,
+      updatedAt: nowIso(),
+    };
     if (status === "ACKNOWLEDGED") patch.acknowledgedBy = actor.userId;
     if (status === "CONTRACT_ACCEPTED") patch.acceptedBy = actor.userId;
     const { updated, next } = updateById(current, handoffId, patch);
@@ -147,8 +160,14 @@ export const procurementIntegrationAdapters = {
     return updated;
   },
 
-  listGoodsReceiptSyncs(tenantId: string): GoodsReceiptSyncRecord[] {
-    return loadFromStorage<GoodsReceiptSyncRecord[]>(inventorySyncKey(tenantId), []);
+  listGoodsReceiptSyncs(
+    tenantId: string,
+    actor: SessionContext,
+  ): GoodsReceiptSyncRecord[] {
+    return loadFromStorage<GoodsReceiptSyncRecord[]>(
+      inventorySyncKey(tenantId),
+      [],
+    );
   },
 
   queueGoodsReceiptSync(
@@ -165,7 +184,9 @@ export const procurementIntegrationAdapters = {
   ): GoodsReceiptSyncRecord {
     ensureTenantAccess(tenantId, actor);
     const current = this.listGoodsReceiptSyncs(tenantId);
-    const existing = current.find((item) => item.finalPoId === payload.finalPoId);
+    const existing = current.find(
+      (item) => item.finalPoId === payload.finalPoId,
+    );
     const nextStatus: GoodsReceiptSyncStatus = "PENDING_RECEIPT";
 
     if (existing) {
@@ -249,8 +270,14 @@ export const procurementIntegrationAdapters = {
     return updated;
   },
 
-  listSupplierAccessProvisioning(tenantId: string): SupplierAccessProvisioning[] {
-    return loadFromStorage<SupplierAccessProvisioning[]>(supplierAccessKey(tenantId), []);
+  listSupplierAccessProvisioning(
+    tenantId: string,
+    actor: SessionContext,
+  ): SupplierAccessProvisioning[] {
+    return loadFromStorage<SupplierAccessProvisioning[]>(
+      supplierAccessKey(tenantId),
+      [],
+    );
   },
 
   requestSupplierAccessProvisioning(
@@ -309,14 +336,18 @@ export const procurementIntegrationAdapters = {
     status: SupplierAccessProvisioningStatus,
   ): SupplierAccessProvisioning {
     ensureTenantAccess(tenantId, actor);
-    const patch: Partial<SupplierAccessProvisioning> = { status, updatedAt: nowIso() };
+    const patch: Partial<SupplierAccessProvisioning> = {
+      status,
+      updatedAt: nowIso(),
+    };
     if (status === "PROVISIONED") patch.provisionedBy = actor.userId;
     const { updated, next } = updateById(
       this.listSupplierAccessProvisioning(tenantId),
       provisioningId,
       patch,
     );
-    if (!updated) throw new Error("Supplier access provisioning record not found.");
+    if (!updated)
+      throw new Error("Supplier access provisioning record not found.");
     saveToStorage(supplierAccessKey(tenantId), next);
     audit.log({
       tenantId,
@@ -331,4 +362,3 @@ export const procurementIntegrationAdapters = {
     return updated;
   },
 };
-

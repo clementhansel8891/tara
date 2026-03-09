@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
@@ -11,9 +25,23 @@ import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Trash2, ArrowRightLeft, PackagePlus, Send } from "lucide-react";
-import type { InventoryStockBalance, InventoryItemMaster } from "@/core/types/inventory/inventory";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  MoreHorizontal,
+  Trash2,
+  ArrowRightLeft,
+  PackagePlus,
+  Send,
+} from "lucide-react";
+import type {
+  InventoryStockBalance,
+  InventoryItemMaster,
+} from "@/core/types/inventory/inventory";
 import { TransferDialog } from "./components/TransferDialog";
 import { BatchIntakeDialog } from "./components/BatchIntakeDialog";
 import { BatchTransferDialog } from "./components/BatchTransferDialog";
@@ -24,6 +52,21 @@ import { Upload } from "lucide-react";
 
 type ViewMode = "total" | "branch" | "ecommerce";
 
+const ITEM_CATEGORIES = [
+  "ITEM",
+  "RAW_MATERIAL",
+  "SERVICE",
+  "CONSUMABLE",
+  "ASSET",
+] as const;
+
+const MODULE_TAG_OPTIONS = [
+  "RETAIL",
+  "PROCUREMENT",
+  "MANUFACTURING",
+  "GENERAL",
+];
+
 export default function InventoryStockHub() {
   const session = useSession();
   const [search, setSearch] = useState("");
@@ -31,7 +74,10 @@ export default function InventoryStockHub() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<InventoryItemMaster[]>([]);
   const [balances, setBalances] = useState<InventoryStockBalance[]>([]);
-  const [selectedBalance, setSelectedBalance] = useState<{ balance: InventoryStockBalance; item: InventoryItemMaster } | null>(null);
+  const [selectedBalance, setSelectedBalance] = useState<{
+    balance: InventoryStockBalance;
+    item: InventoryItemMaster;
+  } | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("branch");
@@ -42,6 +88,52 @@ export default function InventoryStockHub() {
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
 
+  // New Item Dialog state
+  const [isNewItemOpen, setIsNewItemOpen] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemSku, setNewItemSku] = useState("");
+  const [newItemCategory, setNewItemCategory] = useState<string>("ITEM");
+  const [newItemUom, setNewItemUom] = useState("PCS");
+  const [newItemModuleTag, setNewItemModuleTag] = useState("GENERAL");
+  const [isCreating, setIsCreating] = useState(false);
+
+  const resetNewItemForm = () => {
+    setNewItemName("");
+    setNewItemSku("");
+    setNewItemCategory("ITEM");
+    setNewItemUom("PCS");
+    setNewItemModuleTag("GENERAL");
+  };
+
+  const handleCreateItem = async () => {
+    if (!newItemName.trim()) {
+      setErrorMessage("Item name is required.");
+      return;
+    }
+    setIsCreating(true);
+    try {
+      await inventoryService.createItem(session.tenantId, session, {
+        sku: newItemSku.trim() || "",
+        name: newItemName.trim(),
+        category: newItemCategory as InventoryItemMaster["category"],
+        uom: newItemUom,
+        moduleTags: [newItemModuleTag],
+      });
+      setStatusMessage(
+        `Item "${newItemName}" created successfully. Pending HOD approval.`,
+      );
+      setIsNewItemOpen(false);
+      resetNewItemForm();
+      refresh();
+    } catch (err: any) {
+      setErrorMessage(
+        `Failed to create item: ${err?.message || "Unknown error"}`,
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const clearStatus = () => {
     setStatusMessage(null);
     setErrorMessage(null);
@@ -50,8 +142,8 @@ export default function InventoryStockHub() {
   const refresh = useCallback(async () => {
     try {
       const [i, b] = await Promise.all([
-        inventoryService.listItems(session.tenantId),
-        inventoryService.listBalances(session.tenantId),
+        inventoryService.listItems(session.tenantId, session),
+        inventoryService.listBalances(session.tenantId, session),
       ]);
       setItems(i);
       setBalances(b);
@@ -75,12 +167,16 @@ export default function InventoryStockHub() {
   const aggregatedBalances = useMemo(() => {
     if (viewMode !== "total") return balances;
     const map = new Map<string, InventoryStockBalance>();
-    balances.forEach(b => {
+    balances.forEach((b) => {
       const existing = map.get(b.itemId);
       if (existing) {
         existing.quantity += b.quantity;
       } else {
-        map.set(b.itemId, { ...b, locationCode: "GLOBAL", departmentCode: "ALL" });
+        map.set(b.itemId, {
+          ...b,
+          locationCode: "GLOBAL",
+          departmentCode: "ALL",
+        });
       }
     });
     return Array.from(map.values());
@@ -94,17 +190,26 @@ export default function InventoryStockHub() {
 
         // Mode filtering
         if (viewMode === "ecommerce") {
-          const isEcom = balance.locationCode?.toLowerCase()?.includes("ecom") || balance.locationCode?.toLowerCase()?.includes("ec");
+          const isEcom =
+            balance.locationCode?.toLowerCase()?.includes("ecom") ||
+            balance.locationCode?.toLowerCase()?.includes("ec");
           if (!isEcom) return false;
         } else if (viewMode === "branch") {
-           const isEcom = balance.locationCode?.toLowerCase()?.includes("ecom") || balance.locationCode?.toLowerCase()?.includes("ec");
-           if (isEcom && balance.locationCode !== "GLOBAL") return false;
+          const isEcom =
+            balance.locationCode?.toLowerCase()?.includes("ecom") ||
+            balance.locationCode?.toLowerCase()?.includes("ec");
+          if (isEcom && balance.locationCode !== "GLOBAL") return false;
         }
 
-        const searchable = `${item.sku} ${item.name} ${balance.locationCode || ""} ${balance.departmentCode || ""}`.toLowerCase();
-        const searchMatch = search ? searchable.includes(search.toLowerCase()) : true;
+        const searchable =
+          `${item.sku} ${item.name} ${balance.locationCode || ""} ${balance.departmentCode || ""}`.toLowerCase();
+        const searchMatch = search
+          ? searchable.includes(search.toLowerCase())
+          : true;
         const moduleMatch = moduleFilter
-          ? (item.moduleTags || []).some((tag) => tag.toLowerCase() === moduleFilter.toLowerCase())
+          ? (item.moduleTags || []).some(
+              (tag) => tag.toLowerCase() === moduleFilter.toLowerCase(),
+            )
           : true;
         return searchMatch && moduleMatch;
       }),
@@ -112,18 +217,24 @@ export default function InventoryStockHub() {
   );
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
   };
 
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredBalances.length) setSelectedIds([]);
-    else setSelectedIds(filteredBalances.map(b => b.id));
+    else setSelectedIds(filteredBalances.map((b) => b.id));
   };
 
   const handleBatchDelete = async () => {
     if (!confirm(`Delete ${selectedIds.length} items?`)) return;
     try {
-      await inventoryService.batchDeleteItems(session.tenantId, session, selectedIds);
+      await inventoryService.batchDeleteItems(
+        session.tenantId,
+        session,
+        selectedIds,
+      );
       setStatusMessage("Batch delete successful.");
       refresh();
       setSelectedIds([]);
@@ -147,18 +258,27 @@ export default function InventoryStockHub() {
         subtitle="Global -> location -> department stock visibility with module-aware context tags."
         primaryAction={
           <div className="flex items-center gap-2">
-            <ExportButton 
-              endpoint="/inventory/items/export" 
-              filename={`zenvix_inventory_${session.tenantId}.xlsx`} 
+            <ExportButton
+              endpoint="/inventory/items/export"
+              filename={`zenvix_inventory_${session.tenantId}.xlsx`}
             />
-            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsImportOpen(true)}
+            >
               <Upload className="mr-2 h-4 w-4" /> Import Items
             </Button>
             <Button
               onClick={async () => {
                 try {
-                  await inventoryService.runLowStockScan(session.tenantId, session);
-                  setStatusMessage("Low stock scan completed. Alerts refreshed.");
+                  await inventoryService.runLowStockScan(
+                    session.tenantId,
+                    session,
+                  );
+                  setStatusMessage(
+                    "Low stock scan completed. Alerts refreshed.",
+                  );
                   refresh();
                 } catch (err) {
                   setErrorMessage("Stock scan failed.");
@@ -167,12 +287,15 @@ export default function InventoryStockHub() {
             >
               Recompute alerts
             </Button>
-            <Button onClick={() => setStatusMessage("Creation dialog not yet implemented.")}>+ New Item</Button>
+            <Button onClick={() => setIsNewItemOpen(true)}>+ New Item</Button>
           </div>
         }
         secondaryActions={
           <div className="flex items-center gap-2">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as ViewMode)}
+            >
               <TabsList>
                 <TabsTrigger value="total">Total</TabsTrigger>
                 <TabsTrigger value="branch">Branch</TabsTrigger>
@@ -189,14 +312,23 @@ export default function InventoryStockHub() {
         }
       />
 
-      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+      <FeedbackAlert
+        message={statusMessage}
+        error={errorMessage}
+        onClear={clearStatus}
+      />
 
-      <WorkspacePanel title="Location + Department Inventory" description="Drill-down stock records across hierarchy layers.">
+      <WorkspacePanel
+        title="Location + Department Inventory"
+        description="Drill-down stock records across hierarchy layers."
+      >
         <div className="flex items-center justify-between mb-4 px-1">
           <FilterBar searchValue={search} onSearchChange={setSearch} />
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
-              <span className="text-sm font-medium text-primary">{selectedIds.length} selected</span>
+              <span className="text-sm font-medium text-primary">
+                {selectedIds.length} selected
+              </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -204,13 +336,22 @@ export default function InventoryStockHub() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="gap-2" onClick={() => setIsBatchIntakeOpen(true)}>
+                  <DropdownMenuItem
+                    className="gap-2"
+                    onClick={() => setIsBatchIntakeOpen(true)}
+                  >
                     <PackagePlus className="h-4 w-4" /> Batch Intake
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2" onClick={() => setIsBatchTransferOpen(true)}>
+                  <DropdownMenuItem
+                    className="gap-2"
+                    onClick={() => setIsBatchTransferOpen(true)}
+                  >
                     <ArrowRightLeft className="h-4 w-4" /> Batch Transfer
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2 text-destructive" onClick={handleBatchDelete}>
+                  <DropdownMenuItem
+                    className="gap-2 text-destructive"
+                    onClick={handleBatchDelete}
+                  >
                     <Trash2 className="h-4 w-4" /> Delete Selected
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -223,8 +364,11 @@ export default function InventoryStockHub() {
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="p-3 text-left w-10">
-                  <Checkbox 
-                    checked={selectedIds.length === filteredBalances.length && filteredBalances.length > 0} 
+                  <Checkbox
+                    checked={
+                      selectedIds.length === filteredBalances.length &&
+                      filteredBalances.length > 0
+                    }
                     onCheckedChange={toggleSelectAll}
                   />
                 </th>
@@ -249,18 +393,28 @@ export default function InventoryStockHub() {
                     onClick={() => setSelectedBalance({ balance, item })}
                   >
                     <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                      <Checkbox 
-                        checked={isSelected} 
+                      <Checkbox
+                        checked={isSelected}
                         onCheckedChange={() => toggleSelect(balance.id)}
                       />
                     </td>
                     <td className="p-3 font-medium">{item.sku}</td>
                     <td className="p-3">{item.name}</td>
-                    <td className="p-3 text-muted-foreground">{balance.locationCode}</td>
-                    <td className="p-3 text-muted-foreground">{balance.departmentCode ?? "GENERAL"}</td>
-                    <td className="p-3 text-right font-mono font-bold">{balance.quantity.toLocaleString()}</td>
-                    <td className="p-3 text-muted-foreground">{balance.reorderPoint}</td>
-                    <td className="p-3 text-xs text-muted-foreground">{(item.moduleTags || []).join(", ")}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {balance.locationCode}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {balance.departmentCode ?? "GENERAL"}
+                    </td>
+                    <td className="p-3 text-right font-mono font-bold">
+                      {balance.quantity.toLocaleString()}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {balance.reorderPoint}
+                    </td>
+                    <td className="p-3 text-xs text-muted-foreground">
+                      {(item.moduleTags || []).join(", ")}
+                    </td>
                   </tr>
                 );
               })}
@@ -268,7 +422,10 @@ export default function InventoryStockHub() {
           </table>
         </DataTableShell>
       </WorkspacePanel>
-      <Dialog open={!!selectedBalance} onOpenChange={() => setSelectedBalance(null)}>
+      <Dialog
+        open={!!selectedBalance}
+        onOpenChange={() => setSelectedBalance(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Stock Record Detail</DialogTitle>
@@ -276,31 +433,56 @@ export default function InventoryStockHub() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 text-sm gap-y-2">
               <span className="text-muted-foreground">SKU:</span>
-              <span className="font-mono font-bold">{selectedBalance?.item.sku}</span>
+              <span className="font-mono font-bold">
+                {selectedBalance?.item.sku}
+              </span>
               <span className="text-muted-foreground">Item Name:</span>
-              <span className="font-semibold">{selectedBalance?.item.name}</span>
+              <span className="font-semibold">
+                {selectedBalance?.item.name}
+              </span>
               <span className="text-muted-foreground">Location:</span>
               <span>{selectedBalance?.balance.locationCode}</span>
               <span className="text-muted-foreground">Department:</span>
-              <span>{selectedBalance?.balance.departmentCode || "GENERAL"}</span>
+              <span>
+                {selectedBalance?.balance.departmentCode || "GENERAL"}
+              </span>
               <span className="text-muted-foreground">Physical Qty:</span>
-              <span className="font-bold text-lg">{selectedBalance?.balance.quantity.toLocaleString()}</span>
+              <span className="font-bold text-lg">
+                {selectedBalance?.balance.quantity.toLocaleString()}
+              </span>
               <span className="text-muted-foreground">Reorder Point:</span>
               <span>{selectedBalance?.balance.reorderPoint}</span>
             </div>
             <div className="border-t pt-2">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Module Context</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Module Context
+              </p>
               <div className="flex flex-wrap gap-1">
-                {(selectedBalance?.item.moduleTags || []).map(tag => (
-                  <span key={tag} className="rounded bg-muted px-1.5 py-0.5 text-[10px]">{tag}</span>
+                {(selectedBalance?.item.moduleTags || []).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded bg-muted px-1.5 py-0.5 text-[10px]"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-4">
-              <Button size="sm" variant="outline" className="gap-2" onClick={() => setIsTransferOpen(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => setIsTransferOpen(true)}
+              >
                 <Send className="h-4 w-4" /> Start Transfer
               </Button>
-              <Button size="sm" variant="outline" className="gap-2" onClick={() => setIsAdjustmentOpen(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2"
+                onClick={() => setIsAdjustmentOpen(true)}
+              >
                 <ArrowRightLeft className="h-4 w-4" /> Adjust Stock
               </Button>
             </div>
@@ -308,28 +490,28 @@ export default function InventoryStockHub() {
         </DialogContent>
       </Dialog>
 
-      <TransferDialog 
-        open={isTransferOpen} 
-        onOpenChange={setIsTransferOpen} 
-        selectedBalance={selectedBalance} 
+      <TransferDialog
+        open={isTransferOpen}
+        onOpenChange={setIsTransferOpen}
+        selectedBalance={selectedBalance}
         onSuccess={() => {
           setStatusMessage("Transfer successfully logged.");
           refresh();
         }}
       />
 
-      <BatchIntakeDialog 
-        open={isBatchIntakeOpen} 
-        onOpenChange={setIsBatchIntakeOpen} 
+      <BatchIntakeDialog
+        open={isBatchIntakeOpen}
+        onOpenChange={setIsBatchIntakeOpen}
         onSuccess={() => {
           setStatusMessage("Batch intake successfully processed.");
           refresh();
         }}
       />
 
-      <BatchTransferDialog 
-        open={isBatchTransferOpen} 
-        onOpenChange={setIsBatchTransferOpen} 
+      <BatchTransferDialog
+        open={isBatchTransferOpen}
+        onOpenChange={setIsBatchTransferOpen}
         selectedIds={selectedIds}
         balances={balances}
         onSuccess={() => {
@@ -339,9 +521,9 @@ export default function InventoryStockHub() {
         }}
       />
 
-      <AdjustmentDialog 
-        open={isAdjustmentOpen} 
-        onOpenChange={setIsAdjustmentOpen} 
+      <AdjustmentDialog
+        open={isAdjustmentOpen}
+        onOpenChange={setIsAdjustmentOpen}
         selectedBalance={selectedBalance}
         onSuccess={() => {
           setStatusMessage("Adjustment request submitted for approval.");
@@ -359,6 +541,110 @@ export default function InventoryStockHub() {
           setIsImportOpen(false);
         }}
       />
+
+      {/* New Item Creation Dialog */}
+      <Dialog
+        open={isNewItemOpen}
+        onOpenChange={(open) => {
+          setIsNewItemOpen(open);
+          if (!open) resetNewItemForm();
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1">
+              <Label htmlFor="new-item-name">
+                Item Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="new-item-name"
+                placeholder="e.g. Wireless Keyboard Pro"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="new-item-sku">
+                SKU{" "}
+                <span className="text-muted-foreground text-xs">
+                  (leave blank for auto-generation)
+                </span>
+              </Label>
+              <Input
+                id="new-item-sku"
+                placeholder="e.g. ELEC-WKB-001"
+                value={newItemSku}
+                onChange={(e) => setNewItemSku(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label>Category</Label>
+                <Select
+                  value={newItemCategory}
+                  onValueChange={setNewItemCategory}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ITEM_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-item-uom">Unit (UOM)</Label>
+                <Input
+                  id="new-item-uom"
+                  placeholder="PCS, KG, L..."
+                  value={newItemUom}
+                  onChange={(e) => setNewItemUom(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Module Tag</Label>
+              <Select
+                value={newItemModuleTag}
+                onValueChange={setNewItemModuleTag}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODULE_TAG_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsNewItemOpen(false);
+                resetNewItemForm();
+              }}
+              disabled={isCreating}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreateItem} disabled={isCreating}>
+              {isCreating ? "Creating..." : "Create Item"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

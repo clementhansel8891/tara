@@ -102,7 +102,7 @@ const ShiftCloseTerminal = () => {
 
       toast({
         title: "Shift Closed & Locked",
-        description: `Shift ${activeShift.id} has been securely reconciled in the Nexus Ledger.`,
+        description: `Shift ${activeShift.id} has been securely reconciled in the Zenvix Ledger.`,
       });
       setIsClosed(true);
     } catch (error: unknown) {
@@ -213,7 +213,7 @@ const ShiftCloseTerminal = () => {
             </div>
             <CardHeader className="pb-4 p-8">
               <CardTitle className="text-[10px] font-black text-blue-900 uppercase tracking-[0.2em] leading-none flex items-center gap-3 italic">
-                <Calculator className="w-4 h-4" /> Nexus Expected Cash
+                <Calculator className="w-4 h-4" /> Zenvix Expected Cash
               </CardTitle>
             </CardHeader>
             <CardContent className="px-8 pb-8">

@@ -7,9 +7,19 @@ export interface SessionContext {
   role: Role;
   departmentId: string;
   token?: string;
+  permissions: string[];
 }
 
 import { useAuth } from "@/contexts/AuthContext";
+
+const FALLBACK_SESSION: SessionContext = {
+  userId: "",
+  tenantId: "",
+  locationId: "",
+  role: Roles.SYSTEM,
+  departmentId: "",
+  permissions: [],
+};
 
 export function useSession(): SessionContext {
   const { session } = useAuth();
@@ -17,13 +27,7 @@ export function useSession(): SessionContext {
   // Return a safe empty session if not loaded to prevent crashes
   // (App.tsx routing handles actual redirection for unauthorized users)
   if (!session) {
-    return {
-      userId: "",
-      tenantId: "",
-      locationId: "",
-      role: Roles.SYSTEM,
-      departmentId: "",
-    };
+    return FALLBACK_SESSION;
   }
 
   return session;

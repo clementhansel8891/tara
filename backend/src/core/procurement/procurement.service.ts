@@ -3,33 +3,110 @@ import { CreateRequisitionDto } from "./dto/create-requisition.dto";
 import { CreateSupplierDto } from "./dto/create-supplier.dto";
 import { ReleasePoDto } from "./dto/release-po.dto";
 import { IProcurementRepository } from "./repositories/procurement.repository.interface";
+import { AuditService } from "../../shared/audit/audit.service";
 
 @Injectable()
 export class ProcurementService {
-  constructor(private readonly repository: IProcurementRepository) {}
+  constructor(
+    private readonly repository: IProcurementRepository,
+    private readonly auditService: AuditService,
+  ) {}
 
   async getSuppliers(tenantId: string) {
     return this.repository.getSuppliers(tenantId);
   }
 
-  async createSupplier(tenantId: string, data: CreateSupplierDto) {
-    return this.repository.createSupplier(tenantId, data);
+  async createSupplier(
+    tenantId: string,
+    data: CreateSupplierDto,
+    userId?: string,
+  ) {
+    const supplier = await this.repository.createSupplier(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "procurement",
+        action: "CREATE",
+        entityType: "SUPPLIER",
+        entityId: supplier.id,
+        metadata: { name: data.name, category: data.category },
+      });
+    }
+    return supplier;
   }
 
   async getRequisitions(tenantId: string) {
     return this.repository.getRequisitions(tenantId);
   }
 
-  async createRequisition(tenantId: string, data: CreateRequisitionDto) {
-    return this.repository.createRequisition(tenantId, data);
+  async createRequisition(
+    tenantId: string,
+    data: CreateRequisitionDto,
+    userId?: string,
+  ) {
+    const requisition = await this.repository.createRequisition(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "procurement",
+        action: "CREATE",
+        entityType: "REQUISITION",
+        entityId: requisition.id,
+        metadata: {
+          title: data.title,
+          amount: data.amount,
+          requesterDept: data.requesterDept,
+        },
+      });
+    }
+    return requisition;
   }
 
-  async approveRequesterHod(tenantId: string, requisitionId: string) {
-    return this.repository.approveRequesterHod(tenantId, requisitionId);
+  async approveRequesterHod(
+    tenantId: string,
+    requisitionId: string,
+    userId?: string,
+  ) {
+    const requisition = await this.repository.approveRequesterHod(
+      tenantId,
+      requisitionId,
+    );
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "procurement",
+        action: "APPROVE_HOD",
+        entityType: "REQUISITION",
+        entityId: requisitionId,
+      });
+    }
+    return requisition;
   }
 
-  async releasePurchaseOrder(tenantId: string, data: ReleasePoDto) {
-    return this.repository.releasePurchaseOrder(tenantId, data);
+  async releasePurchaseOrder(
+    tenantId: string,
+    data: ReleasePoDto,
+    userId?: string,
+  ) {
+    const po = await this.repository.releasePurchaseOrder(tenantId, data);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "procurement",
+        action: "RELEASE",
+        entityType: "PURCHASE_ORDER",
+        entityId: po.id,
+        metadata: {
+          requisitionId: data.requisitionId,
+          supplierId: po.supplierId,
+        },
+      });
+    }
+    return po;
   }
 
   async getPurchaseOrders(tenantId: string) {
@@ -40,8 +117,20 @@ export class ProcurementService {
     return this.repository.getRiskSignals(tenantId);
   }
 
-  async runRiskScan(tenantId: string) {
-    return this.repository.runRiskScan(tenantId);
+  async runRiskScan(tenantId: string, userId?: string) {
+    const results = await this.repository.runRiskScan(tenantId);
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "procurement",
+        action: "RUN_RISK_SCAN",
+        entityType: "SYSTEM",
+        entityId: "risk-engine",
+        metadata: { signalsFound: results.length },
+      });
+    }
+    return results;
   }
 
   async getSupplierBranches(tenantId: string) {

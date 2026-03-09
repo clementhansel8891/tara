@@ -16,6 +16,8 @@ import {
 import { Request, Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { TenantContext } from "../../gateway/tenant-context.interface";
+import { TenantInterceptor } from "../../gateway/tenant.interceptor";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
@@ -24,32 +26,74 @@ import { CreateItemDto } from "./dto/create-item.dto";
 import { StockIntakeDto } from "./dto/stock-intake.dto";
 import { TransferStockDto } from "./dto/transfer-stock.dto";
 import { ImportItemDto } from "./dto/import-item.dto";
+import { CreateMovementRequestDto } from "./dto/create-movement-request.dto";
 import { InventoryService } from "./inventory.service";
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 import { AuditService } from "../../shared/audit/audit.service";
+import { SkuGeneratorService } from "./sku-generator.service";
+import { LabelTemplateService } from "./label-template.service";
 import { v4 as uuidv4 } from "uuid";
+import { PrismaService } from "../../persistence/prisma.service";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
 @Controller("inventory")
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseInterceptors(TenantInterceptor)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("inventory")
 export class InventoryController {
   constructor(
     private readonly inventoryService: InventoryService,
+    private readonly skuGenerator: SkuGeneratorService,
+    private readonly labelTemplateService: LabelTemplateService,
     private readonly fileProcessingService: FileProcessingService,
     private readonly auditService: AuditService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenantId: tenant_id } = request.tenantContext;
+    const dashboardData = await this.inventoryService.getDashboard(tenant_id);
+
+    const moduleContributions: any = {};
+    if (await isModuleActive(this.prisma, tenant_id, "retail")) {
+      const activeStores = await this.prisma.location.findMany({
+        where: { tenantId: tenant_id, type: "STORE" },
+        select: { id: true },
+      });
+      const storeIds = activeStores.map((s) => s.id);
+
+      const storeInventoryAgg = await this.prisma.stockLevel.aggregate({
+        where: { tenantId: tenant_id, locationId: { in: storeIds } },
+        _sum: { onHand: true },
+      });
+
+      const pendingStockTransfers =
+        await this.prisma.procurementRequisition.count({
+          where: {
+            tenantId: tenant_id,
+            status: "SUBMITTED",
+            departmentId: { in: storeIds }, // Using departmentId as store reference since stores are departments or we can just return 0 to fix it simply
+          },
+        });
+
+      moduleContributions.retail = {
+        storeInventoryCount: storeInventoryAgg._sum.onHand || 0,
+        pendingStoreTransfers: pendingStockTransfers,
+      };
+    }
+
     return {
       success: true,
       tenant_id,
-      data: await this.inventoryService.getDashboard(tenant_id),
+      data: {
+        ...dashboardData,
+        moduleContributions,
+      },
     };
   }
 
@@ -163,6 +207,35 @@ export class InventoryController {
       tenant_id,
       message: `${imported.length} items imported successfully`,
       data: imported,
+    };
+  }
+
+  @Post("items/batch-json")
+  async batchCreateItemsJson(
+    @Req() request: RequestWithTenant,
+    @Body() body: { items: any[] },
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    // Map UI fields to DTO fields if necessary, but batchCreateItems handles CreateItemDto[]
+    // The UI sends: sku, name, category, barcode, basePrice, uom, description, active
+    const data = body.items.map((item) => ({
+      ...item,
+      // Ensure category is passed as string for SKU generation logic
+      category: item.category,
+      uom: item.uom || "pcs",
+    }));
+
+    const items = await this.inventoryService.batchCreateItems(
+      tenant_id,
+      data as CreateItemDto[],
+      userId,
+    );
+
+    return {
+      success: true,
+      tenant_id,
+      message: `${items.length} items created successfully`,
+      data: items,
     };
   }
 
@@ -450,6 +523,122 @@ export class InventoryController {
       tenant_id,
       message: "Procurement request created",
       data: await this.inventoryService.requestProcurement(tenant_id, body),
+    };
+  }
+
+  @Get("generate-sku")
+  async generateSku(
+    @Req() request: RequestWithTenant,
+    @Query("category") category: string,
+  ) {
+    const { tenantId: tenant_id } = request.tenantContext;
+    const sku = await this.skuGenerator.generateSku(tenant_id, category);
+    return { success: true, tenant_id, sku };
+  }
+
+  @Get("generate-barcode")
+  async generateBarcode(
+    @Req() request: RequestWithTenant,
+    @Query("sku") sku: string,
+  ) {
+    const { tenantId: tenant_id } = request.tenantContext;
+    const barcode = this.skuGenerator.generateBarcode(tenant_id, sku);
+    return { success: true, tenant_id, barcode };
+  }
+
+  @Get("label/:sku")
+  async getLabel(
+    @Req() request: RequestWithTenant,
+    @Param("sku") sku: string,
+    @Query("format") format: "html" | "zpl" = "html",
+  ) {
+    const { tenantId: tenant_id } = request.tenantContext;
+
+    // In a real scenario, we'd fetch the actual product data to populate the label
+    // For this implementation, we'll derive it from the SKU or use defaults
+    const labelData = {
+      name: `Product ${sku}`,
+      sku: sku,
+      barcode: sku, // Usually barcode is the SKU or a separate field
+      price: 29.99,
+      unit: "pcs",
+    };
+
+    if (format === "zpl") {
+      return {
+        success: true,
+        tenant_id,
+        zpl: this.labelTemplateService.generateZPL(labelData),
+      };
+    }
+
+    return {
+      success: true,
+      tenant_id,
+      html: this.labelTemplateService.generateLabelHtml(labelData),
+    };
+  }
+
+  @Get("items/pending")
+  async getPendingItems(@Req() request: RequestWithTenant) {
+    const { tenantId: tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.getPendingItems(tenant_id);
+    return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Put("items/:id/approve")
+  async approveItem(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    const item = await this.inventoryService.approveItem(
+      tenant_id,
+      itemId,
+      userId || "system",
+    );
+    return {
+      success: true,
+      tenant_id,
+      message: "Item approved and activated",
+      data: item,
+    };
+  }
+
+  @Put("items/:id/reject")
+  async rejectItem(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    const item = await this.inventoryService.rejectItem(
+      tenant_id,
+      itemId,
+      userId || "system",
+    );
+    return {
+      success: true,
+      tenant_id,
+      message: "Item rejected",
+      data: item,
+    };
+  }
+
+  @Post("movements/request")
+  async createMovementRequest(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateMovementRequestDto,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    return {
+      success: true,
+      tenant_id,
+      message: "Movement request created",
+      data: await this.inventoryService.createMovementRequest(
+        tenant_id,
+        dto,
+        userId,
+      ),
     };
   }
 }

@@ -1,44 +1,29 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { RetailOrder, OrderStatus } from "@/core/types/retail/retail";
+import { retailService } from "@/core/services/retail/retailService";
+import { useSession } from "@/core/security/session";
+import { useToast } from "@/hooks/use-toast";
+import { OrderDetailModal } from "./modals/OrderDetailModal";
+
 import {
   PackageCheck,
   Truck,
   RotateCcw,
-  Search,
-  Filter,
-  ShoppingBag,
-  Globe,
-  Smartphone,
-  AlertCircle,
-  Clock,
-  MapPin,
-  CheckCircle2,
-  Box,
-  ChevronRight,
-  Printer,
-  MoreVertical,
-  Layers,
   Zap,
-  Tag,
-  ArrowRight,
-  ShieldAlert,
   History,
-  ClipboardList,
+  ShieldAlert,
+  Clock,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { retailService } from "@/core/services/retail/retailService";
-import { useSession } from "@/core/security/session";
-import { useToast } from "@/hooks/use-toast";
-import type { RetailOrder, OrderStatus } from "@/core/types/retail/retail";
-import { OrderDetailModal } from "./modals/OrderDetailModal";
-import { cn } from "@/lib/utils";
+
+// New sub-components
+import { OrderRacetrack } from "./order-fulfillment/OrderRacetrack";
+import { LogisticsRadar } from "./order-fulfillment/LogisticsRadar";
+import { BufferHealthCard } from "./order-fulfillment/BufferHealthCard";
 
 const OrderFulfillment = () => {
   const session = useSession();
@@ -99,10 +84,10 @@ const OrderFulfillment = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
         <PageHeader
-          title="Fulfillment Racetrack"
+          title="Multi-Channel Fulfillment Engine"
           subtitle={`Node: ${session.locationId || "CENTRAL_HUB"} • Velocity: 94.2% • SLA Gaps: MINIMAL`}
         />
         <div className="flex items-center gap-3">
@@ -112,13 +97,13 @@ const OrderFulfillment = () => {
           >
             <History className="w-3.5 h-3.5" /> Manifest Archive
           </Button>
-          <Button className="h-11 px-6 rounded-xl bg-slate-900 font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg shadow-slate-900/10">
+          <Button className="h-11 px-6 rounded-xl bg-slate-900 font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg shadow-slate-900/10 hover:bg-slate-800">
             <Zap className="w-4 h-4 text-amber-400" /> Start Batch Pick
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-slate-50/50">
+      <div className="flex-1 p-8 lg:p-12 bg-slate-50/50">
         <div className="max-w-7xl mx-auto space-y-12">
           {/* Logistics Pulse Vitals */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -201,252 +186,21 @@ const OrderFulfillment = () => {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-3 space-y-8">
-              <Tabs
-                value={activeQueue}
-                onValueChange={setActiveQueue}
-                className="space-y-6"
-              >
-                <div className="flex items-center justify-between border-b pb-4">
-                  <TabsList className="bg-transparent h-auto p-0 gap-8">
-                    {["ALL", "PAID", "SHIPPING", "EXCEPTIONS"].map((tab) => (
-                      <TabsTrigger
-                        key={tab}
-                        value={tab}
-                        className="bg-transparent h-12 rounded-none border-b-2 border-transparent data-[state=active]:border-slate-900 data-[state=active]:bg-transparent px-0 font-black italic uppercase tracking-widest text-xs"
-                      >
-                        {tab}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  <div className="relative w-80">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      className="pl-12 h-11 bg-white border-slate-200 rounded-xl text-xs font-bold italic placeholder:text-slate-300"
-                      placeholder="Search Order, Customer, or AWB..."
-                    />
-                  </div>
-                </div>
-
-                <TabsContent value={activeQueue} className="m-0">
-                  <Card className="rounded-[2.5rem] shadow-2xl border-none bg-white overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b bg-slate-50 text-[10px] uppercase font-black tracking-widest text-slate-400 italic">
-                            <th className="px-8 py-5 text-left">Order Token</th>
-                            <th className="px-8 py-5 text-left">
-                              Channel Context
-                            </th>
-                            <th className="px-8 py-5 text-center">
-                              Payload Cost
-                            </th>
-                            <th className="px-8 py-5 text-center">
-                              Orchestration
-                            </th>
-                            <th className="px-8 py-5 text-right">Gate Entry</th>
-                            <th className="px-8 py-5 text-right"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 italic">
-                          {orders.map((order) => (
-                            <tr
-                              key={order.id}
-                              className="group hover:bg-slate-50/80 transition-all cursor-pointer"
-                              onClick={() => handleOrderClick(order)}
-                            >
-                              <td className="px-8 py-5">
-                                <div className="flex items-center gap-4">
-                                  <div
-                                    className={cn(
-                                      "w-12 h-12 rounded-2xl flex items-center justify-center font-black italic text-xs shadow-inner",
-                                      order.totalAmount > 1000000
-                                        ? "bg-amber-50 text-amber-600"
-                                        : "bg-slate-50 text-slate-400",
-                                    )}
-                                  >
-                                    #{order.id.split("-").pop()}
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-black tracking-tight text-slate-900">
-                                      {order.id}
-                                    </div>
-                                    <Badge className="bg-slate-100 text-slate-400 border-none text-[8px] font-black uppercase tracking-widest px-1 h-4">
-                                      REGULAR
-                                    </Badge>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-8 py-5">
-                                <div className="flex items-center gap-3">
-                                  <div className="p-2 rounded-xl bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                                    {order.paymentMethod === "cash" ? (
-                                      <ShoppingBag className="w-4 h-4" />
-                                    ) : (
-                                      <Globe className="w-4 h-4" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <div className="text-xs font-black text-slate-700 italic leading-tight uppercase">
-                                      {order.paymentMethod || "UNSET"}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                                      Loc: {order.storeId}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-8 py-5 text-center">
-                                <div className="text-base font-black italic tracking-tighter text-slate-900">
-                                  Rp {order.totalAmount.toLocaleString()}
-                                </div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase">
-                                  {order.items?.length || 0} Components
-                                </div>
-                              </td>
-                              <td className="px-8 py-5 text-center">
-                                <Badge
-                                  className={cn(
-                                    "text-[9px] font-black italic border-none h-6 px-3",
-                                    order.status === "paid"
-                                      ? "bg-blue-50 text-blue-700"
-                                      : order.status === "fulfilled"
-                                        ? "bg-indigo-50 text-indigo-700"
-                                        : "bg-emerald-50 text-emerald-700",
-                                  )}
-                                >
-                                  {order.status.toUpperCase()}
-                                </Badge>
-                              </td>
-                              <td className="px-8 py-5 text-right">
-                                <div className="text-[10px] font-black italic text-slate-600 uppercase mb-1">
-                                  Ingested
-                                </div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase">
-                                  {new Date(
-                                    order.createdAt,
-                                  ).toLocaleTimeString()}
-                                </div>
-                              </td>
-                              <td className="px-8 py-5 text-right">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-10 w-10 text-slate-400 hover:text-slate-900 rounded-xl"
-                                >
-                                  <ChevronRight className="w-5 h-5" />
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column (9 cols) - The Order Racetrack */}
+            <div className="lg:col-span-9 space-y-8">
+              <OrderRacetrack
+                orders={orders}
+                onOrderClick={handleOrderClick}
+                activeQueue={activeQueue}
+                setActiveQueue={setActiveQueue}
+              />
             </div>
 
-            <div className="space-y-8">
-              {/* Exception Board */}
-              <Card className="rounded-[2.5rem] bg-red-900 text-white p-8 shadow-2xl relative overflow-hidden group">
-                <AlertCircle className="absolute -right-8 -top-8 w-40 h-40 opacity-10 group-hover:rotate-12 transition-transform" />
-                <div className="relative space-y-6">
-                  <div className="flex items-center justify-between">
-                    <Badge className="bg-red-700 font-black italic text-[9px] uppercase tracking-widest border-none px-3">
-                      Exceptions
-                    </Badge>
-                    <span className="text-2xl font-black italic">3 GAPS</span>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 italic">
-                      <div className="text-[10px] font-black text-red-400 uppercase mb-1 flex items-center gap-2">
-                        <MapPin className="w-3 h-3" /> Address Gap
-                      </div>
-                      <p className="text-[10px] opacity-70 leading-relaxed font-bold">
-                        ORD-2291 invalid coordinate for GrabExpress delivery.
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 italic opacity-50">
-                      <div className="text-[10px] font-black text-amber-400 uppercase mb-1 flex items-center gap-2">
-                        <Box className="w-3 h-3" /> Stock Buffer
-                      </div>
-                      <p className="text-[10px] opacity-70 leading-relaxed font-bold">
-                        ORD-2292 awaiting unit release from central reserve.
-                      </p>
-                    </div>
-                  </div>
-                  <Button className="w-full bg-white text-red-900 hover:bg-white/90 font-black italic h-12 rounded-xl text-xs uppercase shadow-xl transition-all">
-                    Resolve Inbound Gaps
-                  </Button>
-                </div>
-              </Card>
-
-              {/* Logistics Radar */}
-              <Card className="rounded-[2.5rem] bg-white border-slate-200 shadow-xl p-8 space-y-8">
-                <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
-                  Logistics Radar
-                </div>
-                <div className="space-y-6">
-                  {[
-                    { courier: "JNE Regular", load: 65, status: "Normal" },
-                    { courier: "GrabExpress", load: 88, status: "High Load" },
-                    { courier: "SiCepat", load: 42, status: "Normal" },
-                  ].map((c, i) => (
-                    <div key={i} className="space-y-2">
-                      <div className="flex justify-between items-center italic">
-                        <span className="text-xs font-black text-slate-700">
-                          {c.courier}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-[9px] font-black",
-                            c.load > 80 ? "text-amber-600" : "text-emerald-600",
-                          )}
-                        >
-                          {c.status}
-                        </span>
-                      </div>
-                      <Progress value={c.load} className="h-1.5 bg-slate-50" />
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
-                    <Printer className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black text-indigo-900 uppercase italic">
-                      Label Station B-2
-                    </div>
-                    <div className="text-[10px] text-indigo-400 font-bold uppercase italic tracking-tighter">
-                      Ready • 14 queued
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Batch Picking Strategy */}
-              <Card className="rounded-[2.5rem] bg-indigo-600 text-white p-8 group cursor-pointer hover:bg-indigo-700 transition-all overflow-hidden relative">
-                <ClipboardList className="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 group-hover:scale-110 transition-transform" />
-                <div className="relative space-y-6 text-center">
-                  <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto shadow-xl backdrop-blur-sm">
-                    <Layers className="w-7 h-7" />
-                  </div>
-                  <h4 className="text-xl font-black italic tracking-tighter uppercase">
-                    Intelligent Batching
-                  </h4>
-                  <p className="text-xs font-medium opacity-70 leading-relaxed italic px-4">
-                    Aggregate 12 items across 5 orders into a single walking
-                    path. Optimization: +18% Velocity.
-                  </p>
-                  <Button className="w-full bg-white text-indigo-900 hover:bg-white/90 h-12 font-black italic uppercase tracking-widest rounded-xl text-[10px]">
-                    Execute Batch Path
-                  </Button>
-                </div>
-              </Card>
+            {/* Right Column (3 cols) - Buffer Health & Logistics Radar */}
+            <div className="lg:col-span-3 space-y-8 flex flex-col">
+              <LogisticsRadar />
+              <BufferHealthCard />
             </div>
           </div>
         </div>

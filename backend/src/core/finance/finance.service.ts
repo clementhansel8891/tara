@@ -141,29 +141,73 @@ export class FinanceService {
     return this.financeRepository.listAssets(tenantId);
   }
 
-  async createAsset(tenantId: string, asset: Partial<Asset>): Promise<Asset> {
-    return this.financeRepository.createAsset(tenantId, asset);
+  async createAsset(
+    tenantId: string,
+    asset: Partial<Asset>,
+    userId: string,
+  ): Promise<Asset> {
+    const created = await this.financeRepository.createAsset(tenantId, asset);
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "FINANCE",
+      action: "CREATE_ASSET",
+      entityType: "FIXED_ASSET",
+      entityId: created.id,
+      metadata: { description: created.description },
+    });
+    return created;
   }
 
   async updateAssetStatus(
     tenantId: string,
     id: string,
     status: string,
+    userId: string,
   ): Promise<Asset | null> {
-    return this.financeRepository.updateAsset(tenantId, id, {
+    const updated = await this.financeRepository.updateAsset(tenantId, id, {
       status: status as any,
     });
+    if (updated) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "FINANCE",
+        action: "UPDATE_ASSET_STATUS",
+        entityType: "FIXED_ASSET",
+        entityId: id,
+        changes: { status },
+      });
+    }
+    return updated;
   }
 
   async capitalizeAsset(
     tenantId: string,
     assetId: string,
     capitalizationDate: string,
+    userId: string,
   ): Promise<Asset | null> {
-    return this.financeRepository.updateAsset(tenantId, assetId, {
-      status: "ACTIVE",
-      acquisitionDate: capitalizationDate,
-    });
+    const updated = await this.financeRepository.updateAsset(
+      tenantId,
+      assetId,
+      {
+        status: "ACTIVE",
+        acquisitionDate: capitalizationDate,
+      },
+    );
+    if (updated) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "FINANCE",
+        action: "CAPITALIZE_ASSET",
+        entityType: "FIXED_ASSET",
+        entityId: assetId,
+        changes: { status: "ACTIVE", capitalizationDate },
+      });
+    }
+    return updated;
   }
 
   // Capex
@@ -174,8 +218,22 @@ export class FinanceService {
   async createCapexRequest(
     tenantId: string,
     request: Partial<CapexRequest>,
+    userId: string,
   ): Promise<CapexRequest> {
-    return this.financeRepository.createCapexRequest(tenantId, request);
+    const created = await this.financeRepository.createCapexRequest(
+      tenantId,
+      request,
+    );
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "FINANCE",
+      action: "CREATE_CAPEX_REQUEST",
+      entityType: "CAPEX_REQUEST",
+      entityId: created.id,
+      metadata: { amount: created.requestedAmount },
+    });
+    return created;
   }
 
   async listCapexBudgets(tenantId: string): Promise<FinanceCapexBudgetRow[]> {
@@ -192,19 +250,53 @@ export class FinanceService {
   async approveCapexRequest(
     tenantId: string,
     id: string,
+    userId: string,
   ): Promise<CapexRequest | null> {
-    return this.financeRepository.updateCapexRequest(tenantId, id, {
-      status: "APPROVED",
-    });
+    const updated = await this.financeRepository.updateCapexRequest(
+      tenantId,
+      id,
+      {
+        status: "APPROVED",
+      },
+    );
+    if (updated) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "FINANCE",
+        action: "APPROVE_CAPEX_REQUEST",
+        entityType: "CAPEX_REQUEST",
+        entityId: id,
+        changes: { status: "APPROVED" },
+      });
+    }
+    return updated;
   }
 
   async rejectCapexRequest(
     tenantId: string,
     id: string,
+    userId: string,
   ): Promise<CapexRequest | null> {
-    return this.financeRepository.updateCapexRequest(tenantId, id, {
-      status: "REJECTED",
-    });
+    const updated = await this.financeRepository.updateCapexRequest(
+      tenantId,
+      id,
+      {
+        status: "REJECTED",
+      },
+    );
+    if (updated) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "FINANCE",
+        action: "REJECT_CAPEX_REQUEST",
+        entityType: "CAPEX_REQUEST",
+        entityId: id,
+        changes: { status: "REJECTED" },
+      });
+    }
+    return updated;
   }
 
   // Depreciation

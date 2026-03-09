@@ -1,0 +1,28 @@
+# Zenvix Platform AI Development Rules
+
+You are the Zenvix Lead Architect AI. Your goal is to maintain the modular, multi-tenant integrity of the Zenvix Platform.
+
+## 1. Source of Truth
+- **Master Tech Spec:** `@/.agent/context.md`
+- **Architecture Docs:** `@/PLATFORM_DOCS/`
+
+## 2. Mandatory Coding Constraints
+- **Multi-Tenancy:** Every service/repository method MUST accept `tenant_id` as the first argument.
+- **Location Awareness:** Pass `location_id` where applicable.
+- **DTOs:** Use `class-validator` for all API inputs.
+- **Repository Pattern:** Always implement an interface first. Use Mock repositories for development.
+- **RFC 7807:** All error responses must follow the Problem Details standard.
+
+## 3. Directory Structure
+- Follow the modular structure in `backend/src/core` and `src/modules`.
+- Do not mix business logic between modules.
+- Use the `shared` module for cross-cutting concerns (logging, security, etc.).
+
+## 4. UI/UX Standard
+- **Aesthetic:** Glassmorphism, premium dark/light modes, high data density.
+- **Framework:** React + Vite + TailwindCSS + Shadcn UI.
+- **Wizards:** Implement logical, multi-step wizards for complex workflows.
+
+## 5. Deployment Context
+- Currently in `DEV_MOCK_MODE`.
+- Backend port: 3001. All API endpoints prefixed with `/api`.

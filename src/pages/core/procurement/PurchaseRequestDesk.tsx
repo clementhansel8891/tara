@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
@@ -12,7 +23,12 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { procurementService } from "@/core/services/procurement/procurementService";
-import type { DraftPurchaseOrder, Requisition, SupplierMaster, SupplierBranch } from "@/core/types/procurement/procurement";
+import type {
+  DraftPurchaseOrder,
+  Requisition,
+  SupplierMaster,
+  SupplierBranch,
+} from "@/core/types/procurement/procurement";
 
 export default function PurchaseRequestDesk() {
   const session = useSession();
@@ -24,7 +40,8 @@ export default function PurchaseRequestDesk() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Machinery");
   const [branchCode, setBranchCode] = useState("JKT");
-  const [budgetClass, setBudgetClass] = useState<Requisition["budgetClass"]>("OPEX");
+  const [budgetClass, setBudgetClass] =
+    useState<Requisition["budgetClass"]>("OPEX");
   const [amount, setAmount] = useState("0");
   const [contractRequired, setContractRequired] = useState<"YES" | "NO">("YES");
   const [supplierId, setSupplierId] = useState("");
@@ -38,7 +55,9 @@ export default function PurchaseRequestDesk() {
   const [suppliers, setSuppliers] = useState<SupplierMaster[]>([]);
   const [branches, setBranches] = useState<SupplierBranch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRequisition, setSelectedRequisition] = useState<Requisition | null>(null);
+  const [selectedRequisition, setSelectedRequisition] =
+    useState<Requisition | null>(null);
+  const [overview, setOverview] = useState<any>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -50,16 +69,18 @@ export default function PurchaseRequestDesk() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const [reqs, pos, m, b] = await Promise.all([
+      const [reqs, pos, m, b, over] = await Promise.all([
         procurementService.listRequisitions(session.tenantId, session),
         procurementService.listDraftPurchaseOrders(session.tenantId, session),
         procurementService.listSupplierMasters(session.tenantId, session),
         procurementService.listSupplierBranches(session.tenantId, session),
+        procurementService.getOverview(session.tenantId, session),
       ]);
       setRequisitions(reqs);
       setDraftPos(pos);
       setSuppliers(m);
       setBranches(b);
+      setOverview(over);
     } catch (err) {
       setErrorMessage("Failed to load requisition data.");
     } finally {
@@ -102,13 +123,19 @@ export default function PurchaseRequestDesk() {
       setAmount("0");
       refresh();
     } catch (err) {
-      setErrorMessage("Failed to create requisition. Budget limit exceeded or server error.");
+      setErrorMessage(
+        "Failed to create requisition. Budget limit exceeded or server error.",
+      );
     }
   };
 
   const approveRequesterHod = async (requisitionId: string) => {
     try {
-      await procurementService.approveRequesterHod(session.tenantId, session, requisitionId);
+      await procurementService.approveRequesterHod(
+        session.tenantId,
+        session,
+        requisitionId,
+      );
       setStatusMessage("Requisition approved by Department HOD.");
       refresh();
     } catch (err) {
@@ -118,21 +145,25 @@ export default function PurchaseRequestDesk() {
 
   const buildDraftPo = async () => {
     try {
-      await procurementService.buildDraftPurchaseOrder(session.tenantId, session, {
-        requisitionId: selectedRequisitionId,
-        supplierId,
-        supplierBranchId,
-        contractType: "SPOT",
-        lineItems: [
-          {
-            productSku: lineSku || "GEN-ITEM",
-            description: lineDescription || "Procurement line item",
-            quantity: Number(lineQuantity || "1"),
-            uom: "EA",
-            unitPrice: Number(linePrice || "0"),
-          },
-        ],
-      });
+      await procurementService.buildDraftPurchaseOrder(
+        session.tenantId,
+        session,
+        {
+          requisitionId: selectedRequisitionId,
+          supplierId,
+          supplierBranchId,
+          contractType: "SPOT",
+          lineItems: [
+            {
+              productSku: lineSku || "GEN-ITEM",
+              description: lineDescription || "Procurement line item",
+              quantity: Number(lineQuantity || "1"),
+              uom: "EA",
+              unitPrice: Number(linePrice || "0"),
+            },
+          ],
+        },
+      );
       setStatusMessage("Draft Purchase Order built successfully.");
       setDraftDialogOpen(false);
       setSelectedRequisitionId("");
@@ -144,13 +175,19 @@ export default function PurchaseRequestDesk() {
       setLinePrice("0");
       refresh();
     } catch (err) {
-      setErrorMessage("Failed to build draft PO. Supplier missing or inactive.");
+      setErrorMessage(
+        "Failed to build draft PO. Supplier missing or inactive.",
+      );
     }
   };
 
   const approveDraft = async (draftId: string) => {
     try {
-      await procurementService.approveDraftByProcurementHod(session.tenantId, session, draftId);
+      await procurementService.approveDraftByProcurementHod(
+        session.tenantId,
+        session,
+        draftId,
+      );
       setStatusMessage("Draft PO approved at Procurement HOD gate.");
       refresh();
     } catch (err) {
@@ -158,9 +195,17 @@ export default function PurchaseRequestDesk() {
     }
   };
 
-  const setFinal = async (requisitionId: string, approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
+  const setFinal = async (
+    requisitionId: string,
+    approver: "REQUESTER_HOD" | "PROCUREMENT_HOD" | "FINANCE_HOD",
+  ) => {
     try {
-      await procurementService.setFinalApproval(session.tenantId, session, requisitionId, approver);
+      await procurementService.setFinalApproval(
+        session.tenantId,
+        session,
+        requisitionId,
+        approver,
+      );
       setStatusMessage(`Final approval recorded for ${approver}.`);
       refresh();
     } catch (err) {
@@ -171,7 +216,9 @@ export default function PurchaseRequestDesk() {
   const runRiskScan = async () => {
     try {
       await procurementService.runRiskScan(session.tenantId, session);
-      setStatusMessage("Anti-fraud risk scan completed. No critical threats found.");
+      setStatusMessage(
+        "Anti-fraud risk scan completed. No critical threats found.",
+      );
     } catch (err) {
       setErrorMessage("Risk scan failed.");
     }
@@ -182,7 +229,11 @@ export default function PurchaseRequestDesk() {
       <PageHeader
         title="Requisition Desk"
         subtitle="Department requests with mandatory requester HOD gate and staged procurement approvals."
-        primaryAction={<Button onClick={() => setRequestDialogOpen(true)}>Create Requisition</Button>}
+        primaryAction={
+          <Button onClick={() => setRequestDialogOpen(true)}>
+            Create Requisition
+          </Button>
+        }
         secondaryActions={
           <Input
             placeholder="Search requisitions"
@@ -193,9 +244,34 @@ export default function PurchaseRequestDesk() {
         }
       />
 
-      <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
+      <FeedbackAlert
+        message={statusMessage}
+        error={errorMessage}
+        onClear={clearStatus}
+      />
 
-      <WorkspacePanel title="Requisition Queue" description="End-to-end request pipeline before PO release.">
+      {overview?.moduleContributions?.retail && (
+        <WorkspacePanel
+          title="Module Contributions: Retail Fulfilment"
+          description="Critical store transfer and replenishment tasks."
+        >
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-lg border p-3 border-amber-500/20 bg-amber-500/5">
+              <p className="text-xs text-muted-foreground">
+                Pending Store Transfers
+              </p>
+              <p className="text-2xl font-semibold text-amber-600 dark:text-amber-400">
+                {overview.moduleContributions.retail.pendingStoreTransfers}
+              </p>
+            </div>
+          </div>
+        </WorkspacePanel>
+      )}
+
+      <WorkspacePanel
+        title="Requisition Queue"
+        description="End-to-end request pipeline before PO release."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -211,9 +287,20 @@ export default function PurchaseRequestDesk() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+                <tr>
+                  <td colSpan={6} className="p-3 text-center">
+                    Loading...
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
-                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No requisitions found.</td></tr>
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="p-3 text-center text-muted-foreground"
+                  >
+                    No requisitions found.
+                  </td>
+                </tr>
               ) : (
                 filtered.map((item) => (
                   <tr
@@ -225,9 +312,15 @@ export default function PurchaseRequestDesk() {
                       <p className="font-medium">{item.title}</p>
                       <p className="text-xs text-muted-foreground">{item.id}</p>
                     </td>
-                    <td className="p-3 text-muted-foreground">{item.requesterDept}</td>
-                    <td className="p-3 text-muted-foreground">{item.branchCode}</td>
-                    <td className="p-3 text-muted-foreground">{item.amount.toLocaleString()}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {item.requesterDept}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {item.branchCode}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {item.amount.toLocaleString()}
+                    </td>
                     <td className="p-3">
                       <ApprovalStatusBadge status={item.status} />
                     </td>
@@ -245,7 +338,8 @@ export default function PurchaseRequestDesk() {
                             Approve Requester HOD
                           </Button>
                         ) : null}
-                        {(item.status === "APPROVED_REQUESTER_HOD" || item.status === "DRAFT_PO_PREPARED") ? (
+                        {item.status === "APPROVED_REQUESTER_HOD" ||
+                        item.status === "DRAFT_PO_PREPARED" ? (
                           <Button
                             size="sm"
                             variant="outline"
@@ -258,7 +352,8 @@ export default function PurchaseRequestDesk() {
                             Build Draft PO
                           </Button>
                         ) : null}
-                        {(item.status === "LEGAL_APPROVED" || item.status === "FINAL_APPROVAL_PENDING") ? (
+                        {item.status === "LEGAL_APPROVED" ||
+                        item.status === "FINAL_APPROVAL_PENDING" ? (
                           <>
                             <Button
                               size="sm"
@@ -302,7 +397,10 @@ export default function PurchaseRequestDesk() {
         </DataTableShell>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Draft PO Gate" description="Procurement HOD draft gate and quote readiness check.">
+      <WorkspacePanel
+        title="Draft PO Gate"
+        description="Procurement HOD draft gate and quote readiness check."
+      >
         <DataTableShell total={draftPos.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
@@ -317,22 +415,43 @@ export default function PurchaseRequestDesk() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-3 text-center">Loading...</td></tr>
+                <tr>
+                  <td colSpan={6} className="p-3 text-center">
+                    Loading...
+                  </td>
+                </tr>
               ) : draftPos.length === 0 ? (
-                <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No draft POs found.</td></tr>
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="p-3 text-center text-muted-foreground"
+                  >
+                    No draft POs found.
+                  </td>
+                </tr>
               ) : (
                 draftPos.map((draft) => (
                   <tr key={draft.id} className="border-t">
                     <td className="p-3 font-medium">{draft.id}</td>
-                    <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
-                    <td className="p-3 text-muted-foreground">{draft.supplierId}</td>
-                    <td className="p-3 text-muted-foreground">{draft.quotedTotal.toLocaleString()}</td>
+                    <td className="p-3 text-muted-foreground">
+                      {draft.requisitionId}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {draft.supplierId}
+                    </td>
+                    <td className="p-3 text-muted-foreground">
+                      {draft.quotedTotal.toLocaleString()}
+                    </td>
                     <td className="p-3">
                       <ApprovalStatusBadge status={draft.status} />
                     </td>
                     <td className="p-3">
                       {draft.status === "DRAFT" ? (
-                        <Button size="sm" variant="outline" onClick={() => approveDraft(draft.id)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => approveDraft(draft.id)}
+                        >
                           Approve Draft Gate
                         </Button>
                       ) : null}
@@ -345,7 +464,10 @@ export default function PurchaseRequestDesk() {
         </DataTableShell>
       </WorkspacePanel>
 
-      <WorkspacePanel title="Governance Controls" description="Anti-fraud scan and approval-control checks.">
+      <WorkspacePanel
+        title="Governance Controls"
+        description="Anti-fraud scan and approval-control checks."
+      >
         <div className="flex gap-2">
           <Button variant="outline" onClick={runRiskScan}>
             Run Risk Scan
@@ -359,12 +481,35 @@ export default function PurchaseRequestDesk() {
             <DialogTitle>Create Requisition</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input placeholder="Title" value={title} onChange={(event) => setTitle(event.target.value)} />
-            <Textarea placeholder="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+            <Input
+              placeholder="Title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
+            <Textarea
+              placeholder="Description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
             <div className="grid gap-3 md:grid-cols-2">
-              <Input placeholder="Category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              <Input placeholder="Branch Code" value={branchCode} onChange={(event) => setBranchCode(event.target.value.toUpperCase())} />
-              <Select value={budgetClass} onValueChange={(value) => setBudgetClass(value as Requisition["budgetClass"])}>
+              <Input
+                placeholder="Category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+              />
+              <Input
+                placeholder="Branch Code"
+                value={branchCode}
+                onChange={(event) =>
+                  setBranchCode(event.target.value.toUpperCase())
+                }
+              />
+              <Select
+                value={budgetClass}
+                onValueChange={(value) =>
+                  setBudgetClass(value as Requisition["budgetClass"])
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Budget Class" />
                 </SelectTrigger>
@@ -374,8 +519,18 @@ export default function PurchaseRequestDesk() {
                   <SelectItem value="EMERGENCY">EMERGENCY</SelectItem>
                 </SelectContent>
               </Select>
-              <Input placeholder="Amount" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} />
-              <Select value={contractRequired} onValueChange={(value) => setContractRequired(value as "YES" | "NO")}>
+              <Input
+                placeholder="Amount"
+                type="number"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+              />
+              <Select
+                value={contractRequired}
+                onValueChange={(value) =>
+                  setContractRequired(value as "YES" | "NO")
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Contract Required" />
                 </SelectTrigger>
@@ -410,13 +565,18 @@ export default function PurchaseRequestDesk() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={supplierBranchId} onValueChange={setSupplierBranchId}>
+            <Select
+              value={supplierBranchId}
+              onValueChange={setSupplierBranchId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Supplier Branch" />
               </SelectTrigger>
               <SelectContent>
                 {branches
-                  .filter((branch) => (supplierId ? branch.supplierId === supplierId : true))
+                  .filter((branch) =>
+                    supplierId ? branch.supplierId === supplierId : true,
+                  )
                   .map((branch) => (
                     <SelectItem key={branch.id} value={branch.id}>
                       {branch.branchCode} - {branch.branchName}
@@ -425,7 +585,11 @@ export default function PurchaseRequestDesk() {
               </SelectContent>
             </Select>
             <div className="grid gap-3 md:grid-cols-2">
-              <Input placeholder="Line SKU" value={lineSku} onChange={(event) => setLineSku(event.target.value)} />
+              <Input
+                placeholder="Line SKU"
+                value={lineSku}
+                onChange={(event) => setLineSku(event.target.value)}
+              />
               <Input
                 placeholder="Line Description"
                 value={lineDescription}
@@ -450,7 +614,10 @@ export default function PurchaseRequestDesk() {
           </div>
         </DialogContent>
       </Dialog>
-      <Dialog open={!!selectedRequisition} onOpenChange={() => setSelectedRequisition(null)}>
+      <Dialog
+        open={!!selectedRequisition}
+        onOpenChange={() => setSelectedRequisition(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Requisition Detail</DialogTitle>
@@ -458,9 +625,13 @@ export default function PurchaseRequestDesk() {
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 text-sm gap-y-2">
               <span className="text-muted-foreground">Request ID:</span>
-              <span className="font-mono text-xs">{selectedRequisition?.id}</span>
+              <span className="font-mono text-xs">
+                {selectedRequisition?.id}
+              </span>
               <span className="text-muted-foreground">Title:</span>
-              <span className="font-semibold">{selectedRequisition?.title}</span>
+              <span className="font-semibold">
+                {selectedRequisition?.title}
+              </span>
               <span className="text-muted-foreground">Department:</span>
               <span>{selectedRequisition?.requesterDept}</span>
               <span className="text-muted-foreground">Branch:</span>
@@ -468,20 +639,37 @@ export default function PurchaseRequestDesk() {
               <span className="text-muted-foreground">Category:</span>
               <span>{selectedRequisition?.category}</span>
               <span className="text-muted-foreground">Amount:</span>
-              <span className="font-bold">{selectedRequisition?.amount.toLocaleString()}</span>
+              <span className="font-bold">
+                {selectedRequisition?.amount.toLocaleString()}
+              </span>
               <span className="text-muted-foreground">Status:</span>
-              <span><ApprovalStatusBadge status={selectedRequisition?.status ?? ""} /></span>
+              <span>
+                <ApprovalStatusBadge
+                  status={selectedRequisition?.status ?? ""}
+                />
+              </span>
             </div>
             <div className="border-t pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</p>
-              <p className="text-xs text-muted-foreground">{selectedRequisition?.description || "No description provided."}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Description
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {selectedRequisition?.description || "No description provided."}
+              </p>
             </div>
             <div className="border-t pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Governance Audit</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Governance Audit
+              </p>
               <div className="space-y-1 text-[10px] text-muted-foreground">
-                <p>• Created on {selectedRequisition?.createdAt.slice(0, 10)}</p>
+                <p>
+                  • Created on {selectedRequisition?.createdAt.slice(0, 10)}
+                </p>
                 <p>• Budget Class: {selectedRequisition?.budgetClass}</p>
-                <p>• Contract Required: {selectedRequisition?.contractRequired ? "YES" : "NO"}</p>
+                <p>
+                  • Contract Required:{" "}
+                  {selectedRequisition?.contractRequired ? "YES" : "NO"}
+                </p>
               </div>
             </div>
           </div>
@@ -490,4 +678,3 @@ export default function PurchaseRequestDesk() {
     </div>
   );
 }
-

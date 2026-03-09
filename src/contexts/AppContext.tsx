@@ -3,6 +3,8 @@ import React, {
   useContext,
   useReducer,
   useEffect,
+  useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 
@@ -266,95 +268,135 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* ACTION HELPERS                                                             */
   /* -------------------------------------------------------------------------- */
 
-  const login = (user: AuthUser) => {
+  const login = useCallback((user: AuthUser) => {
     storage.setCurrentUser(user);
     dispatch({ type: "SET_USER", payload: user });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     storage.setCurrentUser(null);
     storage.clearCart();
     dispatch({ type: "LOGOUT" });
-  };
+  }, []);
 
-  const startShift = (openingCash: number) => {
-    if (!state.currentUser) return;
+  const startShift = useCallback(
+    (openingCash: number) => {
+      if (!state.currentUser) return;
 
-    const shift: storage.ShiftData = {
-      id: Date.now().toString(),
-      staffId: state.currentUser.id,
-      staffName: state.currentUser.name,
-      startTime: new Date().toISOString(),
-      openingCash,
-      totalSales: 0,
-      transactions: 0,
-      status: "open",
-    };
+      const shift: storage.ShiftData = {
+        id: Date.now().toString(),
+        staffId: state.currentUser.id,
+        staffName: state.currentUser.name,
+        startTime: new Date().toISOString(),
+        openingCash,
+        totalSales: 0,
+        transactions: 0,
+        status: "open",
+      };
 
-    storage.setCurrentShift(shift);
-    dispatch({ type: "SET_SHIFT", payload: shift });
-  };
+      storage.setCurrentShift(shift);
+      dispatch({ type: "SET_SHIFT", payload: shift });
+    },
+    [state.currentUser, dispatch],
+  );
 
-  const endShift = (closingCash: number) => {
-    if (!state.currentShift) return;
+  const endShift = useCallback(
+    (closingCash: number) => {
+      if (!state.currentShift) return;
 
-    storage.setCurrentShift(null);
-    dispatch({ type: "SET_SHIFT", payload: null });
-  };
+      storage.setCurrentShift(null);
+      dispatch({ type: "SET_SHIFT", payload: null });
+    },
+    [state.currentShift, dispatch],
+  );
 
-  const addToCart = (item: CartItem) =>
-    dispatch({ type: "ADD_TO_CART", payload: item });
+  const addToCart = useCallback(
+    (item: CartItem) => dispatch({ type: "ADD_TO_CART", payload: item }),
+    [dispatch],
+  );
 
-  const updateCartItem = (index: number, item: CartItem) =>
-    dispatch({ type: "UPDATE_CART_ITEM", payload: { index, item } });
+  const updateCartItem = useCallback(
+    (index: number, item: CartItem) =>
+      dispatch({ type: "UPDATE_CART_ITEM", payload: { index, item } }),
+    [dispatch],
+  );
 
-  const removeFromCart = (index: number) =>
-    dispatch({ type: "REMOVE_FROM_CART", payload: index });
+  const removeFromCart = useCallback(
+    (index: number) => dispatch({ type: "REMOVE_FROM_CART", payload: index }),
+    [dispatch],
+  );
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     storage.clearCart();
     dispatch({ type: "CLEAR_CART" });
-  };
+  }, [dispatch]);
 
-  const setActiveTable = (tableId: string | null) =>
-    dispatch({ type: "SET_ACTIVE_TABLE", payload: tableId });
+  const setActiveTable = useCallback(
+    (tableId: string | null) =>
+      dispatch({ type: "SET_ACTIVE_TABLE", payload: tableId }),
+    [dispatch],
+  );
 
-  const toggleTheme = () => {
-    const theme = state.theme === "light" ? "dark" : "light";
-    storage.setTheme(theme);
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    dispatch({ type: "SET_THEME", payload: theme });
-  };
+  const toggleTheme = useCallback(() => {
+    const currentTheme = document.documentElement.classList.contains("dark")
+      ? "dark"
+      : "light";
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    storage.setTheme(newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
+    dispatch({ type: "SET_THEME", payload: newTheme });
+  }, [dispatch]);
 
-  const updateSettings = (settings: storage.AppSettings) => {
-    storage.setSettings(settings);
-    dispatch({ type: "SET_SETTINGS", payload: settings });
-  };
+  const updateSettings = useCallback(
+    (settings: storage.AppSettings) => {
+      storage.setSettings(settings);
+      dispatch({ type: "SET_SETTINGS", payload: settings });
+    },
+    [dispatch],
+  );
 
-  const switchApp = (app: ActiveAppId) =>
-    dispatch({ type: "SET_ACTIVE_APP", payload: app });
+  const switchApp = useCallback(
+    (app: ActiveAppId) => dispatch({ type: "SET_ACTIVE_APP", payload: app }),
+    [dispatch],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      state,
+      dispatch,
+      login,
+      logout,
+      startShift,
+      endShift,
+      addToCart,
+      updateCartItem,
+      removeFromCart,
+      clearCart,
+      setActiveTable,
+      toggleTheme,
+      updateSettings,
+      switchApp,
+    }),
+    [
+      state,
+      dispatch,
+      login,
+      logout,
+      startShift,
+      endShift,
+      addToCart,
+      updateCartItem,
+      removeFromCart,
+      clearCart,
+      setActiveTable,
+      toggleTheme,
+      updateSettings,
+      switchApp,
+    ],
+  );
 
   return (
-    <AppContext.Provider
-      value={{
-        state,
-        dispatch,
-        login,
-        logout,
-        startShift,
-        endShift,
-        addToCart,
-        updateCartItem,
-        removeFromCart,
-        clearCart,
-        setActiveTable,
-        toggleTheme,
-        updateSettings,
-        switchApp,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );
 }
 

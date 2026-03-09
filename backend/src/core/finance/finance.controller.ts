@@ -16,19 +16,230 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { FinanceService } from "./finance.service";
 import { CreateTransactionDto } from "./dto/create-transaction.dto";
 import { TenantContext } from "../../gateway/tenant-context.interface";
+import { PrismaService } from "../../persistence/prisma.service";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
 @Controller("finance")
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("finance")
 export class FinanceController {
-  constructor(private readonly financeService: FinanceService) {}
+  constructor(
+    private readonly financeService: FinanceService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  @Get("overview")
+  async getOverview(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+
+    // 1. Revenue YTD (from RetailOrders COMPLETED/PAID/complete/paid)
+    const yearStart = new Date(new Date().getFullYear(), 0, 1);
+    const revenueAggr = await this.prisma.retailOrder.aggregate({
+      where: {
+        tenantId,
+        status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
+        createdAt: { gte: yearStart },
+      },
+      _sum: { totalAmount: true },
+    });
+    const revenueYtd = revenueAggr._sum.totalAmount?.toNumber() || 0;
+
+    // 2. Operating Expenses (from Payables PAID)
+    const expensesAggr = await this.prisma.payable.aggregate({
+      where: { tenantId, status: "PAID" },
+      _sum: { amount: true },
+    });
+    const expenses = expensesAggr._sum.amount?.toNumber() || 0;
+
+    // 3. Billing Queue (Pending Receivables)
+    const pendingReceivables = await this.prisma.receivable.findMany({
+      where: { tenantId, status: { in: ["PENDING", "OVERDUE"] } },
+      take: 3,
+      orderBy: { dueDate: "asc" },
+      select: { id: true, amount: true, status: true, dueDate: true },
+    });
+
+    // 4. Net Margin
+    const margin =
+      revenueYtd === 0 ? 0 : ((revenueYtd - expenses) / revenueYtd) * 100;
+
+    // Format revenue as IDR (native currency) or USD
+    const formatCurrency = (amount: number) => {
+      if (amount >= 1_000_000_000)
+        return `IDR ${(amount / 1_000_000_000).toFixed(2)}B`;
+      if (amount >= 1_000_000) return `IDR ${(amount / 1_000_000).toFixed(2)}M`;
+      if (amount >= 1_000) return `IDR ${(amount / 1_000).toFixed(0)}K`;
+      return `IDR ${amount.toLocaleString()}`;
+    };
+
+    const financialSummary = [
+      {
+        id: "sum-1",
+        label: "Revenue YTD",
+        value: formatCurrency(revenueYtd),
+        delta: "Live DB",
+      },
+      {
+        id: "sum-2",
+        label: "Operating expenses",
+        value: formatCurrency(expenses),
+        delta: "Live DB",
+      },
+      {
+        id: "sum-3",
+        label: "Net margin",
+        value: `${margin.toFixed(1)}%`,
+        delta: "Calculated",
+      },
+      {
+        id: "sum-4",
+        label: "Cash position",
+        value: "Real-time",
+        delta: "Stable",
+      },
+    ];
+
+    const billingQueue = pendingReceivables.map((r) => ({
+      id: r.id,
+      title: `Invoice (INV-${r.id.substring(0, 4)})`,
+      amount: formatCurrency(Number(r.amount)),
+      status: r.status === "OVERDUE" ? "Overdue" : "Pending approval",
+      due: r.dueDate > new Date() ? "Upcoming" : "Past due",
+    }));
+
+    if (billingQueue.length === 0) {
+      billingQueue.push({
+        id: "mock-1",
+        title: "No pending invoices",
+        amount: "IDR 0",
+        status: "Complete",
+        due: "-",
+      });
+    }
+
+    // ================================================================
+    // MODULE CONTRIBUTIONS — Retail
+    // Only populated when retail module is active for this tenant
+    // ================================================================
+    let retailContribution: Record<string, any> | null = null;
+
+    const retailIsActive = await isModuleActive(
+      this.prisma,
+      tenantId,
+      "retail",
+    );
+    if (retailIsActive) {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - 7);
+
+      // Weekly revenue from retail
+      const weekRevAggr = await this.prisma.retailOrder.aggregate({
+        where: {
+          tenantId,
+          status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
+          createdAt: { gte: weekStart },
+        },
+        _sum: { totalAmount: true },
+        _count: { id: true },
+      });
+      const weekRevenue = weekRevAggr._sum.totalAmount?.toNumber() || 0;
+      const orderCount = weekRevAggr._count.id || 0;
+      const avgBasket = orderCount > 0 ? weekRevenue / orderCount : 0;
+
+      // Today's order count
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayOrderCount = await this.prisma.retailOrder.count({
+        where: {
+          tenantId,
+          createdAt: { gte: todayStart },
+        },
+      });
+
+      // Top selling category this week (by total revenue via order items)
+      const topCategoryRows = await this.prisma.retailOrderItem.groupBy({
+        by: ["productId"],
+        where: {
+          order: {
+            tenantId,
+            status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
+            createdAt: { gte: weekStart },
+          },
+        },
+        _sum: { totalPrice: true },
+        orderBy: { _sum: { totalPrice: "desc" } },
+        take: 1,
+      });
+
+      let topCategory = "N/A";
+      if (topCategoryRows.length > 0) {
+        const topProduct = await this.prisma.product.findUnique({
+          where: { id: topCategoryRows[0].productId },
+          select: { category: { select: { name: true } } },
+        });
+        topCategory = topProduct?.category?.name ?? "General";
+      }
+
+      retailContribution = {
+        moduleId: "retail",
+        moduleName: "Retail Operations",
+        weeklyRevenue: formatCurrency(weekRevenue),
+        weeklyOrderCount: orderCount,
+        ordersToday: todayOrderCount,
+        avgBasketValue: formatCurrency(avgBasket),
+        topCategory,
+      };
+    }
+
+    return {
+      success: true,
+      tenantId,
+      data: {
+        financialSummary,
+        billingQueue,
+        taxReports: [
+          {
+            id: "tax-1",
+            title: "Monthly VAT Summary",
+            status: "Ready",
+            due: "Submit by 10th",
+          },
+          {
+            id: "tax-2",
+            title: "Quarterly GST Return",
+            status: "In review",
+            due: "Review by 14th",
+          },
+        ],
+        auditReadiness: [
+          {
+            id: "aud-1",
+            label: "Ledger reconciliation",
+            status: "Complete",
+            note: "Synced with DB",
+          },
+          {
+            id: "aud-2",
+            label: "Revenue recognition",
+            status: "In progress",
+            note: "Automated match",
+          },
+        ],
+        // Populated only when industry modules are active:
+        moduleContributions: {
+          retail: retailContribution,
+        },
+      },
+    };
+  }
 
   // Ledger & Transactions
   @Get("ledger")
@@ -118,11 +329,12 @@ export class FinanceController {
     @Param("id") id: string,
     @Body() body: { status: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const data = await this.financeService.updateAssetStatus(
       tenantId,
       id,
       body.status,
+      userId!,
     );
     return { success: true, data };
   }
@@ -133,11 +345,12 @@ export class FinanceController {
     @Param("id") id: string,
     @Body() body: { capitalizationDate: string },
   ) {
-    const { tenantId } = request.tenantContext;
+    const { tenantId, userId } = request.tenantContext;
     const data = await this.financeService.capitalizeAsset(
       tenantId,
       id,
       body.capitalizationDate,
+      userId!,
     );
     return { success: true, data };
   }
@@ -155,8 +368,12 @@ export class FinanceController {
     @Req() request: RequestWithTenant,
     @Body() body: any,
   ) {
-    const { tenantId } = request.tenantContext;
-    const data = await this.financeService.createCapexRequest(tenantId, body);
+    const { tenantId, userId } = request.tenantContext;
+    const data = await this.financeService.createCapexRequest(
+      tenantId,
+      body,
+      userId!,
+    );
     return { success: true, data };
   }
 
@@ -179,8 +396,12 @@ export class FinanceController {
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const data = await this.financeService.approveCapexRequest(tenantId, id);
+    const { tenantId, userId } = request.tenantContext;
+    const data = await this.financeService.approveCapexRequest(
+      tenantId,
+      id,
+      userId!,
+    );
     return { success: true, data };
   }
 
@@ -189,8 +410,12 @@ export class FinanceController {
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = request.tenantContext;
-    const data = await this.financeService.rejectCapexRequest(tenantId, id);
+    const { tenantId, userId } = request.tenantContext;
+    const data = await this.financeService.rejectCapexRequest(
+      tenantId,
+      id,
+      userId!,
+    );
     return { success: true, data };
   }
 

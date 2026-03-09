@@ -14,7 +14,9 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { adminService } from "@/core/services";
+import { useSession } from "@/core/security/session";
 import {
   Dialog,
   DialogContent,
@@ -22,60 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-const kpis = [
-  {
-    label: "Revenue",
-    value: "$2.48M",
-    delta: "+6.2% vs last month",
-    icon: Briefcase,
-  },
-  {
-    label: "Active Staff",
-    value: "482",
-    delta: "12 on shift now",
-    icon: Users,
-  },
-  {
-    label: "Alerts",
-    value: "9",
-    delta: "3 high priority",
-    icon: AlertTriangle,
-  },
-  {
-    label: "Module Status",
-    value: "18/20",
-    delta: "2 paused modules",
-    icon: ClipboardCheck,
-  },
-];
-
-const activities = [
-  {
-    title: "Procurement approval queued",
-    detail: "PO-24291 pending Finance approval",
-    time: "5 minutes ago",
-    status: "Pending",
-  },
-  {
-    title: "Store compliance check passed",
-    detail: "Region West audit completed",
-    time: "38 minutes ago",
-    status: "Completed",
-  },
-  {
-    title: "Access role updated",
-    detail: "Admin role granted to 2 staff",
-    time: "2 hours ago",
-    status: "Reviewed",
-  },
-  {
-    title: "Integration sync delayed",
-    detail: "Payments connector awaiting retry",
-    time: "Today, 08:45",
-    status: "Attention",
-  },
-];
 
 const quickActions = [
   {
@@ -117,9 +65,50 @@ const complianceItems = [
   },
 ];
 
+const IconMap: Record<string, any> = {
+  Briefcase,
+  Users,
+  AlertTriangle,
+  ClipboardCheck,
+};
+
 export default function CoreDashboard() {
-  const [selectedDetail, setSelectedDetail] = useState<{ title: string; detail: string; type?: string } | null>(null);
+  const session = useSession();
+  const [selectedDetail, setSelectedDetail] = useState<{
+    title: string;
+    detail: string;
+    type?: string;
+  } | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [kpis, setKpis] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await adminService.getDashboardMetrics(
+          session.tenantId,
+          session,
+        );
+        setKpis(res.kpis || []);
+        setActivities(res.activities || []);
+      } catch (e) {
+        console.error("Failed to load dashboard metrics", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [session]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading operations dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <PageShell
@@ -145,16 +134,18 @@ export default function CoreDashboard() {
         )}
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {kpis.map((kpi) => {
-            const Icon = kpi.icon;
+            const Icon = IconMap[kpi.icon] || Briefcase;
             return (
               <WorkspacePanel
                 key={kpi.label}
                 className="p-4 cursor-pointer transition-colors hover:bg-muted/50"
-                onClick={() => setSelectedDetail({
-                  title: `${kpi.label} Drill-down`,
-                  detail: `Current value ${kpi.value}. ${kpi.delta}. Detailed trend analysis is available in the Reports module.`,
-                  type: "KPI"
-                })}
+                onClick={() =>
+                  setSelectedDetail({
+                    title: `${kpi.label} Drill-down`,
+                    detail: `Current value ${kpi.value}. ${kpi.delta}. Detailed trend analysis is available in the Reports module.`,
+                    type: "KPI",
+                  })
+                }
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -164,7 +155,9 @@ export default function CoreDashboard() {
                     <p className="mt-2 text-2xl font-semibold text-foreground">
                       {kpi.value}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{kpi.delta}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {kpi.delta}
+                    </p>
                   </div>
                   <div className="rounded-lg border bg-muted/40 p-2">
                     <Icon className="h-5 w-5 text-muted-foreground" />
@@ -185,17 +178,21 @@ export default function CoreDashboard() {
                 <div key={activity.title} className="space-y-3">
                   <div
                     className="flex items-start justify-between gap-4 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setSelectedDetail({
-                      title: activity.title,
-                      detail: `${activity.detail} (${activity.time}). Status: ${activity.status}. Audit trail synchronized with multi-tenant directory.`,
-                      type: "Activity"
-                    })}
+                    onClick={() =>
+                      setSelectedDetail({
+                        title: activity.title,
+                        detail: `${activity.detail} (${activity.time}). Status: ${activity.status}. Audit trail synchronized with multi-tenant directory.`,
+                        type: "Activity",
+                      })
+                    }
                   >
                     <div>
                       <p className="text-sm font-medium text-foreground">
                         {activity.title}
                       </p>
-                      <p className="text-xs text-muted-foreground">{activity.detail}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.detail}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant="secondary">{activity.status}</Badge>
@@ -221,14 +218,20 @@ export default function CoreDashboard() {
                   className="flex items-start justify-between gap-3 rounded-lg border p-3"
                 >
                   <div>
-                    <p className="text-sm font-medium text-foreground">{action.title}</p>
-                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {action.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {action.description}
+                    </p>
                   </div>
-                   <Button
+                  <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      setStatusMessage(`Admin action [${action.title}] initiated.`);
+                      setStatusMessage(
+                        `Admin action [${action.title}] initiated.`,
+                      );
                       setTimeout(() => setStatusMessage(null), 3000);
                     }}
                   >
@@ -247,52 +250,69 @@ export default function CoreDashboard() {
           >
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-3">
-                 <div
+                <div
                   className="rounded-lg border p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => setSelectedDetail({
-                    title: "Platform Runtime Status",
-                    detail: "The system is currently reporting 99.97% uptime. All core containers (Finance, HR, IT) are healthy across all regions.",
-                    type: "Health"
-                  })}
+                  onClick={() =>
+                    setSelectedDetail({
+                      title: "Platform Runtime Status",
+                      detail:
+                        "The system is currently reporting 99.97% uptime. All core containers (Finance, HR, IT) are healthy across all regions.",
+                      type: "Health",
+                    })
+                  }
                 >
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     Platform uptime
                   </div>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">99.97%</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    99.97%
+                  </p>
                   <p className="text-xs text-muted-foreground">Last 30 days</p>
                 </div>
                 <div
                   className="rounded-lg border p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => setSelectedDetail({
-                    title: "Security Posture Analysis",
-                    detail: "Security-first posture detected. Zero critical vulnerabilities found in last 24h scan. Audit logs are consistent.",
-                    type: "Health"
-                  })}
+                  onClick={() =>
+                    setSelectedDetail({
+                      title: "Security Posture Analysis",
+                      detail:
+                        "Security-first posture detected. Zero critical vulnerabilities found in last 24h scan. Audit logs are consistent.",
+                      type: "Health",
+                    })
+                  }
                 >
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
                     Security posture
                   </div>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">Stable</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    Stable
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     No critical incidents
                   </p>
                 </div>
                 <div
                   className="rounded-lg border p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => setSelectedDetail({
-                    title: "Tenancy Coverage",
-                    detail: "96% of registered tenants have completed their monthly compliance checkpoint. 4% are in grace period.",
-                    type: "Health"
-                  })}
+                  onClick={() =>
+                    setSelectedDetail({
+                      title: "Tenancy Coverage",
+                      detail:
+                        "96% of registered tenants have completed their monthly compliance checkpoint. 4% are in grace period.",
+                      type: "Health",
+                    })
+                  }
                 >
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     Tenants online
                   </div>
-                  <p className="mt-2 text-2xl font-semibold text-foreground">96%</p>
-                  <p className="text-xs text-muted-foreground">Operational coverage</p>
+                  <p className="mt-2 text-2xl font-semibold text-foreground">
+                    96%
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Operational coverage
+                  </p>
                 </div>
               </div>
             </div>
@@ -305,17 +325,23 @@ export default function CoreDashboard() {
             <div className="space-y-4">
               {complianceItems.map((item, index) => (
                 <div key={item.label} className="space-y-3">
-                   <div
+                  <div
                     className="flex items-start justify-between gap-4 cursor-pointer hover:bg-muted/50 p-2 -m-2 rounded-lg transition-colors"
-                    onClick={() => setSelectedDetail({
-                      title: item.label,
-                      detail: `${item.status}. ${item.note}. Compliance badge: ${item.badge}. All data points verified in the latest Zenvix audit cycle.`,
-                      type: "Compliance"
-                    })}
+                    onClick={() =>
+                      setSelectedDetail({
+                        title: item.label,
+                        detail: `${item.status}. ${item.note}. Compliance badge: ${item.badge}. All data points verified in the latest Zenvix audit cycle.`,
+                        type: "Compliance",
+                      })
+                    }
                   >
                     <div>
-                      <p className="text-sm font-medium text-foreground">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.note}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.note}
+                      </p>
                     </div>
                     <Badge variant="outline">{item.badge}</Badge>
                   </div>
@@ -327,7 +353,10 @@ export default function CoreDashboard() {
         </div>
       </div>
 
-      <Dialog open={!!selectedDetail} onOpenChange={() => setSelectedDetail(null)}>
+      <Dialog
+        open={!!selectedDetail}
+        onOpenChange={() => setSelectedDetail(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{selectedDetail?.title}</DialogTitle>

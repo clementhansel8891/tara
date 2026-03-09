@@ -18,6 +18,9 @@ export { legalService } from "./hr/legalService";
 export { analyticsService } from "./hr/analyticsService";
 export { caseService } from "./hr/caseService";
 
+// ADMIN
+export { adminService } from "../services/adminService";
+
 // PROCUREMENT
 export { procurementService } from "./procurement/procurementService";
 
@@ -26,251 +29,64 @@ export { itService } from "./it/itService";
 export { itSettingsService } from "./it/itSettingsService";
 
 // FINANCE
-export { financeService } from "./finance/financeService";
+export {
+  financeService,
+  financeService as financialService,
+} from "./finance/financeService";
+
+// RETAIL / SALES / INVENTORY
+export { retailService } from "./retail/retailService";
+export {
+  salesService,
+  salesService as taskService,
+} from "./sales/salesService";
+export { inventoryService } from "./inventory/inventoryService";
+
+import { retailService } from "./retail/retailService";
+import { apiRequest } from "../api/apiClient";
+import type { SessionContext } from "../security/session";
 
 /* ============================================================================ */
-/* TYPE IMPORTS (SINGLE ENTRY POINT)                                             */
+/* SHIFT SERVICE (API ADAPTER)                                                 */
 /* ============================================================================ */
-
-import type {
-  InventoryEntry,
-  InventoryMovement,
-  Transaction,
-  Shift,
-  Task,
-  Notification,
-  AuditEntry,
-} from "../types";
-
-/* ============================================================================ */
-/* INVENTORY SERVICE                                                            */
-/* ============================================================================ */
-
-let movementIdCounter = 1;
-
-export const inventoryService = {
-  recordMovement(
-    organizationId: string,
-    siteId: string,
-    productId: string,
-    quantity: number,
-    type: InventoryMovement["type"],
-    reason: string,
-    performedBy: string,
-    reference?: { type: string; id: string },
-  ): InventoryMovement {
-    const movement: InventoryMovement = {
-      id: `mov-${movementIdCounter++}`,
-      organizationId,
-      siteId,
-      productId,
-      type,
-      quantity,
-      reason,
-      referenceType: reference?.type,
-      referenceId: reference?.id,
-      performedBy,
-      timestamp: new Date().toISOString(),
-    };
-
-    return movement;
-  },
-
-  adjustStock(
-    entry: InventoryEntry,
-    delta: number,
-    performedBy: string,
-    reason: string,
-  ): InventoryEntry {
-    return {
-      ...entry,
-      quantity: entry.quantity + delta,
-    };
-  },
-
-  reserveStock(entry: InventoryEntry, quantity: number): InventoryEntry {
-    return {
-      ...entry,
-      reservedQuantity: (entry.reservedQuantity ?? 0) + quantity,
-    };
-  },
-
-  releaseReservedStock(
-    entry: InventoryEntry,
-    quantity: number,
-  ): InventoryEntry {
-    return {
-      ...entry,
-      reservedQuantity: Math.max(0, (entry.reservedQuantity ?? 0) - quantity),
-    };
-  },
-};
-
-/* ============================================================================ */
-/* FINANCIAL SERVICE                                                            */
-/* ============================================================================ */
-
-let transactionIdCounter = 1;
-
-export const financialService = {
-  recordTransaction(
-    organizationId: string,
-    siteId: string,
-    moduleId: string,
-    type: Transaction["type"],
-    amount: number,
-    paymentMethod: string,
-    performedBy: string,
-    reference: { type: string; id: string },
-    metadata?: Record<string, unknown>,
-  ): Transaction {
-    return {
-      id: `txn-${transactionIdCounter++}`,
-      organizationId,
-      siteId,
-      moduleId,
-      type,
-      amount,
-      currency: "USD",
-      paymentMethod,
-      status: "completed",
-      referenceType: reference.type,
-      referenceId: reference.id,
-      performedBy,
-      timestamp: new Date().toISOString(),
-      metadata,
-    };
-  },
-};
-
-/* ============================================================================ */
-/* SHIFT SERVICE                                                                */
-/* ============================================================================ */
-
-let shiftIdCounter = 1;
-const activeShifts = new Map<string, Shift>();
 
 export const shiftService = {
-  startShift(
-    organizationId: string,
-    siteId: string,
-    staffId: string,
+  startShift: (
+    tenantId: string,
+    session: SessionContext,
+    storeId: string,
     openingCash: number,
-  ): Shift {
-    const shift: Shift = {
-      id: `shift-${shiftIdCounter++}`,
-      organizationId,
-      siteId,
-      staffId,
-      status: "open",
-      startTime: new Date().toISOString(),
-      openingCash,
-      totalSales: 0,
-      transactionCount: 0,
-    };
+  ) => retailService.openShift(tenantId, session, storeId, openingCash),
 
-    activeShifts.set(staffId, shift);
-    return shift;
-  },
+  endShift: (
+    tenantId: string,
+    session: SessionContext,
+    shiftId: string,
+    closingCash: number,
+    notes?: string,
+  ) => retailService.closeShift(tenantId, session, shiftId, closingCash, notes),
 
-  endShift(staffId: string, closingCash: number): Shift | null {
-    const shift = activeShifts.get(staffId);
-    if (!shift) return null;
-
-    activeShifts.delete(staffId);
-    return {
-      ...shift,
-      status: "closed",
-      endTime: new Date().toISOString(),
-      closingCash,
-      expectedCash: shift.openingCash + shift.totalSales,
-      variance: closingCash - (shift.openingCash + shift.totalSales),
-    };
-  },
+  listShifts: (tenantId: string, session: SessionContext, storeId?: string) =>
+    retailService.listShifts(tenantId, session, storeId),
 };
 
 /* ============================================================================ */
-/* TASK SERVICE                                                                 */
+/* NOTIFICATION SERVICE (API ADAPTER)                                          */
 /* ============================================================================ */
-
-let taskIdCounter = 1;
-const tasks: Task[] = [];
-
-export const taskService = {
-  createTask(organizationId: string, title: string, createdBy: string): Task {
-    const task: Task = {
-      id: `task-${taskIdCounter++}`,
-      organizationId,
-      title,
-      priority: "medium",
-      status: "pending",
-      createdBy,
-      createdAt: new Date().toISOString(),
-    };
-
-    tasks.push(task);
-    return task;
-  },
-};
-
-/* ============================================================================ */
-/* NOTIFICATION SERVICE                                                         */
-/* ============================================================================ */
-
-let notificationIdCounter = 1;
-const notifications: Notification[] = [];
 
 export const notificationService = {
-  send(
-    organizationId: string,
-    userId: string,
-    type: Notification["type"],
-    title: string,
-    message: string,
-  ): Notification {
-    const notification: Notification = {
-      id: `notif-${notificationIdCounter++}`,
-      organizationId,
-      userId,
-      type,
-      title,
-      message,
-      channel: "in_app",
-      status: "sent",
-      createdAt: new Date().toISOString(),
-    };
+  send: (tenantId: string, session: SessionContext, payload: any) =>
+    apiRequest("/notifications", "POST", session, payload),
 
-    notifications.push(notification);
-    return notification;
-  },
+  list: (tenantId: string, session: SessionContext) =>
+    apiRequest("/notifications", "GET", session),
 };
 
 /* ============================================================================ */
-/* AUDIT SERVICE                                                                */
+/* AUDIT SERVICE (API ADAPTER)                                                 */
 /* ============================================================================ */
 
-let auditIdCounter = 1;
-const auditLog: AuditEntry[] = [];
-
 export const auditService = {
-  log(
-    organizationId: string,
-    userId: string,
-    action: string,
-    resourceType: string,
-    resourceId: string,
-  ): AuditEntry {
-    const entry: AuditEntry = {
-      id: `audit-${auditIdCounter++}`,
-      organizationId,
-      userId,
-      action,
-      resourceType,
-      resourceId,
-      timestamp: new Date().toISOString(),
-    };
-
-    auditLog.push(entry);
-    return entry;
-  },
+  log: (tenantId: string, session: SessionContext, payload: any) =>
+    apiRequest("/audit/log", "POST", session, payload),
 };

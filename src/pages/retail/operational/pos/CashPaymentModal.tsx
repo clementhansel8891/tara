@@ -1,0 +1,210 @@
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogOverlay,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Banknote, Delete, CheckCircle2 } from "lucide-react";
+
+interface CashPaymentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  total: number;
+  onConfirm: (received: number) => void;
+}
+
+export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
+  isOpen,
+  onClose,
+  total,
+  onConfirm,
+}) => {
+  const [received, setReceived] = useState<string>("0");
+
+  const receivedAmount = parseFloat(received) || 0;
+  const change = Math.max(0, receivedAmount - total);
+  const isInsufficient = receivedAmount < total;
+
+  useEffect(() => {
+    if (isOpen) setReceived("0");
+  }, [isOpen]);
+
+  const handleKeyPress = (val: string) => {
+    setReceived((prev) => {
+      if (prev === "0") return val;
+      return prev + val;
+    });
+  };
+
+  const handleBackspace = () => {
+    setReceived((prev) => {
+      if (prev.length <= 1) return "0";
+      return prev.slice(0, -1);
+    });
+  };
+
+  const quickAmounts = [50000, 100000, 200000, 500000];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogOverlay className="bg-black/40 backdrop-blur-sm" />
+
+      <DialogContent
+        className="
+        sm:max-w-[560px]
+        w-[95vw]
+        h-[90vh]
+        border-none
+        bg-slate-950/95
+        backdrop-blur-xl
+        text-white
+        rounded-[2rem]
+        shadow-2xl
+        p-0
+        flex
+        flex-col
+      "
+      >
+        <div className="flex flex-col h-full p-6 gap-5">
+          {/* HEADER */}
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <Banknote className="w-6 h-6" />
+              </div>
+
+              <div>
+                <DialogTitle className="text-xl font-black uppercase tracking-widest italic">
+                  Cash Payment
+                </DialogTitle>
+
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Process physical tender
+                </p>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* TOTAL + CHANGE */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">
+                Total Due
+              </span>
+
+              <div className="text-2xl font-black italic tracking-tighter">
+                Rp {total.toLocaleString()}
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] italic">
+                Change
+              </span>
+
+              <div
+                className={`text-2xl font-black italic tracking-tighter ${
+                  change > 0 ? "text-emerald-400" : "text-white/20"
+                }`}
+              >
+                Rp {change.toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* RECEIVED DISPLAY */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl py-6 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+              Amount Received
+            </span>
+
+            <div className="text-5xl font-black italic tracking-tighter text-emerald-400">
+              Rp {receivedAmount.toLocaleString()}
+            </div>
+          </div>
+
+          {/* KEYPAD AREA (FLEXIBLE HEIGHT) */}
+          <div className="flex flex-1 gap-4">
+            {/* QUICK AMOUNTS */}
+            <div className="flex flex-col gap-3 w-[90px]">
+              {quickAmounts.map((amt) => (
+                <Button
+                  key={amt}
+                  variant="outline"
+                  onClick={() => setReceived(amt.toString())}
+                  className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-[11px] font-black tracking-widest rounded-xl active:scale-95"
+                >
+                  {amt / 1000}K
+                </Button>
+              ))}
+            </div>
+
+            {/* NUMPAD */}
+            <div className="flex-1 grid grid-cols-3 gap-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, "00", 0].map((n) => (
+                <Button
+                  key={n}
+                  variant="ghost"
+                  onClick={() => handleKeyPress(n.toString())}
+                  className="
+                    h-full
+                    text-2xl
+                    font-black
+                    bg-white/5
+                    hover:bg-white/10
+                    rounded-2xl
+                    active:scale-90
+                  "
+                >
+                  {n}
+                </Button>
+              ))}
+
+              <Button
+                variant="ghost"
+                onClick={handleBackspace}
+                className="
+                  h-full
+                  bg-white/5
+                  hover:bg-rose-500/20
+                  text-rose-500
+                  rounded-2xl
+                  active:scale-90
+                "
+              >
+                <Delete className="w-6 h-6" />
+              </Button>
+            </div>
+          </div>
+
+          {/* CONFIRM BUTTON */}
+          <Button
+            onClick={() => onConfirm(receivedAmount)}
+            disabled={isInsufficient}
+            className={`h-16 rounded-[1.25rem] flex items-center justify-center gap-3 transition-all active:scale-95 ${
+              isInsufficient
+                ? "bg-slate-800 text-slate-500"
+                : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_20px_50px_-10px_rgba(16,185,129,0.3)]"
+            }`}
+          >
+            {isInsufficient ? (
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+                Insufficient Amount
+              </span>
+            ) : (
+              <>
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-[11px] font-black uppercase tracking-[0.2em]">
+                  Finalize Transaction
+                </span>
+              </>
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

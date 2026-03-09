@@ -15,6 +15,7 @@ import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { CaptureLeadDto } from "./dto/capture-lead.dto";
 import { ConnectAccountDto } from "./dto/connect-account.dto";
 import { CreateCampaignDto } from "./dto/create-campaign.dto";
@@ -25,6 +26,8 @@ import { UpdateAccountStatusDto } from "./dto/update-account-status.dto";
 import { UpdateCampaignStatusDto } from "./dto/update-campaign-status.dto";
 import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
 import { MarketingService } from "./marketing.service";
+import { PrismaService } from "../../persistence/prisma.service";
+import { isModuleActive } from "../../shared/helpers/module-active.helper";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -32,10 +35,13 @@ interface RequestWithTenant extends Request {
 
 @Controller("marketing")
 @UseInterceptors(TenantInterceptor)
-@UseGuards(ModuleStateGuard, BranchGatingGuard)
+@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("marketing")
 export class MarketingController {
-  constructor(private readonly marketingService: MarketingService) {}
+  constructor(
+    private readonly marketingService: MarketingService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   private actorId(request: RequestWithTenant) {
     const value = request.headers["x-actor-id"];
@@ -47,10 +53,30 @@ export class MarketingController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenantId } = request.tenantContext;
+    const dashboardData = await this.marketingService.getDashboard(tenantId);
+
+    const moduleContributions: any = {};
+    if (await isModuleActive(this.prisma, tenantId, "retail")) {
+      const walkInCustomers = await this.prisma.retailOrder.count({
+        where: { tenantId, customerId: null },
+      });
+      const loyaltyMembers = await this.prisma.retailOrder.groupBy({
+        by: ["customerId"],
+        where: { tenantId, customerId: { not: null } },
+      });
+      moduleContributions.retail = {
+        walkInCustomers,
+        loyaltyActive: loyaltyMembers.length,
+      };
+    }
+
     return {
       success: true,
       tenantId,
-      data: await this.marketingService.getDashboard(tenantId),
+      data: {
+        ...dashboardData,
+        moduleContributions,
+      },
     };
   }
 

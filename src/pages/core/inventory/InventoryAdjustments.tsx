@@ -8,7 +8,10 @@ import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
-import type { InventoryAdjustmentRequest, InventoryItemMaster } from "@/core/types/inventory/inventory";
+import type {
+  InventoryAdjustmentRequest,
+  InventoryItemMaster,
+} from "@/core/types/inventory/inventory";
 
 export default function InventoryAdjustments() {
   const session = useSession();
@@ -19,14 +22,16 @@ export default function InventoryAdjustments() {
   const [delta, setDelta] = useState("0");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
-  const [adjustments, setAdjustments] = useState<InventoryAdjustmentRequest[]>([]);
+  const [adjustments, setAdjustments] = useState<InventoryAdjustmentRequest[]>(
+    [],
+  );
   const [items, setItems] = useState<InventoryItemMaster[]>([]);
 
   const refresh = useCallback(async () => {
     try {
       const [adj, itm] = await Promise.all([
-        inventoryService.listAdjustments(session.tenantId),
-        inventoryService.listItems(session.tenantId),
+        inventoryService.listAdjustments(session.tenantId, session),
+        inventoryService.listItems(session.tenantId, session),
       ]);
       setAdjustments(adj);
       setItems(itm);
@@ -45,7 +50,9 @@ export default function InventoryAdjustments() {
     () =>
       adjustments.filter((item) =>
         search
-          ? `${item.id} ${item.reason} ${item.status}`.toLowerCase().includes(search.toLowerCase())
+          ? `${item.id} ${item.reason} ${item.status}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
           : true,
       ),
     [adjustments, search],
@@ -74,7 +81,10 @@ export default function InventoryAdjustments() {
         }
       />
 
-      <WorkspacePanel title="Create Adjustment Request" description="Submit stock correction with reason and approval trace.">
+      <WorkspacePanel
+        title="Create Adjustment Request"
+        description="Submit stock correction with reason and approval trace."
+      >
         <div className="grid gap-3 md:grid-cols-5">
           <Input
             placeholder={`Item ID (default ${items[0]?.id ?? "N/A"})`}
@@ -84,12 +94,16 @@ export default function InventoryAdjustments() {
           <Input
             placeholder="Location"
             value={locationCode}
-            onChange={(event) => setLocationCode(event.target.value.toUpperCase())}
+            onChange={(event) =>
+              setLocationCode(event.target.value.toUpperCase())
+            }
           />
           <Input
             placeholder="Department"
             value={departmentCode}
-            onChange={(event) => setDepartmentCode(event.target.value.toUpperCase())}
+            onChange={(event) =>
+              setDepartmentCode(event.target.value.toUpperCase())
+            }
           />
           <Input
             type="number"
@@ -101,13 +115,17 @@ export default function InventoryAdjustments() {
             onClick={async () => {
               const selectedItem = itemId || items[0]?.id;
               if (!selectedItem) return;
-              await inventoryService.requestAdjustment(session.tenantId, session, {
-                itemId: selectedItem,
-                locationCode,
-                departmentCode,
-                requestedDelta: Number(delta || "0"),
-                reason: reason || "Manual stock reconciliation",
-              });
+              await inventoryService.requestAdjustment(
+                session.tenantId,
+                session,
+                {
+                  itemId: selectedItem,
+                  locationCode,
+                  departmentCode,
+                  requestedDelta: Number(delta || "0"),
+                  reason: reason || "Manual stock reconciliation",
+                },
+              );
               setItemId("");
               setReason("");
               setDelta("0");
@@ -125,7 +143,10 @@ export default function InventoryAdjustments() {
         />
       </WorkspacePanel>
 
-      <WorkspacePanel title="Adjustment Queue" description="Pending and completed adjustment approvals.">
+      <WorkspacePanel
+        title="Adjustment Queue"
+        description="Pending and completed adjustment approvals."
+      >
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
@@ -155,7 +176,11 @@ export default function InventoryAdjustments() {
                         size="sm"
                         variant="outline"
                         onClick={async () => {
-                          await inventoryService.approveAdjustment(session.tenantId, session, item.id);
+                          await inventoryService.approveAdjustment(
+                            session.tenantId,
+                            session,
+                            item.id,
+                          );
                           refresh();
                         }}
                       >
@@ -172,4 +197,3 @@ export default function InventoryAdjustments() {
     </div>
   );
 }
-

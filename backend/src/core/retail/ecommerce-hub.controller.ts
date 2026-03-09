@@ -51,8 +51,8 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Body() dto: CreateEcommerceConnectorDto,
   ) {
-    const { tenantId } = req.tenantContext;
-    const result = await this.hubService.createConnector(tenantId, dto);
+    const { tenantId, userId } = req.tenantContext;
+    const result = await this.hubService.createConnector(tenantId, dto, userId);
     return this.ok(tenantId, {
       connector: result.connector,
       plainApiKey: result.plainApiKey,
@@ -73,8 +73,13 @@ export class EcommerceHubController {
     @Param("id") id: string,
     @Body() dto: UpdateEcommerceConnectorDto,
   ) {
-    const { tenantId } = req.tenantContext;
-    const data = await this.hubService.updateConnector(tenantId, id, dto);
+    const { tenantId, userId } = req.tenantContext;
+    const data = await this.hubService.updateConnector(
+      tenantId,
+      id,
+      dto,
+      userId,
+    );
     return this.ok(tenantId, data);
   }
 
@@ -83,8 +88,8 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = req.tenantContext;
-    const data = await this.hubService.deleteConnector(tenantId, id);
+    const { tenantId, userId } = req.tenantContext;
+    const data = await this.hubService.deleteConnector(tenantId, id, userId);
     return this.ok(tenantId, data);
   }
 
@@ -94,8 +99,12 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = req.tenantContext;
-    const result = await this.hubService.rotateConnectorApiKey(tenantId, id);
+    const { tenantId, userId } = req.tenantContext;
+    const result = await this.hubService.rotateConnectorApiKey(
+      tenantId,
+      id,
+      userId,
+    );
     return this.ok(tenantId, {
       ...result,
       warning:
@@ -128,8 +137,8 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Body() dto: CreateRetailChannelDto,
   ) {
-    const { tenantId } = req.tenantContext;
-    const result = await this.hubService.createChannel(tenantId, dto);
+    const { tenantId, userId } = req.tenantContext;
+    const result = await this.hubService.createChannel(tenantId, dto, userId);
     return this.ok(tenantId, {
       channel: safeChannel(result.channel),
       plainClientId: result.plainClientId,
@@ -152,15 +161,15 @@ export class EcommerceHubController {
     @Param("id") id: string,
     @Body() dto: UpdateRetailChannelDto,
   ) {
-    const { tenantId } = req.tenantContext;
-    const data = await this.hubService.updateChannel(tenantId, id, dto);
+    const { tenantId, userId } = req.tenantContext;
+    const data = await this.hubService.updateChannel(tenantId, id, dto, userId);
     return this.ok(tenantId, safeChannel(data));
   }
 
   @Delete("channels/:id")
   async deleteChannel(@Req() req: RequestWithTenant, @Param("id") id: string) {
-    const { tenantId } = req.tenantContext;
-    const data = await this.hubService.deleteChannel(tenantId, id);
+    const { tenantId, userId } = req.tenantContext;
+    const data = await this.hubService.deleteChannel(tenantId, id, userId);
     return this.ok(tenantId, data);
   }
 
@@ -170,8 +179,12 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = req.tenantContext;
-    const result = await this.hubService.rotateChannelCredentials(tenantId, id);
+    const { tenantId, userId } = req.tenantContext;
+    const result = await this.hubService.rotateChannelCredentials(
+      tenantId,
+      id,
+      userId,
+    );
     return this.ok(tenantId, {
       ...result,
       warning:
@@ -185,8 +198,12 @@ export class EcommerceHubController {
     @Req() req: RequestWithTenant,
     @Param("id") id: string,
   ) {
-    const { tenantId } = req.tenantContext;
-    const data = await this.hubService.revokeChannelCredentials(tenantId, id);
+    const { tenantId, userId } = req.tenantContext;
+    const data = await this.hubService.revokeChannelCredentials(
+      tenantId,
+      id,
+      userId,
+    );
     return this.ok(tenantId, data);
   }
 }
