@@ -22,6 +22,8 @@ export class ITMockRepository extends IITRepository {
       supplierId: `${tenantId}-supplier-1`,
       supplierBranchId: `${tenantId}-supplier-1-jkt`,
       scope: "full_portal",
+      priority: "MEDIUM",
+      description: "Initial automated onboarding for new supplier admin.",
       reason: "Initial supplier onboarding",
       status: "requested",
       requestedBy: "procurement-admin",
@@ -74,6 +76,8 @@ export class ITMockRepository extends IITRepository {
       supplierId: dto.supplierId,
       supplierBranchId: dto.supplierBranchId,
       scope: dto.scope,
+      priority: dto.priority || "MEDIUM",
+      description: dto.description,
       reason: dto.reason,
       status: "requested",
       requestedBy: dto.requestedBy || "system",
@@ -134,5 +138,18 @@ export class ITMockRepository extends IITRepository {
 
   async getSystemHealth(tenantId: string): Promise<SystemHealth[]> {
     return this.healthChecks.filter((item) => item.tenantId === tenantId);
+  }
+
+  async getProvisioningStats(tenantId: string): Promise<any> {
+    const requests = this.provisioningRequests.filter((r) => r.tenantId === tenantId);
+    return {
+      total: requests.length,
+      requested: requests.filter((r) => r.status === "requested").length,
+      provisioned: requests.filter((r) => r.status === "provisioned").length,
+    };
+  }
+
+  async getAuditLogs(tenantId: string, requestId?: string): Promise<any[]> {
+    return []; // Mock return
   }
 }

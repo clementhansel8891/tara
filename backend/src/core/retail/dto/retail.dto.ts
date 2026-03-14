@@ -422,13 +422,9 @@ export class CreateInventoryPoolDto {
 // ORDER DTOs
 // ============================================================
 
-class OrderItemDto {
+export class OrderItemDto {
   @IsString()
   @IsNotEmpty()
-  @Transform(
-    ({ obj, value }) => value ?? obj.product_id ?? obj.itemId ?? obj.item_id,
-    { toClassOnly: true },
-  )
   productId: string;
 
   @IsNumber()
@@ -437,7 +433,6 @@ class OrderItemDto {
 
   @IsNumber()
   @IsNotEmpty()
-  @Transform(({ obj, value }) => value ?? obj.unit_price, { toClassOnly: true })
   unitPrice: number;
 
   @IsOptional()
@@ -542,11 +537,11 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsString()
-  category_id?: string;
+  categoryId?: string;
 
   @IsOptional()
   @IsNumber()
-  base_price?: number;
+  basePrice?: number;
 
   @IsOptional()
   @IsString()
@@ -570,7 +565,7 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsNumber()
-  stock_on_hand?: number;
+  stockOnHand?: number;
 
   @IsOptional()
   @IsNumber()

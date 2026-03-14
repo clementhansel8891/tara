@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
+import { type Employee } from "@/core/types/hr/employee";
+import { type Department } from "@/core/services/hr/orgService";
+import { type TrainingProgram } from "@/core/types/hr/training";
 import { useNavigate } from "react-router-dom";
+import { ZenTooltip } from "@/core/ui/ZenTooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,11 +73,11 @@ export default function RosterGrid() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 20000);
 
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [locations, setLocations] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [locations, setLocations] = useState<{ id: string; name: string }[]>([]);
   const [roleTitles, setRoleTitles] = useState<string[]>([]);
-  const [programs, setPrograms] = useState<any[]>([]);
-  const [staff, setStaff] = useState<{ items: any[]; total: number; page: number; pageSize: number }>({
+  const [programs, setPrograms] = useState<TrainingProgram[]>([]);
+  const [staff, setStaff] = useState<{ items: Employee[]; total: number; page: number; pageSize: number }>({
     items: [],
     total: 0,
     page: 1,
@@ -115,7 +119,7 @@ export default function RosterGrid() {
         );
         setStaff(result);
         // Derive role titles from current employee list
-        const roles = new Set(result.items.map((e: any) => e.roleTitle).filter(Boolean));
+        const roles = new Set(result.items.map((e: Employee) => e.roleTitle).filter(Boolean));
         setRoleTitles(Array.from(roles) as string[]);
       } catch (err) {
         setErrorMessage("Failed to load staff list.");
@@ -137,8 +141,8 @@ export default function RosterGrid() {
       lastName: "",
       email: "",
       phone: "",
-      departmentId: departments[0]?.id ?? "",
-      locationId: locations[0]?.id ?? "",
+      departmentId: departments[0]?.id || "",
+      locationId: locations[0]?.id || "none",
       roleTitle: "",
       status: "active",
       employmentType: "full_time",
@@ -174,14 +178,14 @@ export default function RosterGrid() {
         email: form.email,
         phone: form.phone || undefined,
         departmentId: form.departmentId,
-        locationId: form.locationId && form.locationId !== "none" ? form.locationId : undefined,
+        locationId: form.locationId && form.locationId !== "none" ? form.locationId : "",
         roleTitle: form.roleTitle || "Staff",
         status: form.status as "active",
         employmentType: form.employmentType as "full_time",
         baseSalary: Number(form.baseSalary || "0"),
         hourlyRate: 0,
         hireDate: new Date().toISOString().slice(0, 10),
-      } as any);
+      } as Omit<Employee, "id" | "tenantId" | "createdAt" | "updatedAt" | "fullName" | "employeeCode"> & { fullName: string; employeeCode: string });
       setCreateOpen(false);
       resetForm();
       refresh();
@@ -196,18 +200,20 @@ export default function RosterGrid() {
   const handleUpdateEmployee = async () => {
     if (!selectedEmployee) return;
     setIsSaving(true);
-    try {
-      await staffService.updateEmployee(session.tenantId, session, selectedEmployee.id, {
+    const payload = {
         firstName: form.firstName,
         lastName: form.lastName,
         fullName: `${form.firstName} ${form.lastName}`.trim(),
         roleTitle: form.roleTitle,
         departmentId: form.departmentId || selectedEmployee.departmentId,
-        locationId: form.locationId && form.locationId !== "none" ? form.locationId : undefined,
-        employmentType: form.employmentType as any,
-        status: form.status as any,
+        locationId: form.locationId === "none" ? "" : (form.locationId || selectedEmployee.locationId),
+        status: form.status,
+        employmentType: form.employmentType,
         baseSalary: Number(form.baseSalary || "0"),
-      });
+    };
+    console.log("[DEBUG] Sending Update Payload:", payload);
+    try {
+      await staffService.updateEmployee(session.tenantId, session, selectedEmployee.id, payload);
       setEditOpen(false);
       refresh();
       flash("Employee profile updated.");
@@ -262,10 +268,14 @@ export default function RosterGrid() {
       <PageHeader
         title="RosterGrid"
         subtitle="Enterprise workforce directory with instant search and bulk actions."
-        primaryAction={<Button onClick={() => {
-          resetForm();
-          setCreateOpen(true);
-        }}>New Employee</Button>}
+        primaryAction={
+          <ZenTooltip content="Register a new individual into the organizational roster.">
+             <Button onClick={() => {
+               resetForm();
+               setCreateOpen(true);
+             }}>Add Professional</Button>
+          </ZenTooltip>
+        }
         secondaryActions={
           <Input
             placeholder="Search people, role, department"
@@ -276,39 +286,45 @@ export default function RosterGrid() {
         }
       />
 
-      <WorkspacePanel title="WorkQueue" description="Bulk actions for operational HR tasks.">
+      <WorkspacePanel title="WorkQueue" description="Priority interventions for the current roster.">
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setActionType("training");
-              setActionEmployeeId(staff.items[0]?.id ?? "");
-              setActionProgramId(programs[0]?.id ?? "");
-              setActionOpen(true);
-            }}
-          >
-            Assign Training
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setActionType("review");
-              setActionEmployeeId(staff.items[0]?.id ?? "");
-              setActionOpen(true);
-            }}
-          >
-            Request Review
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setActionType("payroll");
-              setActionEmployeeId(staff.items[0]?.id ?? "");
-              setActionOpen(true);
-            }}
-          >
-            Open Payroll Case
-          </Button>
+          <ZenTooltip content="Link a staff member to a structured training program.">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActionType("training");
+                setActionEmployeeId(staff.items[0]?.id ?? "");
+                setActionProgramId(programs[0]?.id ?? "");
+                setActionOpen(true);
+              }}
+            >
+              Initiate Upskilling
+            </Button>
+          </ZenTooltip>
+          <ZenTooltip content="Start a performance review workflow via FlowGate.">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActionType("review");
+                setActionEmployeeId(staff.items[0]?.id ?? "");
+                setActionOpen(true);
+              }}
+            >
+              Start Growth Cycle
+            </Button>
+          </ZenTooltip>
+          <ZenTooltip content="Resolve specific payroll discrepancies or inquiries.">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActionType("payroll");
+                setActionEmployeeId(staff.items[0]?.id ?? "");
+                setActionOpen(true);
+              }}
+            >
+              Resolve Payroll Case
+            </Button>
+          </ZenTooltip>
           <Button
             variant="outline"
             onClick={() => {
@@ -436,10 +452,14 @@ export default function RosterGrid() {
                     <td className="p-3 text-sm text-muted-foreground">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         employee.status === "active" ? "bg-emerald-50 text-emerald-700" :
+                        employee.status === "promoted" ? "bg-blue-50 text-blue-700" :
+                        employee.status === "suspended" ? "bg-amber-50 text-amber-700" :
+                        employee.status === "probation" ? "bg-purple-50 text-purple-700" :
+                        employee.status === "candidate" ? "bg-slate-100 text-slate-700" :
                         employee.status === "terminated" ? "bg-rose-50 text-rose-700" :
                         "bg-muted text-muted-foreground"
                       }`}>
-                        {employee.status}
+                        {employee.status.replace("_", " ")}
                       </span>
                     </td>
                     <td className="p-3 text-right">
@@ -461,7 +481,7 @@ export default function RosterGrid() {
                                   email: employee.email,
                                   phone: employee.phone ?? "",
                                   departmentId: employee.departmentId,
-                                  locationId: employee.locationId ?? "",
+                                  locationId: employee.locationId || "none",
                                   roleTitle: employee.roleTitle,
                                   status: employee.status,
                                   employmentType: employee.employmentType,
@@ -729,7 +749,7 @@ export default function RosterGrid() {
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No location</SelectItem>
+                    <SelectItem value="none">No location</SelectItem>
                     {locations.map((loc) => (
                       <SelectItem key={loc.id} value={loc.id}>
                         {loc.name}

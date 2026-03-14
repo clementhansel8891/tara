@@ -73,6 +73,7 @@ async function main() {
       passwordHash: "$2b$10$Ep7viJ6m5Q7Z2Y5X2Z2Y5O.Z2Y5X2Z2Y5O.Z2Y5X2Z2Y5O.", // dummy hash
       firstName: "Demo",
       lastName: "User",
+      tenantId: "tenant-001",
     },
   ];
 

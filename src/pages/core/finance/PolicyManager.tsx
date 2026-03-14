@@ -12,7 +12,7 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { type FinanceCapexBudgetRow } from "@/core/services/finance/financeService";
+import { type FinanceCapexBudgetRow, type FinancePolicyRow } from "@/core/services/finance/financeService";
 import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { logService } from "@/core/services/finance/logService";
 
@@ -32,9 +32,9 @@ export default function PolicyManager() {
     department: "",
     totalBudget: 0,
   });
-  const [policies, setPolicies] = useState<any[]>([]);
+  const [policies, setPolicies] = useState<FinancePolicyRow[]>([]);
   const [capexBudgets, setCapexBudgets] = useState<FinanceCapexBudgetRow[]>([]);
-  const [selectedPolicy, setSelectedPolicy] = useState<any | null>(null);
+  const [selectedPolicy, setSelectedPolicy] = useState<FinancePolicyRow | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -46,7 +46,7 @@ export default function PolicyManager() {
   const refreshPolicies = useCallback(async () => {
     setPolicies(await financeApiClient.listPolicies(session.tenantId, session));
     setCapexBudgets(await financeApiClient.listCapexBudgets(session.tenantId, session));
-  }, [session.tenantId, session]);
+  }, [session]);
 
   useEffect(() => {
     void refreshPolicies();

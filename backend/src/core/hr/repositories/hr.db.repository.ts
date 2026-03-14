@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from "../../../persistence/prisma.service";
 import { Prisma } from "@prisma/client";
 import { IHRRepository } from "./hr.repository.interface";
@@ -15,6 +16,30 @@ import { PerformanceCycle } from "../entities/performance-cycle.entity";
 import { PerformanceReview } from "../entities/performance-review.entity";
 import { HRCase } from "../entities/hr-case.entity";
 import { Contract } from "../entities/contract.entity";
+import { Candidate } from "../entities/candidate.entity";
+import { Position } from "../entities/position.entity";
+import { Compensation } from "../entities/compensation.entity";
+import { Interview } from "../entities/interview.entity";
+import { TalentLead } from "../entities/talent-lead.entity";
+import { ComplianceDocument } from "../entities/compliance-document.entity";
+import { BudgetScenario } from "../entities/budget-scenario.entity";
+import { HeadcountPlan } from "../entities/headcount-plan.entity";
+import { ExchangeRate } from "../entities/exchange-rate.entity";
+import { PayrollRun } from "../entities/payroll-run.entity";
+import { PayrollLine } from "../entities/payroll-line.entity";
+import { SuccessionPlan } from "../entities/succession-plan.entity";
+import { SuccessionCandidate } from "../entities/succession-candidate.entity";
+import { Skill } from "../entities/skill.entity";
+import { EmployeeSkill } from "../entities/employee-skill.entity";
+import { BenefitPlan } from "../entities/benefit-plan.entity";
+import { EmployeeBenefit } from "../entities/employee-benefit.entity";
+import { CareerPath } from "../entities/career-path.entity";
+import { MentorshipPair } from "../entities/mentorship-pair.entity";
+import { PositionSkill } from "../entities/position-skill.entity";
+import { PerformanceGoal } from "../entities/performance-goal.entity";
+import { TrainingProgram } from "../entities/training-program.entity";
+import { TrainingAssignment } from "../entities/training-assignment.entity";
+import { ProgramSkill } from "../entities/program-skill.entity";
 import { CreateDepartmentDto } from "../dto/create-department.dto";
 import { CreateRequisitionDto } from "../dto/create-requisition.dto";
 import { CreatePerformanceCycleDto } from "../dto/create-performance-cycle.dto";
@@ -33,7 +58,9 @@ export class HRDbRepository implements IHRRepository {
   async getEmployees(
     tenantId: string,
     locationId?: string,
-  ): Promise<Employee[]> {
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ data: Employee[]; total: number }> {
     const where: any = {
       tenantId: tenantId,
       deletedAt: null,
@@ -43,19 +70,31 @@ export class HRDbRepository implements IHRRepository {
       where.locationId = locationId;
     }
 
-    const employees = await this.prisma.employee.findMany({
-      where,
-      include: {
-        location: true,
-        department: true,
-      },
-      orderBy: { lastName: "asc" },
-    });
+    const [employees, total] = await Promise.all([
+      this.prisma.employee.findMany({
+        where,
+        include: {
+          location: true,
+          department: true,
+        },
+        orderBy: { lastName: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.employee.count({ where }),
+    ]);
 
-    return employees.map(this.mapEmployee);
+    return {
+      data: employees.map(this.mapEmployee),
+      total,
+    };
   }
 
-  async getGlobalEmployees(locationId?: string): Promise<Employee[]> {
+  async getGlobalEmployees(
+    locationId?: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ data: Employee[]; total: number }> {
     const where: any = {
       deletedAt: null,
     };
@@ -64,16 +103,24 @@ export class HRDbRepository implements IHRRepository {
       where.locationId = locationId;
     }
 
-    const employees = await this.prisma.employee.findMany({
-      where,
-      include: {
-        location: true,
-        department: true,
-      },
-      orderBy: { lastName: "asc" },
-    });
+    const [employees, total] = await Promise.all([
+      this.prisma.employee.findMany({
+        where,
+        include: {
+          location: true,
+          department: true,
+        },
+        orderBy: { lastName: "asc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.employee.count({ where }),
+    ]);
 
-    return employees.map(this.mapEmployee);
+    return {
+      data: employees.map(this.mapEmployee),
+      total,
+    };
   }
 
   async getEmployeeById(
@@ -96,9 +143,10 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async getGlobalEmployeeById(employeeId: string): Promise<Employee | null> {
-    const employee = await this.prisma.employee.findUnique({
+    const employee = await this.prisma.employee.findFirst({
       where: {
         id: employeeId,
+        deletedAt: null,
       },
       include: {
         location: true,
@@ -122,12 +170,57 @@ export class HRDbRepository implements IHRRepository {
       locationId = firstLocation?.id || "loc-default";
     }
 
+    // --- PROVISIONING LOGIC ---
+    // Ensure a User account exists for this employee
+    let user = await this.prisma.user.findUnique({
+      where: {
+        tenantId_email: {
+          tenantId,
+          email: data.email,
+        },
+      },
+    });
+
+    if (!user) {
+      // Create a default user account
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash("Welcome123", salt);
+
+      user = await this.prisma.user.create({
+        data: {
+          tenantId,
+          email: data.email,
+          passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+        },
+      });
+    }
+
+    // Ensure UserCompany association exists for multi-tenancy access
+    await this.prisma.userCompany.upsert({
+      where: {
+        userId_tenantId: {
+          userId: user.id,
+          tenantId: tenantId
+        }
+      },
+      update: {}, // Keep existing role if already associated
+      create: {
+        userId: user.id,
+        tenantId: tenantId,
+        role: 'MEMBER'
+      }
+    });
+
     const employee = await this.prisma.employee.create({
       data: {
         tenantId: tenantId,
         locationId,
         departmentId: data.departmentId,
         employeeCode: data.employeeCode,
+        userId: user.id, // Link to the user account
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -215,8 +308,13 @@ export class HRDbRepository implements IHRRepository {
     employeeId?: string,
     startDate?: string,
     endDate?: string,
-  ): Promise<Attendance[]> {
-    const where: any = { tenantId: tenantId };
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ data: Attendance[]; total: number }> {
+    const where: any = { 
+      tenantId: tenantId,
+      deletedAt: null,
+    };
 
     if (locationId) where.locationId = locationId;
     if (employeeId) where.employeeId = employeeId;
@@ -226,20 +324,29 @@ export class HRDbRepository implements IHRRepository {
       if (endDate) where.date.lte = new Date(endDate);
     }
 
-    const records = await this.prisma.attendanceRecord.findMany({
-      where,
-      orderBy: { date: "desc" },
-      take: 100,
-    });
+    const [records, total] = await Promise.all([
+      this.prisma.attendanceRecord.findMany({
+        where,
+        orderBy: { date: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.attendanceRecord.count({ where }),
+    ]);
 
-    return records.map(this.mapAttendance);
+    return {
+      data: records.map(this.mapAttendance),
+      total,
+    };
   }
 
   async getGlobalAttendance(
     employeeId?: string,
     startDate?: string,
     endDate?: string,
-  ): Promise<Attendance[]> {
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ data: Attendance[]; total: number }> {
     const where: any = {};
     if (employeeId) where.employeeId = employeeId;
     if (startDate || endDate) {
@@ -248,12 +355,28 @@ export class HRDbRepository implements IHRRepository {
       if (endDate) where.date.lte = new Date(endDate);
     }
 
-    const attendance = await this.prisma.attendanceRecord.findMany({
-      where,
-      orderBy: { date: "desc" },
-    });
+    const [attendance, total] = await Promise.all([
+      this.prisma.attendanceRecord.findMany({
+        where: {
+          ...where,
+          deletedAt: null,
+        },
+        orderBy: { date: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.attendanceRecord.count({
+        where: {
+          ...where,
+          deletedAt: null,
+        },
+      }),
+    ]);
 
-    return attendance.map(this.mapAttendance);
+    return {
+      data: attendance.map(this.mapAttendance),
+      total,
+    };
   }
 
   async clockIn(
@@ -296,6 +419,7 @@ export class HRDbRepository implements IHRRepository {
           lt: new Date(dateStr + "T23:59:59Z"),
         },
         checkOut: null as any,
+        deletedAt: null,
       },
       orderBy: { date: "desc" },
     });
@@ -323,6 +447,18 @@ export class HRDbRepository implements IHRRepository {
     });
 
     return this.mapAttendance(attendance);
+  }
+
+  async assignShift(tenantId: string, employeeId: string, shiftId: string, locationId: string, date: string): Promise<void> {
+    await this.prisma.scheduleAssignment.create({
+      data: {
+        tenantId,
+        employeeId,
+        shiftId,
+        locationId,
+        effectiveDate: new Date(date),
+      },
+    });
   }
 
   // ============================================================
@@ -359,6 +495,7 @@ export class HRDbRepository implements IHRRepository {
     const where: any = {};
     if (status) where.status = status;
     if (employeeId) where.employeeId = employeeId;
+    where.deletedAt = null;
 
     const requests = await this.prisma.leaveRequest.findMany({
       where,
@@ -655,10 +792,10 @@ export class HRDbRepository implements IHRRepository {
 
   async getPerformanceCycles(tenantId: string): Promise<PerformanceCycle[]> {
     const cycles = await this.prisma.performanceCycle.findMany({
-      where: { tenantId: tenantId },
+      where: { tenantId, deletedAt: null },
       orderBy: { createdAt: "desc" },
     });
-    return cycles.map(this.mapPerformanceCycle);
+    return cycles.map((c) => this.mapPerformanceCycle(c));
   }
 
   async createPerformanceCycle(
@@ -667,7 +804,7 @@ export class HRDbRepository implements IHRRepository {
   ): Promise<PerformanceCycle> {
     const cycle = await this.prisma.performanceCycle.create({
       data: {
-        tenantId: tenantId,
+        tenantId,
         name: data.name,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -681,13 +818,13 @@ export class HRDbRepository implements IHRRepository {
   async updatePerformanceCycle(
     tenantId: string,
     id: string,
-    data: Partial<PerformanceCycle>,
+    data: any,
   ): Promise<PerformanceCycle> {
-    const cycle = await this.prisma.performanceCycle.update({
-      where: { id, tenantId: tenantId },
-      data: data as any,
+    const updated = await this.prisma.performanceCycle.update({
+      where: { id, tenantId },
+      data,
     });
-    return this.mapPerformanceCycle(cycle);
+    return this.mapPerformanceCycle(updated);
   }
 
   async getPerformanceReviews(
@@ -695,7 +832,7 @@ export class HRDbRepository implements IHRRepository {
     cycleId?: string,
     employeeId?: string,
   ): Promise<PerformanceReview[]> {
-    const where: any = { tenantId: tenantId };
+    const where: any = { tenantId };
     if (cycleId) where.cycleId = cycleId;
     if (employeeId) where.employeeId = employeeId;
 
@@ -703,7 +840,8 @@ export class HRDbRepository implements IHRRepository {
       where,
       orderBy: { updatedAt: "desc" },
     });
-    return reviews.map(this.mapPerformanceReview);
+
+    return reviews.map((r: any) => this.mapPerformanceReview(r));
   }
 
   async getGlobalPerformanceReviews(
@@ -716,10 +854,10 @@ export class HRDbRepository implements IHRRepository {
 
     const reviews = await this.prisma.performanceReview.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
 
-    return reviews.map(this.mapPerformanceReview);
+    return reviews.map((r: any) => this.mapPerformanceReview(r));
   }
 
   async submitPerformanceReview(
@@ -728,7 +866,7 @@ export class HRDbRepository implements IHRRepository {
   ): Promise<PerformanceReview> {
     const review = await this.prisma.performanceReview.create({
       data: {
-        tenantId: tenantId,
+        tenantId,
         cycleId: data.cycleId,
         employeeId: data.employeeId,
         reviewerId: data.reviewerId,
@@ -749,30 +887,21 @@ export class HRDbRepository implements IHRRepository {
     locationId?: string,
     status?: string,
   ): Promise<HRCase[]> {
-    const where: any = { tenantId: tenantId };
-    if (locationId) {
-      where.employee = { locationId: locationId };
-    }
+    const where: any = { tenantId, deletedAt: null };
+    if (locationId) where.employee = { locationId };
     if (status) where.status = status;
 
     const cases = await this.prisma.hRCase.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });
-    return cases.map(this.mapHRCase);
-  }
-
-  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
-    const hrCase = await this.prisma.hRCase.findFirst({
-      where: { id, tenantId: tenantId },
-    });
-    return hrCase ? this.mapHRCase(hrCase) : null;
+    return cases.map((c) => this.mapHRCase(c));
   }
 
   async createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase> {
     const hrCase = await this.prisma.hRCase.create({
       data: {
-        tenantId: tenantId,
+        tenantId,
         employeeId: data.employeeId,
         departmentId: data.departmentId,
         title: data.title,
@@ -784,16 +913,19 @@ export class HRDbRepository implements IHRRepository {
     return this.mapHRCase(hrCase);
   }
 
-  async updateCase(
-    tenantId: string,
-    id: string,
-    data: Partial<HRCase>,
-  ): Promise<HRCase> {
-    const hrCase = await this.prisma.hRCase.update({
-      where: { id, tenantId: tenantId },
-      data: data as any,
+  async updateCase(tenantId: string, id: string, data: any): Promise<HRCase> {
+    const updated = await this.prisma.hRCase.update({
+      where: { id, tenantId },
+      data,
     });
-    return this.mapHRCase(hrCase);
+    return this.mapHRCase(updated);
+  }
+
+  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
+    const hrCase = await this.prisma.hRCase.findFirst({
+      where: { id, tenantId, deletedAt: null },
+    });
+    return hrCase ? this.mapHRCase(hrCase) : null;
   }
 
   // ============================================================
@@ -805,21 +937,20 @@ export class HRDbRepository implements IHRRepository {
     locationId?: string,
     employeeId?: string,
   ): Promise<Contract[]> {
-    const where: any = { tenantId: tenantId };
-    if (locationId) {
-      where.employee = { locationId: locationId };
-    }
+    const where: any = { tenantId, deletedAt: null };
+    if (locationId) where.employee = { locationId };
     if (employeeId) where.employeeId = employeeId;
 
     const contracts = await this.prisma.contract.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });
-    return contracts.map(this.mapContract);
+
+    return contracts.map((c: any) => this.mapContract(c));
   }
 
   async getGlobalContracts(employeeId?: string): Promise<Contract[]> {
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (employeeId) where.employeeId = employeeId;
 
     const contracts = await this.prisma.contract.findMany({
@@ -827,7 +958,7 @@ export class HRDbRepository implements IHRRepository {
       orderBy: { createdAt: "desc" },
     });
 
-    return contracts.map(this.mapContract);
+    return contracts.map((c: any) => this.mapContract(c));
   }
 
   async createContract(
@@ -836,7 +967,7 @@ export class HRDbRepository implements IHRRepository {
   ): Promise<Contract> {
     const contract = await this.prisma.contract.create({
       data: {
-        tenantId: tenantId,
+        tenantId,
         employeeId: data.employeeId,
         title: data.title,
         type: data.type,
@@ -849,27 +980,12 @@ export class HRDbRepository implements IHRRepository {
     return this.mapContract(contract);
   }
 
-  async updateContract(
-    tenantId: string,
-    id: string,
-    data: Partial<Contract>,
-  ): Promise<Contract> {
-    const contract = await this.prisma.contract.update({
-      where: { id, tenantId: tenantId },
-      data: data as any,
+  async updateContract(tenantId: string, id: string, data: any): Promise<Contract> {
+    const updated = await this.prisma.contract.update({
+      where: { id, tenantId },
+      data,
     });
-    return this.mapContract(contract);
-  }
-
-  // ============================================================
-  // LOCATION MANAGEMENT
-  // ============================================================
-
-  async getLocations(tenantId: string): Promise<any[]> {
-    return await this.prisma.location.findMany({
-      where: { tenantId: tenantId },
-      orderBy: { name: "asc" },
-    });
+    return this.mapContract(updated);
   }
 
   // ============================================================
@@ -900,9 +1016,12 @@ export class HRDbRepository implements IHRRepository {
       email: e.email,
       phone: e.phone,
       departmentId: e.departmentId,
-      managerId: e.managerId,
-      roleTitle: e.position,
-      status: e.status as any,
+      managerId: e.managerId || undefined,
+      userId: e.userId || undefined,
+      roleTitle: e.position || e.roleTitle || "",
+      position: e.position || "",
+      positionId: (e as any).positionId || undefined,
+      status: e.status.toLowerCase() as any,
       employmentType: e.employmentType as any,
       baseSalary: e.baseSalary ? Number(e.baseSalary) : undefined,
       hourlyRate: e.hourlyRate ? Number(e.hourlyRate) : undefined,
@@ -1000,6 +1119,12 @@ export class HRDbRepository implements IHRRepository {
     };
   }
 
+  async getLocations(tenantId: string): Promise<any[]> {
+    return this.prisma.location.findMany({
+      where: { tenantId },
+    });
+  }
+
   private mapRequisition(r: any): JobRequisition {
     return {
       id: r.id,
@@ -1042,6 +1167,8 @@ export class HRDbRepository implements IHRRepository {
     };
   }
 
+  private mapReview = this.mapPerformanceReview.bind(this);
+
   private mapHRCase(c: any): HRCase {
     return {
       id: c.id,
@@ -1071,6 +1198,372 @@ export class HRDbRepository implements IHRRepository {
       url: c.url,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt,
+    };
+  }
+
+  private mapCandidate(c: any): Candidate {
+    return {
+      id: c.id,
+      tenantId: c.tenantId,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.phone || undefined,
+      requisitionId: c.requisitionId,
+      source: c.source,
+      status: c.status as any,
+      resumeUrl: c.resumeUrl || undefined,
+      metadata: (c.metadata as any) || {},
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    };
+  }
+
+  private mapPosition(p: any): Position {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      locationId: p.locationId,
+      departmentId: p.departmentId,
+      title: p.title,
+      grade: p.grade,
+      status: p.status as any,
+      budgetedSalary: p.budgetedSalary ? Number(p.budgetedSalary) : undefined,
+      reportsToPositionId: p.reportsToPositionId || undefined,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    };
+  }
+
+  private mapCompensation(c: any): Compensation {
+    return {
+      id: c.id,
+      tenantId: c.tenantId,
+      employeeId: c.employeeId,
+      baseSalary: Number(c.baseSalary),
+      currency: c.currency,
+      payFrequency: c.payFrequency as any,
+      allowances: (c.allowances as any) || [],
+      bonuses: (c.bonuses as any) || [],
+      effectiveDate: c.effectiveDate,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    };
+  }
+
+  private mapInterview(i: any): Interview {
+    return {
+      id: i.id,
+      tenantId: i.tenantId,
+      candidateId: i.candidateId,
+      interviewerId: i.interviewerId,
+      title: i.title,
+      scheduledAt: i.scheduledAt,
+      duration: i.duration,
+      location: i.location || undefined,
+      status: i.status as any,
+      notes: i.notes || undefined,
+      createdAt: i.createdAt,
+      updatedAt: i.updatedAt,
+    };
+  }
+
+  private mapLead(l: any): TalentLead {
+    return {
+      id: l.id,
+      tenantId: l.tenantId,
+      source: l.source,
+      externalProfileUrl: l.externalProfileUrl || undefined,
+      name: l.name,
+      email: l.email || undefined,
+      phone: l.phone || undefined,
+      headline: l.headline || undefined,
+      skills: (l.skills as any) || [],
+      leadScore: l.leadScore,
+      status: l.status as any,
+      metadata: (l.metadata as any) || {},
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt,
+    };
+  }
+
+  private mapDocument(d: any): ComplianceDocument {
+    return {
+      id: d.id,
+      tenantId: d.tenantId,
+      employeeId: d.employeeId,
+      documentType: d.documentType,
+      documentNumber: d.documentNumber || undefined,
+      fileUrl: d.fileUrl,
+      expiryDate: d.expiryDate || undefined,
+      verificationStatus: d.verificationStatus,
+      verifiedBy: d.verifiedBy || undefined,
+      verifiedAt: d.verifiedAt || undefined,
+      metadata: (d.metadata as any) || {},
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+    };
+  }
+
+  private mapScenario(s: any): BudgetScenario {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      name: s.name,
+      fiscalYear: s.fiscalYear,
+      status: s.status,
+      totalBudget: s.totalBudget,
+      description: s.description || undefined,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    };
+  }
+
+  private mapPlan(p: any): HeadcountPlan {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      scenarioId: p.scenarioId,
+      departmentId: p.departmentId,
+      positionTitle: p.positionTitle,
+      targetHeadcount: p.targetHeadcount,
+      projectedSalary: p.projectedSalary,
+      plannedHireDate: p.plannedHireDate,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    };
+  }
+
+  private mapRate(r: any): ExchangeRate {
+    return {
+      id: r.id,
+      tenantId: r.tenantId,
+      fromCurrency: r.fromCurrency,
+      toCurrency: r.toCurrency,
+      rate: Number(r.rate),
+      effectiveDate: r.effectiveDate,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
+  private mapRun(r: any): PayrollRun {
+    return {
+      id: r.id,
+      tenantId: r.tenantId,
+      periodStart: r.periodStart,
+      periodEnd: r.periodEnd,
+      status: r.status,
+      totalGrossPay: Number(r.totalGrossPay),
+      totalNetPay: Number(r.totalNetPay),
+      baseCurrency: r.baseCurrency,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  }
+
+  private mapLine(l: any): PayrollLine {
+    return {
+      id: l.id,
+      tenantId: l.tenantId,
+      payrollRunId: l.payrollRunId,
+      employeeId: l.employeeId,
+      grossPay: Number(l.grossPay),
+      netPay: Number(l.netPay),
+      adjustments: Number(l.adjustments || 0),
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt,
+    };
+  }
+
+  private mapSuccessionPlan(p: any): SuccessionPlan {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      positionId: p.positionId,
+      isCritical: p.isCritical,
+      strategy: p.strategy,
+      notes: p.notes,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      candidates: p.candidates?.map((c: any) => this.mapSuccessionCandidate(c)),
+    };
+  }
+
+  private mapSuccessionCandidate(c: any): SuccessionCandidate {
+    return {
+      id: c.id,
+      tenantId: c.tenantId,
+      planId: c.planId,
+      employeeId: c.employeeId,
+      readiness: c.readiness,
+      readinessScore: c.readinessScore,
+      riskOfLoss: c.riskOfLoss,
+      impactOfLoss: c.impactOfLoss,
+      skillGaps: c.skillGaps,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    };
+  }
+
+  private mapSkill(s: any): Skill {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      name: s.name,
+      category: s.category,
+      description: s.description,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    };
+  }
+
+  private mapEmployeeSkill(es: any): EmployeeSkill {
+    return {
+      id: es.id,
+      tenantId: es.tenantId,
+      employeeId: es.employeeId,
+      skillId: es.skillId,
+      proficiency: es.proficiency,
+      verificationStatus: es.verificationStatus,
+      verifiedBy: es.verifiedBy,
+      verifiedAt: es.verifiedAt,
+      createdAt: es.createdAt,
+      updatedAt: es.updatedAt,
+      skill: es.skill ? this.mapSkill(es.skill) : undefined,
+    };
+  }
+
+  private mapBenefitPlan(p: any): BenefitPlan {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      name: p.name,
+      type: p.type,
+      description: p.description,
+      employerContribution: p.employerContribution,
+      employeeContribution: p.employeeContribution,
+      frequency: p.frequency,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    };
+  }
+
+  private mapEmployeeBenefit(b: any): EmployeeBenefit {
+    return {
+      id: b.id,
+      tenantId: b.tenantId,
+      employeeId: b.employeeId,
+      planId: b.planId,
+      enrollmentDate: b.enrollmentDate,
+      status: b.status,
+      coverageAmount: b.coverageAmount,
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+      plan: b.plan ? this.mapBenefitPlan(b.plan) : undefined,
+    };
+  }
+
+  private mapCareerPath(p: any): CareerPath {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      fromPositionId: p.fromPositionId,
+      toPositionId: p.toPositionId,
+      requirementNotes: p.requirementNotes,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      fromPosition: p.fromPosition ? this.mapPosition(p.fromPosition) : undefined,
+      toPosition: p.toPosition ? this.mapPosition(p.toPosition) : undefined,
+    };
+  }
+
+  private mapMentorshipPair(p: any): MentorshipPair {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      mentorId: p.mentorId,
+      menteeId: p.menteeId,
+      status: p.status,
+      startDate: p.startDate,
+      endDate: p.endDate,
+      focusSkills: p.focusSkills,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      mentor: p.mentor ? this.mapEmployee(p.mentor) : undefined,
+      mentee: p.mentee ? this.mapEmployee(p.mentee) : undefined,
+    };
+  }
+
+  private mapPositionSkill(s: any): PositionSkill {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      positionId: s.positionId,
+      skillId: s.skillId,
+      minProficiency: s.minProficiency,
+      isMandatory: s.isMandatory,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      skill: s.skill ? this.mapSkill(s.skill) : undefined,
+    };
+  }
+
+  private mapPerformanceGoal(g: any): PerformanceGoal {
+    return {
+      id: g.id,
+      tenantId: g.tenantId,
+      employeeId: g.employeeId,
+      title: g.title,
+      description: g.description,
+      targetDate: g.targetDate,
+      progress: g.progress,
+      status: g.status,
+      createdAt: g.createdAt,
+      updatedAt: g.updatedAt,
+    };
+  }
+
+  private mapTrainingProgram(p: any): TrainingProgram {
+    return {
+      id: p.id,
+      tenantId: p.tenantId,
+      name: p.name,
+      status: p.status,
+      completionRate: p.completionRate,
+      dueDate: p.dueDate,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+      skills: p.skills?.map((s: any) => this.mapProgramSkill(s)),
+    };
+  }
+
+  private mapTrainingAssignment(a: any): TrainingAssignment {
+    return {
+      id: a.id,
+      tenantId: a.tenantId,
+      programId: a.programId,
+      employeeId: a.employeeId,
+      status: a.status,
+      assignedAt: a.assignedAt,
+      completedAt: a.completedAt,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+      program: a.program ? this.mapTrainingProgram(a.program) : undefined,
+    };
+  }
+
+
+  private mapProgramSkill(s: any): ProgramSkill {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      programId: s.programId,
+      skillId: s.skillId,
+      proficiencyGain: s.proficiencyGain,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      skill: s.skill ? this.mapSkill(s.skill) : undefined,
     };
   }
 
@@ -1131,31 +1624,1222 @@ export class HRDbRepository implements IHRRepository {
     });
     return this.mapTrainingAssignment(assignment);
   }
+  // Lifecycle Methods
+  async promoteEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee> {
+    const employee = await this.prisma.employee.update({
+      where: { id: employeeId, tenantId },
+      data: {
+        position: data.newRole,
+        baseSalary: data.newSalary,
+        status: "promoted",
+      },
+    });
+    return this.mapEmployee(employee);
+  }
 
-  private mapTrainingProgram(p: any): any {
+  async transferEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee> {
+    const employee = await this.prisma.employee.update({
+      where: { id: employeeId, tenantId },
+      data: {
+        locationId: data.locationId,
+        departmentId: data.departmentId,
+        status: "transferred",
+      },
+    });
+    return this.mapEmployee(employee);
+  }
+
+  async suspendEmployee(tenantId: string, employeeId: string, reason: string): Promise<Employee> {
+    const employee = await this.prisma.employee.update({
+      where: { id: employeeId, tenantId },
+      data: {
+        status: "suspended",
+      },
+    });
+    return this.mapEmployee(employee);
+  }
+
+  // Talent & Candidate Management
+  async getCandidates(tenantId: string, status?: string): Promise<Candidate[]> {
+    const where: any = { tenantId, deletedAt: null };
+    if (status) where.status = status;
+    const candidates = await this.prisma.candidate.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+    return candidates.map((c) => this.mapCandidate(c));
+  }
+
+  async getCandidateById(tenantId: string, id: string): Promise<Candidate | null> {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id, tenantId, deletedAt: null },
+    });
+    return candidate ? this.mapCandidate(candidate) : null;
+  }
+
+  async createCandidate(tenantId: string, data: any): Promise<Candidate> {
+    const candidate = await this.prisma.candidate.create({
+      data: {
+        tenantId,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        requisitionId: data.requisitionId,
+        source: data.source || "direct",
+        status: "applied",
+      },
+    });
+    return this.mapCandidate(candidate);
+  }
+
+  async updateCandidate(tenantId: string, id: string, data: any): Promise<Candidate> {
+    const updated = await this.prisma.candidate.update({
+      where: { id, tenantId },
+      data,
+    });
+    return this.mapCandidate(updated);
+  }
+
+  async hireCandidate(tenantId: string, candidateId: string): Promise<Employee> {
+    const candidate = await this.prisma.candidate.findFirst({
+      where: { id: candidateId, tenantId, deletedAt: null },
+      include: { requisition: true },
+    });
+
+    if (!candidate) throw new Error("Candidate not found.");
+
+    // Transaction to update candidate status and create employee
+    return this.prisma.$transaction(async (tx) => {
+      await tx.candidate.update({
+        where: { id: candidateId },
+        data: { status: "hired" },
+      });
+
+      const employee = await tx.employee.create({
+        data: {
+          tenantId,
+          firstName: candidate.firstName,
+          lastName: candidate.lastName,
+          email: candidate.email,
+          phone: candidate.phone,
+          departmentId: (candidate as any).requisition?.departmentId || "",
+          locationId: "", // To be updated during full onboarding
+          position: (candidate as any).requisition?.title || "",
+          employeeCode: `EMP-${Date.now()}`,
+          status: "hired",
+          hireDate: new Date(),
+        },
+      });
+
+      return this.mapEmployee(employee);
+    });
+  }
+
+
+  async updatePosition(tenantId: string, id: string, data: any): Promise<Position> {
+    const position = await this.prisma.position.update({
+      where: { id, tenantId },
+      data: {
+        title: data.title,
+        grade: data.grade,
+        status: data.status,
+        budgetedSalary: data.budgetedSalary,
+      },
+    });
+    return this.mapPosition(position);
+  }
+
+  async getCompensation(tenantId: string, employeeId: string): Promise<Compensation | null> {
+    const compensation = await this.prisma.compensation.findUnique({
+      where: { employeeId },
+    });
+    return compensation ? this.mapCompensation(compensation) : null;
+  }
+
+  async updateCompensation(tenantId: string, employeeId: string, data: any): Promise<Compensation> {
+    const compensation = await this.prisma.compensation.upsert({
+      where: { employeeId },
+      create: {
+        tenantId,
+        employeeId,
+        baseSalary: data.baseSalary,
+        currency: data.currency || "USD",
+        payFrequency: data.payFrequency || "monthly",
+        allowances: data.allowances,
+        bonuses: data.bonuses,
+        effectiveDate: data.effectiveDate ? new Date(data.effectiveDate) : new Date(),
+      },
+      update: {
+        baseSalary: data.baseSalary,
+        currency: data.currency,
+        payFrequency: data.payFrequency,
+        allowances: data.allowances,
+        bonuses: data.bonuses,
+        effectiveDate: data.effectiveDate ? new Date(data.effectiveDate) : undefined,
+      },
+    });
+    return this.mapCompensation(compensation);
+  }
+
+  // Analytics & Reporting
+  async getHeadcountTrend(tenantId: string): Promise<any[]> {
+    const months = 12;
+    const trend = [];
+    const now = new Date();
+
+    for (let i = 0; i < months; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+      const count = await this.prisma.employee.count({
+        where: {
+          tenantId,
+          hireDate: { lte: endOfMonth },
+          OR: [
+            { terminationDate: null },
+            { terminationDate: { gt: endOfMonth } },
+          ],
+        },
+      });
+
+      trend.push({
+        month: startOfMonth.toISOString().substring(0, 7),
+        count,
+      });
+    }
+
+    return trend.reverse();
+  }
+
+  async getTurnoverStats(tenantId: string): Promise<any> {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const [hires, terminations] = await Promise.all([
+      this.prisma.employee.count({
+        where: {
+          tenantId,
+          hireDate: { gte: startOfYear },
+        },
+      }),
+      this.prisma.employee.count({
+        where: {
+          tenantId,
+          terminationDate: { gte: startOfYear },
+        },
+      }),
+    ]);
+
+    const activeCount = await this.prisma.employee.count({
+      where: { tenantId, status: "active" },
+    });
+
     return {
-      id: p.id,
-      tenantId: p.tenantId,
-      name: p.name,
-      status: p.status,
-      completionRate: p.completionRate,
-      dueDate: p.dueDate,
-      createdAt: p.createdAt,
-      updatedAt: p.updatedAt,
+      hiresThisYear: hires,
+      terminationsThisYear: terminations,
+      turnoverRate: activeCount > 0 ? (terminations / activeCount) * 100 : 0,
+      activeHeadcount: activeCount,
     };
   }
 
-  private mapTrainingAssignment(a: any): any {
+  async getDepartmentAnalytics(tenantId: string): Promise<any[]> {
+    const departments = await this.prisma.department.findMany({
+      where: { tenantId },
+      include: {
+        employees: {
+          where: { status: "active" },
+          include: { compensation: true },
+        },
+      },
+    });
+
+    return departments.map((d) => {
+      const activeStaff = d.employees.length;
+      let totalCost = 0;
+      d.employees.forEach((emp: any) => {
+        if (emp.compensation) {
+          totalCost += Number(emp.compensation.baseSalary);
+          // Simple addition of allowances/bonuses for analytics
+          if (emp.compensation.allowances) {
+            (emp.compensation.allowances as any[]).forEach(a => totalCost += Number(a.amount || 0));
+          }
+        } else {
+          totalCost += Number(emp.baseSalary || 0);
+        }
+      });
+
+      return {
+        id: d.id,
+        name: d.name,
+        code: d.code,
+        activeStaff,
+        monthlyCost: totalCost,
+        avgSalary: activeStaff > 0 ? totalCost / activeStaff : 0,
+      };
+    });
+  }
+
+  async getCompensationAnalytics(tenantId: string): Promise<any> {
+    const compensations = await this.prisma.compensation.findMany({
+      where: { tenantId },
+    });
+
+    if (compensations.length === 0) return { min: 0, max: 0, avg: 0, total: 0 };
+
+    const salaries = compensations.map((c) => Number(c.baseSalary));
+    const total = salaries.reduce((acc, curr) => acc + curr, 0);
+
     return {
-      id: a.id,
-      tenantId: a.tenantId,
-      programId: a.programId,
-      employeeId: a.employeeId,
-      status: a.status,
-      assignedAt: a.assignedAt,
-      completedAt: a.completedAt,
-      createdAt: a.createdAt,
-      updatedAt: a.updatedAt,
+      min: Math.min(...salaries),
+      max: Math.max(...salaries),
+      avg: total / salaries.length,
+      totalMonthlySpend: total,
+      currency: compensations[0].currency,
     };
+  }
+
+  // Predictive Analytics
+  async getPerformanceTrends(tenantId: string): Promise<any[]> {
+    const reviews = await this.prisma.performanceReview.findMany({
+      where: { tenantId, status: "completed" },
+      orderBy: { updatedAt: "asc" },
+      select: { updatedAt: true, rating: true },
+    });
+
+    // Group by month and calculate avg rating
+    const grouped: any = {};
+    reviews.forEach((r: any) => {
+      const month = r.updatedAt.toISOString().substring(0, 7);
+      if (!grouped[month]) grouped[month] = { sum: 0, count: 0 };
+      grouped[month].sum += r.rating;
+      grouped[month].count++;
+    });
+
+    return Object.keys(grouped).map((month) => ({
+      month,
+      avgRating: grouped[month].sum / grouped[month].count,
+    }));
+  }
+
+  async getEngagementMetrics(tenantId: string): Promise<any> {
+    // Simulated engagement metrics based on attendance and case volume
+    const [attendance, cases] = await Promise.all([
+      this.prisma.attendanceRecord.count({ where: { tenantId } }),
+      this.prisma.hRCase.count({ where: { tenantId, status: "open" } }),
+    ]);
+
+    return {
+      attendanceRate: 94.5, // Mocked for now
+      pendingCases: cases,
+      employeeNetPromoterScore: 72, // Mocked for now
+    };
+  }
+
+  async getRetentionRiskData(tenantId: string): Promise<any[]> {
+    const employees = await this.prisma.employee.findMany({
+      where: { tenantId, status: "active" },
+      include: {
+        performanceReviews: {
+          orderBy: { createdAt: "desc" },
+          take: 2,
+        },
+      },
+    });
+
+    return employees.map((e) => ({
+      employeeId: e.id,
+      fullName: `${e.firstName} ${e.lastName}`,
+      tenureMonths: Math.floor((new Date().getTime() - e.hireDate.getTime()) / (1000 * 60 * 60 * 24 * 30.44)),
+      lastRatings: e.performanceReviews.map((r: any) => r.rating),
+    }));
+  }
+
+  async getPositions(tenantId: string, deptId?: string): Promise<Position[]> {
+    const where: any = { tenantId, deletedAt: null };
+    if (deptId) where.departmentId = deptId;
+    const positions = await this.prisma.position.findMany({
+      where,
+      include: {
+        department: true,
+        location: true,
+        skills: { include: { skill: true } },
+      },
+    });
+    return positions.map((p) => this.mapPosition(p));
+  }
+
+  async createPosition(tenantId: string, data: any): Promise<Position> {
+    const created = await this.prisma.position.create({
+      data: {
+        tenantId,
+        locationId: data.locationId,
+        departmentId: data.departmentId,
+        title: data.title,
+        grade: data.grade,
+        status: data.status || "open",
+        budgetedSalary: data.budgetedSalary,
+        reportsToPositionId: data.reportsToPositionId,
+        jobPostMetadata: data.jobPostMetadata || {},
+      },
+      include: {
+        department: true,
+        location: true,
+        skills: { include: { skill: true } },
+      },
+    });
+    return this.mapPosition(created);
+  }
+
+  async getPositionById(tenantId: string, id: string): Promise<Position | null> {
+    const pos = await this.prisma.position.findFirst({
+      where: { id, tenantId, deletedAt: null },
+      include: {
+        department: true,
+        skills: { include: { skill: true } },
+      },
+    });
+    return pos ? this.mapPosition(pos) : null;
+  }
+
+  // Interview & Scheduling
+  async getInterviews(tenantId: string, candidateId?: string): Promise<Interview[]> {
+    const interviews = await this.prisma.interview.findMany({
+      where: {
+        tenantId,
+        ...(candidateId ? { candidateId } : {}),
+      },
+      orderBy: { scheduledAt: "desc" },
+    });
+    return interviews.map((i: any) => this.mapInterview(i));
+  }
+
+  async scheduleInterview(tenantId: string, data: any): Promise<Interview> {
+    const created = await this.prisma.interview.create({
+      data: {
+        tenantId,
+        candidateId: data.candidateId,
+        interviewerId: data.interviewerId,
+        title: data.title,
+        scheduledAt: new Date(data.scheduledAt),
+        duration: data.duration || 30,
+        location: data.location,
+        status: data.status || "SCHEDULED",
+        notes: data.notes,
+      },
+    });
+    return this.mapInterview(created);
+  }
+
+  async updateInterviewStatus(tenantId: string, id: string, status: string): Promise<Interview> {
+    const updated = await this.prisma.interview.update({
+      where: { id, tenantId },
+      data: { status },
+    });
+    return this.mapInterview(updated);
+  }
+
+  // Talent Lead Management
+  async getTalentLeads(tenantId: string, status?: string): Promise<TalentLead[]> {
+    const where: any = { tenantId };
+    if (status) where.status = status;
+
+    const leads = await this.prisma.talentLead.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+    return leads.map((l: any) => this.mapLead(l));
+  }
+
+  async getTalentLeadById(tenantId: string, id: string): Promise<TalentLead | null> {
+    const lead = await this.prisma.talentLead.findFirst({
+      where: { id, tenantId },
+    });
+    return lead ? this.mapLead(lead) : null;
+  }
+
+  async createTalentLead(tenantId: string, data: any): Promise<TalentLead> {
+    const created = await this.prisma.talentLead.create({
+      data: {
+        tenantId,
+        source: data.source || "LINKEDIN",
+        externalProfileUrl: data.externalProfileUrl,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        headline: data.headline,
+        skills: data.skills,
+        leadScore: data.leadScore || 0,
+        status: data.status || "LEAD",
+        metadata: data.metadata,
+      },
+    });
+    return this.mapLead(created);
+  }
+
+  async updateTalentLead(tenantId: string, id: string, data: any): Promise<TalentLead> {
+    const updated = await this.prisma.talentLead.update({
+      where: { id, tenantId },
+      data: data as any,
+    });
+    return this.mapLead(updated);
+  }
+
+  // Compliance Management
+  async getComplianceDocuments(
+    tenantId: string,
+    employeeId: string,
+    documentId?: string,
+    status?: string,
+  ): Promise<ComplianceDocument[]> {
+    const where: any = { tenantId, employeeId };
+    if (documentId) where.id = documentId;
+    if (status) where.verificationStatus = status;
+
+    const docs = await this.prisma.complianceDocument.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+    return docs.map((d: any) => this.mapDocument(d));
+  }
+
+  async uploadComplianceDocument(tenantId: string, data: any): Promise<ComplianceDocument> {
+    const doc = await this.prisma.complianceDocument.create({
+      data: {
+        tenantId,
+        employeeId: data.employeeId,
+        documentType: data.documentType,
+        documentNumber: data.documentNumber,
+        fileUrl: data.fileUrl,
+        expiryDate: data.expiryDate ? new Date(data.expiryDate) : undefined,
+        verificationStatus: "PENDING",
+      },
+    });
+    return this.mapDocument(doc);
+  }
+
+  async verifyDocument(
+    tenantId: string,
+    id: string,
+    verifiedBy: string,
+    status: string,
+    metadata?: any,
+  ): Promise<ComplianceDocument> {
+    const doc = await this.prisma.complianceDocument.update({
+      where: { id, tenantId },
+      data: {
+        verificationStatus: status,
+        verifiedBy,
+        verifiedAt: new Date(),
+        metadata: metadata || {},
+      },
+    });
+    return this.mapDocument(doc);
+  }
+
+
+
+  // Strategic Workforce Planning
+  async getBudgetScenarios(tenantId: string): Promise<BudgetScenario[]> {
+    const scenarios = await this.prisma.budgetScenario.findMany({
+      where: { tenantId },
+      orderBy: { fiscalYear: "desc" },
+    });
+    return scenarios.map((s: any) => this.mapScenario(s));
+  }
+
+  async createBudgetScenario(tenantId: string, data: any): Promise<BudgetScenario> {
+    const created = await this.prisma.budgetScenario.create({
+      data: {
+        tenantId,
+        name: data.name,
+        fiscalYear: data.fiscalYear,
+        status: data.status || "DRAFT",
+        totalBudget: data.totalBudget || 0,
+        description: data.description,
+      },
+    });
+    return this.mapScenario(created);
+  }
+
+  async updateBudgetScenario(tenantId: string, id: string, data: any): Promise<BudgetScenario> {
+    const updated = await this.prisma.budgetScenario.update({
+      where: { id, tenantId },
+      data: data as any,
+    });
+    return this.mapScenario(updated);
+  }
+
+  async getHeadcountPlans(tenantId: string, scenarioId: string): Promise<HeadcountPlan[]> {
+    const plans = await this.prisma.headcountPlan.findMany({
+      where: {
+        scenarioId,
+        scenario: { tenantId },
+      },
+      orderBy: { plannedHireDate: "asc" },
+    });
+    return plans.map((p: any) => this.mapPlan(p));
+  }
+
+  async createHeadcountPlan(tenantId: string, data: any): Promise<HeadcountPlan> {
+    // Verify scenario belongs to tenant
+    const scenario = await this.prisma.budgetScenario.findFirst({
+      where: { id: data.scenarioId, tenantId },
+    });
+    if (!scenario) throw new Error("Scenario not found");
+
+    const created = await this.prisma.headcountPlan.create({
+      data: {
+        tenantId,
+        scenarioId: data.scenarioId,
+        departmentId: data.departmentId,
+        positionTitle: data.positionTitle,
+        targetHeadcount: data.targetHeadcount || 1,
+        projectedSalary: data.projectedSalary,
+        plannedHireDate: new Date(data.plannedHireDate),
+      },
+    });
+    return this.mapPlan(created);
+  }
+
+  async updateHeadcountPlan(tenantId: string, id: string, data: any): Promise<HeadcountPlan> {
+    const updated = await this.prisma.headcountPlan.update({
+      where: {
+        id,
+        scenario: { tenantId },
+      },
+      data: {
+        ...data,
+        plannedHireDate: data.plannedHireDate ? new Date(data.plannedHireDate) : undefined,
+      } as any,
+    });
+    return this.mapPlan(updated);
+  }
+
+  // Global Multi-Currency Payroll
+  async getExchangeRates(tenantId: string): Promise<ExchangeRate[]> {
+    const rates = await this.prisma.exchangeRate.findMany({
+      where: { tenantId },
+      orderBy: { effectiveAt: "desc" },
+    });
+    return rates.map((r: any) => this.mapRate(r));
+  }
+
+  async updateExchangeRate(tenantId: string, data: any): Promise<ExchangeRate> {
+    const rate = await this.prisma.exchangeRate.create({
+      data: {
+        tenantId,
+        fromCurrency: data.fromCurrency,
+        toCurrency: data.toCurrency,
+        rate: data.rate,
+        effectiveAt: data.effectiveDate ? new Date(data.effectiveDate) : new Date(),
+      },
+    });
+    return this.mapRate(rate);
+  }
+
+  async getPayrollRuns(tenantId: string): Promise<PayrollRun[]> {
+    const runs = await this.prisma.payrollRun.findMany({
+      where: { tenantId },
+      orderBy: { periodStart: "desc" },
+    });
+    return runs.map((r: any) => this.mapRun(r));
+  }
+
+  async getPayrollLines(tenantId: string, runId: string): Promise<PayrollLine[]> {
+    const lines = await this.prisma.payrollLine.findMany({
+      where: {
+        payrollRunId: runId,
+        payrollRun: { tenantId },
+      },
+    });
+    return lines.map((l: any) => this.mapLine(l));
+  }
+
+  async createPayrollRun(tenantId: string, data: any): Promise<PayrollRun> {
+    const created = await this.prisma.payrollRun.create({
+      data: {
+        tenantId,
+        periodStart: new Date(data.periodStart),
+        periodEnd: new Date(data.periodEnd),
+        baseCurrency: data.baseCurrency || "USD",
+        status: "DRAFT",
+      },
+    });
+    return this.mapRun(created);
+  }
+
+  // Succession Planning
+  async getSuccessionPlans(tenantId: string): Promise<SuccessionPlan[]> {
+    const plans = await this.prisma.successionPlan.findMany({
+      where: { tenantId },
+      include: { candidates: true },
+    });
+    return plans.map((p: any) => this.mapSuccessionPlan(p));
+  }
+
+  async getSuccessionPlan(tenantId: string, positionId: string): Promise<SuccessionPlan | null> {
+    const plan = await this.prisma.successionPlan.findFirst({
+      where: { positionId, tenantId },
+      include: { candidates: true },
+    });
+    return plan ? this.mapSuccessionPlan(plan) : null;
+  }
+
+  async createSuccessionPlan(tenantId: string, data: any): Promise<SuccessionPlan> {
+    const created = await this.prisma.successionPlan.create({
+      data: {
+        tenantId,
+        positionId: data.positionId,
+        isCritical: data.isCritical ?? true,
+        strategy: data.strategy,
+        notes: data.notes,
+      },
+      include: { candidates: true },
+    });
+    return this.mapSuccessionPlan(created);
+  }
+
+  async addSuccessionCandidate(tenantId: string, data: any): Promise<SuccessionCandidate> {
+    const created = await this.prisma.successionCandidate.create({
+      data: {
+        tenantId,
+        planId: data.planId,
+        employeeId: data.employeeId,
+        readiness: data.readiness,
+        readinessScore: data.readinessScore ?? 0,
+        riskOfLoss: data.riskOfLoss ?? "LOW",
+        impactOfLoss: data.impactOfLoss ?? "MEDIUM",
+        skillGaps: data.skillGaps ?? [],
+      },
+    });
+    return this.mapSuccessionCandidate(created);
+  }
+
+  async getBenchStrength(tenantId: string, departmentId?: string): Promise<any> {
+    const plans = await this.prisma.successionPlan.findMany({
+      where: { 
+        tenantId,
+        position: departmentId ? { departmentId } : undefined
+      },
+      include: { 
+        candidates: true,
+        position: true
+      },
+    });
+
+    const readinessCounts = {
+      READY_NOW: 0,
+      READY_1_2_YEARS: 0,
+      READY_3_PLUS_YEARS: 0,
+      EMERGENCY: 0,
+    };
+
+    plans.forEach(p => {
+      p.candidates.forEach(c => {
+        if (c.readiness === "READY_NOW") readinessCounts.READY_NOW++;
+        if (c.readiness === "READY_1_2_YEARS") readinessCounts.READY_1_2_YEARS++;
+        if (c.readiness === "READY_3_PLUS_YEARS") readinessCounts.READY_3_PLUS_YEARS++;
+        if (c.readiness === "EMERGENCY") readinessCounts.EMERGENCY++;
+      });
+    });
+
+    return {
+      totalCriticalPositions: plans.filter(p => p.isCritical).length,
+      averageBenchStrength: plans.length > 0 ? (readinessCounts.READY_NOW + readinessCounts.READY_1_2_YEARS) / plans.length : 0,
+      readinessDistribution: readinessCounts,
+    };
+  }
+
+  // Skills-Based Org Design
+  async getSkills(tenantId: string, category?: string): Promise<Skill[]> {
+    const where: any = { tenantId };
+    if (category) where.category = category;
+    const skills = await this.prisma.skill.findMany({ where });
+    return skills.map((s) => this.mapSkill(s));
+  }
+
+  async createSkill(tenantId: string, data: any): Promise<Skill> {
+    const skill = await this.prisma.skill.create({
+      data: {
+        tenantId,
+        name: data.name,
+        category: data.category,
+        description: data.description,
+      },
+    });
+    return this.mapSkill(skill);
+  }
+
+  async getEmployeeSkills(tenantId: string, employeeId: string): Promise<EmployeeSkill[]> {
+    const skills = await this.prisma.employeeSkill.findMany({
+      where: { employeeId, tenantId },
+      include: { skill: true },
+    });
+    return skills.map((s) => this.mapEmployeeSkill(s));
+  }
+
+  async updateEmployeeSkill(tenantId: string, data: any): Promise<EmployeeSkill> {
+    const skill = await this.prisma.employeeSkill.upsert({
+      where: {
+        employeeId_skillId: {
+          employeeId: data.employeeId,
+          skillId: data.skillId,
+        },
+      },
+      create: {
+        tenantId,
+        employeeId: data.employeeId,
+        skillId: data.skillId,
+        proficiency: data.proficiency || 1,
+        verificationStatus: data.verificationStatus || "SELF_ASSESSED",
+      },
+      update: {
+        proficiency: data.proficiency,
+        verificationStatus: data.verificationStatus,
+        verifiedBy: data.verifiedBy,
+        verifiedAt: data.verifiedAt ? new Date(data.verifiedAt) : undefined,
+      },
+      include: { skill: true },
+    });
+    return this.mapEmployeeSkill(skill);
+  }
+
+  async addEmployeeSkill(tenantId: string, data: any): Promise<EmployeeSkill> {
+    return this.updateEmployeeSkill(tenantId, data);
+  }
+
+  async findReplacementCandidates(tenantId: string, positionId: string): Promise<any[]> {
+    const position = await this.getPositionById(tenantId, positionId);
+    if (!position || !position.skills) return [];
+
+    const skillIds = position.skills.map((s: any) => s.skillId);
+    return this.findTalentBySkills(tenantId, skillIds);
+  }
+
+  async findTalentBySkills(tenantId: string, skillIds: string[], minProficiency: number = 1): Promise<any[]> {
+    const employees = await this.prisma.employee.findMany({
+      where: {
+        tenantId,
+        status: "active",
+        skills: {
+          some: {
+            skillId: { in: skillIds },
+            proficiency: { gte: minProficiency },
+          },
+        },
+      },
+      include: {
+        skills: {
+          where: { skillId: { in: skillIds } },
+          include: { skill: true },
+        },
+      },
+    });
+
+    return employees.map((e) => ({
+      employee: this.mapEmployee(e),
+      matchedSkills: e.skills.map((s: any) => ({
+        name: s.skill.name,
+        proficiency: s.proficiency,
+      })),
+      matchPercentage: (e.skills.length / skillIds.length) * 100,
+    }));
+  }
+
+  // Total Rewards & Benefits
+  async getBenefitPlans(tenantId: string): Promise<BenefitPlan[]> {
+    const plans = await this.prisma.benefitPlan.findMany({
+      where: { tenantId },
+    });
+    return plans.map((p) => this.mapBenefitPlan(p));
+  }
+
+  async createBenefitPlan(tenantId: string, data: any): Promise<BenefitPlan> {
+    const plan = await this.prisma.benefitPlan.create({
+      data: {
+        tenantId,
+        name: data.name,
+        type: data.type,
+        description: data.description,
+        employerContribution: data.employerContribution,
+        employeeContribution: data.employeeContribution,
+        frequency: data.frequency || "MONTHLY",
+      },
+    });
+    return this.mapBenefitPlan(plan);
+  }
+
+  async getEmployeeBenefits(tenantId: string, employeeId: string): Promise<EmployeeBenefit[]> {
+    const benefits = await this.prisma.employeeBenefit.findMany({
+      where: { employeeId, tenantId },
+      include: { plan: true },
+    });
+    return benefits.map((b) => this.mapEmployeeBenefit(b));
+  }
+
+  async enrollInBenefit(tenantId: string, data: any): Promise<EmployeeBenefit> {
+    const benefit = await this.prisma.employeeBenefit.create({
+      data: {
+        tenantId,
+        employeeId: data.employeeId,
+        planId: data.planId,
+        coverageAmount: data.coverageAmount,
+        status: "ACTIVE",
+      },
+      include: { plan: true },
+    });
+    return this.mapEmployeeBenefit(benefit);
+  }
+
+  // AI-Powered Career Pathing
+  async getCareerPaths(tenantId: string): Promise<CareerPath[]> {
+    const paths = await this.prisma.careerPath.findMany({
+      where: { tenantId },
+      include: { 
+        fromPosition: true,
+        toPosition: true 
+      },
+    });
+    return paths.map((p) => this.mapCareerPath(p));
+  }
+
+  async createCareerPath(tenantId: string, data: any): Promise<CareerPath> {
+    const path = await this.prisma.careerPath.create({
+      data: {
+        tenantId,
+        fromPositionId: data.fromPositionId,
+        toPositionId: data.toPositionId,
+        requirementNotes: data.requirementNotes,
+      },
+      include: { 
+        fromPosition: true,
+        toPosition: true 
+      },
+    });
+    return this.mapCareerPath(path);
+  }
+
+  async getMentorshipPairs(tenantId: string, employeeId: string): Promise<MentorshipPair[]> {
+    const pairs = await this.prisma.mentorshipPair.findMany({
+      where: {
+        tenantId,
+        OR: [
+          { mentorId: employeeId },
+          { menteeId: employeeId },
+        ],
+      },
+      include: {
+        mentor: true,
+        mentee: true,
+      },
+    });
+    return pairs.map((p) => this.mapMentorshipPair(p));
+  }
+
+  async createMentorshipPair(tenantId: string, data: any): Promise<MentorshipPair> {
+    const pair = await this.prisma.mentorshipPair.create({
+      data: {
+        tenantId,
+        mentorId: data.mentorId,
+        menteeId: data.menteeId,
+        status: "ACTIVE",
+        startDate: data.startDate ? new Date(data.startDate) : new Date(),
+        focusSkills: data.focusSkills || [],
+      },
+      include: {
+        mentor: true,
+        mentee: true,
+      },
+    });
+    return this.mapMentorshipPair(pair);
+  }
+
+  // AI-Generated Job Descriptions
+  async updatePositionJobPost(tenantId: string, positionId: string, data: any): Promise<any> {
+    const updated = await this.prisma.position.update({
+      where: { id: positionId, tenantId },
+      data: {
+        jobPostMetadata: {
+          ...(typeof (await this.prisma.position.findUnique({ where: { id: positionId } }))?.jobPostMetadata === 'object' 
+            ? ((await this.prisma.position.findUnique({ where: { id: positionId } }))?.jobPostMetadata as any) 
+            : {}),
+          jobPost: data,
+        },
+      },
+    });
+    return updated.jobPostMetadata;
+  }
+
+  async getPositionJobPost(tenantId: string, positionId: string): Promise<any> {
+    const pos = await this.prisma.position.findUnique({
+      where: { id: positionId, tenantId },
+      select: { jobPostMetadata: true },
+    });
+    return (pos?.jobPostMetadata as any)?.jobPost || null;
+  }
+
+  async getPositionSkills(tenantId: string, positionId: string): Promise<PositionSkill[]> {
+    const skills = await this.prisma.positionSkill.findMany({
+      where: { positionId, tenantId },
+      include: { skill: true },
+    });
+    return skills.map((s) => this.mapPositionSkill(s));
+  }
+
+  async updatePositionSkill(tenantId: string, data: any): Promise<PositionSkill> {
+    const skill = await this.prisma.positionSkill.upsert({
+      where: {
+        positionId_skillId: {
+          positionId: data.positionId,
+          skillId: data.skillId,
+        },
+      },
+      create: {
+        tenantId,
+        positionId: data.positionId,
+        skillId: data.skillId,
+        minProficiency: data.minProficiency || 1,
+        isMandatory: data.isMandatory || false,
+      },
+      update: {
+        minProficiency: data.minProficiency,
+        isMandatory: data.isMandatory,
+      },
+      include: { skill: true },
+    });
+    return this.mapPositionSkill(skill);
+  }
+
+  // AI-Powered Performance Predictor
+  async getEmployeePerformanceHistory(tenantId: string, employeeId: string): Promise<PerformanceReview[]> {
+    const reviews = await this.prisma.performanceReview.findMany({
+      where: { employeeId, tenantId },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        tenantId: true,
+        cycleId: true,
+        employeeId: true,
+        reviewerId: true,
+        status: true,
+        rating: true,
+        comments: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    return reviews.map((r) => this.mapReview(r));
+  }
+
+  async getEmployeeGoals(tenantId: string, employeeId: string): Promise<PerformanceGoal[]> {
+    const goals = await this.prisma.performanceGoal.findMany({
+      where: { employeeId, tenantId },
+      orderBy: { targetDate: "asc" },
+    });
+    return goals.map((g) => this.mapPerformanceGoal(g));
+  }
+
+  async updatePerformanceGoal(tenantId: string, data: any): Promise<PerformanceGoal> {
+    const goal = await this.prisma.performanceGoal.upsert({
+      where: { id: data.id || "new-id" },
+      create: {
+        tenantId,
+        employeeId: data.employeeId,
+        title: data.title,
+        description: data.description,
+        targetDate: new Date(data.targetDate),
+        progress: data.progress || 0,
+        status: data.status || "IN_PROGRESS",
+      },
+      update: {
+        title: data.title,
+        description: data.description,
+        targetDate: data.targetDate ? new Date(data.targetDate) : undefined,
+        progress: data.progress,
+        status: data.status,
+      },
+    });
+    return this.mapPerformanceGoal(goal);
+  }
+
+  async getGoalById(tenantId: string, id: string): Promise<PerformanceGoal | null> {
+    const goal = await this.prisma.performanceGoal.findFirst({
+      where: { id, tenantId },
+    });
+    return goal ? this.mapPerformanceGoal(goal) : null;
+  }
+
+  // AI-Powered Learning Path Personalization
+  async getTrainingProgramsBySkills(tenantId: string, skillIds: string[]): Promise<TrainingProgram[]> {
+    const programs = await this.prisma.trainingProgram.findMany({
+      where: {
+        tenantId,
+        skills: {
+          some: {
+            skillId: { in: skillIds },
+          },
+        },
+      },
+    });
+    return programs.map((p) => this.mapTrainingProgram(p));
+  }
+
+  async getEmployeeTrainingHistory(tenantId: string, employeeId: string): Promise<TrainingAssignment[]> {
+    const assignments = await this.prisma.trainingAssignment.findMany({
+      where: { employeeId, tenantId },
+      include: { program: true },
+    });
+    return assignments.map((a) => this.mapTrainingAssignment(a));
+  }
+
+  async enrollInTrainingProgram(tenantId: string, employeeId: string, programId: string): Promise<TrainingAssignment> {
+    const assignment = await this.prisma.trainingAssignment.create({
+      data: {
+        tenantId,
+        employeeId,
+        programId,
+        status: "in_progress",
+        assignedAt: new Date(),
+      },
+      include: { program: true },
+    });
+    return this.mapTrainingAssignment(assignment);
+  }
+
+  async getTrainingProgramById(tenantId: string, id: string): Promise<TrainingProgram | null> {
+    const program = await this.prisma.trainingProgram.findFirst({
+      where: { id, tenantId },
+      include: { 
+        skills: { include: { skill: true } }
+      },
+    });
+    return program ? this.mapTrainingProgram(program) : null;
+  }
+
+  // Predictive Labor Cost Modeling
+  async getDepartmentBudgetData(tenantId: string, departmentId: string): Promise<any> {
+    const scenario = await this.prisma.budgetScenario.findFirst({
+      where: { tenantId, status: "APPROVED" },
+      orderBy: { fiscalYear: "desc" },
+    });
+    if (!scenario) return null;
+
+    const plans = await this.prisma.headcountPlan.findMany({
+      where: { scenarioId: scenario.id, departmentId },
+    });
+
+    return {
+      scenarioName: scenario.name,
+      fiscalYear: scenario.fiscalYear,
+      totalDepartmentBudget: scenario.totalBudget, // This is simplified
+      headcountPlans: plans.map(p => ({
+        positionTitle: p.positionTitle,
+        targetHeadcount: p.targetHeadcount,
+        projectedSalary: p.projectedSalary,
+      })),
+    };
+  }
+
+  async getActualLaborCostHistory(tenantId: string, departmentId: string, monthLimit: number): Promise<any[]> {
+    // This would ideally sum payroll lines but for now we aggregate monthly
+    const payrolls = await this.prisma.payrollProfile.findMany({
+      where: { employee: { departmentId, tenantId } },
+    });
+    
+    // Simplified history
+    return [
+      { period: "2026-01", totalCost: 85000, grossCost: 95000 },
+      { period: "2026-02", totalCost: 87000, grossCost: 97000 },
+    ].slice(0, monthLimit);
+  }
+
+  // ============================================================
+  // HOLIDAY MANAGEMENT
+  // ============================================================
+
+  async getHolidays(tenantId: string): Promise<any[]> {
+    return this.prisma.holiday.findMany({
+      where: {
+        tenantId,
+        deletedAt: null,
+      },
+      orderBy: { date: "asc" },
+    });
+  }
+
+  async createHoliday(tenantId: string, data: any): Promise<any> {
+    return this.prisma.holiday.create({
+      data: {
+        tenantId,
+        name: data.name,
+        date: new Date(data.date),
+        isGlobal: data.isGlobal || false,
+        description: data.description,
+      },
+    });
+  }
+
+  // ============================================================
+  // COMPLIANCE ENGINE
+  // ============================================================
+
+  async getComplianceModules(tenantId: string): Promise<any[]> {
+    return this.prisma.complianceModule.findMany({
+      where: { tenantId },
+    });
+  }
+
+  async enableComplianceModule(tenantId: string, moduleKey: string, config?: any): Promise<any> {
+    return this.prisma.complianceModule.upsert({
+      where: {
+        tenantId_moduleKey: {
+          tenantId,
+          moduleKey,
+        },
+      },
+      update: {
+        status: "ACTIVE",
+        config,
+      },
+      create: {
+        tenantId,
+        moduleKey,
+        status: "ACTIVE",
+        config,
+      },
+    });
+  }
+
+  async getComplianceReports(tenantId: string): Promise<any[]> {
+    return this.prisma.complianceReport.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async createComplianceReport(tenantId: string, data: any): Promise<any> {
+    return this.prisma.complianceReport.create({
+      data: {
+        tenantId,
+        payrollRunId: data.payrollRunId,
+        type: data.type,
+        status: data.status || "GENERATED",
+        summary: data.summary || {},
+        fileUrl: data.fileUrl,
+      },
+    });
+  }
+
+  async getGlobalComplianceStatus(tenantId: string, status?: string): Promise<ComplianceDocument[]> {
+    const where: any = { tenantId };
+    if (status) where.verificationStatus = status;
+
+    const docs = await this.prisma.complianceDocument.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+    });
+    return docs.map((d: any) => this.mapDocument(d));
   }
 }

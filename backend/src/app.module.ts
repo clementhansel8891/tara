@@ -11,12 +11,17 @@ import { SalesModule } from "./core/sales/sales.module";
 import { MarketingModule } from "./core/marketing/marketing.module";
 import { PaymentModule } from "./core/payment/payment.module";
 import { RetailModule } from "./core/retail/retail.module";
+import { ExplorerModule } from "./support/explorer/explorer.module";
 import { PersistenceModule } from "./persistence/persistence.module";
 import { AuditModule } from "./shared/audit/audit.module";
 import { AuthModule } from "./core/auth/auth.module";
 import { LoggerModule } from './shared/logger/logger.module';
 import { LicenseModule } from './shared/license/license.module';
 import { CommsModule } from './shared/comms/comms.module';
+import { EventsModule } from "./shared/events/events.module";
+import { WorkflowModule } from "./shared/workflow/workflow.module";
+import { CommandBusModule } from "./shared/command-bus/command-bus.module";
+import { ComplianceEngineModule } from "./modules/compliance/compliance.module";
 import { HealthController } from "./gateway/health.controller";
 
 import { APP_GUARD } from "@nestjs/core";
@@ -48,6 +53,10 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     LicenseModule,
     CommsModule,
     PersistenceModule,
+    EventsModule,
+    WorkflowModule,
+    CommandBusModule,
+    ComplianceEngineModule,
     FinanceModule,
     HRModule,
     ITSettingsModule,
@@ -59,6 +68,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     MarketingModule,
     PaymentModule,
     RetailModule,
+    ExplorerModule,
     AuditModule,
     AuthModule,
   ],

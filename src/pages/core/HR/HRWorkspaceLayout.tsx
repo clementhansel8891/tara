@@ -42,7 +42,7 @@ type MenuSection = {
 
 const BASE_SECTIONS: MenuSection[] = [
   {
-    title: "PulseDesk",
+    title: "Dashboard",
     items: [
       {
         label: "PulseDesk",
@@ -56,13 +56,29 @@ const BASE_SECTIONS: MenuSection[] = [
     title: "People",
     items: [
       {
-        label: "RosterGrid",
+        label: "People Directory",
         to: "/core/hr/roster",
         icon: Users,
         roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
       },
+    ],
+  },
+  {
+    title: "Hiring",
+    items: [
       {
-        label: "OrgMap",
+        label: "Requisitions",
+        to: "/core/hr/talent",
+        icon: Briefcase,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+      },
+    ],
+  },
+  {
+    title: "Organization",
+    items: [
+      {
+        label: "Org Structure",
         to: "/core/hr/org-map",
         icon: Building2,
         roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
@@ -70,36 +86,13 @@ const BASE_SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Performance",
     items: [
       {
-        label: "FlowGate",
-        to: "/core/hr/flowgate",
-        icon: ShieldCheck,
-        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
-      },
-      {
-        label: "CaseDesk",
-        to: "/core/hr/cases",
+        label: "Review Cycles",
+        to: "/core/hr/growth",
         icon: LayoutGrid,
-        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
-      },
-      {
-        label: "VaultSpace",
-        to: "/core/hr/vault",
-        icon: FileText,
-        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
-      },
-    ],
-  },
-  {
-    title: "Talent",
-    items: [
-      {
-        label: "TalentFlow",
-        to: "/core/hr/talent",
-        icon: Briefcase,
-        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
       },
       {
         label: "SkillTrack",
@@ -107,19 +100,13 @@ const BASE_SECTIONS: MenuSection[] = [
         icon: GraduationCap,
         roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
       },
-      {
-        label: "GrowthCycle",
-        to: "/core/hr/growth",
-        icon: LayoutGrid,
-        roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
-      },
     ],
   },
   {
     title: "Payroll",
     items: [
       {
-        label: "PayCycle Studio",
+        label: "Payroll Runs",
         to: "/core/hr/paycycle",
         icon: Wallet,
         roles: ["HR_ADMIN", "FINANCE_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
@@ -130,9 +117,21 @@ const BASE_SECTIONS: MenuSection[] = [
     title: "Compliance",
     items: [
       {
-        label: "LexBoard",
+        label: "Contracts",
         to: "/core/hr/lexboard",
         icon: FileText,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+      },
+      {
+        label: "Document Vault",
+        to: "/core/hr/vault",
+        icon: ShieldCheck,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+      },
+      {
+        label: "Legal Cases",
+        to: "/core/hr/cases",
+        icon: LayoutGrid,
         roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
       },
     ],
@@ -141,10 +140,32 @@ const BASE_SECTIONS: MenuSection[] = [
     title: "Intelligence",
     items: [
       {
-        label: "InsightLayer",
+        label: "Workforce Insights",
         to: "/core/hr/insights",
         icon: LineChart,
         roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
+      },
+    ],
+  },
+  {
+    title: "Approvals",
+    items: [
+      {
+        label: "Workflow Center",
+        to: "/core/hr/flowgate",
+        icon: Inbox,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+      },
+    ],
+  },
+  {
+    title: "Employee Portal",
+    items: [
+      {
+        label: "My Pulse",
+        to: "/core/hr/portal",
+        icon: LayoutGrid,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN", "STAFF"],
       },
     ],
   },

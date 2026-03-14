@@ -10,6 +10,12 @@ import { PerformanceCycle } from "./entities/performance-cycle.entity";
 import { PerformanceReview } from "./entities/performance-review.entity";
 import { HRCase } from "./entities/hr-case.entity";
 import { Contract } from "./entities/contract.entity";
+import { Candidate } from "./entities/candidate.entity";
+import { Position } from "./entities/position.entity";
+import { Compensation } from "./entities/compensation.entity";
+import { Interview } from "./entities/interview.entity";
+import { TalentLead } from "./entities/talent-lead.entity";
+import { IngestTalentLeadDto } from "./dto/ingest-talent-lead.dto";
 
 import { CreateEmployeeDto } from "./dto/create-employee.dto";
 import { UpdateEmployeeDto } from "./dto/update-employee.dto";
@@ -23,6 +29,7 @@ import { CreateContractDto } from "./dto/create-contract.dto";
 
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 import { AuditService } from "../../shared/audit/audit.service";
+import { EventBusService } from "../../shared/events/event-bus.service";
 
 /**
  * HR Service
@@ -36,18 +43,25 @@ export class HRService {
     private readonly hrRepository: IHRRepository,
     private readonly fileProcessingService: FileProcessingService,
     private readonly auditService: AuditService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   // Employee Management
   async getEmployees(
     tenantId: string,
     locationId?: string,
-  ): Promise<Employee[]> {
-    return this.hrRepository.getEmployees(tenantId, locationId);
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ data: Employee[]; total: number }> {
+    return this.hrRepository.getEmployees(tenantId, locationId, page, limit);
   }
 
-  async getGlobalEmployees(locationId?: string): Promise<Employee[]> {
-    return this.hrRepository.getGlobalEmployees(locationId);
+  async getGlobalEmployees(
+    locationId?: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ data: Employee[]; total: number }> {
+    return this.hrRepository.getGlobalEmployees(locationId, page, limit);
   }
 
   async getEmployeeById(
@@ -82,6 +96,18 @@ export class HRService {
         },
       });
     }
+
+    await this.eventBus.publish({
+      eventType: "employee.created",
+      tenantId,
+      entityId: employee.id,
+      payload: {
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        departmentId: employee.departmentId,
+      },
+    });
+
     return employee;
   }
 
@@ -129,6 +155,114 @@ export class HRService {
         entityId: employee.id,
       });
     }
+
+    await this.eventBus.publish({
+      eventType: "employee.terminated",
+      tenantId,
+      entityId: employee.id,
+      payload: { 
+        reason: "Deactivated",
+        fullName: `${employee.firstName} ${employee.lastName}`,
+        email: employee.email,
+        departmentId: employee.departmentId
+      },
+    });
+
+    return employee;
+  }
+
+  async promoteEmployee(
+    tenantId: string,
+    employeeId: string,
+    data: any,
+    userId?: string,
+  ): Promise<Employee> {
+    const employee = await this.hrRepository.promoteEmployee(tenantId, employeeId, data);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "PROMOTE",
+        entityType: "EMPLOYEE",
+        entityId: employeeId,
+        metadata: data,
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "employee.promoted",
+      tenantId,
+      entityId: employeeId,
+      payload: data,
+    });
+
+    return employee;
+  }
+
+  async transferEmployee(
+    tenantId: string,
+    employeeId: string,
+    data: any,
+    userId?: string,
+  ): Promise<Employee> {
+    const employee = await this.hrRepository.transferEmployee(tenantId, employeeId, data);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "TRANSFER",
+        entityType: "EMPLOYEE",
+        entityId: employeeId,
+        metadata: data,
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "employee.transferred",
+      tenantId,
+      entityId: employeeId,
+      payload: data,
+    });
+
+    return employee;
+  }
+
+  async suspendEmployee(
+    tenantId: string,
+    employeeId: string,
+    reason: string,
+    userId?: string,
+  ): Promise<Employee> {
+    const employee = await this.hrRepository.suspendEmployee(tenantId, employeeId, reason);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "SUSPEND",
+        entityType: "EMPLOYEE",
+        entityId: employeeId,
+        metadata: { reason },
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "employee.suspended",
+      tenantId,
+      entityId: employeeId,
+      payload: { 
+        reason,
+        fullName: `${employee.firstName} ${employee.lastName}`,
+        email: employee.email,
+        departmentId: employee.departmentId
+      },
+    });
+
     return employee;
   }
 
@@ -191,7 +325,7 @@ export class HRService {
       { header: "Status", key: "status", width: 10 },
     ];
 
-    return this.fileProcessingService.generateExcel(employees, columns, {
+    return this.fileProcessingService.generateExcel(employees.data, columns, {
       traceId: `HR-${tenantId}-${userId}-${Date.now()}`,
       watermark: { text: "ZENVIX CONFIDENTIAL" },
     });
@@ -204,13 +338,17 @@ export class HRService {
     employeeId?: string,
     startDate?: string,
     endDate?: string,
-  ): Promise<Attendance[]> {
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ data: Attendance[]; total: number }> {
     return this.hrRepository.getAttendance(
       tenantId,
       locationId,
       employeeId,
       startDate,
       endDate,
+      page,
+      limit,
     );
   }
 
@@ -218,11 +356,15 @@ export class HRService {
     employeeId?: string,
     startDate?: string,
     endDate?: string,
-  ): Promise<Attendance[]> {
+    page: number = 1,
+    limit: number = 50,
+  ): Promise<{ data: Attendance[]; total: number }> {
     return this.hrRepository.getGlobalAttendance(
       employeeId,
       startDate,
       endDate,
+      page,
+      limit,
     );
   }
 
@@ -514,6 +656,152 @@ export class HRService {
     }
     return requisition;
   }
+  // Talent Management
+  async getCandidates(tenantId: string, status?: string): Promise<Candidate[]> {
+    return this.hrRepository.getCandidates(tenantId, status);
+  }
+
+  async createCandidate(tenantId: string, data: any, userId?: string): Promise<Candidate> {
+    const candidate = await this.hrRepository.createCandidate(tenantId, data);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "CANDIDATE",
+        entityId: candidate.id,
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "candidate.applied",
+      tenantId,
+      entityId: candidate.id,
+      payload: { requisitionId: candidate.requisitionId, source: candidate.source },
+    });
+
+    return candidate;
+  }
+
+  async convertLeadToCandidate(
+    tenantId: string,
+    leadId: string,
+    requisitionId: string,
+    userId?: string,
+  ): Promise<Candidate> {
+    const lead = await this.hrRepository.getTalentLeadById(tenantId, leadId);
+    if (!lead) throw new Error("Lead not found");
+
+    const candidate = await this.hrRepository.createCandidate(tenantId, {
+      firstName: lead.name.split(" ")[0],
+      lastName: lead.name.split(" ").slice(1).join(" ") || "N/A",
+      email: lead.email,
+      phone: lead.phone,
+      requisitionId,
+      source: lead.source,
+    });
+
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CONVERT_LEAD",
+        entityType: "CANDIDATE",
+        entityId: candidate.id,
+        metadata: { leadId },
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "candidate.converted",
+      tenantId,
+      entityId: candidate.id,
+      payload: { leadId, requisitionId },
+    });
+
+    return candidate;
+  }
+
+  async hireCandidate(tenantId: string, candidateId: string, userId?: string): Promise<Employee> {
+    const employee = await this.hrRepository.hireCandidate(tenantId, candidateId);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "HIRE",
+        entityType: "EMPLOYEE",
+        entityId: employee.id,
+        metadata: { candidateId },
+      });
+    }
+
+    await this.eventBus.publish({
+      eventType: "candidate.hired",
+      tenantId,
+      entityId: candidateId,
+      payload: { 
+        employeeId: employee.id, 
+        hireDate: employee.hireDate,
+        fullName: `${employee.firstName} ${employee.lastName}`,
+        email: employee.email,
+        roleTitle: employee.roleTitle,
+        departmentId: employee.departmentId
+      },
+    });
+
+    return employee;
+  }
+
+  // Headcount & Compensation Management
+  async getPositions(tenantId: string, deptId?: string): Promise<Position[]> {
+    return this.hrRepository.getPositions(tenantId, deptId);
+  }
+
+  async updatePosition(tenantId: string, id: string, data: any, userId?: string): Promise<Position> {
+    const position = await this.hrRepository.updatePosition(tenantId, id, data);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "POSITION",
+        entityId: position.id,
+        metadata: data,
+      });
+    }
+
+    return position;
+  }
+
+  async getCompensation(tenantId: string, employeeId: string): Promise<Compensation | null> {
+    return this.hrRepository.getCompensation(tenantId, employeeId);
+  }
+
+  async updateCompensation(tenantId: string, employeeId: string, data: any, userId?: string): Promise<Compensation> {
+    const compensation = await this.hrRepository.updateCompensation(tenantId, employeeId, data);
+    
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "COMPENSATION",
+        entityId: compensation.id,
+        metadata: data,
+      });
+    }
+
+    return compensation;
+  }
+
 
   // Performance Management
   async getPerformanceCycles(tenantId: string): Promise<PerformanceCycle[]> {
@@ -769,6 +1057,72 @@ export class HRService {
       entityId: assignment.id,
     });
     return assignment;
+  }
+
+  // Analytics & Reporting
+  async getHeadcountTrend(tenantId: string): Promise<any[]> {
+    return this.hrRepository.getHeadcountTrend(tenantId);
+  }
+
+  async getTurnoverStats(tenantId: string): Promise<any> {
+    return this.hrRepository.getTurnoverStats(tenantId);
+  }
+
+  async getDepartmentAnalytics(tenantId: string): Promise<any[]> {
+    return this.hrRepository.getDepartmentAnalytics(tenantId);
+  }
+
+  async getCompensationAnalytics(tenantId: string): Promise<any> {
+    return this.hrRepository.getCompensationAnalytics(tenantId);
+  }
+
+  // Recruitment & Scheduling
+  async getInterviews(tenantId: string, candidateId?: string): Promise<Interview[]> {
+    return this.hrRepository.getInterviews(tenantId, candidateId);
+  }
+
+  async scheduleInterview(tenantId: string, data: any, userId: string): Promise<Interview> {
+    const interview = await this.hrRepository.scheduleInterview(tenantId, data);
+
+    await this.eventBus.publish({
+      eventType: "interview.scheduled",
+      tenantId,
+      entityId: interview.id,
+      userId,
+      payload: {
+        candidateId: interview.candidateId,
+        interviewerId: interview.interviewerId,
+        title: interview.title,
+        scheduledAt: interview.scheduledAt,
+      },
+    });
+
+    return interview;
+  }
+
+  async updateInterviewStatus(tenantId: string, id: string, status: string, userId: string): Promise<Interview> {
+    const interview = await this.hrRepository.updateInterviewStatus(tenantId, id, status);
+
+    await this.eventBus.publish({
+      eventType: "interview.status_updated",
+      tenantId,
+      entityId: interview.id,
+      userId,
+      payload: {
+        status: interview.status,
+      },
+    });
+
+    return interview;
+  }
+
+  // Talent Lead Management
+  async getTalentLeads(tenantId: string, status?: string): Promise<TalentLead[]> {
+    return this.hrRepository.getTalentLeads(tenantId, status);
+  }
+
+  async getTalentLeadById(tenantId: string, id: string): Promise<TalentLead | null> {
+    return this.hrRepository.getTalentLeadById(tenantId, id);
   }
 }
 

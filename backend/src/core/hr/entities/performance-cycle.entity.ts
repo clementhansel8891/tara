@@ -8,4 +8,5 @@ export class PerformanceCycle {
   dueDate: Date;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date;
 }

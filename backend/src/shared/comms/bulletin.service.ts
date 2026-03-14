@@ -31,7 +31,7 @@ export class BulletinService {
 
   async getPosts(tenantId: string, filters: any) {
     const page = filters.page ?? 1;
-    const limit = filters.limit ?? 20;
+    const limit = filters.limit ? parseInt(filters.limit) : 100;
     const skip = (page - 1) * limit;
 
     const where: any = { 

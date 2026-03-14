@@ -9,6 +9,7 @@ import {
   Req,
   UseInterceptors,
   UseGuards,
+  Query,
 } from "@nestjs/common";
 import { Request } from "express";
 import { TenantContext } from "../../gateway/tenant-context.interface";
@@ -238,5 +239,24 @@ export class ITController {
     const { tenantId } = request.tenantContext;
     const data = await this.itService.getSystemHealth(tenantId);
     return { success: true, tenantId, count: data.length, data };
+  }
+
+  // ==================== Monitoring ====================
+
+  @Get("monitoring/stats")
+  async getMonitoringStats(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.itService.getMonitoringStats(tenantId);
+    return { success: true, data };
+  }
+
+  @Get("monitoring/logs")
+  async getAuditLogs(
+    @Req() request: RequestWithTenant,
+    @Query("requestId") requestId?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.itService.getAuditLogs(tenantId, requestId);
+    return { success: true, count: data.length, data };
   }
 }

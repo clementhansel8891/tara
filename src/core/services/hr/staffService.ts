@@ -29,7 +29,7 @@ const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
 
 export const staffService = {
   getStatusOptions() {
-    return ["active", "on_leave", "inactive", "terminated"] as const;
+    return ["candidate", "offer", "hired", "probation", "active", "transferred", "promoted", "on_leave", "suspended", "terminated"] as const;
   },
 
   async listRoleTitles(tenantId: string, actor: SessionContext) {
@@ -115,20 +115,31 @@ export const staffService = {
   // Replaced stubbed methods with actual API integrations
   async requestTermination(tenantId: string, actor: SessionContext, employeeId: string, reason?: string) {
     ensureTenantAccess(tenantId, actor);
-    // Deactivate/Terminate employee via DELETE endpoint
-    return apiRequest(`/hr/employees/${employeeId}`, "DELETE", actor);
+    // Use the new HRService method for Termination
+    return hrService.deleteEmployee(tenantId, actor, employeeId);
   },
 
   async requestTransfer(tenantId: string, actor: SessionContext, employeeId: string, targetDept: string, reason?: string) {
     ensureTenantAccess(tenantId, actor);
-    return apiRequest(`/hr/employees/${employeeId}`, "PUT", actor, { departmentId: targetDept });
+    return hrService.transferEmployee(tenantId, actor, employeeId, {
+      newDepartmentId: targetDept,
+      notes: reason,
+    });
+  },
+
+  async promoteEmployee(tenantId: string, actor: SessionContext, employeeId: string, data: { newRoleTitle: string; newBaseSalary?: number; notes?: string }) {
+    ensureTenantAccess(tenantId, actor);
+    return hrService.promoteEmployee(tenantId, actor, employeeId, data);
+  },
+
+  async suspendEmployee(tenantId: string, actor: SessionContext, employeeId: string, reason: string) {
+    ensureTenantAccess(tenantId, actor);
+    return hrService.suspendEmployee(tenantId, actor, employeeId, reason);
   },
 
   async importStaff(tenantId: string, actor: SessionContext, source: string) {
     ensureTenantAccess(tenantId, actor);
     // Real implementation would send a FormData with file payload: apiRequest formData
-    // Assuming 'source' is a string we pass as text/plain for a mock import, or we just alert for now since we don't have a File object here
-    // But since the backend expects a file upload, we can simulate an apiRequest if source is a file path, else just placeholder
     console.warn("importStaff expects a file upload. Sending text body as placeholder.");
     return;
   },

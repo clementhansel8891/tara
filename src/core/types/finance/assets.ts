@@ -172,6 +172,7 @@ export interface AssetAuditPackArtifact {
 
 export interface FinanceCapexBudgetRow {
   department: string;
+  accountCode: string;
   allocatedBudget: number;
   committedBudget: number;
   availableBudget: number;

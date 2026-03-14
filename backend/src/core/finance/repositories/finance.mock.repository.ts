@@ -48,6 +48,8 @@ export class FinanceMockRepository extends IFinanceRepository {
   private alerts: FinanceAlert[] = [];
   private payroll: PayrollEntry[] = [];
   private transfers: TreasuryTransfer[] = [];
+  private compensations: any[] = [];
+  private employees: any[] = [];
   private moneySources: FinanceMoneySourceRow[] = [
     {
       id: "ms-1",
@@ -80,6 +82,23 @@ export class FinanceMockRepository extends IFinanceRepository {
         category: "Equity",
       },
     ]);
+
+    // Add mock employees and compensations
+    this.employees.push({
+      id: "emp-1",
+      tenantId: "tenant-001",
+      firstName: "John",
+      lastName: "Doe",
+      status: "active",
+      department: { name: "Engineering" }
+    });
+
+    this.compensations.push({
+      employeeId: "emp-1",
+      baseSalary: 10000,
+      allowances: [{ name: "Housing", amount: 2000 }],
+      bonuses: [{ name: "Performance", amount: 1000 }]
+    });
   }
 
   private createMockLedgerEntries(
@@ -548,20 +567,55 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     period: string,
   ): Promise<PayrollEstimate[]> {
-    return [
-      {
-        department: "Engineering",
-        employeeCount: 5,
-        totalGross: 50000,
-        totalNet: 45000,
-      },
-      {
-        department: "Sales",
-        employeeCount: 5,
-        totalGross: 40000,
-        totalNet: 36000,
-      },
-    ];
+    const estimatesMap = new Map<string, PayrollEstimate>();
+
+    for (const emp of this.employees) {
+      if (emp.tenantId !== tenantId || emp.status !== "active") continue;
+      
+      const deptName = emp.department?.name || "Unassigned";
+      const compensation = this.compensations.find(c => c.employeeId === emp.id);
+      
+      let gross = 0;
+      if (compensation) {
+        gross = Number(compensation.baseSalary);
+        if (compensation.allowances) {
+          compensation.allowances.forEach((a: any) => gross += Number(a.amount));
+        }
+        if (compensation.bonuses) {
+          compensation.bonuses.forEach((b: any) => gross += Number(b.amount));
+        }
+      }
+
+      const net = gross * 0.9;
+
+      if (!estimatesMap.has(deptName)) {
+        estimatesMap.set(deptName, {
+          department: deptName,
+          employeeCount: 0,
+          totalGross: 0,
+          totalNet: 0,
+        });
+      }
+
+      const est = estimatesMap.get(deptName)!;
+      est.employeeCount += 1;
+      est.totalGross += gross;
+      est.totalNet += net;
+    }
+
+    if (estimatesMap.size === 0) {
+      // Fallback for empty mock state
+      return [
+        {
+          department: "Engineering",
+          employeeCount: 1,
+          totalGross: 13000,
+          totalNet: 11700,
+        }
+      ];
+    }
+
+    return Array.from(estimatesMap.values());
   }
 
   async executePayrollRun(
@@ -569,7 +623,22 @@ export class FinanceMockRepository extends IFinanceRepository {
     period: string,
     userId: string,
   ): Promise<void> {
-    // Mock run execution completes instantly without DB errors
+    const estimates = await this.estimatePayroll(tenantId, period);
+    if (estimates.length === 0) return;
+
+    estimates.forEach(est => {
+      this.payroll.push({
+        id: `pay-${Date.now()}-${Math.random()}`,
+        tenantId,
+        employeeId: "various",
+        period,
+        baseSalary: est.totalGross,
+        netSalary: est.totalNet,
+        status: "PAID",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+    });
   }
 }
 

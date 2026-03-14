@@ -1,7 +1,7 @@
 import type { HRAuditFields } from "./base";
 
-export type EmploymentStatus = "active" | "inactive" | "terminated" | "on_leave";
-export type EmploymentType = "full_time" | "part_time" | "contractor" | "intern";
+export type EmploymentStatus = "candidate" | "offer" | "hired" | "probation" | "active" | "transferred" | "promoted" | "on_leave" | "suspended" | "terminated";
+export type EmploymentType = "full_time" | "part_time" | "contractor" | "intern" | "temporary";
 
 export interface Employee extends HRAuditFields {
   id: string;
@@ -16,7 +16,8 @@ export interface Employee extends HRAuditFields {
   departmentId: string;
   managerId?: string;
   roleTitle: string;
-  location: string;
+  location?: string;
+  locationId: string;
   status: EmploymentStatus;
   employmentType: EmploymentType;
   baseSalary?: number;

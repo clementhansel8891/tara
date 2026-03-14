@@ -79,4 +79,12 @@ export const recruitmentService = {
   async rejectCandidate(tenantId: string, actor: SessionContext, candidateId: string, reason: string) {
     return { success: true };
   },
+
+  async hireCandidate(tenantId: string, actor: SessionContext, candidateId: string) {
+    return apiRequest<any>(
+      `/hr/candidates/${candidateId}/hire`,
+      "POST",
+      actor
+    );
+  },
 };

@@ -1,4 +1,5 @@
 import * as dotenv from "dotenv";
+
 import path from "path";
 
 // Load environment variables before anything else
@@ -28,6 +29,15 @@ async function bootstrap() {
 
   const loggerService = app.get(LoggerService);
   app.useGlobalInterceptors(new HttpLogInterceptor(loggerService));
+
+  // Global error logging for debugging
+  process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection:", reason);
+  });
+
+  process.on("uncaughtException", (error) => {
+    console.error("Uncaught Exception:", error);
+  });
 
   // 1. Resilience & Health Check Middleware (Run before prefix)
   app.use((req: any, res: any, next: any) => {
@@ -95,8 +105,9 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
       exceptionFactory: (errors) => {
+        console.error("Validation Errors:", JSON.stringify(errors, null, 2));
         return new HttpException(
           {
             message: "Validation failed",

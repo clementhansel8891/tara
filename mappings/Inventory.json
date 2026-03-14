@@ -1,0 +1,38 @@
+{
+  "module": "Inventory",
+  "name": "Global Inventory & Stock",
+  "purpose": "Stock control, receiving, and governance across physical/logical sites.",
+  "navigation": [
+    {
+      "label": "Stock Controller",
+      "path": "/core/inventory/dashboard",
+      "trigger": "Run Scan",
+      "purpose": "Identify stock-outs, anomalies, and expiry risks.",
+      "workflow": {
+        "steps": ["Automated Scan", "Severity Scoring", "Action Queue Update"],
+        "outputs": ["Low Stock Alerts", "Expiry Warnings"]
+      }
+    },
+    {
+      "label": "Receiving Dock",
+      "path": "/core/inventory/receiving",
+      "trigger": "Confirm Receipt",
+      "purpose": "Formally accept incoming shipments into the system.",
+      "workflow": {
+        "steps": ["PO Matching", "Physical Count", "Manager Sign-off"],
+        "outputs": ["Stock Qty Increase", "Finance Sync"]
+      }
+    },
+    {
+      "label": "Adjustment Desk",
+      "path": "/core/inventory/adjustments",
+      "trigger": "Create Adjustment",
+      "purpose": "Fix stock discrepancies and log damaged/lost items.",
+      "workflow": {
+        "steps": ["Reason Entry", "Quantity Correction", "Finance Approval"],
+        "outputs": ["Adjusted Balances", "Immutable Audit Log"]
+      }
+    }
+  ],
+  "integrations": ["Retail", "Finance", "Procurement", "Audit"]
+}

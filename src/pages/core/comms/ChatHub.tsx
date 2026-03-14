@@ -59,11 +59,12 @@ interface ChatRoom {
   name: string;
   type: 'DIRECT' | 'GROUP';
   unreadCount: number;
-  members?: any[];
+  members?: string[];
 }
 
 interface Employee {
   id: string;
+  userId?: string;
   fullName: string;
   departmentId: string;
   roleTitle?: string;
@@ -137,6 +138,8 @@ export default function ChatHub() {
   }, [session]);
 
   const fetchMessages = useCallback(async (roomId: string) => {
+    // Clear messages immediately to avoid showing stale data from previous room
+    setMessages([]);
     try {
       const response = await fetch(`/api/comms/chat/rooms/${roomId}/messages`, {
         headers: {
@@ -145,7 +148,15 @@ export default function ChatHub() {
         },
       });
       const data = await response.json();
-      setMessages(data.reverse() || []);
+      const messagesArray = Array.isArray(data) ? data : (data?.messages || []);
+      
+      // Secondary safety check: only apply if this room is still selected
+      setSelectedRoom(current => {
+        if (current?.id === roomId) {
+          setMessages([...messagesArray].reverse());
+        }
+        return current;
+      });
     } catch (error) {
       console.error("Failed to fetch messages:", error);
     }
@@ -169,7 +180,13 @@ export default function ChatHub() {
     });
 
     socketRef.current.on("newMessage", (msg: ChatMessage) => {
-      setMessages(prev => [...prev, msg]);
+      // Only append if the message belongs to the currently active room
+      setSelectedRoom(currentRoom => {
+        if (currentRoom && msg.roomId === currentRoom.id) {
+          setMessages(prev => [...prev, msg]);
+        }
+        return currentRoom;
+      });
     });
 
     return () => { socketRef.current?.disconnect(); };
@@ -226,6 +243,9 @@ export default function ChatHub() {
   };
 
   const filteredEmployees = employees.filter(emp => {
+    // Only chat with employees who have a user account, and exclude self
+    if (!emp.userId || emp.userId === session.userId) return false;
+    
     const matchesSearch = emp.fullName?.toLowerCase().includes(empFilter.search.toLowerCase());
     const matchesDept = empFilter.dept === 'all' || emp.departmentId === empFilter.dept;
     return matchesSearch && matchesDept;
@@ -440,7 +460,6 @@ export default function ChatHub() {
                          <Search className="h-3 w-3 text-muted-foreground" />
                          <Input 
                            placeholder="Filter name/dept..." 
-                           variant="unstyled" 
                            className="h-6 border-none bg-transparent text-[11px] font-bold p-0 text-right w-40"
                            value={empFilter.search}
                            onChange={e => setEmpFilter({...empFilter, search: e.target.value})}
@@ -453,24 +472,25 @@ export default function ChatHub() {
                           <div 
                             key={emp.id}
                             onClick={() => {
+                              if (!emp.userId) return;
                               if (activeCreationMode === 'DIRECT') {
-                                setSelectedEmps([emp.id]);
+                                setSelectedEmps([emp.userId]);
                               } else {
-                                setSelectedEmps(prev => prev.includes(emp.id) ? prev.filter(x => x !== emp.id) : [...prev, emp.id]);
+                                setSelectedEmps(prev => prev.includes(emp.userId!) ? prev.filter(x => x !== emp.userId) : [...prev, emp.userId!]);
                               }
                             }}
-                            className={`p-4 flex items-center justify-between rounded-2xl cursor-pointer transition-all ${selectedEmps.includes(emp.id) ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" : "bg-white dark:bg-slate-900 hover:bg-muted/50"}`}
+                            className={`p-4 flex items-center justify-between rounded-2xl cursor-pointer transition-all ${selectedEmps.includes(emp.userId!) ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" : "bg-white dark:bg-slate-900 hover:bg-muted/50"}`}
                           >
                              <div className="flex items-center gap-4">
                                 <Avatar className="h-10 w-10 border-2 border-primary/10">
                                    <AvatarFallback className="font-black text-xs">{emp.fullName?.[0]}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                   <div className={`text-xs font-black uppercase tracking-tight ${selectedEmps.includes(emp.id) ? "text-white" : "text-slate-900 dark:text-white"}`}>{emp.fullName}</div>
-                                   <div className={`text-[9px] font-bold ${selectedEmps.includes(emp.id) ? "text-white/70" : "text-muted-foreground"}`}>{emp.roleTitle} • {emp.departmentId}</div>
+                                   <div className={`text-xs font-black uppercase tracking-tight ${selectedEmps.includes(emp.userId!) ? "text-white" : "text-slate-900 dark:text-white"}`}>{emp.fullName}</div>
+                                   <div className={`text-[9px] font-bold ${selectedEmps.includes(emp.userId!) ? "text-white/70" : "text-muted-foreground"}`}>{emp.roleTitle} • {emp.departmentId}</div>
                                 </div>
                              </div>
-                             {selectedEmps.includes(emp.id) && <Check className="h-4 w-4" />}
+                             {selectedEmps.includes(emp.userId!) && <Check className="h-4 w-4" />}
                           </div>
                         ))}
                      </div>

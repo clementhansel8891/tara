@@ -320,7 +320,7 @@ export default function BulletinHub() {
       post.title?.toLowerCase().includes(filter.toLowerCase()) ||
       post.body?.toLowerCase().includes(filter.toLowerCase());
     const matchesCategory =
-      activeCategory === "all" || post.category === activeCategory;
+      activeCategory === "all" || post.category?.toLowerCase() === activeCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   });
 
@@ -648,7 +648,7 @@ export default function BulletinHub() {
                           variant="outline"
                           className={`text-[10px] font-black border-none px-2 h-5 rounded-md ${activeCategory === cat.code ? "bg-primary text-white" : "bg-muted/30"}`}
                         >
-                          {posts.filter((p) => p.category === cat.code).length}
+                          {posts.filter((p) => p.category?.toLowerCase() === cat.code?.toLowerCase()).length}
                         </Badge>
                       </div>
                     ))

@@ -109,6 +109,18 @@ export default function TalentFlow() {
     }
   };
 
+  const handleHire = async () => {
+    if (!selectedCandidateId) return;
+    try {
+      await recruitmentService.hireCandidate(session.tenantId, session, selectedCandidateId);
+      setStatusMessage("Candidate successfully hired and transitioned to PeopleCore.");
+      setProfileOpen(false);
+      setVersion(v => v + 1);
+    } catch (err) {
+      setErrorMessage("Failed to hire candidate.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
@@ -337,6 +349,11 @@ export default function TalentFlow() {
                 <Button className="flex-1" onClick={handleAdvance}>
                   Move to Next Stage
                 </Button>
+                {selectedCandidateData.stage === "offer" && (
+                  <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={handleHire}>
+                    Hire Candidate
+                  </Button>
+                )}
                 <Button variant="destructive" onClick={() => setRejectOpen(true)}>
                   Reject Applicant
                 </Button>

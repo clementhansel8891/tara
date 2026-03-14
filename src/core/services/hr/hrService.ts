@@ -90,4 +90,70 @@ export const hrService = {
       Array<{ id: string; name: string; code: string; address: string; type: string }>
     >(`/hr/locations`, "GET", session);
   },
+
+  /**
+   * Promote an employee
+   */
+  async promoteEmployee(
+    tenantId: string,
+    session: SessionContext,
+    employeeId: string,
+    data: { newRoleTitle: string; newBaseSalary?: number; notes?: string },
+  ): Promise<Employee> {
+    return apiRequest<Employee>(
+      `/hr/employees/${employeeId}/promote`,
+      "PATCH",
+      session,
+      data,
+    );
+  },
+
+  /**
+   * Transfer an employee
+   */
+  async transferEmployee(
+    tenantId: string,
+    session: SessionContext,
+    employeeId: string,
+    data: { newLocationId?: string; newDepartmentId?: string; notes?: string },
+  ): Promise<Employee> {
+    return apiRequest<Employee>(
+      `/hr/employees/${employeeId}/transfer`,
+      "PATCH",
+      session,
+      data,
+    );
+  },
+
+  /**
+   * Suspend an employee
+   */
+  async suspendEmployee(
+    tenantId: string,
+    session: SessionContext,
+    employeeId: string,
+    reason: string,
+  ): Promise<Employee> {
+    return apiRequest<Employee>(
+      `/hr/employees/${employeeId}/suspend`,
+      "PATCH",
+      session,
+      { reason },
+    );
+  },
+
+  /**
+   * Hire a candidate
+   */
+  async hireCandidate(
+    tenantId: string,
+    session: SessionContext,
+    candidateId: string,
+  ): Promise<Employee> {
+    return apiRequest<Employee>(
+      `/hr/candidates/${candidateId}/hire`,
+      "POST",
+      session,
+    );
+  },
 };

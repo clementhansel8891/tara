@@ -40,7 +40,7 @@ export default function PayableDesk() {
 
   const refreshPayables = useCallback(async () => {
     setPayables(await financeApiClient.listPayables(session.tenantId, session));
-  }, [session.tenantId, session]);
+  }, [session]);
 
   useEffect(() => {
     refreshPayables();
@@ -49,7 +49,7 @@ export default function PayableDesk() {
   const filtered = useMemo(
     () =>
       payables.filter((item) =>
-        search ? item.vendor.toLowerCase().includes(search.toLowerCase()) : true,
+        search ? item.vendorName.toLowerCase().includes(search.toLowerCase()) : true,
       ),
     [payables, search],
   );
@@ -139,8 +139,8 @@ export default function PayableDesk() {
               className="cursor-pointer border-t hover:bg-muted/50"
               onClick={() => setSelectedItem(payable)}
             >
-              <td className="p-3">{payable.vendor}</td>
-              <td className="p-3">{payable.invoiceId}</td>
+              <td className="p-3">{payable.vendorName}</td>
+              <td className="p-3">{payable.billNumber}</td>
               <td className="p-3 text-muted-foreground">{payable.amount.toLocaleString()}</td>
               <td className="p-3">{payable.dueDate}</td>
               <td className="p-3">
@@ -329,7 +329,7 @@ export default function PayableDesk() {
                   <FileText className="h-5 w-5 text-primary" />
                   Payable Detail
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">ID: <span className="font-mono">{selectedItem?.invoiceId}</span></p>
+                <p className="text-sm text-muted-foreground mt-1">ID: <span className="font-mono">{selectedItem?.billNumber}</span></p>
               </div>
               <ApprovalStatusBadge status={selectedItem?.status || "PENDING"} />
             </div>
@@ -343,7 +343,7 @@ export default function PayableDesk() {
                     <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-semibold text-lg">{selectedItem?.vendor}</p>
+                    <p className="font-semibold text-lg">{selectedItem?.vendorName}</p>
                     <p className="text-sm text-muted-foreground">Supplier Account</p>
                   </div>
                 </div>

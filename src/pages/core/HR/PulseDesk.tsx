@@ -14,7 +14,8 @@ import { hrWorkstreamService } from "@/core/services/hr/hrWorkstreamService";
 import { workflowService } from "@/core/services/hr/workflowService";
 import { hrService } from "@/core/services/hr/hrService";
 import { useBackgroundRefresh } from "@/core/runtime/events/useBackgroundRefresh";
-import { Users, Clock, AlertCircle } from "lucide-react";
+import { ZenTooltip } from "@/core/ui/ZenTooltip";
+import { Users, Clock, AlertCircle, PlusCircle } from "lucide-react";
 
 export default function PulseDesk() {
   const session = useSession();
@@ -58,13 +59,15 @@ export default function PulseDesk() {
     loadItems();
   }, [session.tenantId, session, search, statusFilter, version]);
 
-  const pendingApprovals = useMemo(
-    () =>
-      workflowService
-        .listRequests(session.tenantId)
-        .filter((flow) => flow.status === "PENDING"),
-    [session, version],
-  );
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadInbox = async () => {
+      const items = await workflowService.listInbox(session.tenantId, session, session.departmentId);
+      setPendingApprovals(items);
+    };
+    loadInbox();
+  }, [session, version]);
 
   const pagedItems = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -79,20 +82,24 @@ export default function PulseDesk() {
         title="PulseDesk"
         subtitle="Operational command inbox for HR workstreams."
         primaryAction={
-          <Button
-            onClick={() => {
-              workflowService.createRequest(session.tenantId, session, {
-                entityType: "LEAVE",
-                entityId: session.userId,
-                makerDept: session.departmentId,
-                destinationDept: "HR",
-                notes: "PulseDesk request",
-              });
-              refresh();
-            }}
-          >
-            Create Request
-          </Button>
+          <ZenTooltip content="Submit a new request for multi-level approval via FlowGate.">
+            <Button
+              onClick={async () => {
+                await workflowService.createRequest(session.tenantId, session, {
+                  entityType: "GENERAL",
+                  entityId: session.userId,
+                  makerDept: session.departmentId,
+                  destinationDept: "HR",
+                  notes: "Manual request from PulseDesk",
+                });
+                refresh();
+              }}
+              className="flex items-center gap-2"
+            >
+              <PlusCircle className="h-4 w-4" />
+              Route to FlowGate
+            </Button>
+          </ZenTooltip>
         }
         secondaryActions={
           <Input

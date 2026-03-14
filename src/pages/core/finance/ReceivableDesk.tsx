@@ -40,7 +40,7 @@ export default function ReceivableDesk() {
 
   const refreshReceivables = useCallback(async () => {
     setReceivables(await financeApiClient.listReceivables(session.tenantId, session));
-  }, [session.tenantId, session]);
+  }, [session]);
 
   useEffect(() => {
     refreshReceivables();
@@ -49,7 +49,7 @@ export default function ReceivableDesk() {
   const filtered = useMemo(
     () =>
       receivables.filter((item) =>
-        search ? item.customer.toLowerCase().includes(search.toLowerCase()) : true,
+        search ? item.customerName.toLowerCase().includes(search.toLowerCase()) : true,
       ),
     [receivables, search],
   );
@@ -61,7 +61,13 @@ export default function ReceivableDesk() {
       OVERDUE: [],
     };
     filtered.forEach((item) => {
-      next[item.status].push(item);
+      if (item.status === "PAID") {
+        next.APPROVED.push(item);
+      } else if (item.status === "OVERDUE") {
+        next.OVERDUE.push(item);
+      } else {
+        next.PENDING.push(item);
+      }
     });
     return next;
   }, [filtered]);
@@ -131,8 +137,8 @@ export default function ReceivableDesk() {
               className="cursor-pointer border-t hover:bg-muted/50"
               onClick={() => setSelectedItem(receivable)}
             >
-              <td className="p-3">{receivable.customer}</td>
-              <td className="p-3">{receivable.invoiceId}</td>
+              <td className="p-3">{receivable.customerName}</td>
+              <td className="p-3">{receivable.invoiceNumber}</td>
               <td className="p-3 text-muted-foreground">{receivable.amount.toLocaleString()}</td>
               <td className="p-3">{receivable.dueDate}</td>
               <td className="p-3">
@@ -140,12 +146,12 @@ export default function ReceivableDesk() {
               </td>
               <td className="p-3">
                 <div className="flex flex-wrap gap-2">
-                  {receivable.status !== "APPROVED" ? (
+                  {receivable.status !== "PAID" ? (
                     <Button size="sm" onClick={() => markReceived(receivable.id)}>
                       Mark Received
                     </Button>
                   ) : null}
-                  {receivable.status !== "APPROVED" ? (
+                  {receivable.status !== "PAID" ? (
                     <Button size="sm" variant="outline" onClick={() => sendReminder(receivable.id)}>
                       Reminder
                     </Button>
@@ -316,9 +322,9 @@ export default function ReceivableDesk() {
                   <FileText className="h-5 w-5 text-primary" />
                   Receivable Detail
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">ID: <span className="font-mono">{selectedItem?.invoiceId}</span></p>
+                <p className="text-sm text-muted-foreground mt-1">ID: <span className="font-mono">{selectedItem?.invoiceNumber}</span></p>
               </div>
-              <ApprovalStatusBadge status={selectedItem?.status || "PENDING"} />
+              <ApprovalStatusBadge status={selectedItem?.status || "DRAFT"} />
             </div>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-8 py-4">
@@ -330,7 +336,7 @@ export default function ReceivableDesk() {
                     <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="font-semibold text-lg">{selectedItem?.customer}</p>
+                    <p className="font-semibold text-lg">{selectedItem?.customerName}</p>
                     <p className="text-sm text-muted-foreground">Corporate Account</p>
                   </div>
                 </div>

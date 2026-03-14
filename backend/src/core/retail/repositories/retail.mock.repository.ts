@@ -38,73 +38,73 @@ export class RetailMockRepository implements IRetailRepository {
     this.products = [
       {
         id: "item-001",
-        tenant_id: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
+        tenantId: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
         sku: "ELEC-MBP-001",
         name: "MacBook Pro 14 M3",
         description: "High performance laptop",
-        base_price: 32999000,
-        category_id: "cat-1",
-        category_name: "Electronics",
+        basePrice: 32999000,
+        categoryId: "cat-1",
+        categoryName: "Electronics",
         barcode: "888123456789",
         type: "ITEM",
         status: "active",
         unit: "PCS",
         stock: 5,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any,
       {
         id: "item-002",
-        tenant_id: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
+        tenantId: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
         sku: "ELEC-IPN-015",
         name: "iPhone 15 Pro",
         description: "Stronger than ever",
-        base_price: 18999000,
-        category_id: "cat-1",
-        category_name: "Electronics",
+        basePrice: 18999000,
+        categoryId: "cat-1",
+        categoryName: "Electronics",
         barcode: "888987654321",
         type: "ITEM",
         status: "active",
         unit: "PCS",
         stock: 12,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any,
       {
         id: "item-003",
-        tenant_id: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
+        tenantId: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
         sku: "CLOTH-TEE-BLK",
         name: "Minimalist Black Tee",
         description: "100% Cotton",
-        base_price: 249000,
-        category_id: "cat-2",
-        category_name: "Clothing",
+        basePrice: 249000,
+        categoryId: "cat-2",
+        categoryName: "Clothing",
         barcode: "111222333444",
         type: "ITEM",
         status: "active",
         unit: "PCS",
         stock: 50,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any,
       {
         id: "item-004",
-        tenant_id: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
+        tenantId: "04bbc0e0-213d-4af4-9ce8-0e4674a58a90",
         sku: "FURN-CHR-OAK",
         name: "Oak Dining Chair",
         description: "Solid oak wood",
-        base_price: 1500000,
-        category_id: "cat-3",
-        category_name: "Furniture",
+        basePrice: 1500000,
+        categoryId: "cat-3",
+        categoryName: "Furniture",
         barcode: "555666777888",
         type: "ITEM",
         status: "active",
         unit: "PCS",
         stock: 8,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-    ] as any;
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any,
+    ];
 
     this.projections = [];
   }
@@ -131,20 +131,20 @@ export class RetailMockRepository implements IRetailRepository {
   }> {
     console.log(`[MockRepo] listProducts for tenant ${tenantId}`, options);
 
-    let filtered = this.products.filter((p) => p.tenant_id === tenantId);
+    let filtered = this.products.filter((p) => p.tenantId === tenantId);
 
     // Apply filters
     if (options?.categoryId && options.categoryId !== "all") {
-      filtered = filtered.filter((p) => p.category_id === options.categoryId);
+      filtered = filtered.filter((p) => p.categoryId === options.categoryId);
     }
     if (options?.type && options.type !== "all") {
       filtered = filtered.filter((p) => p.type === options.type);
     }
     if (options?.minPrice !== undefined) {
-      filtered = filtered.filter((p) => p.base_price >= options.minPrice!);
+      filtered = filtered.filter((p) => p.basePrice >= options.minPrice!);
     }
     if (options?.maxPrice !== undefined) {
-      filtered = filtered.filter((p) => p.base_price <= options.maxPrice!);
+      filtered = filtered.filter((p) => p.basePrice <= options.maxPrice!);
     }
     if (options?.q) {
       const q = options.q.toLowerCase();
@@ -387,7 +387,7 @@ export class RetailMockRepository implements IRetailRepository {
     productId: string,
   ): Promise<RetailProduct | null> {
     const product = this.products.find(
-      (p) => p.id === productId && p.tenant_id === tenantId,
+      (p) => p.id === productId && p.tenantId === tenantId,
     );
     return product || null;
   }
@@ -402,7 +402,7 @@ export class RetailMockRepository implements IRetailRepository {
       data,
     );
     const index = this.products.findIndex(
-      (p) => p.id === productId && p.tenant_id === tenantId,
+      (p) => p.id === productId && p.tenantId === tenantId,
     );
     if (index === -1) {
       throw new Error("Product not found");
@@ -411,8 +411,8 @@ export class RetailMockRepository implements IRetailRepository {
       ...this.products[index],
       name: data.name ?? this.products[index].name,
       description: data.description ?? this.products[index].description,
-      category_id: data.category_id ?? this.products[index].category_id,
-      base_price: data.base_price ?? this.products[index].base_price,
+      categoryId: data.categoryId ?? this.products[index].categoryId,
+      basePrice: data.basePrice ?? this.products[index].basePrice,
       unit: data.unit ?? this.products[index].unit,
       sku: data.sku ?? this.products[index].sku,
       barcode: data.barcode ?? this.products[index].barcode,
@@ -420,10 +420,10 @@ export class RetailMockRepository implements IRetailRepository {
     };
 
     // Mock logic: resolve category name if ID changed
-    if (data.category_id) {
+    if (data.categoryId) {
       const cats = await this.listCategories(tenantId);
-      const cat = cats.find((c) => c.id === data.category_id);
-      if (cat) updated.category_name = cat.name;
+      const cat = cats.find((c) => c.id === data.categoryId);
+      if (cat) updated.categoryName = cat.name;
     }
 
     this.products[index] = updated;

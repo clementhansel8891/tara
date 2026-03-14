@@ -93,6 +93,7 @@ export class FinanceDbRepository implements IFinanceRepository {
         lines: {
           create: [
             {
+              tenantId,
               accountCode: data.category === "SALES" ? "4000" : "1001", // Example CoA
               description: data.description || "POS Sales",
               debit: data.type === "credit" ? 0 : data.amount,
@@ -106,7 +107,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       },
     });
 
-    const line = journalEntry.lines[0];
+    const line = (journalEntry as any).lines[0];
 
     // 2. Return the transaction entity (using DB data)
     return {
@@ -133,6 +134,7 @@ export class FinanceDbRepository implements IFinanceRepository {
           status: "POSTED",
           lines: {
             create: data.lines.map((line) => ({
+              tenantId,
               accountCode: line.accountCode,
               description: line.description,
               debit: line.debit,
@@ -566,12 +568,14 @@ export class FinanceDbRepository implements IFinanceRepository {
           lines: {
             create: [
               {
+                tenantId,
                 accountCode: "ASSET-AR",
                 description: "Accounts Receivable",
                 debit: invoice.amount!,
                 credit: 0,
               },
               {
+                tenantId,
                 accountCode: "REV-SALES",
                 description: `Revenue from ${invoice.customer}`,
                 debit: 0,
@@ -638,12 +642,14 @@ export class FinanceDbRepository implements IFinanceRepository {
           lines: {
             create: [
               {
+                tenantId,
                 accountCode: "EXP-GEN",
                 description: `Expense for ${bill.vendor}`,
                 debit: bill.amount!,
                 credit: 0,
               },
               {
+                tenantId,
                 accountCode: "LIAB-AP",
                 description: "Accounts Payable",
                 debit: 0,
@@ -705,14 +711,45 @@ export class FinanceDbRepository implements IFinanceRepository {
   ): Promise<PayrollEstimate[]> {
     const employees = await this.prisma.employee.findMany({
       where: { tenantId, status: "active" },
-      include: { department: true },
+      include: { 
+        department: true,
+        compensation: true
+      },
     });
 
     const estimatesMap = new Map<string, PayrollEstimate>();
 
     for (const emp of employees) {
       const deptName = emp.department?.name || "Unassigned";
-      const gross = emp.baseSalary ? emp.baseSalary.toNumber() : 0;
+      
+      let gross = 0;
+      if (emp.compensation) {
+        gross = Number(emp.compensation.baseSalary);
+        
+        // Add allowances
+        if (emp.compensation.allowances) {
+          const allowances = emp.compensation.allowances as any[];
+          if (Array.isArray(allowances)) {
+            allowances.forEach(a => {
+              if (a.amount) gross += Number(a.amount);
+            });
+          }
+        }
+
+        // Add bonuses
+        if (emp.compensation.bonuses) {
+          const bonuses = emp.compensation.bonuses as any[];
+          if (Array.isArray(bonuses)) {
+            bonuses.forEach(b => {
+              if (b.amount) gross += Number(b.amount);
+            });
+          }
+        }
+      } else {
+        // Fallback to legacy baseSalary if compensation record is missing
+        gross = emp.baseSalary ? emp.baseSalary.toNumber() : 0;
+      }
+
       // Simplified: Net = Gross - 10% deductions for estimation purposes
       const net = gross * 0.9;
 
@@ -741,6 +778,7 @@ export class FinanceDbRepository implements IFinanceRepository {
   ): Promise<void> {
     const employees = await this.prisma.employee.findMany({
       where: { tenantId, status: "active" },
+      include: { compensation: true }
     });
 
     if (employees.length === 0) {
@@ -751,8 +789,35 @@ export class FinanceDbRepository implements IFinanceRepository {
     let totalNet = 0;
 
     const linesData = employees.map((emp) => {
-      const gross = emp.baseSalary ? emp.baseSalary.toNumber() : 0;
-      const net = gross * 0.9;
+      let gross = 0;
+      if (emp.compensation) {
+        gross = Number(emp.compensation.baseSalary);
+        
+        // Add allowances
+        if (emp.compensation.allowances) {
+          const allowances = emp.compensation.allowances as any[];
+          if (Array.isArray(allowances)) {
+            allowances.forEach(a => {
+              if (a.amount) gross += Number(a.amount);
+            });
+          }
+        }
+
+        // Add bonuses
+        if (emp.compensation.bonuses) {
+          const bonuses = emp.compensation.bonuses as any[];
+          if (Array.isArray(bonuses)) {
+            bonuses.forEach(b => {
+              if (b.amount) gross += Number(b.amount);
+            });
+          }
+        }
+      } else {
+        // Fallback to legacy baseSalary
+        gross = emp.baseSalary ? emp.baseSalary.toNumber() : 0;
+      }
+
+      const net = gross * 0.9; // 10% withholding/taxes
       totalGross += gross;
       totalNet += net;
 
@@ -796,18 +861,21 @@ export class FinanceDbRepository implements IFinanceRepository {
           lines: {
             create: [
               {
+                tenantId,
                 accountCode: "EXP-PAYROLL", // Debit Expense
                 description: `Gross Payroll Extracted ${period}`,
                 debit: totalGross,
                 credit: 0,
               },
               {
+                tenantId,
                 accountCode: "BS-CASH", // Credit Cash/Bank
                 description: `Net Payroll Disbursed ${period}`,
                 debit: 0,
                 credit: totalNet,
               },
               {
+                tenantId,
                 accountCode: "LIAB-TAXES", // Credit Liabilities
                 description: `Payroll Deductions ${period}`,
                 debit: 0,

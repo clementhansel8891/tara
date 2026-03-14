@@ -13,12 +13,28 @@ export class Employee {
   email: string;
   phone?: string;
   departmentId: string;
+  userId?: string;
   managerId?: string;
+  position: string;
+  positionId?: string; // Relation alias for services
+  jobTitle?: string; // Compatibility alias
+  currency?: string; // Related to compensation/company
   roleTitle: string;
-  status: "active" | "inactive" | "terminated" | "on_leave";
-  employmentType: "full_time" | "part_time" | "contractor" | "intern";
+  status: 
+    | "candidate" 
+    | "offer" 
+    | "hired" 
+    | "probation" 
+    | "active" 
+    | "transferred" 
+    | "promoted" 
+    | "on_leave" 
+    | "suspended" 
+    | "terminated";
+  employmentType: "full_time" | "part_time" | "contractor" | "intern" | "temporary";
   baseSalary?: number;
   hourlyRate?: number;
+  documentsMetadata?: any;
   hireDate: Date;
   terminationDate?: Date;
   createdAt: Date;

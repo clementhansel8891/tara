@@ -123,7 +123,7 @@ export class RetailEventsService {
           productId: product.id,
           quantity: Number(item.quantity ?? 1),
           unitPrice: Number(
-            item.unitPrice ?? item.unit_price ?? product.base_price,
+            item.unitPrice ?? item.unit_price ?? product.basePrice,
           ),
         };
       })

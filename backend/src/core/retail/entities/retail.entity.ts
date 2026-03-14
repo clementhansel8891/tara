@@ -84,25 +84,25 @@ export class RetailStore {
 
 export class InventoryPool {
   id: string;
-  tenant_id: string;
+  tenantId: string;
   name: string;
   description?: string;
   type: "shared" | "exclusive";
   stock?: InventoryPoolStock[];
-  created_at: Date;
-  updated_at: Date;
-  deleted_at?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt?: Date;
 }
 
 export class InventoryPoolStock {
   id: string;
-  pool_id: string;
-  product_id: string;
+  poolId: string;
+  productId: string;
   quantity: number;
   reserved: number;
   available: number;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface SEOData {
@@ -126,25 +126,25 @@ export interface ProductVariant {
 
 export class RetailProduct {
   id: string;
-  tenant_id: string;
+  tenantId: string;
   sku: string;
   barcode: string;
   name: string;
   description: string;
-  category_id: string;
-  category_name?: string;
-  base_price: number;
+  categoryId: string;
+  categoryName?: string;
+  basePrice: number;
   currency: string;
   prices: MultiCurrencyPrice[];
-  tax_rate: number;
+  taxRate: number;
   unit: string;
   type: "ITEM" | "SERVICE" | "RAW_MATERIAL";
   status: "active" | "discontinued" | "draft";
   variants: ProductVariant[];
   seo?: SEOData;
   metadata?: Record<string, any>;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type OrderStatus =

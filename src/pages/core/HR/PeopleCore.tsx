@@ -1,8 +1,9 @@
-import { useMemo, useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserCog, Network, Info } from "lucide-react";
+import { UserCog, Network, Info, Zap, Store, PlusCircle, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
@@ -32,13 +33,18 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { ActivityThread } from "@/core/tools/activity/ActivityThread";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
+import { hrService } from "@/core/services/hr/hrService";
 import { peopleService } from "@/core/services/hr/peopleService";
 import { staffService } from "@/core/services/hr/staffService";
+import { retailService } from "@/core/services/retail/retailService";
 import { workflowService } from "@/core/services/hr/workflowService";
+import { ZenTooltip } from "@/core/ui/ZenTooltip";
+import { Check, ChevronRight, MapPin, Briefcase, CreditCard } from "lucide-react";
 
 export default function PeopleCore() {
   const session = useSession();
   const params = useParams();
+  const navigate = useNavigate();
   const employeeId = params.id ?? "";
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -51,7 +57,7 @@ export default function PeopleCore() {
   const [editForm, setEditForm] = useState({
     roleTitle: "",
     departmentId: "",
-    location: "",
+    locationId: "",
     status: "active",
   });
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -61,13 +67,25 @@ export default function PeopleCore() {
     data: any;
   } | null>(null);
   const [actionOpen, setActionOpen] = useState(false);
-  const [actionType, setActionType] = useState<"MOVE" | "REMOVE" | "TERMINATE">(
+  const [actionType, setActionType] = useState<"MOVE" | "REMOVE" | "TERMINATE" | "PROMOTE" | "SUSPEND">(
     "MOVE",
   );
   const [actionReason, setActionReason] = useState("");
+  const [newRole, setNewRole] = useState("");
+  const [newSalary, setNewSalary] = useState<number | undefined>(undefined);
   const [targetDept, setTargetDept] = useState("HR");
+  const [targetLocation, setTargetLocation] = useState("");
+  const [wizardStep, setWizardStep] = useState(1);
+  const [availableDepts, setAvailableDepts] = useState<any[]>([]);
+  const [availableLocations, setAvailableLocations] = useState<any[]>([]);
+  const [retailShifts, setRetailShifts] = useState<any[]>([]);
+  const [activeShift, setActiveShift] = useState<any | null>(null);
 
   const [record, setRecord] = useState<any | null>(null);
+  const employee = record?.employee;
+  const trainings = record?.trainings || [];
+  const contracts = record?.contracts || [];
+  const workflows = record?.workflows || [];
   const [isLoading, setIsLoading] = useState(true);
 
   const clearStatus = () => {
@@ -96,75 +114,83 @@ export default function PeopleCore() {
     }
   }, [session.tenantId, session, employeeId]);
 
-  if (isLoading) {
+  useEffect(() => {
+    const loadOrg = async () => {
+      try {
+        const [depts, locs] = await Promise.all([
+          staffService.listDepartments(session.tenantId, session),
+          hrService.listLocations(session.tenantId, session),
+        ]);
+        setAvailableDepts(depts);
+        setAvailableLocations(locs);
+      } catch (err) {
+        console.warn("Failed to load organizational hierarchy.");
+      }
+    };
+    if (actionOpen) {
+      loadOrg();
+    }
+  }, [actionOpen, session]);
+
+  useEffect(() => {
+    const loadRetail = async () => {
+      if (!record?.employee?.locationId) return;
+      try {
+        const shifts = await retailService.listShifts(session.tenantId, session);
+        const empShifts = shifts.filter(s => s.employeeId === employeeId);
+        setRetailShifts(empShifts);
+        const active = empShifts.find(s => !s.closingTime);
+        setActiveShift(active);
+      } catch (err) {
+        console.warn("Could not load retail activity.");
+      }
+    };
+    if (record) {
+      loadRetail();
+    }
+  }, [record, session, employeeId]);
+
+  const isRetailStaff = useMemo(() => {
+    return record?.employee?.locationId?.toLowerCase().includes("store") ||
+           record?.employee?.roleTitle?.toLowerCase().includes("cashier") ||
+           record?.employee?.roleTitle?.toLowerCase().includes("store manager");
+  }, [record]);
+
+  const filteredAttendance = useMemo(() => {
+    return (record?.attendance || []).filter((r: any) =>
+      r.status?.toLowerCase().includes(listSearch.toLowerCase()) ||
+      r.date?.toLowerCase().includes(listSearch.toLowerCase())
+    );
+  }, [record, listSearch]);
+
+  const filteredPayroll = useMemo(() => {
+    return (record?.payrollRuns || []).filter((r: any) =>
+      r.periodStart?.toLowerCase().includes(listSearch.toLowerCase()) ||
+      r.status?.toLowerCase().includes(listSearch.toLowerCase())
+    );
+  }, [record, listSearch]);
+
+  const filteredContracts = useMemo(() => {
+    return (record?.contracts || []).filter((r: any) =>
+      r.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
+      r.status?.toLowerCase().includes(listSearch.toLowerCase())
+    );
+  }, [record, listSearch]);
+
+  const filteredReviews = useMemo(() => {
+    return (record?.reviews || []).filter((r: any) =>
+      r.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
+      r.status?.toLowerCase().includes(listSearch.toLowerCase())
+    );
+  }, [record, listSearch]);
+
+  if (isLoading || !employee) {
     return (
-      <WorkspacePanel
-        title="Loading..."
-        description="Fetching employee record."
-      >
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-        </div>
-      </WorkspacePanel>
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
-
-  if (!record && session.role !== "SUPERADMIN" && session.role !== "OWNER") {
-    return (
-      <WorkspacePanel
-        title="Access restricted"
-        description="You do not have access to this profile."
-      >
-        <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          This employee record is outside your authorized scope or does not
-          exist.
-        </div>
-      </WorkspacePanel>
-    );
-  }
-
-  if (!record) {
-    return (
-      <WorkspacePanel
-        title="Not Found"
-        description="Employee record not found."
-      >
-        <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-          The requested employee record could not be found in the database.
-        </div>
-      </WorkspacePanel>
-    );
-  }
-
-  const {
-    employee,
-    attendance,
-    payrollRuns,
-    contracts,
-    trainings,
-    reviews,
-    workflows,
-  } = record;
-  const filteredAttendance = attendance.filter((entry) =>
-    listSearch
-      ? entry.status.toLowerCase().includes(listSearch.toLowerCase())
-      : true,
-  );
-  const filteredPayroll = payrollRuns.filter((run) =>
-    listSearch
-      ? run.status.toLowerCase().includes(listSearch.toLowerCase())
-      : true,
-  );
-  const filteredContracts = contracts.filter((contract) =>
-    listSearch
-      ? contract.title.toLowerCase().includes(listSearch.toLowerCase())
-      : true,
-  );
-  const filteredReviews = reviews.filter((review) =>
-    listSearch
-      ? review.status.toLowerCase().includes(listSearch.toLowerCase())
-      : true,
-  );
 
   return (
     <div className="space-y-6">
@@ -177,66 +203,86 @@ export default function PeopleCore() {
         title={`PeopleCore - ${employee.fullName}`}
         subtitle={`${employee.roleTitle} - ${employee.departmentId}`}
         primaryAction={
-          <Button onClick={() => setDialogOpen(true)}>Start Workflow</Button>
+          <ZenTooltip content="Start a professional workflow sequence.">
+            <Button onClick={() => setDialogOpen(true)} className="flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Initialize FlowGate
+            </Button>
+          </ZenTooltip>
         }
         secondaryActions={
-          <Input placeholder="Search within record" className="min-w-[200px]" />
+          <div className="flex gap-2">
+             {isRetailStaff && (
+               <Badge className="bg-orange-100 text-orange-700 border-orange-200 flex items-center gap-1">
+                 <Store className="h-3 w-3" /> Retail Workforce
+               </Badge>
+             )}
+             <Input placeholder="Search within record" className="min-w-[200px]" />
+          </div>
         }
       />
 
       <WorkspacePanel
         title="WorkQueue"
-        description="Actions and escalations for this employee."
+        description="Priority operational actions for this lifecycle."
       >
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setDialogOpen(true)}>
-            Create Request
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              try {
-                workflowService.createRequest(employee.tenantId, session, {
-                  entityType: "PERFORMANCE",
-                  entityId: employee.id,
-                  makerDept: session.departmentId,
-                  destinationDept: "ADMIN",
-                  notes: "Escalated from PeopleCore",
-                });
-                setStatusMessage("Employee record escalated to ADMIN.");
-              } catch (err) {
-                setErrorMessage("Escalation failed.");
-              }
-            }}
-          >
-            Escalate
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              try {
-                workflowService.createRequest(employee.tenantId, session, {
-                  entityType: "PERFORMANCE",
-                  entityId: employee.id,
-                  makerDept: session.departmentId,
-                  destinationDept: "HR",
-                  notes: "PeopleCore routing",
-                });
-                setStatusMessage("Routed to HR FlowGate.");
-              } catch (err) {
-                setErrorMessage("Routing failed.");
-              }
-            }}
-          >
-            Send to FlowGate
-          </Button>
+          <ZenTooltip content="Create a custom multi-step approval request.">
+             <Button variant="outline" onClick={() => setDialogOpen(true)}>
+                New Request
+             </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Escalate this record to Administrative Oversight.">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await workflowService.createRequest(employee.tenantId, session, {
+                    entityType: "PERFORMANCE",
+                    entityId: employee.id,
+                    makerDept: session.departmentId,
+                    destinationDept: "ADMIN",
+                    notes: "Escalated from PeopleCore",
+                  });
+                  setStatusMessage("Employee record escalated to ADMIN.");
+                } catch (err) {
+                  setErrorMessage("Escalation failed.");
+                }
+              }}
+            >
+              Escalate to Admin
+            </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Route this profile to the HR FlowGate for review.">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await workflowService.createRequest(employee.tenantId, session, {
+                    entityType: "PERFORMANCE",
+                    entityId: employee.id,
+                    makerDept: session.departmentId,
+                    destinationDept: "HR",
+                    notes: "PeopleCore routing",
+                  });
+                  setStatusMessage("Routed to HR FlowGate.");
+                } catch (err) {
+                  setErrorMessage("Routing failed.");
+                }
+              }}
+            >
+              Route to HR
+            </Button>
+          </ZenTooltip>
           <Button
             variant="outline"
             onClick={() => {
               setEditForm({
                 roleTitle: employee.roleTitle,
                 departmentId: employee.departmentId,
-                location: employee.location,
+                locationId: employee.locationId,
                 status: employee.status,
               });
               setEditOpen(true);
@@ -244,35 +290,71 @@ export default function PeopleCore() {
           >
             Edit Profile
           </Button>
-          <Button
-            variant="outline"
-            className="border-blue-200 text-blue-700 hover:bg-blue-50"
-            onClick={() => {
-              setActionType("MOVE");
-              setActionOpen(true);
-            }}
-          >
-            Move (Transfer)
-          </Button>
-          <Button
-            variant="outline"
-            className="border-amber-200 text-amber-700 hover:bg-amber-50"
-            onClick={() => {
-              setActionType("REMOVE");
-              setActionOpen(true);
-            }}
-          >
-            Remove (Deactivate)
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => {
-              setActionType("TERMINATE");
-              setActionOpen(true);
-            }}
-          >
-            Terminate
-          </Button>
+            <Button
+              variant="outline"
+              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              onClick={() => {
+                setTargetDept(employee.departmentId);
+                setActionType("MOVE");
+                setActionOpen(true);
+              }}
+            >
+              Transfer Department
+            </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Promote this professional to a new rank or roleTitle.">
+            <Button
+              variant="outline"
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              onClick={() => {
+                setNewRole(employee.roleTitle);
+                setNewSalary(employee.baseSalary);
+                setActionType("PROMOTE");
+                setActionOpen(true);
+              }}
+            >
+              Update Role/Rank
+            </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Place this record under temporary suspension for administrative reasons.">
+            <Button
+              variant="outline"
+              className="border-red-200 text-red-700 hover:bg-red-50"
+              onClick={() => {
+                setActionType("SUSPEND");
+                setActionOpen(true);
+              }}
+            >
+              Suspend Record
+            </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Remove active status from this professional's record.">
+            <Button
+              variant="outline"
+              className="border-amber-200 text-amber-700 hover:bg-amber-50"
+              onClick={() => {
+                setActionType("REMOVE");
+                setActionOpen(true);
+              }}
+            >
+              Deactivate Record
+            </Button>
+          </ZenTooltip>
+
+          <ZenTooltip content="Finalize the permanent cessation of employment for this record.">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setActionType("TERMINATE");
+                setActionOpen(true);
+              }}
+            >
+              Finalize Termination
+            </Button>
+          </ZenTooltip>
         </div>
       </WorkspacePanel>
 
@@ -293,7 +375,61 @@ export default function PeopleCore() {
             <TabsTrigger value="payroll">Payroll</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            {isRetailStaff && <TabsTrigger value="retail">Retail Ops</TabsTrigger>}
           </TabsList>
+
+          <TabsContent value="retail">
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                 <div className="rounded-lg border p-4">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Shift Status</p>
+                    {activeShift ? (
+                      <div className="flex items-center gap-2 text-emerald-600">
+                         <Zap className="h-4 w-4" />
+                         <span className="text-sm font-medium">Active Shift at Store {activeShift.storeId}</span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No active retail shift.</p>
+                    )}
+                 </div>
+                 <div className="rounded-lg border p-4">
+                    <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Historical Shifts</p>
+                    <p className="text-2xl font-bold">{retailShifts.length}</p>
+                    <p className="text-xs text-muted-foreground">Recorded shifts in this tenant.</p>
+                 </div>
+              </div>
+              
+              <DataTableShell
+                title="Shift History"
+                total={retailShifts.length}
+                page={1}
+                pageSize={10}
+              >
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="p-3 text-left">Store</th>
+                      <th className="p-3 text-left">Opened</th>
+                      <th className="p-3 text-left">Closed</th>
+                      <th className="p-3 text-right">Cash</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {retailShifts.map((shift) => (
+                      <tr key={shift.id} className="border-t">
+                        <td className="p-3 font-medium">{shift.storeId}</td>
+                        <td className="p-3 text-xs">{shift.openingTime}</td>
+                        <td className="p-3 text-xs">{shift.closingTime || "ACTIVE"}</td>
+                        <td className="p-3 text-right text-xs">
+                           {shift.openingCash} {"->"} {shift.closingCash || "--"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </DataTableShell>
+            </div>
+          </TabsContent>
 
           <TabsContent value="identity">
             <div className="grid gap-4 md:grid-cols-2">
@@ -303,7 +439,7 @@ export default function PeopleCore() {
                   Employee code: {employee.employeeCode}
                 </p>
                 <p className="text-muted-foreground">
-                  Location: {employee.location}
+                  Location: {employee.locationId}
                 </p>
                 <p className="text-muted-foreground">
                   Hire date: {employee.hireDate}
@@ -637,11 +773,11 @@ export default function PeopleCore() {
             />
             <Input
               placeholder="Location"
-              value={editForm.location}
+              value={editForm.locationId}
               onChange={(event) =>
                 setEditForm((prev) => ({
                   ...prev,
-                  location: event.target.value,
+                  locationId: event.target.value,
                 }))
               }
             />
@@ -672,7 +808,7 @@ export default function PeopleCore() {
                       roleTitle: editForm.roleTitle || employee.roleTitle,
                       departmentId:
                         editForm.departmentId || employee.departmentId,
-                      location: editForm.location || employee.location,
+                      locationId: editForm.locationId || employee.locationId,
                       status: editForm.status as typeof employee.status,
                     },
                   );
@@ -740,43 +876,175 @@ export default function PeopleCore() {
             <DialogTitle>Personnel Action</DialogTitle>
           </DialogHeader>
           <div id="personnel-action-description" className="sr-only">Execute a structural personnel action.</div>
-          <div className="grid md:grid-cols-[1fr_2fr]">
+          <div className="grid md:grid-cols-[1fr_2fr] min-h-[400px]">
             <div className="bg-muted p-6 flex flex-col justify-between">
               <div>
                 <UserCog className="w-8 h-8 text-primary mb-4" />
-                <DialogTitle className="text-xl mb-2">Personnel Action: {actionType}</DialogTitle>
+                <DialogTitle className="text-xl mb-2">
+                  {actionType === "MOVE" && "Department Transfer"}
+                  {actionType === "PROMOTE" && "Rank Promotion"}
+                  {actionType === "SUSPEND" && "Administrative Suspension"}
+                  {actionType === "REMOVE" && "Record Deactivation"}
+                  {actionType === "TERMINATE" && "Final Termination"}
+                </DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  Apply a structural lifecycle action to this employee record.
+                  {actionType === "MOVE" && "Step-by-step organizational relocation wizard."}
+                  {actionType === "PROMOTE" && "Guided career advancement and compensation flow."}
+                  {!(actionType === "MOVE" || actionType === "PROMOTE") && "Apply a structural lifecycle action to this record."}
                 </p>
+                
+                {(actionType === "MOVE" || actionType === "PROMOTE") && (
+                  <div className="mt-8 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${wizardStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>1</div>
+                      <span className={`text-xs ${wizardStep === 1 ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+                        {actionType === "MOVE" ? "Structure" : "New Role"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${wizardStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>2</div>
+                      <span className={`text-xs ${wizardStep === 2 ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+                        {actionType === "MOVE" ? "Site" : "Compensation"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${wizardStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-background border'}`}>3</div>
+                      <span className={`text-xs ${wizardStep === 3 ? 'font-bold text-primary' : 'text-muted-foreground'}`}>Review</span>
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="bg-primary/5 p-4 rounded-lg mt-8 border border-primary/10">
                 <p className="text-xs text-primary font-medium flex items-center gap-1.5">
                   <Info className="w-4 h-4" /> Audit Bound
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Transfers and terminations require a mandatory reason for audit.
+                  Structural changes create immutable audit trails in the Event Store.
                 </p>
               </div>
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {actionType === "MOVE" && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Target Department</label>
-                    <Select value={targetDept} onValueChange={setTargetDept}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="HR">HR</SelectItem>
-                        <SelectItem value="FINANCE">Finance</SelectItem>
-                        <SelectItem value="OPERATIONS">Operations</SelectItem>
-                        <SelectItem value="SALES">Sales</SelectItem>
-                        <SelectItem value="IT">IT</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {actionType === "MOVE" && wizardStep === 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Network className="w-5 h-5 text-blue-500" />
+                      <h3 className="font-semibold">Select Target Department</h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableDepts.map(dept => (
+                        <div 
+                          key={dept.id}
+                          className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted ${targetDept === dept.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
+                          onClick={() => setTargetDept(dept.id)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{dept.name}</span>
+                            {targetDept === dept.id && <Check className="w-4 h-4 text-primary" />}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground uppercase">{dept.code}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
+
+                {actionType === "MOVE" && wizardStep === 2 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-5 h-5 text-orange-500" />
+                      <h3 className="font-semibold">Select Work Location</h3>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableLocations.map(loc => (
+                        <div 
+                          key={loc.id}
+                          className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted ${targetLocation === loc.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
+                          onClick={() => setTargetLocation(loc.id)}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{loc.name}</span>
+                            {targetLocation === loc.id && <Check className="w-4 h-4 text-primary" />}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground uppercase">{loc.type} - {loc.code}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {actionType === "PROMOTE" && wizardStep === 1 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Briefcase className="w-5 h-5 text-emerald-500" />
+                      <h3 className="font-semibold">New Professional Grade</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground">Functional Title</label>
+                        <Input 
+                          placeholder="e.g. Senior Regional Lead"
+                          value={newRole}
+                          onChange={(e) => setNewRole(e.target.value)}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground bg-muted p-3 rounded italic">
+                        Promotion events automatically trigger IT rank reassignment and Finance budget updates.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {actionType === "PROMOTE" && wizardStep === 2 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CreditCard className="w-5 h-5 text-amber-500" />
+                      <h3 className="font-semibold">Compensation Adjustment</h3>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground">New Base Salary ({employee.currency || 'USD'})</label>
+                        <Input 
+                          type="number"
+                          placeholder="0.00"
+                          value={newSalary}
+                          onChange={(e) => setNewSalary(Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="rounded-lg border bg-amber-50 p-4 border-amber-100">
+                         <div className="flex justify-between text-xs mb-1">
+                            <span>Current Salary</span>
+                            <span className="font-mono">{employee.baseSalary}</span>
+                         </div>
+                         <div className="flex justify-between text-xs font-bold text-amber-700">
+                            <span>Projected Increase</span>
+                            <span>{newSalary ? (newSalary - (employee.baseSalary || 0)).toFixed(2) : '--'}</span>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {((actionType === "MOVE" || actionType === "PROMOTE") && wizardStep === 3) || !(actionType === "MOVE" || actionType === "PROMOTE") ? (
+                  <div className="space-y-4 animate-in fade-in zoom-in-95">
+                    <div className="flex justify-between items-start">
+                       <h3 className="font-semibold">Final Review & Audit</h3>
+                       <Badge variant="outline" className="text-[10px]">VERIFICATION_PENDING</Badge>
+                    </div>
+                    
+                    {actionType === "MOVE" && (
+                       <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
+                          <p><strong>Department:</strong> {availableDepts.find(d => d.id === targetDept)?.name}</p>
+                          <p><strong>Location:</strong> {availableLocations.find(l => l.id === targetLocation)?.name}</p>
+                       </div>
+                    )}
+
+                    {actionType === "PROMOTE" && (
+                       <div className="bg-muted/50 p-3 rounded-lg text-xs space-y-1">
+                          <p><strong>Role:</strong> {newRole}</p>
+                          <p><strong>Salary:</strong> {newSalary}</p>
+                       </div>
+                    )}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Reason for Action</label>
                   <Textarea
@@ -789,16 +1057,20 @@ export default function PeopleCore() {
                   <Button variant="outline" onClick={() => setActionOpen(false)}>Cancel</Button>
                   <Button
                     variant={actionType === "TERMINATE" ? "destructive" : "default"}
-                    onClick={() => {
                       try {
-                        if (!actionReason) {
+                        if (!actionReason && wizardStep === 3) {
                           setErrorMessage(
                             "Reason is required for personnel actions.",
                           );
                           return;
                         }
+
                         if (actionType === "MOVE") {
-                          (staffService as any).requestTransfer(
+                          if (wizardStep < 3) {
+                            setWizardStep(wizardStep + 1);
+                            return;
+                          }
+                          staffService.requestTransfer(
                             employee.tenantId,
                             session,
                             employee.id,
@@ -807,6 +1079,34 @@ export default function PeopleCore() {
                           );
                           setStatusMessage(
                             `Transfer request for ${employee.fullName} to ${targetDept} initiated.`,
+                          );
+                        } else if (actionType === "PROMOTE") {
+                          if (wizardStep < 3) {
+                            setWizardStep(wizardStep + 1);
+                            return;
+                          }
+                          staffService.promoteEmployee(
+                            employee.tenantId,
+                            session,
+                            employee.id,
+                            {
+                              newRoleTitle: newRole,
+                              newBaseSalary: newSalary,
+                              notes: actionReason,
+                            },
+                          );
+                          setStatusMessage(
+                            `Promotion for ${employee.fullName} to ${newRole} triggered.`,
+                          );
+                        } else if (actionType === "SUSPEND") {
+                          staffService.suspendEmployee(
+                            employee.tenantId,
+                            session,
+                            employee.id,
+                            actionReason,
+                          );
+                          setStatusMessage(
+                            `${employee.fullName} record suspended for administrative review.`,
                           );
                         } else if (actionType === "REMOVE") {
                           staffService.updateEmployee(
@@ -831,12 +1131,13 @@ export default function PeopleCore() {
                         }
                         setActionOpen(false);
                         setActionReason("");
+                        setWizardStep(1);
                       } catch (err: any) {
                         setErrorMessage(err.message || "Personnel action failed.");
                       }
                     }}
                   >
-                    Submit for Approval
+                    {((actionType === "MOVE" || actionType === "PROMOTE") && wizardStep < 3) ? "Next Step" : "Submit for Approval"}
                   </Button>
                 </div>
               </div>

@@ -322,6 +322,7 @@ export class PaymentDbRepository implements IPaymentRepository {
           status: "FAILED",
           retryAttempts: {
             create: {
+              tenantId: tenantId,
               attempt: 1,
               result: "FAILED",
               providerId: payment.providerId!,
@@ -357,6 +358,7 @@ export class PaymentDbRepository implements IPaymentRepository {
         settlementId: settlement.id,
         retryAttempts: {
           create: {
+            tenantId: tenantId,
             attempt: 1,
             result: "SUCCESS",
             providerId: payment.providerId!,

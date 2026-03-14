@@ -17,17 +17,55 @@ import {
 import { Request, Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { HRService } from "./hr.service";
+import { IHRRepository } from "./repositories/hr.repository.interface";
 import { PrismaService } from "../../persistence/prisma.service";
-import { CreateEmployeeDto } from "./dto/create-employee.dto";
-import { UpdateEmployeeDto } from "./dto/update-employee.dto";
-import { ClockInDto } from "./dto/clock-in.dto";
-import { CreateLeaveRequestDto } from "./dto/create-leave-request.dto";
-import { CreateDepartmentDto } from "./dto/create-department.dto";
-import { CreateRequisitionDto } from "./dto/create-requisition.dto";
-import { CreatePerformanceCycleDto } from "./dto/create-performance-cycle.dto";
-import { SubmitReviewDto } from "./dto/submit-review.dto";
-import { CreateCaseDto } from "./dto/create-case.dto";
-import { CreateContractDto } from "./dto/create-contract.dto";
+import {
+  CreateEmployeeDto,
+  UpdateEmployeeDto,
+  ClockInDto,
+  CreateLeaveRequestDto,
+  CreateDepartmentDto,
+  CreateRequisitionDto,
+  CreatePerformanceCycleDto,
+  SubmitReviewDto,
+  CreateCaseDto,
+  CreateContractDto,
+  ScheduleInterviewDto,
+  UpdateInterviewStatusDto,
+  PromoteEmployeeDto,
+  TransferEmployeeDto,
+  SuspendEmployeeDto,
+  CreateCandidateDto,
+  UpdatePositionDto,
+  UpdateCompensationDto,
+  IngestTalentLeadDto,
+  UploadComplianceDocumentDto,
+  CreateBudgetScenarioDto,
+  CreateHeadcountPlanDto,
+  CreateBenefitPlanDto,
+  EnrollBenefitDto,
+  UpdatePerformanceGoalDto,
+  EnrollTrainingDto,
+  SimulateInflationDto,
+  CreateMentorshipDto,
+  MatchTalentDto,
+  ConvertLeadDto,
+  GenerateDescriptionDto,
+  PublishJobPostDto,
+} from "./dto";
+import { TalentSourcingService } from "./talent-sourcing.service";
+import { ComplianceService } from "./compliance.service";
+import { AnalyticsService } from "./analytics.service";
+import { WorkforcePlannerService } from "./workforce-planner.service";
+import { PayrollConsolidationService } from "./payroll-consolidation.service";
+import { SuccessionService } from "./succession.service";
+import { SkillsService } from "./skills.service";
+import { TotalRewardsService } from "./total-rewards.service";
+import { CareerPathService } from "./career-path.service";
+import { JobDescriptionService } from "./job-description.service";
+import { PerformancePredictorService } from "./performance-predictor.service";
+import { LearningService } from "./learning.service";
+import { LaborCostService } from "./labor-cost.service";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
@@ -36,6 +74,8 @@ import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
 import { AuditService } from "../../shared/audit/audit.service";
+import { ComplianceEngineService } from "../../modules/compliance/compliance.service";
+import { ComplianceSuggestionService } from "../../modules/compliance/compliance-suggestion.service";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -53,8 +93,24 @@ interface RequestWithTenant extends Request {
 export class HRController {
   constructor(
     private readonly hrService: HRService,
+    private readonly talentSourcingService: TalentSourcingService,
+    private readonly complianceService: ComplianceService,
+    private readonly analyticsService: AnalyticsService,
+    private readonly workforcePlannerService: WorkforcePlannerService,
+    private readonly payrollConsolidationService: PayrollConsolidationService,
+    private readonly successionService: SuccessionService,
+    private readonly skillsService: SkillsService,
+    private readonly totalRewardsService: TotalRewardsService,
+    private readonly careerPathService: CareerPathService,
+    private readonly jobDescriptionService: JobDescriptionService,
+    private readonly performancePredictorService: PerformancePredictorService,
+    private readonly learningService: LearningService,
+    private readonly laborCostService: LaborCostService,
+    private readonly repository: IHRRepository,
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
+    private readonly complianceEngineService: ComplianceEngineService,
+    private readonly complianceSuggestionService: ComplianceSuggestionService,
   ) {}
   // ==================== Overview (Module-Aware) ====================
 
@@ -201,7 +257,7 @@ export class HRController {
         ? locationId
         : contextLocationId;
 
-    const employees =
+    const result =
       role === "SUPERADMIN"
         ? await this.hrService.getGlobalEmployees(effectiveLocationId)
         : await this.hrService.getEmployees(tenantId, effectiveLocationId);
@@ -210,8 +266,9 @@ export class HRController {
       success: true,
       tenantId,
       locationId: locationId || "all",
-      count: employees.length,
-      data: employees,
+      count: result.data.length,
+      total: result.total,
+      data: result.data,
     };
   }
 
@@ -290,6 +347,7 @@ export class HRController {
     @Body() updateEmployeeDto: UpdateEmployeeDto,
   ) {
     const { tenantId, userId } = request.tenantContext;
+    console.log(`[DEBUG] Updating Employee ${employeeId}:`, JSON.stringify(updateEmployeeDto, null, 2));
     const employee = await this.hrService.updateEmployee(
       tenantId,
       employeeId,
@@ -403,7 +461,7 @@ export class HRController {
         ? undefined // Admin can filter by query or see all
         : contextLocationId;
 
-    const attendance =
+    const result =
       role === "SUPERADMIN"
         ? await this.hrService.getGlobalAttendance(
             employeeId,
@@ -422,8 +480,9 @@ export class HRController {
       success: true,
       tenantId,
       employeeId: employeeId || "all",
-      count: attendance.length,
-      data: attendance,
+      count: result.data.length,
+      total: result.total,
+      data: result.data,
     };
   }
 
@@ -798,6 +857,117 @@ export class HRController {
     return { success: true, tenantId, data: review };
   }
 
+  // ==================== Lifecycle Transitions ====================
+
+  @Patch("employees/:id/promote")
+  async promoteEmployee(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() dto: PromoteEmployeeDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const employee = await this.hrService.promoteEmployee(tenantId, id, dto, userId);
+    return { success: true, tenantId, message: "Employee promoted", data: employee };
+  }
+
+  @Patch("employees/:id/transfer")
+  async transferEmployee(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() dto: TransferEmployeeDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const employee = await this.hrService.transferEmployee(tenantId, id, dto, userId);
+    return { success: true, tenantId, message: "Employee transferred", data: employee };
+  }
+
+  @Patch("employees/:id/suspend")
+  async suspendEmployee(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() dto: SuspendEmployeeDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const employee = await this.hrService.suspendEmployee(tenantId, id, dto.reason, userId);
+    return { success: true, tenantId, message: "Employee suspended", data: employee };
+  }
+
+  // ==================== Talent Management ====================
+
+  @Get("candidates")
+  async getCandidates(
+    @Req() request: RequestWithTenant,
+    @Query("status") status?: string,
+  ) {
+    const { tenantId } = request.tenantContext;
+    const candidates = await this.hrService.getCandidates(tenantId, status);
+    return { success: true, tenantId, data: candidates };
+  }
+
+  @Post("candidates")
+  async createCandidate(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateCandidateDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const candidate = await this.hrService.createCandidate(tenantId, dto, userId);
+    return { success: true, tenantId, data: candidate };
+  }
+
+  @Post("candidates/:id/hire")
+  async hireCandidate(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const employee = await this.hrService.hireCandidate(tenantId, id, userId);
+    return { success: true, tenantId, message: "Candidate hired as employee", data: employee };
+  }
+
+  // ==================== Headcount & Compensation ====================
+
+  @Get("positions")
+  async getPositions(
+    @Req() request: RequestWithTenant,
+    @Query("departmentId") departmentId?: string,
+  ) {
+    const { tenantId } = request.tenantContext;
+    const positions = await this.hrService.getPositions(tenantId, departmentId);
+    return { success: true, tenantId, data: positions };
+  }
+
+  @Patch("positions/:id")
+  async updatePosition(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() dto: UpdatePositionDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const position = await this.hrService.updatePosition(tenantId, id, dto, userId);
+    return { success: true, tenantId, data: position };
+  }
+
+  @Get("employees/:id/compensation")
+  async getCompensation(
+    @Req() request: RequestWithTenant,
+    @Param("id") employeeId: string,
+  ) {
+    const { tenantId } = request.tenantContext;
+    const compensation = await this.hrService.getCompensation(tenantId, employeeId);
+    return { success: true, tenantId, data: compensation };
+  }
+
+  @Patch("employees/:id/compensation")
+  async updateCompensation(
+    @Req() request: RequestWithTenant,
+    @Param("id") employeeId: string,
+    @Body() dto: UpdateCompensationDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const compensation = await this.hrService.updateCompensation(tenantId, employeeId, dto, userId);
+    return { success: true, tenantId, data: compensation };
+  }
+
   // ==================== Case Management ====================
 
   @Get("cases")
@@ -1118,5 +1288,1089 @@ export class HRController {
     const { tenantId, userId } = request.tenantContext;
     const assignment = await this.hrService.updateTrainingAssignment(tenantId, id, body, userId!);
     return { success: true, tenantId, data: assignment };
+  }
+
+  // ==================== Analytics & Reporting ====================
+
+  /**
+   * GET /hr/analytics/workforce
+   * Overall workforce metrics and turnover rates
+   */
+  @Get("analytics/workforce")
+  async getWorkforceAnalytics(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const stats = await this.hrService.getTurnoverStats(tenantId);
+    return { success: true, tenantId, data: stats };
+  }
+
+  /**
+   * GET /hr/analytics/trends
+   * Historical headcount growth trends
+   */
+  @Get("analytics/trends")
+  async getHeadcountTrends(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const trend = await this.hrService.getHeadcountTrend(tenantId);
+    return { success: true, tenantId, data: trend };
+  }
+
+  /**
+   * GET /hr/analytics/departments
+   * Department-level distribution and cost analytics
+   */
+  @Get("analytics/departments")
+  async getDepartmentAnalytics(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const analytics = await this.hrService.getDepartmentAnalytics(tenantId);
+    return { success: true, tenantId, data: analytics };
+  }
+
+  /**
+   * GET /hr/analytics/compensation
+   * Salary distribution and spend analysis
+   */
+  @Get("analytics/compensation")
+  async getCompensationAnalytics(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const analytics = await this.hrService.getCompensationAnalytics(tenantId);
+    return { success: true, tenantId, data: analytics };
+  }
+
+  // ==================== Recruitment & Scheduling ====================
+
+  /**
+   * GET /hr/recruitment/interviews
+   * List scheduled interviews (optionally filtered by candidate)
+   */
+  @Get("recruitment/interviews")
+  async getInterviews(
+    @Req() request: RequestWithTenant,
+    @Query("candidateId") candidateId?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const interviews = await this.hrService.getInterviews(tenantId, candidateId);
+    return { success: true, tenantId, data: interviews };
+  }
+
+  /**
+   * POST /hr/recruitment/interviews
+   * Schedule a new interview
+   */
+  @Post("recruitment/interviews")
+  async scheduleInterview(
+    @Req() request: RequestWithTenant,
+    @Body() body: ScheduleInterviewDto
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const interview = await this.hrService.scheduleInterview(tenantId, body, userId!);
+    return { success: true, tenantId, data: interview };
+  }
+
+  /**
+   * PATCH /hr/recruitment/interviews/:id/status
+   * Update interview status
+   */
+  @Patch("recruitment/interviews/:id/status")
+  async updateInterviewStatus(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() body: UpdateInterviewStatusDto
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const interview = await this.hrService.updateInterviewStatus(tenantId, id, body.status, userId!);
+    return { success: true, tenantId, data: interview };
+  }
+
+  // ==================== Talent Sourcing ====================
+
+  /**
+   * GET /hr/recruitment/talent-leads
+   * List ingested talent leads
+   */
+  @Get("recruitment/talent-leads")
+  async getTalentLeads(
+    @Req() request: RequestWithTenant,
+    @Query("status") status?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const leads = await this.hrService.getTalentLeads(tenantId, status);
+    return { success: true, tenantId, count: leads.length, data: leads };
+  }
+
+  /**
+   * POST /hr/recruitment/talent-leads/ingest
+   * Ingest a new lead (from LinkedIn/Extension)
+   */
+  @Post("recruitment/talent-leads/ingest")
+  async ingestLead(
+    @Req() request: RequestWithTenant,
+    @Body() dto: IngestTalentLeadDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const lead = await this.talentSourcingService.ingestLead(tenantId, dto);
+    return { success: true, tenantId, message: "Talent lead ingested", data: lead };
+  }
+
+  /**
+   * POST /hr/recruitment/talent-leads/:id/convert
+   * Convert lead to candidate in a specific requisition
+   */
+  @Post("recruitment/talent-leads/:id/convert")
+  async convertLead(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() dto: ConvertLeadDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const candidate = await this.talentSourcingService.convertToCandidate(
+      tenantId,
+      id,
+      dto.requisitionId
+    );
+    return { success: true, tenantId, message: "Lead converted to candidate", data: candidate };
+  }
+
+  // ==================== AI-Powered Global Compliance Vault ====================
+
+  /**
+   * GET /hr/compliance/documents/:employeeId
+   * Fetch compliance documents for a specific employee
+   */
+  @Get("compliance/documents/:employeeId")
+  async getComplianceDocuments(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const docs = await this.repository.getComplianceDocuments(tenantId, employeeId);
+    return { success: true, tenantId, data: docs };
+  }
+
+  /**
+   * POST /hr/compliance/upload-classify
+   * Upload and auto-classify document using simulation OCR
+   */
+  @Post("compliance/upload-classify")
+  async uploadAndClassify(
+    @Req() request: RequestWithTenant,
+    @Body() data: { employeeId: string; fileUrl: string; fileName: string; documentType?: string }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const doc = await this.complianceService.uploadAndClassify(tenantId, data.employeeId, data);
+    return { success: true, tenantId, message: "Document uploaded and classified", data: doc };
+  }
+
+  /**
+   * GET /hr/compliance/audit
+   * Global compliance health check
+   */
+  @Get("compliance/audit")
+  async auditCompliance(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const report = await this.complianceService.auditCompliance(tenantId);
+    return { success: true, tenantId, data: report };
+  }
+
+  /**
+   * PATCH /hr/compliance/verify/:id
+   * HR Manager manual verification or rejection
+   */
+  @Patch("compliance/verify/:id")
+  async verifyComplianceDocument(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() data: { status: 'VERIFIED' | 'REJECTED'; verifiedBy: string }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const doc = await this.complianceService.verifyDocument(tenantId, id, data.verifiedBy, data.status);
+    return { success: true, tenantId, message: `Document ${data.status.toLowerCase()}`, data: doc };
+  }
+
+  /**
+   * POST /hr/compliance/check-expirations
+   * Manually trigger expiry checks
+   */
+  @Post("compliance/check-expirations")
+  async checkComplianceExpirations(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const expiredCount = await this.complianceService.checkExpirations(tenantId);
+    return { success: true, tenantId, message: "Expiration check complete", expiredCount };
+  }
+
+  /**
+   * POST /hr/compliance/documents/:id/ocr
+   * Trigger OCR on a specific document
+   */
+  @Post("compliance/documents/:id/ocr")
+  async triggerOcr(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const result = await this.complianceService.triggerOcr(tenantId, id, userId!);
+    return { success: true, tenantId, message: "OCR processing completed", data: result };
+  }
+
+  // ==================== Predictive Workforce Analytics ====================
+
+  /**
+   * GET /hr/analytics/predictions/turnover
+   * Get predicted turnover rates
+   */
+  @Get("analytics/predictions/turnover")
+  async predictTurnover(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const prediction = await this.analyticsService.predictTurnover(tenantId);
+    return { success: true, tenantId, data: prediction };
+  }
+
+  /**
+   * GET /hr/analytics/predictions/flight-risk
+   * List high flight-risk employees
+   */
+  @Get("analytics/predictions/flight-risk")
+  async getFlightRisks(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const risks = await this.analyticsService.getFlightRisks(tenantId);
+    return { success: true, tenantId, count: risks.length, data: risks };
+  }
+
+  /**
+   * GET /hr/analytics/insights
+   * Get general workforce insights and productivity risks
+   */
+  @Get("analytics/insights")
+  async getWorkforceInsights(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const insights = await this.analyticsService.getWorkforceInsights(tenantId);
+    return { success: true, tenantId, data: insights };
+  }
+
+  // ==================== Strategic Workforce Planner ====================
+
+  /**
+   * GET /hr/planning/scenarios
+   * List budget scenarios
+   */
+  @Get("planning/scenarios")
+  async getBudgetScenarios(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const scenarios = await this.prisma.budgetScenario.findMany({
+      where: { tenantId },
+      orderBy: { fiscalYear: "desc" },
+    });
+    return { success: true, tenantId, count: scenarios.length, data: scenarios };
+  }
+
+  /**
+   * POST /hr/planning/scenarios
+   * Create a new budget scenario
+   */
+  @Post("planning/scenarios")
+  async createBudgetScenario(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateBudgetScenarioDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const scenario = await this.prisma.budgetScenario.create({
+      data: {
+        tenantId,
+        ...dto,
+      },
+    });
+    return { success: true, tenantId, message: "Budget scenario created", data: scenario };
+  }
+
+  /**
+   * GET /hr/planning/scenarios/:id/plans
+   * List headcount plans for a scenario
+   */
+  @Get("planning/scenarios/:id/plans")
+  async getHeadcountPlans(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const plans = await this.prisma.headcountPlan.findMany({
+      where: {
+        scenarioId: id,
+        scenario: { tenantId },
+      },
+      orderBy: { plannedHireDate: "asc" },
+    });
+    return { success: true, tenantId, count: plans.length, data: plans };
+  }
+
+  /**
+   * POST /hr/planning/plans
+   * Create a new headcount plan
+   */
+  @Post("planning/plans")
+  async createHeadcountPlan(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateHeadcountPlanDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    // Verify scenario ownership
+    const scenario = await this.prisma.budgetScenario.findFirst({
+      where: { id: dto.scenarioId, tenantId },
+    });
+    if (!scenario) return { success: false, message: "Scenario not found" };
+
+    const plan = await this.prisma.headcountPlan.create({
+      data: {
+        tenantId,
+        scenarioId: dto.scenarioId,
+        departmentId: dto.departmentId,
+        positionTitle: dto.positionTitle,
+        targetHeadcount: dto.targetHeadcount || 1,
+        projectedSalary: dto.projectedSalary,
+        plannedHireDate: new Date(dto.plannedHireDate),
+      },
+    });
+    return { success: true, tenantId, message: "Headcount plan created", data: plan };
+  }
+
+  /**
+   * GET /hr/planning/scenarios/:id/what-if
+   * Comparison analysis for a scenario
+   */
+  @Get("planning/scenarios/:id/what-if")
+  async calculateWhatIf(@Req() request: RequestWithTenant, @Param("id") id: string) {
+    const { tenantId } = request.tenantContext;
+    const analysis = await this.workforcePlannerService.calculateWhatIfAnalysis(tenantId, id);
+    return { success: true, tenantId, data: analysis };
+  }
+
+  /**
+   * GET /hr/planning/scenarios/:id/projections
+   * Workforce cost forecasting for a scenario
+   */
+  @Get("planning/scenarios/:id/projections")
+  async generateProjections(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Query("months") months?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const projections = await this.workforcePlannerService.generateCostProjections(
+      tenantId,
+      id,
+      months ? parseInt(months) : 24
+    );
+    return { success: true, tenantId, data: projections };
+  }
+
+  // ==================== Global Multi-Currency Payroll ====================
+
+  /**
+   * GET /hr/payroll/exchange-rates
+   * List configured exchange rates
+   */
+  @Get("payroll/exchange-rates")
+  async getExchangeRates(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const rates = await this.prisma.exchangeRate.findMany({
+      where: { tenantId },
+      orderBy: { effectiveAt: "desc" },
+    });
+    return { success: true, tenantId, data: rates };
+  }
+
+  /**
+   * POST /hr/payroll/exchange-rates
+   * Update manual exchange rate
+   */
+  @Post("payroll/exchange-rates")
+  async updateExchangeRate(
+    @Req() request: RequestWithTenant,
+    @Body() data: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const rate = await this.prisma.exchangeRate.create({
+      data: {
+        tenantId,
+        fromCurrency: data.fromCurrency,
+        toCurrency: data.toCurrency,
+        rate: data.rate,
+        effectiveAt: data.effectiveAt || data.effectiveDate ? new Date(data.effectiveAt || data.effectiveDate) : new Date(),
+      },
+    });
+    return { success: true, tenantId, message: "Exchange rate updated", data: rate };
+  }
+
+  /**
+   * GET /hr/payroll/consolidated
+   * Consolidated payroll reporting
+   */
+  @Get("payroll/consolidated")
+  async getConsolidatedPayroll(
+    @Req() request: RequestWithTenant,
+    @Query("baseCurrency") baseCurrency?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const report = await this.payrollConsolidationService.getConsolidatedReport(
+      tenantId,
+      baseCurrency || "USD"
+    );
+    return { success: true, tenantId, data: report };
+  }
+
+  // ==================== Predictive Succession Planning ====================
+
+  /**
+   * GET /hr/succession/plans
+   * List critical role succession plans
+   */
+  @Get("succession/plans")
+  async getSuccessionPlans(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const plans = await this.successionService.getPlans(tenantId);
+    return { success: true, tenantId, data: plans };
+  }
+
+  /**
+   * GET /hr/succession/plans/model/:positionId
+   * Generate potential successors for a position
+   */
+  @Get("succession/plans/model/:positionId")
+  async modelSuccession(
+    @Req() request: RequestWithTenant,
+    @Param("positionId") positionId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const model = await this.successionService.getModelSuccession(tenantId, positionId);
+    return { success: true, tenantId, data: model };
+  }
+
+  /**
+   * POST /hr/succession/plans
+   * Create a new succession plan
+   */
+  @Post("succession/plans")
+  async createSuccessionPlan(
+    @Req() request: RequestWithTenant,
+    @Body() data: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const plan = await this.successionService.createPlan(tenantId, data);
+    return { success: true, tenantId, message: "Succession plan created", data: plan };
+  }
+
+  /**
+   * POST /hr/succession/plans/:id/candidates
+   * Nominate a successor
+   */
+  @Post("succession/plans/:id/candidates")
+  async nominateSuccessor(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() data: any
+  ) {
+    const { tenantId } = request.tenantContext;
+    const candidate = await this.successionService.nominateSuccessor(tenantId, {
+      ...data,
+      planId: id,
+    });
+    return { success: true, tenantId, message: "Successor nominated", data: candidate };
+  }
+
+  /**
+   * GET /hr/succession/bench-strength
+   * Regional leadership readiness view
+   */
+  @Get("succession/bench-strength")
+  async getBenchStrength(
+    @Req() request: RequestWithTenant,
+    @Query("departmentId") departmentId?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const health = await this.successionService.assessBenchStrength(tenantId, departmentId);
+    return { success: true, tenantId, data: health };
+  }
+
+  // ==================== Skills-Based Org Design ====================
+
+  /**
+   * GET /hr/skills
+   * List company skill ontology
+   */
+  @Get("skills")
+  async getSkills(
+    @Req() request: RequestWithTenant,
+    @Query("category") category?: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const skills = await this.repository.getSkills(tenantId, category);
+    return { success: true, tenantId, count: skills.length, data: skills };
+  }
+
+  /**
+   * POST /hr/skills
+   * Create a new skill in the ontology
+   */
+  @Post("skills")
+  async createSkill(
+    @Req() request: RequestWithTenant,
+    @Body() data: { name: string; category: string; description?: string }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const skill = await this.repository.createSkill(tenantId, data);
+    return { success: true, tenantId, message: "Skill created", data: skill };
+  }
+
+  /**
+   * GET /hr/skills/employee/:employeeId
+   * Get skill profile for a specific employee
+   */
+  @Get("skills/employee/:employeeId")
+  async getEmployeeSkills(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const skills = await this.repository.getEmployeeSkills(tenantId, employeeId);
+    return { success: true, tenantId, count: skills.length, data: skills };
+  }
+
+  /**
+   * POST /hr/skills/employee
+   * Update or add employee skill proficiency
+   */
+  @Post("skills/employee")
+  async updateEmployeeSkill(
+    @Req() request: RequestWithTenant,
+    @Body() data: { employeeId: string; skillId: string; proficiency: number }
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    const result = await this.skillsService.verifyProficiency(
+      tenantId,
+      data.employeeId,
+      data.skillId,
+      userId!
+    );
+    return { success: true, tenantId, message: "Employee skill updated", data: result };
+  }
+
+  /**
+   * GET /hr/skills/marketplace
+   * Talent search based on skill requirements
+   */
+  @Post("skills/marketplace")
+  async searchTalent(
+    @Req() request: RequestWithTenant,
+    @Body() dto: MatchTalentDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const matches = await this.skillsService.mapInternalTalent(
+      tenantId,
+      dto.skillIds,
+      dto.minProficiency || 3
+    );
+    return { success: true, tenantId, count: matches.length, data: matches };
+  }
+
+  /**
+   * GET /hr/skills/employee/:id/gap-analysis
+   * Analysis against a target role
+   */
+  @Get("skills/employee/:id/gap-analysis")
+  async getSkillGap(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Query("targetRoleId") targetRoleId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const analysis = await this.skillsService.calculateSkillGap(tenantId, id, targetRoleId);
+    return { success: true, tenantId, data: analysis };
+  }
+
+  // ==================== Total Rewards & Benefits ====================
+
+  /**
+   * GET /hr/rewards/statement/:employeeId
+   * Consolidated rewards summary (Salary + Benefits)
+   */
+  @Get("rewards/statement/:employeeId")
+  async getTotalRewardsStatement(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const statement = await this.totalRewardsService.calculateTotalRewards(tenantId, employeeId);
+    return { success: true, tenantId, data: statement };
+  }
+
+  /**
+   * GET /hr/rewards/benefit-plans
+   * List available benefit offerings
+   */
+  @Get("rewards/benefit-plans")
+  async getBenefitPlans(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const plans = await this.repository.getBenefitPlans(tenantId);
+    return { success: true, tenantId, data: plans };
+  }
+
+  /**
+   * POST /hr/rewards/benefit-plans
+   * Create a new benefit plan
+   */
+  @Post("rewards/benefit-plans")
+  async createBenefitPlan(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateBenefitPlanDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const plan = await this.repository.createBenefitPlan(tenantId, dto);
+    return { success: true, tenantId, message: "Benefit plan created", data: plan };
+  }
+
+  /**
+   * POST /hr/rewards/enroll
+   * Enroll employee in a benefit plan
+   */
+  @Post("rewards/enroll")
+  async enrollInBenefit(
+    @Req() request: RequestWithTenant,
+    @Body() dto: EnrollBenefitDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const enrollment = await this.repository.enrollInBenefit(tenantId, dto);
+    return { success: true, tenantId, message: "Enrollment successful", data: enrollment };
+  }
+
+  // ==================== AI-Powered Career Pathing ====================
+
+  /**
+   * GET /hr/career/suggestions/:employeeId
+   * AI suggestions for next role progression
+   */
+  @Get("career/suggestions/:employeeId")
+  async getCareerSuggestions(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const suggestions = await this.careerPathService.suggestNextRoles(tenantId, employeeId);
+    return { success: true, tenantId, data: suggestions };
+  }
+
+  /**
+   * GET /hr/career/mentors/:employeeId
+   * Suggested internal mentors based on skill gaps
+   */
+  @Get("career/mentors/:employeeId")
+  async getMentorSuggestions(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const mentors = await this.careerPathService.findMentorMatches(tenantId, employeeId);
+    return { success: true, tenantId, data: mentors };
+  }
+
+  /**
+   * POST /hr/career/mentorship
+   * Initiate a developmental pairing
+   */
+  @Post("career/mentorship")
+  async createMentorship(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateMentorshipDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const pairing = await this.careerPathService.createMentorship(
+      tenantId,
+      dto.mentorId,
+      dto.menteeId,
+      dto.focusSkills
+    );
+    return { success: true, tenantId, message: "Mentorship initiated", data: pairing };
+  }
+
+  // ==================== AI-Generated Job Descriptions ====================
+
+  /**
+   * GET /hr/recruitment/position-skills/:positionId
+   * List required skills for a position
+   */
+  @Get("recruitment/position-skills/:positionId")
+  async getPositionSkills(
+    @Req() request: RequestWithTenant,
+    @Param("positionId") positionId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const skills = await this.repository.getPositionSkills(tenantId, positionId);
+    return { success: true, tenantId, data: skills };
+  }
+
+  /**
+   * POST /hr/recruitment/position-skills
+   * Add or update a required skill for a position
+   */
+  @Post("recruitment/position-skills")
+  async updatePositionSkill(
+    @Req() request: RequestWithTenant,
+    @Body() data: { positionId: string; skillId: string; minProficiency: number; isMandatory?: boolean }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const skill = await this.repository.updatePositionSkill(tenantId, data);
+    return { success: true, tenantId, message: "Position skill updated", data: skill };
+  }
+
+  /**
+   * POST /hr/recruitment/generate-description/:positionId
+   * AI-based job description generation
+   */
+  @Post("recruitment/generate-description/:positionId")
+  async generateJobDescription(
+    @Req() request: RequestWithTenant,
+    @Param("positionId") positionId: string,
+    @Body() dto: GenerateDescriptionDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const description = await this.jobDescriptionService.generateDescription(tenantId, positionId, dto.tone);
+    return { success: true, tenantId, data: description };
+  }
+
+  /**
+   * POST /hr/recruitment/publish/:positionId
+   * Distribute job post to channels
+   */
+  @Post("recruitment/publish/:positionId")
+  async publishJobPost(
+    @Req() request: RequestWithTenant,
+    @Param("positionId") positionId: string,
+    @Body() dto: PublishJobPostDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const result = await this.jobDescriptionService.publishJobPost(tenantId, positionId, dto.channels);
+    return { success: true, tenantId, message: "Job post published", data: result };
+  }
+
+  /**
+   * GET /hr/recruitment/benchmarks/:positionId
+   * Market alignment analysis
+   */
+  @Get("recruitment/benchmarks/:positionId")
+  async getRecruitmentBenchmarks(
+    @Req() request: RequestWithTenant,
+    @Param("positionId") positionId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const benchmarks = await this.jobDescriptionService.analyzeMarketAlignment(tenantId, positionId);
+    return { success: true, tenantId, data: benchmarks };
+  }
+
+  // ==================== AI-Powered Performance Predictor ====================
+
+  /**
+   * GET /hr/performance/forecast/:employeeId
+   * AI-based performance rating forecast
+   */
+  @Get("performance/forecast/:employeeId")
+  async forecastPerformance(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const forecast = await this.performancePredictorService.forecastPerformance(tenantId, employeeId);
+    return { success: true, tenantId, data: forecast };
+  }
+
+  /**
+   * GET /hr/performance/goal-probability/:goalId
+   * probability of completing a goal on time
+   */
+  @Get("performance/goal-probability/:goalId")
+  async getGoalProbability(
+    @Req() request: RequestWithTenant,
+    @Param("goalId") goalId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const probability = await this.performancePredictorService.calculateGoalProbability(tenantId, goalId);
+    return { success: true, tenantId, data: probability };
+  }
+
+  /**
+   * GET /hr/performance/interventions/:employeeId
+   * AI-recommended performance corrections
+   */
+  @Get("performance/interventions/:employeeId")
+  async getPerformanceInterventions(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const interventions = await this.performancePredictorService.recommendInterventions(tenantId, employeeId);
+    return { success: true, tenantId, data: interventions };
+  }
+
+  /**
+   * GET /hr/performance/goals/:employeeId
+   * List employee performance goals
+   */
+  @Get("performance/goals/:employeeId")
+  async getEmployeeGoals(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const goals = await this.repository.getEmployeeGoals(tenantId, employeeId);
+    return { success: true, tenantId, data: goals };
+  }
+
+  /**
+   * POST /hr/performance/goals
+   * Create or update a performance goal
+   */
+  @Post("performance/goals")
+  async updatePerformanceGoal(
+    @Req() request: RequestWithTenant,
+    @Body() dto: UpdatePerformanceGoalDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const goal = await this.repository.updatePerformanceGoal(tenantId, dto);
+    return { success: true, tenantId, message: "Goal updated", data: goal };
+  }
+
+  // ==================== AI-Powered Learning Path Personalization ====================
+
+  /**
+   * GET /hr/learning/recommendations/:employeeId
+   * Personalized course suggestions based on skill gaps
+   */
+  @Get("learning/recommendations/:employeeId")
+  async getLearningRecommendations(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const recommendations = await this.learningService.recommendLearningPath(tenantId, employeeId);
+    return { success: true, tenantId, data: recommendations };
+  }
+
+  /**
+   * POST /hr/learning/enroll
+   * Enroll employee in a training program
+   */
+  @Post("learning/enroll")
+  async enrollInLearningProgram(
+    @Req() request: RequestWithTenant,
+    @Body() dto: EnrollTrainingDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const enrollment = await this.repository.enrollInTrainingProgram(tenantId, dto.employeeId, dto.programId);
+    return { success: true, tenantId, message: "Enrolled in training program", data: enrollment };
+  }
+
+  /**
+   * POST /hr/learning/auto-enroll-gaps/:employeeId
+   * Auto-enroll in mandatory gap-filler courses
+   */
+  @Post("learning/auto-enroll-gaps/:employeeId")
+  async autoEnrollGaps(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const enrollments = await this.learningService.autoEnrollInGapFillers(tenantId, employeeId);
+    return { success: true, tenantId, message: `Auto-enrolled in ${enrollments.length} programs`, data: enrollments };
+  }
+
+  /**
+   * GET /hr/learning/roi/:employeeId
+   * Impact analysis of completed training
+   */
+  @Get("learning/roi/:employeeId")
+  async getLearningROI(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const roi = await this.learningService.calculateLearningROI(tenantId, employeeId);
+    return { success: true, tenantId, data: roi };
+  }
+
+  // ==================== Strategic Global Workforce Explorer & Talent Mobility ====================
+
+  /**
+   * GET /hr/strategic/mobility/:employeeId
+   * Assess employee readiness for cross-departmental or regional transition
+   */
+  @Get("strategic/mobility/:employeeId")
+  async assessMobility(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string,
+    @Query("targetDeptId") targetDeptId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const assessment = await this.workforcePlannerService.assessTalentMobility(tenantId, employeeId, targetDeptId);
+    return { success: true, tenantId, data: assessment };
+  }
+
+  /**
+   * GET /hr/strategic/explorer/headcount
+   * Context-aware headcount analysis for HR Admins
+   */
+  @Get("strategic/explorer/headcount")
+  async getStrategicHeadcount(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const [active, total] = await Promise.all([
+      this.prisma.employee.count({ where: { tenantId, status: 'active' } }),
+      this.prisma.employee.count({ where: { tenantId } })
+    ]);
+    return { success: true, tenantId, metrics: { active, total, utilization: Number((active / (total || 1)).toFixed(2)) } };
+  }
+
+  /**
+   * GET /hr/strategic/explorer/growth
+   * Workforce dynamics reporting (Hires, Exits, Transfers)
+   */
+  @Get("strategic/explorer/growth")
+  async getWorkforceDynamics(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const dynamics = await this.workforcePlannerService.getGlobalWorkforceDynamics(tenantId);
+    return { success: true, tenantId, data: dynamics };
+  }
+
+  /**
+   * GET /hr/learning/history/:employeeId
+   * employee training history
+   */
+  @Get("learning/history/:employeeId")
+  async getEmployeeLearningHistory(
+    @Req() request: RequestWithTenant,
+    @Param("employeeId") employeeId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const history = await this.repository.getEmployeeTrainingHistory(tenantId, employeeId);
+    return { success: true, tenantId, data: history };
+  }
+
+  // ==================== Predictive Labor Cost Modeling ====================
+
+  /**
+   * GET /hr/finance/labor-projection/:deptId
+   * Forecast labor costs over N periods
+   */
+  @Get("finance/labor-projection/:deptId")
+  async projectLaborCosts(
+    @Req() request: RequestWithTenant,
+    @Param("deptId") departmentId: string,
+    @Query("periods") periods: string = "12"
+  ) {
+    const { tenantId } = request.tenantContext;
+    const projection = await this.laborCostService.projectLaborCosts(tenantId, departmentId, parseInt(periods));
+    return { success: true, tenantId, data: projection };
+  }
+
+  /**
+   * GET /hr/finance/budget-variance/:deptId
+   * Identify potential departmental budget overruns
+   */
+  @Get("finance/budget-variance/:deptId")
+  async getBudgetVariance(
+    @Req() request: RequestWithTenant,
+    @Param("deptId") departmentId: string
+  ) {
+    const { tenantId } = request.tenantContext;
+    const variance = await this.laborCostService.getBudgetVarianceForecast(tenantId, departmentId);
+    return { success: true, tenantId, data: variance };
+  }
+
+  /**
+   * POST /hr/finance/simulate-inflation
+   * Model global impact of benefit/tax inflation
+   */
+  @Post("finance/simulate-inflation")
+  async simulateInflation(
+    @Req() request: RequestWithTenant,
+    @Body() dto: SimulateInflationDto
+  ) {
+    const { tenantId } = request.tenantContext;
+    const simulation = await this.laborCostService.simulateInflationImpact(tenantId, dto.inflationRate);
+    return { success: true, tenantId, data: simulation };
+  }
+
+  // ==================== Compliance Engine ====================
+
+  /**
+   * POST /hr/compliance/calculate
+   * Run a compliance calculation for a specific module and period.
+   * Body: { module: 'BPJS_KESEHATAN'|'BPJS_KETENAGAKERJAAN'|'PPH21'|'CPF'|'WPS', period: 'YYYY-MM' }
+   */
+  @Post("compliance/calculate")
+  async runComplianceCalculation(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { module: string; period: string }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const result = await this.complianceEngineService.calculate(tenantId, dto.module, dto.period);
+    return { success: true, tenantId, data: result };
+  }
+
+  /**
+   * POST /hr/compliance/export
+   * Export a compliance report in the specified format.
+   * Body: { module: string; period: string; format: 'CSV'|'EXCEL'|'XML'|'PDF' }
+   * CSV/XML are returned as text; EXCEL/PDF are returned as base64.
+   */
+  @Post("compliance/export")
+  async exportComplianceReport(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { module: string; period: string; format: 'CSV' | 'EXCEL' | 'XML' | 'PDF' }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const result = await this.complianceEngineService.calculate(tenantId, dto.module, dto.period);
+    const exported = this.complianceEngineService.export(dto.format, result);
+    if (dto.format === 'CSV' || dto.format === 'XML') {
+      return { success: true, tenantId, format: dto.format, data: exported };
+    }
+    return {
+      success: true,
+      tenantId,
+      format: dto.format,
+      data: (exported as Buffer).toString('base64'),
+    };
+  }
+
+  /**
+   * POST /hr/compliance/calculate-all
+   * Run all compliance modules for a given country in one call.
+   * Body: { country: 'ID'|'SG'|'AE', period: 'YYYY-MM' }
+   */
+  @Post("compliance/calculate-all")
+  async runAllComplianceModules(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { country: string; period: string }
+  ) {
+    const { tenantId } = request.tenantContext;
+    const results = await this.complianceEngineService.calculateAll(tenantId, dto.country, dto.period);
+    return { success: true, tenantId, country: dto.country, results };
+  }
+
+  /**
+   * GET /hr/compliance/modules/:country
+   * List all available compliance modules for the given country.
+   */
+  @Get("compliance/modules/:country")
+  getComplianceModules(
+    @Param("country") country: string
+  ) {
+    const modules = this.complianceEngineService.getAvailableModules(country.toUpperCase());
+    return { success: true, country: country.toUpperCase(), modules };
+  }
+
+  /**
+   * GET /hr/compliance/ai-suggestions
+   * AI-powered compliance module suggestions based on company registration
+   */
+  @Get('compliance/ai-suggestions')
+  async getComplianceSuggestions(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const suggestions = await this.complianceSuggestionService.generateSuggestions(tenantId);
+    return { success: true, tenantId, data: suggestions };
   }
 }

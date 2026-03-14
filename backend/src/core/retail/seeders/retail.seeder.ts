@@ -541,6 +541,7 @@ export class RetailSeeder {
           }
           await this.prisma.retailOrderItem.create({
             data: {
+              tenantId: this.TENANT_ID,
               orderId: order.id,
               productId: product.id,
               quantity: item.qty,

@@ -1,0 +1,1 @@
+{"type":"https://zenvix.io/errors/bad-request","title":"Bad Request","status":400,"detail":"Expected property name or '}' in JSON at position 1 (line 1 column 2)","instance":"/api/hr/employees/a182b3e4-6f1a-49a2-9ab1-a590248092af","timestamp":"2026-03-12T05:57:23.224Z"}

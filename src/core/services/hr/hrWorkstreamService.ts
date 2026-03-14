@@ -30,7 +30,7 @@ export const hrWorkstreamService = {
 
     // Fetch data in parallel
     const [workflows, employees, attendance, payrollRuns, trainings] = await Promise.all([
-      workflowService.listRequests(tenantId),
+      workflowService.listRequests(tenantId, actor),
       hrService.listEmployees(tenantId, actor),
       attendanceService.listAttendance(tenantId, actor),
       payrollService.listRuns(tenantId, actor),

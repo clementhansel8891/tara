@@ -1,0 +1,1 @@
+{"type":"https://zenvix.io/errors/bad-request","title":"Bad Request","status":400,"detail":"Missing required header: x-tenant-id. All requests must include a tenant identifier.","instance":"/","timestamp":"2026-03-12T06:26:08.262Z"}

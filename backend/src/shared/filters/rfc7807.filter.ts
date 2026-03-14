@@ -7,12 +7,12 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 
+import * as fs from "fs";
+import * as path from "path";
+
 @Catch()
 export class Rfc7807ExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
-    if (!(exception instanceof HttpException)) {
-      console.error("[Rfc7807ExceptionFilter] Unhandled Error:", exception);
-    }
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -21,6 +21,13 @@ export class Rfc7807ExceptionFilter implements ExceptionFilter {
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    if (status === 400) {
+      fs.appendFileSync(
+        path.join(process.cwd(), "debug_400.log"),
+        `[${new Date().toISOString()}] 400 Error at ${request.url}\nException: ${JSON.stringify(exception, null, 2)}\nResponse: ${JSON.stringify(exception instanceof HttpException ? exception.getResponse() : {}, null, 2)}\n\n`
+      );
+    }
 
     const exceptionResponse =
       exception instanceof HttpException

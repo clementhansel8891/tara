@@ -56,9 +56,9 @@ export class RetailGatewayService {
       id: product.id,
       name: product.name,
       sku: product.sku,
-      price: Number(product.base_price),
+      price: Number(product.basePrice),
       stockLevel: "IN_STOCK",
-      category: product.category_id,
+      category: product.categoryId,
       maxQuantity: 999,
     }));
   }
@@ -84,7 +84,7 @@ export class RetailGatewayService {
       sku: product.sku,
       name: product.name,
       description: product.description,
-      basePrice: product.base_price,
+      basePrice: product.basePrice,
       currency: product.currency,
       prices: product.prices,
       variants: product.variants,
@@ -276,7 +276,7 @@ export class RetailGatewayService {
 
     await this.retailService.updateCartItem(tenantId, cart.id, data.productId, {
       quantity: data.quantity,
-      unitPrice: Number(product.base_price),
+      unitPrice: Number(product.basePrice),
     });
 
     return this.getCart(tenantId, customerId);
@@ -397,7 +397,7 @@ export class RetailGatewayService {
         return {
           productId: product.id,
           quantity: item.quantity,
-          unitPrice: Number(product.base_price),
+          unitPrice: Number(product.basePrice),
         };
       }),
     );

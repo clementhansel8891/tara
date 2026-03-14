@@ -108,4 +108,12 @@ export class ITService {
   async getSystemHealth(tenantId: string) {
     return this.repository.getSystemHealth(tenantId);
   }
+
+  async getMonitoringStats(tenantId: string) {
+    return this.repository.getProvisioningStats(tenantId);
+  }
+
+  async getAuditLogs(tenantId: string, requestId?: string) {
+    return this.repository.getAuditLogs(tenantId, requestId);
+  }
 }

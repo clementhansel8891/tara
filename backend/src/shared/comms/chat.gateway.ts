@@ -42,8 +42,28 @@ export class ChatGateway implements OnGatewayConnection {
       body: payload.body,
     });
 
-    // Emit to all users in the room
+    // Part 7: broadcast newMessage
     this.server.to(`room_${payload.roomId}`).emit('newMessage', message);
+  }
+
+  @SubscribeMessage('messageDelivered')
+  async handleMessageDelivered(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { messageId: string },
+  ) {
+    const updated = await this.chatService.updateMessageStatus(payload.messageId, 'DELIVERED');
+    // Notify sender that message was delivered
+    this.server.to(`user_${updated.senderId}`).emit('messageStatusUpdated', updated);
+  }
+
+  @SubscribeMessage('messagesRead')
+  async handleMessagesRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { roomId: string, userId: string },
+  ) {
+    await this.chatService.markAsRead(payload.roomId, payload.userId);
+    // Broadcast status change to room members
+    this.server.to(`room_${payload.roomId}`).emit('roomRead', { roomId: payload.roomId, userId: payload.userId });
   }
 
   @SubscribeMessage('joinRoom')

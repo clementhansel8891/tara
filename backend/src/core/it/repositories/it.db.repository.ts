@@ -26,6 +26,8 @@ export class ITDbRepository extends IITRepository {
       supplierId: r.supplierId || undefined,
       supplierBranchId: r.supplierBranchId || undefined,
       scope: (r.scope as any) || "full_portal",
+      priority: (r as any).priority || "MEDIUM",
+      description: (r as any).description || undefined,
       reason: r.reason || "",
       status: r.status.toLowerCase() as any,
       requestedBy: r.requestedBy,
@@ -74,6 +76,8 @@ export class ITDbRepository extends IITRepository {
         supplierId: finalSupplierId,
         supplierBranchId: dto.supplierBranchId,
         scope: dto.scope,
+        priority: dto.priority || "MEDIUM",
+        description: dto.description,
         reason: fallbackReason,
         status: "REQUESTED",
         requestedBy: "system", // In real app, this would be from auth
@@ -87,6 +91,8 @@ export class ITDbRepository extends IITRepository {
       supplierId: created.supplierId || undefined,
       supplierBranchId: created.supplierBranchId || undefined,
       scope: (created.scope as any) || "full_portal",
+      priority: created.priority || "MEDIUM",
+      description: created.description || undefined,
       reason: created.reason || "",
       status: "requested",
       requestedBy: created.requestedBy,
@@ -115,6 +121,8 @@ export class ITDbRepository extends IITRepository {
       supplierId: updated.supplierId || undefined,
       supplierBranchId: updated.supplierBranchId || undefined,
       scope: (updated.scope as any) || "full_portal",
+      priority: updated.priority || "MEDIUM",
+      description: updated.description || undefined,
       reason: updated.reason || "",
       status: "provisioned",
       requestedBy: updated.requestedBy,
@@ -166,6 +174,8 @@ export class ITDbRepository extends IITRepository {
       supplierId: updated.supplierId || undefined,
       supplierBranchId: updated.supplierBranchId || undefined,
       scope: (updated.scope as any) || "full_portal",
+      priority: updated.priority || "MEDIUM",
+      description: updated.description || undefined,
       reason: updated.reason || "",
       status: updated.status.toLowerCase() as any,
       requestedBy: updated.requestedBy,
@@ -199,5 +209,49 @@ export class ITDbRepository extends IITRepository {
       latencyMs: h.latencyMs,
       checkedAt: h.checkedAt,
     }));
+  }
+
+  async getProvisioningStats(tenantId: string): Promise<any> {
+    const aggregations = await this.prisma.iTProvisioningRequest.groupBy({
+      by: ["status"],
+      where: { tenantId },
+      _count: true,
+    });
+
+    const stats: any = {
+      total: 0,
+      requested: 0,
+      provisioned: 0,
+      failed: 0,
+    };
+
+    aggregations.forEach((group) => {
+      const status = group.status.toLowerCase();
+      stats.total += group._count;
+      if (status === "requested") stats.requested = group._count;
+      if (status === "provisioned") stats.provisioned = group._count;
+      if (status === "failed") stats.failed = group._count;
+    });
+
+    return stats;
+  }
+
+  async getAuditLogs(tenantId: string, requestId?: string): Promise<any[]> {
+    const where: any = {
+      tenantId,
+      module: "IT",
+    };
+
+    if (requestId) {
+      where.requestId = requestId;
+    }
+
+    const logs = await this.prisma.systemLog.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+
+    return logs;
   }
 }

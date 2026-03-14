@@ -27,6 +27,10 @@ export class UpdateEmployeeDto {
 
   @IsString()
   @IsOptional()
+  fullName?: string;
+
+  @IsString()
+  @IsOptional()
   departmentId?: string;
 
   @IsString()
@@ -41,13 +45,13 @@ export class UpdateEmployeeDto {
   @IsOptional()
   locationId?: string;
 
-  @IsEnum(EmploymentStatus)
+  @IsString()
   @IsOptional()
-  status?: EmploymentStatus;
+  status?: string;
 
-  @IsEnum(EmploymentType)
+  @IsString()
   @IsOptional()
-  employmentType?: EmploymentType;
+  employmentType?: string;
 
   @IsNumber()
   @Min(0)
@@ -58,6 +62,9 @@ export class UpdateEmployeeDto {
   @Min(0)
   @IsOptional()
   hourlyRate?: number;
+
+  @IsOptional()
+  documentsMetadata?: any;
 
   @IsDateString()
   @IsOptional()

@@ -15,4 +15,5 @@ export class Attendance {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date;
 }

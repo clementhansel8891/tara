@@ -451,8 +451,8 @@ export class RetailDbRepository implements IRetailRepository {
         data: {
           name: data.name,
           description: data.description,
-          categoryId: data.category_id,
-          basePrice: data.base_price,
+          categoryId: data.categoryId,
+          basePrice: data.basePrice,
           unit: data.unit,
           sku: data.sku,
           barcode: data.barcode,
@@ -471,13 +471,13 @@ export class RetailDbRepository implements IRetailRepository {
         data: {
           customName: data.name,
           customDescription: data.description,
-          price: data.base_price,
+          price: data.basePrice,
         },
       }),
     ];
 
     if (
-      (data.stock_on_hand !== undefined || data.reserved !== undefined) &&
+      (data.stockOnHand !== undefined || data.reserved !== undefined) &&
       locationId
     ) {
       const existingStock = await this.prisma.stockLevel.findFirst({
@@ -485,8 +485,8 @@ export class RetailDbRepository implements IRetailRepository {
       });
 
       const onHand =
-        data.stock_on_hand !== undefined
-          ? data.stock_on_hand
+        data.stockOnHand !== undefined
+          ? data.stockOnHand
           : existingStock?.onHand || 0;
       const reserved =
         data.reserved !== undefined
@@ -849,7 +849,7 @@ export class RetailDbRepository implements IRetailRepository {
 
       stats.totalSOH += totalOnHand;
       stats.totalATS += totalAvailable;
-      stats.totalValue += totalOnHand * (p.basePrice as any).toNumber();
+      stats.totalValue += totalOnHand * Number(p.basePrice);
 
       if (totalAvailable <= 0) {
         stats.critical++;
@@ -1874,17 +1874,17 @@ export class RetailDbRepository implements IRetailRepository {
 
     return {
       id: p.id,
-      tenant_id: p.tenantId,
+      tenantId: p.tenantId,
       sku: p.sku,
       barcode: p.barcode,
       name: customName,
       description: customDesc,
-      category_id: p.categoryId,
-      category_name: p.category?.name,
-      base_price: customPrice,
+      categoryId: p.categoryId,
+      categoryName: p.category?.name,
+      basePrice: customPrice,
       currency: "IDR",
       prices: [{ amount: customPrice, currency: "IDR" }],
-      tax_rate: Number(p.taxRate),
+      taxRate: Number(p.taxRate),
       unit: p.unit,
       type: p.type as any,
       status: p.status as any,
@@ -1895,12 +1895,12 @@ export class RetailDbRepository implements IRetailRepository {
         keywords: [p.name],
       },
       metadata: {
-        stock_on_hand: soh,
+        stockOnHand: soh,
         reserved: reserved,
         available: available,
       },
-      created_at: p.createdAt,
-      updated_at: p.updatedAt,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
     };
   }
 

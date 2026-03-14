@@ -30,4 +30,19 @@ export class CreateProvisioningRequestDto {
   @IsString()
   @IsOptional()
   requestedBy?: string;
+
+  @IsString()
+  @IsOptional()
+  type?: string;
+
+  @IsString()
+  @IsOptional()
+  priority?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsOptional()
+  metadata?: any;
 }

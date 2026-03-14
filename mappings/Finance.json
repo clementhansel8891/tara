@@ -1,0 +1,42 @@
+{
+  "module": "Finance",
+  "name": "Financial Services",
+  "purpose": "Operational + strategic money control center with approvals and audit.",
+  "navigation": [
+    {
+      "section": "Operations",
+      "items": [
+        { "label": "Money Desk", "path": "/core/finance/moneydesk" },
+        { "label": "Treasury Map", "path": "/core/finance/treasury" },
+        { "label": "Ledger Core", "path": "/core/finance/ledger", "trigger": "New Journal Entry" },
+        { "label": "Invoice Capture", "path": "/core/finance/invoices" },
+        { "label": "Finance Docs", "path": "/core/finance/docs" },
+        { "label": "Assets", "path": "/core/finance/assets" }
+      ]
+    },
+    {
+      "section": "Payments",
+      "items": [
+        { "label": "Pay Flow", "path": "/core/finance/payflow" },
+        { "label": "Receivable Desk", "path": "/core/finance/receivables" },
+        { "label": "Payable Desk", "path": "/core/finance/payables" }
+      ]
+    },
+    {
+      "section": "Governance",
+      "items": [
+        { "label": "Close Period Studio", "path": "/core/finance/close" },
+        { "label": "Audit Vault", "path": "/core/finance/audit" },
+        { "label": "Policy Manager", "path": "/core/finance/policy" }
+      ]
+    },
+    {
+      "section": "Intelligence",
+      "items": [
+        { "label": "Finance Insights", "path": "/core/finance/insights" }
+      ]
+    }
+  ],
+  "integrations": ["HR", "Procurement", "Inventory", "Retail"],
+  "security": "Immutable Audit Store"
+}

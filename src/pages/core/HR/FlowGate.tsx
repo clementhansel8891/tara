@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,8 @@ import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { workflowService } from "@/core/services/hr/workflowService";
 import { useBackgroundRefresh } from "@/core/runtime/events/useBackgroundRefresh";
-import type { AuditEntry } from "@/core/tools/workflows/auditLogTypes";
+import { ZenTooltip } from "@/core/ui/ZenTooltip";
+import { PlusCircle, Search, FileText, CheckCircle2, XCircle, RefreshCcw } from "lucide-react";
 
 export default function FlowGate() {
   const session = useSession();
@@ -23,7 +24,7 @@ export default function FlowGate() {
   const [entityType, setEntityType] = useState<"PAYROLL" | "LEAVE" | "CONTRACT" | "RECRUITMENT" | "TRAINING" | "PERFORMANCE" | "CASE">("PAYROLL");
   const [entityId, setEntityId] = useState("");
   const [destinationDept, setDestinationDept] = useState("HR");
-  const [selectedAuditEntry, setSelectedAuditEntry] = useState<AuditEntry | null>(null);
+  const [selectedAuditEntry, setSelectedAuditEntry] = useState<any | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -35,47 +36,72 @@ export default function FlowGate() {
   const refresh = useCallback(() => setVersion((prev) => prev + 1), []);
   useBackgroundRefresh(refresh, 15000);
 
-  const workflows = useMemo(
-    () => workflowService.listRequests(session.tenantId),
-    [session, version],
-  );
+  const [workflows, setWorkflows] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadWorkflows = async () => {
+      try {
+        const items = await workflowService.listInbox(session.tenantId, session, session.departmentId);
+        setWorkflows(items);
+      } catch (err) {
+        setErrorMessage("Failed to load workqueue.");
+      }
+    };
+    loadWorkflows();
+  }, [session, version]);
 
   const selected = workflows.find((flow) => flow.id === selectedId) ?? workflows[0] ?? null;
-  const auditTrail = selected ? workflowService.listAudit(session.tenantId, selected.id) : [];
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="FlowGate"
-        subtitle="Approval routing OS with full audit chain."
-        primaryAction={<Button onClick={() => setDialogOpen(true)}>New Route</Button>}
-        secondaryActions={<Input placeholder="Search requests" className="min-w-[200px]" />}
+        subtitle="Approval routing OS for multi-step workforce operations."
+        primaryAction={
+          <ZenTooltip content="Initiate a new structured approval route.">
+            <Button onClick={() => setDialogOpen(true)} className="flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              New Flow Route
+            </Button>
+          </ZenTooltip>
+        }
+        secondaryActions={
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search requests" className="min-w-[200px]" />
+          </div>
+        }
       />
 
       <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
 
-      <WorkspacePanel title="WorkQueue" description="Requests awaiting action.">
+      <WorkspacePanel title="WorkQueue" description="Operational requests awaiting your decision.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {workflows.slice(0, 6).map((flow) => (
             <div
               key={flow.id}
-              className={`rounded-lg border p-4 ${selected?.id === flow.id ? "border-primary" : ""}`}
+              className={`rounded-lg border p-4 transition-all hover:shadow-md ${selected?.id === flow.id ? "border-primary ring-1 ring-primary/20 bg-primary/5" : ""}`}
             >
-              <p className="text-sm font-semibold text-foreground">{flow.entityType}</p>
-              <p className="text-xs text-muted-foreground">Dept: {flow.destinationDept}</p>
-              <div className="mt-2">
-                <ApprovalStatusBadge status={flow.status} />
+              <div className="flex items-start justify-between">
+                 <div>
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                       <FileText className="h-4 w-4 text-primary" />
+                       {flow.entityType}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Route to: {flow.destinationDept}</p>
+                 </div>
+                 <ApprovalStatusBadge status={flow.status} />
               </div>
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-3"
+                className="mt-4 w-full justify-start font-normal"
                 onClick={() => {
                   setSelectedId(flow.id);
                   setDetailOpen(true);
                 }}
               >
-                Open Details
+                Inspect Case Details
               </Button>
             </div>
           ))}
@@ -83,85 +109,97 @@ export default function FlowGate() {
       </WorkspacePanel>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <WorkspacePanel title="Active Records" description="Route timeline and current step.">
+        <WorkspacePanel title="Active Pipeline" description="Live status of each step in the flow.">
           {selected ? (
             <div className="space-y-3">
-              {selected.steps.map((step, index) => (
-                <div key={step.id} className="flex items-center gap-3 rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">Step {index + 1}</div>
+              {(selected as any).steps?.map((step: any, index: number) => (
+                <div key={step.id} className="flex items-center gap-3 rounded-lg border p-3 bg-muted/20">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                    {index + 1}
+                  </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-foreground">{step.label}</p>
-                    <p className="text-xs text-muted-foreground">Dept: {step.dept}</p>
+                    <p className="text-xs text-muted-foreground">Oversight: {step.dept}</p>
                   </div>
                   <ApprovalStatusBadge status={step.status} />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-              Select a request to see its pipeline.
+            <div className="rounded-lg border border-dashed p-12 text-center text-sm text-muted-foreground">
+              Select an active request from the WorkQueue to inspect the pipeline.
             </div>
           )}
         </WorkspacePanel>
 
-        <WorkspacePanel title="Pending Approvals" description="Approve, reject, or modify workflow.">
+        <WorkspacePanel title="Decision Center" description="Execute authoritative actions on this request.">
           {selected ? (
-            <div className="space-y-3">
-              <Input
-                placeholder="Decision notes"
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={() => {
-                    try {
-                      workflowService.approveRequest(session.tenantId, selected.id, session, notes);
-                      setStatusMessage("Request approved successfully.");
-                      setNotes("");
-                      setVersion((prev) => prev + 1);
-                    } catch (err) {
-                      setErrorMessage("Approval failed.");
-                    }
-                  }}
-                >
-                  Approve
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    try {
-                      workflowService.modifyRequest(session.tenantId, selected.id, session, notes);
-                      setStatusMessage("Request status set to MODIFIED/RETURNED.");
-                      setNotes("");
-                      setVersion((prev) => prev + 1);
-                    } catch (err) {
-                      setErrorMessage("Modification failed.");
-                    }
-                  }}
-                >
-                  Modify
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    try {
-                      workflowService.rejectRequest(session.tenantId, selected.id, session, notes);
-                      setStatusMessage("Request rejected.");
-                      setNotes("");
-                      setVersion((prev) => prev + 1);
-                    } catch (err) {
-                      setErrorMessage("Rejection failed.");
-                    }
-                  }}
-                >
-                  Reject
-                </Button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                 <label className="text-xs font-semibold uppercase text-muted-foreground">Decision Notes</label>
+                 <Input
+                   placeholder="Enter rationale for your decision..."
+                   value={notes}
+                   onChange={(event) => setNotes(event.target.value)}
+                 />
+              </div>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <ZenTooltip content="Finalize approval and advance to the next step.">
+                  <Button
+                    className="flex-1 sm:flex-none flex items-center gap-2"
+                    onClick={async () => {
+                      try {
+                        await workflowService.approveRequest(session.tenantId, selected.id, session, notes);
+                        setStatusMessage("Request approved successfully.");
+                        setNotes("");
+                        refresh();
+                      } catch (err) {
+                        setErrorMessage("Approval execution failed.");
+                      }
+                    }}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Approve Request
+                  </Button>
+                </ZenTooltip>
+
+                <ZenTooltip content="Reject the request and stop the workflow sequence.">
+                  <Button
+                    variant="destructive"
+                    className="flex-1 sm:flex-none flex items-center gap-2"
+                    onClick={async () => {
+                      try {
+                        await workflowService.rejectRequest(session.tenantId, selected.id, session, notes);
+                        setStatusMessage("Request formally rejected.");
+                        setNotes("");
+                        refresh();
+                      } catch (err) {
+                        setErrorMessage("Rejection failed.");
+                      }
+                    }}
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Reject
+                  </Button>
+                </ZenTooltip>
+
+                <ZenTooltip content="Return to the initiator for modification.">
+                   <Button
+                     variant="outline"
+                     className="flex-1 sm:flex-none flex items-center gap-2"
+                     onClick={() => {
+                        setStatusMessage("Modification requests now handled via comments in Activity Stream.");
+                     }}
+                   >
+                     <RefreshCcw className="h-4 w-4" />
+                     Return
+                   </Button>
+                </ZenTooltip>
               </div>
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-              Select a request to act on it.
+            <div className="rounded-lg border border-dashed p-12 text-center text-sm text-muted-foreground">
+              Awaiting case selection.
             </div>
           )}
         </WorkspacePanel>

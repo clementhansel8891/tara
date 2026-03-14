@@ -7,9 +7,14 @@ import { User } from "../entities/user.entity";
 export class AuthDbRepository implements IAuthRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findByEmail(_tenantId: string, email: string): Promise<User | null> {
+  async findByEmail(tenantId: string, email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { email },
+      where: {
+        tenantId_email: {
+          tenantId,
+          email,
+        },
+      },
       include: {
         userCompanies: {
           include: {
@@ -33,9 +38,10 @@ export class AuthDbRepository implements IAuthRepository {
     }) as any;
   }
 
-  async create(_tenantId: string, data: any): Promise<User> {
+  async create(tenantId: string, data: any): Promise<User> {
     return this.prisma.user.create({
       data: {
+        tenantId,
         email: data.email,
         passwordHash: data.passwordHash,
         firstName: data.firstName,
