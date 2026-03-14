@@ -18,10 +18,12 @@ import { JobDescriptionService } from "./job-description.service";
 import { PerformancePredictorService } from "./performance-predictor.service";
 import { LearningService } from "./learning.service";
 import { LaborCostService } from "./labor-cost.service";
+import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
 import { PrismaService } from "../../persistence/prisma.service";
 
 import { FileProcessingModule } from "../../shared/file-processing/file-processing.module";
 import { AuditModule } from "../../shared/audit/audit.module";
+import { LoggerModule } from "../../shared/logger/logger.module";
 import { ComplianceEngineModule } from "../../modules/compliance/compliance.module";
 import { ComplianceEngineService } from "../../modules/compliance/compliance.service";
 
@@ -55,7 +57,7 @@ import {
  * Core module for Human Resources operations
  */
 @Module({
-  imports: [FileProcessingModule, AuditModule, ComplianceEngineModule, HRAutomationModule, TimeAndAttendanceModule],
+  imports: [FileProcessingModule, AuditModule, LoggerModule, ComplianceEngineModule, HRAutomationModule, TimeAndAttendanceModule],
   controllers: [HRController, WorkflowController],
   providers: [
     HRService,
@@ -74,6 +76,7 @@ import {
     LearningService,
     LaborCostService,
     PrismaService,
+    HRMutationInterceptor,
     // Phase 1: Command Handlers
     HireEmployeeCommandHandler,
     PromoteEmployeeCommandHandler,

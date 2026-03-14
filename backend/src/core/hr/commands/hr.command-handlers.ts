@@ -111,8 +111,10 @@ export class HireEmployeeCommandHandler implements ICommandHandler<HireEmployeeC
       eventType: EVENT_NAMES.EMPLOYEE_CREATED,
       tenantId,
       entityId: employee.id,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { candidateId: payload.candidateId, departmentId: payload.departmentId, position: payload.position },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Employee hired', data: employee.id };
   }
@@ -137,8 +139,10 @@ export class PromoteEmployeeCommandHandler implements ICommandHandler<PromoteEmp
       eventType: EVENT_NAMES.EMPLOYEE_PROMOTED,
       tenantId,
       entityId: payload.employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { newPosition: payload.newPosition, newSalary: payload.newSalary },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Employee promoted' };
   }
@@ -162,8 +166,10 @@ export class TransferEmployeeCommandHandler implements ICommandHandler<TransferE
       eventType: EVENT_NAMES.EMPLOYEE_TRANSFERRED,
       tenantId,
       entityId: payload.employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { targetDepartmentId: payload.targetDepartmentId, targetLocationId: payload.targetLocationId },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Employee transferred' };
   }
@@ -186,8 +192,10 @@ export class TerminateEmployeeCommandHandler implements ICommandHandler<Terminat
       eventType: EVENT_NAMES.EMPLOYEE_TERMINATED,
       tenantId,
       entityId: payload.employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { reason: payload.reason, terminationDate: payload.terminationDate },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Employee terminated' };
   }
@@ -208,8 +216,10 @@ export class SuspendEmployeeCommandHandler implements ICommandHandler<SuspendEmp
       eventType: EVENT_NAMES.EMPLOYEE_SUSPENDED,
       tenantId,
       entityId: payload.employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { reason: payload.reason, suspensionDate: payload.suspensionDate },
-    } as any);
+    });
     
     return { tenantId, success: true, message: 'Employee suspended' };
   }
@@ -260,8 +270,10 @@ export class ConvertLeadToCandidateCommandHandler implements ICommandHandler<Con
       eventType: EVENT_NAMES.CANDIDATE_CONVERTED,
       tenantId,
       entityId: payload.leadId,
+      entityType: "CANDIDATE",
+      sourceModule: "HR",
       payload: { candidateId: candidate.id, jobOpeningId: payload.jobOpeningId },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Lead converted to candidate', data: candidate.id };
   }
@@ -286,8 +298,10 @@ export class ScheduleInterviewCommandHandler implements ICommandHandler<Schedule
       eventType: EVENT_NAMES.INTERVIEW_SCHEDULED,
       tenantId,
       entityId: payload.candidateId,
+      entityType: "CANDIDATE",
+      sourceModule: "HR",
       payload: { interviewId: interview.id, scheduledAt: payload.scheduledAt },
-    } as any);
+    });
 
     return { tenantId, success: true, message: 'Interview scheduled', data: interview.id };
   }
@@ -331,8 +345,10 @@ export class ExecutePayrollCommandHandler implements ICommandHandler<ExecutePayr
       eventType: EVENT_NAMES.PAYROLL_EXECUTED,
       tenantId,
       entityId: `payroll-${period}`,
+      entityType: "PAYROLL",
+      sourceModule: "HR",
       payload: { period, totalGrossPay, processedEmployees: activeEmployees.length },
-    } as any);
+    });
 
     return {
       tenantId,
@@ -377,8 +393,10 @@ export class GeneratePayslipCommandHandler implements ICommandHandler<GeneratePa
       eventType: EVENT_NAMES.PAYSLIP_GENERATED,
       tenantId: command.tenantId,
       entityId: command.payload.employeeId,
+      entityType: "PAYROLL",
+      sourceModule: "HR",
       payload: { payrollRunId: command.payload.payrollRunId },
-    } as any);
+    });
     return { tenantId: command.tenantId, success: true, message: 'Payslip generated' };
   }
 }
@@ -403,8 +421,10 @@ export class GenerateComplianceReportCommandHandler implements ICommandHandler<G
         eventType: EVENT_NAMES.COMPLIANCE_REPORT_GENERATED,
         tenantId,
         entityId: `${payload.module}-${payload.period}`,
+        entityType: "COMPLIANCE_REPORT",
+        sourceModule: "HR",
         payload: { module: payload.module, period: payload.period },
-      } as any);
+      });
 
       return {
         tenantId,
@@ -445,8 +465,10 @@ export class EnableComplianceModuleCommandHandler implements ICommandHandler<Ena
       eventType: EVENT_NAMES.COMPLIANCE_MODULE_ENABLED,
       tenantId,
       entityId: payload.module,
+      entityType: "COMPLIANCE_MODULE",
+      sourceModule: "HR",
       payload: { country: payload.country },
-    } as any);
+    });
     return { tenantId, success: true, message: 'Compliance module enabled' };
   }
 }

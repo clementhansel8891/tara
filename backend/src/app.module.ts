@@ -20,6 +20,7 @@ import { LicenseModule } from './shared/license/license.module';
 import { CommsModule } from './shared/comms/comms.module';
 import { EventsModule } from "./shared/events/events.module";
 import { WorkflowModule } from "./shared/workflow/workflow.module";
+import { AutomationModule } from "./shared/automation/automation.module";
 import { CommandBusModule } from "./shared/command-bus/command-bus.module";
 import { ComplianceEngineModule } from "./modules/compliance/compliance.module";
 import { HealthController } from "./gateway/health.controller";
@@ -57,6 +58,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     WorkflowModule,
     CommandBusModule,
     ComplianceEngineModule,
+    AutomationModule,
     FinanceModule,
     HRModule,
     ITSettingsModule,

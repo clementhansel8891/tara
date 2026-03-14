@@ -488,6 +488,13 @@ export class HRDbRepository implements IHRRepository {
     return requests.map(this.mapLeaveRequest);
   }
 
+  async getLeaveRequestById(tenantId: string, id: string): Promise<LeaveRequest | null> {
+    const request = await this.prisma.leaveRequest.findFirst({
+      where: { id, tenantId },
+    });
+    return request ? this.mapLeaveRequest(request) : null;
+  }
+
   async getGlobalLeaveRequests(
     status?: string,
     employeeId?: string,
@@ -728,6 +735,8 @@ export class HRDbRepository implements IHRRepository {
     return this.mapDepartment(department);
   }
 
+
+
   // ============================================================
   // RECRUITMENT MANAGEMENT
   // ============================================================
@@ -798,6 +807,14 @@ export class HRDbRepository implements IHRRepository {
     return cycles.map((c) => this.mapPerformanceCycle(c));
   }
 
+  async getPerformanceCycleById(tenantId: string, id: string): Promise<PerformanceCycle | null> {
+    const cycle = await this.prisma.performanceCycle.findFirst({
+      where: { id, tenantId, deletedAt: null },
+    });
+    return cycle ? this.mapPerformanceCycle(cycle) : null;
+  }
+
+
   async createPerformanceCycle(
     tenantId: string,
     data: CreatePerformanceCycleDto,
@@ -844,10 +861,7 @@ export class HRDbRepository implements IHRRepository {
     return reviews.map((r: any) => this.mapPerformanceReview(r));
   }
 
-  async getGlobalPerformanceReviews(
-    cycleId?: string,
-    employeeId?: string,
-  ): Promise<PerformanceReview[]> {
+  async getGlobalPerformanceReviews(cycleId?: string, employeeId?: string): Promise<PerformanceReview[]> {
     const where: any = {};
     if (cycleId) where.cycleId = cycleId;
     if (employeeId) where.employeeId = employeeId;
@@ -859,6 +873,7 @@ export class HRDbRepository implements IHRRepository {
 
     return reviews.map((r: any) => this.mapPerformanceReview(r));
   }
+
 
   async submitPerformanceReview(
     tenantId: string,
@@ -921,12 +936,6 @@ export class HRDbRepository implements IHRRepository {
     return this.mapHRCase(updated);
   }
 
-  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
-    const hrCase = await this.prisma.hRCase.findFirst({
-      where: { id, tenantId, deletedAt: null },
-    });
-    return hrCase ? this.mapHRCase(hrCase) : null;
-  }
 
   // ============================================================
   // CONTRACT MANAGEMENT
@@ -1124,6 +1133,7 @@ export class HRDbRepository implements IHRRepository {
       where: { tenantId },
     });
   }
+
 
   private mapRequisition(r: any): JobRequisition {
     return {
@@ -1624,6 +1634,14 @@ export class HRDbRepository implements IHRRepository {
     });
     return this.mapTrainingAssignment(assignment);
   }
+  async getTrainingAssignmentById(tenantId: string, id: string): Promise<any | null> {
+    const assignment = await this.prisma.trainingAssignment.findFirst({
+      where: { id, tenantId },
+      include: { program: true },
+    });
+    return assignment ? this.mapTrainingAssignment(assignment) : null;
+  }
+
   // Lifecycle Methods
   async promoteEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee> {
     const employee = await this.prisma.employee.update({
@@ -2084,6 +2102,20 @@ export class HRDbRepository implements IHRRepository {
       data: data as any,
     });
     return this.mapLead(updated);
+  }
+
+  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
+    const hrcase = await this.prisma.hRCase.findFirst({
+      where: { id, tenantId },
+    });
+    return hrcase ? this.mapHRCase(hrcase) : null;
+  }
+
+  async getInterviewById(tenantId: string, id: string): Promise<Interview | null> {
+    const interview = await this.prisma.interview.findFirst({
+      where: { id, tenantId },
+    });
+    return interview ? this.mapInterview(interview) : null;
   }
 
   // Compliance Management
@@ -2842,4 +2874,19 @@ export class HRDbRepository implements IHRRepository {
     });
     return docs.map((d: any) => this.mapDocument(d));
   }
+
+  async getRequisitionById(tenantId: string, id: string): Promise<JobRequisition | null> {
+    const requisition = await this.prisma.jobRequisition.findFirst({
+      where: { id, tenantId },
+    });
+    return requisition ? this.mapRequisition(requisition) : null;
+  }
+
+  async getContractById(tenantId: string, id: string): Promise<Contract | null> {
+    const contract = await this.prisma.contract.findFirst({
+      where: { id, tenantId },
+    });
+    return contract ? this.mapContract(contract) : null;
+  }
+
 }

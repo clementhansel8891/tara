@@ -45,412 +45,170 @@ import { ProgramSkill } from "../entities/program-skill.entity";
 
 @Injectable()
 export abstract class IHRRepository {
-  abstract getEmployees(
-    tenantId: string,
-    locationId?: string,
-    page?: number,
-    limit?: number,
-  ): Promise<{ data: Employee[]; total: number }>;
-
-  abstract getGlobalEmployees(
-    locationId?: string,
-    page?: number,
-    limit?: number,
-  ): Promise<{ data: Employee[]; total: number }>;
-
-  abstract getEmployeeById(
-    tenantId: string,
-    employeeId: string,
-  ): Promise<Employee | null>;
-
+  // Get By ID Methods
+  abstract getEmployeeById(tenantId: string, employeeId: string): Promise<Employee | null>;
   abstract getGlobalEmployeeById(employeeId: string): Promise<Employee | null>;
-
-  abstract createEmployee(
-    tenantId: string,
-    data: CreateEmployeeDto,
-  ): Promise<Employee>;
-
-  abstract updateEmployee(
-    tenantId: string,
-    employeeId: string,
-    data: UpdateEmployeeDto,
-  ): Promise<Employee>;
-
-  abstract deactivateEmployee(
-    tenantId: string,
-    employeeId: string,
-  ): Promise<Employee>;
-
-  abstract promoteEmployee(
-    tenantId: string,
-    employeeId: string,
-    data: any,
-  ): Promise<Employee>;
-
-  abstract transferEmployee(
-    tenantId: string,
-    employeeId: string,
-    data: any,
-  ): Promise<Employee>;
-
-  abstract suspendEmployee(
-    tenantId: string,
-    employeeId: string,
-    reason: string,
-  ): Promise<Employee>;
-
-  abstract getAttendance(
-    tenantId: string,
-    locationId?: string,
-    employeeId?: string,
-    startDate?: string,
-    endDate?: string,
-    page?: number,
-    limit?: number,
-  ): Promise<{ data: Attendance[]; total: number }>;
-
-  abstract getGlobalAttendance(
-    employeeId?: string,
-    startDate?: string,
-    endDate?: string,
-    page?: number,
-    limit?: number,
-  ): Promise<{ data: Attendance[]; total: number }>;
-
-  abstract clockIn(
-    tenantId: string,
-    employeeId: string,
-    locationId: string,
-  ): Promise<Attendance>;
-
-  abstract clockOut(
-    tenantId: string,
-    employeeId: string,
-  ): Promise<Attendance>;
-
-  abstract assignShift(
-    tenantId: string,
-    employeeId: string,
-    shiftId: string,
-    locationId: string,
-    date: string,
-  ): Promise<void>;
-
-  abstract getLeaveRequests(
-    tenantId: string,
-    locationId?: string,
-    status?: string,
-    employeeId?: string,
-  ): Promise<LeaveRequest[]>;
-
-  abstract getGlobalLeaveRequests(
-    status?: string,
-    employeeId?: string,
-  ): Promise<LeaveRequest[]>;
-
-  abstract createLeaveRequest(
-    tenantId: string,
-    data: CreateLeaveRequestDto,
-  ): Promise<LeaveRequest>;
-
-  abstract approveLeaveRequest(
-    tenantId: string,
-    requestId: string,
-    reviewerId: string,
-    notes?: string,
-  ): Promise<LeaveRequest>;
-
-  abstract rejectLeaveRequest(
-    tenantId: string,
-    requestId: string,
-    reviewerId: string,
-    notes: string,
-  ): Promise<LeaveRequest>;
-
-  abstract getPayroll(
-    tenantId: string,
-    locationId?: string,
-    employeeId?: string,
-    period?: string,
-  ): Promise<Payroll[]>;
-
-  abstract getGlobalPayroll(
-    employeeId: string,
-    period?: string,
-  ): Promise<Payroll[]>;
-
-  abstract calculatePayroll(
-    tenantId: string,
-    employeeId: string,
-    period: string,
-  ): Promise<Payroll>;
-
-  abstract getLocations(tenantId: string): Promise<any[]>;
-
-  abstract getDepartments(tenantId: string): Promise<Department[]>;
-
-  abstract getGlobalDepartments(): Promise<Department[]>;
-
-  abstract getDepartmentById(
-    tenantId: string,
-    departmentId: string,
-  ): Promise<Department | null>;
-
-  abstract createDepartment(
-    tenantId: string,
-    data: CreateDepartmentDto,
-  ): Promise<Department>;
-
-  abstract getRequisitions(
-    tenantId: string,
-    status?: string,
-  ): Promise<JobRequisition[]>;
-
-  abstract getGlobalRequisitions(status?: string): Promise<JobRequisition[]>;
-
-  abstract createRequisition(
-    tenantId: string,
-    data: CreateRequisitionDto,
-  ): Promise<JobRequisition>;
-
-  abstract updateRequisition(
-    tenantId: string,
-    id: string,
-    data: Partial<JobRequisition>,
-  ): Promise<JobRequisition>;
-
-  abstract getPerformanceCycles(tenantId: string): Promise<PerformanceCycle[]>;
-
-  abstract createPerformanceCycle(
-    tenantId: string,
-    data: CreatePerformanceCycleDto,
-  ): Promise<PerformanceCycle>;
-
-  abstract getPerformanceReviews(
-    tenantId: string,
-    cycleId?: string,
-    employeeId?: string,
-  ): Promise<PerformanceReview[]>;
-
-  abstract submitPerformanceReview(
-    tenantId: string,
-    data: SubmitReviewDto,
-  ): Promise<PerformanceReview>;
-
-  abstract updatePerformanceCycle(
-    tenantId: string,
-    id: string,
-    data: any,
-  ): Promise<PerformanceCycle>;
-
-  abstract getGlobalPerformanceReviews(
-    cycleId?: string,
-    employeeId?: string,
-  ): Promise<PerformanceReview[]>;
-
-  abstract getCases(
-    tenantId: string,
-    status?: string,
-    employeeId?: string,
-  ): Promise<HRCase[]>;
-
+  abstract getRequisitionById(tenantId: string, id: string): Promise<JobRequisition | null>;
+  abstract getContractById(tenantId: string, id: string): Promise<Contract | null>;
+  abstract getTrainingAssignmentById(tenantId: string, id: string): Promise<any | null>;
+  abstract getLeaveRequestById(tenantId: string, id: string): Promise<LeaveRequest | null>;
+  abstract getDepartmentById(tenantId: string, departmentId: string): Promise<Department | null>;
+  abstract getPerformanceCycleById(tenantId: string, id: string): Promise<PerformanceCycle | null>;
   abstract getCaseById(tenantId: string, id: string): Promise<HRCase | null>;
-
-  abstract createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase>;
-
-  abstract updateCase(tenantId: string, id: string, data: any): Promise<HRCase>;
-
-  abstract getContracts(
-    tenantId: string,
-    locationId?: string,
-    employeeId?: string,
-  ): Promise<Contract[]>;
-
-  abstract getGlobalContracts(employeeId?: string): Promise<Contract[]>;
-
-  abstract createContract(
-    tenantId: string,
-    data: CreateContractDto,
-  ): Promise<Contract>;
-
-  abstract updateContract(tenantId: string, id: string, data: any): Promise<Contract>;
-
-  abstract getCandidates(tenantId: string, status?: string): Promise<Candidate[]>;
-
   abstract getCandidateById(tenantId: string, id: string): Promise<Candidate | null>;
-
-  abstract createCandidate(tenantId: string, data: any): Promise<Candidate>;
-
-  abstract updateCandidate(tenantId: string, id: string, data: any): Promise<Candidate>;
-
-  abstract hireCandidate(tenantId: string, candidateId: string): Promise<Employee>;
-
-  abstract getPositions(tenantId: string, deptId?: string): Promise<Position[]>;
-
   abstract getPositionById(tenantId: string, id: string): Promise<Position | null>;
-
-  abstract createPosition(tenantId: string, data: any): Promise<Position>;
-
-  abstract updatePosition(tenantId: string, id: string, data: any): Promise<Position>;
-
-  abstract getInterviews(tenantId: string, candidateId?: string): Promise<Interview[]>;
-
-  abstract scheduleInterview(tenantId: string, data: any): Promise<Interview>;
-
-  abstract getTalentLeads(tenantId: string, status?: string): Promise<TalentLead[]>;
-
-  abstract createTalentLead(tenantId: string, data: any): Promise<TalentLead>;
-
+  abstract getInterviewById(tenantId: string, id: string): Promise<Interview | null>;
   abstract getTalentLeadById(tenantId: string, id: string): Promise<TalentLead | null>;
-
-  abstract updateTalentLead(tenantId: string, id: string, data: any): Promise<TalentLead>;
-
-  abstract getComplianceDocuments(tenantId: string, employeeId?: string): Promise<ComplianceDocument[]>;
-
-  abstract uploadComplianceDocument(tenantId: string, data: any): Promise<ComplianceDocument>;
-
-  abstract getGlobalComplianceStatus(tenantId: string, status?: string): Promise<any>;
-
-  abstract getBudgetScenarios(tenantId: string): Promise<BudgetScenario[]>;
-
-  abstract createBudgetScenario(tenantId: string, data: any): Promise<BudgetScenario>;
-
-  abstract getHeadcountPlans(tenantId: string, scenarioId: string): Promise<HeadcountPlan[]>;
-
-  abstract updateHeadcountPlan(tenantId: string, id: string, data: any): Promise<HeadcountPlan>;
-
-  abstract getExchangeRates(tenantId: string): Promise<ExchangeRate[]>;
-
-  abstract getPayrollRuns(tenantId: string): Promise<PayrollRun[]>;
-
-  abstract getPayrollLines(tenantId: string, runId: string): Promise<PayrollLine[]>;
-
-  abstract getSuccessionPlans(tenantId: string): Promise<SuccessionPlan[]>;
-
-  abstract createSuccessionPlan(tenantId: string, data: any): Promise<SuccessionPlan>;
-
-  abstract addSuccessionCandidate(tenantId: string, data: any): Promise<SuccessionCandidate>;
-
-  abstract getSkills(tenantId: string, category?: string): Promise<Skill[]>;
-
-  abstract createSkill(tenantId: string, data: any): Promise<Skill>;
-
-  abstract getEmployeeSkills(tenantId: string, employeeId: string): Promise<EmployeeSkill[]>;
-
-  abstract addEmployeeSkill(tenantId: string, data: any): Promise<EmployeeSkill>;
-
-  abstract findReplacementCandidates(tenantId: string, positionId: string): Promise<any[]>;
-
-  abstract getBenefitPlans(tenantId: string): Promise<BenefitPlan[]>;
-
-  abstract createBenefitPlan(tenantId: string, data: any): Promise<BenefitPlan>;
-
-  abstract getEmployeeBenefits(tenantId: string, employeeId: string): Promise<EmployeeBenefit[]>;
-
-  abstract enrollInBenefit(tenantId: string, data: any): Promise<EmployeeBenefit>;
-
-  abstract getCareerPaths(tenantId: string): Promise<CareerPath[]>;
-
-  abstract createCareerPath(tenantId: string, data: any): Promise<CareerPath>;
-
-  abstract getMentorshipPairs(tenantId: string, employeeId: string): Promise<MentorshipPair[]>;
-
-  abstract createMentorshipPair(tenantId: string, data: any): Promise<MentorshipPair>;
-
-  abstract updatePositionJobPost(tenantId: string, positionId: string, data: any): Promise<any>;
-
-  abstract updateInterviewStatus(tenantId: string, id: string, status: string): Promise<Interview>;
-
-  abstract getPositionJobPost(tenantId: string, positionId: string): Promise<any>;
-
-  abstract getPositionSkills(tenantId: string, positionId: string): Promise<PositionSkill[]>;
-
-  abstract updatePositionSkill(tenantId: string, data: any): Promise<PositionSkill>;
-
-  abstract getEmployeePerformanceHistory(tenantId: string, employeeId: string): Promise<PerformanceReview[]>;
-
-  abstract getEmployeeGoals(tenantId: string, employeeId: string): Promise<PerformanceGoal[]>;
-
-  abstract updatePerformanceGoal(tenantId: string, data: any): Promise<PerformanceGoal>;
-
-  abstract getCompensation(tenantId: string, employeeId: string): Promise<Compensation | null>;
-
-  abstract updateCompensation(tenantId: string, employeeId: string, data: any): Promise<Compensation>;
-
   abstract getGoalById(tenantId: string, id: string): Promise<PerformanceGoal | null>;
-
-  abstract getTrainingProgramsBySkills(tenantId: string, skillIds: string[]): Promise<TrainingProgram[]>;
-
-  abstract getEmployeeTrainingHistory(tenantId: string, employeeId: string): Promise<TrainingAssignment[]>;
-
-  abstract enrollInTrainingProgram(tenantId: string, employeeId: string, programId: string): Promise<TrainingAssignment>;
-
   abstract getTrainingProgramById(tenantId: string, id: string): Promise<TrainingProgram | null>;
 
+  // Employee Management
+  abstract getEmployees(tenantId: string, locationId?: string, page?: number, limit?: number): Promise<{ data: Employee[]; total: number }>;
+  abstract getGlobalEmployees(locationId?: string, page?: number, limit?: number): Promise<{ data: Employee[]; total: number }>;
+  abstract createEmployee(tenantId: string, data: CreateEmployeeDto): Promise<Employee>;
+  abstract updateEmployee(tenantId: string, employeeId: string, data: UpdateEmployeeDto): Promise<Employee>;
+  abstract deactivateEmployee(tenantId: string, employeeId: string): Promise<Employee>;
+  abstract promoteEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee>;
+  abstract transferEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee>;
+  abstract suspendEmployee(tenantId: string, employeeId: string, reason: string): Promise<Employee>;
+
+  // Attendance & Shifts
+  abstract getAttendance(tenantId: string, locationId?: string, employeeId?: string, startDate?: string, endDate?: string, page?: number, limit?: number): Promise<{ data: Attendance[]; total: number }>;
+  abstract getGlobalAttendance(employeeId?: string, startDate?: string, endDate?: string, page?: number, limit?: number): Promise<{ data: Attendance[]; total: number }>;
+  abstract clockIn(tenantId: string, employeeId: string, locationId: string): Promise<Attendance>;
+  abstract clockOut(tenantId: string, employeeId: string): Promise<Attendance>;
+  abstract assignShift(tenantId: string, employeeId: string, shiftId: string, locationId: string, date: string): Promise<void>;
+
+  // Leave Management
+  abstract getLeaveRequests(tenantId: string, locationId?: string, status?: string, employeeId?: string): Promise<LeaveRequest[]>;
+  abstract getGlobalLeaveRequests(status?: string, employeeId?: string): Promise<LeaveRequest[]>;
+  abstract createLeaveRequest(tenantId: string, data: CreateLeaveRequestDto): Promise<LeaveRequest>;
+  abstract approveLeaveRequest(tenantId: string, requestId: string, reviewerId: string, notes?: string): Promise<LeaveRequest>;
+  abstract rejectLeaveRequest(tenantId: string, requestId: string, reviewerId: string, notes: string): Promise<LeaveRequest>;
+
+  // Payroll Management
+  abstract getPayroll(tenantId: string, locationId?: string, employeeId?: string, period?: string): Promise<Payroll[]>;
+  abstract getGlobalPayroll(employeeId: string, period?: string): Promise<Payroll[]>;
+  abstract calculatePayroll(tenantId: string, employeeId: string, period: string): Promise<Payroll>;
+  abstract getPayrollRuns(tenantId: string): Promise<PayrollRun[]>;
+  abstract getPayrollLines(tenantId: string, runId: string): Promise<PayrollLine[]>;
+
+  // Organization Management
+  abstract getLocations(tenantId: string): Promise<any[]>;
+  abstract getDepartments(tenantId: string): Promise<Department[]>;
+  abstract getGlobalDepartments(): Promise<Department[]>;
+  abstract createDepartment(tenantId: string, data: CreateDepartmentDto): Promise<Department>;
+
+  // Recruitment & Talent
+  abstract getRequisitions(tenantId: string, status?: string): Promise<JobRequisition[]>;
+  abstract getGlobalRequisitions(status?: string): Promise<JobRequisition[]>;
+  abstract createRequisition(tenantId: string, data: CreateRequisitionDto): Promise<JobRequisition>;
+  abstract updateRequisition(tenantId: string, id: string, data: Partial<JobRequisition>): Promise<JobRequisition>;
+  abstract getCandidates(tenantId: string, status?: string): Promise<Candidate[]>;
+  abstract createCandidate(tenantId: string, data: any): Promise<Candidate>;
+  abstract updateCandidate(tenantId: string, id: string, data: any): Promise<Candidate>;
+  abstract hireCandidate(tenantId: string, candidateId: string): Promise<Employee>;
+  abstract getTalentLeads(tenantId: string, status?: string): Promise<TalentLead[]>;
+  abstract createTalentLead(tenantId: string, data: any): Promise<TalentLead>;
+  abstract updateTalentLead(tenantId: string, id: string, data: any): Promise<TalentLead>;
+  abstract getInterviews(tenantId: string, candidateId?: string): Promise<Interview[]>;
+  abstract scheduleInterview(tenantId: string, data: any): Promise<Interview>;
+  abstract updateInterviewStatus(tenantId: string, id: string, status: string): Promise<Interview>;
+
+  // Headcount & Compensation
+  abstract getPositions(tenantId: string, deptId?: string): Promise<Position[]>;
+  abstract createPosition(tenantId: string, data: any): Promise<Position>;
+  abstract updatePosition(tenantId: string, id: string, data: any): Promise<Position>;
+  abstract getCompensation(tenantId: string, employeeId: string): Promise<Compensation | null>;
+  abstract updateCompensation(tenantId: string, employeeId: string, data: any): Promise<Compensation>;
+
+  // Performance Management
+  abstract getPerformanceCycles(tenantId: string): Promise<PerformanceCycle[]>;
+  abstract createPerformanceCycle(tenantId: string, data: CreatePerformanceCycleDto): Promise<PerformanceCycle>;
+  abstract updatePerformanceCycle(tenantId: string, id: string, data: any): Promise<PerformanceCycle>;
+  abstract getPerformanceReviews(tenantId: string, cycleId?: string, employeeId?: string): Promise<PerformanceReview[]>;
+  abstract getGlobalPerformanceReviews(cycleId?: string, employeeId?: string): Promise<PerformanceReview[]>;
+  abstract submitPerformanceReview(tenantId: string, data: SubmitReviewDto): Promise<PerformanceReview>;
+  abstract getEmployeePerformanceHistory(tenantId: string, employeeId: string): Promise<PerformanceReview[]>;
+  abstract getEmployeeGoals(tenantId: string, employeeId: string): Promise<PerformanceGoal[]>;
+  abstract updatePerformanceGoal(tenantId: string, data: any): Promise<PerformanceGoal>;
+  abstract updatePerformanceGoalStatus?(tenantId: string, id: string, status: string): Promise<PerformanceGoal>;
+
+  // Case Management
+  abstract getCases(tenantId: string, locationId?: string, status?: string, employeeId?: string): Promise<HRCase[]>;
+  abstract createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase>;
+  abstract updateCase(tenantId: string, id: string, data: any): Promise<HRCase>;
+
+  // Contract Management
+  abstract getContracts(tenantId: string, locationId?: string, employeeId?: string): Promise<Contract[]>;
+  abstract getGlobalContracts(employeeId?: string): Promise<Contract[]>;
+  abstract createContract(tenantId: string, data: CreateContractDto): Promise<Contract>;
+  abstract updateContract(tenantId: string, id: string, data: any): Promise<Contract>;
+
+  // Skills & Training
+  abstract getSkills(tenantId: string, category?: string): Promise<Skill[]>;
+  abstract createSkill(tenantId: string, data: any): Promise<Skill>;
+  abstract getEmployeeSkills(tenantId: string, employeeId: string): Promise<EmployeeSkill[]>;
+  abstract addEmployeeSkill(tenantId: string, data: any): Promise<EmployeeSkill>;
+  abstract updateEmployeeSkill(tenantId: string, data: any): Promise<EmployeeSkill>;
+  abstract getPositionSkills(tenantId: string, positionId: string): Promise<PositionSkill[]>;
+  abstract updatePositionSkill(tenantId: string, data: any): Promise<PositionSkill>;
+  abstract findTalentBySkills(tenantId: string, skillIds: string[], limit?: number): Promise<any[]>;
+  abstract findReplacementCandidates(tenantId: string, positionId: string): Promise<any[]>;
   abstract getTrainingPrograms(tenantId: string): Promise<any[]>;
-
+  abstract getTrainingProgramsBySkills(tenantId: string, skillIds: string[]): Promise<TrainingProgram[]>;
+  abstract getEmployeeTrainingHistory(tenantId: string, employeeId: string): Promise<TrainingAssignment[]>;
   abstract createTrainingProgram(tenantId: string, data: any): Promise<any>;
-
+  abstract enrollInTrainingProgram(tenantId: string, employeeId: string, programId: string): Promise<TrainingAssignment>;
   abstract getTrainingAssignments(tenantId: string): Promise<any[]>;
-
   abstract createTrainingAssignment(tenantId: string, data: any): Promise<any>;
-
   abstract updateTrainingAssignment(tenantId: string, id: string, data: any): Promise<any>;
 
-  abstract getDepartmentBudgetData(tenantId: string, departmentId: string): Promise<any>;
+  // Benefits & Career
+  abstract getBenefitPlans(tenantId: string): Promise<BenefitPlan[]>;
+  abstract createBenefitPlan(tenantId: string, data: any): Promise<BenefitPlan>;
+  abstract getEmployeeBenefits(tenantId: string, employeeId: string): Promise<EmployeeBenefit[]>;
+  abstract enrollInBenefit(tenantId: string, data: any): Promise<EmployeeBenefit>;
+  abstract getCareerPaths(tenantId: string): Promise<CareerPath[]>;
+  abstract createCareerPath(tenantId: string, data: any): Promise<CareerPath>;
+  abstract getMentorshipPairs(tenantId: string, employeeId: string): Promise<MentorshipPair[]>;
+  abstract createMentorshipPair(tenantId: string, data: any): Promise<MentorshipPair>;
 
-  abstract getActualLaborCostHistory(tenantId: string, departmentId: string, monthLimit: number): Promise<any[]>;
-
-  abstract getHolidays(tenantId: string): Promise<any[]>;
-
-  abstract createHoliday(tenantId: string, data: any): Promise<any>;
-
+  // Compliance
+  abstract getComplianceDocuments(tenantId: string, employeeId?: string): Promise<ComplianceDocument[]>;
+  abstract uploadComplianceDocument(tenantId: string, data: any): Promise<ComplianceDocument>;
+  abstract getGlobalComplianceStatus(tenantId: string, status?: string): Promise<any>;
+  abstract verifyDocument(tenantId: string, documentId: string, verifiedBy: string, status: string, details?: any): Promise<ComplianceDocument>;
   abstract getComplianceModules(tenantId: string): Promise<any[]>;
-
   abstract enableComplianceModule(tenantId: string, moduleKey: string, config?: any): Promise<any>;
-
   abstract getComplianceReports(tenantId: string): Promise<any[]>;
-
   abstract createComplianceReport(tenantId: string, data: any): Promise<any>;
 
+  // Strategic Workforce & Succession
+  abstract getBudgetScenarios(tenantId: string): Promise<BudgetScenario[]>;
+  abstract createBudgetScenario(tenantId: string, data: any): Promise<BudgetScenario>;
+  abstract getHeadcountPlans(tenantId: string, scenarioId: string): Promise<HeadcountPlan[]>;
+  abstract updateHeadcountPlan(tenantId: string, id: string, data: any): Promise<HeadcountPlan>;
+  abstract getExchangeRates(tenantId: string): Promise<ExchangeRate[]>;
+  abstract getSuccessionPlans(tenantId: string): Promise<SuccessionPlan[]>;
+  abstract getSuccessionPlan(tenantId: string, positionId: string): Promise<SuccessionPlan | null>;
+  abstract createSuccessionPlan(tenantId: string, data: any): Promise<SuccessionPlan>;
+  abstract addSuccessionCandidate(tenantId: string, data: any): Promise<SuccessionCandidate>;
+  abstract getBenchStrength(tenantId: string, departmentId?: string): Promise<any>;
+
+  // Analytics & Reporting
+  abstract getDepartmentBudgetData(tenantId: string, departmentId: string): Promise<any>;
+  abstract getActualLaborCostHistory(tenantId: string, departmentId: string, monthLimit: number): Promise<any[]>;
+  abstract getHolidays(tenantId: string): Promise<any[]>;
+  abstract createHoliday(tenantId: string, data: any): Promise<any>;
   abstract getHeadcountTrend(tenantId: string): Promise<any[]>;
-
   abstract getTurnoverStats(tenantId: string): Promise<any>;
-
   abstract getDepartmentAnalytics(tenantId: string): Promise<any[]>;
-
   abstract getCompensationAnalytics(tenantId: string): Promise<any>;
-
   abstract getRetentionRiskData(tenantId: string): Promise<any[]>;
-
   abstract getEngagementMetrics(tenantId: string): Promise<any>;
 
-  abstract findTalentBySkills(
-    tenantId: string,
-    skillIds: string[],
-    limit?: number,
-  ): Promise<any[]>;
-
-  abstract verifyDocument(
-    tenantId: string,
-    documentId: string,
-    verifiedBy: string,
-    status: string,
-    details?: any,
-  ): Promise<ComplianceDocument>;
-
-  abstract getSuccessionPlan(
-    tenantId: string,
-    positionId: string,
-  ): Promise<SuccessionPlan | null>;
-
-  abstract getBenchStrength(
-    tenantId: string,
-    departmentId?: string,
-  ): Promise<any>;
-
-  abstract updateEmployeeSkill(
-    tenantId: string,
-    data: any,
-  ): Promise<EmployeeSkill>;
+  // Miscellaneous
+  abstract updatePositionJobPost(tenantId: string, positionId: string, data: any): Promise<any>;
+  abstract getPositionJobPost(tenantId: string, positionId: string): Promise<any>;
 }

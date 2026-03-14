@@ -29,6 +29,7 @@ import { CreateContractDto } from "./dto/create-contract.dto";
 
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 import { AuditService } from "../../shared/audit/audit.service";
+import { LoggerService } from "../../shared/logger/logger.service";
 import { EventBusService } from "../../shared/events/event-bus.service";
 
 /**
@@ -43,6 +44,7 @@ export class HRService {
     private readonly hrRepository: IHRRepository,
     private readonly fileProcessingService: FileProcessingService,
     private readonly auditService: AuditService,
+    private readonly loggerService: LoggerService,
     private readonly eventBus: EventBusService,
   ) {}
 
@@ -81,14 +83,17 @@ export class HRService {
     userId?: string,
   ): Promise<Employee> {
     const employee = await this.hrRepository.createEmployee(tenantId, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "EMPLOYEE",
         entityId: employee.id,
+        afterState: employee,
         metadata: {
           firstName: employee.firstName,
           lastName: employee.lastName,
@@ -97,10 +102,25 @@ export class HRService {
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "EMPLOYEE_CREATED",
+      message: `Employee created: ${employee.firstName} ${employee.lastName}`,
+      payload: { employeeId: employee.id },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "employee.created",
+      eventType: "HR.EMPLOYEE_CREATED",
       tenantId,
       entityId: employee.id,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
       payload: {
         firstName: employee.firstName,
         lastName: employee.lastName,
@@ -117,22 +137,52 @@ export class HRService {
     data: UpdateEmployeeDto,
     userId?: string,
   ): Promise<Employee> {
+    // Fetch before state for high-fidelity audit
+    const beforeState = await this.hrRepository.getEmployeeById(tenantId, employeeId);
+    
     const employee = await this.hrRepository.updateEmployee(
       tenantId,
       employeeId,
       data,
     );
+
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "EMPLOYEE",
         entityId: employee.id,
+        beforeState,
+        afterState: employee,
         metadata: { updates: data },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "EMPLOYEE_UPDATED",
+      message: `Employee updated: ${employee.id}`,
+      payload: { employeeId: employee.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.EMPLOYEE_UPDATED",
+      tenantId,
+      entityId: employee.id,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
+      payload: { updates: data },
+    });
+
     return employee;
   }
 
@@ -141,25 +191,46 @@ export class HRService {
     employeeId: string,
     userId?: string,
   ): Promise<Employee> {
+    const beforeState = await this.hrRepository.getEmployeeById(tenantId, employeeId);
+    
     const employee = await this.hrRepository.deactivateEmployee(
       tenantId,
       employeeId,
     );
+
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "DEACTIVATE",
         entityType: "EMPLOYEE",
         entityId: employee.id,
+        beforeState,
+        afterState: employee,
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "EMPLOYEE_DEACTIVATED",
+      message: `Employee deactivated: ${employee.firstName} ${employee.lastName}`,
+      payload: { employeeId: employee.id },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "employee.terminated",
+      eventType: "HR.EMPLOYEE_DEACTIVATED",
       tenantId,
       entityId: employee.id,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
       payload: { 
         reason: "Deactivated",
         fullName: `${employee.firstName} ${employee.lastName}`,
@@ -177,25 +248,44 @@ export class HRService {
     data: any,
     userId?: string,
   ): Promise<Employee> {
+    const beforeState = await this.hrRepository.getEmployeeById(tenantId, employeeId);
     const employee = await this.hrRepository.promoteEmployee(tenantId, employeeId, data);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "PROMOTE",
         entityType: "EMPLOYEE",
         entityId: employeeId,
+        beforeState,
+        afterState: employee,
         metadata: data,
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "EMPLOYEE_PROMOTED",
+      message: `Employee promoted: ${employee.id}`,
+      payload: { employeeId: employee.id, newRole: data.newRole },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "employee.promoted",
+      eventType: "HR.EMPLOYEE_PROMOTED",
       tenantId,
       entityId: employeeId,
-      payload: data,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
+      payload: { ...data, employeeId },
     });
 
     return employee;
@@ -207,25 +297,44 @@ export class HRService {
     data: any,
     userId?: string,
   ): Promise<Employee> {
+    const beforeState = await this.hrRepository.getEmployeeById(tenantId, employeeId);
     const employee = await this.hrRepository.transferEmployee(tenantId, employeeId, data);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "TRANSFER",
         entityType: "EMPLOYEE",
         entityId: employeeId,
+        beforeState,
+        afterState: employee,
         metadata: data,
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "EMPLOYEE_TRANSFERRED",
+      message: `Employee transferred: ${employee.id} to ${data.targetLocation || data.targetDepartment}`,
+      payload: { employeeId: employee.id, transferData: data },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "employee.transferred",
+      eventType: "HR.EMPLOYEE_TRANSFERRED",
       tenantId,
       entityId: employeeId,
-      payload: data,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
+      payload: { ...data, employeeId },
     });
 
     return employee;
@@ -237,24 +346,43 @@ export class HRService {
     reason: string,
     userId?: string,
   ): Promise<Employee> {
+    const beforeState = await this.hrRepository.getEmployeeById(tenantId, employeeId);
     const employee = await this.hrRepository.suspendEmployee(tenantId, employeeId, reason);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "SUSPEND",
         entityType: "EMPLOYEE",
         entityId: employeeId,
+        beforeState,
+        afterState: employee,
         metadata: { reason },
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "WARN",
+      event: "EMPLOYEE_SUSPENDED",
+      message: `Employee suspended: ${employee.id} - Reason: ${reason}`,
+      payload: { employeeId: employee.id, reason },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "employee.suspended",
+      eventType: "HR.EMPLOYEE_SUSPENDED",
       tenantId,
       entityId: employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
+      userId,
       payload: { 
         reason,
         fullName: `${employee.firstName} ${employee.lastName}`,
@@ -467,23 +595,51 @@ export class HRService {
     notes?: string,
     userId?: string,
   ): Promise<LeaveRequest> {
+    const beforeState = await this.hrRepository.getLeaveRequestById(tenantId, requestId);
     const request = await this.hrRepository.approveLeaveRequest(
       tenantId,
       requestId,
       reviewerId,
       notes,
     );
+    
+    // 1. Audit Logging
     if (userId || reviewerId) {
       await this.auditService.log({
         tenantId,
         userId: userId || reviewerId,
-        module: "hr",
-        action: "APPROVE",
+        module: "HR",
+        action: "APPROVE_LEAVE",
         entityType: "LEAVE_REQUEST",
         entityId: requestId,
-        metadata: { reviewerId, notes },
+        beforeState,
+        afterState: request,
+        metadata: { notes },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "LEAVE_APPROVED",
+      message: `Leave request ${requestId} approved by ${reviewerId}`,
+      payload: { requestId, reviewerId },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.LEAVE_APPROVED",
+      tenantId,
+      entityId: requestId,
+      entityType: "LEAVE_REQUEST",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId: request.employeeId, reviewerId, notes },
+    });
+
     return request;
   }
 
@@ -494,23 +650,51 @@ export class HRService {
     notes: string,
     userId?: string,
   ): Promise<LeaveRequest> {
+    const beforeState = await this.hrRepository.getLeaveRequestById(tenantId, requestId);
     const request = await this.hrRepository.rejectLeaveRequest(
       tenantId,
       requestId,
       reviewerId,
       notes,
     );
+    
+    // 1. Audit Logging
     if (userId || reviewerId) {
       await this.auditService.log({
         tenantId,
         userId: userId || reviewerId,
-        module: "hr",
-        action: "REJECT",
+        module: "HR",
+        action: "REJECT_LEAVE",
         entityType: "LEAVE_REQUEST",
         entityId: requestId,
-        metadata: { reviewerId, notes },
+        beforeState,
+        afterState: request,
+        metadata: { notes },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "LEAVE_REJECTED",
+      message: `Leave request ${requestId} rejected by ${reviewerId}`,
+      payload: { requestId, reviewerId },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.LEAVE_REJECTED",
+      tenantId,
+      entityId: requestId,
+      entityType: "LEAVE_REQUEST",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId: request.employeeId, reviewerId, notes },
+    });
+
     return request;
   }
 
@@ -547,17 +731,43 @@ export class HRService {
       employeeId,
       period,
     );
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CALCULATE",
         entityType: "PAYROLL",
         entityId: payroll.id,
+        afterState: payroll,
         metadata: { employeeId, period },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "PAYROLL_CALCULATED",
+      message: `Payroll calculated for ${employeeId} - Period: ${period}`,
+      payload: { payrollId: payroll.id, employeeId, period },
+      userId,
+    });
+
+    // 3. Domain Event (High Frequency Event)
+    await this.eventBus.publish({
+      eventType: "HR.PAYROLL_CALCULATED",
+      tenantId,
+      entityId: payroll.id,
+      entityType: "PAYROLL",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId, period, totalAmount: payroll.netPay },
+    });
+
     return payroll;
   }
 
@@ -583,17 +793,43 @@ export class HRService {
     userId?: string,
   ): Promise<Department> {
     const department = await this.hrRepository.createDepartment(tenantId, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "DEPARTMENT",
         entityId: department.id,
+        afterState: department,
         metadata: { name: department.name },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "DEPARTMENT_CREATED",
+      message: `Department created: ${department.name}`,
+      payload: { departmentId: department.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.DEPARTMENT_CREATED",
+      tenantId,
+      entityId: department.id,
+      entityType: "DEPARTMENT",
+      sourceModule: "HR",
+      userId,
+      payload: { name: department.name },
+    });
+
     return department;
   }
 
@@ -618,42 +854,96 @@ export class HRService {
       tenantId,
       data,
     );
+
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "REQUISITION",
         entityId: requisition.id,
+        afterState: requisition,
         metadata: { title: data.title, departmentId: data.departmentId },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "REQUISITION_CREATED",
+      message: `Job Requisition created: ${requisition.title}`,
+      payload: { requisitionId: requisition.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.REQUISITION_CREATED",
+      tenantId,
+      entityId: requisition.id,
+      entityType: "REQUISITION",
+      sourceModule: "HR",
+      userId,
+      payload: { title: requisition.title, departmentId: requisition.departmentId },
+    });
+
     return requisition;
   }
 
-  async updateRequisition(
+   async updateRequisition(
     tenantId: string,
     id: string,
     data: Partial<JobRequisition>,
     userId?: string,
   ): Promise<JobRequisition> {
+    const beforeState = await this.hrRepository.getRequisitionById?.(tenantId, id);
     const requisition = await this.hrRepository.updateRequisition(
       tenantId,
       id,
       data,
     );
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "REQUISITION",
         entityId: id,
+        beforeState,
+        afterState: requisition,
         changes: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "REQUISITION_UPDATED",
+      message: `Job Requisition updated: ${id}`,
+      payload: { requisitionId: id, updates: data },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.REQUISITION_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "REQUISITION",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
+
     return requisition;
   }
   // Talent Management
@@ -664,21 +954,38 @@ export class HRService {
   async createCandidate(tenantId: string, data: any, userId?: string): Promise<Candidate> {
     const candidate = await this.hrRepository.createCandidate(tenantId, data);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "CANDIDATE",
         entityId: candidate.id,
+        afterState: candidate,
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CANDIDATE_CREATED",
+      message: `Candidate profile created for: ${candidate.firstName} ${candidate.lastName}`,
+      payload: { candidateId: candidate.id },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "candidate.applied",
+      eventType: "HR.CANDIDATE_APPLIED",
       tenantId,
       entityId: candidate.id,
+      entityType: "CANDIDATE",
+      sourceModule: "HR",
+      userId,
       payload: { requisitionId: candidate.requisitionId, source: candidate.source },
     });
 
@@ -703,22 +1010,39 @@ export class HRService {
       source: lead.source,
     });
 
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CONVERT_LEAD",
         entityType: "CANDIDATE",
         entityId: candidate.id,
+        afterState: candidate,
         metadata: { leadId },
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "TALENT_LEAD_CONVERTED",
+      message: `Talent Lead ${leadId} converted to Candidate ${candidate.id}`,
+      payload: { leadId, candidateId: candidate.id },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "candidate.converted",
+      eventType: "HR.CANDIDATE_CONVERTED",
       tenantId,
       entityId: candidate.id,
+      entityType: "CANDIDATE",
+      sourceModule: "HR",
+      userId,
       payload: { leadId, requisitionId },
     });
 
@@ -728,22 +1052,39 @@ export class HRService {
   async hireCandidate(tenantId: string, candidateId: string, userId?: string): Promise<Employee> {
     const employee = await this.hrRepository.hireCandidate(tenantId, candidateId);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "HIRE",
         entityType: "EMPLOYEE",
         entityId: employee.id,
+        afterState: employee,
         metadata: { candidateId },
       });
     }
 
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CANDIDATE_HIRED",
+      message: `Candidate ${candidateId} hired as Employee ${employee.id}`,
+      payload: { candidateId, employeeId: employee.id },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "candidate.hired",
+      eventType: "HR.CANDIDATE_HIRED",
       tenantId,
       entityId: candidateId,
+      entityType: "CANDIDATE",
+      sourceModule: "HR",
+      userId,
       payload: { 
         employeeId: employee.id, 
         hireDate: employee.hireDate,
@@ -763,19 +1104,45 @@ export class HRService {
   }
 
   async updatePosition(tenantId: string, id: string, data: any, userId?: string): Promise<Position> {
+    const beforeState = await this.hrRepository.getPositionById(tenantId, id);
     const position = await this.hrRepository.updatePosition(tenantId, id, data);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "POSITION",
         entityId: position.id,
+        beforeState,
+        afterState: position,
         metadata: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "POSITION_UPDATED",
+      message: `Position updated: ${position.id}`,
+      payload: { positionId: position.id },
+      userId,
+    });
+
+    // 3. Domain Event (Optional for Position, but keeping consistency)
+    await this.eventBus.publish({
+      eventType: "HR.POSITION_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "POSITION",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
 
     return position;
   }
@@ -785,19 +1152,45 @@ export class HRService {
   }
 
   async updateCompensation(tenantId: string, employeeId: string, data: any, userId?: string): Promise<Compensation> {
+    const beforeState = await this.hrRepository.getCompensation(tenantId, employeeId);
     const compensation = await this.hrRepository.updateCompensation(tenantId, employeeId, data);
     
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "COMPENSATION",
         entityId: compensation.id,
+        beforeState,
+        afterState: compensation,
         metadata: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "COMPENSATION_UPDATED",
+      message: `Compensation updated for employee: ${employeeId}`,
+      payload: { employeeId, compensationId: compensation.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.COMPENSATION_UPDATED",
+      tenantId,
+      entityId: employeeId,
+      entityType: "COMPENSATION",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
 
     return compensation;
   }
@@ -817,17 +1210,43 @@ export class HRService {
       tenantId,
       data,
     );
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "PERFORMANCE_CYCLE",
         entityId: cycle.id,
+        afterState: cycle,
         metadata: { name: data.name },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "PERFORMANCE_CYCLE_CREATED",
+      message: `Performance Cycle created: ${data.name}`,
+      payload: { cycleId: cycle.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.PERFORMANCE_CYCLE_CREATED",
+      tenantId,
+      entityId: cycle.id,
+      entityType: "PERFORMANCE_CYCLE",
+      sourceModule: "HR",
+      userId,
+      payload: { name: data.name },
+    });
+
     return cycle;
   }
 
@@ -837,22 +1256,50 @@ export class HRService {
     data: Partial<PerformanceCycle>,
     userId?: string,
   ): Promise<PerformanceCycle> {
+    const beforeState = await this.hrRepository.getPerformanceCycleById?.(tenantId, id);
     const cycle = await this.hrRepository.updatePerformanceCycle(
       tenantId,
       id,
       data,
     );
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "PERFORMANCE_CYCLE",
         entityId: id,
+        beforeState,
+        afterState: cycle,
         changes: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "PERFORMANCE_CYCLE_UPDATED",
+      message: `Performance Cycle updated: ${id}`,
+      payload: { cycleId: id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.PERFORMANCE_CYCLE_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "PERFORMANCE_CYCLE",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
+
     return cycle;
   }
 
@@ -884,17 +1331,43 @@ export class HRService {
       tenantId,
       data,
     );
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "SUBMIT",
         entityType: "PERFORMANCE_REVIEW",
         entityId: review.id,
+        afterState: review,
         metadata: { employeeId: data.employeeId, rating: data.rating },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "PERFORMANCE_REVIEW_SUBMITTED",
+      message: `Performance review submitted for employee: ${data.employeeId} - Rating: ${data.rating}`,
+      payload: { reviewId: review.id, employeeId: data.employeeId, rating: data.rating },
+      userId,
+    });
+
+    // 3. Domain Event (High Value Event)
+    await this.eventBus.publish({
+      eventType: "HR.PERFORMANCE_REVIEW_SUBMITTED",
+      tenantId,
+      entityId: review.id,
+      entityType: "PERFORMANCE_REVIEW",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId: data.employeeId, rating: data.rating },
+    });
+
     return review;
   }
 
@@ -917,38 +1390,92 @@ export class HRService {
     userId?: string,
   ): Promise<HRCase> {
     const hrCase = await this.hrRepository.createCase(tenantId, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "CASE",
         entityId: hrCase.id,
+        afterState: hrCase,
         metadata: { title: data.title, type: data.type },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CASE_CREATED",
+      message: `HR Case created: ${data.title}`,
+      payload: { caseId: hrCase.id },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.CASE_CREATED",
+      tenantId,
+      entityId: hrCase.id,
+      entityType: "CASE",
+      sourceModule: "HR",
+      userId,
+      payload: { title: data.title, type: data.type },
+    });
+
     return hrCase;
   }
 
-  async updateCase(
+   async updateCase(
     tenantId: string,
     id: string,
     data: Partial<HRCase>,
     userId?: string,
   ): Promise<HRCase> {
+    const beforeState = await this.hrRepository.getCaseById(tenantId, id);
     const hrCase = await this.hrRepository.updateCase(tenantId, id, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "CASE",
         entityId: id,
+        beforeState,
+        afterState: hrCase,
         changes: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CASE_UPDATED",
+      message: `HR Case updated: ${id}`,
+      payload: { caseId: id, updates: data },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.CASE_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "CASE",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
+
     return hrCase;
   }
 
@@ -971,38 +1498,92 @@ export class HRService {
     userId?: string,
   ): Promise<Contract> {
     const contract = await this.hrRepository.createContract(tenantId, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "CREATE",
         entityType: "CONTRACT",
         entityId: contract.id,
+        afterState: contract,
         metadata: { employeeId: data.employeeId, type: data.type },
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CONTRACT_CREATED",
+      message: `Employment contract created for employee: ${data.employeeId}`,
+      payload: { contractId: contract.id, employeeId: data.employeeId },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.CONTRACT_CREATED",
+      tenantId,
+      entityId: contract.id,
+      entityType: "CONTRACT",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId: data.employeeId, type: data.type },
+    });
+
     return contract;
   }
 
-  async updateContract(
+   async updateContract(
     tenantId: string,
     id: string,
     data: Partial<Contract>,
     userId?: string,
   ): Promise<Contract> {
+    const beforeState = await this.hrRepository.getContractById?.(tenantId, id);
     const contract = await this.hrRepository.updateContract(tenantId, id, data);
+    
+    // 1. Audit Logging
     if (userId) {
       await this.auditService.log({
         tenantId,
         userId,
-        module: "hr",
+        module: "HR",
         action: "UPDATE",
         entityType: "CONTRACT",
         entityId: id,
+        beforeState,
+        afterState: contract,
         changes: data,
       });
     }
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "CONTRACT_UPDATED",
+      message: `Employment contract updated: ${id}`,
+      payload: { contractId: id, updates: data },
+      userId,
+    });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.CONTRACT_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "CONTRACT",
+      sourceModule: "HR",
+      userId,
+      payload: data,
+    });
+
     return contract;
   }
 
@@ -1016,16 +1597,44 @@ export class HRService {
     return this.hrRepository.getTrainingPrograms(tenantId);
   }
 
-  async createTrainingProgram(tenantId: string, data: any, userId: string): Promise<any> {
+  async createTrainingProgram(tenantId: string, data: any, userId?: string): Promise<any> {
     const program = await this.hrRepository.createTrainingProgram(tenantId, data);
-    await this.auditService.log({
+    
+    // 1. Audit Logging
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "TRAINING_PROGRAM",
+        entityId: program.id,
+        afterState: program,
+      });
+    }
+
+    // 2. System Logging
+    await this.loggerService.log({
       tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "TRAINING_PROGRAM_CREATED",
+      message: `Training program created: ${data.title || program.id}`,
+      payload: { programId: program.id },
       userId,
-      module: "hr",
-      action: "CREATE",
-      entityType: "TRAINING_PROGRAM",
-      entityId: program.id,
     });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.TRAINING_PROGRAM_CREATED",
+      tenantId,
+      entityId: program.id,
+      entityType: "TRAINING_PROGRAM",
+      sourceModule: "HR",
+      userId,
+      payload: { title: data.title },
+    });
+
     return program;
   }
 
@@ -1033,29 +1642,88 @@ export class HRService {
     return this.hrRepository.getTrainingAssignments(tenantId);
   }
 
-  async createTrainingAssignment(tenantId: string, data: any, userId: string): Promise<any> {
+  async createTrainingAssignment(tenantId: string, data: any, userId?: string): Promise<any> {
     const assignment = await this.hrRepository.createTrainingAssignment(tenantId, data);
-    await this.auditService.log({
+    
+    // 1. Audit Logging
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "CREATE",
+        entityType: "TRAINING_ASSIGNMENT",
+        entityId: assignment.id,
+        afterState: assignment,
+      });
+    }
+
+    // 2. System Logging
+    await this.loggerService.log({
       tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "TRAINING_ASSIGNMENT_CREATED",
+      message: `Training assigned: ${assignment.id}`,
+      payload: { assignmentId: assignment.id, employeeId: data.employeeId },
       userId,
-      module: "hr",
-      action: "CREATE",
-      entityType: "TRAINING_ASSIGNMENT",
-      entityId: assignment.id,
     });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.TRAINING_ASSIGNED",
+      tenantId,
+      entityId: assignment.id,
+      entityType: "TRAINING_ASSIGNMENT",
+      sourceModule: "HR",
+      userId,
+      payload: { employeeId: data.employeeId, programId: data.programId },
+    });
+
     return assignment;
   }
 
-  async updateTrainingAssignment(tenantId: string, id: string, data: any, userId: string): Promise<any> {
+  async updateTrainingAssignment(tenantId: string, id: string, data: any, userId?: string): Promise<any> {
+    const beforeState = await this.hrRepository.getTrainingAssignmentById?.(tenantId, id);
     const assignment = await this.hrRepository.updateTrainingAssignment(tenantId, id, data);
-    await this.auditService.log({
+    
+    // 1. Audit Logging
+    if (userId) {
+      await this.auditService.log({
+        tenantId,
+        userId,
+        module: "hr",
+        action: "UPDATE",
+        entityType: "TRAINING_ASSIGNMENT",
+        entityId: assignment.id,
+        beforeState,
+        afterState: assignment,
+        changes: data,
+      });
+    }
+
+    // 2. System Logging
+    await this.loggerService.log({
       tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "TRAINING_STATUS_UPDATED",
+      message: `Training assignment ${id} updated to status: ${data.status}`,
+      payload: { assignmentId: id, status: data.status },
       userId,
-      module: "hr",
-      action: "UPDATE",
-      entityType: "TRAINING_ASSIGNMENT",
-      entityId: assignment.id,
     });
+
+    // 3. Domain Event
+    await this.eventBus.publish({
+      eventType: "HR.TRAINING_STATUS_UPDATED",
+      tenantId,
+      entityId: id,
+      entityType: "TRAINING_ASSIGNMENT",
+      sourceModule: "HR",
+      userId,
+      payload: { status: data.status },
+    });
+
     return assignment;
   }
 
@@ -1084,10 +1752,35 @@ export class HRService {
   async scheduleInterview(tenantId: string, data: any, userId: string): Promise<Interview> {
     const interview = await this.hrRepository.scheduleInterview(tenantId, data);
 
+    // 1. Audit Logging
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "HR",
+      action: "SCHEDULE",
+      entityType: "INTERVIEW",
+      entityId: interview.id,
+      afterState: interview,
+    });
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "INTERVIEW_SCHEDULED",
+      message: `Interview scheduled for candidate: ${data.candidateId}`,
+      payload: { interviewId: interview.id, candidateId: data.candidateId },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "interview.scheduled",
+      eventType: "HR.INTERVIEW_SCHEDULED",
       tenantId,
       entityId: interview.id,
+      entityType: "INTERVIEW",
+      sourceModule: "HR",
       userId,
       payload: {
         candidateId: interview.candidateId,
@@ -1101,12 +1794,39 @@ export class HRService {
   }
 
   async updateInterviewStatus(tenantId: string, id: string, status: string, userId: string): Promise<Interview> {
+    const beforeState = await this.hrRepository.getInterviewById(tenantId, id);
     const interview = await this.hrRepository.updateInterviewStatus(tenantId, id, status);
 
+    // 1. Audit Logging
+    await this.auditService.log({
+      tenantId,
+      userId,
+      module: "HR",
+      action: "UPDATE_STATUS",
+      entityType: "INTERVIEW",
+      entityId: interview.id,
+      beforeState,
+      afterState: interview,
+    });
+
+    // 2. System Logging
+    await this.loggerService.log({
+      tenantId,
+      module: "HR",
+      level: "INFO",
+      event: "INTERVIEW_STATUS_UPDATED",
+      message: `Interview ${id} status updated to: ${status}`,
+      payload: { interviewId: id, status },
+      userId,
+    });
+
+    // 3. Domain Event
     await this.eventBus.publish({
-      eventType: "interview.status_updated",
+      eventType: "HR.INTERVIEW_STATUS_UPDATED",
       tenantId,
       entityId: interview.id,
+      entityType: "INTERVIEW",
+      sourceModule: "HR",
       userId,
       payload: {
         status: interview.status,

@@ -37,6 +37,7 @@ model Company {
   compensations           Compensation[]
   contracts               Contract[]
   departments             Department[]
+  domainEvents            DomainEvent[]
   ecommerceConnectors     EcommerceConnector[]
   emergencyOverrides      EmergencyOverride[]
   employees               Employee[]
@@ -1176,6 +1177,8 @@ model AuditLog {
   userId     String   @map("user_id")
   changes    Json?
   metadata   Json?
+  beforeState Json?     @map("before_state")
+  afterState  Json?     @map("after_state")
   sourceModule String? @map("source_module")
   hashChain    String? @map("hash_chain")
   createdAt  DateTime @default(now()) @map("created_at")
@@ -2357,6 +2360,25 @@ model MarketingAuditEvent {
   @@map("marketing_audit_events")
 }
 
+model DomainEvent {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  eventType    String   @map("event_type")
+  sourceModule String   @map("source_module")
+  entityType   String   @map("entity_type")
+  entityId     String   @map("entity_id")
+  payload      Json
+  userId       String?  @map("user_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  company Company @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([eventType])
+  @@index([entityId])
+  @@map("domain_events")
+}
+
 model InventoryPool {
   id                  String               @id @default(uuid())
   tenantId            String               @map("tenant_id")
@@ -2568,6 +2590,7 @@ model SystemLog {
   payload    Json?
   errorStack String?  @map("error_stack")
   requestId  String?  @map("request_id")
+  correlationId String? @map("correlation_id")
   userId     String?  @map("user_id")
   ipAddress  String?  @map("ip_address")
   durationMs Int?     @map("duration_ms")

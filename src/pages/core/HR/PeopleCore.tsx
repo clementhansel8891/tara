@@ -290,6 +290,7 @@ export default function PeopleCore() {
           >
             Edit Profile
           </Button>
+          <ZenTooltip content="Transfer this professional to a different organizational department.">
             <Button
               variant="outline"
               className="border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -1045,6 +1046,8 @@ export default function PeopleCore() {
                           <p><strong>Salary:</strong> {newSalary}</p>
                        </div>
                     )}
+                  </div>
+                ) : null}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Reason for Action</label>
                   <Textarea
@@ -1057,6 +1060,7 @@ export default function PeopleCore() {
                   <Button variant="outline" onClick={() => setActionOpen(false)}>Cancel</Button>
                   <Button
                     variant={actionType === "TERMINATE" ? "destructive" : "default"}
+                    onClick={async () => {
                       try {
                         if (!actionReason && wizardStep === 3) {
                           setErrorMessage(

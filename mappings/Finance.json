@@ -1,42 +1,40 @@
 {
-  "module": "Finance",
-  "name": "Financial Services",
-  "purpose": "Operational + strategic money control center with approvals and audit.",
-  "navigation": [
+  "module": "Finance & Core Services",
+  "name": "Zenvix Financial Ecosystem",
+  "purpose": "Integrated money control, secure comms, and risk governance.",
+  "subModules": [
     {
-      "section": "Operations",
-      "items": [
-        { "label": "Money Desk", "path": "/core/finance/moneydesk" },
-        { "label": "Treasury Map", "path": "/core/finance/treasury" },
-        { "label": "Ledger Core", "path": "/core/finance/ledger", "trigger": "New Journal Entry" },
-        { "label": "Invoice Capture", "path": "/core/finance/invoices" },
-        { "label": "Finance Docs", "path": "/core/finance/docs" },
-        { "label": "Assets", "path": "/core/finance/assets" }
-      ]
+      "name": "Finance",
+      "path": "/core/finance",
+      "features": ["Money Desk", "Treasury Map", "Ledger Core", "Invoice Capture", "Fixed Assets", "Capex", "Payroll"]
     },
     {
-      "section": "Payments",
-      "items": [
-        { "label": "Pay Flow", "path": "/core/finance/payflow" },
-        { "label": "Receivable Desk", "path": "/core/finance/receivables" },
-        { "label": "Payable Desk", "path": "/core/finance/payables" }
-      ]
+      "name": "Payment",
+      "path": "/core/payment",
+      "features": ["Transaction Flow", "Routing Policies", "Provider Health", "Refunds", "Disputes", "Settlement"]
     },
     {
-      "section": "Governance",
-      "items": [
-        { "label": "Close Period Studio", "path": "/core/finance/close" },
-        { "label": "Audit Vault", "path": "/core/finance/audit" },
-        { "label": "Policy Manager", "path": "/core/finance/policy" }
-      ]
+      "name": "Chat",
+      "path": "/core/chat",
+      "features": ["Direct Messaging", "Group/Dept/Role Rooms", "Message Status", "Pagination", "Unread Tracking"]
     },
     {
-      "section": "Intelligence",
-      "items": [
-        { "label": "Finance Insights", "path": "/core/finance/insights" }
-      ]
+      "name": "Mail",
+      "path": "/core/mail",
+      "features": ["Intel Threading", "@zenvix.internal Accounts", "Folders (Inbox/Sent/Starred)", "Real-time Notification"]
+    },
+    {
+      "name": "Notification",
+      "path": "Shared",
+      "features": ["Global Broadcast", "Integrated Unread Sync", "Actionable Deep-links"]
+    },
+    {
+      "name": "Antifraud Engine",
+      "path": "Automation Layer",
+      "features": ["Event Pattern Matching", "AI Anomaly Detection", "Risk Signaling", "Immutable Audit Vault"]
     }
   ],
   "integrations": ["HR", "Procurement", "Inventory", "Retail"],
-  "security": "Immutable Audit Store"
+  "security": "Immutable Audit Store + Secure Enclaves"
 }
+

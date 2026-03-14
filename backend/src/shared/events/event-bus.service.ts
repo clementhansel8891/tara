@@ -5,8 +5,11 @@ export interface DomainEvent {
   eventType: string;
   tenantId: string;
   entityId: string;
+  entityType: string;
+  sourceModule: string;
   payload: any;
   userId?: string;
+  correlationId?: string;
   createdAt?: Date;
 }
 
@@ -29,36 +32,30 @@ export class EventBusService {
 
   /**
    * Publish a domain event.
-   * Currently uses PostgreSQL persistence (SystemLog fallback) as the event store.
-   * Can be extended to Redis Streams as per architecture spec.
+   * Persists to the DomainEvent table (Event Store) and notifies listeners.
    */
   async publish(event: DomainEvent) {
-    this.logger.log(`Publishing event: ${event.eventType} for tenant ${event.tenantId}`);
+    this.logger.log(`Publishing event: ${event.eventType} for tenant ${event.tenantId} from ${event.sourceModule}`);
 
-    // Persist event to the database (PostgreSQL event table pattern)
-    // We use SystemLog as the generic event store for now to avoid immediate schema migrations,
-    // but categorize it as 'EVENT' level.
     try {
-      await this.prisma.systemLog.create({
+      // 1. Persist event to the dedicated Event Store (DomainEvent table)
+      await this.prisma.domainEvent.create({
         data: {
           tenantId: event.tenantId,
-          module: 'EVENT_BUS',
-          level: 'event',
-          event: event.eventType,
-          message: `Event: ${event.eventType}`,
-          userId: event.userId,
-          payload: {
-            eventType: event.eventType,
-            entityId: event.entityId,
-            payload: event.payload,
-            publishedAt: new Date().toISOString(),
-          },
+          eventType: event.eventType,
+          sourceModule: event.sourceModule,
+          entityType: event.entityType,
+          entityId: event.entityId,
+          payload: event.payload,
+          userId: event.userId ?? null,
         },
       });
 
-      // Dispatch to internal listeners
+      // 2. Dispatch to internal async listeners
       this.listeners.forEach(listener => {
         try {
+          // Wrap in setImmediate to ensure async execution if needed, 
+          // but for now simple forEach is fine as long as listeners handle their own async work.
           listener(event);
         } catch (error) {
           this.logger.error(`Error in event listener: ${error.message}`);
@@ -66,7 +63,7 @@ export class EventBusService {
       });
 
     } catch (error) {
-      this.logger.error(`Failed to persist event ${event.eventType}: ${error.message}`);
+      this.logger.error(`Failed to persist domain event ${event.eventType}: ${error.message}`);
     }
   }
 }

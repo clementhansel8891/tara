@@ -23,6 +23,8 @@ export class ComplianceService {
       eventType: "compliance.document_uploaded",
       tenantId,
       entityId: doc.id,
+      entityType: "COMPLIANCE_DOCUMENT",
+      sourceModule: "HR",
       userId,
       payload: {
         employeeId: doc.employeeId,
@@ -79,6 +81,8 @@ export class ComplianceService {
       eventType: "compliance.document_verified",
       tenantId,
       entityId: doc.id,
+      entityType: "COMPLIANCE_DOCUMENT",
+      sourceModule: "HR",
       userId: verifiedBy,
       payload: {
         employeeId: doc.employeeId,
@@ -104,6 +108,8 @@ export class ComplianceService {
         eventType: "compliance.document_expired",
         tenantId,
         entityId: doc.id,
+        entityType: "COMPLIANCE_DOCUMENT",
+        sourceModule: "HR",
         userId: "SYSTEM",
         payload: {
           employeeId: doc.employeeId,
@@ -174,6 +180,8 @@ export class ComplianceService {
       eventType: "compliance.ocr_completed",
       tenantId,
       entityId: doc.id,
+      entityType: "COMPLIANCE_DOCUMENT",
+      sourceModule: "HR",
       userId,
       payload: {
         confidence: ocrResult.confidence,

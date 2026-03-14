@@ -10,6 +10,8 @@ export interface AuditLogParams {
   entityId: string;
   metadata?: any;
   changes?: any;
+  beforeState?: any;
+  afterState?: any;
   ipAddress?: string;
   userAgent?: string;
   severity?: 'INFO' | 'WARN' | 'CRITICAL';
@@ -43,8 +45,11 @@ export class AuditService {
         entityId: params.entityId,
         metadata: params.metadata ?? {},
         changes: params.changes ?? {},
-        ipAddress: params.ipAddress ?? null,
-        userAgent: params.userAgent ?? null,
+        beforeState: params.beforeState ?? undefined,
+        afterState: params.afterState ?? undefined,
+        sourceModule: params.module,
+        ipAddress: params.ipAddress ?? undefined,
+        userAgent: params.userAgent ?? undefined,
         severity: params.severity ?? 'INFO',
       },
     });

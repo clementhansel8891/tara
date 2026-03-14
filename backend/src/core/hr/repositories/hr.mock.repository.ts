@@ -81,6 +81,51 @@ export class HRMockRepository extends IHRRepository {
   private leaveRequests: LeaveRequest[] = [];
   private payrolls: Payroll[] = [];
 
+  // Get By ID Methods
+  async getEmployeeById(tenantId: string, employeeId: string): Promise<Employee | null> {
+    return this.employees.find((e) => e.id === employeeId && e.tenantId === tenantId) || null;
+  }
+  async getGlobalEmployeeById(employeeId: string): Promise<Employee | null> { return this.employees.find((e) => e.id === employeeId) || null; }
+  async getRequisitionById(tenantId: string, id: string): Promise<JobRequisition | null> {
+    return this.requisitions.find((r) => r.id === id && r.tenantId === tenantId) || null;
+  }
+  async getContractById(tenantId: string, id: string): Promise<Contract | null> {
+    return this.contracts.find((c) => c.id === id && c.tenantId === tenantId) || null;
+  }
+  async getTrainingAssignmentById(tenantId: string, id: string): Promise<any | null> {
+    return this.trainingAssignments.find((a) => a.id === id && a.tenantId === tenantId) || null;
+  }
+  async getLeaveRequestById(tenantId: string, id: string): Promise<LeaveRequest | null> {
+    return this.leaveRequests.find((r) => r.id === id && r.tenantId === tenantId) || null;
+  }
+  async getDepartmentById(tenantId: string, departmentId: string): Promise<Department | null> {
+    return this.departments.find((d) => d.id === departmentId && d.tenantId === tenantId) || null;
+  }
+  async getPerformanceCycleById(tenantId: string, id: string): Promise<PerformanceCycle | null> {
+    return this.performanceCycles.find((c) => c.id === id && c.tenantId === tenantId) || null;
+  }
+  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
+    return this.cases.find((c) => c.id === id && c.tenantId === tenantId) || null;
+  }
+  async getCandidateById(tenantId: string, id: string): Promise<Candidate | null> {
+    return this.candidates.find((c) => c.id === id && c.tenantId === tenantId) || null;
+  }
+  async getPositionById(tenantId: string, id: string): Promise<Position | null> {
+    return this.positions.find((p) => p.id === id && p.tenantId === tenantId) || null;
+  }
+  async getInterviewById(tenantId: string, id: string): Promise<Interview | null> {
+    return this.interviews.find((i) => i.id === id && i.tenantId === tenantId) || null;
+  }
+  async getTalentLeadById(tenantId: string, id: string): Promise<TalentLead | null> {
+    return this.leads.find((l) => l.id === id && l.tenantId === tenantId) || null;
+  }
+  async getGoalById(tenantId: string, id: string): Promise<PerformanceGoal | null> {
+    return this.performanceGoals.find((g) => g.id === id && g.tenantId === tenantId) || null;
+  }
+  async getTrainingProgramById(tenantId: string, id: string): Promise<TrainingProgram | null> {
+    return this.trainingPrograms.find((p) => p.id === id && p.tenantId === tenantId) || null;
+  }
+
   // Employee Management
   async getEmployees(tenantId: string, locationId?: string, page: number = 1, limit: number = 20): Promise<{ data: Employee[]; total: number }> {
     const filtered = this.employees.filter((e) => e.tenantId === tenantId && (!locationId || e.locationId === locationId));
@@ -90,201 +135,223 @@ export class HRMockRepository extends IHRRepository {
     const filtered = this.employees.filter((e) => !locationId || e.locationId === locationId);
     return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
-  async getEmployeeById(tenantId: string, employeeId: string): Promise<Employee | null> {
-    return this.employees.find((e) => e.id === employeeId && e.tenantId === tenantId) || null;
-  }
-  async getGlobalEmployeeById(employeeId: string): Promise<Employee | null> { return this.employees.find((e) => e.id === employeeId) || null; }
   async createEmployee(tenantId: string, data: CreateEmployeeDto): Promise<Employee> {
-    const employee: any = { id: `emp-${Date.now()}`, tenantId, ...data, fullName: `${data.firstName} ${data.lastName}`, status: "active", createdAt: new Date(), updatedAt: new Date() };
+    const employee: Employee = { 
+      id: `emp-${Date.now()}`, 
+      tenantId, 
+      ...data, 
+      fullName: `${data.firstName} ${data.lastName}`, 
+      status: "active", 
+      employeeCode: `EMP-${Date.now()}`,
+      hireDate: new Date(),
+      employmentType: "full_time",
+      position: (data as any).position || "Staff",
+      departmentId: data.departmentId || "DEPT-001",
+      roleTitle: (data as any).roleTitle || "Staff",
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    } as any;
     this.employees.push(employee); return employee;
   }
-  async updateEmployee(tenantId: string, id: string, data: UpdateEmployeeDto): Promise<Employee> {
-    const idx = this.employees.findIndex((e) => e.id === id && e.tenantId === tenantId);
-    if (idx === -1) throw new Error("Not found");
-    this.employees[idx] = { ...this.employees[idx], ...data, status: (data.status as any) || this.employees[idx].status, updatedAt: new Date() } as any; return this.employees[idx];
+  async updateEmployee(tenantId: string, employeeId: string, data: UpdateEmployeeDto): Promise<Employee> {
+    const idx = this.employees.findIndex((e) => e.id === employeeId && e.tenantId === tenantId);
+    if (idx === -1) throw new Error("Employee not found");
+    this.employees[idx] = { ...this.employees[idx], ...data, updatedAt: new Date() } as any; return this.employees[idx];
   }
-  async deactivateEmployee(t: string, id: string): Promise<Employee> { return this.updateEmployee(t, id, { status: "terminated" } as any); }
-  async promoteEmployee(t: string, id: string, data: any): Promise<Employee> { return this.updateEmployee(t, id, { ...data, status: "promoted" } as any); }
-  async transferEmployee(t: string, id: string, data: any): Promise<Employee> { return this.updateEmployee(t, id, { ...data, status: "transferred" } as any); }
-  async suspendEmployee(t: string, id: string, reason: string): Promise<Employee> { return this.updateEmployee(t, id, { status: "suspended", metadata: { reason } } as any); }
+  async deactivateEmployee(tenantId: string, employeeId: string): Promise<Employee> {
+    const idx = this.employees.findIndex((e) => e.id === employeeId && e.tenantId === tenantId);
+    if (idx === -1) throw new Error("Employee not found");
+    this.employees[idx].status = "terminated"; return this.employees[idx];
+  }
+  async promoteEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee> {
+    const idx = this.employees.findIndex((e) => e.id === employeeId && e.tenantId === tenantId);
+    if (idx === -1) throw new Error("Employee not found");
+    this.employees[idx] = { ...this.employees[idx], position: data.newRole, roleTitle: data.newRoleTitle || this.employees[idx].roleTitle, updatedAt: new Date() };
+    return this.employees[idx];
+  }
+  async transferEmployee(tenantId: string, employeeId: string, data: any): Promise<Employee> {
+    const idx = this.employees.findIndex((e) => e.id === employeeId && e.tenantId === tenantId);
+    if (idx === -1) throw new Error("Employee not found");
+    this.employees[idx] = { ...this.employees[idx], departmentId: data.targetDepartment || this.employees[idx].departmentId, locationId: data.targetLocation || this.employees[idx].locationId, updatedAt: new Date() };
+    return this.employees[idx];
+  }
+  async suspendEmployee(tenantId: string, employeeId: string, reason: string): Promise<Employee> {
+    const idx = this.employees.findIndex((e) => e.id === employeeId && e.tenantId === tenantId);
+    if (idx === -1) throw new Error("Employee not found");
+    this.employees[idx].status = "suspended"; return this.employees[idx];
+  }
 
-  // Attendance
-  async getAttendance(tenantId: string, locationId?: string, employeeId?: string, s?: string, e?: string, page: number = 1, limit: number = 20): Promise<{ data: Attendance[]; total: number }> {
-    const filtered = this.attendance.filter((a) => a.tenantId === tenantId && (!locationId || a.locationId === locationId) && (!employeeId || a.employeeId === employeeId));
+  // Attendance & Shifts
+  async getAttendance(tenantId: string, locId?: string, empId?: string, start?: string, end?: string, page: number = 1, limit: number = 50): Promise<{ data: Attendance[]; total: number }> {
+    const filtered = this.attendance.filter((a) => a.tenantId === tenantId && (!locId || a.locationId === locId) && (!empId || a.employeeId === empId));
     return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
-  async getGlobalAttendance(empId?: string, s?: string, e?: string, page: number = 1, limit: number = 20): Promise<{ data: Attendance[]; total: number }> {
+  async getGlobalAttendance(empId?: string, start?: string, end?: string, page: number = 1, limit: number = 50): Promise<{ data: Attendance[]; total: number }> {
     const filtered = this.attendance.filter((a) => !empId || a.employeeId === empId);
     return { data: filtered.slice((page - 1) * limit, page * limit), total: filtered.length };
   }
   async clockIn(tenantId: string, employeeId: string, locationId: string): Promise<Attendance> {
-    const record: Attendance = { id: `att-${Date.now()}`, tenantId, employeeId, locationId, date: new Date().toISOString().split("T")[0], clockIn: new Date(), status: "present", createdAt: new Date(), updatedAt: new Date() };
-    this.attendance.push(record); return record;
+    const a: Attendance = { id: `att-${Date.now()}`, tenantId, employeeId, locationId, clockIn: new Date(), status: "present", date: new Date(), createdAt: new Date(), updatedAt: new Date() } as any;
+    this.attendance.push(a); return a;
   }
   async clockOut(tenantId: string, employeeId: string): Promise<Attendance> {
-    const record = this.attendance.find((a) => a.employeeId === employeeId && a.tenantId === tenantId && a.status === "present");
-    if (!record) throw new Error("No active clock-in"); record.updatedAt = new Date(); return record;
+    const att = this.attendance.find((a) => a.employeeId === employeeId && a.tenantId === tenantId && !a.clockOut);
+    if (!att) throw new Error("No active clock-in found"); att.clockOut = new Date(); return att;
   }
-  async assignShift(t: string, eid: string, sid: string, lid: string, date: string): Promise<void> { return; }
+  async assignShift(t: string, eid: string, sid: string, lid: string, d: string): Promise<void> { return; }
 
-  // Candidates & Recruitment
-  async getCandidates(tenantId: string, status?: string): Promise<Candidate[]> { return this.candidates.filter((c) => c.tenantId === tenantId && (!status || c.status === status)); }
-  async getCandidateById(tenantId: string, id: string): Promise<Candidate | null> { return this.candidates.find((c) => c.id === id && c.tenantId === tenantId) || null; }
-  async createCandidate(tenantId: string, data: any): Promise<Candidate> {
-    const cand: Candidate = { id: `cand-${Date.now()}`, tenantId, ...data, createdAt: new Date(), updatedAt: new Date() };
-    this.candidates.push(cand); return cand;
+  // Leave Management
+  async getLeaveRequests(t: string, l?: string, s?: string, e?: string): Promise<LeaveRequest[]> { return this.leaveRequests.filter((r) => r.tenantId === t && (!s || r.status === s) && (!e || r.employeeId === e)); }
+  async getGlobalLeaveRequests(s?: string, e?: string): Promise<LeaveRequest[]> { return this.leaveRequests.filter((r) => (!s || r.status === s) && (!e || r.employeeId === e)); }
+  async createLeaveRequest(t: string, data: CreateLeaveRequestDto): Promise<LeaveRequest> {
+    const r: LeaveRequest = { id: `lv-${Date.now()}`, tenantId: t, ...data, status: "pending", requestedAt: new Date(), startDate: new Date(data.startDate), endDate: new Date(data.endDate), createdAt: new Date(), updatedAt: new Date() } as any;
+    this.leaveRequests.push(r); return r;
   }
-  async updateCandidate(tenantId: string, id: string, data: any): Promise<Candidate> {
-    const idx = this.candidates.findIndex((c) => c.id === id && c.tenantId === tenantId);
-    if (idx === -1) throw new Error("Not found");
-    this.candidates[idx] = { ...this.candidates[idx], ...data, updatedAt: new Date() }; return this.candidates[idx];
+  async approveLeaveRequest(t: string, id: string, revId: string, n?: string): Promise<LeaveRequest> {
+    const r = this.leaveRequests.find((r) => r.id === id && r.tenantId === t);
+    if (!r) throw new Error("Not found"); r.status = "approved"; (r as any).reviewedBy = revId; r.reviewedAt = new Date(); r.updatedAt = new Date(); return r;
   }
-  async hireCandidate(tenantId: string, id: string): Promise<Employee> {
-    const cand = await this.getCandidateById(tenantId, id); if (!cand) throw new Error("Not found");
-    return this.createEmployee(tenantId, { firstName: cand.firstName, lastName: cand.lastName, email: cand.email } as any);
-  }
-  async getInterviews(tenantId: string, candidateId?: string): Promise<Interview[]> { return this.interviews.filter((i) => i.tenantId === tenantId && (!candidateId || i.candidateId === candidateId)); }
-  async scheduleInterview(tenantId: string, data: any): Promise<Interview> {
-    const int: Interview = { id: `int-${Date.now()}`, tenantId, ...data, scheduledAt: new Date(data.scheduledAt), createdAt: new Date(), updatedAt: new Date() };
-    this.interviews.push(int); return int;
-  }
-  async updateInterviewStatus(tenantId: string, id: string, status: string): Promise<Interview> {
-    const int = this.interviews.find((i) => i.id === id && i.tenantId === tenantId);
-    if (!int) throw new Error("Not found"); int.status = status as any; int.updatedAt = new Date(); return int;
-  }
-  async getTalentLeads(tenantId: string, status?: string): Promise<TalentLead[]> { return this.leads.filter((l) => l.tenantId === tenantId && (!status || l.status === status)); }
-  async createTalentLead(tenantId: string, data: any): Promise<TalentLead> {
-    const lead: TalentLead = { id: `lead-${Date.now()}`, tenantId, ...data, leadScore: data.leadScore || 0, createdAt: new Date(), updatedAt: new Date() };
-    this.leads.push(lead); return lead;
-  }
-  async getTalentLeadById(tenantId: string, id: string): Promise<TalentLead | null> { return this.leads.find((l) => l.id === id && l.tenantId === tenantId) || null; }
-  async updateTalentLead(tenantId: string, id: string, data: any): Promise<TalentLead> {
-    const idx = this.leads.findIndex((l) => l.id === id && l.tenantId === tenantId);
-    if (idx === -1) throw new Error("Not found");
-    this.leads[idx] = { ...this.leads[idx], ...data, updatedAt: new Date() }; return this.leads[idx];
+  async rejectLeaveRequest(t: string, id: string, revId: string, n: string): Promise<LeaveRequest> {
+    const r = this.leaveRequests.find((r) => r.id === id && r.tenantId === t);
+    if (!r) throw new Error("Not found"); r.status = "rejected"; (r as any).reviewedBy = revId; r.reviewedAt = new Date(); r.updatedAt = new Date(); return r;
   }
 
-  // Org Structure
+  // Payroll Management
+  async getPayroll(t: string, l?: string, e?: string, p?: string): Promise<Payroll[]> { return this.payrolls.filter((pa) => pa.tenantId === t && (!e || pa.employeeId === e) && (!p || pa.period === p)); }
+  async getGlobalPayroll(e: string, p?: string): Promise<Payroll[]> { return this.payrolls.filter((pa) => pa.employeeId === e && (!p || pa.period === p)); }
+  async calculatePayroll(t: string, eid: string, p: string): Promise<Payroll> {
+    const pa: Payroll = { id: `pay-${Date.now()}`, tenantId: t, employeeId: eid, period: p, grossPay: 5000, netPay: 4000, status: "draft", baseSalary: 5000, createdAt: new Date(), updatedAt: new Date() } as any;
+    this.payrolls.push(pa); return pa;
+  }
+  async getPayrollRuns(tenantId: string): Promise<PayrollRun[]> { return this.runs.filter(r => r.tenantId === tenantId); }
+  async getPayrollLines(tenantId: string, runId: string): Promise<PayrollLine[]> { return this.lines.filter(l => l.payrollRunId === runId); }
+
+  // Organization Management
   async getLocations(tenantId: string): Promise<any[]> { return []; }
   async getDepartments(tenantId: string): Promise<Department[]> { return this.departments.filter((d) => d.tenantId === tenantId); }
   async getGlobalDepartments(): Promise<Department[]> { return this.departments; }
-  async getDepartmentById(t: string, id: string): Promise<Department | null> { return this.departments.find((d) => d.id === id && d.tenantId === t) || null; }
   async createDepartment(tenantId: string, data: CreateDepartmentDto): Promise<Department> {
     const d: Department = { id: `dept-${Date.now()}`, tenantId, ...data, status: "active", createdAt: new Date(), updatedAt: new Date() };
     this.departments.push(d); return d;
   }
-  async getPositions(tenantId: string, deptId?: string): Promise<Position[]> { return this.positions.filter((p) => p.tenantId === tenantId && (!deptId || p.departmentId === deptId)); }
-  async getPositionById(tenantId: string, id: string): Promise<Position | null> { return this.positions.find((p) => p.id === id && p.tenantId === tenantId) || null; }
-  async createPosition(tenantId: string, data: any): Promise<Position> {
-    const pos: Position = { id: `pos-${Date.now()}`, tenantId, ...data, createdAt: new Date(), updatedAt: new Date() };
-    this.positions.push(pos); return pos;
-  }
-  async updatePosition(tenantId: string, id: string, data: any): Promise<Position> {
-    const idx = this.positions.findIndex((p) => p.id === id && p.tenantId === tenantId);
-    if (idx === -1) throw new Error("Not found");
-    this.positions[idx] = { ...this.positions[idx], ...data, updatedAt: new Date() }; return this.positions[idx];
-  }
 
-  // Job Requisitions
-  async getRequisitions(tenantId: string, status?: string): Promise<JobRequisition[]> { return this.requisitions.filter((r) => r.tenantId === tenantId && (!status || r.status === status)); }
-  async getGlobalRequisitions(status?: string): Promise<JobRequisition[]> { return this.requisitions.filter((r) => !status || r.status === status); }
-  async createRequisition(tenantId: string, data: CreateRequisitionDto): Promise<JobRequisition> {
-    const r: JobRequisition = { id: `req-${Date.now()}`, tenantId, ...data, status: "open", createdAt: new Date(), updatedAt: new Date() };
+  // Recruitment & Talent
+  async getRequisitions(t: string, s?: string): Promise<JobRequisition[]> { return this.requisitions.filter((r) => r.tenantId === t && (!s || r.status === s)); }
+  async getGlobalRequisitions(s?: string): Promise<JobRequisition[]> { return this.requisitions.filter((r) => (!s || r.status === s)); }
+  async createRequisition(t: string, data: CreateRequisitionDto): Promise<JobRequisition> {
+    const r: JobRequisition = { id: `req-${Date.now()}`, tenantId: t, ...data, status: "open", createdAt: new Date(), updatedAt: new Date() };
     this.requisitions.push(r); return r;
   }
-  async updateRequisition(tenantId: string, id: string, data: Partial<JobRequisition>): Promise<JobRequisition> {
-    const idx = this.requisitions.findIndex((r) => r.id === id && r.tenantId === tenantId);
+  async updateRequisition(t: string, id: string, data: any): Promise<JobRequisition> {
+    const idx = this.requisitions.findIndex((r) => r.id === id && r.tenantId === t);
     if (idx === -1) throw new Error("Not found");
     this.requisitions[idx] = { ...this.requisitions[idx], ...data, updatedAt: new Date() }; return this.requisitions[idx];
   }
-
-  // Leave & Payroll
-  async getLeaveRequests(tenantId: string, locId?: string, status?: string, empId?: string): Promise<LeaveRequest[]> {
-    return this.leaveRequests.filter((l) => l.tenantId === tenantId && (!status || l.status === status) && (!empId || l.employeeId === empId));
+  async getCandidates(t: string, s?: string): Promise<Candidate[]> { return this.candidates.filter((c) => c.tenantId === t && (!s || c.status === s)); }
+  async createCandidate(t: string, data: any): Promise<Candidate> {
+    const c: Candidate = { id: `cand-${Date.now()}`, tenantId: t, ...data, status: "applied", createdAt: new Date(), updatedAt: new Date() };
+    this.candidates.push(c); return c;
   }
-  async getGlobalLeaveRequests(status?: string, empId?: string): Promise<LeaveRequest[]> {
-    return this.leaveRequests.filter((l) => (!status || l.status === status) && (!empId || l.employeeId === empId));
-  }
-  async createLeaveRequest(tenantId: string, data: CreateLeaveRequestDto): Promise<LeaveRequest> {
-    const req: LeaveRequest = { id: `lv-${Date.now()}`, tenantId, ...data, startDate: new Date(data.startDate), endDate: new Date(data.endDate), requestedAt: new Date(), status: "pending", createdAt: new Date(), updatedAt: new Date() };
-    this.leaveRequests.push(req); return req;
-  }
-  async approveLeaveRequest(t: string, id: string, rev: string, notes?: string): Promise<LeaveRequest> {
-    const req = this.leaveRequests.find((l) => l.id === id && l.tenantId === t);
-    if (!req) throw new Error("Not found"); req.status = "approved"; (req as any).reviewedBy = rev; (req as any).reviewNotes = notes; return req;
-  }
-  async rejectLeaveRequest(t: string, id: string, rev: string, notes: string): Promise<LeaveRequest> {
-    const req = this.leaveRequests.find((l) => l.id === id && l.tenantId === t);
-    if (!req) throw new Error("Not found"); req.status = "rejected"; (req as any).reviewedBy = rev; (req as any).reviewNotes = notes; return req;
-  }
-  async getPayroll(tenantId: string, locId?: string, empId?: string, period?: string): Promise<Payroll[]> { return this.payrolls.filter((p) => p.tenantId === tenantId && (!empId || p.employeeId === empId)); }
-  async getGlobalPayroll(empId: string, period?: string): Promise<Payroll[]> { return this.payrolls.filter((p) => p.employeeId === empId); }
-  async calculatePayroll(tenantId: string, empId: string, period: string): Promise<Payroll> {
-    const p: Payroll = { id: `pay-${Date.now()}`, tenantId, employeeId: empId, period, baseSalary: 4000, grossPay: 5000, netPay: 4000, status: "draft", createdAt: new Date(), updatedAt: new Date() };
-    this.payrolls.push(p); return p;
-  }
-  async getPayrollRuns(tenantId: string): Promise<PayrollRun[]> { return this.runs.filter((r) => r.tenantId === tenantId); }
-  async getPayrollLines(tenantId: string, runId: string): Promise<PayrollLine[]> { return this.lines.filter((l) => l.payrollRunId === runId && l.tenantId === tenantId); }
-  async getExchangeRates(tenantId: string): Promise<ExchangeRate[]> { return this.rates.filter((r) => r.tenantId === tenantId); }
-
-  // Performance & Compensation
-  async getPerformanceCycles(tenantId: string): Promise<PerformanceCycle[]> { return this.performanceCycles.filter((c) => c.tenantId === tenantId); }
-  async createPerformanceCycle(tenantId: string, data: CreatePerformanceCycleDto): Promise<PerformanceCycle> {
-    const c: PerformanceCycle = { id: `cyc-${Date.now()}`, tenantId, ...data, startDate: new Date(data.startDate), endDate: new Date(data.endDate), dueDate: new Date(data.dueDate), status: "draft", createdAt: new Date(), updatedAt: new Date() };
-    this.performanceCycles.push(c); return c;
-  }
-  async getPerformanceReviews(tenantId: string, cycleId?: string, empId?: string): Promise<PerformanceReview[]> {
-    return this.performanceReviews.filter((r) => r.tenantId === tenantId && (!cycleId || r.cycleId === cycleId) && (!empId || r.employeeId === empId));
-  }
-  async submitPerformanceReview(tenantId: string, data: SubmitReviewDto): Promise<PerformanceReview> {
-    const rev: PerformanceReview = { id: `rev-${Date.now()}`, tenantId, ...data, rating: data.rating || 0, status: "submitted", createdAt: new Date(), updatedAt: new Date() };
-    this.performanceReviews.push(rev); return rev;
-  }
-  async updatePerformanceCycle(tenantId: string, id: string, data: any): Promise<PerformanceCycle> {
-    const idx = this.performanceCycles.findIndex((c) => c.id === id && c.tenantId === tenantId);
+  async updateCandidate(t: string, id: string, data: any): Promise<Candidate> {
+    const idx = this.candidates.findIndex((c) => c.id === id && c.tenantId === t);
     if (idx === -1) throw new Error("Not found");
-    this.performanceCycles[idx] = { ...this.performanceCycles[idx], ...data, updatedAt: new Date() }; return this.performanceCycles[idx];
+    this.candidates[idx] = { ...this.candidates[idx], ...data, updatedAt: new Date() }; return this.candidates[idx];
   }
-  async getGlobalPerformanceReviews(cycleId?: string, empId?: string): Promise<PerformanceReview[]> { return this.performanceReviews; }
-  async getEmployeePerformanceHistory(tenantId: string, employeeId: string): Promise<PerformanceReview[]> { return this.performanceReviews.filter(r => r.employeeId === employeeId); }
-  async getEmployeeGoals(tenantId: string, empId: string): Promise<PerformanceGoal[]> { return this.performanceGoals.filter((g) => g.employeeId === empId && g.tenantId === tenantId); }
-  async updatePerformanceGoal(tenantId: string, data: any): Promise<PerformanceGoal> {
-    const goal: PerformanceGoal = { id: data.id || `pg-${Date.now()}`, tenantId, ...data, createdAt: new Date(), updatedAt: new Date() };
-    const idx = this.performanceGoals.findIndex((g) => g.id === goal.id);
-    if (idx !== -1) { this.performanceGoals[idx] = { ...this.performanceGoals[idx], ...goal }; return this.performanceGoals[idx]; }
-    this.performanceGoals.push(goal); return goal;
+  async hireCandidate(t: string, cid: string): Promise<Employee> {
+    const c = this.candidates.find((c) => c.id === cid && c.tenantId === t);
+    if (!c) throw new Error("Not found");
+    return this.createEmployee(t, { firstName: c.firstName, lastName: c.lastName, email: c.email, role: "employee", departmentId: "new" } as any);
   }
-  async getGoalById(tenantId: string, id: string): Promise<PerformanceGoal | null> { return this.performanceGoals.find((g) => g.id === id && g.tenantId === tenantId) || null; }
-  async getCompensation(tenantId: string, empId: string): Promise<Compensation | null> { return this.compensations.find((c) => c.employeeId === empId && c.tenantId === tenantId) || null; }
-  async updateCompensation(tenantId: string, empId: string, data: any): Promise<Compensation> {
-    const idx = this.compensations.findIndex((c) => c.employeeId === empId && c.tenantId === tenantId);
-    if (idx !== -1) { this.compensations[idx] = { ...this.compensations[idx], ...data }; return this.compensations[idx]; }
-    const c: Compensation = { id: `cmp-${Date.now()}`, tenantId, employeeId: empId, ...data, createdAt: new Date(), updatedAt: new Date() };
+  async getTalentLeads(t: string, s?: string): Promise<TalentLead[]> { return this.leads.filter((l) => l.tenantId === t && (!s || l.status === s)); }
+  async createTalentLead(t: string, data: any): Promise<TalentLead> {
+    const l: TalentLead = { id: `lead-${Date.now()}`, tenantId: t, ...data, status: "new", createdAt: new Date(), updatedAt: new Date() };
+    this.leads.push(l); return l;
+  }
+  async updateTalentLead(t: string, id: string, data: any): Promise<TalentLead> {
+    const idx = this.leads.findIndex((l) => l.id === id && l.tenantId === t);
+    if (idx === -1) throw new Error("Not found");
+    this.leads[idx] = { ...this.leads[idx], ...data, updatedAt: new Date() }; return this.leads[idx];
+  }
+  async getInterviews(t: string, cid?: string): Promise<Interview[]> { return this.interviews.filter((i) => i.tenantId === t && (!cid || i.candidateId === cid)); }
+  async scheduleInterview(t: string, data: any): Promise<Interview> {
+    const i: Interview = { id: `int-${Date.now()}`, tenantId: t, ...data, status: "scheduled", createdAt: new Date(), updatedAt: new Date() };
+    this.interviews.push(i); return i;
+  }
+  async updateInterviewStatus(t: string, id: string, s: string): Promise<Interview> {
+    const i = this.interviews.find((i) => i.id === id && i.tenantId === t);
+    if (!i) throw new Error("Not found"); i.status = s as any; return i;
+  }
+
+  // Headcount & Compensation
+  async getPositions(t: string, d?: string): Promise<Position[]> { return this.positions.filter((p) => p.tenantId === t && (!d || p.departmentId === d)); }
+  async createPosition(t: string, data: any): Promise<Position> {
+    const p: Position = { id: `pos-${Date.now()}`, tenantId: t, ...data, status: "open", createdAt: new Date(), updatedAt: new Date() };
+    this.positions.push(p); return p;
+  }
+  async updatePosition(t: string, id: string, data: any): Promise<Position> {
+    const idx = this.positions.findIndex((p) => p.id === id && p.tenantId === t);
+    if (idx === -1) throw new Error("Not found");
+    this.positions[idx] = { ...this.positions[idx], ...data, updatedAt: new Date() }; return this.positions[idx];
+  }
+  async getCompensation(t: string, eid: string): Promise<Compensation | null> { return this.compensations.find((c) => c.employeeId === eid && c.tenantId === t) || null; }
+  async updateCompensation(t: string, eid: string, data: any): Promise<Compensation> {
+    const idx = this.compensations.findIndex((c) => c.employeeId === eid && c.tenantId === t);
+    if (idx !== -1) { this.compensations[idx] = { ...this.compensations[idx], ...data, updatedAt: new Date() }; return this.compensations[idx]; }
+    const c: Compensation = { id: `comp-${Date.now()}`, tenantId: t, employeeId: eid, ...data, createdAt: new Date(), updatedAt: new Date() };
     this.compensations.push(c); return c;
   }
 
-  // Cases & Contracts
-  async getCases(tenantId: string, status?: string, empId?: string): Promise<HRCase[]> {
-    return this.cases.filter((c) => c.tenantId === tenantId && (!status || c.status === status) && (!empId || c.employeeId === empId));
+  // Performance Management
+  async getPerformanceCycles(t: string): Promise<PerformanceCycle[]> { return this.performanceCycles.filter((c) => c.tenantId === t); }
+  async createPerformanceCycle(t: string, data: CreatePerformanceCycleDto): Promise<PerformanceCycle> {
+    const c: PerformanceCycle = { id: `pc-${Date.now()}`, tenantId: t, ...data, status: "active", createdAt: new Date(), updatedAt: new Date(), startDate: new Date(data.startDate), endDate: new Date(data.endDate), dueDate: new Date(data.dueDate) } as any;
+    this.performanceCycles.push(c); return c;
   }
-  async getCaseById(tenantId: string, id: string): Promise<HRCase | null> { return this.cases.find((c) => c.id === id && c.tenantId === tenantId) || null; }
-  async createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase> {
-    const c: HRCase = { id: `case-${Date.now()}`, tenantId, ...data, status: "open", priority: (data.priority as any) || "medium", createdAt: new Date(), updatedAt: new Date() };
+  async updatePerformanceCycle(t: string, id: string, data: any): Promise<PerformanceCycle> {
+    const idx = this.performanceCycles.findIndex((c) => c.id === id && c.tenantId === t);
+    if (idx === -1) throw new Error("Not found");
+    this.performanceCycles[idx] = { ...this.performanceCycles[idx], ...data, updatedAt: new Date() }; return this.performanceCycles[idx];
+  }
+  async getPerformanceReviews(t: string, cid?: string, eid?: string): Promise<PerformanceReview[]> { return this.performanceReviews.filter((r) => r.tenantId === t && (!cid || r.cycleId === cid) && (!eid || r.employeeId === eid)); }
+  async getGlobalPerformanceReviews(cid?: string, eid?: string): Promise<PerformanceReview[]> { return this.performanceReviews.filter((r) => (!cid || r.cycleId === cid) && (!eid || r.employeeId === eid)); }
+  async submitPerformanceReview(t: string, data: SubmitReviewDto): Promise<PerformanceReview> {
+    const r: PerformanceReview = { id: `pr-${Date.now()}`, tenantId: t, ...data, status: "submitted", submittedAt: new Date(), createdAt: new Date(), updatedAt: new Date() } as any;
+    this.performanceReviews.push(r); return r;
+  }
+  async getEmployeePerformanceHistory(t: string, eid: string): Promise<PerformanceReview[]> { return this.performanceReviews.filter((r) => r.employeeId === eid && r.tenantId === t); }
+  async getEmployeeGoals(t: string, eid: string): Promise<PerformanceGoal[]> { return this.performanceGoals.filter((g) => g.employeeId === eid && g.tenantId === t); }
+  async updatePerformanceGoal(t: string, data: any): Promise<PerformanceGoal> {
+    const idx = this.performanceGoals.findIndex((g) => g.id === data.id && g.tenantId === t);
+    if (idx !== -1) { this.performanceGoals[idx] = { ...this.performanceGoals[idx], ...data, updatedAt: new Date() }; return this.performanceGoals[idx]; }
+    const g: PerformanceGoal = { id: `goal-${Date.now()}`, tenantId: t, ...data, createdAt: new Date(), updatedAt: new Date() } as any;
+    this.performanceGoals.push(g); return g;
+  }
+  async updatePerformanceGoalStatus(tenantId: string, id: string, status: string): Promise<PerformanceGoal> {
+    const goal = this.performanceGoals.find(g => g.id === id && g.tenantId === tenantId);
+    if (!goal) throw new Error("Goal not found"); goal.status = status as any; goal.updatedAt = new Date(); return goal;
+  }
+
+  // Case Management
+  async getCases(t: string, lid?: string, s?: string, eid?: string): Promise<HRCase[]> { return this.cases.filter((c) => c.tenantId === t && (!s || c.status === s) && (!eid || c.employeeId === eid)); }
+  async createCase(t: string, data: CreateCaseDto): Promise<HRCase> {
+    const c: HRCase = { id: `case-${Date.now()}`, tenantId: t, ...data, status: "open", priority: data.priority || "medium", createdAt: new Date(), updatedAt: new Date() } as any;
     this.cases.push(c); return c;
   }
-  async updateCase(tenantId: string, id: string, data: any): Promise<HRCase> {
-    const idx = this.cases.findIndex((c) => c.id === id && c.tenantId === tenantId);
+  async updateCase(t: string, id: string, data: any): Promise<HRCase> {
+    const idx = this.cases.findIndex((c) => c.id === id && c.tenantId === t);
     if (idx === -1) throw new Error("Not found");
     this.cases[idx] = { ...this.cases[idx], ...data, updatedAt: new Date() }; return this.cases[idx];
   }
-  async getContracts(tenantId: string, locId?: string, empId?: string): Promise<Contract[]> { return this.contracts.filter((c) => c.tenantId === tenantId && (!empId || c.employeeId === empId)); }
-  async getGlobalContracts(empId?: string): Promise<Contract[]> { return this.contracts.filter(c => !empId || c.employeeId === empId); }
-  async createContract(tenantId: string, data: CreateContractDto): Promise<Contract> {
-    const c: Contract = { id: `ct-${Date.now()}`, tenantId, ...data, startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : undefined, status: "active", createdAt: new Date(), updatedAt: new Date() };
+
+  // Contract Management
+  async getContracts(t: string, lid?: string, eid?: string): Promise<Contract[]> { return this.contracts.filter((c) => c.tenantId === t && (!eid || c.employeeId === eid)); }
+  async getGlobalContracts(eid?: string): Promise<Contract[]> { return this.contracts.filter((c) => !eid || c.employeeId === eid); }
+  async createContract(t: string, data: CreateContractDto): Promise<Contract> {
+    const c: Contract = { id: `ctr-${Date.now()}`, tenantId: t, ...data, status: "active", startDate: new Date(data.startDate), endDate: data.endDate ? new Date(data.endDate) : undefined, createdAt: new Date(), updatedAt: new Date() } as any;
     this.contracts.push(c); return c;
   }
-  async updateContract(tenantId: string, id: string, data: any): Promise<Contract> {
-    const idx = this.contracts.findIndex((c) => c.id === id && c.tenantId === tenantId);
+  async updateContract(t: string, id: string, data: any): Promise<Contract> {
+    const idx = this.contracts.findIndex((c) => c.id === id && c.tenantId === t);
     if (idx === -1) throw new Error("Not found");
     this.contracts[idx] = { ...this.contracts[idx], ...data, updatedAt: new Date() }; return this.contracts[idx];
   }
@@ -305,35 +372,19 @@ export class HRMockRepository extends IHRRepository {
     if (idx !== -1) { this.employeeSkills[idx] = { ...this.employeeSkills[idx], ...data, updatedAt: new Date() }; return this.employeeSkills[idx]; }
     return this.addEmployeeSkill(t, data);
   }
-  async findTalentBySkills(t: string, ids: string[], limit: number = 20): Promise<any[]> {
-    const matches = new Map<string, any>();
-    this.employeeSkills.filter((es) => es.tenantId === t && ids.includes(es.skillId) && es.proficiency >= 1)
-      .forEach((es) => {
-        const emp = this.employees.find((e) => e.id === es.employeeId); const sk = this.skills.find((s) => s.id === es.skillId);
-        if (emp && sk) {
-          if (!matches.has(es.employeeId)) matches.set(es.employeeId, { employee: emp, matchedSkills: [], totalProficiency: 0 });
-          const m = matches.get(es.employeeId); m.matchedSkills.push({ name: sk.name, proficiency: es.proficiency }); m.totalProficiency += es.proficiency;
-        }
-      });
-    return Array.from(matches.values()).map((m) => ({ ...m, matchCount: m.matchedSkills.length, matchPercentage: (m.matchedSkills.length / ids.length) * 100 })).sort((a,b) => b.matchPercentage - a.matchPercentage).slice(0, limit);
-  }
+  async findTalentBySkills(t: string, ids: string[], limit: number = 20): Promise<any[]> { return []; }
   async findReplacementCandidates(tenantId: string, positionId: string): Promise<any[]> { return []; }
   async getPositionSkills(tenantId: string, positionId: string): Promise<PositionSkill[]> { return this.positionSkills.filter(ps => ps.positionId === positionId); }
   async updatePositionSkill(tenantId: string, data: any): Promise<PositionSkill> {
     const ps: PositionSkill = { id: `ps-${Date.now()}`, ...data, createdAt: new Date(), updatedAt: new Date() };
     this.positionSkills.push(ps); return ps;
   }
-  async updatePositionJobPost(tenantId: string, positionId: string, data: any): Promise<any> { return {}; }
-  async getPositionJobPost(tenantId: string, positionId: string): Promise<any> { return {}; }
-
-  // Training
   async getTrainingProgramsBySkills(tenantId: string, skillIds: string[]): Promise<TrainingProgram[]> { return []; }
   async getEmployeeTrainingHistory(t: string, id: string): Promise<TrainingAssignment[]> { return this.trainingAssignments.filter((a) => a.employeeId === id && a.tenantId === t); }
   async enrollInTrainingProgram(t: string, eid: string, pid: string): Promise<TrainingAssignment> {
     const a: TrainingAssignment = { id: `ta-${Date.now()}`, tenantId: t, employeeId: eid, programId: pid, status: "enrolled", assignedAt: new Date(), createdAt: new Date(), updatedAt: new Date() };
     this.trainingAssignments.push(a); return a;
   }
-  async getTrainingProgramById(t: string, id: string): Promise<TrainingProgram | null> { return this.trainingPrograms.find((p) => p.id === id && p.tenantId === t) || null; }
   async getTrainingPrograms(tenantId: string): Promise<any[]> { return this.trainingPrograms.filter(p => p.tenantId === tenantId); }
   async createTrainingProgram(tenantId: string, data: any): Promise<any> {
     const p: TrainingProgram = { id: `tp-${Date.now()}`, tenantId, ...data, createdAt: new Date(), updatedAt: new Date() };
@@ -345,9 +396,10 @@ export class HRMockRepository extends IHRRepository {
     this.trainingAssignments.push(a); return a;
   }
   async updateTrainingAssignment(tenantId: string, id: string, data: any): Promise<any> {
-    const idx = this.trainingAssignments.findIndex(a => a.id === id && a.tenantId === tenantId);
-    if (idx === -1) throw new Error("Not found");
-    this.trainingAssignments[idx] = { ...this.trainingAssignments[idx], ...data, updatedAt: new Date() }; return this.trainingAssignments[idx];
+    const idx = this.trainingAssignments.findIndex((a) => a.id === id && a.tenantId === tenantId);
+    if (idx === -1) throw new Error("Assignment not found");
+    this.trainingAssignments[idx] = { ...this.trainingAssignments[idx], ...data, updatedAt: new Date() };
+    return this.trainingAssignments[idx];
   }
 
   // Benefits & Career
@@ -403,6 +455,7 @@ export class HRMockRepository extends IHRRepository {
     if (idx === -1) throw new Error("Not found");
     this.plans[idx] = { ...this.plans[idx], ...data, updatedAt: new Date() }; return this.plans[idx];
   }
+  async getExchangeRates(tenantId: string): Promise<ExchangeRate[]> { return this.rates.filter(r => r.tenantId === tenantId); }
   async getSuccessionPlans(tenantId: string): Promise<SuccessionPlan[]> { return this.successionPlans.filter((p) => p.tenantId === tenantId); }
   async getSuccessionPlan(t: string, pid: string): Promise<SuccessionPlan | null> {
     const p = this.successionPlans.find(p => p.positionId === pid && p.tenantId === t);
@@ -418,7 +471,7 @@ export class HRMockRepository extends IHRRepository {
   }
   async getBenchStrength(t: string, d?: string): Promise<any> { return { departmentId: d, criticalRoles: 0, benchStrengthScore: 0, readinessCounts: {} }; }
 
-  // Analytics & Misc
+  // Analytics & Reporting
   async getDepartmentBudgetData(t: string, id: string): Promise<any> { return {}; }
   async getActualLaborCostHistory(t: string, id: string, l: number): Promise<any[]> { return []; }
   async getHolidays(tenantId: string): Promise<any[]> { return []; }
@@ -429,4 +482,8 @@ export class HRMockRepository extends IHRRepository {
   async getCompensationAnalytics(tenantId: string): Promise<any> { return {}; }
   async getRetentionRiskData(tenantId: string): Promise<any[]> { return []; }
   async getEngagementMetrics(tenantId: string): Promise<any> { return {}; }
+
+  // Miscellaneous
+  async updatePositionJobPost(tenantId: string, positionId: string, data: any): Promise<any> { return {}; }
+  async getPositionJobPost(tenantId: string, positionId: string): Promise<any> { return {}; }
 }

@@ -11,6 +11,7 @@ export interface LogParams {
   payload?: any;
   errorStack?: string;
   requestId?: string;
+  correlationId?: string;
   userId?: string;
   ipAddress?: string;
   durationMs?: number;
@@ -24,17 +25,17 @@ export class LoggerService {
     try {
       await this.prisma.systemLog.create({
         data: {
-          tenantId: params.tenantId ?? null,
+          tenantId: params.tenantId ?? undefined,
           module: params.module,
           level: params.level,
           event: params.event,
           message: params.message,
           payload: params.payload ?? undefined,
-          errorStack: params.errorStack ?? null,
-          requestId: params.requestId ?? null,
-          userId: params.userId ?? null,
-          ipAddress: params.ipAddress ?? null,
-          durationMs: params.durationMs ?? null,
+          errorStack: params.errorStack ?? undefined,
+          requestId: params.requestId ?? undefined,
+          userId: params.userId ?? undefined,
+          ipAddress: params.ipAddress ?? undefined,
+          durationMs: params.durationMs ?? undefined,
         },
       });
     } catch {

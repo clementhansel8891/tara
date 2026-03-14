@@ -16,6 +16,7 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
 import { HRService } from "./hr.service";
 import { IHRRepository } from "./repositories/hr.repository.interface";
 import { PrismaService } from "../../persistence/prisma.service";
@@ -86,8 +87,8 @@ interface RequestWithTenant extends Request {
  * REST API endpoints for HR operations
  * All endpoints require x-tenant-id header
  */
-@Controller("hr")
-@UseInterceptors(TenantInterceptor)
+@Controller("api/hr")
+@UseInterceptors(TenantInterceptor, HRMutationInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("hr")
 export class HRController {

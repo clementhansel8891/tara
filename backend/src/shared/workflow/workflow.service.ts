@@ -42,6 +42,8 @@ export class WorkflowService {
       eventType: 'workflow.created',
       tenantId: params.tenantId,
       entityId: request.id,
+      entityType: 'WORKFLOW_REQUEST',
+      sourceModule: 'WORKFLOW',
       payload: { entityType: params.entityType, entityId: params.entityId },
     });
 
@@ -82,6 +84,9 @@ export class WorkflowService {
       eventType: 'workflow.approved',
       tenantId,
       entityId: id,
+      entityType: 'WORKFLOW_REQUEST',
+      sourceModule: 'WORKFLOW',
+      userId,
       payload: { entityType: request.entityType, entityId: request.entityId },
     });
 
@@ -120,6 +125,9 @@ export class WorkflowService {
       eventType: 'workflow.rejected',
       tenantId,
       entityId: id,
+      entityType: 'WORKFLOW_REQUEST',
+      sourceModule: 'WORKFLOW',
+      userId,
       payload: { entityType: request.entityType, entityId: request.entityId },
     });
 

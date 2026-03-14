@@ -35,8 +35,10 @@ export class TimeAndAttendanceService {
       eventType: EVENT_NAMES.LEAVE_REQUESTED,
       tenantId,
       entityId: employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { leaveId: request.id, leaveType: request.leaveType, startDate: request.startDate, endDate: request.endDate },
-    } as any);
+    });
 
     return request;
   }
@@ -50,8 +52,10 @@ export class TimeAndAttendanceService {
       eventType: EVENT_NAMES.LEAVE_APPROVED,
       tenantId,
       entityId: leaveId,
+      entityType: "LEAVE_REQUEST",
+      sourceModule: "HR",
       payload: { approverId },
-    } as any);
+    });
   }
 
   // ──────────────────────────────────────────────
@@ -67,8 +71,10 @@ export class TimeAndAttendanceService {
       eventType: EVENT_NAMES.CLOCK_IN,
       tenantId,
       entityId: employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { recordId: record.id, clockInTime: record.clockIn },
-    } as any);
+    });
 
     return record;
   }
@@ -82,8 +88,10 @@ export class TimeAndAttendanceService {
       eventType: EVENT_NAMES.CLOCK_OUT,
       tenantId,
       entityId: employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { clockOutTime: new Date() },
-    } as any);
+    });
   }
 
   // ──────────────────────────────────────────────
@@ -99,7 +107,9 @@ export class TimeAndAttendanceService {
       eventType: EVENT_NAMES.SHIFT_ASSIGNED,
       tenantId,
       entityId: employeeId,
+      entityType: "EMPLOYEE",
+      sourceModule: "HR",
       payload: { shiftId, locationId, date },
-    } as any);
+    });
   }
 }
