@@ -41,6 +41,19 @@ import {
 export class RetailDbRepository implements IRetailRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Helper to run logic within a transaction if one isn't already active.
+   * This is critical for integration tests that run in a rollback transaction.
+   */
+  private async runInTx<T>(
+    callback: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    if ((this.prisma as any).$transaction) {
+      return (this.prisma as any).$transaction(callback);
+    }
+    return callback(this.prisma as any);
+  }
+
   // ============================================================
   // BRANCHES (Physical Stores)
   // ============================================================
@@ -650,6 +663,7 @@ export class RetailDbRepository implements IRetailRepository {
         subtotal += itemSubtotal;
 
         return {
+          tenantId: tenantId,
           productId: item.productId,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
@@ -673,7 +687,10 @@ export class RetailDbRepository implements IRetailRepository {
         paymentMethod: data.paymentMethod,
         items: { create: itemsData },
       } as any,
-      include: { items: { include: { product: true } } },
+      include: { 
+        items: { include: { product: true } },
+        store: true 
+      },
     });
 
     return this.mapOrder(order);
@@ -702,15 +719,14 @@ export class RetailDbRepository implements IRetailRepository {
 
   async reserveStock(
     tenantId: string,
+    locationId: string,
     productId: string,
     quantity: number,
   ): Promise<{ success: boolean; reservationId?: string }> {
     try {
-      return await this.prisma.$transaction(async (tx: any) => {
+      return await this.runInTx(async (tx: any) => {
         const stock = await tx.stockLevel.findFirst({
-          where: { tenantId, productId },
-          // Multi-location: For now, we take from the first available location
-          // In a real production environment, this would be scoped to a specific store's location
+          where: { tenantId, productId, locationId },
         });
 
         if (!stock || stock.available < quantity) {
@@ -731,6 +747,7 @@ export class RetailDbRepository implements IRetailRepository {
         };
       });
     } catch (error) {
+      console.error(`[RetailDbRepository] reserveStock failed:`, error);
       return { success: false };
     }
   }
@@ -1274,7 +1291,7 @@ export class RetailDbRepository implements IRetailRepository {
     orderId: string,
     data: { amount: number; method: string; shiftId?: string },
   ): Promise<any> {
-    return this.prisma.$transaction(async (tx: any) => {
+    return this.runInTx(async (tx: any) => {
       // 0. Fetch the order with items
       const order = await tx.retailOrder.findUnique({
         where: { id: orderId, tenantId },
@@ -1304,52 +1321,48 @@ export class RetailDbRepository implements IRetailRepository {
       }
       const departmentId = dept.id;
 
-      // 2. Consume Stock (Upsert prevents silent failures for missed seeding)
+      const movements = [];
+      // 2. Consume Stock (Correctly deducting from OH and Reserved)
       for (const item of order.items) {
         if (!item.productId) continue;
 
-        await tx.stockLevel.upsert({
+        await tx.stockLevel.updateMany({
           where: {
-            locationId_productId_departmentId: {
-              locationId,
-              productId: item.productId,
-              departmentId,
-            },
-          },
-          create: {
             tenantId,
             locationId,
-            departmentId,
             productId: item.productId,
-            onHand: -item.quantity, // Negative because we just sold it
-            available: -item.quantity,
+            departmentId,
           },
-          update: {
+          data: {
             onHand: { decrement: item.quantity },
-            available: { decrement: item.quantity },
+            reserved: { decrement: item.quantity },
+            // Available stays the same (already reduced during reservation)
           },
         });
 
         // Record Stock Movement
-        await tx.stockMovement.create({
+        const move = await tx.stockMovement.create({
           data: {
             tenantId,
             productId: item.productId,
             fromLocationId: locationId,
+            toLocationId: null,
             quantity: item.quantity,
-            type: "OUT",
-            referenceId: `POS-${order.id}`,
-            performedBy: "POS_SYSTEM",
+            type: "RETAIL_SALE",
+            referenceId: orderId,
+            performedBy: order.cashierId || "system",
+            unitCost: 0, // To be costed by subledger later
           },
         });
+        movements.push(move);
       }
 
-      // 3. Update Order Status
-      const completedOrder = await tx.retailOrder.update({
-        where: { id: orderId, tenantId },
+      // 3. Mark Order as Paid
+      await tx.retailOrder.update({
+        where: { id: orderId },
         data: {
+          status: "paid",
           paymentMethod: data.method,
-          status: "completed",
         },
       });
 
@@ -1371,18 +1384,28 @@ export class RetailDbRepository implements IRetailRepository {
           tenantId,
           ref: `POS-${Date.now()}-${order.id.slice(-6)}`,
           description: `POS Sales Transaction (${data.method})`,
+          fiscalPeriodId: "FISCAL_AUTO",
+          postingDate: new Date(),
           status: "POSTED",
           lines: {
             create: [
               {
+                tenantId,
+                accountId: "ACC-4000",
                 accountCode: "4000", // Sales Revenue
                 description: `Order ${order.id}`,
+                side: "CREDIT",
+                amount: data.amount,
                 debit: 0,
                 credit: data.amount,
               },
               {
+                tenantId,
+                accountId: "ACC-1001",
                 accountCode: "1001", // Cash/Bank
                 description: `Payment via ${data.method}`,
+                side: "DEBIT",
+                amount: data.amount,
                 debit: data.amount,
                 credit: 0,
               },
@@ -1416,9 +1439,10 @@ export class RetailDbRepository implements IRetailRepository {
 
       return {
         success: true,
-        order_id: completedOrder.id,
-        amount: Number(completedOrder.totalAmount),
+        order_id: order.id,
+        amount: Number(order.totalAmount),
         method: data.method,
+        movements,
       };
     });
   }
@@ -1908,7 +1932,7 @@ export class RetailDbRepository implements IRetailRepository {
     return {
       id: o.id,
       tenantId: o.tenantId,
-      locationId: "",
+      locationId: o.store?.locationId || "",
       storeId: o.storeId,
       terminalId: o.deviceId,
       cashierId: o.cashierId,

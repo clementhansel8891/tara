@@ -17,4 +17,24 @@ export class AuditController {
       where: { id, tenantId: req.tenantId },
     });
   }
+
+  @Get('verify-chain')
+  async verifyChain(@Req() req: any, @Query('fromTimestamp') fromTimestamp?: string) {
+    const tenantId = req.tenantId; // Shared tenant middleware
+    return this.auditService.verifyChain(
+      tenantId, 
+      fromTimestamp ? new Date(fromTimestamp) : undefined
+    );
+  }
+
+  @Get('system/metrics')
+  async getMetrics(@Req() req: any) {
+    // In production, restrict to SUPERADMIN/Auditor
+    return this.auditService.getMetrics();
+  }
+
+  @Get('anchors/public')
+  async getPublicAnchors() {
+    return this.auditService.getPublicAnchors();
+  }
 }

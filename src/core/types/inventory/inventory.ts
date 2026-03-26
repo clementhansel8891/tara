@@ -167,3 +167,60 @@ export type InventoryDashboardMetrics = {
     };
   };
 };
+
+export type WarehouseBin = {
+  id: string;
+  tenantId: string;
+  locationId: string;
+  code: string;
+  zone?: string;
+  aisle?: string;
+  rack?: string;
+  level?: string;
+  capacity: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BinAssignment = {
+  id: string;
+  tenantId: string;
+  binId: string;
+  productId: string;
+  qty: number;
+  assignedAt: string;
+  updatedAt: string;
+  product?: InventoryItemMaster;
+};
+
+export type IotEventType = "RFID_SCAN" | "BARCODE_SCAN" | "TEMP_ALERT" | "MOTION";
+
+export type InventoryIotEvent = {
+  id: string;
+  tenantId: string;
+  deviceId: string;
+  eventType: IotEventType;
+  sku?: string;
+  locationId?: string;
+  binId?: string;
+  payload: any;
+  processed: boolean;
+  processedAt?: string;
+  createdAt: string;
+};
+
+export type AgenticEventType = "STOCK_MOVEMENT_CREATED" | "ADJUSTMENT_APPROVED" | "LOW_STOCK_ALERT";
+
+export type AgenticEvent = {
+  id: string;
+  tenantId: string;
+  eventType: AgenticEventType;
+  entityId: string;
+  entityType: string;
+  payload: any;
+  status: "PENDING" | "PROCESSED" | "FAILED";
+  processedAt?: string;
+  errorMsg?: string;
+  createdAt: string;
+};

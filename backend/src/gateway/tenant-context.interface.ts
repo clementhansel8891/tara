@@ -4,10 +4,16 @@
  */
 export interface TenantContext {
   /**
-   * Company ID (tenant identifier)
+   * SaaS Tenant ID
    * Required for all operations
    */
   tenantId: string;
+
+  /**
+   * Company ID (Legal Entity)
+   * Required for finance/HR operations
+   */
+  companyId: string;
 
   /**
    * Location ID (optional)

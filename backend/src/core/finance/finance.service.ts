@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { IFinanceRepository } from "./repositories/finance.repository.interface";
 import { LedgerEntry } from "./entities/ledger-entry.entity";
 import { Transaction } from "./entities/transaction.entity";
@@ -246,7 +247,7 @@ export class FinanceService {
       assetId,
       {
         status: "ACTIVE",
-        acquisitionDate: capitalizationDate,
+        acquisitionDate: new Date(capitalizationDate),
       },
     );
     if (updated) {
@@ -380,7 +381,7 @@ export class FinanceService {
     if (assets.length > 0) {
       await this.createDepreciationEntry(tenantId, {
         assetId: assets[0].id,
-        amount: 100,
+        amount: new Prisma.Decimal(100),
         postingDate: periodEnd,
         method: "STRAIGHT_LINE",
         isPosted: true,

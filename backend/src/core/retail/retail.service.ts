@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { IRetailRepository } from "./repositories/retail.repository.interface";
 import { SkuGeneratorService } from "../inventory/sku-generator.service";
-import { InventoryService } from "../inventory/inventory.service";
-import { FinanceService } from "../finance/finance.service";
 import { TransactionType } from "../finance/dto/create-transaction.dto";
 import {
   RetailStore,
@@ -27,6 +25,7 @@ import {
 import { randomBytes, createHash } from "crypto";
 import { AuditService } from "../../shared/audit/audit.service";
 import { PrismaService } from "../../persistence/prisma.service";
+import { EventBusService } from "../../shared/events/event-bus.service";
 
 @Injectable()
 export class RetailService {
@@ -34,9 +33,8 @@ export class RetailService {
     private readonly retailRepository: IRetailRepository,
     private readonly auditService: AuditService,
     private readonly skuGenerator: SkuGeneratorService,
-    private readonly inventoryService: InventoryService,
-    private readonly financeService: FinanceService,
     private readonly prisma: PrismaService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   // Stores (Physical Branches)
@@ -393,6 +391,7 @@ export class RetailService {
     for (const item of order.items) {
       const res = await this.retailRepository.reserveStock(
         tenantId,
+        order.locationId || "default",
         item.productId,
         item.quantity,
       );
@@ -966,7 +965,26 @@ export class RetailService {
       data,
     );
 
-    // 2. Audit Logging
+    // 2. Publish Sales Event
+    if (result.success && result.movements) {
+      await this.eventBus.publish({
+        eventType: "RETAIL_SALE_COMPLETED",
+        tenantId: tenantId,
+        entityId: orderId,
+        entityType: "ORDER",
+        sourceModule: "retail",
+        payload: {
+          orderId,
+          locationId: result.movements[0]?.fromLocationId || "default",
+          movements: result.movements,
+          amount: data.amount,
+          method: data.method,
+        },
+        userId,
+      });
+    }
+
+    // 3. Audit Logging
     const order = await this.retailRepository.getOrder(tenantId, orderId);
     if (order) {
       await this.auditService.log({
@@ -996,39 +1014,28 @@ export class RetailService {
     const order = await this.retailRepository.getOrder(tenantId, orderId);
     if (!order) throw new NotFoundException("Order not found");
 
-    // 2. Update Inventory (Return items)
-    for (const itemId of data.itemIds) {
-      const orderItem = order.items.find((i) => i.productId === itemId);
-      if (orderItem) {
-        await this.inventoryService.intakeStock(
-          tenantId,
-          {
-            itemId: orderItem.productId,
-            quantity: orderItem.quantity,
-            locationId: order.storeId || "default",
-            unitCost: Number(orderItem.unitPrice),
-            reason: "CUSTOMER_RETURN",
-            referenceId: `RETAIL_RETURN_${orderId}`,
-          },
-          userId,
-        );
-      }
-    }
-
-    // 3. Finance Transaction (Refund)
-    // We assume the total amount is refunded for simplicity in this audit phase.
-    await this.financeService.createTransaction(
-      tenantId,
-      {
-        amount: order.grandTotal,
-        type: TransactionType.DEBIT, // Debit Sales Returns
-        description: `Refund for order ${orderId}`,
-        category: "Sales Returns",
-        referenceId: orderId,
-        locationId: order.storeId || undefined,
+    // 2. Emit Return Completed Event instead of calling Inventory and Finance
+    await this.eventBus.publish({
+      eventType: "RETAIL_RETURN_COMPLETED",
+      tenantId: tenantId,
+      entityId: orderId,
+      entityType: "ORDER",
+      sourceModule: "retail",
+      payload: {
+        orderId,
+        storeId: order.storeId || "default",
+        grandTotal: order.grandTotal,
+        returnedItems: data.itemIds.map((itemId) => {
+          const orderItem = order.items.find((i) => i.productId === itemId);
+          return {
+            productId: itemId,
+            quantity: orderItem?.quantity || 1,
+            unitPrice: Number(orderItem?.unitPrice || 0),
+          };
+        }),
       },
       userId,
-    );
+    });
 
     // 4. Call Repository
     const result = await this.retailRepository.processReturn(
@@ -1057,21 +1064,20 @@ export class RetailService {
     data: { storeId: string; adjustments: any[]; shiftId?: string },
     userId: string,
   ): Promise<{ success: boolean }> {
-    // 1. Process Adjustments in Inventory
-    for (const adj of data.adjustments) {
-      if (adj.variance !== 0) {
-        await this.inventoryService.createAdjustment(
-          tenantId,
-          {
-            itemId: adj.productId,
-            locationId: data.storeId,
-            requestedDelta: adj.variance,
-            reason: `RETAIL_OPNAME_${adj.sessionId || "SESSION"}`,
-          },
-          userId,
-        );
-      }
-    }
+    // 1. Emit Opname Event (adjustments handled by listener)
+    await this.eventBus.publish({
+      eventType: "RETAIL_OPNAME_SUBMITTED",
+      tenantId: tenantId,
+      entityId: data.storeId,
+      entityType: "STORE",
+      sourceModule: "retail",
+      payload: {
+        storeId: data.storeId,
+        adjustments: data.adjustments.filter((adj) => adj.variance !== 0),
+        sessionId: data.shiftId || "SESSION",
+      },
+      userId,
+    });
 
     // 2. Call Repository
     const result = await this.retailRepository.submitOpname(tenantId, data);
@@ -1100,21 +1106,20 @@ export class RetailService {
     },
     userId: string,
   ): Promise<{ success: boolean }> {
-    // 1. Update Inventory
-    for (const item of data.items) {
-      await this.inventoryService.intakeStock(
-        tenantId,
-        {
-          itemId: item.productId,
-          quantity: item.quantity,
-          locationId: data.storeId,
-          unitCost: item.unitCost || 0,
-          reason: "RETAIL_STOCK_INTAKE",
-          referenceId: `RETAIL_INTAKE_${data.shipmentId}`,
-        },
-        userId,
-      );
-    }
+    // 1. Emit Goods Receipt Event to trigger Inventory Intake
+    await this.eventBus.publish({
+      eventType: "RETAIL_GOODS_RECEIVED",
+      tenantId: tenantId,
+      entityId: data.shipmentId,
+      entityType: "SHIPMENT",
+      sourceModule: "retail",
+      payload: {
+        storeId: data.storeId,
+        shipmentId: data.shipmentId,
+        items: data.items,
+      },
+      userId,
+    });
 
     // 2. Call Repository
     const result = await this.retailRepository.receiveGoods(tenantId, data);

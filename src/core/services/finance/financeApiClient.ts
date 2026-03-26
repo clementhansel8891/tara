@@ -443,6 +443,135 @@ export const financeApiClient = {
   forceClosePeriod: (tenantId: string, session: SessionContext, id: string) =>
     apiRequest<void>(`/finance/periods/${id}/force-close`, "POST", session),
 
+  // Dashboards & Snapshots (Hardened)
+  getSnapshotSummary: (
+    session: SessionContext,
+    companyId: string,
+    periodId: string,
+    filters: Record<string, string>,
+    snapshotSequence?: number,
+    correlationId?: string,
+  ) => {
+    const queryParams = new URLSearchParams({
+      companyId,
+      periodId,
+      ...filters,
+    });
+    if (snapshotSequence) queryParams.append("snapshotSequence", snapshotSequence.toString());
+    
+    return apiRequest<any>(
+      `/finance/dashboard/summary?${queryParams.toString()}`,
+      "GET",
+      session,
+      undefined,
+      undefined, // tenantId from session ONLY
+      correlationId,
+    );
+  },
+
+  getHierarchicalReport: (
+    session: SessionContext,
+    companyId: string,
+    periodId: string,
+    reportType: "TB" | "PL" | "BS",
+    snapshotSequence: number,
+    correlationId?: string,
+  ) => {
+    return apiRequest<any>(
+      `/finance/dashboard/summary?companyId=${companyId}&periodId=${periodId}&type=${reportType}&snapshotSequence=${snapshotSequence}`,
+      "GET",
+      session,
+      undefined,
+      undefined,
+      correlationId,
+    );
+  },
+
+  getGLLinesForSnapshot: (
+    session: SessionContext,
+    accountId: string,
+    periodId: string,
+    snapshotSequence: number,
+    cursor?: string,
+    correlationId?: string,
+  ) => {
+    const query = new URLSearchParams({
+      accountId,
+      periodId,
+      snapshotSequence: snapshotSequence.toString(),
+    });
+    if (cursor) query.append("cursor", cursor);
+    
+    return apiRequest<any>(
+      `/finance/dashboard/drilldown?${query.toString()}`,
+      "GET",
+      session,
+      undefined,
+      undefined,
+      correlationId,
+    );
+  },
+
+  exportDashboardReport: (
+    session: SessionContext,
+    payload: any,
+    correlationId?: string,
+  ) => {
+    return apiRequest<any>(
+      "/finance/dashboard/export",
+      "POST",
+      session,
+      payload,
+      undefined,
+      correlationId,
+    );
+  },
+
+  verifyExport: (session: SessionContext, data: any, signature: string) => 
+    apiRequest<{ valid: boolean }>("/finance/dashboard/verify-export", "POST", session, { data, signature }),
+
+  getSystemHealth: (session: SessionContext, companyId: string) => 
+    apiRequest<any>(`/finance/dashboard/health?companyId=${companyId}`, "GET", session),
+
+  repairAuditChain: (session: SessionContext, fromTimestamp?: string) => 
+    apiRequest<any>("/finance/dashboard/repair-chain", "POST", session, { fromTimestamp }),
+
+  // Financial Intelligence (Phase 1: Cashflow Engine)
+  getCashflow: (
+    session: SessionContext,
+    params: {
+      companyId: string;
+      snapshotId?: string;
+      days?: number;
+      minimumSafeCash?: number;
+      avgDelayDays?: number;
+      timezone?: string;
+      revenueMultiplier?: number;
+      expenseMultiplier?: number;
+      scenarioDelayDays?: number;
+      correlationId?: string;
+    }
+  ) => {
+    const query = new URLSearchParams({ companyId: params.companyId });
+    if (params.snapshotId) query.append("snapshotId", params.snapshotId);
+    if (params.days) query.append("days", params.days.toString());
+    if (params.minimumSafeCash) query.append("minimumSafeCash", params.minimumSafeCash.toString());
+    if (params.avgDelayDays) query.append("avgDelayDays", params.avgDelayDays.toString());
+    if (params.timezone) query.append("timezone", params.timezone);
+    if (params.revenueMultiplier) query.append("revenueMultiplier", params.revenueMultiplier.toString());
+    if (params.expenseMultiplier) query.append("expenseMultiplier", params.expenseMultiplier.toString());
+    if (params.scenarioDelayDays) query.append("scenarioDelayDays", params.scenarioDelayDays.toString());
+
+    return apiRequest<any>(
+      `/finance/intelligence/cashflow?${query.toString()}`,
+      "GET",
+      session,
+      undefined,
+      undefined,
+      params.correlationId
+    );
+  },
+
   // Insights & Alerts
   getFinanceInsights: (tenantId: string, session: SessionContext) =>
     apiRequest<FinanceInsight[]>("/finance/insights", "GET", session),

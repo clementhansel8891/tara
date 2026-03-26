@@ -223,19 +223,20 @@ async function main() {
   console.log("Seeded Payment Providers");
 
   // 9. Seed IT Devices
-  const itDevices = [
+  const devices = [
     {
       id: "tenant-001-dev-1",
       tenantId: "tenant-001",
       locationId: "location-001",
-      deviceType: "POS",
-      deviceName: "HQ POS Terminal 1",
+      type: "POS_TERMINAL",
+      name: "HQ POS Terminal 1",
+      connection: "LAN",
       status: "ONLINE",
     },
   ];
 
-  for (const dev of itDevices) {
-    await prisma.iTDevice.upsert({
+  for (const dev of devices) {
+    await prisma.device.upsert({
       where: { id: dev.id },
       update: dev,
       create: dev,

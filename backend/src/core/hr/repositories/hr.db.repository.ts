@@ -28,6 +28,7 @@ import { ExchangeRate } from "../entities/exchange-rate.entity";
 import { PayrollRun } from "../entities/payroll-run.entity";
 import { PayrollLine } from "../entities/payroll-line.entity";
 import { SuccessionPlan } from "../entities/succession-plan.entity";
+import { handlePrismaFkError, assertExists } from "../utils/hr-prisma.errors";
 import { SuccessionCandidate } from "../entities/succession-candidate.entity";
 import { Skill } from "../entities/skill.entity";
 import { EmployeeSkill } from "../entities/employee-skill.entity";
@@ -160,11 +161,13 @@ export class HRDbRepository implements IHRRepository {
   async createEmployee(
     tenantId: string,
     data: CreateEmployeeDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Employee> {
+    const db = tx ?? this.prisma;
     // Ensure locationId is provided or use first available location
     let locationId = data.locationId;
     if (!locationId) {
-      const firstLocation = await this.prisma.location.findFirst({
+      const firstLocation = await db.location.findFirst({
         where: { tenantId: tenantId },
       });
       locationId = firstLocation?.id || "loc-default";
@@ -172,7 +175,7 @@ export class HRDbRepository implements IHRRepository {
 
     // --- PROVISIONING LOGIC ---
     // Ensure a User account exists for this employee
-    let user = await this.prisma.user.findUnique({
+    let user = await db.user.findUnique({
       where: {
         tenantId_email: {
           tenantId,
@@ -186,7 +189,7 @@ export class HRDbRepository implements IHRRepository {
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash("Welcome123", salt);
 
-      user = await this.prisma.user.create({
+      user = await db.user.create({
         data: {
           tenantId,
           email: data.email,
@@ -199,7 +202,7 @@ export class HRDbRepository implements IHRRepository {
     }
 
     // Ensure UserCompany association exists for multi-tenancy access
-    await this.prisma.userCompany.upsert({
+    await db.userCompany.upsert({
       where: {
         userId_tenantId: {
           userId: user.id,
@@ -214,7 +217,7 @@ export class HRDbRepository implements IHRRepository {
       }
     });
 
-    const employee = await this.prisma.employee.create({
+    const employee = await db.employee.create({
       data: {
         tenantId: tenantId,
         locationId,
@@ -246,7 +249,9 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     employeeId: string,
     data: UpdateEmployeeDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Employee> {
+    const db = tx ?? this.prisma;
     const updateData: any = {};
 
     if (data.firstName) updateData.firstName = data.firstName;
@@ -261,7 +266,7 @@ export class HRDbRepository implements IHRRepository {
     if (data.hourlyRate !== undefined) updateData.hourlyRate = data.hourlyRate;
     if (data.status) updateData.status = data.status;
 
-    const employee = await this.prisma.employee.update({
+    const employee = await db.employee.update({
       where: {
         id: employeeId,
         tenantId: tenantId,
@@ -279,8 +284,10 @@ export class HRDbRepository implements IHRRepository {
   async deactivateEmployee(
     tenantId: string,
     employeeId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<Employee> {
-    const employee = await this.prisma.employee.update({
+    const db = tx ?? this.prisma;
+    const employee = await db.employee.update({
       where: {
         id: employeeId,
         tenantId: tenantId,
@@ -383,34 +390,43 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     employeeId: string,
     locationId: string,
+    shiftId?: string,
+    method: string = "manual",
+    metadata?: any,
+    tx?: Prisma.TransactionClient,
   ): Promise<Attendance> {
+    const db = tx ?? this.prisma;
     const now = new Date();
-    const dateStr = now.toISOString().split("T")[0];
 
-    const attendance = await this.prisma.attendanceRecord.create({
+    const attendance = await db.attendanceRecord.create({
       data: {
-        tenantId: tenantId,
+        tenantId,
         employeeId,
         locationId,
+        shiftId: shiftId || null,
         date: now,
         status: "present",
         checkIn: {
           time: now.toISOString(),
-          method: "manual",
+          method,
+          ...(metadata?.gps ? { gps: metadata.gps } : {}),
+          ...(metadata?.deviceId ? { deviceId: metadata.deviceId } : {}),
         },
         workDurationMinutes: 0,
+        metadata: metadata || {},
       },
     });
 
     return this.mapAttendance(attendance);
   }
 
-  async clockOut(tenantId: string, employeeId: string): Promise<Attendance> {
+  async clockOut(tenantId: string, employeeId: string, tx?: Prisma.TransactionClient): Promise<Attendance> {
+    const db = tx ?? this.prisma;
     const now = new Date();
     const dateStr = now.toISOString().split("T")[0];
 
     // Find today's attendance record
-    const todayAttendance = await this.prisma.attendanceRecord.findFirst({
+    const todayAttendance = await db.attendanceRecord.findFirst({
       where: {
         tenantId: tenantId,
         employeeId,
@@ -435,7 +451,7 @@ export class HRDbRepository implements IHRRepository {
       (now.getTime() - clockInTime.getTime()) / (1000 * 60),
     );
 
-    const attendance = await this.prisma.attendanceRecord.update({
+    const attendance = await db.attendanceRecord.update({
       where: { id: todayAttendance.id },
       data: {
         checkOut: {
@@ -449,8 +465,9 @@ export class HRDbRepository implements IHRRepository {
     return this.mapAttendance(attendance);
   }
 
-  async assignShift(tenantId: string, employeeId: string, shiftId: string, locationId: string, date: string): Promise<void> {
-    await this.prisma.scheduleAssignment.create({
+  async assignShift(tenantId: string, employeeId: string, shiftId: string, locationId: string, date: string, tx?: Prisma.TransactionClient): Promise<void> {
+    const db = tx ?? this.prisma;
+    await db.scheduleAssignment.create({
       data: {
         tenantId,
         employeeId,
@@ -545,8 +562,10 @@ export class HRDbRepository implements IHRRepository {
     requestId: string,
     reviewerId: string,
     notes?: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<LeaveRequest> {
-    const request = await this.prisma.leaveRequest.update({
+    const db = tx ?? this.prisma;
+    const request = await db.leaveRequest.update({
       where: {
         id: requestId,
         tenantId: tenantId,
@@ -566,8 +585,10 @@ export class HRDbRepository implements IHRRepository {
     requestId: string,
     reviewerId: string,
     notes: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<LeaveRequest> {
-    const request = await this.prisma.leaveRequest.update({
+    const db = tx ?? this.prisma;
+    const request = await db.leaveRequest.update({
       where: {
         id: requestId,
         tenantId: tenantId,
@@ -633,9 +654,11 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     employeeId: string,
     period: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<Payroll> {
+    const db = tx ?? this.prisma;
     // Get employee details
-    const employee = await this.prisma.employee.findFirst({
+    const employee = await db.employee.findFirst({
       where: { id: employeeId, tenantId: tenantId },
     });
 
@@ -660,7 +683,7 @@ export class HRDbRepository implements IHRRepository {
     });
 
     if (!payrollRun) {
-      payrollRun = await this.prisma.payrollRun.create({
+      payrollRun = await db.payrollRun.create({
         data: {
           tenantId: tenantId,
           periodStart,
@@ -670,10 +693,12 @@ export class HRDbRepository implements IHRRepository {
       });
     }
 
-    const payrollLine = await this.prisma.payrollLine.create({
+    if (!payrollRun) throw new Error("Failed to create payroll run");
+
+    const payrollLine = await db.payrollLine.create({
       data: {
         tenantId: tenantId,
-        payrollRunId: payrollRun.id,
+        payrollRunId: (payrollRun as any).id,
         employeeId,
         grossPay,
         adjustments,
@@ -721,8 +746,10 @@ export class HRDbRepository implements IHRRepository {
   async createDepartment(
     tenantId: string,
     data: CreateDepartmentDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Department> {
-    const department = await this.prisma.department.create({
+    const db = tx ?? this.prisma;
+    const department = await db.department.create({
       data: {
         tenantId: tenantId,
         name: data.name,
@@ -770,8 +797,10 @@ export class HRDbRepository implements IHRRepository {
   async createRequisition(
     tenantId: string,
     data: CreateRequisitionDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<JobRequisition> {
-    const requisition = await this.prisma.jobRequisition.create({
+    const db = tx ?? this.prisma;
+    const requisition = await db.jobRequisition.create({
       data: {
         tenantId: tenantId,
         departmentId: data.departmentId,
@@ -787,12 +816,18 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     id: string,
     data: Partial<JobRequisition>,
+    tx?: Prisma.TransactionClient,
   ): Promise<JobRequisition> {
-    const requisition = await this.prisma.jobRequisition.update({
-      where: { id, tenantId: tenantId },
-      data: data as any,
-    });
-    return this.mapRequisition(requisition);
+    const db = tx ?? this.prisma;
+    try {
+      const requisition = await db.jobRequisition.update({
+        where: { id, tenantId: tenantId },
+        data: data as Prisma.JobRequisitionUpdateInput,
+      });
+      return this.mapRequisition(requisition);
+    } catch (error) {
+      handlePrismaFkError(error, 'JobRequisition');
+    }
   }
 
   // ============================================================
@@ -818,8 +853,10 @@ export class HRDbRepository implements IHRRepository {
   async createPerformanceCycle(
     tenantId: string,
     data: CreatePerformanceCycleDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceCycle> {
-    const cycle = await this.prisma.performanceCycle.create({
+    const db = tx ?? this.prisma;
+    const cycle = await db.performanceCycle.create({
       data: {
         tenantId,
         name: data.name,
@@ -836,8 +873,10 @@ export class HRDbRepository implements IHRRepository {
     tenantId: string,
     id: string,
     data: any,
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceCycle> {
-    const updated = await this.prisma.performanceCycle.update({
+    const db = tx ?? this.prisma;
+    const updated = await db.performanceCycle.update({
       where: { id, tenantId },
       data,
     });
@@ -878,8 +917,10 @@ export class HRDbRepository implements IHRRepository {
   async submitPerformanceReview(
     tenantId: string,
     data: SubmitReviewDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<PerformanceReview> {
-    const review = await this.prisma.performanceReview.create({
+    const db = tx ?? this.prisma;
+    const review = await db.performanceReview.create({
       data: {
         tenantId,
         cycleId: data.cycleId,
@@ -913,8 +954,9 @@ export class HRDbRepository implements IHRRepository {
     return cases.map((c) => this.mapHRCase(c));
   }
 
-  async createCase(tenantId: string, data: CreateCaseDto): Promise<HRCase> {
-    const hrCase = await this.prisma.hRCase.create({
+  async createCase(tenantId: string, data: CreateCaseDto, tx?: Prisma.TransactionClient): Promise<HRCase> {
+    const db = tx ?? this.prisma;
+    const hrCase = await db.hRCase.create({
       data: {
         tenantId,
         employeeId: data.employeeId,
@@ -928,8 +970,9 @@ export class HRDbRepository implements IHRRepository {
     return this.mapHRCase(hrCase);
   }
 
-  async updateCase(tenantId: string, id: string, data: any): Promise<HRCase> {
-    const updated = await this.prisma.hRCase.update({
+  async updateCase(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<HRCase> {
+    const db = tx ?? this.prisma;
+    const updated = await db.hRCase.update({
       where: { id, tenantId },
       data,
     });
@@ -970,27 +1013,23 @@ export class HRDbRepository implements IHRRepository {
     return contracts.map((c: any) => this.mapContract(c));
   }
 
-  async createContract(
-    tenantId: string,
-    data: CreateContractDto,
-  ): Promise<Contract> {
-    const contract = await this.prisma.contract.create({
+  async createContract(tenantId: string, data: CreateContractDto, tx?: Prisma.TransactionClient): Promise<Contract> {
+    const db = tx ?? this.prisma;
+    const contract = await db.contract.create({
       data: {
         tenantId,
-        employeeId: data.employeeId,
-        title: data.title,
-        type: data.type,
+        ...data,
+        status: "ACTIVE",
         startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        url: data.url,
-        status: "active",
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
       },
     });
-    return this.mapContract(contract);
+    return contract as any;
   }
 
-  async updateContract(tenantId: string, id: string, data: any): Promise<Contract> {
-    const updated = await this.prisma.contract.update({
+  async updateContract(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<Contract> {
+    const db = tx ?? this.prisma;
+    const updated = await db.contract.update({
       where: { id, tenantId },
       data,
     });
@@ -1695,8 +1734,9 @@ export class HRDbRepository implements IHRRepository {
     return candidate ? this.mapCandidate(candidate) : null;
   }
 
-  async createCandidate(tenantId: string, data: any): Promise<Candidate> {
-    const candidate = await this.prisma.candidate.create({
+  async createCandidate(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<Candidate> {
+    const db = tx ?? this.prisma;
+    const candidate = await db.candidate.create({
       data: {
         tenantId,
         firstName: data.firstName,
@@ -1711,52 +1751,202 @@ export class HRDbRepository implements IHRRepository {
     return this.mapCandidate(candidate);
   }
 
-  async updateCandidate(tenantId: string, id: string, data: any): Promise<Candidate> {
-    const updated = await this.prisma.candidate.update({
+  async updateCandidate(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<Candidate> {
+    const db = tx ?? this.prisma;
+    const updated = await db.candidate.update({
       where: { id, tenantId },
       data,
     });
     return this.mapCandidate(updated);
   }
 
-  async hireCandidate(tenantId: string, candidateId: string): Promise<Employee> {
-    const candidate = await this.prisma.candidate.findFirst({
+  async hireCandidate(tenantId: string, candidateId: string, data: any, tx?: Prisma.TransactionClient): Promise<Employee> {
+    const db = tx ?? this.prisma;
+    const candidate = await db.candidate.findFirst({
       where: { id: candidateId, tenantId, deletedAt: null },
       include: { requisition: true },
     });
 
     if (!candidate) throw new Error("Candidate not found.");
+    if (candidate.status === "hired") {
+      throw new Error(`Candidate ${candidateId} is already hired.`);
+    }
 
-    // Transaction to update candidate status and create employee
-    return this.prisma.$transaction(async (tx) => {
+    // Pre-calculate password hash outside of transaction to avoid lock contention
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash("Welcome123", salt);
+
+    // SERIALIZABLE Transaction for atomic hiring
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Update Candidate Status
       await tx.candidate.update({
         where: { id: candidateId },
         data: { status: "hired" },
       });
 
+      // 2. User Provisioning (moved into transaction)
+      let user = await tx.user.findUnique({
+        where: { tenantId_email: { tenantId, email: candidate.email } },
+      });
+
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            tenantId,
+            email: candidate.email,
+            passwordHash,
+            firstName: candidate.firstName,
+            lastName: candidate.lastName,
+          },
+        });
+      }
+
+      await tx.userCompany.upsert({
+        where: { userId_tenantId: { userId: user.id, tenantId } },
+        update: {},
+        create: { userId: user.id, tenantId, role: 'MEMBER' }
+      });
+
+      // 3. Create Employee Record
       const employee = await tx.employee.create({
         data: {
           tenantId,
+          userId: user.id,
           firstName: candidate.firstName,
           lastName: candidate.lastName,
           email: candidate.email,
           phone: candidate.phone,
-          departmentId: (candidate as any).requisition?.departmentId || "",
-          locationId: "", // To be updated during full onboarding
-          position: (candidate as any).requisition?.title || "",
-          employeeCode: `EMP-${Date.now()}`,
-          status: "hired",
-          hireDate: new Date(),
+          locationId: data.locationId || "loc-default",
+          departmentId: data.departmentId || candidate.requisition?.departmentId || "",
+          position: data.position || candidate.requisition?.title || "Staff",
+          employeeCode: data.employeeCode || `EMP-${Date.now()}`,
+          status: "probation",
+          hireDate: data.hireDate ? new Date(data.hireDate) : new Date(),
+          baseSalary: data.baseSalary || 0,
         },
       });
 
-      return this.mapEmployee(employee);
+      // 4. Create Initial Contract
+      await tx.contract.create({
+        data: {
+          tenantId,
+          employeeId: employee.id,
+          title: `Employment Contract - ${employee.firstName} ${employee.lastName}`,
+          type: "PERMANENT",
+          startDate: employee.hireDate,
+          status: "active",
+        },
+      });
+
+      // 4. Update Candidate if applicable (already done above)
+
+      // 5. Create Outbox Event for reliable emission
+      await tx.outboxEvent.create({
+        data: {
+          tenantId,
+          type: 'hr.employee.created.v1',
+          payload: {
+            employeeId: employee.id,
+            candidateId,
+            email: candidate.email,
+          },
+        },
+      });
+
+      return employee;
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    });
+
+    return this.mapEmployee(result as any);
+  }
+
+  async executePayrollTransaction(tenantId: string, period: string, activeEmployees: any[]): Promise<any> {
+    const [year, month] = period.split("-").map(Number);
+    const periodStart = new Date(year, month - 1, 1);
+    const periodEnd = new Date(year, month, 0);
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Create Payroll Run
+      const payrollRun = await tx.payrollRun.create({
+        data: {
+          tenantId,
+          periodStart,
+          periodEnd,
+          status: "processing",
+        },
+      });
+
+      // 2. Create Payroll Lines and calculate totals
+      let totalGross = 0;
+      let totalNet = 0;
+
+      for (const emp of activeEmployees) {
+        const baseSalary = Number(emp.baseSalary || 0);
+        const adjustments = baseSalary * 0.1; // Default 10% deduction for now
+        const netPay = baseSalary - adjustments;
+
+        totalGross += baseSalary;
+        totalNet += netPay;
+
+        await tx.payrollLine.create({
+          data: {
+            tenantId,
+            payrollRunId: payrollRun.id,
+            employeeId: emp.id,
+            grossPay: baseSalary,
+            adjustments,
+            netPay,
+          },
+        });
+      }
+
+      // 3. Finance/Ledger Integration: Create Ledger Posting Entry
+      await tx.ledgerPosting.create({
+        data: {
+          tenantId,
+          sourceEventId: payrollRun.id,
+          eventType: "PAYROLL_EXECUTION",
+          status: "PENDING",
+          payload: {
+            period,
+            totalGross,
+            totalNet,
+            employeeCount: activeEmployees.length,
+          },
+        },
+      });
+
+      // 4. Create Outbox Event for reliable emission
+      await tx.outboxEvent.create({
+        data: {
+          tenantId,
+          type: 'hr.payroll.executed.v1',
+          payload: {
+            payrollRunId: payrollRun.id,
+            period,
+            totalGross,
+            totalNet,
+            processedCount: activeEmployees.length,
+          },
+        },
+      });
+
+      return {
+        payrollRunId: payrollRun.id,
+        totalGross,
+        totalNet,
+        processedCount: activeEmployees.length,
+      };
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
   }
 
 
-  async updatePosition(tenantId: string, id: string, data: any): Promise<Position> {
-    const position = await this.prisma.position.update({
+  async updatePosition(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<Position> {
+    const db = tx ?? this.prisma;
+    const position = await db.position.update({
       where: { id, tenantId },
       data: {
         title: data.title,
@@ -1775,8 +1965,9 @@ export class HRDbRepository implements IHRRepository {
     return compensation ? this.mapCompensation(compensation) : null;
   }
 
-  async updateCompensation(tenantId: string, employeeId: string, data: any): Promise<Compensation> {
-    const compensation = await this.prisma.compensation.upsert({
+  async updateCompensation(tenantId: string, employeeId: string, data: any, tx?: Prisma.TransactionClient): Promise<Compensation> {
+    const db = tx ?? this.prisma;
+    const compensation = await db.compensation.upsert({
       where: { employeeId },
       create: {
         tenantId,
@@ -1918,6 +2109,20 @@ export class HRDbRepository implements IHRRepository {
     };
   }
 
+  async getExperienceRate(tenantId: string): Promise<any> {
+    const total = await this.prisma.employee.count({ where: { tenantId } });
+    if (total === 0) return { rate: 0 };
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+    const experienced = await this.prisma.employee.count({
+      where: {
+        tenantId,
+        hireDate: { lte: twoYearsAgo },
+      },
+    });
+    return { rate: (experienced / total) * 100 };
+  }
+
   // Predictive Analytics
   async getPerformanceTrends(tenantId: string): Promise<any[]> {
     const reviews = await this.prisma.performanceReview.findMany({
@@ -1988,15 +2193,16 @@ export class HRDbRepository implements IHRRepository {
     return positions.map((p) => this.mapPosition(p));
   }
 
-  async createPosition(tenantId: string, data: any): Promise<Position> {
-    const created = await this.prisma.position.create({
+  async createPosition(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<Position> {
+    const db = tx ?? this.prisma;
+    const created = await db.position.create({
       data: {
         tenantId,
         locationId: data.locationId,
         departmentId: data.departmentId,
         title: data.title,
         grade: data.grade,
-        status: data.status || "open",
+        status: "open",
         budgetedSalary: data.budgetedSalary,
         reportsToPositionId: data.reportsToPositionId,
         jobPostMetadata: data.jobPostMetadata || {},
@@ -2033,8 +2239,9 @@ export class HRDbRepository implements IHRRepository {
     return interviews.map((i: any) => this.mapInterview(i));
   }
 
-  async scheduleInterview(tenantId: string, data: any): Promise<Interview> {
-    const created = await this.prisma.interview.create({
+  async scheduleInterview(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<Interview> {
+    const db = tx ?? this.prisma;
+    const created = await db.interview.create({
       data: {
         tenantId,
         candidateId: data.candidateId,
@@ -2043,15 +2250,16 @@ export class HRDbRepository implements IHRRepository {
         scheduledAt: new Date(data.scheduledAt),
         duration: data.duration || 30,
         location: data.location,
-        status: data.status || "SCHEDULED",
+        status: "SCHEDULED",
         notes: data.notes,
       },
     });
     return this.mapInterview(created);
   }
 
-  async updateInterviewStatus(tenantId: string, id: string, status: string): Promise<Interview> {
-    const updated = await this.prisma.interview.update({
+  async updateInterviewStatus(tenantId: string, id: string, status: string, tx?: Prisma.TransactionClient): Promise<Interview> {
+    const db = tx ?? this.prisma;
+    const updated = await db.interview.update({
       where: { id, tenantId },
       data: { status },
     });
@@ -2097,11 +2305,15 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async updateTalentLead(tenantId: string, id: string, data: any): Promise<TalentLead> {
-    const updated = await this.prisma.talentLead.update({
-      where: { id, tenantId },
-      data: data as any,
-    });
-    return this.mapLead(updated);
+    try {
+      const updated = await this.prisma.talentLead.update({
+        where: { id, tenantId },
+        data: data as Prisma.TalentLeadUpdateInput,
+      });
+      return this.mapLead(updated);
+    } catch (error) {
+      handlePrismaFkError(error, 'TalentLead');
+    }
   }
 
   async getCaseById(tenantId: string, id: string): Promise<HRCase | null> {
@@ -2196,11 +2408,15 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async updateBudgetScenario(tenantId: string, id: string, data: any): Promise<BudgetScenario> {
-    const updated = await this.prisma.budgetScenario.update({
-      where: { id, tenantId },
-      data: data as any,
-    });
-    return this.mapScenario(updated);
+    try {
+      const updated = await this.prisma.budgetScenario.update({
+        where: { id, tenantId },
+        data: data as Prisma.BudgetScenarioUpdateInput,
+      });
+      return this.mapScenario(updated);
+    } catch (error) {
+      handlePrismaFkError(error, 'BudgetScenario');
+    }
   }
 
   async getHeadcountPlans(tenantId: string, scenarioId: string): Promise<HeadcountPlan[]> {
@@ -2889,4 +3105,156 @@ export class HRDbRepository implements IHRRepository {
     return contract ? this.mapContract(contract) : null;
   }
 
+  async getWorkSchedules(tenantId: string, locationId?: string, status?: string): Promise<any[]> {
+    const schedules = await this.prisma.workSchedule.findMany({
+      where: {
+        tenantId,
+        ...(locationId ? { locationId } : {}),
+        ...(status ? { status } : {}),
+      },
+      orderBy: { startDate: "desc" },
+    });
+    return schedules.map((s) => this.mapWorkSchedule(s));
+  }
+
+  async createWorkSchedule(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    const db = tx ?? this.prisma;
+    
+    // Critical pre-validation
+    await assertExists(() => db.department.findUnique({ where: { id: data.departmentId } }), 'departmentId', data.departmentId);
+
+    const createData: Prisma.WorkScheduleUncheckedCreateInput = {
+      tenantId,
+      departmentId: data.departmentId,
+      name: data.name,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      status: data.status || "DRAFT",
+      createdBy: data.createdBy,
+      metadata: data.metadata || {},
+      ...(data.locationId ? { locationId: data.locationId } : {}),
+    };
+
+    try {
+      const schedule = await db.workSchedule.create({ data: createData });
+      return this.mapWorkSchedule(schedule);
+    } catch (error) {
+      handlePrismaFkError(error, 'WorkSchedule');
+    }
+  }
+
+  async updateWorkSchedule(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    const db = tx ?? this.prisma;
+    const updated = await db.workSchedule.update({
+      where: { id, tenantId },
+      data: {
+        ...data,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+      },
+    });
+    return this.mapWorkSchedule(updated);
+  }
+
+  async getWorkShifts(tenantId: string, scheduleId?: string, employeeId?: string): Promise<any[]> {
+    const shifts = await this.prisma.workShift.findMany({
+      where: {
+        tenantId,
+        ...(scheduleId ? { scheduleId } : {}),
+        ...(employeeId ? { employeeId } : {}),
+      },
+      orderBy: { startTime: "asc" },
+    });
+    return shifts.map((s) => this.mapWorkShift(s));
+  }
+
+  async createWorkShift(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    const db = tx ?? this.prisma;
+
+    // Critical pre-validation
+    await Promise.all([
+      assertExists(() => db.workSchedule.findUnique({ where: { id: data.scheduleId } }), 'scheduleId', data.scheduleId),
+      assertExists(() => db.employee.findUnique({ where: { id: data.employeeId } }), 'employeeId', data.employeeId),
+    ]);
+
+    const createData: Prisma.WorkShiftUncheckedCreateInput = {
+      tenantId,
+      scheduleId: data.scheduleId,
+      employeeId: data.employeeId,
+      startTime: new Date(data.startTime),
+      endTime: new Date(data.endTime),
+      roleId: data.roleId,
+      notes: data.notes,
+      metadata: data.metadata || {},
+      ...(data.locationId ? { locationId: data.locationId } : {}),
+    };
+
+    try {
+      const shift = await db.workShift.create({ data: createData });
+      return this.mapWorkShift(shift);
+    } catch (error) {
+      handlePrismaFkError(error, 'WorkShift');
+    }
+  }
+
+  async updateWorkShift(tenantId: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    const db = tx ?? this.prisma;
+    const updated = await db.workShift.update({
+      where: { id, tenantId },
+      data: {
+        ...data,
+        startTime: data.startTime ? new Date(data.startTime) : undefined,
+        endTime: data.endTime ? new Date(data.endTime) : undefined,
+      },
+    });
+    return this.mapWorkShift(updated);
+  }
+
+  async approveWorkSchedule(tenantId: string, id: string, approvedBy: string, tx?: Prisma.TransactionClient): Promise<any> {
+    const db = tx ?? this.prisma;
+    try {
+      const schedule = await db.workSchedule.update({
+        where: { id, tenantId },
+        data: {
+          status: "APPROVED",
+          metadata: {
+            approvedBy,
+            approvedAt: new Date(),
+          },
+        },
+      });
+      return this.mapWorkSchedule(schedule);
+    } catch (error) {
+      handlePrismaFkError(error, 'WorkScheduleApproval');
+    }
+  }
+
+  private mapWorkSchedule(s: any) {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      locationId: s.locationId,
+      name: s.name,
+      startDate: s.startDate,
+      endDate: s.endDate,
+      status: s.status,
+      createdBy: s.createdBy,
+      metadata: s.metadata,
+    };
+  }
+
+  private mapWorkShift(s: any) {
+    return {
+      id: s.id,
+      tenantId: s.tenantId,
+      scheduleId: s.scheduleId,
+      employeeId: s.employeeId,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      roleId: s.roleId,
+      locationId: s.locationId,
+      notes: s.notes,
+      metadata: s.metadata,
+    };
+  }
 }

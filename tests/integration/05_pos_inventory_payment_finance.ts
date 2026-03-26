@@ -23,6 +23,8 @@ import {
   seedTestCategory,
   seedTestProduct,
   seedTestStore,
+  seedTestFiscalPeriod,
+  seedTestAccount,
   testId,
 } from "./helpers/seeds";
 
@@ -37,6 +39,8 @@ async function runPhase5(): Promise<void> {
     let company: any, location: any, store: any, posDevice: any, cashier: any;
     let products: any[] = [];
     let initialStock = 50;
+    let fiscalPeriod: any;
+    let accCash: any, accRevenue: any, accTax: any, accCogs: any, accInventory: any;
 
     try {
       company = await seedTestCompany(tx as any);
@@ -79,6 +83,14 @@ async function runPhase5(): Promise<void> {
         basePrice: 200000,
       });
       products.push(p1, p2);
+
+      // Seed accounting foundation
+      fiscalPeriod = await seedTestFiscalPeriod(tx as any, company.id);
+      accCash = await seedTestAccount(tx as any, company.id, '1000', 'Cash', 'ASSET');
+      accRevenue = await seedTestAccount(tx as any, company.id, '4000', 'Sales Revenue', 'REVENUE');
+      accTax = await seedTestAccount(tx as any, company.id, '2200', 'Sales Tax Payable', 'LIABILITY');
+      accCogs = await seedTestAccount(tx as any, company.id, '5100', 'COGS', 'EXPENSE');
+      accInventory = await seedTestAccount(tx as any, company.id, '1300', 'Inventory Asset', 'ASSET');
 
       // Initialize Stock
       for (const p of products) {
@@ -127,12 +139,14 @@ async function runPhase5(): Promise<void> {
           items: {
             create: [
               {
+                tenantId: company.id,
                 productId: products[0].id,
                 quantity: 1,
                 unitPrice: 3000000,
                 totalPrice: 3000000,
               },
               {
+                tenantId: company.id,
                 productId: products[1].id,
                 quantity: 1,
                 unitPrice: 200000,
@@ -264,38 +278,60 @@ async function runPhase5(): Promise<void> {
       journalEntry = await (tx as any).journalEntry.create({
         data: {
           tenantId: company.id,
+          fiscalPeriodId: (fiscalPeriod as any).id,
           ref: order.id,
+          postingDate: new Date(),
           description: `POS Sale — Order ${order.id.slice(0, 8)}`,
           status: "POSTED",
           lines: {
             create: [
               {
-                accountCode: "1000", // Cash (debit)
+                tenantId: company.id,
+                accountId: accCash.id,
+                accountCode: "1000",
                 description: `Collections from POS-01`,
+                side: "DEBIT",
+                amount: totalAmount,
                 debit: totalAmount,
                 credit: 0,
               },
               {
-                accountCode: "4000", // Sales Revenue (credit)
+                tenantId: company.id,
+                accountId: accRevenue.id,
+                accountCode: "4000",
                 description: `Retail Sales Revenue`,
+                side: "CREDIT",
+                amount: subtotal,
                 debit: 0,
                 credit: subtotal,
               },
               {
-                accountCode: "2200", // Sales Tax Payable (credit)
+                tenantId: company.id,
+                accountId: accTax.id,
+                accountCode: "2200",
                 description: `VAT collections`,
+                side: "CREDIT",
+                amount: tax,
                 debit: 0,
                 credit: tax,
               },
               {
-                accountCode: "5100", // COGS (debit) — Simplified for test
+                tenantId: company.id,
+                accountId: accCogs.id,
+                accountCode: "5100",
                 description: `Cost of goods sold`,
-                debit: Number(subtotal) * 0.6, // Dummy margin
+                side: "DEBIT",
+                amount: Number(subtotal) * 0.6,
+                debit: Number(subtotal) * 0.6,
                 credit: 0,
               },
               {
-                accountCode: "1300", // Inventory (credit)
+                tenantId: company.id,
+                accountId: accInventory.id,
+                accountCode: "1300",
                 description: `Inventory reduction`,
+                side: "CREDIT",
+                amount: Number(subtotal) * 0.6,
                 debit: 0,
                 credit: Number(subtotal) * 0.6,
               },

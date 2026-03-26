@@ -44,6 +44,7 @@ import InvoiceCapture from "@/pages/core/finance/InvoiceCapture";
 import FinanceDocs from "@/pages/core/finance/FinanceDocs";
 import Assets from "@/pages/core/finance/Assets";
 import PolicyManager from "@/pages/core/finance/PolicyManager";
+import { CFODashboard } from "@/pages/core/finance/CFODashboard";
 import PaymentWorkspaceLayout from "@/pages/core/payment/PaymentWorkspaceLayout";
 import PaymentDashboard from "@/pages/core/payment/PaymentDashboard";
 import PaymentExecutionHub from "@/pages/core/payment/PaymentExecutionHub";
@@ -67,6 +68,8 @@ import InventoryReceiving from "@/pages/core/inventory/InventoryReceiving";
 import InventoryAdjustments from "@/pages/core/inventory/InventoryAdjustments";
 import InventoryAuditLog from "@/pages/core/inventory/InventoryAuditLog";
 import InventoryInsights from "@/pages/core/inventory/InventoryInsights";
+import WarehouseManagement from "@/pages/core/inventory/WarehouseManagement";
+import IotEventFeed from "@/pages/core/inventory/IotEventFeed";
 import ITWorkspaceLayout from "@/pages/core/it/ITWorkspaceLayout";
 import AccountDesk from "@/pages/core/it/AccountDesk";
 import DeviceDesk from "@/pages/core/it/DeviceDesk";
@@ -449,6 +452,22 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.tools.access" scope="COMPANY">
             <InventoryInsights />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="warehouse"
+        element={
+          <ProtectedRoute permission="core.tools.access" scope="COMPANY">
+            <WarehouseManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="iot-feed"
+        element={
+          <ProtectedRoute permission="core.tools.access" scope="COMPANY">
+            <IotEventFeed />
           </ProtectedRoute>
         }
       />

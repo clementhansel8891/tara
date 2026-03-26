@@ -15,7 +15,7 @@ export class ITEventHandler implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log('IT Event Handler initialized. Subscribing to events...');
-    this.eventBus.subscribe((event: DomainEvent) => this.handleEvent(event));
+    this.eventBus.subscribe('*', 'ITEventHandler.handle', (event: DomainEvent) => this.handleEvent(event));
   }
 
   private async handleEvent(event: DomainEvent) {

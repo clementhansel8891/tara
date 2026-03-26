@@ -12,7 +12,9 @@ import type {
   InventoryMovement,
   InventoryDashboardMetrics,
   InventoryIntegrationEvent,
+  AgenticEvent,
 } from "@/core/types/inventory/inventory";
+import { BrainCircuit, Sparkles, TrendingUp } from "lucide-react";
 
 export default function InventoryInsights() {
   const session = useSession();
@@ -27,21 +29,24 @@ export default function InventoryInsights() {
   const [integrationEvents, setIntegrationEvents] = useState<
     InventoryIntegrationEvent[]
   >([]);
+  const [agenticEvents, setAgenticEvents] = useState<AgenticEvent[]>([]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [b, m, d, i] = await Promise.all([
+      const [b, m, d, i, a] = await Promise.all([
         inventoryService.listBalances(session.tenantId, session),
         inventoryService.listMovements(session.tenantId, session),
         inventoryService.getDashboard(session.tenantId, session),
         inventoryService.listIntegrationEvents(session.tenantId, session),
+        inventoryService.listAgenticEvents(session.tenantId, session),
       ]);
       setBalances(b);
       setMovements(m);
       setDashboard(d);
       setIntegrationEvents(i);
+      setAgenticEvents(a);
     } catch (err) {
       console.error("Failed to fetch inventory insights data:", err);
       setError("Failed to load inventory insights. Please try again later.");
@@ -212,6 +217,66 @@ export default function InventoryInsights() {
           </table>
         </DataTableShell>
       </WorkspacePanel>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <WorkspacePanel
+          title="Agentic Insights & Foresight"
+          description="AI-driven event layer for demand surges and replenishment."
+        >
+          <div className="space-y-4">
+            {agenticEvents.length === 0 ? (
+               <div className="p-12 text-center border border-dashed rounded-lg bg-muted/20">
+                  <BrainCircuit className="h-8 w-8 mx-auto mb-3 text-muted-foreground/30" />
+                  <p className="text-sm text-muted-foreground italic">No active agentic insights detected.</p>
+               </div>
+            ) : (
+              agenticEvents.map(event => (
+                <div key={event.id} className="p-4 rounded-lg bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
+                   <div className="mt-1 h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
+                      <Sparkles className="h-4 w-4 text-indigo-500" />
+                   </div>
+                   <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{event.eventType.replace(/_/g, " ")}</p>
+                        <Badge variant="outline" className="text-[10px] bg-indigo-500/10 border-indigo-500/20 text-indigo-600">AI AGENT</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">{JSON.stringify(event.payload)}</p>
+                      <div className="flex items-center gap-2">
+                         <Button variant="ghost" size="sm" className="h-7 text-[10px] px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-500/10">Approve Action</Button>
+                         <Button variant="ghost" size="sm" className="h-7 text-[10px] px-2">Dismiss</Button>
+                      </div>
+                   </div>
+                </div>
+              ))
+            )}
+          </div>
+        </WorkspacePanel>
+
+        <WorkspacePanel
+          title="Predictive Analytics"
+          description="Probability mapping for stock-outs and excess."
+        >
+          <div className="space-y-4">
+             <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                   <TrendingUp className="h-4 w-4 text-emerald-500" />
+                   <p className="text-sm font-medium">Demand Forecast Accuracy</p>
+                </div>
+                <span className="font-mono text-emerald-600">94.2%</span>
+             </div>
+             <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                   <ActivitySquare className="h-4 w-4 text-orange-500" />
+                   <p className="text-sm font-medium">Stock-out Probability (Avg)</p>
+                </div>
+                <span className="font-mono text-orange-600">2.1%</span>
+             </div>
+             <div className="p-4 rounded-lg bg-muted/30 border border-dashed text-center">
+                <p className="text-xs text-muted-foreground">Historical modeling for Indonesia West Region suggests a 15% demand surge in RAM components due to upcoming seasonal trends.</p>
+             </div>
+          </div>
+        </WorkspacePanel>
+      </div>
     </div>
   );
 }

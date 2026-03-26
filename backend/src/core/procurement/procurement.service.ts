@@ -16,12 +16,16 @@ import { UpdateProcurementCategoryDto } from "./dto/update-procurement-category.
 import { ReleasePoDto } from "./dto/release-po.dto";
 import { IProcurementRepository } from "./repositories/procurement.repository.interface";
 import { AuditService } from "../../shared/audit/audit.service";
+import { EventBusService } from "../../shared/events/event-bus.service";
+import { PrismaService } from "../../persistence/prisma.service";
 
 @Injectable()
 export class ProcurementService {
   constructor(
     private readonly repository: IProcurementRepository,
     private readonly auditService: AuditService,
+    private readonly eventBus: EventBusService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // ─── SUPPLIERS ───────────────────────────────────────────────────────────────
@@ -182,6 +186,60 @@ export class ProcurementService {
     const receipt = await this.repository.createReceipt(tenantId, data, userId || "system");
     await this.repository.createAuditEvent(tenantId, userId || "system", "receipt.recorded", "FINAL_PO", data.finalPoId, `Goods receipt. Delivery on time: ${data.deliveryOnTime}. Issues: ${data.issueCount}`);
     return receipt;
+  }
+
+  async processReceipt(
+    tenantId: string,
+    finalPoId: string,
+    data: {
+      locationId: string;
+      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
+      receiptType?: "FULL" | "PARTIAL";
+    },
+    userId?: string,
+  ) {
+    // 1. Update the finalPO status
+    const status = data.receiptType === "PARTIAL" ? "PARTIALLY_RECEIVED" : "RECEIVED";
+    await this.prisma.procurementFinalPO.update({
+      where: { id: finalPoId, tenantId },
+      data: { status },
+    });
+
+    // 2. Emit PO_RECEIVED to trigger Inventory Intake
+    await this.eventBus.publish({
+      eventType: "PO_RECEIVED",
+      tenantId: tenantId,
+      entityId: finalPoId,
+      entityType: "FINAL_PO",
+      sourceModule: "procurement",
+      payload: {
+        finalPoId,
+        locationId: data.locationId,
+        items: data.items,
+        receiptType: data.receiptType || "FULL",
+      },
+      userId,
+    });
+
+    // 3. Audit Log
+    await this.auditService.log({
+      tenantId,
+      userId: userId || "system",
+      module: "PROCUREMENT",
+      action: "PROCUREMENT_RECEIPT",
+      entityType: "FINAL_PO",
+      entityId: finalPoId,
+      metadata: {
+        locationId: data.locationId,
+        itemCount: data.items?.length || 0,
+        receiptType: data.receiptType || "FULL",
+      },
+    });
+
+    return {
+      success: true,
+      message: `${data.receiptType || 'FULL'} procurement receipt published`,
+    };
   }
 
   // ─── CONTRACTS ────────────────────────────────────────────────────────────────

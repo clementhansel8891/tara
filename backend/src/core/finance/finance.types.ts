@@ -1,38 +1,11 @@
-export type PaymentMethod = "BANK_TRANSFER" | "CREDIT_CARD" | "CASH" | "CHECK";
-
-export interface Asset {
-  id: string;
-  description: string;
-  assetClass: string;
-  location: string;
-  department: string;
-  acquisitionCost: number;
-  acquisitionDate: string;
-  usefulLifeYears: number;
-  residualValue: number;
-  depreciationMethod:
-    | "STRAIGHT_LINE"
-    | "DECLINING_BALANCE"
-    | "UNITS_OF_PRODUCTION";
-  accumulatedDepreciation: number;
-  carryingValue: number;
-  revaluationReserve: number;
-  status:
-    | "DRAFT"
-    | "PENDING_APPROVAL"
-    | "APPROVED_FOR_CAPITALIZATION"
-    | "ACTIVE"
-    | "DISPOSED"
-    | "WRITTEN_OFF";
-  serialNumber?: string;
-  vendor?: string;
-  warrantyExpiry?: string;
-}
+import { Prisma } from "@prisma/client";
+import { Asset } from "./domain/asset.interfaces";
+export { Asset };
 
 export interface CapexRequest {
   id: string;
   assetDescription: string;
-  requestedAmount: number;
+  requestedAmount: Prisma.Decimal;
   department: string;
   projectCode: string;
   justification?: string;
@@ -50,9 +23,9 @@ export interface CapexRequest {
 
 export interface FinanceCapexBudgetRow {
   department: string;
-  allocatedBudget: number;
-  committedBudget: number;
-  availableBudget: number;
+  allocatedBudget: Prisma.Decimal;
+  committedBudget: Prisma.Decimal;
+  availableBudget: Prisma.Decimal;
   fiscalYear: string;
 }
 
@@ -61,8 +34,8 @@ export interface FinanceMoneySourceRow {
   name: string;
   type: string;
   currency: string;
-  balance: number;
-  pendingSettlement?: number;
+  balance: Prisma.Decimal;
+  pendingSettlement?: Prisma.Decimal;
   provider?: string | null;
   lastUpdated?: string;
 }
@@ -72,7 +45,7 @@ export interface TreasuryTransfer {
   tenantId: string;
   fromSourceId: string;
   toSourceId: string;
-  amount: number;
+  amount: Prisma.Decimal;
   currency: string;
   status: string;
   requestedBy: string;
@@ -84,10 +57,10 @@ export interface AssetDepreciationEntry {
   id: string;
   assetId: string;
   postingDate: string;
-  amount: number;
+  amount: Prisma.Decimal;
   method: string;
-  accumulatedDepreciation: number;
-  carryingValue: number;
+  accumulatedDepreciation: Prisma.Decimal;
+  carryingValue: Prisma.Decimal;
   journalEntryId: string;
   isPosted: boolean;
 }
@@ -96,7 +69,7 @@ export interface AssetEvent {
   id: string;
   type: "IMPAIRMENT" | "REVALUATION" | "DISPOSAL" | "TRANSFER" | "MAINTENANCE";
   assetId: string;
-  amount?: number;
+  amount?: Prisma.Decimal;
   reason?: string;
   journalEntryId?: string;
   attachmentDocumentIds: string[];
@@ -118,7 +91,7 @@ export interface FinanceReceivableRow {
   id: string;
   customerName: string;
   invoiceNumber: string;
-  amount: number;
+  amount: Prisma.Decimal;
   currency: string;
   dueDate: string;
   status: "DRAFT" | "SENT" | "OVERDUE" | "PAID" | "DISPUTED";
@@ -130,7 +103,7 @@ export interface FinancePayableRow {
   id: string;
   vendorName: string;
   billNumber: string;
-  amount: number;
+  amount: Prisma.Decimal;
   currency: string;
   dueDate: string;
   status: "RECEIVED" | "APPROVED" | "SCHEDULED_FOR_PAYMENT" | "PAID";
@@ -140,7 +113,7 @@ export interface FinancePayableRow {
 export interface FinancePaymentRow {
   id: string;
   beneficiary: string;
-  amount: number;
+  amount: Prisma.Decimal;
   currency: string;
   status: "PENDING_APPROVAL" | "PROCESSING" | "COMPLETED" | "FAILED";
   method: PaymentMethod;
@@ -159,7 +132,7 @@ export interface FinanceDocumentRow {
 
 export interface PaymentRequest {
   id: string;
-  amount: number;
+  amount: Prisma.Decimal;
   currency: string;
   beneficiary: string;
   source?: string;
@@ -210,10 +183,10 @@ export interface PayrollEntry {
   name?: string;
   department?: string;
   period: string; // e.g., "2026-02"
-  baseSalary: number;
-  bonuses?: number;
-  deductions?: number;
-  netSalary: number;
+  baseSalary: Prisma.Decimal;
+  bonuses?: Prisma.Decimal;
+  deductions?: Prisma.Decimal;
+  netSalary: Prisma.Decimal;
   status: "PENDING" | "PROCESSED" | "PAID" | "pending" | "approved" | "paid";
   paymentDate?: string;
   createdAt: string;
@@ -223,14 +196,14 @@ export interface PayrollEntry {
 export interface PayrollEstimate {
   department: string;
   employeeCount: number;
-  totalGross: number;
-  totalNet: number;
+  totalGross: Prisma.Decimal;
+  totalNet: Prisma.Decimal;
 }
 
 export interface ReceivableInvoice {
   id: string;
   customer: string;
-  amount: number;
+  amount: Prisma.Decimal;
   dueDate: string;
   status: "DRAFT" | "SENT" | "PAID";
 }
@@ -238,7 +211,9 @@ export interface ReceivableInvoice {
 export interface PayableBill {
   id: string;
   vendor: string;
-  amount: number;
+  amount: Prisma.Decimal;
   dueDate: string;
   status: "RECEIVED" | "APPROVED" | "PAID";
 }
+
+export type PaymentMethod = "BANK_TRANSFER" | "CREDIT_CARD" | "CASH" | "CHECK";

@@ -150,7 +150,9 @@ export class MailService {
             title: 'New Secure Transmission',
             message: `New organizational intel received from ${account.address}: ${params.subject}`,
             type: 'MAIL',
-            link: '/core/mail'
+            link: '/core/mail',
+            priority: 'NORMAL',
+            eventReferenceId: message.id,
           });
 
           // Broadcast real-time

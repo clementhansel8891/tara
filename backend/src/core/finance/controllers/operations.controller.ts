@@ -1,0 +1,49 @@
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { BudgetingService } from '../services/budgeting.service';
+import { WorkflowIntegrationService } from '../services/workflow-integration.service';
+import { ExpensePolicyService } from '../services/expense-policy.service';
+import { TenantGuard } from '../../../shared/guards/tenant.guard';
+import { RolesGuard } from '../../../shared/guards/roles.guard';
+import { TenantCtx } from '../../../gateway/tenant-context.decorator';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
+import { UserRole } from '../../../shared/roles';
+import { Roles } from '../../../shared/decorators/roles.decorator';
+
+@Controller('v1/finance/operations')
+@UseGuards(TenantGuard, RolesGuard)
+export class OperationsController {
+  constructor(
+    private readonly budgetingService: BudgetingService,
+    private readonly workflowIntegrationService: WorkflowIntegrationService,
+    private readonly expensePolicyService: ExpensePolicyService,
+  ) {}
+
+  @Get('budget/variance')
+  async getBudgetVariance(
+    @TenantCtx() ctx: TenantContext,
+    @Query('budgetLineId') budgetLineId: string,
+  ) {
+    return this.budgetingService.calculateVariance(ctx.tenantId, budgetLineId);
+  }
+
+  @Post('workflow/submit')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER)
+  async submitForApproval(
+    @TenantCtx() ctx: TenantContext,
+    @Body('entityType') entityType: string,
+    @Body('entityId') entityId: string,
+    @Body('data') data: any,
+  ) {
+    return this.workflowIntegrationService.submitForApproval(ctx.tenantId, entityType as any, entityId, ctx.userId || 'anonymous', data);
+  }
+
+  @Post('expense/evaluate')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER)
+  async evaluateExpense(
+    @TenantCtx() ctx: TenantContext,
+    @Body('amount') amount: number,
+    @Body('category') category: string,
+  ) {
+    return this.expensePolicyService.evaluateExpense(ctx.tenantId, category, amount);
+  }
+}

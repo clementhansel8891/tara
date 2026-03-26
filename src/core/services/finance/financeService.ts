@@ -692,7 +692,7 @@ export const financeService = {
     tenantId: string,
     session: SessionContext,
   ): Promise<FinanceInsight[]> {
-    return apiRequest<FinanceInsight[]>("/finance/insights", "GET", session);
+    return apiRequest<FinanceInsight[]>("/finance/intelligence/insights", "GET", session);
   },
 
   async getFinanceOverview(
@@ -705,4 +705,69 @@ export const financeService = {
       session,
     );
   },
+
+  // Phase 8-11 Advanced Features
+  async getTrendReport(
+    session: SessionContext,
+    companyId: string,
+    periodIds: string[],
+  ): Promise<any> {
+    const query = periodIds.map(p => `periodIds[]=${p}`).join('&');
+    return apiRequest<any>(`/finance/reporting/trends?companyId=${companyId}&${query}`, "GET", session);
+  },
+
+  async getConsolidatedReport(
+    session: SessionContext,
+    companyIds: string[],
+    fiscalPeriodId: string,
+  ): Promise<any> {
+    const query = companyIds.map(c => `companyIds[]=${c}`).join('&');
+    return apiRequest<any>(`/finance/reporting/consolidated?fiscalPeriodId=${fiscalPeriodId}&${query}`, "GET", session);
+  },
+
+  async getBudgetVariance(
+    session: SessionContext,
+    companyId: string,
+    fiscalPeriodId: string,
+  ): Promise<any> {
+    return apiRequest<any>(`/finance/operations/budget/variance?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
+  },
+
+  async submitWorkflow(
+    session: SessionContext,
+    payload: { entityType: string; entityId: string; data: any },
+  ): Promise<any> {
+    return apiRequest<any>("/finance/operations/workflow/submit", "POST", session, payload);
+  },
+
+  async evaluateExpense(
+    session: SessionContext,
+    payload: { amount: number; category: string; departmentId: string },
+  ): Promise<any> {
+    return apiRequest<any>("/finance/operations/expense/evaluate", "POST", session, payload);
+  },
+
+  async getTaxReport(
+    session: SessionContext,
+    companyId: string,
+    fiscalPeriodId: string,
+  ): Promise<any> {
+    return apiRequest<any>(`/finance/compliance/tax/report?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
+  },
+
+  async verifyLedgerIntegrity(
+    session: SessionContext,
+    companyId: string,
+  ): Promise<any> {
+    return apiRequest<any>(`/finance/compliance/audit/integrity?companyId=${companyId}`, "GET", session);
+  },
+
+  async proveReport(
+    session: SessionContext,
+    reportId: string,
+    reportHash: string,
+  ): Promise<any> {
+    return apiRequest<any>(`/finance/compliance/audit/prove/${reportId}?reportHash=${reportHash}`, "GET", session);
+  },
 };
+

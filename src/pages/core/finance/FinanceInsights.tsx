@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/core/ui/PageHeader";
@@ -15,9 +16,16 @@ export default function FinanceInsights() {
   const [category, setCategory] = useState("ALL");
 
   const [insights, setInsights] = useState<FinanceInsight[]>([]);
+  const [auditIntegrity, setAuditIntegrity] = useState<any>(null);
+  const [budgetVariance, setBudgetVariance] = useState<any>(null);
 
   useEffect(() => {
+    const companyId = "C1"; // Mock company for demo context
+    const fiscalPeriodId = "P1";
+
     financeService.getFinanceInsights(session.tenantId, session).then(setInsights).catch(console.error);
+    financeService.verifyLedgerIntegrity(session, companyId).then(setAuditIntegrity).catch(console.error);
+    financeService.getBudgetVariance(session, companyId, fiscalPeriodId).then(setBudgetVariance).catch(console.error);
   }, [session.tenantId, session]);
 
   const filteredInsights = useMemo(
@@ -69,6 +77,11 @@ export default function FinanceInsights() {
         }
         secondaryActions={
           <div className="flex gap-2 items-center">
+            {auditIntegrity && (
+              <Badge variant={auditIntegrity.integrityRatio === 1 ? "default" : "destructive"}>
+                Ledger Integrity: {Math.round(auditIntegrity.integrityRatio * 100)}%
+              </Badge>
+            )}
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
@@ -86,21 +99,49 @@ export default function FinanceInsights() {
         }
       />
 
-      <WorkspacePanel
-        title="Top Insights"
-        description="Signal cards surface the most critical metrics this cycle."
-      >
-        <div className="grid gap-3 md:grid-cols-3">
-          {trendCards.map((item) => (
-            <div key={item.id} className="rounded-lg border p-3">
-              <p className="text-xs text-muted-foreground">{item.category}</p>
-              <p className="text-sm text-muted-foreground">{item.label}</p>
-              <p className="text-2xl font-semibold text-foreground">{item.value}</p>
-              <Badge variant="outline">{timeFrame}d</Badge>
+      <div className="grid gap-6 md:grid-cols-2">
+        <WorkspacePanel
+          title="Top Insights"
+          description="Signal cards surface the most critical metrics this cycle."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            {trendCards.map((item) => (
+              <div key={item.id} className="rounded-lg border p-3">
+                <p className="text-xs text-muted-foreground">{item.category}</p>
+                <p className="text-sm font-medium">{item.label}</p>
+                <p className="text-2xl font-semibold text-foreground">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </WorkspacePanel>
+
+        <WorkspacePanel
+          title="Budget Variance (Phase 9)"
+          description="Live variance tracking between Ledger Actuals and Budget Scenarios."
+        >
+          {budgetVariance ? (
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span>Total Variance</span>
+                <span className={budgetVariance.varianceAmount < 0 ? "text-destructive" : "text-green-600"}>
+                  {budgetVariance.varianceAmount >= 0 ? "+" : ""}{budgetVariance.varianceAmount.toLocaleString()}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-muted">
+                <div 
+                  className="h-full rounded-full bg-primary" 
+                  style={{ width: `${Math.min(100, Math.abs(budgetVariance.variancePercentage))}%` }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Current usage is {budgetVariance.variancePercentage}% relative to baseline.
+              </p>
             </div>
-          ))}
-        </div>
-      </WorkspacePanel>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">Fetching live budget data...</p>
+          )}
+        </WorkspacePanel>
+      </div>
 
       <WorkspacePanel
         title="Approval Workflow Insights"
@@ -128,27 +169,39 @@ export default function FinanceInsights() {
         </DataTableShell>
       </WorkspacePanel>
 
-      <WorkspacePanel
-        title="Category Breakdown"
-        description="Distribution of insight categories for this timeframe."
-      >
-        <div className="flex flex-wrap gap-2">
-          {breakdown.map((row) => (
-            <Badge key={row.category} variant="outline">
-              {row.category}: {row.count}
-            </Badge>
-          ))}
-        </div>
-      </WorkspacePanel>
+      <div className="grid gap-6 md:grid-cols-2">
+        <WorkspacePanel
+          title="Category Breakdown"
+          description="Distribution of insight categories."
+        >
+          <div className="flex flex-wrap gap-2">
+            {breakdown.map((row) => (
+              <Badge key={row.category} variant="outline">
+                {row.category}: {row.count}
+              </Badge>
+            ))}
+          </div>
+        </WorkspacePanel>
 
-      <WorkspacePanel
-        title="Period Closing Status"
-        description="Track the latest closing cycle and readiness."
-      >
-        <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-          Last period closed on 31-Jan-2026. Average closing duration: 3.2 days.
-        </div>
-      </WorkspacePanel>
+        <WorkspacePanel
+          title="Cryptographic Ledger Integrity (Phase 10)"
+          description="Real-time verification of the Merkle-chained financial ledger."
+        >
+          {auditIntegrity ? (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm">
+              <div className="flex items-center gap-2 font-semibold text-primary">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Verification Success</span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Verified {auditIntegrity.totalProcessed} entries. Integrity Hash: {auditIntegrity.headHash.substring(0, 16)}...
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">Verifying ledger chain...</p>
+          )}
+        </WorkspacePanel>
+      </div>
     </div>
   );
 }

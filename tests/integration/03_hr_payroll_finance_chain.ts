@@ -18,7 +18,9 @@ import {
   seedTestDepartment,
   seedTestEmployee,
   seedTestShift,
+  seedTestFiscalPeriod,
   testId,
+  seedTestAccount,
 } from "./helpers/seeds";
 
 async function runPhase3(): Promise<void> {
@@ -29,10 +31,11 @@ async function runPhase3(): Promise<void> {
     // ────────────────────────────────────────────────────────────────────────
     // STEP 3.1: Create base HR entities
     // ────────────────────────────────────────────────────────────────────────
-    let company: any, location: any, department: any, employee: any, shift: any;
+    let company: any, location: any, department: any, employee: any, shift: any, fiscalPeriod: any;
 
     try {
       company = await seedTestCompany(tx as any);
+      fiscalPeriod = await seedTestFiscalPeriod(tx as any, company.id);
       location = await seedTestLocation(tx as any, company.id);
       department = await seedTestDepartment(tx as any, company.id);
       employee = await seedTestEmployee(
@@ -244,30 +247,49 @@ async function runPhase3(): Promise<void> {
     let journalEntry: any;
     const journalRef = `PAYROLL-${payrollRun.id.slice(0, 8)}`;
 
+    // Seed needed accounts
+    const accExpense = await seedTestAccount(tx as any, company.id, '5000', 'Salary Expense', 'EXPENSE');
+    const accNetPay = await seedTestAccount(tx as any, company.id, '2010', 'Net Pay Payable', 'LIABILITY');
+    const accTax = await seedTestAccount(tx as any, company.id, '2020', 'Tax Withholding Payable', 'LIABILITY');
+
     try {
       journalEntry = await (tx as any).journalEntry.create({
         data: {
           tenantId: company.id,
+          fiscalPeriodId: fiscalPeriod.id,
           ref: journalRef,
+          postingDate: new Date(),
           description: `Payroll expense for ${payrollRun.id}`,
           status: "POSTED",
           lines: {
             create: [
               {
-                accountCode: "5000", // Salaries Expense (debit)
+                tenantId: company.id,
+                accountId: accExpense.id,
+                accountCode: "5000",
                 description: `Gross payroll — ${employee.firstName} ${employee.lastName}`,
+                side: "DEBIT",
+                amount: grossPay,
                 debit: grossPay,
                 credit: 0,
               },
               {
-                accountCode: "2010", // Salaries Payable (credit)
+                tenantId: company.id,
+                accountId: accNetPay.id,
+                accountCode: "2010",
                 description: `Net pay payable — ${employee.firstName} ${employee.lastName}`,
+                side: "CREDIT",
+                amount: netPay,
                 debit: 0,
                 credit: netPay,
               },
               {
-                accountCode: "2020", // Tax Withholding Payable (credit)
+                tenantId: company.id,
+                accountId: accTax.id,
+                accountCode: "2020",
                 description: `Tax withholding`,
+                side: "CREDIT",
+                amount: Number(grossPay) - netPay,
                 debit: 0,
                 credit: Number(grossPay) - netPay,
               },

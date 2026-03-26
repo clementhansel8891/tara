@@ -14,16 +14,19 @@ import {
   InventoryAlert,
   CreateMovementRequestDto,
   MovementRequest,
+  CreateAgenticEventDto,
+  AgenticEvent,
 } from "./inventory.repository.interface";
 import {
   Product,
   Location,
   Department,
   StockLevel,
-  InventoryAdjustment,
+  StockAdjustment as PrismaStockAdjustment,
   InventoryAlert as PrismaInventoryAlert,
   StockMovement as PrismaStockMovement,
   ProductCategory,
+  AgenticEvent as PrismaAgenticEvent,
 } from "@prisma/client";
 
 @Injectable()
@@ -65,7 +68,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       0,
     );
 
-    const pendingAdjustments = await this.prisma.inventoryAdjustment.count({
+    const pendingAdjustments = await this.prisma.stockAdjustment.count({
       where: { tenantId: tenantId, status: "PENDING_APPROVAL" },
     });
 
@@ -200,6 +203,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         departmentId: l.departmentId || undefined,
         quantity: l.onHand,
         reservedQuantity: l.reserved,
+        inTransitQuantity: l.inTransit,
         avgUnitCost: Number(l.product.basePrice || 0),
         reorderPoint: l.minBuffer,
         safetyStock: l.minBuffer,
@@ -240,42 +244,46 @@ export class InventoryDbRepository implements IInventoryRepository {
   async intakeStock(
     tenantId: string,
     data: StockIntakeDto,
+    providedTx?: any
   ): Promise<StockMovement> {
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Upsert stock level
-      const level = await tx.stockLevel.upsert({
-        where: {
-          locationId_productId_departmentId: {
+    const execute = async (tx: any) => {
+      // 1. Lock Row (or create if missing)
+      let level = await this.getLock(tx, tenantId, data.itemId, data.locationId);
+      
+      if (!level) {
+        level = await tx.stockLevel.create({
+          data: {
+            tenantId: tenantId,
             locationId: data.locationId,
+            departmentId: data.departmentId || null,
             productId: data.itemId,
-            departmentId: data.departmentId ?? (null as any),
+            onHand: data.quantity,
+            available: data.quantity,
           },
-        },
-        create: {
-          tenantId: tenantId,
-          locationId: data.locationId,
-          departmentId: data.departmentId || null,
-          productId: data.itemId,
-          onHand: data.quantity,
-          available: data.quantity,
-        },
-        update: {
-          onHand: { increment: data.quantity },
-          available: { increment: data.quantity },
-        },
-      });
+        });
+      } else {
+        await tx.stockLevel.update({
+          where: { id: level.id },
+          data: {
+            onHand: { increment: data.quantity },
+            available: { increment: data.quantity },
+          },
+        });
+      }
 
       // 2. Create movement
       const movement = await tx.stockMovement.create({
         data: {
           tenantId: tenantId,
           productId: data.itemId,
+          locationId: data.locationId, // Mandatory locationId
           toLocationId: data.locationId,
           toDepartmentId: data.departmentId || null,
           quantity: data.quantity,
           unitCost: data.unitCost,
           type: "INTAKE",
           referenceId: data.referenceId || `INTAKE-${Date.now()}`,
+          referenceType: data.referenceType || 'MANUAL',
           performedBy: data.createdBy || "system",
         },
       });
@@ -284,7 +292,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         id: movement.id,
         tenant_id: movement.tenantId,
         itemId: movement.productId,
-        movementType: "intake",
+        movementType: "intake" as any,
         quantity: movement.quantity,
         unitCost: Number(movement.unitCost),
         reason: "Intake",
@@ -294,63 +302,68 @@ export class InventoryDbRepository implements IInventoryRepository {
         createdBy: movement.performedBy,
         createdAt: movement.createdAt,
       };
-    });
+    };
+
+    return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
   }
 
-  async consumeStock(tenantId: string, data: any): Promise<any> {
-    // 1. Decrement stock level
-    const level = await this.prisma.stockLevel.update({
-      where: {
-        locationId_productId_departmentId: {
-          locationId: data.locationId,
-          productId: data.itemId,
-          departmentId: data.departmentId ?? (null as any),
-        },
-      },
-      data: {
-        onHand: { decrement: data.quantity },
-        available: { decrement: data.quantity },
-      },
-    });
+  async consumeStock(tenantId: string, data: any, providedTx?: any): Promise<any> {
+    const execute = async (tx: any) => {
+      // 1. Lock and check
+      const level = await this.getLock(tx, tenantId, data.itemId, data.locationId);
+      if (!level) throw new Error(`StockLevel not found for consumption`);
+      if (level.available < data.quantity) throw new Error(`Insufficient available stock (Available: ${level.available}, Requested: ${data.quantity})`);
 
-    // 2. Create movement
-    const movement = await this.prisma.stockMovement.create({
-      data: {
-        tenantId: tenantId,
-        productId: data.itemId,
-        fromLocationId: data.locationId,
-        quantity: data.quantity,
-        type: "OUT",
-        referenceId: data.referenceId || `CONSUME-${Date.now()}`,
-        performedBy: data.performedBy || "system",
-      },
-    });
-
-    return movement;
-  }
-
-  async transferStock(
-    tenantId: string,
-    data: TransferStockDto,
-  ): Promise<StockMovement[]> {
-    return this.prisma.$transaction(async (tx): Promise<StockMovement[]> => {
-      // Decrement source
+      // 2. Decrement stock level
       await tx.stockLevel.update({
-        where: {
-          locationId_productId_departmentId: {
-            locationId: data.fromLocationId,
-            productId: data.itemId,
-            departmentId: data.fromDepartmentId ?? (null as any),
-          },
-        },
+        where: { id: level.id },
         data: {
           onHand: { decrement: data.quantity },
           available: { decrement: data.quantity },
         },
       });
 
-      // Increment dest
-      await tx.stockLevel.upsert({
+      // 3. Create movement
+      const movement = await tx.stockMovement.create({
+        data: {
+          tenantId: tenantId,
+          productId: data.itemId,
+          locationId: data.locationId, // Mandatory locationId
+          fromLocationId: data.locationId,
+          quantity: -data.quantity,
+          type: "OUT",
+          referenceId: data.referenceId || `CONSUME-${Date.now()}`,
+          referenceType: data.referenceType || 'MANUAL',
+          performedBy: data.performedBy || "system",
+        },
+      });
+
+      return movement;
+    };
+
+    return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
+  }
+
+  async transferStock(
+    tenantId: string,
+    data: TransferStockDto,
+  ): Promise<StockMovement[]> {
+    // For legacy immediate transfer, we use a single transaction but lock both rows
+    return this.prisma.$transaction(async (tx): Promise<StockMovement[]> => {
+      const source = await this.getLock(tx, tenantId, data.itemId, data.fromLocationId);
+      if (!source || source.available < data.quantity) throw new Error(`Insufficient source stock for transfer`);
+
+      // 1. Decrement source
+      await tx.stockLevel.update({
+        where: { id: source.id },
+        data: {
+          onHand: { decrement: data.quantity },
+          available: { decrement: data.quantity },
+        },
+      });
+
+      // 2. Increment dest (standard immediate logic)
+      const dest = await tx.stockLevel.upsert({
         where: {
           locationId_productId_departmentId: {
             locationId: data.toLocationId,
@@ -372,50 +385,52 @@ export class InventoryDbRepository implements IInventoryRepository {
         },
       });
 
-      // Create movement records
+      // 3. Create movement records
       const outMove = await tx.stockMovement.create({
         data: {
           tenantId: tenantId,
           productId: data.itemId,
+          locationId: data.fromLocationId, // Mandatory locationId
+          fromLocationId: data.fromLocationId,
+          fromDepartmentId: data.fromDepartmentId || null,
+          toLocationId: data.toLocationId,
+          toDepartmentId: data.toDepartmentId || null,
+          quantity: -data.quantity,
+          type: "TRANSFER_OUT",
+          referenceId: data.referenceId || `TR-${Date.now()}`,
+          referenceType: data.referenceType || 'INTERNAL',
+          performedBy: data.createdBy || "system",
+        },
+      });
+
+      const inMove = await tx.stockMovement.create({
+        data: {
+          tenantId: tenantId,
+          productId: data.itemId,
+          locationId: data.toLocationId, // Mandatory locationId
           fromLocationId: data.fromLocationId,
           fromDepartmentId: data.fromDepartmentId || null,
           toLocationId: data.toLocationId,
           toDepartmentId: data.toDepartmentId || null,
           quantity: data.quantity,
-          type: "TRANSFER",
-          referenceId: `TRANSFER-${Date.now()}`,
+          type: "TRANSFER_IN",
+          referenceId: data.referenceId || `TR-${Date.now()}`,
+          referenceType: data.referenceType || 'INTERNAL',
           performedBy: data.createdBy || "system",
         },
       });
 
-      return [
-        {
-          id: outMove.id,
-          tenant_id: outMove.tenantId,
-          itemId: outMove.productId,
-          movementType: "transfer_out",
-          quantity: outMove.quantity,
-          unitCost: 0,
-          reason: "Transfer",
-          sourceLocationId: outMove.fromLocationId!,
-          sourceDepartmentId: outMove.fromDepartmentId || undefined,
-          destinationLocationId: outMove.toLocationId!,
-          destinationDepartmentId: outMove.toDepartmentId || undefined,
-          referenceId: outMove.referenceId,
-          createdBy: outMove.performedBy,
-          createdAt: outMove.createdAt,
-        },
-      ];
+      return [outMove as any, inMove as any];
     });
   }
 
   async getAdjustments(tenantId: string): Promise<StockAdjustment[]> {
-    const adjs = await this.prisma.inventoryAdjustment.findMany({
+    const adjs = await this.prisma.stockAdjustment.findMany({
       where: { tenantId: tenantId },
       orderBy: { createdAt: "desc" },
     });
 
-    return adjs.map((a: InventoryAdjustment) => ({
+    return adjs.map((a: PrismaStockAdjustment) => ({
       id: a.id,
       tenant_id: a.tenantId,
       itemId: a.itemId,
@@ -435,8 +450,10 @@ export class InventoryDbRepository implements IInventoryRepository {
   async createAdjustment(
     tenantId: string,
     data: CreateAdjustmentDto,
+    providedTx?: any
   ): Promise<StockAdjustment> {
-    const adj = await this.prisma.inventoryAdjustment.create({
+    const db = providedTx || this.prisma;
+    const adj = await db.stockAdjustment.create({
       data: {
         tenantId: tenantId,
         itemId: data.itemId,
@@ -470,7 +487,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     approvedBy: string,
   ): Promise<StockAdjustment> {
     return this.prisma.$transaction(async (tx) => {
-      const adj = await tx.inventoryAdjustment.update({
+      const adj = await tx.stockAdjustment.update({
         where: { id: adjustmentId, tenantId: tenantId },
         data: {
           status: "APPROVED",
@@ -506,11 +523,13 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           tenantId: tenantId,
           productId: adj.itemId,
+          locationId: adj.locationId,
           toLocationId: adj.locationId,
           toDepartmentId: adj.departmentId || null,
           quantity: Math.abs(adj.requestedDelta),
           type: adj.requestedDelta > 0 ? "ADJUSTMENT_PLUS" : "ADJUSTMENT_MINUS",
           referenceId: `ADJ-${adj.id}`,
+          referenceType: "ADJUSTMENT",
           performedBy: approvedBy,
         },
       });
@@ -806,62 +825,430 @@ export class InventoryDbRepository implements IInventoryRepository {
     tenant_id: string,
     data: CreateMovementRequestDto,
   ): Promise<MovementRequest> {
-    // Persist each line as a stock movement record with type MOVEMENT_REQUEST
-    // This is the audit-safe approach until a dedicated MovementRequest table is added
-    const referenceId = `MVR-${Date.now()}`;
-    const movements = await this.prisma.$transaction(async (tx) => {
-      const results = [];
-      for (const line of data.lines) {
-        // Try to find the product by SKU
-        const product = await tx.product.findFirst({
-          where: { tenantId: tenant_id, sku: line.sku },
-        });
-        if (!product) continue; // Skip lines without a matching product
-
-        const mov = await tx.stockMovement.create({
-          data: {
-            tenantId: tenant_id,
-            productId: product.id,
-            fromLocationId: data.sourceLocationId || null,
-            toLocationId: data.requestingLocationId,
-            quantity: line.quantity,
-            type: "MOVEMENT_REQUEST",
-            referenceId,
-            performedBy: "system",
-          },
-        });
-        results.push(mov);
-      }
-      return results;
+    const request = await this.prisma.movementRequest.create({
+      data: {
+        tenantId: tenant_id,
+        productId: data.productId,
+        fromLocationId: data.fromLocationId,
+        toLocationId: data.toLocationId,
+        quantity: data.quantity,
+        status: "PENDING",
+        priority: data.priority || "MEDIUM",
+      },
     });
 
     return {
-      id: referenceId,
-      tenant_id,
-      type: data.type,
-      requestingLocationId: data.requestingLocationId,
-      sourceType: data.sourceType,
-      lines: data.lines,
-      reason: data.reason,
-      status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any;
+      id: request.id,
+      tenant_id: request.tenantId,
+      productId: request.productId,
+      fromLocationId: request.fromLocationId,
+      toLocationId: request.toLocationId,
+      quantity: request.quantity,
+      priority: request.priority as any,
+      status: request.status.toLowerCase() as any,
+      requestedBy: request.requestedBy,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    };
   }
 
   async findHighestSkuByCategory(
-    tenantId: string,
+    tenant_id: string,
     category: string,
   ): Promise<string | null> {
     const product = await this.prisma.product.findFirst({
       where: {
-        tenantId,
-        category: {
-          name: category,
-        },
+        tenantId: tenant_id,
+        category: { name: category },
       },
       orderBy: { sku: "desc" },
     });
     return product?.sku || null;
+  }
+
+
+
+
+  // --- Financial-Grade Hardening ---
+
+  private async getLock(tx: any, tenantId: string, productId: string, locationId: string) {
+    const rows = await tx.$queryRaw`
+      SELECT id, on_hand AS "onHand", reserved, available, in_transit AS "inTransit"
+      FROM stock_levels 
+      WHERE tenant_id = ${tenantId} 
+        AND product_id = ${productId} 
+        AND location_id = ${locationId}
+      FOR UPDATE
+    `;
+    return rows[0] || null;
+  }
+
+  async reserveStock(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void> {
+    const execute = async (t: any) => {
+      const level = await this.getLock(t, tenant_id, productId, locationId);
+      if (!level) throw new Error(`StockLevel not found for reservation`);
+      
+      // Strict Invariant: available >= quantity
+      if (level.available < quantity) {
+        throw new Error(`Insufficient available stock for reservation (Available: ${level.available}, Requested: ${quantity})`);
+      }
+
+      await t.stockLevel.update({
+        where: { id: level.id },
+        data: {
+          reserved: { increment: quantity },
+          available: { decrement: quantity },
+        },
+      });
+
+      // Formal Reservation Record
+      await t.stockReservation.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId,
+          quantity,
+          status: 'PENDING',
+          referenceId,
+          referenceType,
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24h
+        },
+      });
+
+      await t.stockMovement.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId,
+          toLocationId: locationId,
+          quantity,
+          type: 'RESERVE',
+          referenceId,
+          referenceType,
+          reservationId: referenceId, // Linking for audit
+          performedBy: 'system',
+        },
+      });
+    };
+    return tx ? execute(tx) : this.prisma.$transaction(execute);
+  }
+
+  async releaseStock(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void> {
+    const execute = async (t: any) => {
+      const level = await this.getLock(t, tenant_id, productId, locationId);
+      if (!level) throw new Error(`StockLevel not found for release`);
+      
+      // Strict Invariant: reserved >= quantity
+      if (level.reserved < quantity) {
+        throw new Error(`Insufficient reserved stock for release (Reserved: ${level.reserved}, Requested: ${quantity})`);
+      }
+
+      await t.stockLevel.update({
+        where: { id: level.id },
+        data: {
+          reserved: { decrement: quantity },
+          available: { increment: quantity },
+        },
+      });
+
+      // Update Reservation Record
+      await t.stockReservation.updateMany({
+        where: { 
+          tenantId: tenant_id, 
+          referenceId, 
+          productId, 
+          status: 'PENDING' 
+        },
+        data: { status: 'RELEASED' },
+      });
+
+      await t.stockMovement.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId,
+          fromLocationId: locationId,
+          quantity: -quantity,
+          type: 'RELEASE',
+          referenceId,
+          referenceType,
+          reservationId: referenceId,
+          performedBy: 'system',
+        },
+      });
+    };
+    return tx ? execute(tx) : this.prisma.$transaction(execute);
+  }
+
+  async consumeFromReservation(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void> {
+    const execute = async (t: any) => {
+      const level = await this.getLock(t, tenant_id, productId, locationId);
+      if (!level) throw new Error(`StockLevel not found for consumption`);
+      
+      // Strict Invariants
+      if (level.reserved < quantity) throw new Error(`Insufficient reserved stock (Reserved: ${level.reserved}, Requested: ${quantity})`);
+      if (level.onHand < quantity) throw new Error(`Insufficient on-hand stock (OnHand: ${level.onHand}, Requested: ${quantity})`);
+
+      await t.stockLevel.update({
+        where: { id: level.id },
+        data: {
+          onHand: { decrement: quantity },
+          reserved: { decrement: quantity },
+          // available remains the same since both onHand and reserved drop by same amount
+        },
+      });
+
+      // Update Reservation Record
+      await t.stockReservation.updateMany({
+        where: { 
+          tenantId: tenant_id, 
+          referenceId, 
+          productId, 
+          status: 'PENDING' 
+        },
+        data: { status: 'CONSUMED' },
+      });
+
+      await t.stockMovement.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId,
+          fromLocationId: locationId,
+          quantity: -quantity,
+          type: 'CONSUME_RESERVED',
+          referenceId,
+          referenceType,
+          reservationId: referenceId,
+          performedBy: 'system',
+        },
+      });
+    };
+    return tx ? execute(tx) : this.prisma.$transaction(execute);
+  }
+
+  async transferOut(
+    tenant_id: string,
+    productId: string,
+    fromLocationId: string,
+    toLocationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    transferGroupId?: string,
+    tx?: any
+  ): Promise<StockMovement> {
+    const execute = async (t: any) => {
+      const sourceLevel = await this.getLock(t, tenant_id, productId, fromLocationId);
+      if (!sourceLevel || sourceLevel.available < quantity) throw new Error(`Insufficient stock for transfer out`);
+
+      // 1. Source: Decrement onHand and available
+      await t.stockLevel.update({
+        where: { id: sourceLevel.id },
+        data: {
+          onHand: { decrement: quantity },
+          available: { decrement: quantity },
+        },
+      });
+
+      // 2. Destination: Increment inTransit
+      await t.stockLevel.upsert({
+        where: {
+          locationId_productId_departmentId: {
+            locationId: toLocationId,
+            productId,
+            departmentId: null as any,
+          },
+        },
+        create: {
+          tenantId: tenant_id,
+          locationId: toLocationId,
+          productId,
+          onHand: 0,
+          inTransit: quantity,
+          available: 0,
+        },
+        update: {
+          inTransit: { increment: quantity },
+        },
+      });
+
+      return t.stockMovement.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId: fromLocationId,
+          fromLocationId,
+          toLocationId,
+          quantity: -quantity,
+          type: 'TRANSFER_OUT',
+          referenceId,
+          referenceType,
+          transferGroupId,
+          performedBy: 'system',
+        },
+      });
+    };
+    return tx ? execute(tx) : this.prisma.$transaction(execute);
+  }
+
+  async transferIn(
+    tenant_id: string,
+    productId: string,
+    fromLocationId: string,
+    toLocationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    transferGroupId?: string,
+    tx?: any
+  ): Promise<StockMovement> {
+    const execute = async (t: any) => {
+      const destLevel = await this.getLock(t, tenant_id, productId, toLocationId);
+      if (!destLevel || destLevel.inTransit < quantity) throw new Error(`Insufficient in-transit stock for transfer in (InTransit: ${destLevel.inTransit}, Requested: ${quantity})`);
+
+      // 1. Decrement inTransit
+      await t.stockLevel.update({
+        where: { id: destLevel.id },
+        data: {
+          inTransit: { decrement: quantity },
+          onHand: { increment: quantity },
+          available: { increment: quantity },
+        },
+      });
+
+      return t.stockMovement.create({
+        data: {
+          tenantId: tenant_id,
+          productId,
+          locationId: toLocationId,
+          fromLocationId,
+          toLocationId,
+          quantity: quantity,
+          type: 'TRANSFER_IN',
+          referenceId,
+          referenceType,
+          transferGroupId,
+          performedBy: 'system',
+        },
+      });
+    };
+    return tx ? execute(tx) : this.prisma.$transaction(execute);
+  }
+
+  async takeSnapshot(tenant_id: string, locationId: string): Promise<void> {
+    const levels = await this.prisma.stockLevel.findMany({
+        where: { tenantId: tenant_id, locationId }
+    });
+
+    await this.prisma.stockSnapshot.createMany({
+        data: levels.map(l => ({
+            tenantId: tenant_id,
+            locationId: l.locationId,
+            productId: l.productId,
+            onHand: l.onHand,
+            reserved: l.reserved,
+            available: l.available,
+            inTransit: l.inTransit,
+            snapshotAt: new Date(),
+        }))
+    });
+  }
+
+  // --- Stock State Upgrades (Helpers) ---
+  async updateStockReserved(
+    tenantId: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    type: 'increment' | 'decrement',
+    providedTx?: any
+  ): Promise<void> {
+    // Legacy helper - redirect to new formal methods if possible or keep logic
+    return this.reserveStock(tenantId, productId, locationId, quantity, `UP-RES-${Date.now()}`, 'ADJUSTMENT', providedTx);
+  }
+
+  async updateStockInTransit(
+    tenantId: string,
+    productId: string,
+    fromLocationId: string,
+    toLocationId: string,
+    quantity: number,
+    type: 'increment' | 'decrement',
+    providedTx?: any
+  ): Promise<void> {
+    // Helper used by service
+    const execute = async (tx: any) => {
+        if (type === 'increment') {
+            await this.transferOut(tenantId, productId, fromLocationId, toLocationId, quantity, `TR-OUT-${Date.now()}`, 'TRANSFER', tx);
+        } else {
+            await this.transferIn(tenantId, productId, fromLocationId, toLocationId, quantity, `TR-IN-${Date.now()}`, 'TRANSFER', tx);
+        }
+    };
+    return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
+  }
+
+  async findProductByCode(tenantId: string, code: string): Promise<any | null> {
+    return this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        OR: [{ barcode: code }, { sku: code }],
+      },
+    });
+  }
+
+  // --- Agentic Layer ---
+  async createAgenticEvent(
+    tenantId: string,
+    data: CreateAgenticEventDto,
+  ): Promise<AgenticEvent> {
+    const event = await this.prisma.agenticEvent.create({
+      data: {
+        tenantId,
+        eventType: data.eventType,
+        entityId: data.entityId,
+        entityType: data.entityType,
+        payload: data.payload as any,
+        sourceEventId: (data as any).sourceEventId || null,
+        correlationId: (data as any).correlationId || null,
+        status: "PENDING",
+      },
+    });
+    return {
+      id: event.id,
+      tenantId: event.tenantId,
+      eventType: event.eventType,
+      entityId: event.entityId,
+      entityType: event.entityType,
+      payload: event.payload as any,
+      status: event.status,
+      processedAt: event.processedAt || undefined,
+      errorMsg: event.errorMsg || undefined,
+      createdAt: event.createdAt,
+    };
   }
 }

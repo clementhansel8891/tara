@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProvisioningRequestDto } from "../dto/create-provisioning-request.dto";
 import { ProvisioningRequest } from "../entities/provisioning-request.entity";
 import { SystemHealth } from "../entities/system-health.entity";
+import { Device, DeviceEvent } from "../entities/device.entity";
+import { CreateDeviceDto, CreateDeviceEventDto } from "../dto/device.dto";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { IITRepository } from "./it.repository.interface";
 
 @Injectable()
 export class ITMockRepository extends IITRepository {
   private readonly provisioningRequests: ProvisioningRequest[] = [];
   private readonly healthChecks: SystemHealth[] = [];
+  private readonly devices: Device[] = [];
+  private readonly deviceEvents: DeviceEvent[] = [];
 
   constructor() {
     super();
@@ -152,4 +156,64 @@ export class ITMockRepository extends IITRepository {
   async getAuditLogs(tenantId: string, requestId?: string): Promise<any[]> {
     return []; // Mock return
   }
+
+  // Devices (NEW)
+  async getDevices(tenantId: string): Promise<Device[]> {
+    return this.devices.filter((d) => d.tenantId === tenantId);
+  }
+
+  async createDevice(tenantId: string, dto: CreateDeviceDto): Promise<Device> {
+    const created: Device = {
+      id: `dev-${Math.random().toString(36).substr(2, 9)}`,
+      tenantId,
+      name: dto.name,
+      type: dto.type,
+      connection: dto.connection,
+      status: "ONLINE",
+      locationId: dto.locationId,
+      ownerId: dto.ownerId,
+      metadata: dto.metadata || {},
+      createdAt: new Date(),
+    };
+    this.devices.push(created);
+    return created;
+  }
+
+  async updateDevice(
+    tenantId: string,
+    deviceId: string,
+    dto: Partial<CreateDeviceDto>,
+  ): Promise<Device> {
+    const device = this.devices.find((d) => d.id === deviceId && d.tenantId === tenantId);
+    if (!device) throw new NotFoundException("Device not found");
+    Object.assign(device, dto);
+    return device;
+  }
+
+  async getDevice(tenantId: string, deviceId: string): Promise<Device | null> {
+    return this.devices.find((d) => d.id === deviceId && d.tenantId === tenantId) || null;
+  }
+
+  // Device Events (NEW)
+  async getDeviceEvents(tenantId: string): Promise<DeviceEvent[]> {
+    return this.deviceEvents.filter((e) => e.tenantId === tenantId);
+  }
+
+  async createDeviceEvent(
+    tenantId: string,
+    dto: CreateDeviceEventDto,
+  ): Promise<DeviceEvent> {
+    const created: DeviceEvent = {
+      id: `evt-${Math.random().toString(36).substr(2, 9)}`,
+      tenantId,
+      deviceId: dto.deviceId,
+      eventType: dto.eventType,
+      payload: dto.payload,
+      processed: dto.processed || false,
+      createdAt: new Date(),
+    };
+    this.deviceEvents.push(created);
+    return created;
+  }
+
 }

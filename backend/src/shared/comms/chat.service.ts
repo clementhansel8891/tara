@@ -216,7 +216,9 @@ export class ChatService {
             title: 'Secure Comms Message',
             message: `${senderName}: ${params.body.substring(0, 50)}${params.body.length > 50 ? '...' : ''}`,
             type: 'CHAT',
-            link: '/core/chat'
+            link: '/core/chat',
+            priority: 'NORMAL',
+            eventReferenceId: message.id,
           });
 
           await this.notificationGateway.broadcastNotification({

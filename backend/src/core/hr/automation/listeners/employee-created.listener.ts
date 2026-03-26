@@ -9,7 +9,7 @@ export class EmployeeCreatedListener {
   constructor(private readonly eventBus: EventBusService) {}
 
   register() {
-    this.eventBus.subscribe(this.handle.bind(this));
+    this.eventBus.subscribe(EVENT_NAMES.EMPLOYEE_CREATED, 'EmployeeCreatedListener.handle', this.handle.bind(this));
   }
 
   private async handle(event: DomainEvent) {

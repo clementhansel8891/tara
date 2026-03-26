@@ -7,7 +7,7 @@ import {
   IsOptional,
   Min,
 } from "class-validator";
-import { Type } from "class-transformer";
+import { Type, Transform } from "class-transformer";
 
 export class JournalLineDto {
   @IsString()
@@ -20,10 +20,12 @@ export class JournalLineDto {
 
   @IsNumber()
   @Min(0)
+  @Transform(({ value }) => value?.toString())
   debit: number;
 
   @IsNumber()
   @Min(0)
+  @Transform(({ value }) => value?.toString())
   credit: number;
 }
 

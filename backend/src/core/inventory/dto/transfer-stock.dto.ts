@@ -37,5 +37,13 @@ export class TransferStockDto {
 
   @IsString()
   @IsOptional()
+  referenceType?: string;
+
+  @IsString()
+  @IsOptional()
+  referenceId?: string;
+
+  @IsString()
+  @IsOptional()
   createdBy?: string;
 }

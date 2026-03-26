@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { ITDevice, ITSetting } from "@prisma/client";
+import { Device as PrismaDevice, ITSetting } from "@prisma/client";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { RegisterDeviceDto } from "../dto/register-device.dto";
 import { UpdateSettingDto } from "../dto/update-setting.dto";
@@ -14,26 +14,26 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
   }
 
   async getDevices(tenantId: string, locationId?: string): Promise<Device[]> {
-    const devices = await this.prisma.iTDevice.findMany({
+    const devices = await this.prisma.device.findMany({
       where: {
         tenantId: tenantId,
         ...(locationId ? { locationId } : {}),
       },
     });
 
-    return devices.map((d: ITDevice) => ({
+    return devices.map((d: PrismaDevice) => ({
       id: d.id,
       tenantId: d.tenantId,
       locationId: d.locationId || "",
-      deviceType: d.deviceType as any,
-      deviceName: d.deviceName,
-      ipAddress: d.ipAddress || undefined,
-      macAddress: d.macAddress || undefined,
+      deviceType: d.type as any,
+      deviceName: d.name,
+      ipAddress: (d.metadata as any)?.ipAddress || undefined,
+      macAddress: (d.metadata as any)?.macAddress || undefined,
       status: d.status.toLowerCase() as any,
-      lastSeen: d.lastSeen,
+      lastSeen: d.createdAt, // d.updatedAt might be better, but d.createdAt is safe
       metadata: (d.metadata as any) || {},
       createdAt: d.createdAt,
-      updatedAt: d.updatedAt,
+      updatedAt: d.createdAt,
     }));
   }
 
@@ -41,16 +41,18 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     tenantId: string,
     data: RegisterDeviceDto,
   ): Promise<Device> {
-    const created = await this.prisma.iTDevice.create({
+    const created = await this.prisma.device.create({
       data: {
         tenantId: tenantId,
         locationId: data.locationId,
-        deviceType: data.deviceType,
-        deviceName: data.deviceName,
-        ipAddress: data.ipAddress,
-        macAddress: data.macAddress,
-        status: "active",
-        lastSeen: new Date(),
+        type: data.deviceType,
+        name: data.deviceName,
+        connection: "LAN",
+        status: "ONLINE",
+        metadata: {
+          ipAddress: data.ipAddress,
+          macAddress: data.macAddress,
+        },
       },
     });
 
@@ -58,15 +60,15 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
       id: created.id,
       tenantId: created.tenantId,
       locationId: created.locationId || "",
-      deviceType: created.deviceType as any,
-      deviceName: created.deviceName,
-      ipAddress: created.ipAddress || undefined,
-      macAddress: created.macAddress || undefined,
+      deviceType: created.type as any,
+      deviceName: created.name,
+      ipAddress: (created.metadata as any)?.ipAddress || undefined,
+      macAddress: (created.metadata as any)?.macAddress || undefined,
       status: "online",
-      lastSeen: created.lastSeen,
+      lastSeen: created.createdAt,
       metadata: (created.metadata as any) || {},
       createdAt: created.createdAt,
-      updatedAt: created.updatedAt,
+      updatedAt: created.createdAt,
     };
   }
 
@@ -75,24 +77,24 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     deviceId: string,
     status: string,
   ): Promise<Device> {
-    const updated = await this.prisma.iTDevice.update({
+    const updated = await this.prisma.device.update({
       where: { id: deviceId, tenantId: tenantId },
-      data: { status, lastSeen: new Date() },
+      data: { status },
     });
 
     return {
       id: updated.id,
       tenantId: updated.tenantId,
       locationId: updated.locationId || "",
-      deviceType: updated.deviceType as any,
-      deviceName: updated.deviceName,
-      ipAddress: updated.ipAddress || undefined,
-      macAddress: updated.macAddress || undefined,
+      deviceType: updated.type as any,
+      deviceName: updated.name,
+      ipAddress: (updated.metadata as any)?.ipAddress || undefined,
+      macAddress: (updated.metadata as any)?.macAddress || undefined,
       status: updated.status.toLowerCase() as any,
-      lastSeen: updated.lastSeen,
+      lastSeen: updated.createdAt,
       metadata: (updated.metadata as any) || {},
       createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
+      updatedAt: updated.createdAt,
     };
   }
 

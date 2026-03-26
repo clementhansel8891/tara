@@ -12,6 +12,8 @@ export class NotificationService {
     message: string;
     type: string;
     link?: string;
+    priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+    eventReferenceId: string;
   }) {
     return this.prisma.notification.create({
       data: {
@@ -21,6 +23,28 @@ export class NotificationService {
         message: params.message,
         type: params.type,
         link: params.link || null,
+        priority: params.priority || "NORMAL",
+        eventReferenceId: params.eventReferenceId || null,
+        status: params.priority === "URGENT" ? "PENDING" : "SENT", // Urgent might need separate worker processing
+      },
+    });
+  }
+
+  async retryNotification(tenantId: string, id: string) {
+    const notification = await this.prisma.notification.findUnique({
+      where: { id, tenantId },
+    });
+
+    if (!notification || notification.retryCount >= 5) {
+      return notification;
+    }
+
+    return this.prisma.notification.update({
+      where: { id, tenantId },
+      data: {
+        retryCount: { increment: 1 },
+        lastRetryAt: new Date(),
+        status: "PENDING", // Signal for re-delivery
       },
     });
   }

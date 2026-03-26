@@ -9,6 +9,8 @@ import {
   ClipboardCheck,
   ScanLine,
   ShieldCheck,
+  Warehouse,
+  Radio,
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -16,6 +18,8 @@ type MenuItem = { label: string; to: string; icon: React.ElementType };
 const TABS: MenuItem[] = [
   { label: "Dashboard", to: "/core/inventory/dashboard", icon: Boxes },
   { label: "Stock Hub", to: "/core/inventory/stock", icon: ScanLine },
+  { label: "Warehouse", to: "/core/inventory/warehouse", icon: Warehouse },
+  { label: "IoT Feed", to: "/core/inventory/iot-feed", icon: Radio },
   { label: "Receiving", to: "/core/inventory/receiving", icon: ActivitySquare },
   { label: "Adjustments", to: "/core/inventory/adjustments", icon: ClipboardCheck },
   { label: "Audit Log", to: "/core/inventory/audit", icon: ShieldCheck },

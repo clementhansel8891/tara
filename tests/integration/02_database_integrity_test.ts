@@ -37,7 +37,7 @@ async function runPhase2(): Promise<void> {
   try {
     const orphanPayrollLines = await prisma.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count FROM payroll_lines pl
-      WHERE NOT EXISTS (SELECT 1 FROM payroll_runs pr WHERE pr.id = pl.payroll_run_id)
+      WHERE NOT EXISTS (SELECT 1 FROM hr_payroll_runs pr WHERE pr.id = pl.payroll_run_id)
     `;
     const count = Number(orphanPayrollLines[0]?.count ?? 0);
     if (count === 0) {
@@ -180,8 +180,8 @@ async function runPhase2(): Promise<void> {
   // └──────────────────────────────────────────────────────────────────────────┘
   try {
     const ghostJournals = await prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(*) as count FROM journal_entries je
-      WHERE NOT EXISTS (SELECT 1 FROM journal_lines jl WHERE jl.journal_entry_id = je.id)
+      SELECT COUNT(*) as count FROM finance_journal_entries je
+      WHERE NOT EXISTS (SELECT 1 FROM finance_journal_lines jl WHERE jl.journal_entry_id = je.id)
     `;
     const count = Number(ghostJournals[0]?.count ?? 0);
     if (count === 0) {

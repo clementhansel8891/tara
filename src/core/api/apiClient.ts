@@ -18,10 +18,15 @@ export async function apiRequest<T>(
   session?: SessionContext,
   body?: unknown,
   tenantId?: string,
+  correlationId?: string,
 ): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+
+  if (correlationId) {
+    headers["x-correlation-id"] = correlationId;
+  }
 
   const finalTenantId = tenantId || session?.tenantId;
   if (finalTenantId) {

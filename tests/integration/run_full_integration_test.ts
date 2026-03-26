@@ -10,15 +10,7 @@ import fs from "fs";
 import path from "path";
 
 const phases = [
-  "01_system_topology_test.ts",
-  "02_database_integrity_test.ts",
-  "03_hr_payroll_finance_chain.ts",
-  "04_purchase_inventory_accounting_chain.ts",
-  "05_pos_inventory_payment_finance.ts",
-  "06_sales_department_flow.ts",
-  "07_marketing_conversion_flow.ts",
-  "08_multi_company_isolation.ts",
-  "09_multi_channel_sales_test.ts",
+  "16_retail_pos_inventory_integration_test.ts",
 ];
 
 console.log("====================================================");
@@ -33,9 +25,9 @@ for (const phaseFile of phases) {
   console.log(`Running Phase ${phaseNum}...`);
 
   try {
-    execSync(`node run-integration-tests.js ${phaseNum}`, {
+    execSync(`npx ts-node -T tests/integration/${phaseFile}`, {
       stdio: "inherit",
-      cwd: path.join(__dirname, "../backend"),
+      cwd: path.join(__dirname, "../../"),
     });
     totalPass++;
   } catch (e) {

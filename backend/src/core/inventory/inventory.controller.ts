@@ -20,6 +20,11 @@ import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { ModuleStateGuard } from "../auth/guards/module-state.guard";
 import { BranchGatingGuard } from "../auth/guards/branch-gating.guard";
+import { InventoryRolesGuard } from "./guards/inventory-roles.guard";
+import {
+  InventoryRole,
+  RequireInventoryRole,
+} from "./guards/inventory-role.decorator";
 import { RequiredModule } from "../../shared/decorators/required-module.decorator";
 import { CreateAdjustmentDto } from "./dto/create-adjustment.dto";
 import { CreateItemDto } from "./dto/create-item.dto";
@@ -27,6 +32,7 @@ import { StockIntakeDto } from "./dto/stock-intake.dto";
 import { TransferStockDto } from "./dto/transfer-stock.dto";
 import { ImportItemDto } from "./dto/import-item.dto";
 import { CreateMovementRequestDto } from "./dto/create-movement-request.dto";
+import { CreateAgenticEventDto } from "./dto/create-agentic-event.dto";
 import { InventoryService } from "./inventory.service";
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 import { AuditService } from "../../shared/audit/audit.service";
@@ -42,7 +48,12 @@ interface RequestWithTenant extends Request {
 
 @Controller("inventory")
 @UseInterceptors(TenantInterceptor)
-@UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
+@UseGuards(
+  ModuleStateGuard,
+  BranchGatingGuard,
+  TenantGuard,
+  InventoryRolesGuard,
+)
 @RequiredModule("inventory")
 export class InventoryController {
   constructor(
@@ -105,6 +116,7 @@ export class InventoryController {
   }
 
   @Post("items")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async createItem(
     @Req() request: RequestWithTenant,
     @Body() dto: CreateItemDto,
@@ -119,6 +131,7 @@ export class InventoryController {
   }
 
   @Post("items/batch-delete")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async batchDeleteItems(
     @Req() request: RequestWithTenant,
     @Body() body: { itemIds: string[] },
@@ -137,6 +150,7 @@ export class InventoryController {
   }
 
   @Delete("items/:id")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async deleteItem(
     @Req() request: RequestWithTenant,
     @Param("id") itemId: string,
@@ -152,6 +166,7 @@ export class InventoryController {
 
   @Post("items/import")
   @UseInterceptors(FileInterceptor("file"))
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async importItems(
     @Req() request: RequestWithTenant,
     @UploadedFile() file: Express.Multer.File,
@@ -211,6 +226,7 @@ export class InventoryController {
   }
 
   @Post("items/batch-json")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async batchCreateItemsJson(
     @Req() request: RequestWithTenant,
     @Body() body: { items: any[] },
@@ -321,6 +337,7 @@ export class InventoryController {
   }
 
   @Post("intake")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async intakeStock(
     @Req() request: RequestWithTenant,
     @Body() dto: StockIntakeDto,
@@ -337,6 +354,7 @@ export class InventoryController {
 
 
   @Post("transfer")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async transferStock(
     @Req() request: RequestWithTenant,
     @Body() dto: TransferStockDto,
@@ -352,15 +370,101 @@ export class InventoryController {
 
 
   @Post("consume")
-  async consumeStock(@Req() request: RequestWithTenant, @Body() dto: any) {
-    const { tenantId: tenant_id, locationId } = request.tenantContext;
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async consumeStock(
+    @Req() request: RequestWithTenant,
+    @Body() dto: any,
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, locationId, userId } = request.tenantContext;
     if (locationId && !dto.locationId) dto.locationId = locationId;
     return {
       success: true,
       tenant_id,
       message: "Stock consumption recorded",
-      data: await this.inventoryService.consumeStock(tenant_id, dto),
+      data: await this.inventoryService.consumeStock(
+        tenant_id,
+        dto,
+        userId,
+        null,
+        correlationId,
+      ),
     };
+  }
+
+  // --- Financial-Grade Reservation ---
+
+  @Post("reserve")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async reserveStock(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    await this.inventoryService.reserveStock(tenant_id, dto, userId || "system", correlationId);
+    return { success: true, message: "Stock reserved" };
+  }
+
+  @Post("release")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async releaseStock(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    await this.inventoryService.releaseStock(tenant_id, dto, userId || "system", correlationId);
+    return { success: true, message: "Stock released" };
+  }
+
+  @Post("confirm-reservation")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async confirmReservation(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    await this.inventoryService.confirmReservation(tenant_id, dto, userId || "system", correlationId);
+    return { success: true, message: "Reservation confirmed and stock consumed" };
+  }
+
+  // --- Multi-Step Transfer ---
+
+  @Post("transfer/initiate")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async initiateTransfer(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { productId: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string },
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    await this.inventoryService.initiateTransfer(tenant_id, dto, userId || "system", correlationId);
+    return { success: true, message: "Transfer initiated (In-Transit)" };
+  }
+
+  @Post("transfer/complete")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async completeTransfer(
+    @Req() request: RequestWithTenant,
+    @Body() dto: { productId: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string },
+    @Query("correlationId") correlationId?: string,
+  ) {
+    const { tenantId: tenant_id, userId } = request.tenantContext;
+    await this.inventoryService.completeTransfer(tenant_id, dto, userId || "system", correlationId);
+    return { success: true, message: "Transfer completed (Received)" };
+  }
+
+  @Post("snapshots")
+  @RequireInventoryRole(InventoryRole.MANAGER)
+  async runSnapshot(
+    @Req() request: RequestWithTenant,
+    @Query("locationId") locationId?: string,
+  ) {
+    const { tenantId: tenant_id } = request.tenantContext;
+    await this.inventoryService.runStockSnapshot(tenant_id, locationId || "ALL");
+    return { success: true, message: "Stock snapshot taken" };
   }
 
 
@@ -480,117 +584,6 @@ export class InventoryController {
     };
   }
 
-  /**
-   * Procurement Receipt Queue — lists approved Final POs not yet received by inventory.
-   * These appear in the Inventory Receiving screen.
-   */
-  @Get("procurement-receipts")
-  async getProcurementReceiptQueue(@Req() request: RequestWithTenant) {
-    const { tenantId: tenant_id } = request.tenantContext;
-    const finalPOs = await this.prisma.procurementFinalPO.findMany({
-      where: {
-        tenantId: tenant_id,
-        status: { in: ["RELEASED", "APPROVED", "DELIVERED"] },
-      },
-      include: {
-        supplier: { select: { name: true } },
-        supplierBranch: { select: { branchName: true } },
-        requisition: { select: { title: true, category: true } },
-      },
-      orderBy: { issuedAt: "desc" },
-    });
-
-    return {
-      success: true,
-      tenant_id,
-      count: finalPOs.length,
-      data: finalPOs.map((po: any) => ({
-        id: po.id,
-        requisitionId: po.requisitionId,
-        supplierId: po.supplierId,
-        supplierName: po.supplier?.name || "Unknown",
-        supplierBranch: po.supplierBranch?.branchName,
-        title: po.requisition?.title || `PO-${po.id.substring(0, 8)}`,
-        category: po.requisition?.category,
-        status: po.status,
-        totalAmount: po.totalAmount,
-        issuedAt: po.issuedAt,
-        expectedDeliveryDate: po.expectedDeliveryDate,
-      })),
-    };
-  }
-
-  /**
-   * Process a Procurement Receipt — receives a delivered PO into inventory.
-   * Flow: FinalPO → RECEIVED status + create StockMovements (INTAKE) for each item in the PO.
-   */
-  @Post("procurement-receipts/:id/process")
-  async processProcurementReceipt(
-    @Req() request: RequestWithTenant,
-    @Param("id") finalPoId: string,
-    @Body()
-    body: {
-      locationId: string;
-      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
-    },
-  ) {
-    const { tenantId: tenant_id, userId } = request.tenantContext;
-
-    // Update the finalPO status to RECEIVED
-    await this.prisma.procurementFinalPO.update({
-      where: { id: finalPoId, tenantId: tenant_id },
-      data: { status: "RECEIVED" },
-    });
-
-    // Process each item as a stock intake
-    const intakeResults = [];
-    for (const item of body.items || []) {
-      try {
-        const product = await this.prisma.product.findFirst({
-          where: { tenantId: tenant_id, sku: item.sku },
-        });
-        if (!product) continue;
-
-        const result = await this.inventoryService.intakeStock(
-          tenant_id,
-          {
-            itemId: product.id,
-            locationId: body.locationId,
-            quantity: item.quantity,
-            unitCost: item.unitCost || 0,
-            referenceId: `PO-${finalPoId}`,
-            referenceType: "PROCUREMENT_PO",
-          } as any,
-          userId,
-        );
-        intakeResults.push(result);
-      } catch (err) {
-        console.error(`[ProcurementReceipt] Failed intake for SKU ${item.sku}:`, err);
-      }
-    }
-
-    await this.auditService.log({
-      tenantId: tenant_id,
-      userId: userId || "system",
-      module: "INVENTORY",
-      action: "PROCUREMENT_RECEIPT",
-      entityType: "FINAL_PO",
-      entityId: finalPoId,
-      metadata: {
-        locationId: body.locationId,
-        itemCount: body.items?.length || 0,
-        intakeCount: intakeResults.length,
-      },
-    });
-
-    return {
-      success: true,
-      tenant_id,
-      message: `Procurement receipt processed — ${intakeResults.length} items added to inventory`,
-      data: intakeResults,
-    };
-  }
-
   // ─── Adjustments ────────────────────────────────────────────────
 
   @Get("adjustments")
@@ -624,6 +617,7 @@ export class InventoryController {
   }
 
   @Put("adjustments/:id/approve")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async approveAdjustment(
     @Req() request: RequestWithTenant,
     @Param("id") adjustmentId: string,
@@ -689,6 +683,7 @@ export class InventoryController {
   }
 
   @Post("audit-cycles")
+  @RequireInventoryRole(InventoryRole.MANAGER)
   async createAuditCycle(
     @Req() request: RequestWithTenant,
     @Body() body: { locationCode: string; departmentCode?: string; scope: string },
@@ -716,6 +711,7 @@ export class InventoryController {
   }
 
   @Put("audit-cycles/:id")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async updateAuditCycle(
     @Req() request: RequestWithTenant,
     @Param("id") cycleId: string,
@@ -750,6 +746,7 @@ export class InventoryController {
   // ─── Stock Scans ─────────────────────────────────────────────────
 
   @Post("scans/low-stock")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async runLowStockScan(@Req() request: RequestWithTenant) {
     const { tenantId: tenant_id, userId } = request.tenantContext;
     const result = await this.inventoryService.runLowStockScan(tenant_id);
@@ -766,6 +763,7 @@ export class InventoryController {
   }
 
   @Post("scans/expiry")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async runExpiryScan(@Req() request: RequestWithTenant) {
     const { tenantId: tenant_id, userId } = request.tenantContext;
     const result = await this.inventoryService.runExpiryScan(tenant_id);

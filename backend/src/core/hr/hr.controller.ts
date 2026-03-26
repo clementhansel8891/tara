@@ -14,9 +14,11 @@ import {
   UseInterceptors,
   UseGuards,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { Request, Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
+import { IdempotencyInterceptor } from "../../shared/interceptors/idempotency.interceptor";
 import { HRService } from "./hr.service";
 import { IHRRepository } from "./repositories/hr.repository.interface";
 import { PrismaService } from "../../persistence/prisma.service";
@@ -88,9 +90,10 @@ interface RequestWithTenant extends Request {
  * All endpoints require x-tenant-id header
  */
 @Controller("api/hr")
-@UseInterceptors(TenantInterceptor, HRMutationInterceptor)
+@UseInterceptors(TenantInterceptor, HRMutationInterceptor, IdempotencyInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("hr")
+@Throttle({ default: { limit: 20, ttl: 60000 } })
 export class HRController {
   constructor(
     private readonly hrService: HRService,

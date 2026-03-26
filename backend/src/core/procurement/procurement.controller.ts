@@ -307,6 +307,20 @@ export class ProcurementController {
     };
   }
 
+  @Post("purchase-orders/:id/process-receipt")
+  async processProcurementReceipt(
+    @Req() request: RequestWithTenant,
+    @Param("id") finalPoId: string,
+    @Body() body: {
+      locationId: string;
+      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
+      receiptType?: "FULL" | "PARTIAL";
+    },
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    return await this.procurementService.processReceipt(tenantId, finalPoId, body, userId);
+  }
+
   // ─── CONTRACTS ────────────────────────────────────────────────────────────────
 
   @Get("contracts")

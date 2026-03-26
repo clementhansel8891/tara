@@ -40,6 +40,7 @@ export class TenantInterceptor implements NestInterceptor {
     // Attach tenant context to request object
     const tenantContext: TenantContext = {
       tenantId: tenantId as string,
+      companyId: (request.headers["x-company-id"] as string) || "default",
       locationId: locationId as string | undefined,
       userId: userId as string | undefined,
       role: role as string | undefined,

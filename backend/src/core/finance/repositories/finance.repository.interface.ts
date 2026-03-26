@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { LedgerEntry } from "../entities/ledger-entry.entity";
 import { Transaction } from "../entities/transaction.entity";
 import { Balance } from "../entities/balance.entity";
@@ -43,8 +44,13 @@ export abstract class IFinanceRepository {
   abstract createTransaction(
     tenantId: string,
     data: CreateTransactionDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Transaction>;
-  abstract createJournal(tenantId: string, data: any): Promise<any>;
+  abstract createJournal(
+    tenantId: string,
+    data: any,
+    tx?: Prisma.TransactionClient,
+  ): Promise<any>;
   abstract getBalance(tenantId: string): Promise<Balance>;
   abstract getTransactionById(
     tenantId: string,
@@ -59,11 +65,13 @@ export abstract class IFinanceRepository {
   abstract createTransfer(
     tenantId: string,
     data: Partial<TreasuryTransfer>,
+    tx?: Prisma.TransactionClient,
   ): Promise<TreasuryTransfer>;
   abstract reconcileSettlement(
     tenantId: string,
     sourceId: string,
     amount: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<void>;
 
   // Assets
@@ -72,11 +80,16 @@ export abstract class IFinanceRepository {
     tenantId: string,
     assetId: string,
   ): Promise<Asset | null>;
-  abstract createAsset(tenantId: string, asset: Partial<Asset>): Promise<Asset>;
+  abstract createAsset(
+    tenantId: string,
+    asset: Partial<Asset>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Asset>;
   abstract updateAsset(
     tenantId: string,
     assetId: string,
     updates: Partial<Asset>,
+    tx?: Prisma.TransactionClient,
   ): Promise<Asset | null>;
 
   // Capex
@@ -88,11 +101,13 @@ export abstract class IFinanceRepository {
   abstract createCapexRequest(
     tenantId: string,
     request: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest>;
   abstract updateCapexRequest(
     tenantId: string,
     id: string,
     updates: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest | null>;
   abstract listCapexBudgets(tenantId: string): Promise<FinanceCapexBudgetRow[]>;
   abstract setCapexBudget(
@@ -108,6 +123,7 @@ export abstract class IFinanceRepository {
   abstract createDepreciationEntry(
     tenantId: string,
     entry: Partial<AssetDepreciationEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<AssetDepreciationEntry>;
   abstract listAssetEvents(
     tenantId: string,
@@ -116,6 +132,7 @@ export abstract class IFinanceRepository {
   abstract createAssetEvent(
     tenantId: string,
     event: Partial<AssetEvent>,
+    tx?: Prisma.TransactionClient,
   ): Promise<AssetEvent>;
   abstract getAssetAuditPack(
     tenantId: string,
@@ -127,11 +144,13 @@ export abstract class IFinanceRepository {
   abstract createReceivable(
     tenantId: string,
     invoice: Partial<ReceivableInvoice>,
+    tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice>;
   abstract updateReceivable(
     tenantId: string,
     id: string,
     updates: Partial<ReceivableInvoice>,
+    tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice | null>;
 
   // Payables
@@ -139,11 +158,13 @@ export abstract class IFinanceRepository {
   abstract createPayable(
     tenantId: string,
     bill: Partial<PayableBill>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayableBill>;
   abstract updatePayable(
     tenantId: string,
     id: string,
     updates: Partial<PayableBill>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayableBill | null>;
 
   // Payments
@@ -151,11 +172,13 @@ export abstract class IFinanceRepository {
   abstract createPaymentRequest(
     tenantId: string,
     request: Partial<PaymentRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentRequest>;
   abstract updatePaymentStatus(
     tenantId: string,
     id: string,
     status: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<void>;
 
   // Documents
@@ -163,6 +186,7 @@ export abstract class IFinanceRepository {
   abstract createDocument(
     tenantId: string,
     doc: Partial<FinanceDocumentRow>,
+    tx?: Prisma.TransactionClient,
   ): Promise<FinanceDocumentRow>;
 
   // Policies & Periods
@@ -181,6 +205,7 @@ export abstract class IFinanceRepository {
   abstract createPayrollEntry(
     tenantId: string,
     entry: Partial<PayrollEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry>;
   abstract estimatePayroll(
     tenantId: string,
@@ -190,10 +215,12 @@ export abstract class IFinanceRepository {
     tenantId: string,
     period: string,
     userId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<void>;
   abstract updatePayrollEntry(
     tenantId: string,
     id: string,
     updates: Partial<PayrollEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry | null>;
 }

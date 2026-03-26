@@ -6,6 +6,7 @@ export class StockBalance {
   departmentId?: string;
   quantity: number;
   reservedQuantity: number;
+  inTransitQuantity: number;
   avgUnitCost: number;
   reorderPoint: number;
   safetyStock: number;

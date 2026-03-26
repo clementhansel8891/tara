@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 import { AdminModule } from "../admin/admin.module";
+import { InventoryModule } from "../inventory/inventory.module";
+import { EventsModule } from "../../shared/events/events.module";
 import { RetailController } from "./retail.controller";
 import { RetailInfrastructureController } from "./retail-infrastructure.controller";
 import { RetailPublicGatewayController } from "./retail-public.gateway.controller";
@@ -26,12 +28,10 @@ import { ChannelCredentialsGuard } from "./guards/channel-credentials.guard";
 import { CustomerAuthGuard } from "./guards/customer-auth.guard";
 import { EcommerceConnectorGuard } from "./guards/ecommerce-connector.guard";
 import { AuditModule } from "../../shared/audit/audit.module";
-import { InventoryModule } from "../inventory/inventory.module";
-import { FinanceModule } from "../finance/finance.module";
 import { RetailSeeder } from "./seeders/retail.seeder";
 
 @Module({
-  imports: [AdminModule, AuditModule, InventoryModule, FinanceModule],
+  imports: [AdminModule, InventoryModule, EventsModule, AuditModule],
   controllers: [
     RetailController,
     RetailInfrastructureController,

@@ -38,7 +38,7 @@ export class AutomationService implements OnModuleInit {
     });
 
     // Subscribe to ALL events
-    (this.eventBus as any).subscribe("*", async (event: any) => {
+    (this.eventBus as any).subscribe("*", "AutomationService.audit", async (event: any) => {
       await this.processEvent(event);
     });
 
@@ -134,6 +134,6 @@ export class AutomationService implements OnModuleInit {
       entityType: "AUTOMATION_RULE",
       entityId: rule.id,
       metadata: { actionType: rule.actionType },
-    });
+    }, (event as any).tx);
   }
 }

@@ -25,6 +25,12 @@ const PHASES = [
   "07_marketing_conversion_flow.ts",
   "08_multi_company_isolation.ts",
   "09_multi_channel_sales_test.ts",
+  "10_financial_integrity_guard.ts",
+  "11_financial_projections.ts",
+  "12_financial_reporting.ts",
+  "13_saas_isolation.ts",
+  "14_consolidation_engine.ts",
+  "15_inventory_subledger_costing_test.ts",
 ];
 
 const arg = process.argv[2] ?? "all";

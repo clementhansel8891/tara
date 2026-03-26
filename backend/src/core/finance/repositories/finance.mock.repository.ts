@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { IFinanceRepository } from "./finance.repository.interface";
 import { LedgerEntry } from "../entities/ledger-entry.entity";
 import { Transaction } from "../entities/transaction.entity";
@@ -56,14 +57,14 @@ export class FinanceMockRepository extends IFinanceRepository {
       name: "Main Operating Account",
       type: "BANK_ACCOUNT",
       currency: "USD",
-      balance: 150000,
+      balance: new Prisma.Decimal(150000),
     },
     {
       id: "ms-2",
       name: "Payroll Account",
       type: "BANK_ACCOUNT",
       currency: "USD",
-      balance: 50000,
+      balance: new Prisma.Decimal(50000),
     },
   ];
 
@@ -76,7 +77,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     // Basic mock initialization for core ledgers
     this.createMockLedgerEntries("tenant-001", "location-001", [
       {
-        amount: 50000,
+        amount: new Prisma.Decimal(50000),
         type: "credit",
         description: "Initial Capital",
         category: "Equity",
@@ -114,12 +115,13 @@ export class FinanceMockRepository extends IFinanceRepository {
         id: `${tenantId}-leg-${i}`,
         tenantId,
         locationId,
-        amount: e.amount,
+        amount: new Prisma.Decimal(e.amount),
         type: e.type,
         description: e.description,
         category: e.category,
         timestamp: baseDate,
-        balance: 0,
+        effectiveDate: baseDate,
+        balance: new Prisma.Decimal(0),
         referenceId: `ref-${i}`,
       } as LedgerEntry);
     });
@@ -140,12 +142,13 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createTransaction(
     tenantId: string,
     data: CreateTransactionDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Transaction> {
     const txn: Transaction = {
       id: `${tenantId}-txn-${Date.now()}`,
       tenantId,
       locationId: data.locationId ?? "default",
-      amount: data.amount,
+      amount: new Prisma.Decimal(data.amount),
       type: data.type,
       description: data.description,
       category: data.category,
@@ -157,7 +160,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     return txn;
   }
 
-  async createJournal(tenantId: string, data: any): Promise<any> {
+  async createJournal(tenantId: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
     const journal = {
       id: `${tenantId}-jr-${Date.now()}`,
       tenantId,
@@ -176,11 +179,11 @@ export class FinanceMockRepository extends IFinanceRepository {
   async getBalance(tenantId: string): Promise<Balance> {
     return {
       tenantId,
-      totalBalance: 100000, // Mock fixed balance
+      totalBalance: new Prisma.Decimal(100000), // Mock fixed balance
       currency: "USD",
       lastUpdated: new Date(),
-      totalDebits: 5000,
-      totalCredits: 105000,
+      totalDebits: new Prisma.Decimal(5000),
+      totalCredits: new Prisma.Decimal(105000),
       transactionCount: 10,
     };
   }
@@ -209,6 +212,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createTransfer(
     tenantId: string,
     data: Partial<TreasuryTransfer>,
+    tx?: Prisma.TransactionClient,
   ): Promise<TreasuryTransfer> {
     const transfer: TreasuryTransfer = {
       id: `TR-${Date.now()}`,
@@ -230,14 +234,15 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     sourceId: string,
     amount: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const source = this.moneySources.find((s) => s.id === sourceId);
     if (source) {
-      source.balance += amount;
+      source.balance = source.balance.plus(amount);
       if (source.pendingSettlement) {
-        source.pendingSettlement = Math.max(
+        source.pendingSettlement = Prisma.Decimal.max(
           0,
-          source.pendingSettlement - amount,
+          source.pendingSettlement.minus(amount),
         );
       }
     }
@@ -249,10 +254,10 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   async getAssetById(tenantId: string, assetId: string): Promise<Asset | null> {
-    return this.assets.find((a) => a.id === assetId) || null;
+    return this.assets.find((a) => a.tenantId === tenantId && a.id === assetId) || null;
   }
 
-  async createAsset(tenantId: string, asset: Partial<Asset>): Promise<Asset> {
+  async createAsset(tenantId: string, asset: Partial<Asset>, tx?: Prisma.TransactionClient): Promise<Asset> {
     const newAsset = {
       ...asset,
       id: `ast-${Date.now()}`,
@@ -266,6 +271,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     assetId: string,
     updates: Partial<Asset>,
+    tx?: Prisma.TransactionClient,
   ): Promise<Asset | null> {
     const idx = this.assets.findIndex((a) => a.id === assetId);
     if (idx === -1) return null;
@@ -288,6 +294,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createCapexRequest(
     tenantId: string,
     request: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest> {
     const newReq = {
       ...request,
@@ -302,6 +309,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     id: string,
     updates: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest | null> {
     const idx = this.capexRequests.findIndex((c) => c.id === id);
     if (idx === -1) return null;
@@ -340,6 +348,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createDepreciationEntry(
     tenantId: string,
     entry: Partial<AssetDepreciationEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<AssetDepreciationEntry> {
     const newEntry = {
       ...entry,
@@ -359,6 +368,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createAssetEvent(
     tenantId: string,
     event: Partial<AssetEvent>,
+    tx?: Prisma.TransactionClient,
   ): Promise<AssetEvent> {
     const newEvent = { ...event, id: `evt-${Date.now()}` } as AssetEvent;
     this.assetEvents.push(newEvent);
@@ -392,6 +402,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createReceivable(
     tenantId: string,
     invoice: Partial<ReceivableInvoice>,
+    tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice> {
     const newInv = {
       ...invoice,
@@ -418,6 +429,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     id: string,
     updates: Partial<ReceivableInvoice>,
+    tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice | null> {
     const idx = this.receivableInvoices.findIndex((i) => i.id === id);
     if (idx === -1) return null;
@@ -436,6 +448,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createPayable(
     tenantId: string,
     bill: Partial<PayableBill>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayableBill> {
     const newBill = {
       ...bill,
@@ -461,6 +474,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     id: string,
     updates: Partial<PayableBill>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayableBill | null> {
     const idx = this.payableBills.findIndex((i) => i.id === id);
     if (idx === -1) return null;
@@ -484,6 +498,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createPaymentRequest(
     tenantId: string,
     request: Partial<PaymentRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentRequest> {
     const newPay = {
       ...request,
@@ -498,6 +513,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     id: string,
     status: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const p = this.payments.find((p) => p.id === id);
     if (p) p.status = status as any;
@@ -511,6 +527,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createDocument(
     tenantId: string,
     doc: Partial<FinanceDocumentRow>,
+    tx?: Prisma.TransactionClient,
   ): Promise<FinanceDocumentRow> {
     const newDoc = { ...doc, id: `doc-${Date.now()}` } as FinanceDocumentRow;
     this.documents.push(newDoc);
@@ -546,6 +563,7 @@ export class FinanceMockRepository extends IFinanceRepository {
   async createPayrollEntry(
     tenantId: string,
     entry: Partial<PayrollEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry> {
     const newEntry = { ...entry, id: `pay-${Date.now()}` } as PayrollEntry;
     this.payroll.push(newEntry);
@@ -556,6 +574,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     id: string,
     updates: Partial<PayrollEntry>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry | null> {
     const idx = this.payroll.findIndex((p) => p.id === id);
     if (idx === -1) return null;
@@ -575,32 +594,32 @@ export class FinanceMockRepository extends IFinanceRepository {
       const deptName = emp.department?.name || "Unassigned";
       const compensation = this.compensations.find(c => c.employeeId === emp.id);
       
-      let gross = 0;
+      let gross = new Prisma.Decimal(0);
       if (compensation) {
-        gross = Number(compensation.baseSalary);
+        gross = new Prisma.Decimal(compensation.baseSalary);
         if (compensation.allowances) {
-          compensation.allowances.forEach((a: any) => gross += Number(a.amount));
+          compensation.allowances.forEach((a: any) => gross = gross.plus(a.amount));
         }
         if (compensation.bonuses) {
-          compensation.bonuses.forEach((b: any) => gross += Number(b.amount));
+          compensation.bonuses.forEach((b: any) => gross = gross.plus(b.amount));
         }
       }
 
-      const net = gross * 0.9;
+      const net = gross.times(0.9);
 
       if (!estimatesMap.has(deptName)) {
         estimatesMap.set(deptName, {
           department: deptName,
           employeeCount: 0,
-          totalGross: 0,
-          totalNet: 0,
+          totalGross: new Prisma.Decimal(0),
+          totalNet: new Prisma.Decimal(0),
         });
       }
 
       const est = estimatesMap.get(deptName)!;
       est.employeeCount += 1;
-      est.totalGross += gross;
-      est.totalNet += net;
+      est.totalGross = est.totalGross.plus(gross);
+      est.totalNet = est.totalNet.plus(net);
     }
 
     if (estimatesMap.size === 0) {
@@ -609,8 +628,8 @@ export class FinanceMockRepository extends IFinanceRepository {
         {
           department: "Engineering",
           employeeCount: 1,
-          totalGross: 13000,
-          totalNet: 11700,
+          totalGross: new Prisma.Decimal(13000),
+          totalNet: new Prisma.Decimal(11700),
         }
       ];
     }
@@ -622,6 +641,7 @@ export class FinanceMockRepository extends IFinanceRepository {
     tenantId: string,
     period: string,
     userId: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const estimates = await this.estimatePayroll(tenantId, period);
     if (estimates.length === 0) return;

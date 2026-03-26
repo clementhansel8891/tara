@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { ITProvisioningRequest, ITSystemHealth } from "@prisma/client";
+import { ITProvisioningRequest, ITSystemHealth, Device as PrismaDevice, DeviceEvent as PrismaDeviceEvent } from "@prisma/client";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { CreateProvisioningRequestDto } from "../dto/create-provisioning-request.dto";
 import { ProvisioningRequest } from "../entities/provisioning-request.entity";
 import { SystemHealth } from "../entities/system-health.entity";
+import { Device, DeviceEvent } from "../entities/device.entity";
+import { CreateDeviceDto, CreateDeviceEventDto } from "../dto/device.dto";
 import { IITRepository } from "./it.repository.interface";
 
 @Injectable()
@@ -194,64 +196,127 @@ export class ITDbRepository extends IITRepository {
     });
   }
 
+  // Devices (NEW)
+  async getDevices(tenantId: string): Promise<Device[]> {
+    const devices = await this.prisma.device.findMany({
+      where: { tenantId },
+    });
+    return devices.map((d) => this.mapToDevice(d));
+  }
+
+  async createDevice(tenantId: string, dto: CreateDeviceDto): Promise<Device> {
+    const created = await this.prisma.device.create({
+      data: {
+        tenantId,
+        name: dto.name,
+        type: dto.type,
+        connection: dto.connection,
+        locationId: dto.locationId,
+        ownerId: dto.ownerId,
+        status: "ONLINE",
+        metadata: dto.metadata || {},
+      },
+    });
+    return this.mapToDevice(created);
+  }
+
+  async updateDevice(
+    tenantId: string,
+    deviceId: string,
+    dto: Partial<CreateDeviceDto>,
+  ): Promise<Device> {
+    const updated = await this.prisma.device.update({
+      where: { id: deviceId, tenantId },
+      data: dto as any,
+    });
+    return this.mapToDevice(updated);
+  }
+
+  async getDevice(tenantId: string, deviceId: string): Promise<Device | null> {
+    const device = await this.prisma.device.findUnique({
+      where: { id: deviceId, tenantId },
+    });
+    return device ? this.mapToDevice(device) : null;
+  }
+
+  // Device Events (NEW)
+  async getDeviceEvents(tenantId: string): Promise<DeviceEvent[]> {
+    const events = await this.prisma.deviceEvent.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    return events.map((e) => this.mapToDeviceEvent(e));
+  }
+
+  async createDeviceEvent(
+    tenantId: string,
+    dto: CreateDeviceEventDto,
+  ): Promise<DeviceEvent> {
+    const created = await this.prisma.deviceEvent.create({
+      data: {
+        tenantId,
+        deviceId: dto.deviceId,
+        eventType: dto.eventType,
+        payload: dto.payload,
+        processed: dto.processed || false,
+      },
+    });
+    return this.mapToDeviceEvent(created);
+  }
+
+  // Helpers
+  private mapToDevice(r: PrismaDevice): Device {
+    return {
+      id: r.id,
+      tenantId: r.tenantId,
+      name: r.name,
+      type: r.type,
+      connection: r.connection,
+      status: r.status,
+      locationId: r.locationId || undefined,
+      ownerId: r.ownerId || undefined,
+      metadata: r.metadata,
+      createdAt: r.createdAt,
+    };
+  }
+
+  private mapToDeviceEvent(r: PrismaDeviceEvent): DeviceEvent {
+    return {
+      id: r.id,
+      tenantId: r.tenantId,
+      deviceId: r.deviceId,
+      eventType: r.eventType,
+      payload: r.payload,
+      processed: r.processed,
+      createdAt: r.createdAt,
+    };
+  }
+
   async getSystemHealth(tenantId: string): Promise<SystemHealth[]> {
     const health = await this.prisma.iTSystemHealth.findMany({
-      where: { tenantId: tenantId },
-      orderBy: { checkedAt: "desc" },
-      take: 20,
+      where: { tenantId },
     });
-
-    return health.map((h: ITSystemHealth) => ({
+    return health.map(h => ({
       id: h.id,
       tenantId: h.tenantId,
       component: h.component as any,
-      status: h.status.toLowerCase() as any,
+      status: h.status as any,
       latencyMs: h.latencyMs,
       checkedAt: h.checkedAt,
     }));
   }
 
   async getProvisioningStats(tenantId: string): Promise<any> {
-    const aggregations = await this.prisma.iTProvisioningRequest.groupBy({
-      by: ["status"],
+    const counts = await this.prisma.iTProvisioningRequest.groupBy({
+      by: ['status'],
       where: { tenantId },
       _count: true,
     });
-
-    const stats: any = {
-      total: 0,
-      requested: 0,
-      provisioned: 0,
-      failed: 0,
-    };
-
-    aggregations.forEach((group) => {
-      const status = group.status.toLowerCase();
-      stats.total += group._count;
-      if (status === "requested") stats.requested = group._count;
-      if (status === "provisioned") stats.provisioned = group._count;
-      if (status === "failed") stats.failed = group._count;
-    });
-
-    return stats;
+    return counts;
   }
 
   async getAuditLogs(tenantId: string, requestId?: string): Promise<any[]> {
-    const where: any = {
-      tenantId,
-      module: "IT",
-    };
-
-    if (requestId) {
-      where.requestId = requestId;
-    }
-
-    const logs = await this.prisma.systemLog.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
-
-    return logs;
+    return []; // Placeholder for now
   }
 }

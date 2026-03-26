@@ -18,7 +18,13 @@ import { JobDescriptionService } from "./job-description.service";
 import { PerformancePredictorService } from "./performance-predictor.service";
 import { LearningService } from "./learning.service";
 import { LaborCostService } from "./labor-cost.service";
+import { HRInsightService } from "./hr-insight.service";
+import { HRActionService } from "./hr-action.service";
+import { HRConsistencyService } from "./hr-consistency.service";
+import { HRMetricService } from "./hr-metric.service";
+import { SchedulingService } from "./scheduling.service";
 import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
+import { IdempotencyInterceptor } from "../../shared/interceptors/idempotency.interceptor";
 import { PrismaService } from "../../persistence/prisma.service";
 
 import { FileProcessingModule } from "../../shared/file-processing/file-processing.module";
@@ -52,12 +58,14 @@ import {
   HRCommandRegistrar,
 } from "./commands/hr.command-handlers";
 
+import { CommsModule } from "../../shared/comms/comms.module";
+
 /**
  * HR Module
  * Core module for Human Resources operations
  */
 @Module({
-  imports: [FileProcessingModule, AuditModule, LoggerModule, ComplianceEngineModule, HRAutomationModule, TimeAndAttendanceModule],
+  imports: [FileProcessingModule, AuditModule, LoggerModule, ComplianceEngineModule, HRAutomationModule, TimeAndAttendanceModule, CommsModule],
   controllers: [HRController, WorkflowController],
   providers: [
     HRService,
@@ -75,8 +83,14 @@ import {
     PerformancePredictorService,
     LearningService,
     LaborCostService,
+    HRInsightService,
+    HRActionService,
+    HRConsistencyService,
+    HRMetricService,
+    SchedulingService,
     PrismaService,
     HRMutationInterceptor,
+    IdempotencyInterceptor,
     // Phase 1: Command Handlers
     HireEmployeeCommandHandler,
     PromoteEmployeeCommandHandler,
@@ -100,7 +114,7 @@ import {
       useClass: HRDbRepository,
     },
   ],
-  exports: [HRService],
+  exports: [HRService, SchedulingService, IHRRepository],
 })
 export class HRModule implements OnModuleInit {
   constructor(private readonly registrar: HRCommandRegistrar) {}

@@ -5,7 +5,7 @@
  * Each handler implements ICommandHandler<TCommand, TResult>.
  * Handlers are registered with the CommandBusService during module init.
  */
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
 import { ICommandHandler } from '../../../shared/command-bus/command-handler.interface';
 import { CommandBusService } from '../../../shared/command-bus/command-bus.service';
 import { HRService } from '../hr.service';
@@ -52,6 +52,7 @@ export interface PayrollExecutionResult {
   totalGrossPay: number;
   complianceModulesRun: string[];
   status: 'COMPLETED' | 'PARTIAL';
+  payrollRunId?: string;
   message: string;
 }
 
@@ -83,37 +84,21 @@ export class HireEmployeeCommandHandler implements ICommandHandler<HireEmployeeC
     const { tenantId, payload } = command;
     this.logger.log(`HireEmployeeCommand: converting candidate ${payload.candidateId}`);
 
-    const employee = await this.hrService.createEmployee(tenantId, {
-      departmentId: payload.departmentId,
-      locationId: payload.locationId,
-      position: payload.position,
-      candidateId: payload.candidateId,
-      hireDate: payload.startDate,
-      baseSalary: payload.salary,
-      employmentType: 'full_time',
-      firstName: 'PENDING',
-      lastName: 'HIRE',
-      email: `hire-${payload.candidateId}@pending.zenvix`,
-      status: 'probation',
-    } as any);
+    const employee = await this.hrService.hireCandidate(tenantId, payload.candidateId, payload);
 
-    await this.auditService.log({
-      tenantId,
-      userId: command.actorId,
-      module: 'hr',
-      action: 'HIRE',
-      entityType: 'EMPLOYEE',
-      entityId: employee.id,
-      metadata: { candidateId: payload.candidateId, position: payload.position },
-    });
-
+    // Event emission AFTER successful transaction
     await this.eventBus.publish({
-      eventType: EVENT_NAMES.EMPLOYEE_CREATED,
+      eventType: EVENT_NAMES.EMPLOYEE_HIRED,
       tenantId,
       entityId: employee.id,
       entityType: "EMPLOYEE",
       sourceModule: "HR",
-      payload: { candidateId: payload.candidateId, departmentId: payload.departmentId, position: payload.position },
+      payload: {
+        candidateId: payload.candidateId,
+        employeeId: employee.id,
+        position: employee.roleTitle,
+        departmentId: payload.departmentId,
+      },
     });
 
     return { tenantId, success: true, message: 'Employee hired', data: employee.id };
@@ -325,6 +310,16 @@ export class ExecutePayrollCommandHandler implements ICommandHandler<ExecutePayr
     const { tenantId, payload } = command;
     const period = payload.periodStart.toISOString().substring(0, 7);
     
+    // PHASE 5: CONCURRENCY GUARD
+    // Check if a payroll run is already processing for this period
+    const existingRun = await this.repository.getPayrollRuns(tenantId);
+    if (existingRun.some(run => 
+      run.periodStart.toISOString().substring(0, 7) === period && 
+      (run as any).status === 'processing'
+    )) {
+      throw new ConflictException(`Payroll execution for ${period} is already in progress.`);
+    }
+
     const result = await this.repository.getEmployees(tenantId);
     const activeEmployees = result.data.filter(e => e.status === 'active' || e.status === 'probation');
     const totalGrossPay = activeEmployees.reduce((sum, e) => sum + Number((e as any).baseSalary || 0), 0);
@@ -333,22 +328,16 @@ export class ExecutePayrollCommandHandler implements ICommandHandler<ExecutePayr
     const modulesToRun = ['BPJS_KESEHATAN', 'BPJS_KETENAGAKERJAAN', 'PPH21'];
     
     for (const mod of modulesToRun) {
-      try {
-        await this.complianceEngine.calculate(tenantId, mod, period);
-        complianceModulesRun.push(mod);
-      } catch (err: any) {
-        this.logger.warn(`Compliance module ${mod} failed: ${err?.message}. Continuing.`);
-      }
+      // PHASE 3: COMPLIANCE HARD STOP
+      // We no longer continue on failure. Any compliance failure stops execution.
+      await this.complianceEngine.calculate(tenantId, mod, period);
+      complianceModulesRun.push(mod);
     }
+    
+    // PHASE 2: TRANSACTIONAL PAYROLL
+    const transactionResult = await this.repository.executePayrollTransaction(tenantId, period, activeEmployees);
 
-    await this.eventBus.publish({
-      eventType: EVENT_NAMES.PAYROLL_EXECUTED,
-      tenantId,
-      entityId: `payroll-${period}`,
-      entityType: "PAYROLL",
-      sourceModule: "HR",
-      payload: { period, totalGrossPay, processedEmployees: activeEmployees.length },
-    });
+    // Event emission moved to Outbox Pattern (Repository level write)
 
     return {
       tenantId,
@@ -359,7 +348,8 @@ export class ExecutePayrollCommandHandler implements ICommandHandler<ExecutePayr
       totalGrossPay,
       complianceModulesRun,
       status: 'COMPLETED',
-      message: `Payroll executed for ${period}.`,
+      payrollRunId: transactionResult.payrollRunId,
+      message: `Payroll executed and posted to ledger for ${period}.`,
     };
   }
 }

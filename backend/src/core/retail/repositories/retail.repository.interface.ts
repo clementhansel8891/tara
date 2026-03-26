@@ -155,6 +155,7 @@ export abstract class IRetailRepository {
   // ============================================================
   abstract reserveStock(
     tenantId: string,
+    locationId: string,
     productId: string,
     quantity: number,
   ): Promise<{ success: boolean; reservationId?: string }>;

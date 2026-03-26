@@ -42,6 +42,7 @@ const SECTIONS: MenuSection[] = [
       { label: "Invoice Capture", to: "/core/finance/invoices", icon: FileText },
       { label: "Finance Docs", to: "/core/finance/docs", icon: FileSignature },
       { label: "Assets", to: "/core/finance/assets", icon: BookOpen },
+      { label: "Tax Center", to: "/core/finance/tax", icon: FileText },
     ],
   },
   {
@@ -58,8 +59,10 @@ const SECTIONS: MenuSection[] = [
       { label: "Close Period Studio", to: "/core/finance/close", icon: Lock },
       { label: "Audit Vault", to: "/core/finance/audit", icon: ShieldCheck },
       { label: "Policy Manager", to: "/core/finance/policy", icon: ShieldCheck },
+      { label: "Budget Studio", to: "/core/finance/budget", icon: BarChart3 },
     ],
   },
+
   {
     title: "Intelligence",
     items: [{ label: "Finance Insights", to: "/core/finance/insights", icon: BarChart3 }],

@@ -3,12 +3,14 @@ import { CreateItemDto } from "../dto/create-item.dto";
 import { StockIntakeDto } from "../dto/stock-intake.dto";
 import { TransferStockDto } from "../dto/transfer-stock.dto";
 import { CreateMovementRequestDto } from "../dto/create-movement-request.dto";
+import { CreateAgenticEventDto } from "../dto/create-agentic-event.dto";
 import { InventoryAlert } from "../entities/inventory-alert.entity";
 import { InventoryItem } from "../entities/inventory-item.entity";
 import { StockAdjustment } from "../entities/stock-adjustment.entity";
 import { StockBalance } from "../entities/stock-balance.entity";
 import { StockMovement } from "../entities/stock-movement.entity";
 import { MovementRequest } from "../entities/movement-request.entity";
+import { AgenticEvent } from "../entities/agentic-event.entity";
 
 export {
   CreateAdjustmentDto,
@@ -16,12 +18,14 @@ export {
   StockIntakeDto,
   TransferStockDto,
   CreateMovementRequestDto,
+  CreateAgenticEventDto,
   InventoryAlert,
   InventoryItem,
   StockAdjustment,
   StockBalance,
   StockMovement,
   MovementRequest,
+  AgenticEvent,
 };
 
 export type InventoryDashboard = {
@@ -52,10 +56,13 @@ export abstract class IInventoryRepository {
     tenant_id: string,
     itemId?: string,
   ): Promise<StockMovement[]>;
+
   abstract intakeStock(
     tenant_id: string,
     data: StockIntakeDto,
+    tx?: any
   ): Promise<StockMovement>;
+
   abstract transferStock(
     tenant_id: string,
     data: TransferStockDto,
@@ -64,6 +71,7 @@ export abstract class IInventoryRepository {
   abstract createAdjustment(
     tenant_id: string,
     data: CreateAdjustmentDto,
+    tx?: any
   ): Promise<StockAdjustment>;
   abstract approveAdjustment(
     tenant_id: string,
@@ -85,7 +93,7 @@ export abstract class IInventoryRepository {
   ): Promise<any>;
   abstract getIntegrationEvents(tenant_id: string): Promise<any[]>;
   abstract createIntegrationEvent(tenant_id: string, data: any): Promise<any>;
-  abstract consumeStock(tenant_id: string, data: any): Promise<any>;
+  abstract consumeStock(tenant_id: string, data: any, tx?: any): Promise<any>;
   abstract deleteItem(tenant_id: string, itemId: string): Promise<void>;
   abstract batchDeleteItems(
     tenant_id: string,
@@ -119,4 +127,77 @@ export abstract class IInventoryRepository {
     tenant_id: string,
     category: string,
   ): Promise<string | null>;
+
+
+
+  abstract reserveStock(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void>;
+
+  abstract releaseStock(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void>;
+
+  abstract consumeFromReservation(
+    tenant_id: string,
+    productId: string,
+    locationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    tx?: any
+  ): Promise<void>;
+
+  abstract transferOut(
+    tenant_id: string,
+    productId: string,
+    fromLocationId: string,
+    toLocationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    transferGroupId?: string,
+    tx?: any
+  ): Promise<StockMovement>;
+
+  abstract transferIn(
+    tenant_id: string,
+    productId: string,
+    fromLocationId: string,
+    toLocationId: string,
+    quantity: number,
+    referenceId: string,
+    referenceType: string,
+    transferGroupId?: string,
+    tx?: any
+  ): Promise<StockMovement>;
+
+  abstract takeSnapshot(
+    tenant_id: string,
+    locationId: string
+  ): Promise<void>;
+
+  abstract findProductByCode(
+    tenant_id: string,
+    code: string
+  ): Promise<any | null>;
+
+  // --- Agentic Layer ---
+  abstract createAgenticEvent(
+    tenant_id: string,
+    data: CreateAgenticEventDto,
+  ): Promise<AgenticEvent>;
 }
+

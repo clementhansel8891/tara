@@ -489,11 +489,7 @@ export class RetailMockRepository implements IRetailRepository {
   ): Promise<RetailOrder> {
     return {} as any;
   }
-  async reserveStock(
-    tenantId: string,
-    productId: string,
-    quantity: number,
-  ): Promise<{ success: boolean; reservationId?: string }> {
+  async reserveStock(tenantId: string, locationId: string, productId: string, quantity: number): Promise<{ success: boolean; reservationId?: string }> {
     return { success: true };
   }
   async releaseStock(

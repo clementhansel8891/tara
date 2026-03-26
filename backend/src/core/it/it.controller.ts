@@ -21,6 +21,7 @@ import { RequiredModule } from "../../shared/decorators/required-module.decorato
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
 import { PrismaService } from "../../persistence/prisma.service";
 import { CreateProvisioningRequestDto } from "./dto/create-provisioning-request.dto";
+import { CreateDeviceDto, CreateDeviceEventDto } from "./dto/device.dto";
 import { ITService } from "./it.service";
 
 interface RequestWithTenant extends Request {
@@ -72,18 +73,18 @@ export class ITController {
       "retail",
     );
     if (retailIsActive) {
-      // POS Device stats
+      // POS Device stats - Now queried from the unified Device model
       const posDeviceWhere = locationId
-        ? { tenantId, locationId }
-        : { tenantId };
+        ? { tenantId, locationId, type: "POS_TERMINAL" }
+        : { tenantId, type: "POS_TERMINAL" };
 
       const [totalPosDevices, onlinePosDevices, offlinePosDevices] =
         await Promise.all([
-          this.prisma.paymentPosDevice.count({ where: posDeviceWhere }),
-          this.prisma.paymentPosDevice.count({
+          this.prisma.device.count({ where: posDeviceWhere }),
+          this.prisma.device.count({
             where: { ...posDeviceWhere, status: "ONLINE" },
           }),
-          this.prisma.paymentPosDevice.count({
+          this.prisma.device.count({
             where: { ...posDeviceWhere, status: "OFFLINE" },
           }),
         ]);
@@ -115,8 +116,7 @@ export class ITController {
           offline: offlinePosDevices,
         },
         storeDevices: {
-          posTerminals: totalPosDevices, // Fallback since BranchDevice table is removed
-          digitalSignage: 0,
+          posTerminals: totalPosDevices,
           total: totalPosDevices,
         },
         ecommerceChannels: {
@@ -150,6 +150,61 @@ export class ITController {
           retail: retailContribution,
         },
       },
+    };
+  }
+
+  // ==================== Devices (NEW) ====================
+
+  @Get("devices")
+  async getDevices(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.itService.getDevices(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Post("devices")
+  async createDevice(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateDeviceDto,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    return {
+      success: true,
+      data: await this.itService.createDevice(tenantId, dto, userId),
+    };
+  }
+
+  @Put("devices/:id")
+  async updateDevice(
+    @Req() request: RequestWithTenant,
+    @Param("id") deviceId: string,
+    @Body() dto: Partial<CreateDeviceDto>,
+  ) {
+    const { tenantId, userId } = request.tenantContext;
+    return {
+      success: true,
+      data: await this.itService.updateDevice(tenantId, deviceId, dto, userId),
+    };
+  }
+
+  // ==================== Device Events (NEW) ====================
+
+  @Get("device-events")
+  async getDeviceEvents(@Req() request: RequestWithTenant) {
+    const { tenantId } = request.tenantContext;
+    const data = await this.itService.getDeviceEvents(tenantId);
+    return { success: true, tenantId, count: data.length, data };
+  }
+
+  @Post("device-events")
+  async createDeviceEvent(
+    @Req() request: RequestWithTenant,
+    @Body() dto: CreateDeviceEventDto,
+  ) {
+    const { tenantId } = request.tenantContext;
+    return {
+      success: true,
+      data: await this.itService.createDeviceEvent(tenantId, dto),
     };
   }
 

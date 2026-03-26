@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { IFinanceRepository } from "./finance.repository.interface";
 import { LedgerEntry } from "../entities/ledger-entry.entity";
@@ -58,17 +59,18 @@ export class FinanceDbRepository implements IFinanceRepository {
           id: line.id,
           tenantId: entry.tenantId,
           createdAt: entry.createdAt.toISOString(),
-          description: line.description || entry.description,
+          description: (line as any).description || entry.description || "No description",
           amount:
-            line.debit.toNumber() > 0
-              ? line.debit.toNumber()
-              : line.credit.toNumber(),
-          type: (line.debit.toNumber() > 0 ? "DEBIT" : "CREDIT") as any,
+            line.debit.gt(0)
+              ? line.debit
+              : line.credit,
+          type: (line.debit.gt(0) ? "DEBIT" : "CREDIT") as any,
           account: line.accountCode,
           category: line.accountCode.startsWith("4") ? "SALES" : "GENERAL",
           referenceId: entry.ref || undefined,
           status: entry.status || "POSTED",
-          balance: 0,
+          effectiveDate: entry.postingDate,
+          balance: new Prisma.Decimal(0),
         });
       }
     }
@@ -82,22 +84,29 @@ export class FinanceDbRepository implements IFinanceRepository {
   async createTransaction(
     tenantId: string,
     data: CreateTransactionDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<Transaction> {
+    const db = tx ?? this.prisma;
     // 1. Create Journal Entry (Production Grade Ledger)
-    const journalEntry = await this.prisma.journalEntry.create({
+    const journalEntry = await db.journalEntry.create({
       data: {
         tenantId,
         ref: data.referenceId || `TXN-${Date.now()}`,
         description: data.description || "POS Sales Transaction",
+        fiscalPeriodId: "FISCAL_AUTO",
+        postingDate: new Date(),
         status: "POSTED",
         lines: {
           create: [
             {
               tenantId,
-              accountCode: data.category === "SALES" ? "4000" : "1001", // Example CoA
+              accountId: data.category === "SALES" ? "ACC-4000" : "ACC-1001", // Example CoA IDs
+              accountCode: data.category === "SALES" ? "4000" : "1001",
+              side: data.type === "credit" ? "CREDIT" : "DEBIT",
+              amount: new Prisma.Decimal(data.amount),
               description: data.description || "POS Sales",
-              debit: data.type === "credit" ? 0 : data.amount,
-              credit: data.type === "credit" ? data.amount : 0,
+              debit: data.type === "credit" ? new Prisma.Decimal(0) : new Prisma.Decimal(data.amount),
+              credit: data.type === "credit" ? new Prisma.Decimal(data.amount) : new Prisma.Decimal(0),
             },
           ],
         },
@@ -114,7 +123,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: journalEntry.id,
       tenantId: journalEntry.tenantId,
       locationId: data.locationId ?? "default",
-      amount: data.amount,
+      amount: new Prisma.Decimal(data.amount),
       type: data.type,
       description: journalEntry.description || "",
       category: data.category || "GENERAL",
@@ -124,21 +133,30 @@ export class FinanceDbRepository implements IFinanceRepository {
     };
   }
 
-  async createJournal(tenantId: string, data: CreateJournalDto): Promise<any> {
-    return this.prisma.$transaction(async (tx) => {
-      const journalEntry = await tx.journalEntry.create({
+  async createJournal(
+    tenantId: string,
+    data: CreateJournalDto,
+    tx?: Prisma.TransactionClient,
+  ): Promise<any> {
+    const execute = async (contextTx: Prisma.TransactionClient) => {
+      const journalEntry = await contextTx.journalEntry.create({
         data: {
           tenantId,
           ref: data.ref || `MAN-${Date.now()}`,
           description: data.description,
+          fiscalPeriodId: "FISCAL_AUTO",
+          postingDate: new Date(),
           status: "POSTED",
           lines: {
             create: data.lines.map((line) => ({
               tenantId,
+              accountId: (line as any).accountId || "ACC-UNKNOWN",
               accountCode: line.accountCode,
+              side: new Prisma.Decimal(line.debit).gt(0) ? "DEBIT" : "CREDIT",
+              amount: new Prisma.Decimal(line.debit).gt(0) ? new Prisma.Decimal(line.debit) : new Prisma.Decimal(line.credit),
               description: line.description,
-              debit: line.debit,
-              credit: line.credit,
+              debit: new Prisma.Decimal(line.debit),
+              credit: new Prisma.Decimal(line.credit),
             })),
           },
         },
@@ -148,7 +166,10 @@ export class FinanceDbRepository implements IFinanceRepository {
       });
 
       return journalEntry;
-    });
+    };
+
+    if (tx) return execute(tx);
+    return this.prisma.$transaction(execute);
   }
 
   async getBalance(tenantId: string): Promise<Balance> {
@@ -156,10 +177,10 @@ export class FinanceDbRepository implements IFinanceRepository {
       where: { tenantId },
     });
 
-    const totalCash = moneySources.reduce(
-      (sum: number, source: any) => sum + Number(source.balance),
-      0,
-    );
+    let totalCash = new Prisma.Decimal(0);
+    for (const source of moneySources) {
+      totalCash = totalCash.plus(source.balance);
+    }
 
     // Get journal line aggregates
     const lines = await this.prisma.journalLine.findMany({
@@ -170,16 +191,16 @@ export class FinanceDbRepository implements IFinanceRepository {
       },
     });
 
-    let totalRevenue = 0;
-    let totalExpense = 0;
+    let totalRevenue = new Prisma.Decimal(0);
+    let totalExpense = new Prisma.Decimal(0);
 
     for (const line of lines) {
       if (line.accountCode.startsWith("4")) {
-        // Revenue
-        totalRevenue += Number(line.credit) - Number(line.debit);
+        // Revenue: Credit - Debit
+        totalRevenue = totalRevenue.plus(line.credit).minus(line.debit);
       } else if (line.accountCode.startsWith("5")) {
-        // Expense
-        totalExpense += Number(line.debit) - Number(line.credit);
+        // Expense: Debit - Credit
+        totalExpense = totalExpense.plus(line.debit).minus(line.credit);
       }
     }
 
@@ -209,8 +230,13 @@ export class FinanceDbRepository implements IFinanceRepository {
     return asset ? this.mapAsset(asset) : null;
   }
 
-  async createAsset(tenantId: string, asset: Partial<Asset>): Promise<Asset> {
-    const created = await this.prisma.fixedAsset.create({
+  async createAsset(
+    tenantId: string,
+    asset: Partial<Asset>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Asset> {
+    const db = tx ?? this.prisma;
+    const created = await db.fixedAsset.create({
       data: {
         tenantId,
         description: asset.description!,
@@ -233,12 +259,14 @@ export class FinanceDbRepository implements IFinanceRepository {
     tenantId: string,
     assetId: string,
     updates: Partial<Asset>,
+    tx?: Prisma.TransactionClient,
   ): Promise<Asset | null> {
+    const db = tx ?? this.prisma;
     const data: any = { ...updates };
     if (updates.acquisitionDate)
       data.acquisitionDate = new Date(updates.acquisitionDate);
 
-    const updated = await this.prisma.fixedAsset.update({
+    const updated = await db.fixedAsset.update({
       where: { id: assetId },
       data,
     });
@@ -266,8 +294,10 @@ export class FinanceDbRepository implements IFinanceRepository {
   async createCapexRequest(
     tenantId: string,
     request: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest> {
-    const created = await this.prisma.capexRequest.create({
+    const db = tx ?? this.prisma;
+    const created = await db.capexRequest.create({
       data: {
         tenantId,
         assetDescription: request.assetDescription!,
@@ -285,8 +315,10 @@ export class FinanceDbRepository implements IFinanceRepository {
     tenantId: string,
     id: string,
     updates: Partial<CapexRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest | null> {
-    const updated = await this.prisma.capexRequest.update({
+    const db = tx ?? this.prisma;
+    const updated = await db.capexRequest.update({
       where: { id },
       data: {
         status: updates.status,
@@ -308,10 +340,8 @@ export class FinanceDbRepository implements IFinanceRepository {
       name: s.name,
       type: s.type,
       currency: s.currency,
-      balance: s.balance.toNumber(),
-      pendingSettlement: s.pendingSettlement
-        ? s.pendingSettlement.toNumber()
-        : 0,
+      balance: s.balance,
+      pendingSettlement: s.pendingSettlement || new Prisma.Decimal(0),
       provider: s.provider,
       lastUpdated: s.lastUpdated.toISOString(),
     }));
@@ -334,8 +364,8 @@ export class FinanceDbRepository implements IFinanceRepository {
           name: "Retail Floor Cash (Active Shifts)",
           type: "CASH_REGISTER",
           currency: "IDR",
-          balance: totalRetailCash,
-          pendingSettlement: 0,
+          balance: new Prisma.Decimal(totalRetailCash),
+          pendingSettlement: new Prisma.Decimal(0),
           provider: "Retail Module",
           lastUpdated: new Date().toISOString(),
         });
@@ -356,15 +386,17 @@ export class FinanceDbRepository implements IFinanceRepository {
 
     return transfers.map((t: any) => ({
       ...t,
-      amount: t.amount.toNumber(),
+      amount: t.amount,
     }));
   }
 
   async createTransfer(
     tenantId: string,
     data: Partial<TreasuryTransfer>,
+    tx?: Prisma.TransactionClient,
   ): Promise<TreasuryTransfer> {
-    const created = await this.prisma.treasuryTransfer.create({
+    const db = tx ?? this.prisma;
+    const created = await db.treasuryTransfer.create({
       data: {
         tenantId,
         fromSourceId: data.fromSourceId!,
@@ -378,7 +410,7 @@ export class FinanceDbRepository implements IFinanceRepository {
 
     return {
       ...created,
-      amount: created.amount.toNumber(),
+      amount: created.amount,
     };
   }
 
@@ -386,15 +418,17 @@ export class FinanceDbRepository implements IFinanceRepository {
     tenantId: string,
     sourceId: string,
     amount: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
+    const db = tx ?? this.prisma;
     // Update the MoneySource balance and pending settlement
-    const source = await this.prisma.moneySource.findFirst({
+    const source = await db.moneySource.findFirst({
       where: { id: sourceId, tenantId },
     });
 
     if (!source) return;
 
-    await this.prisma.moneySource.update({
+    await db.moneySource.update({
       where: { id: sourceId },
       data: {
         balance: { increment: amount },
@@ -404,7 +438,7 @@ export class FinanceDbRepository implements IFinanceRepository {
     });
 
     // Create a record of the reconciliation
-    await this.prisma.settlementRecord.create({
+    await db.settlementRecord.create({
       data: {
         tenantId,
         sourceId,
@@ -451,7 +485,7 @@ export class FinanceDbRepository implements IFinanceRepository {
     return deduped.map((p: any) => ({
       id: p.id,
       beneficiary: p.destination || p.type || "Unknown",
-      amount: p.amount.toNumber(),
+      amount: p.amount,
       currency: p.currency,
       status: (p.status === "SUBMITTED" || p.status === "PENDING_APPROVAL"
         ? "PENDING_APPROVAL"
@@ -472,8 +506,10 @@ export class FinanceDbRepository implements IFinanceRepository {
   async createPaymentRequest(
     tenantId: string,
     request: Partial<PaymentRequest>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PaymentRequest> {
-    const created = await this.prisma.paymentTransaction.create({
+    const db = tx ?? this.prisma;
+    const created = await db.paymentTransaction.create({
       data: {
         tenantId,
         idempotencyKey: `pay-req-${Date.now()}-${Math.random().toString(36).substring(7)}`,
@@ -496,7 +532,7 @@ export class FinanceDbRepository implements IFinanceRepository {
 
     return {
       id: created.id,
-      amount: created.amount.toNumber(),
+      amount: created.amount,
       currency: created.currency,
       beneficiary: created.destination,
       source: created.source || undefined,
@@ -513,8 +549,10 @@ export class FinanceDbRepository implements IFinanceRepository {
     tenantId: string,
     id: string,
     status: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    await this.prisma.paymentTransaction.updateMany({
+    const db = tx ?? this.prisma;
+    await db.paymentTransaction.updateMany({
       where: { id, tenantId },
       data: { status },
     });
@@ -531,7 +569,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: inv.id,
       customerName: inv.customerName,
       invoiceNumber: inv.id,
-      amount: inv.amount.toNumber(),
+      amount: inv.amount,
       currency: inv.currency,
       dueDate: inv.dueDate.toISOString(),
       status: inv.status as any,
@@ -545,9 +583,10 @@ export class FinanceDbRepository implements IFinanceRepository {
   async createReceivable(
     tenantId: string,
     invoice: Partial<ReceivableInvoice>,
+    tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice> {
-    const created = await this.prisma.$transaction(async (tx) => {
-      const rec = await tx.receivable.create({
+    const execute = async (contextTx: Prisma.TransactionClient) => {
+      const rec = await contextTx.receivable.create({
         data: {
           tenantId,
           customerName: invoice.customer!,
@@ -558,41 +597,17 @@ export class FinanceDbRepository implements IFinanceRepository {
         },
       });
 
-      // Pair Journal Entry
-      await tx.journalEntry.create({
-        data: {
-          tenantId,
-          ref: `REC-${rec.id.substring(0, 8)}`,
-          description: `Invoice created for ${invoice.customer}`,
-          status: "POSTED",
-          lines: {
-            create: [
-              {
-                tenantId,
-                accountCode: "ASSET-AR",
-                description: "Accounts Receivable",
-                debit: invoice.amount!,
-                credit: 0,
-              },
-              {
-                tenantId,
-                accountCode: "REV-SALES",
-                description: `Revenue from ${invoice.customer}`,
-                debit: 0,
-                credit: invoice.amount!,
-              },
-            ],
-          },
-        },
-      });
-
       return rec;
-    });
+    };
+
+    const created = tx
+      ? await execute(tx)
+      : await this.prisma.$transaction(execute);
 
     return {
       id: created.id,
       customer: created.customerName,
-      amount: created.amount.toNumber(),
+      amount: created.amount,
       dueDate: created.dueDate.toISOString(),
       status: created.status as any,
     };
@@ -609,7 +624,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: bill.id,
       vendorName: bill.vendorName,
       billNumber: bill.id,
-      amount: bill.amount.toNumber(),
+      amount: bill.amount,
       currency: bill.currency,
       dueDate: bill.dueDate.toISOString(),
       status: bill.status as any,
@@ -620,9 +635,10 @@ export class FinanceDbRepository implements IFinanceRepository {
   async createPayable(
     tenantId: string,
     bill: Partial<PayableBill>,
+    tx?: Prisma.TransactionClient,
   ): Promise<PayableBill> {
-    const created = await this.prisma.$transaction(async (tx) => {
-      const pay = await tx.payable.create({
+    const execute = async (contextTx: Prisma.TransactionClient) => {
+      const pay = await contextTx.payable.create({
         data: {
           tenantId,
           vendorName: bill.vendor!,
@@ -633,24 +649,32 @@ export class FinanceDbRepository implements IFinanceRepository {
         },
       });
 
-      await tx.journalEntry.create({
+      await contextTx.journalEntry.create({
         data: {
           tenantId,
           ref: `PAY-${pay.id.substring(0, 8)}`,
           description: `Bill received from ${bill.vendor}`,
+          fiscalPeriodId: "FISCAL_AUTO",
+          postingDate: new Date(),
           status: "POSTED",
           lines: {
             create: [
               {
                 tenantId,
+                accountId: "ACC-EXPENSE",
                 accountCode: "EXP-GEN",
+                side: "DEBIT",
+                amount: bill.amount!,
                 description: `Expense for ${bill.vendor}`,
                 debit: bill.amount!,
                 credit: 0,
               },
               {
                 tenantId,
+                accountId: "ACC-AP",
                 accountCode: "LIAB-AP",
+                side: "CREDIT",
+                amount: bill.amount!,
                 description: "Accounts Payable",
                 debit: 0,
                 credit: bill.amount!,
@@ -661,12 +685,16 @@ export class FinanceDbRepository implements IFinanceRepository {
       });
 
       return pay;
-    });
+    };
+
+    const created = tx
+      ? await execute(tx)
+      : await this.prisma.$transaction(execute);
 
     return {
       id: created.id,
       vendor: created.vendorName,
-      amount: created.amount.toNumber(),
+      amount: created.amount,
       dueDate: created.dueDate.toISOString(),
       status: created.status as any,
     };
@@ -693,15 +721,15 @@ export class FinanceDbRepository implements IFinanceRepository {
       tenantId: line.tenantId,
       employeeId: line.employeeId,
       period: line.payrollRun.periodEnd.toISOString().substring(0, 7),
-      baseSalary: line.grossPay.toNumber(),
-      netSalary: line.netPay.toNumber(),
+      baseSalary: line.grossPay,
+      netSalary: line.netPay,
       status: line.payrollRun.status as any,
       createdAt: line.createdAt.toISOString(),
       updatedAt: line.updatedAt.toISOString(),
       name: undefined,
       department: undefined,
-      bonuses: 0,
-      deductions: 0,
+      bonuses: new Prisma.Decimal(0),
+      deductions: new Prisma.Decimal(0),
     }));
   }
 
@@ -757,15 +785,15 @@ export class FinanceDbRepository implements IFinanceRepository {
         estimatesMap.set(deptName, {
           department: deptName,
           employeeCount: 0,
-          totalGross: 0,
-          totalNet: 0,
+          totalGross: new Prisma.Decimal(0),
+          totalNet: new Prisma.Decimal(0),
         });
       }
 
       const est = estimatesMap.get(deptName)!;
       est.employeeCount += 1;
-      est.totalGross += gross;
-      est.totalNet += net;
+      est.totalGross = est.totalGross.plus(gross);
+      est.totalNet = est.totalNet.plus(net);
     }
 
     return Array.from(estimatesMap.values());
@@ -775,8 +803,10 @@ export class FinanceDbRepository implements IFinanceRepository {
     tenantId: string,
     period: string, // e.g. "2026-02"
     userId: string, // for auditing
+    tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const employees = await this.prisma.employee.findMany({
+    const db = tx ?? this.prisma;
+    const employees = await db.employee.findMany({
       where: { tenantId, status: "active" },
       include: { compensation: true }
     });
@@ -785,8 +815,8 @@ export class FinanceDbRepository implements IFinanceRepository {
       throw new Error("No active employees found to run payroll.");
     }
 
-    let totalGross = 0;
-    let totalNet = 0;
+    let totalGross = new Prisma.Decimal(0);
+    let totalNet = new Prisma.Decimal(0);
 
     const linesData = employees.map((emp) => {
       let gross = 0;
@@ -818,15 +848,15 @@ export class FinanceDbRepository implements IFinanceRepository {
       }
 
       const net = gross * 0.9; // 10% withholding/taxes
-      totalGross += gross;
-      totalNet += net;
+      totalGross = totalGross.plus(gross);
+      totalNet = totalNet.plus(net);
 
       return {
         tenantId,
         employeeId: emp.id,
-        grossPay: gross,
-        netPay: net,
-        adjustments: gross - net,
+        grossPay: new Prisma.Decimal(gross),
+        netPay: new Prisma.Decimal(net),
+        adjustments: new Prisma.Decimal(gross - net),
       };
     });
 
@@ -855,6 +885,8 @@ export class FinanceDbRepository implements IFinanceRepository {
       await tx.journalEntry.create({
         data: {
           tenantId,
+          fiscalPeriodId: period, 
+          postingDate: new Date(),
           description: `Payroll posting for ${period}`,
           ref: `PAY-${period}-${run.id.substring(0, 8)}`,
           status: "POSTED",
@@ -862,24 +894,33 @@ export class FinanceDbRepository implements IFinanceRepository {
             create: [
               {
                 tenantId,
+                accountId: "ACC-PAYROLL-EXP",
                 accountCode: "EXP-PAYROLL", // Debit Expense
+                side: "DEBIT",
+                amount: totalGross,
                 description: `Gross Payroll Extracted ${period}`,
                 debit: totalGross,
-                credit: 0,
+                credit: new Prisma.Decimal(0),
               },
               {
                 tenantId,
+                accountId: "ACC-CASH",
                 accountCode: "BS-CASH", // Credit Cash/Bank
+                side: "CREDIT",
+                amount: totalNet,
                 description: `Net Payroll Disbursed ${period}`,
-                debit: 0,
+                debit: new Prisma.Decimal(0),
                 credit: totalNet,
               },
               {
                 tenantId,
+                accountId: "ACC-TAX-LIAB",
                 accountCode: "LIAB-TAXES", // Credit Liabilities
+                side: "CREDIT",
+                amount: totalGross.minus(totalNet),
                 description: `Payroll Deductions ${period}`,
-                debit: 0,
-                credit: totalGross - totalNet,
+                debit: new Prisma.Decimal(0),
+                credit: totalGross.minus(totalNet),
               },
             ],
           },
@@ -902,7 +943,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: journalEntry.id,
       tenantId: journalEntry.tenantId,
       locationId: "default",
-      amount: journalEntry.lines.length > 0 ? journalEntry.lines[0].debit.toNumber() || journalEntry.lines[0].credit.toNumber() : 0,
+      amount: journalEntry.lines.length > 0 ? (journalEntry.lines[0].debit.gt(0) ? journalEntry.lines[0].debit : journalEntry.lines[0].credit) : new Prisma.Decimal(0),
       type: "debit",
       description: journalEntry.description || "",
       category: "GENERAL",
@@ -918,9 +959,9 @@ export class FinanceDbRepository implements IFinanceRepository {
     return budgets.map((b: any) => ({
       department: b.department,
       fiscalYear: b.period,
-      allocatedBudget: b.allocatedBudget.toNumber(),
-      committedBudget: b.committedBudget.toNumber(),
-      availableBudget: b.availableBudget.toNumber()
+      allocatedBudget: b.allocatedBudget,
+      committedBudget: b.committedBudget,
+      availableBudget: b.availableBudget
     }));
   }
 
@@ -959,17 +1000,18 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: e.id,
       assetId: e.assetId,
       postingDate: e.date.toISOString(),
-      amount: e.depreciationExp.toNumber(),
+      amount: e.depreciationExp,
       method: "STRAIGHT_LINE",
-      accumulatedDepreciation: e.accumulatedDep.toNumber(),
-      carryingValue: e.carryingValue.toNumber(),
+      accumulatedDepreciation: e.accumulatedDep,
+      carryingValue: e.carryingValue,
       journalEntryId: e.journalRef || "",
       isPosted: true
     }));
   }
 
-  async createDepreciationEntry(tenantId: string, entry: Partial<AssetDepreciationEntry>): Promise<AssetDepreciationEntry> {
-    const created = await this.prisma.assetDepreciationEntry.create({
+  async createDepreciationEntry(tenantId: string, entry: Partial<AssetDepreciationEntry>, tx?: Prisma.TransactionClient): Promise<AssetDepreciationEntry> {
+    const db = tx ?? this.prisma;
+    const created = await db.assetDepreciationEntry.create({
       data: {
         tenantId,
         assetId: entry.assetId!,
@@ -985,10 +1027,10 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: created.id,
       assetId: created.assetId,
       postingDate: created.date.toISOString(),
-      amount: created.depreciationExp.toNumber(),
+      amount: created.depreciationExp,
       method: "STRAIGHT_LINE",
-      accumulatedDepreciation: created.accumulatedDep.toNumber(),
-      carryingValue: created.carryingValue.toNumber(),
+      accumulatedDepreciation: created.accumulatedDep,
+      carryingValue: created.carryingValue,
       journalEntryId: created.journalRef || "",
       isPosted: true
     };
@@ -1003,7 +1045,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: e.id,
       assetId: e.assetId,
       type: e.type as any,
-      amount: 0,
+      amount: new Prisma.Decimal(0),
       reason: e.description,
       createdAt: e.date.toISOString(),
       approvedBy: e.recordedBy,
@@ -1011,8 +1053,9 @@ export class FinanceDbRepository implements IFinanceRepository {
     }));
   }
 
-  async createAssetEvent(tenantId: string, event: Partial<AssetEvent>): Promise<AssetEvent> {
-    const created = await this.prisma.assetEvent.create({
+  async createAssetEvent(tenantId: string, event: Partial<AssetEvent>, tx?: Prisma.TransactionClient): Promise<AssetEvent> {
+    const db = tx ?? this.prisma;
+    const created = await db.assetEvent.create({
       data: {
         tenantId,
         assetId: event.assetId!,
@@ -1026,7 +1069,7 @@ export class FinanceDbRepository implements IFinanceRepository {
       id: created.id,
       assetId: created.assetId,
       type: created.type as any,
-      amount: 0,
+      amount: new Prisma.Decimal(0),
       reason: created.description,
       createdAt: created.date.toISOString(),
       approvedBy: created.recordedBy,
@@ -1050,29 +1093,31 @@ export class FinanceDbRepository implements IFinanceRepository {
   }
 
   // Receivables/Payables Updates
-  async updateReceivable(tenantId: string, id: string, updates: Partial<ReceivableInvoice>): Promise<ReceivableInvoice | null> {
-    const updated = await this.prisma.receivable.update({
+  async updateReceivable(tenantId: string, id: string, updates: Partial<ReceivableInvoice>, tx?: Prisma.TransactionClient): Promise<ReceivableInvoice | null> {
+    const db = tx ?? this.prisma;
+    const updated = await db.receivable.update({
       where: { id, tenantId },
       data: { status: updates.status, amount: updates.amount, dueDate: updates.dueDate ? new Date(updates.dueDate) : undefined }
     });
     return {
       id: updated.id,
       customer: updated.customerName,
-      amount: updated.amount.toNumber(),
+      amount: updated.amount,
       dueDate: updated.dueDate.toISOString(),
       status: updated.status as any
     };
   }
 
-  async updatePayable(tenantId: string, id: string, updates: Partial<PayableBill>): Promise<PayableBill | null> {
-    const updated = await this.prisma.payable.update({
+  async updatePayable(tenantId: string, id: string, updates: Partial<PayableBill>, tx?: Prisma.TransactionClient): Promise<PayableBill | null> {
+    const db = tx ?? this.prisma;
+    const updated = await db.payable.update({
       where: { id, tenantId },
       data: { status: updates.status, amount: updates.amount, dueDate: updates.dueDate ? new Date(updates.dueDate) : undefined }
     });
     return {
       id: updated.id,
       vendor: updated.vendorName,
-      amount: updated.amount.toNumber(),
+      amount: updated.amount,
       dueDate: updated.dueDate.toISOString(),
       status: updated.status as any
     };
@@ -1092,9 +1137,9 @@ export class FinanceDbRepository implements IFinanceRepository {
     }));
   }
 
-  async createDocument(tenantId: string, doc: Partial<FinanceDocumentRow>): Promise<FinanceDocumentRow> {
-    // In finance.types.ts, FinanceDocumentRow has: id, title, type, category, uploadDate, status, url
-    const created = await this.prisma.financeDocument.create({
+  async createDocument(tenantId: string, doc: Partial<FinanceDocumentRow>, tx?: Prisma.TransactionClient): Promise<FinanceDocumentRow> {
+    const db = tx ?? this.prisma;
+    const created = await db.financeDocument.create({
       data: {
         tenantId,
         title: doc.title || "Document",
@@ -1163,34 +1208,37 @@ export class FinanceDbRepository implements IFinanceRepository {
   }
 
   // Payroll Extras
-  async createPayrollEntry(tenantId: string, entry: Partial<PayrollEntry>): Promise<PayrollEntry> {
+  async createPayrollEntry(tenantId: string, entry: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry> {
     return entry as PayrollEntry; 
   }
 
-  async updatePayrollEntry(tenantId: string, id: string, updates: Partial<PayrollEntry>): Promise<PayrollEntry | null> {
+  async updatePayrollEntry(tenantId: string, id: string, updates: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry | null> {
     return null; 
   }
 
   // Mappers
   private mapAsset(a: any): Asset {
     return {
+      tenantId: a.tenantId || "T1",
+      companyId: a.companyId || "C1",
+      branchId: a.branchId || "B1",
+      categoryId: a.categoryId || "CAT1",
+      name: a.description || "Unnamed Asset",
+      usefulLifeMonths: (a.usefulLifeYears || 0) * 12,
+      currency: "USD",
       id: a.id,
       description: a.description,
       assetClass: a.assetClass,
       location: a.location,
       department: a.department,
-      acquisitionCost: a.acquisitionCost.toNumber(),
+      acquisitionCost: a.acquisitionCost,
       acquisitionDate: a.acquisitionDate.toISOString(),
       usefulLifeYears: a.usefulLifeYears,
-      residualValue: a.residualValue ? a.residualValue.toNumber() : 0,
+      residualValue: a.residualValue || new Prisma.Decimal(0),
       depreciationMethod: a.depreciationMethod as any,
-      accumulatedDepreciation: a.accumulatedDepreciation
-        ? a.accumulatedDepreciation.toNumber()
-        : 0,
-      carryingValue: a.carryingValue ? a.carryingValue.toNumber() : 0,
-      revaluationReserve: a.revaluationReserve
-        ? a.revaluationReserve.toNumber()
-        : 0,
+      accumulatedDepreciation: a.accumulatedDepreciation || new Prisma.Decimal(0),
+      carryingValue: a.carryingValue || new Prisma.Decimal(0),
+      revaluationReserve: a.revaluationReserve || new Prisma.Decimal(0),
       status: a.status as any,
     };
   }
@@ -1199,7 +1247,7 @@ export class FinanceDbRepository implements IFinanceRepository {
     return {
       id: c.id,
       assetDescription: c.assetDescription,
-      requestedAmount: c.requestedAmount.toNumber(),
+      requestedAmount: c.requestedAmount,
       department: c.department,
       projectCode: c.projectCode || "",
       status: c.status as any,

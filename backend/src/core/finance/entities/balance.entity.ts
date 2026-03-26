@@ -1,13 +1,15 @@
+import { Prisma } from "@prisma/client";
+
 /**
  * Balance Entity
  * Represents the current financial balance for a tenant
  */
 export class Balance {
   tenantId: string;
-  totalBalance: number;
+  totalBalance: Prisma.Decimal;
   currency: string;
   lastUpdated: Date;
-  totalDebits?: number;
-  totalCredits?: number;
+  totalDebits?: Prisma.Decimal;
+  totalCredits?: Prisma.Decimal;
   transactionCount?: number;
 }

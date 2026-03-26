@@ -4,10 +4,12 @@ import { CreateItemDto } from "./dto/create-item.dto";
 import { StockIntakeDto } from "./dto/stock-intake.dto";
 import { TransferStockDto } from "./dto/transfer-stock.dto";
 import { CreateMovementRequestDto } from "./dto/create-movement-request.dto";
+import { CreateAgenticEventDto } from "./dto/create-agentic-event.dto";
 import { IInventoryRepository } from "./repositories/inventory.repository.interface";
 import { SkuGeneratorService } from "./sku-generator.service";
 import { AuditService } from "../../shared/audit/audit.service";
 import { PrismaService } from "../../persistence/prisma.service";
+import { EventBusService } from "../../shared/events/event-bus.service";
 
 @Injectable()
 export class InventoryService {
@@ -16,6 +18,7 @@ export class InventoryService {
     private readonly skuGenerator: SkuGeneratorService,
     private readonly auditService: AuditService,
     private readonly prisma: PrismaService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   async getDashboard(tenant_id: string) {
@@ -70,8 +73,31 @@ export class InventoryService {
     return this.repository.getMovements(tenant_id, itemId);
   }
 
-  async intakeStock(tenant_id: string, data: StockIntakeDto, userId?: string) {
-    const result = await this.repository.intakeStock(tenant_id, data);
+  async intakeStock(tenant_id: string, data: StockIntakeDto, userId?: string, tx?: any, correlationId?: string) {
+    const result = await this.repository.intakeStock(tenant_id, data, tx);
+    
+    // Emit standardized event (V1 Schema matching EventRegistry)
+    await this.eventBus.publish({
+      eventType: 'STOCK_MOVEMENT_CREATED',
+      tenantId: tenant_id,
+      entityId: result.id,
+      entityType: 'STOCK_MOVEMENT',
+      sourceModule: 'inventory',
+      payload: {
+        movementId: result.id,
+        tenantId: tenant_id,
+        productId: data.itemId,
+        locationId: data.locationId,
+        quantity: data.quantity,
+        type: 'intake',
+        referenceId: data.referenceId || result.referenceId,
+        referenceType: (data as any).referenceType || 'MANUAL',
+        timestamp: new Date().toISOString(),
+      },
+      userId,
+      correlationId,
+    });
+
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
@@ -86,8 +112,37 @@ export class InventoryService {
     return result;
   }
 
-  async consumeStock(tenant_id: string, data: any, userId?: string) {
-    const result = await this.repository.consumeStock(tenant_id, data);
+  async consumeStock(
+    tenant_id: string,
+    data: any,
+    userId?: string,
+    tx?: any,
+    correlationId?: string,
+  ) {
+    // Phase 4: Hardened consumption with available check (moved to repo)
+    const result = await this.repository.consumeStock(tenant_id, data, tx);
+
+    await this.eventBus.publish({
+        eventType: 'STOCK_MOVEMENT_CREATED',
+        tenantId: tenant_id,
+        entityId: result.id,
+        entityType: 'STOCK_MOVEMENT',
+        sourceModule: 'inventory',
+        payload: {
+          movementId: result.id,
+          tenantId: tenant_id,
+          productId: data.itemId,
+          locationId: data.locationId,
+          quantity: -data.quantity,
+          type: 'deduction',
+          referenceId: data.referenceId || result.referenceId,
+          referenceType: data.referenceType || 'CONSUMPTION',
+          timestamp: new Date().toISOString(),
+        },
+        userId,
+        correlationId,
+      });
+
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
@@ -96,18 +151,268 @@ export class InventoryService {
         action: "CONSUME",
         entityType: "STOCK",
         entityId: data.itemId,
-        metadata: { quantity: data.quantity, locationId: data.locationId },
+        metadata: {
+          quantity: data.quantity,
+          location: data.locationId,
+          referenceId: data.referenceId,
+        },
       });
     }
     return result;
+  }
+
+  // --- Financial-Grade Reservation Lifecycle ---
+
+  async reserveStock(
+    tenantId: string,
+    data: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    userId: string,
+    correlationId?: string
+  ) {
+    await this.repository.reserveStock(
+        tenantId, 
+        data.productId, 
+        data.locationId, 
+        data.quantity, 
+        data.referenceId, 
+        data.referenceType
+    );
+    
+    await this.eventBus.publish({
+        eventType: 'STOCK_RESERVED',
+        tenantId,
+        entityId: data.productId,
+        entityType: 'PRODUCT',
+        sourceModule: 'inventory',
+        payload: { 
+            ...data, 
+            timestamp: new Date().toISOString() 
+        },
+        userId,
+        correlationId
+    });
+  }
+
+  async releaseStock(
+    tenantId: string,
+    data: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    userId: string,
+    correlationId?: string
+  ) {
+    await this.repository.releaseStock(
+        tenantId, 
+        data.productId, 
+        data.locationId, 
+        data.quantity, 
+        data.referenceId, 
+        data.referenceType
+    );
+    
+    await this.eventBus.publish({
+        eventType: 'STOCK_RELEASED',
+        tenantId,
+        entityId: data.productId,
+        entityType: 'PRODUCT',
+        sourceModule: 'inventory',
+        payload: { 
+            ...data, 
+            timestamp: new Date().toISOString() 
+        },
+        userId,
+        correlationId
+    });
+  }
+
+  async confirmReservation(
+    tenantId: string,
+    data: { productId: string; locationId: string; quantity: number; referenceId: string; referenceType: string },
+    userId: string,
+    correlationId?: string
+  ) {
+    await this.repository.consumeFromReservation(
+        tenantId, 
+        data.productId, 
+        data.locationId, 
+        data.quantity, 
+        data.referenceId, 
+        data.referenceType
+    );
+
+    await this.eventBus.publish({
+        eventType: 'STOCK_MOVEMENT_CREATED',
+        tenantId,
+        entityId: data.referenceId,
+        entityType: 'STOCK_MOVEMENT',
+        sourceModule: 'inventory',
+        payload: {
+            movementId: data.referenceId,
+            tenantId,
+            productId: data.productId,
+            locationId: data.locationId,
+            quantity: -data.quantity,
+            type: 'deduction',
+            referenceId: data.referenceId,
+            referenceType: data.referenceType,
+            status: 'CONSUMED_RESERVATION',
+            timestamp: new Date().toISOString(),
+        },
+        userId,
+        correlationId
+    });
+  }
+
+  // --- In-Transit / Multi-Step Transfer ---
+
+  async initiateTransfer(
+    tenant_id: string,
+    data: { productId: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string, transferGroupId?: string },
+    userId: string,
+    correlationId?: string
+  ) {
+    const groupId = data.transferGroupId || `TRG-${Date.now()}`;
+    const move = await this.repository.transferOut(
+        tenant_id, 
+        data.productId, 
+        data.fromLocationId, 
+        data.toLocationId, 
+        data.quantity, 
+        data.referenceId, 
+        data.referenceType,
+        groupId
+    );
+    
+    await this.eventBus.publish({
+        eventType: 'STOCK_MOVEMENT_CREATED',
+        tenantId: tenant_id,
+        entityId: move.id,
+        entityType: 'STOCK_MOVEMENT',
+        sourceModule: 'inventory',
+        payload: {
+            movementId: move.id,
+            tenantId: tenant_id,
+            productId: data.productId,
+            fromLocationId: data.fromLocationId,
+            toLocationId: data.toLocationId,
+            quantity: -data.quantity,
+            type: 'TRANSFER_OUT',
+            referenceId: data.referenceId,
+            referenceType: data.referenceType,
+            transferGroupId: groupId,
+            status: 'IN_TRANSIT',
+            timestamp: new Date().toISOString(),
+        },
+        userId,
+        correlationId
+    });
+    return { move, transferGroupId: groupId };
+  }
+
+  async completeTransfer(
+    tenant_id: string,
+    data: { productId: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string, transferGroupId?: string },
+    userId: string,
+    correlationId?: string
+  ) {
+    const move = await this.repository.transferIn(
+        tenant_id, 
+        data.productId, 
+        data.fromLocationId, 
+        data.toLocationId, 
+        data.quantity, 
+        data.referenceId, 
+        data.referenceType,
+        data.transferGroupId
+    );
+    
+    await this.eventBus.publish({
+        eventType: 'STOCK_MOVEMENT_CREATED',
+        tenantId: tenant_id,
+        entityId: move.id,
+        entityType: 'STOCK_MOVEMENT',
+        sourceModule: 'inventory',
+        payload: {
+            movementId: move.id,
+            tenantId: tenant_id,
+            productId: data.productId,
+            locationId: data.toLocationId,
+            quantity: data.quantity,
+            type: 'TRANSFER_IN',
+            referenceId: data.referenceId,
+            referenceType: data.referenceType,
+            transferGroupId: data.transferGroupId,
+            status: 'COMPLETED',
+            timestamp: new Date().toISOString(),
+        },
+        userId,
+        correlationId
+    });
+    return move;
+  }
+
+  async runStockSnapshot(tenantId: string, locationId: string) {
+    await this.repository.takeSnapshot(tenantId, locationId);
+  }
+
+  async initializeStock(tenant_id: string, data: any, userId?: string, correlationId?: string) {
+    // Manual Creation flow initializer
+    await this.eventBus.publish({
+        eventType: 'INVENTORY_STOCK_INITIALIZED',
+        tenantId: tenant_id,
+        entityId: data.sku,
+        entityType: 'ITEM',
+        sourceModule: 'inventory',
+        payload: {
+            tenantId: tenant_id,
+            sku: data.sku,
+            locationId: data.locationId,
+            quantity: data.quantity,
+            unitCost: data.unitCost,
+            timestamp: new Date().toISOString(),
+        },
+        userId,
+        correlationId
+    });
   }
 
   async transferStock(
     tenant_id: string,
     data: TransferStockDto,
     userId?: string,
+    correlationId?: string,
   ) {
-    const result = await this.repository.transferStock(tenant_id, data);
+    // Phase 3: Multi-branch transfer with in-transit support
+    // Option A: Immediate transfer (legacy)
+    // Option B: Two-step transfer (Departed -> InTransit -> Arrived)
+    
+    // For Phase 3, we implement the two-step logic if it's a 'shipment' 
+    // but for simple 'transfer' we'll stick to standardized emission.
+
+    const result = await (this.repository as any).transferStock(tenant_id, data);
+    
+    // Emit standardized events (One for OUT, one for IN if immediate)
+    for (const move of result) {
+        await this.eventBus.publish({
+            eventType: 'STOCK_MOVEMENT_CREATED',
+            tenantId: tenant_id,
+            entityId: move.id,
+            entityType: 'STOCK_MOVEMENT',
+            sourceModule: 'inventory',
+            payload: {
+                movementId: move.id,
+                tenantId: tenant_id,
+                productId: data.itemId,
+                locationId: move.movementType === 'transfer_out' ? data.fromLocationId : data.toLocationId,
+                quantity: move.movementType === 'transfer_out' ? -data.quantity : data.quantity,
+                type: move.movementType === 'transfer_out' ? 'transfer_out' : 'transfer_in',
+                referenceId: move.referenceId,
+                referenceType: 'TRANSFER',
+                timestamp: new Date().toISOString(),
+            },
+            userId,
+            correlationId,
+        });
+    }
+
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
@@ -134,8 +439,10 @@ export class InventoryService {
     tenant_id: string,
     data: CreateAdjustmentDto,
     userId?: string,
+    tx?: any,
+    correlationId?: string
   ) {
-    const adjustment = await this.repository.createAdjustment(tenant_id, data);
+    const adjustment = await this.repository.createAdjustment(tenant_id, data, tx);
     if (userId) {
       await this.auditService.log({
         tenantId: tenant_id,
@@ -159,11 +466,34 @@ export class InventoryService {
     adjustmentId: string,
     approvedBy: string,
   ) {
-    return this.repository.approveAdjustment(
+    const result = await this.repository.approveAdjustment(
       tenant_id,
       adjustmentId,
       approvedBy,
     );
+
+    // Emit standardized event
+    await this.eventBus.publish({
+      eventType: 'STOCK_MOVEMENT_CREATED',
+      tenantId: tenant_id,
+      entityId: adjustmentId,
+      entityType: 'STOCK_MOVEMENT',
+      sourceModule: 'inventory',
+      payload: {
+        movementId: adjustmentId,
+        tenantId: tenant_id,
+        productId: result.itemId,
+        locationId: result.locationId,
+        quantity: result.requestedDelta,
+        type: result.requestedDelta > 0 ? 'adjustment_plus' : 'adjustment_minus',
+        referenceId: `ADJ-${adjustmentId}`,
+        referenceType: 'INVENTORY_ADJUSTMENT',
+        timestamp: new Date().toISOString(),
+      },
+      userId: approvedBy,
+    });
+
+    return result;
   }
 
   async getAlerts(tenant_id: string) {
@@ -227,6 +557,25 @@ export class InventoryService {
             message: `Stock level for product ${level.productId} at location ${level.locationId} is at ${level.onHand} (threshold: ${level.minBuffer})`,
           },
         });
+
+        // Emit standardized LOW_STOCK_ALERT event
+        await this.eventBus.publish({
+            eventType: 'LOW_STOCK_ALERT',
+            tenantId: tenant_id,
+            entityId: level.productId,
+            entityType: 'PRODUCT',
+            sourceModule: 'inventory',
+            payload: {
+                tenantId: tenant_id,
+                productId: level.productId,
+                locationId: level.locationId,
+                currentLevel: level.onHand,
+                threshold: level.minBuffer,
+                timestamp: new Date().toISOString(),
+            },
+            userId: 'system',
+        });
+
         created++;
       }
     }
@@ -405,9 +754,15 @@ export class InventoryService {
         action: "REQUEST_MOVEMENT",
         entityType: "MOVEMENT_REQUEST",
         entityId: request.id,
-        metadata: { type: data.type, lineCount: data.lines.length },
+        metadata: { productId: data.productId, quantity: data.quantity },
       });
     }
     return request;
+  }
+
+
+  // --- Agentic Layer ---
+  async createAgenticEvent(tenant_id: string, data: CreateAgenticEventDto) {
+    return this.repository.createAgenticEvent(tenant_id, data);
   }
 }

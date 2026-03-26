@@ -19,6 +19,8 @@ import {
   seedTestCategory,
   seedTestProduct,
   seedTestSupplier,
+  seedTestFiscalPeriod,
+  seedTestAccount,
   testId,
 } from "./helpers/seeds";
 
@@ -36,7 +38,10 @@ async function runPhase4(): Promise<void> {
       employee: any,
       product: any,
       supplier: any,
-      supplierBranch: any;
+      supplierBranch: any,
+      fiscalPeriod: any,
+      accInventory: any,
+      accPayable: any;
 
     try {
       company = await seedTestCompany(tx as any);
@@ -62,9 +67,15 @@ async function runPhase4(): Promise<void> {
       );
       supplier = s;
       supplierBranch = b;
+
+      // Seed accounting foundation
+      fiscalPeriod = await seedTestFiscalPeriod(tx as any, company.id);
+      accInventory = await seedTestAccount(tx as any, company.id, '1300', 'Inventory Asset', 'ASSET');
+      accPayable = await seedTestAccount(tx as any, company.id, '2100', 'Accounts Payable', 'LIABILITY');
+
       pass(
         "4.1 Base entities created",
-        `Company, Location, Dept, Employee, Product, Supplier created`,
+        `Company, Location, Dept, Employee, Product, Supplier, FiscalPeriod, and Accounts created`,
       );
     } catch (e: any) {
       fail("4.1 Base entities created", `Setup failed: ${e.message}`);
@@ -301,20 +312,30 @@ async function runPhase4(): Promise<void> {
       journalEntry = await (tx as any).journalEntry.create({
         data: {
           tenantId: company.id,
+          fiscalPeriodId: (fiscalPeriod as any).id,
           ref: `GRN-${receipt.id.slice(0, 8)}`,
+          postingDate: new Date(),
           description: `Inventory purchase — FinalPO ${finalPo.id.slice(0, 8)}`,
           status: "POSTED",
           lines: {
             create: [
               {
-                accountCode: "1300", // Inventory Asset (debit)
+                tenantId: company.id,
+                accountId: (accInventory as any).id,
+                accountCode: "1300",
                 description: `10x ${product.name} received`,
+                side: "DEBIT",
+                amount: totalCost,
                 debit: totalCost,
                 credit: 0,
               },
               {
-                accountCode: "2100", // Accounts Payable (credit)
+                tenantId: company.id,
+                accountId: (accPayable as any).id,
+                accountCode: "2100",
                 description: `Payable to ${supplier.name}`,
+                side: "CREDIT",
+                amount: totalCost,
                 debit: 0,
                 credit: totalCost,
               },

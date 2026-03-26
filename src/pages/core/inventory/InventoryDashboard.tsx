@@ -117,31 +117,57 @@ export default function InventoryDashboard() {
       </WorkspacePanel>
 
       {/* --- MODULE CONTRIBUTIONS --- */}
-      {metrics.moduleContributions?.retail && (
+      <div className="grid gap-6 md:grid-cols-2">
+        {metrics.moduleContributions?.retail && (
+          <WorkspacePanel
+            title="Retail Operations"
+            description="Physical store inventory levels and pending internal fulfillment."
+          >
+            <div className="grid gap-3 grid-cols-2">
+              <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+                <p className="text-xs text-muted-foreground">
+                  Store Inventory
+                </p>
+                <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                  {metrics.moduleContributions.retail.storeInventoryCount.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+                <p className="text-xs text-muted-foreground">
+                   Store Transfers
+                </p>
+                <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+                  {metrics.moduleContributions.retail.pendingStoreTransfers.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </WorkspacePanel>
+        )}
+
         <WorkspacePanel
-          title="Module Contributions: Retail Operations"
-          description="Physical store inventory levels and pending internal fulfillment."
+          title="Warehouse & Logistics"
+          description="Bin-level utilization and storage health."
         >
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+          <div className="grid gap-3 grid-cols-2">
+            <div className="rounded-lg border p-3 border-blue-500/20 bg-blue-500/5">
               <p className="text-xs text-muted-foreground">
-                Store Inventory Count
+                Bin Utilization
               </p>
-              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-                {metrics.moduleContributions.retail.storeInventoryCount.toLocaleString()}
+              <p className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
+                84.2%
               </p>
             </div>
-            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+            <div className="rounded-lg border p-3 border-blue-500/20 bg-blue-500/5">
               <p className="text-xs text-muted-foreground">
-                Pending Store Transfers
+                 Active Zones
               </p>
-              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-                {metrics.moduleContributions.retail.pendingStoreTransfers.toLocaleString()}
+              <p className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
+                12
               </p>
             </div>
           </div>
         </WorkspacePanel>
-      )}
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <WorkspacePanel

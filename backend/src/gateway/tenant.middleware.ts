@@ -58,6 +58,7 @@ export class TenantMiddleware implements NestMiddleware {
 
       req.tenantContext = {
         tenantId: tenantId as string,
+        companyId: (req.headers["x-dev-company-id"] || req.headers["x-company-id"] || tenantId) as string,
         userId: devUserId as string,
         role: devRole as string,
       };
@@ -92,6 +93,7 @@ export class TenantMiddleware implements NestMiddleware {
 
     const userId = verifiedUser.id;
     const locationId = req.headers["x-location-id"];
+    const companyId = req.headers["x-company-id"] || tenantId; // Fallback to tenantId if not provided
 
     // 4. Role Extraction & Verification logic
     // We look for the user's role in the context of the requested tenantId
@@ -133,6 +135,7 @@ export class TenantMiddleware implements NestMiddleware {
     // Attach tenant context to request object
     const tenantContext: TenantContext = {
       tenantId: tenantId as string,
+      companyId: companyId as string,
       locationId: locationId as string | undefined,
       userId,
       role,

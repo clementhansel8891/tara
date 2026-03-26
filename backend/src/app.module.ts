@@ -24,9 +24,14 @@ import { AutomationModule } from "./shared/automation/automation.module";
 import { CommandBusModule } from "./shared/command-bus/command-bus.module";
 import { ComplianceEngineModule } from "./modules/compliance/compliance.module";
 import { HealthController } from "./gateway/health.controller";
+import { PricingModule } from "./core/pricing/pricing.module";
+import { AgenticModule } from "./agentic/agentic.module";
+import { WorkflowEngineModule } from "./core/workflow/workflow.module";
+import { MaintenanceModule } from "./shared/maintenance/maintenance.module";
 
 import { APP_GUARD } from "@nestjs/core";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ScheduleModule } from "@nestjs/schedule";
 
 /**
  * App Module
@@ -44,6 +49,7 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
  */
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
@@ -73,6 +79,10 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
     ExplorerModule,
     AuditModule,
     AuthModule,
+    PricingModule,
+    AgenticModule,
+    WorkflowEngineModule,
+    MaintenanceModule,
   ],
 
   controllers: [HealthController],

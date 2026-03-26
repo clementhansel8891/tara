@@ -14,7 +14,7 @@ export class PayrollExecutedListener {
   ) {}
 
   register() {
-    this.eventBus.subscribe(this.handle.bind(this));
+    this.eventBus.subscribe(EVENT_NAMES.PAYROLL_EXECUTED, 'PayrollExecutedListener.handle', this.handle.bind(this));
   }
 
   private async handle(event: DomainEvent) {

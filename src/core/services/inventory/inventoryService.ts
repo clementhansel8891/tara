@@ -10,6 +10,10 @@ import type {
   InventoryItemMaster,
   InventoryMovement,
   InventoryStockBalance,
+  WarehouseBin,
+  BinAssignment,
+  InventoryIotEvent,
+  AgenticEvent,
 } from "@/core/types/inventory/inventory";
 
 export const inventoryService = {
@@ -342,5 +346,95 @@ export const inventoryService = {
       session,
       payload,
     );
+  },
+
+  // --- Warehouse Module ---
+  async getWarehouseBins(
+    tenantId: string,
+    session: SessionContext,
+    locationId: string,
+  ): Promise<WarehouseBin[]> {
+    return apiRequest<WarehouseBin[]>(
+      `/warehouse/bins?locationId=${locationId}`,
+      "GET",
+      session,
+    );
+  },
+
+  async createWarehouseBin(
+    tenantId: string,
+    session: SessionContext,
+    payload: {
+      locationId: string;
+      code: string;
+      zone?: string;
+      aisle?: string;
+      rack?: string;
+      level?: string;
+      capacity: number;
+    },
+  ): Promise<WarehouseBin> {
+    return apiRequest<WarehouseBin>("/warehouse/bins", "POST", session, payload);
+  },
+
+  async getBinStock(
+    tenantId: string,
+    session: SessionContext,
+    binId: string,
+  ): Promise<BinAssignment[]> {
+    return apiRequest<BinAssignment[]>(
+      `/warehouse/bins/${binId}/stock`,
+      "GET",
+      session,
+    );
+  },
+
+  async assignStockToBin(
+    tenantId: string,
+    session: SessionContext,
+    binId: string,
+    payload: { productId: string; qty: number },
+  ) {
+    return apiRequest<any>(
+      `/warehouse/bins/${binId}/assign`,
+      "POST",
+      session,
+      payload,
+    );
+  },
+
+  // --- IoT / RFID ---
+  async listIotEvents(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<InventoryIotEvent[]> {
+    return apiRequest<InventoryIotEvent[]>("/inventory/iot/events", "GET", session);
+  },
+
+  async recordIotScan(
+    tenantId: string,
+    session: SessionContext,
+    payload: {
+      deviceId: string;
+      eventType: string;
+      sku: string;
+      locationId?: string;
+      binId?: string;
+      payload: any;
+    },
+  ) {
+    const endpoint =
+      payload.eventType === "RFID_SCAN"
+        ? "/inventory/iot/rfid-scan"
+        : "/inventory/iot/barcode-scan";
+    return apiRequest<any>(endpoint, "POST", session, payload);
+  },
+
+  // --- Agentic Layer ---
+  async listAgenticEvents(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<AgenticEvent[]> {
+    return apiRequest<AgenticEvent[]>("/inventory/agentic/events", "GET", session);
   },
 };

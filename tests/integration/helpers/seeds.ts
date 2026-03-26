@@ -93,6 +93,8 @@ export async function seedTestEmployee(
     lastName: string;
     email: string;
     position: string;
+    baseSalary: number;
+    hireDate: Date;
   }> = {},
 ) {
   const id = overrides.id ?? testId("emp");
@@ -108,8 +110,8 @@ export async function seedTestEmployee(
       position: overrides.position ?? "Test Staff",
       employeeCode: `EC-${id.slice(-8)}`,
       employmentType: "full_time",
-      baseSalary: 5000000,
-      hireDate: new Date("2024-01-01"),
+      baseSalary: overrides.baseSalary ?? 5000000,
+      hireDate: overrides.hireDate ?? new Date("2024-01-01"),
       status: "active",
     },
   });
@@ -238,4 +240,34 @@ export async function seedTestSupplier(
     },
   });
   return { supplier, branch };
+}
+
+/** Create a minimal FiscalPeriod */
+export async function seedTestFiscalPeriod(
+  prisma: PrismaClient,
+  tenantId: string,
+  overrides: Partial<{ id: string; name: string; startDate: Date; endDate: Date }> = {},
+) {
+  const id = overrides.id ?? testId("fp");
+  return prisma.fiscalPeriod.create({
+    data: {
+      id,
+      tenantId,
+      name: overrides.name ?? `FY2026-Q1`,
+      startDate: overrides.startDate ?? new Date("2026-01-01"),
+      endDate: overrides.endDate ?? new Date("2026-03-31"),
+      status: "OPEN",
+    },
+  });
+}
+
+export async function seedTestAccount(tx: PrismaClient, tenantId: string, code: string, name: string, type: string) {
+  return await (tx as any).chartOfAccount.create({
+    data: {
+      tenantId,
+      code,
+      name,
+      type
+    }
+  });
 }
