@@ -79,4 +79,55 @@ export class HrSchedulingController {
     const user_id = req.user?.id;
     return this.schedulingService.createWorkShift(tenant_id, data, user_id);
   }
+
+  // --- Overrides & Swaps ---
+
+  @Get("overrides")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async getOverrides(@Headers("x-tenant-id") tenant_id: string) {
+    return this.schedulingService.listOverrides(tenant_id);
+  }
+
+  @Post("overrides")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async saveOverride(
+    @Headers("x-tenant-id") tenant_id: string,
+    @Body() data: any,
+    @Req() req: any,
+  ) {
+    const user_id = req.user?.id;
+    return this.schedulingService.saveOverride(tenant_id, data, user_id);
+  }
+
+  @Get("swaps")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
+  async getSwaps(@Headers("x-tenant-id") tenant_id: string) {
+    return this.schedulingService.listSwaps(tenant_id);
+  }
+
+  @Post("swaps")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
+  async saveSwap(
+    @Headers("x-tenant-id") tenant_id: string,
+    @Body() data: any,
+    @Req() req: any,
+  ) {
+    const user_id = req.user?.id;
+    return this.schedulingService.saveSwapRequest(tenant_id, data, user_id);
+  }
+
+  @Get("master-shifts")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
+  async getMasterShifts(@Headers("x-tenant-id") tenant_id: string) {
+    return this.schedulingService.listAllShifts(tenant_id);
+  }
+
+  @Get("assignments")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
+  async getAssignments(
+    @Headers("x-tenant-id") tenant_id: string,
+    @Query("employeeId") employee_id?: string,
+  ) {
+    return this.schedulingService.listAllAssignments(tenant_id, employee_id);
+  }
 }

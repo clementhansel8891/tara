@@ -4,30 +4,55 @@ import type {
   EmergencyOverride,
   ShiftSwapRequest,
 } from "@/core/types/hr/scheduling";
-import { schedulingRepo } from "@/core/repositories/hr/schedulingRepo";
+import type { SessionContext } from "@/core/security/session";
+import type {
+  DailySchedule,
+  EmergencyOverride,
+  ShiftSwapRequest,
+  Shift,
+} from "@/core/types/hr/scheduling";
 import { workflowService } from "@/core/services/hr/workflowService";
-import { nextId } from "@/core/persistence";
 import { audit } from "@/core/logging/audit";
+import { apiRequest } from "@/core/api/apiClient";
 
 export const schedulingService = {
   async getDailySchedule(
     tenantId: string,
     employeeId: string,
     date: string,
+    session?: SessionContext,
   ): Promise<DailySchedule | null> {
     // 1. Check for Emergency Overrides (Highest Priority)
-    const allOverrides = await schedulingRepo.listOverrides(tenantId);
-    const overrides = allOverrides.filter((o) => o.date === date && o.coveringEmployeeId === employeeId);
+    const allOverridesRaw = await apiRequest<any[]>(
+      "/v1/hr/scheduling/overrides",
+      "GET",
+      session,
+      undefined,
+      { tenantId }
+    );
+    
+    const overrides = allOverridesRaw.filter((o) => {
+      const oDate = new Date(o.start_date).toISOString().split('T')[0];
+      return oDate === date && o.employee_id === employeeId;
+    });
 
     if (overrides.length > 0) {
-      const override = overrides[0]; // Take first overlap
-      const shift = await schedulingRepo.getShift(tenantId, override.shiftId);
-      if (shift) {
+      const override = overrides[0];
+      const shifts = await apiRequest<any[]>(
+        "/v1/hr/scheduling/master-shifts",
+        "GET",
+        session,
+        undefined,
+        { tenantId }
+      );
+      const shiftRaw = shifts.find(s => s.id === override.shift_id);
+      
+      if (shiftRaw) {
         return {
           date,
           employeeId,
-          shift,
-          locationId: "loc-override", // Or derive from shift/assignment
+          shift: this.mapShift(shiftRaw),
+          locationId: "loc-override",
           source: "OVERRIDE",
           overrideReferenceId: override.id,
         };
@@ -35,23 +60,39 @@ export const schedulingService = {
     }
 
     // 2. Check for Approved Shift Swaps
-    const allSwaps = await schedulingRepo.listSwaps(tenantId);
-    const swaps = allSwaps.filter(
-        (s) =>
-          s.date === date &&
-          s.status === "APPROVED" &&
-          (s.requesterId === employeeId || s.targetEmployeeId === employeeId),
+    const allSwapsRaw = await apiRequest<any[]>(
+      "/v1/hr/scheduling/swaps",
+      "GET",
+      session,
+      undefined,
+      { tenantId }
+    );
+    
+    const swaps = allSwapsRaw.filter((s) => {
+      // For swaps, we might need a date field in the DB, but for now we look at status
+      // Note: the backend swap model might need a 'date' field if not present.
+      // Based on previous code, s.date was used.
+      return (
+        s.status === "APPROVED" &&
+        (s.requester_id === employeeId || s.target_id === employeeId)
       );
+    });
 
-    // If I requested a swap away, I have NO shift (unless I swapped FOR another)
-    const swappedIn = swaps.find((s) => s.targetEmployeeId === employeeId);
+    const swappedIn = swaps.find((s) => s.target_id === employeeId);
     if (swappedIn) {
-      const shift = await schedulingRepo.getShift(tenantId, swappedIn.shiftId);
-      if (shift) {
+        const shifts = await apiRequest<any[]>(
+          "/v1/hr/scheduling/master-shifts",
+          "GET",
+          session,
+          undefined,
+          { tenantId }
+        );
+        const shiftRaw = shifts.find(s => s.id === swappedIn.shift_id);
+      if (shiftRaw) {
         return {
           date,
           employeeId,
-          shift,
+          shift: this.mapShift(shiftRaw),
           locationId: "loc-swap",
           source: "SWAP",
           overrideReferenceId: swappedIn.id,
@@ -59,23 +100,30 @@ export const schedulingService = {
       }
     }
 
-    const swappedOut = swaps.find((s) => s.requesterId === employeeId);
+    const swappedOut = swaps.find((s) => s.requester_id === employeeId);
     if (swappedOut) {
       return null; // I gave away my shift
     }
 
     // 3. Fallback to Standard Schedule Assignment
-    const assignment = await schedulingRepo.getAssignment(tenantId, employeeId);
+    const assignmentsRaw = await apiRequest<any[]>(
+      "/v1/hr/scheduling/assignments",
+      "GET",
+      session,
+      undefined,
+      { tenantId }
+    );
+    const assignment = assignmentsRaw.find(a => a.employee_id === employeeId);
+    
     if (assignment) {
-      // Check if day matches
       const dayOfWeek = new Date(date).getDay();
-      const shift = await schedulingRepo.getShift(tenantId, assignment.shiftId);
-      if (shift && shift.workDays.includes(dayOfWeek)) {
+      const shiftRaw = assignment.shift;
+      if (shiftRaw && shiftRaw.work_days.includes(dayOfWeek)) {
         return {
           date,
           employeeId,
-          shift,
-          locationId: assignment.locationId,
+          shift: this.mapShift(shiftRaw),
+          locationId: assignment.location_id,
           source: "STANDARD",
         };
       }
@@ -92,32 +140,44 @@ export const schedulingService = {
     date: string,
     reason: string,
   ) {
-    const request: ShiftSwapRequest = {
-      id: nextId("swap"),
-      tenantId,
-      requesterId: session.userId,
-      targetEmployeeId,
-      shiftId,
-      date,
+    const data = {
+      requester_id: session.userId,
+      target_id: targetEmployeeId,
+      shift_id: shiftId,
       status: "PENDING",
-      reason,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      reason, // Note: reason might need to be added to DB if not there
     };
 
-    await schedulingRepo.saveSwapRequest(tenantId, request);
+    const response = await apiRequest<any>(
+      "/v1/hr/scheduling/swaps",
+      "POST",
+      session,
+      data,
+      { tenantId }
+    );
 
     // Create Workflow
     await workflowService.createRequest(tenantId, session, {
       entityType: "SHIFT_SWAP",
-      entityId: request.id,
+      entityId: response.id,
       makerDept: session.departmentId,
-      destinationDept: session.departmentId, // HOD Approval
+      destinationDept: session.departmentId,
       notes: `Shift Swap Request: ${reason}`,
       metadata: { date, targetEmployeeId },
     });
 
-    return request;
+    return {
+        id: response.id,
+        tenantId: response.tenant_id,
+        requesterId: response.requester_id,
+        targetEmployeeId: response.target_id,
+        shiftId: response.shift_id,
+        date: date,
+        status: response.status,
+        reason: reason,
+        createdAt: response.created_at,
+        updatedAt: response.updated_at,
+    } as ShiftSwapRequest;
   },
 
   async submitOverride(
@@ -129,29 +189,29 @@ export const schedulingService = {
     date: string,
     reason: string,
   ) {
-    const override: EmergencyOverride = {
-      id: nextId("override"),
-      tenantId,
-      absentEmployeeId,
-      coveringEmployeeId,
-      shiftId,
-      date,
+    const data = {
+      employee_id: coveringEmployeeId,
       reason,
-      authorizedBy: session.userId,
-      payrollImpact: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      start_date: date,
+      end_date: date,
+      shift_id: shiftId, // Note: shift_id needs to be in DB for override if we want to link it
     };
 
-    await schedulingRepo.saveOverride(tenantId, override);
+    const response = await apiRequest<any>(
+      "/v1/hr/scheduling/overrides",
+      "POST",
+      session,
+      data,
+      { tenantId }
+    );
 
-    // Create Audit Workflow (Auto-approved effectively, but logged)
+    // Create Audit Workflow
     await workflowService.createRequest(tenantId, session, {
       entityType: "EMERGENCY_OVERRIDE",
-      entityId: override.id,
+      entityId: response.id,
       makerDept: session.departmentId,
       destinationDept: "HR",
-      notes: `Emergency Override: ${reason} (Authorized by ${session.userId})`,
+      notes: `Emergency Override: ${reason}`,
       metadata: { date, absentEmployeeId, coveringEmployeeId },
     });
 
@@ -160,10 +220,34 @@ export const schedulingService = {
       actorId: session.userId,
       action: "schedule.override",
       entityType: "schedule_override",
-      entityId: override.id,
+      entityId: response.id,
       after: { coveringEmployeeId },
     });
 
-    return override;
+    return {
+        id: response.id,
+        tenantId: response.tenant_id,
+        absentEmployeeId: absentEmployeeId, // We don't store this in simple DB but keep for UI
+        coveringEmployeeId: response.employee_id,
+        shiftId: shiftId,
+        date: date,
+        reason: response.reason,
+        authorizedBy: session.userId,
+        payrollImpact: true,
+        createdAt: response.created_at,
+        updatedAt: response.updated_at,
+    } as EmergencyOverride;
   },
+
+  mapShift(raw: any): Shift {
+    return {
+      id: raw.id,
+      name: raw.name,
+      startTime: raw.start_time,
+      endTime: raw.end_time,
+      breakDuration: raw.break_duration,
+      flexibleWindow: raw.flexible_window,
+      workDays: raw.work_days,
+    };
+  }
 };

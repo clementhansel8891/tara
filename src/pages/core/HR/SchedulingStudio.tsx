@@ -46,6 +46,7 @@ export default function SchedulingStudio() {
   const [isBypassMode, setIsBypassMode] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{ employeeId: string; date: string } | null>(null);
   const [isOverrideOpen, setIsOverrideOpen] = useState(false);
+  const [rosterData, setRosterData] = useState<Record<string, any>>({});
   const [overrideForm, setOverrideForm] = useState({
     coveringEmployeeId: "",
     reason: "",
@@ -59,20 +60,39 @@ export default function SchedulingStudio() {
     });
   }, [viewDate]);
 
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const result = await staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 });
-        setEmployees(result.items);
-      } catch (err) {
-        console.error("Failed to load employees for scheduling", err);
-      } finally {
-        setIsLoading(false);
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const staffResult = await staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 });
+      setEmployees(staffResult.items);
+
+      // Fetch all roster components for the week
+      const newRosterData: Record<string, any> = {};
+      
+      for (const emp of staffResult.items) {
+        newRosterData[emp.id] = {};
+        for (const day of weekDays) {
+          const dateStr = format(day, "yyyy-MM-dd");
+          const schedule = await schedulingService.getDailySchedule(
+            session.tenantId,
+            emp.id,
+            dateStr,
+            session
+          );
+          newRosterData[emp.id][dateStr] = schedule;
+        }
       }
-    };
+      setRosterData(newRosterData);
+    } catch (err) {
+      console.error("Failed to load scheduling data", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadData();
-  }, [session.tenantId]);
+  }, [session.tenantId, viewDate]);
 
   const handlePrevWeek = () => setViewDate((prev) => addDays(prev, -7));
   const handleNextWeek = () => setViewDate((prev) => addDays(prev, 7));
@@ -101,7 +121,7 @@ export default function SchedulingStudio() {
       setIsOverrideOpen(false);
       setSelectedCell(null);
       setOverrideForm({ coveringEmployeeId: "", reason: "" });
-      // In a real app, we'd trigger a refresh of the schedule data here
+      loadData(); // Refresh roster
     } catch (err) {
       console.error("Override failed", err);
     }
@@ -177,23 +197,39 @@ export default function SchedulingStudio() {
                           </div>
                         </div>
                       </td>
-                      {weekDays.map((date) => (
-                        <td 
-                          key={date.toISOString()} 
-                          className={`p-2 border-b border-l min-h-[80px] transition-all duration-200 cursor-pointer ${isBypassMode ? "hover:bg-destructive/5" : "hover:bg-primary/5"}`}
-                          onClick={() => handleCellClick(emp.id, date)}
-                        >
-                          <div className="h-full flex flex-col justify-center gap-1.5 p-1 rounded-lg border border-transparent hover:border-muted-foreground/10 group-hover:shadow-sm">
-                            {/* Mock shift display */}
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1">
-                              <Clock className="w-3 h-3" /> 09:00 - 18:00
+                      {weekDays.map((date) => {
+                        const dateStr = format(date, "yyyy-MM-dd");
+                        const data = rosterData[emp.id]?.[dateStr];
+                        
+                        return (
+                          <td 
+                            key={date.toISOString()} 
+                            className={`p-2 border-b border-l min-h-[80px] transition-all duration-200 cursor-pointer ${isBypassMode ? "hover:bg-destructive/5" : "hover:bg-primary/5"}`}
+                            onClick={() => handleCellClick(emp.id, date)}
+                          >
+                            <div className="h-full flex flex-col justify-center gap-1.5 p-1 rounded-lg border border-transparent hover:border-muted-foreground/10 group-hover:shadow-sm">
+                              {data ? (
+                                <>
+                                  <div className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 ${
+                                    data.source === "OVERRIDE" ? "bg-destructive/10 text-destructive border border-destructive/20" :
+                                    data.source === "SWAP" ? "bg-primary/10 text-primary border border-primary/20" :
+                                    "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
+                                  }`}>
+                                    <Clock className="w-3 h-3" /> {data.shift?.startTime} - {data.shift?.endTime}
+                                  </div>
+                                  <div className="text-[9px] text-muted-foreground flex items-center gap-1 ml-1 font-medium italic">
+                                    <UserCheck className="w-2.5 h-2.5 opacity-50" /> {data.source === "OVERRIDE" ? "Override" : data.source === "SWAP" ? "Swapped" : "Assigned"}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-[9px] text-muted-foreground text-center py-2 opacity-50">
+                                  No Shift
+                                </div>
+                              )}
                             </div>
-                            <div className="text-[9px] text-muted-foreground flex items-center gap-1 ml-1 font-medium italic">
-                              <UserCheck className="w-2.5 h-2.5 opacity-50" /> Fully Assigned
-                            </div>
-                          </div>
-                        </td>
-                      ))}
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>

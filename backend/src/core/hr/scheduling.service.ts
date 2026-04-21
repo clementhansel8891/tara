@@ -147,4 +147,112 @@ export class SchedulingService {
   async getWorkShifts(tenant_id: string, scheduleId?: string, employee_id?: string) {
     return this.hrRepository.getWorkShifts(tenant_id, scheduleId, employee_id);
   }
+
+  // --- Overrides & Swaps ---
+
+  async listOverrides(tenant_id: string): Promise<any[]> {
+    return this.prisma.emergencyOverride.findMany({
+      where: { tenant_id },
+      orderBy: { start_date: "desc" },
+    });
+  }
+
+  async saveOverride(tenant_id: string, data: any, user_id: string) {
+    const event_reference_id = `EVT-HR-OVERRIDE-${Date.now()}`;
+    return this.prisma.$transaction(async (tx: any) => {
+      const override = await tx.emergencyOverride.upsert({
+        where: { id: data.id || `ovr_${Date.now()}` },
+        update: {
+          reason: data.reason,
+          start_date: new Date(data.start_date || data.date),
+          end_date: new Date(data.end_date || data.date),
+        },
+        create: {
+          id: data.id || `ovr_${Date.now()}`,
+          tenant_id,
+          employee_id: data.employee_id || data.coveringEmployeeId,
+          reason: data.reason,
+          start_date: new Date(data.start_date || data.date),
+          end_date: new Date(data.end_date || data.date),
+        },
+      });
+
+      // Audit Log
+      await this.auditService.log({
+        tenant_id,
+        user_id,
+        module: "HR",
+        action: "UPDATE",
+        entity_type: "EMERGENCY_OVERRIDE",
+        entity_id: override.id,
+        after_state: override,
+        event_reference_id,
+      }, tx);
+
+      return override;
+    });
+  }
+
+  async listSwaps(tenant_id: string): Promise<any[]> {
+    return this.prisma.shiftSwapRequest.findMany({
+      where: { tenant_id },
+      orderBy: { created_at: "desc" },
+    });
+  }
+
+  async saveSwapRequest(tenant_id: string, data: any, user_id: string) {
+    const event_reference_id = `EVT-HR-SWAP-${Date.now()}`;
+    return this.prisma.$transaction(async (tx: any) => {
+      const swap = await tx.shiftSwapRequest.upsert({
+        where: { id: data.id || `swp_${Date.now()}` },
+        update: {
+          status: data.status,
+        },
+        create: {
+          id: data.id || `swp_${Date.now()}`,
+          tenant_id,
+          requester_id: data.requester_id || data.requesterId,
+          target_id: data.target_id || data.targetEmployeeId,
+          shift_id: data.shift_id || data.shiftId,
+          status: data.status || "pending",
+        },
+      });
+
+      // Audit Log
+      await this.auditService.log({
+        tenant_id,
+        user_id,
+        module: "HR",
+        action: "UPDATE",
+        entity_type: "SHIFT_SWAP_REQUEST",
+        entity_id: swap.id,
+        after_state: swap,
+        event_reference_id,
+      }, tx);
+
+      return swap;
+    });
+  }
+
+  async listAllShifts(tenant_id: string): Promise<any[]> {
+    return this.prisma.shift.findMany({
+      where: {
+        tenant_id,
+        deleted_at: null,
+      },
+    });
+  }
+
+  async listAllAssignments(tenant_id: string, employee_id?: string): Promise<any[]> {
+    const where: any = { tenant_id };
+    if (employee_id) where.employee_id = employee_id;
+    return this.prisma.scheduleAssignment.findMany({
+      where,
+      include: {
+        shift: true,
+        employee: true,
+        location: true,
+      },
+    });
+  }
 }

@@ -29,6 +29,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@prisma/client": path.resolve(__dirname, "./src/core/persistence/prisma-mock.ts"),
+      ".prisma/client/index-browser": path.resolve(__dirname, "./src/core/persistence/prisma-mock.ts"),
     },
   },
   optimizeDeps: {
