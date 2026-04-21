@@ -252,6 +252,7 @@ const ShiftControl = () => {
                   })
             }
             disabled={draftCount === 0}
+          >
             <Calendar className="w-4 h-4" /> Publish to Grid ({draftCount})
           </Button>
 

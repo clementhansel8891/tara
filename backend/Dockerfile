@@ -6,12 +6,12 @@ WORKDIR /app
 # Install dependencies for Prisma and build tools
 RUN apk add --no-cache openssl shadow
 
-COPY package*.json ./
+COPY backend/package*.json ./
 COPY prisma ./prisma/
 
 RUN npm ci
 
-COPY . .
+COPY backend/ .
 
 RUN npx prisma generate
 RUN npm run build

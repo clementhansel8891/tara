@@ -34,6 +34,10 @@ interface OrderDetailModalProps {
 }
 
 
+export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
+  order,
+  isOpen,
+  onClose,
   onStatusChange,
   onVoid,
   onRefund,

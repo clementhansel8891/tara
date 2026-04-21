@@ -17,7 +17,7 @@ model accountingPeriod {
   closed_at  DateTime?
   closed_by  String?
   created_at DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime  @default(now())
 
   @@unique([tenant_id, name])
   @@index([status])
@@ -33,7 +33,7 @@ model adminAuditEvent {
   entity_id   String
   actor_id    String
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@map("admin_audit_events")
 }
@@ -59,7 +59,7 @@ model adminRequest {
   status       String   @default("open")
   requested_by String
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   resolved_by  String?
 
   @@map("admin_requests")
@@ -79,7 +79,7 @@ model agenticEvent {
   correlation_id  String?
   source_event_id String?
   company         company   @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime  @default(now())
 
   @@index([tenant_id, entity_id])
   @@index([tenant_id, event_type, status])
@@ -97,7 +97,7 @@ model assetDepreciationEntry {
   carrying_value   Decimal  @db.Decimal(15, 2)
   journal_ref      String?
   created_at       DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
 
   @@index([tenant_id, asset_id])
   @@map("asset_depreciation_entries")
@@ -112,7 +112,7 @@ model assetEvent {
   date        DateTime
   recorded_by String
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id, asset_id])
   @@map("asset_events")
@@ -125,7 +125,7 @@ model auditHashAnchor {
   anchored_at  DateTime @default(now())
   record_count Int
   company      company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
 
   @@index([anchored_at])
   @@index([tenant_id])
@@ -158,7 +158,7 @@ model auditLog {
   status             String   @default("NORMAL")
   event_reference_id String?
   company            company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime @default(now())
 
   @@unique([tenant_id, idempotency_key])
   @@index([created_at])
@@ -194,7 +194,7 @@ model bulletinComment {
   deleted_at   DateTime?
   bulletinPost bulletinPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
   company      company      @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at   DateTime     @default(now())
 
   @@index([tenant_id])
   @@map("bulletin_comments")
@@ -217,7 +217,7 @@ model bulletinPost {
   expires_at       DateTime?
   view_count       Int                @default(0)
   created_at       DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime           @default(now())
   deleted_at       DateTime?
   bulletinComment  bulletinComment[]
   company          company            @relation(fields: [tenant_id], references: [id])
@@ -238,7 +238,7 @@ model bulletinReaction {
   type         String       @default("LIKE")
   bulletinPost bulletinPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
   company      company      @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at   DateTime     @default(now())
 
   @@unique([post_id, user_id, type])
   @@index([tenant_id])
@@ -251,7 +251,7 @@ model bulletinRead {
   user_id      String
   read_at      DateTime     @default(now())
   bulletinPost bulletinPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  updated_at DateTime @default(now())
+  updated_at   DateTime     @default(now())
 
   @@unique([post_id, user_id])
   @@map("bulletin_reads")
@@ -270,7 +270,7 @@ model candidate {
   resume_url     String?
   metadata       Json?
   created_at     DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime       @default(now())
   deleted_at     DateTime?
   jobRequisition jobRequisition @relation(fields: [requisition_id], references: [id])
   company        company        @relation(fields: [tenant_id], references: [id])
@@ -289,7 +289,7 @@ model capexBudget {
   committed_budget Decimal  @default(0) @db.Decimal(15, 2)
   available_budget Decimal  @db.Decimal(15, 2)
   created_at       DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
 
   @@unique([tenant_id, department, period])
   @@index([tenant_id])
@@ -309,7 +309,7 @@ model capexRequest {
   notes                  String?
   current_approval_stage String?
   created_at             DateTime     @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime     @default(now())
   company                company      @relation(fields: [tenant_id], references: [id])
   fixedAsset             fixedAsset[]
 
@@ -331,7 +331,7 @@ model chatMember {
   chatRoom     chatRoom  @relation(fields: [room_id], references: [id], onDelete: Cascade)
   company      company   @relation(fields: [tenant_id], references: [id])
   user         user      @relation(fields: [user_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at   DateTime  @default(now())
 
   @@unique([room_id, user_id])
   @@index([tenant_id])
@@ -346,7 +346,7 @@ model chatReaction {
   emoji            String
   created_at       DateTime         @default(now())
   commsChatMessage commsChatMessage @relation(fields: [message_id], references: [id], onDelete: Cascade)
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
 
   @@unique([message_id, user_id, emoji])
   @@map("chat_reactions")
@@ -365,7 +365,7 @@ model chatRoom {
   created_by        String
   is_archived       Boolean            @default(false)
   created_at        DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime           @default(now())
   deleted_at        DateTime?
   direct_key        String?            @unique
   last_message_at   DateTime?
@@ -394,7 +394,7 @@ model clinicReservation {
   total_amount Decimal  @db.Decimal(15, 2)
   currency     String   @default("USD")
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, patient_id])
@@ -428,7 +428,7 @@ model commsChatMessage {
   other_comms_chat_messages commsChatMessage[] @relation("comms_chat_messagesTocomms_chat_messages")
   chatRoom                  chatRoom           @relation(fields: [room_id], references: [id], onDelete: Cascade)
   company                   company            @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at                DateTime           @default(now())
 
   @@index([room_id, created_at])
   @@index([tenant_id])
@@ -442,7 +442,7 @@ model company {
   code                             String                             @unique
   status                           String                             @default("active")
   created_at                       DateTime                           @default(now())
-  updated_at DateTime @default(now())
+  updated_at                       DateTime                           @default(now())
   deleted_at                       DateTime?
   country                          String                             @default("US")
   currency                         String                             @default("USD")
@@ -666,7 +666,7 @@ model compensation {
   bonuses        Json?
   effective_date DateTime
   created_at     DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime  @default(now())
   deleted_at     DateTime?
   employee       employee  @relation(fields: [employee_id], references: [id])
   company        company   @relation(fields: [tenant_id], references: [id])
@@ -686,7 +686,7 @@ model contract {
   end_date    DateTime?
   url         String?
   created_at  DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime  @default(now())
   employee    employee? @relation(fields: [employee_id], references: [id])
   company     company   @relation(fields: [tenant_id], references: [id])
 
@@ -709,7 +709,7 @@ model costLayer {
   source_event_id String
   created_at      DateTime @default(now())
   company         company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime @default(now())
 
   @@index([tenant_id, sku_id, location_id])
   @@map("cost_layers")
@@ -726,7 +726,7 @@ model costSnapshot {
   currency        String   @default("USD")
   snapshot_date   DateTime @default(now())
   company         company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime @default(now())
 
   @@index([tenant_id, sku_id, location_id])
   @@map("cost_snapshots")
@@ -741,7 +741,7 @@ model department {
   description                                                     String?
   status                                                          String                   @default("active")
   created_at                                                      DateTime                 @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                                      DateTime                 @default(now())
   deleted_at                                                      DateTime?
   chatRoom                                                        chatRoom[]
   company                                                         company                  @relation(fields: [tenant_id], references: [id])
@@ -788,7 +788,7 @@ model domainEvent {
   event_reference_id    String?
   company               company         @relation(fields: [tenant_id], references: [id])
   eventDelivery         eventDelivery[]
-  updated_at DateTime @default(now())
+  updated_at            DateTime        @default(now())
 
   @@unique([tenant_id, idempotency_key])
   @@index([aggregate_id])
@@ -806,7 +806,7 @@ model ecommerceConnector {
   api_key           String         @unique
   status            String         @default("active")
   created_at        DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime       @default(now())
   deleted_at        DateTime?
   inventory_pool_id String?
   manager_id        String?
@@ -831,7 +831,7 @@ model emergencyOverride {
   start_date  DateTime
   end_date    DateTime
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
 
   @@map("emergency_overrides")
@@ -857,7 +857,7 @@ model employee {
   termination_date                                               DateTime?
   status                                                         String                   @default("active")
   created_at                                                     DateTime                 @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                                     DateTime                 @default(now())
   deleted_at                                                     DateTime?
   job_role_id                                                    String?
   document_metadata                                              Json?
@@ -891,6 +891,7 @@ model employee {
   scheduleAssignment                                             scheduleAssignment[]
   store                                                          store[]
   trainingAssignment                                             trainingAssignment[]
+  hrSalesBonus                                                   hrSalesBonus[]
 
   @@unique([tenant_id, email])
   @@unique([tenant_id, employee_code])
@@ -908,7 +909,7 @@ model eventDelivery {
   next_retry_at DateTime?
   last_error    String?
   created_at    DateTime    @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime    @default(now())
   domainEvent   domainEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
   company       company     @relation(fields: [tenant_id], references: [id])
 
@@ -927,7 +928,7 @@ model farmingSensorLog {
   timestamp   DateTime @default(now())
   metadata    Json?
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id, sensor_id, timestamp])
   @@map("farming_sensor_logs")
@@ -942,7 +943,7 @@ model financeAccountBalanceSnapshot {
   balances_data    Json
   created_at       DateTime @default(now())
   company          company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
 
   @@index([tenant_id, snapshot_date])
   @@map("finance_account_balance_snapshots")
@@ -963,7 +964,7 @@ model financeAccountBalance {
   net_balance      Decimal  @default(0) @db.Decimal(19, 4)
   version          Int      @default(1)
   created_at       DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
   currency         String   @default("IDR")
   company          company  @relation(fields: [tenant_id], references: [id])
 
@@ -981,7 +982,7 @@ model financeAlert {
   message     String
   created_at  DateTime  @default(now())
   resolved_at DateTime?
-  updated_at DateTime @default(now())
+  updated_at  DateTime  @default(now())
 
   @@index([status])
   @@index([tenant_id])
@@ -996,7 +997,7 @@ model financeApPaymentAllocation {
   created_at         DateTime           @default(now())
   payable            payable            @relation(fields: [bill_id], references: [id])
   paymentTransaction paymentTransaction @relation(fields: [payment_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime           @default(now())
 
   @@map("finance_ap_payment_allocations")
 }
@@ -1008,7 +1009,7 @@ model financeArCreditMemo {
   credit_amount Decimal  @db.Decimal(19, 4)
   reason        String
   created_at    DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime @default(now())
   company       company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id, customer_id])
@@ -1020,7 +1021,7 @@ model financeArCustomerCreditBalance {
   tenant_id   String
   customer_id String
   balance     Decimal  @db.Decimal(19, 4)
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, customer_id])
@@ -1036,7 +1037,7 @@ model financeArCustomer {
   credit_limit     Decimal            @default(0) @db.Decimal(19, 4)
   status           String             @default("ACTIVE")
   created_at       DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime           @default(now())
   company          company            @relation(fields: [tenant_id], references: [id])
   financeArInvoice financeArInvoice[]
 
@@ -1052,7 +1053,7 @@ model financeArInvoiceLine {
   unit_price       Decimal          @db.Decimal(19, 4)
   total            Decimal          @db.Decimal(19, 4)
   financeArInvoice financeArInvoice @relation(fields: [invoice_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
 
   @@map("finance_ar_invoice_lines")
 }
@@ -1069,7 +1070,7 @@ model financeArInvoice {
   total_amount               Decimal                      @db.Decimal(19, 4)
   outstanding_amount         Decimal                      @db.Decimal(19, 4)
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   workflow_request_id        String?
   idempotency_key            String?
   financeArInvoiceLine       financeArInvoiceLine[]
@@ -1094,7 +1095,7 @@ model financeArPaymentAllocation {
   financeArInvoice financeArInvoice @relation(fields: [invoice_id], references: [id])
   financeArPayment financeArPayment @relation(fields: [payment_id], references: [id])
   receivable       receivable?      @relation(fields: [receivableId], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
 
   @@map("finance_ar_payment_allocations")
 }
@@ -1110,7 +1111,7 @@ model financeArPayment {
   payment_reference          String?
   idempotency_key            String?
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   financeArPaymentAllocation financeArPaymentAllocation[]
   company                    company                      @relation(fields: [tenant_id], references: [id])
 
@@ -1131,7 +1132,7 @@ model financeBankStatement {
   created_at             DateTime                 @default(now())
   company                company                  @relation(fields: [tenant_id], references: [id])
   financeBankTransaction financeBankTransaction[]
-  updated_at DateTime @default(now())
+  updated_at             DateTime                 @default(now())
 
   @@map("finance_bank_statements")
 }
@@ -1148,7 +1149,7 @@ model financeBankTransaction {
   created_at           DateTime             @default(now())
   financeBankStatement financeBankStatement @relation(fields: [statement_id], references: [id])
   financeReconMatche   financeReconMatche[]
-  updated_at DateTime @default(now())
+  updated_at           DateTime             @default(now())
 
   @@map("finance_bank_transactions")
 }
@@ -1170,7 +1171,7 @@ model financeBudgetActual {
   company               company?               @relation(fields: [companyId], references: [id])
   department            department?            @relation(fields: [departmentId], references: [id])
   financeFiscalPeriod   financeFiscalPeriod?   @relation(fields: [fiscalPeriodId], references: [id])
-  updated_at DateTime @default(now())
+  updated_at            DateTime               @default(now())
 
   @@map("finance_budget_actuals")
 }
@@ -1184,7 +1185,7 @@ model financeBudgetLine {
   amount                Decimal                @db.Decimal(19, 4)
   period_id             String
   created_at            DateTime               @default(now())
-  updated_at DateTime @default(now())
+  updated_at            DateTime               @default(now())
   companyId             String?
   departmentId          String?
   chartOfAccountId      String?
@@ -1206,7 +1207,7 @@ model financeCertification {
   certification_hash String
   payload            Json
   created_at         DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime @default(now())
 
   @@unique([tenant_id, snapshot_id])
   @@index([tenant_id, snapshot_id])
@@ -1221,7 +1222,7 @@ model financeChartOfAccount {
   type                     String
   status                   String                     @default("ACTIVE")
   created_at               DateTime                   @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime                   @default(now())
   financeBudgetActual      financeBudgetActual[]
   financeBudgetLine        financeBudgetLine[]
   company                  company                    @relation(fields: [tenant_id], references: [id])
@@ -1242,7 +1243,7 @@ model financeDocument {
   description String?
   uploaded_by String
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id])
   @@map("finance_documents")
@@ -1259,7 +1260,7 @@ model financeExpensePolicy {
   requires_approval Boolean  @default(true)
   status            String   @default("ACTIVE")
   created_at        DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime @default(now())
   company           company  @relation(fields: [tenant_id], references: [id])
 
   @@map("finance_expense_policies")
@@ -1273,7 +1274,7 @@ model financeFiscalPeriod {
   end_date            DateTime
   status              String                @default("OPEN")
   created_at          DateTime              @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime              @default(now())
   financeBudgetActual financeBudgetActual[]
   financeBudgetLine   financeBudgetLine[]
   company             company               @relation(fields: [tenant_id], references: [id])
@@ -1292,7 +1293,7 @@ model financeInsightSnapshot {
   insight_hash      String
   payload           Json
   created_at        DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime @default(now())
 
   @@unique([tenant_id, company_id, snapshot_sequence, forecast_hash])
   @@index([forecast_hash])
@@ -1311,7 +1312,7 @@ model financeInsight {
   actionable  Boolean  @default(false)
   description String
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id])
   @@map("finance_insights")
@@ -1328,7 +1329,7 @@ model financeJournalEntry {
   previous_hash                                                                                    String?
   entry_hash                                                                                       String?
   created_at                                                                                       DateTime                 @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                                                                       DateTime                 @default(now())
   company_id                                                                                       String?
   effective_date                                                                                   DateTime                 @default(now())
   journal_type                                                                                     String                   @default("NORMAL")
@@ -1369,7 +1370,7 @@ model financeJournalLine {
   financeChartOfAccount financeChartOfAccount @relation(fields: [account_id], references: [id])
   financeJournalEntry   financeJournalEntry   @relation(fields: [journal_entry_id], references: [id])
   company               company               @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at            DateTime              @default(now())
 
   @@index([tenant_id, created_at])
   @@index([tenant_id, journal_entry_id])
@@ -1387,7 +1388,7 @@ model financeJournalReversal {
   finance_journal_entries_finance_journal_reversals_original_journal_idTofinance_journal_entries financeJournalEntry @relation("finance_journal_reversals_original_journal_idTofinance_journal_entries", fields: [original_journal_id], references: [id])
   finance_journal_entries_finance_journal_reversals_reversal_journal_idTofinance_journal_entries financeJournalEntry @relation("finance_journal_reversals_reversal_journal_idTofinance_journal_entries", fields: [reversal_journal_id], references: [id])
   company                                                                                        company             @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at                                                                                     DateTime            @default(now())
 
   @@unique([tenant_id, original_journal_id])
   @@map("finance_journal_reversals")
@@ -1406,7 +1407,7 @@ model financeLedgerEventLog {
   company_id      String
   status          String    @default("PENDING")
   company         company   @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime  @default(now())
 
   @@unique([tenant_id, company_id, source_event_id])
   @@index([processed_at])
@@ -1427,7 +1428,7 @@ model financeLedgerEventLogArchive {
   archived_at     DateTime  @default(now())
   status          String    @default("PENDING")
   company         company   @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime  @default(now())
 
   @@index([tenant_id, created_at])
   @@map("finance_ledger_event_log_archive")
@@ -1440,7 +1441,7 @@ model financeLedgerHashAnchor {
   final_journal_hash String
   created_at         DateTime @default(now())
   company            company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime @default(now())
 
   @@unique([tenant_id, anchor_date])
   @@map("finance_ledger_hash_anchors")
@@ -1453,7 +1454,7 @@ model financeLedgerIdempotency {
   processed_at    DateTime @default(now())
   company_id      String
   company         company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime @default(now())
 
   @@unique([tenant_id, company_id, source_event_id])
   @@map("finance_ledger_idempotency")
@@ -1479,7 +1480,7 @@ model financeLedgerPostingLine {
   dimension_project_id     String?
   financeChartOfAccount    financeChartOfAccount @relation(fields: [account_id], references: [id])
   financeLedgerPosting     financeLedgerPosting  @relation(fields: [ledger_posting_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at               DateTime              @default(now())
 
   @@map("finance_ledger_posting_lines")
 }
@@ -1491,7 +1492,7 @@ model financeLedgerPostingRuleLine {
   side                     String                   @default("DEBIT")
   amount_expression        String
   created_at               DateTime                 @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime                 @default(now())
   financeLedgerPostingRule financeLedgerPostingRule @relation(fields: [posting_rule_id], references: [id])
 
   @@map("finance_ledger_posting_rule_lines")
@@ -1508,7 +1509,7 @@ model financeLedgerPostingRule {
   effective_to                 DateTime?
   status                       String                         @default("ACTIVE")
   created_at                   DateTime                       @default(now())
-  updated_at DateTime @default(now())
+  updated_at                   DateTime                       @default(now())
   financeLedgerPostingRuleLine financeLedgerPostingRuleLine[]
   company                      company                        @relation(fields: [tenant_id], references: [id])
 
@@ -1530,7 +1531,7 @@ model financeLedgerPosting {
   failure_reason           String?
   failed_at                DateTime?
   created_at               DateTime                   @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime                   @default(now())
   financeLedgerPostingLine financeLedgerPostingLine[]
   company                  company                    @relation(fields: [tenant_id], references: [id])
 
@@ -1548,7 +1549,7 @@ model financePolicy {
   active      Boolean  @default(true)
   created_by  String
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id])
   @@map("finance_policies")
@@ -1565,7 +1566,7 @@ model financeReconMatche {
   created_at             DateTime               @default(now())
   financeBankTransaction financeBankTransaction @relation(fields: [bank_transaction_id], references: [id])
   financeJournalEntry    financeJournalEntry?   @relation(fields: [ledger_journal_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at             DateTime               @default(now())
 
   @@map("finance_recon_matches")
 }
@@ -1580,7 +1581,7 @@ model financeTaxConfig {
   created_at     DateTime         @default(now())
   company        company          @relation(fields: [tenant_id], references: [id])
   financeTaxRule financeTaxRule[]
-  updated_at DateTime @default(now())
+  updated_at     DateTime         @default(now())
 
   @@unique([tenant_id, branch_id])
   @@map("finance_tax_configs")
@@ -1596,7 +1597,7 @@ model financeTaxRate {
   account_code   String
   created_at     DateTime       @default(now())
   financeTaxRule financeTaxRule @relation(fields: [tax_rule_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at     DateTime       @default(now())
 
   @@map("finance_tax_rates")
 }
@@ -1611,7 +1612,7 @@ model financeTaxRule {
   created_at       DateTime         @default(now())
   financeTaxRate   financeTaxRate[]
   financeTaxConfig financeTaxConfig @relation(fields: [tax_config_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
 
   @@map("finance_tax_rules")
 }
@@ -1625,7 +1626,7 @@ model financeTransactionTax {
   base_amount      Decimal  @db.Decimal(19, 4)
   tax_amount       Decimal  @db.Decimal(19, 4)
   created_at       DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
 
   @@map("finance_transaction_taxes")
 }
@@ -1649,7 +1650,7 @@ model fixedAsset {
   revaluation_reserve      Decimal       @default(0) @db.Decimal(15, 2)
   capex_request_id         String?
   created_at               DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime      @default(now())
   capexRequest             capexRequest? @relation(fields: [capex_request_id], references: [id])
   company                  company       @relation(fields: [tenant_id], references: [id])
 
@@ -1669,7 +1670,7 @@ model financeAssetCategory {
   depreciation_account_ref String?
   is_active                Boolean  @default(true)
   created_at               DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime @default(now())
   company                  company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, code])
@@ -1685,7 +1686,7 @@ model fnbIngredient {
   unit       String
   fnbRecipe  fnbRecipe @relation(fields: [recipe_id], references: [id], onDelete: Cascade)
   company    company   @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at DateTime  @default(now())
 
   @@index([tenant_id, recipe_id])
   @@map("fnb_ingredients")
@@ -1699,7 +1700,7 @@ model fnbRecipe {
   base_cost       Decimal         @db.Decimal(15, 2)
   suggested_price Decimal         @db.Decimal(15, 2)
   created_at      DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
   fnbIngredient   fnbIngredient[]
   company         company         @relation(fields: [tenant_id], references: [id])
 
@@ -1748,32 +1749,32 @@ model hrAttendanceRecord {
 }
 
 model hrShiftTemplate {
-  id              String   @id
-  tenant_id       String
-  name            String
-  start_time      String
-  end_time        String
-  grace_minutes   Int      @default(0)
-  overtime_rules  Json?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @default(now())
-  company         company  @relation(fields: [tenant_id], references: [id])
+  id             String   @id
+  tenant_id      String
+  name           String
+  start_time     String
+  end_time       String
+  grace_minutes  Int      @default(0)
+  overtime_rules Json?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @default(now())
+  company        company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@map("hr_shift_templates")
 }
 
 model hrSalesBonus {
-  id              String   @id
-  tenant_id       String
-  employee_id     String
-  order_id        String
-  amount          Decimal  @db.Decimal(15, 2)
-  status          String   @default("PENDING")
-  created_at      DateTime @default(now())
-  updated_at      DateTime @default(now())
-  employee        employee @relation(fields: [employee_id], references: [id])
-  company         company  @relation(fields: [tenant_id], references: [id])
+  id          String   @id
+  tenant_id   String
+  employee_id String
+  order_id    String
+  amount      Decimal  @db.Decimal(15, 2)
+  status      String   @default("PENDING")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+  employee    employee @relation(fields: [employee_id], references: [id])
+  company     company  @relation(fields: [tenant_id], references: [id])
 
   @@index([employee_id])
   @@index([tenant_id])
@@ -1790,7 +1791,7 @@ model hrBenefitPlan {
   employee_contribution Decimal?            @db.Decimal(15, 2)
   frequency             String              @default("MONTHLY")
   created_at            DateTime            @default(now())
-  updated_at DateTime @default(now())
+  updated_at            DateTime            @default(now())
   status                String              @default("active")
   company               company             @relation(fields: [tenant_id], references: [id])
   hrEmployeeBenefit     hrEmployeeBenefit[]
@@ -1808,7 +1809,7 @@ model hrBudgetScenario {
   total_budget        Decimal               @default(0) @db.Decimal(15, 2)
   description         String?
   created_at          DateTime              @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime              @default(now())
   deleted_at          DateTime?
   financeBudgetActual financeBudgetActual[]
   financeBudgetLine   financeBudgetLine[]
@@ -1826,7 +1827,7 @@ model hrCareerPath {
   to_position_id                                        String
   requirement_notes                                     String?
   created_at                                            DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                            DateTime @default(now())
   positions_hr_career_paths_from_position_idTopositions position @relation("hr_career_paths_from_position_idTopositions", fields: [from_position_id], references: [id])
   company                                               company  @relation(fields: [tenant_id], references: [id])
   positions_hr_career_paths_to_position_idTopositions   position @relation("hr_career_paths_to_position_idTopositions", fields: [to_position_id], references: [id])
@@ -1846,7 +1847,7 @@ model hrCa {
   priority      String      @default("MEDIUM")
   owner_id      String?
   created_at    DateTime    @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime    @default(now())
   category      String?
   deleted_at    DateTime?
   description   String?
@@ -1874,7 +1875,7 @@ model hrComplianceDocument {
   verified_at         DateTime?
   metadata            Json?
   created_at          DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime  @default(now())
   employee            employee  @relation(fields: [employee_id], references: [id])
   company             company   @relation(fields: [tenant_id], references: [id])
 
@@ -1907,7 +1908,7 @@ model hrComplianceReport {
   summary        Json
   file_url       String?
   created_at     DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime      @default(now())
   hrPayrollRun   hrPayrollRun? @relation(fields: [payroll_run_id], references: [id])
   company        company       @relation(fields: [tenant_id], references: [id])
 
@@ -1923,7 +1924,7 @@ model hrContextSnapshot {
   aggregated_values Json
   created_at        DateTime @default(now())
   company           company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at        DateTime @default(now())
 
   @@index([metric_type])
   @@index([tenant_id])
@@ -1939,7 +1940,7 @@ model hrEmployeeBenefit {
   status          String        @default("active")
   coverage_amount Decimal?      @db.Decimal(15, 2)
   created_at      DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime      @default(now())
   employee        employee      @relation(fields: [employee_id], references: [id])
   hrBenefitPlan   hrBenefitPlan @relation(fields: [plan_id], references: [id])
   company         company       @relation(fields: [tenant_id], references: [id])
@@ -1958,7 +1959,7 @@ model hrEmployeeSkill {
   verified_by         String?
   verified_at         DateTime?
   created_at          DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime  @default(now())
   employee            employee  @relation(fields: [employee_id], references: [id])
   hrSkill             hrSkill   @relation(fields: [skill_id], references: [id])
   company             company   @relation(fields: [tenant_id], references: [id])
@@ -1975,7 +1976,7 @@ model hrExchangeRate {
   to_currency   String
   rate          Decimal  @db.Decimal(15, 6)
   created_at    DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime @default(now())
   effective_at  DateTime
   company       company  @relation(fields: [tenant_id], references: [id])
 
@@ -1992,7 +1993,7 @@ model hrHeadcountPlan {
   projected_salary  Decimal          @db.Decimal(15, 2)
   planned_hire_date DateTime?
   created_at        DateTime         @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime         @default(now())
   priority          String           @default("MEDIUM")
   status            String           @default("PLANNED")
   tenant_id         String
@@ -2012,7 +2013,7 @@ model hrHoliday {
   is_global   Boolean   @default(false)
   description String?
   created_at  DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime  @default(now())
   deleted_at  DateTime?
   company     company   @relation(fields: [tenant_id], references: [id])
 
@@ -2030,7 +2031,7 @@ model hrInsight {
   created_at       DateTime           @default(now())
   company          company            @relation(fields: [tenant_id], references: [id])
   hrRecommendation hrRecommendation[]
-  updated_at DateTime @default(now())
+  updated_at       DateTime           @default(now())
 
   @@index([tenant_id])
   @@index([type])
@@ -2046,7 +2047,7 @@ model hrMentorshipPair {
   start_date                                         DateTime
   focus_skills                                       String[]
   created_at                                         DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                         DateTime  @default(now())
   endDate                                            DateTime?
   program_name                                       String?
   employees_hr_mentorship_pairs_mentee_idToemployees employee  @relation("hr_mentorship_pairs_mentee_idToemployees", fields: [mentee_id], references: [id])
@@ -2073,7 +2074,7 @@ model hrPayrollRun {
   approved_by        String?
   approved_at        DateTime?
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   hrComplianceReport hrComplianceReport[]
   company            company              @relation(fields: [tenant_id], references: [id])
   payrollLine        payrollLine[]
@@ -2092,7 +2093,7 @@ model hrPerformanceCycle {
   due_date          DateTime?
   status            String              @default("ACTIVE")
   created_at        DateTime            @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime            @default(now())
   deleted_at        DateTime?
   company           company             @relation(fields: [tenant_id], references: [id])
   performanceReview performanceReview[]
@@ -2111,7 +2112,7 @@ model hrPerformanceGoal {
   progress    Int      @default(0)
   status      String   @default("not_started")
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   employee    employee @relation(fields: [employee_id], references: [id])
   company     company  @relation(fields: [tenant_id], references: [id])
 
@@ -2127,7 +2128,7 @@ model hrPositionSkill {
   min_proficiency Int      @default(1)
   is_mandatory    Boolean  @default(false)
   created_at      DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime @default(now())
   importance      String   @default("medium")
   position        position @relation(fields: [position_id], references: [id])
   hrSkill         hrSkill  @relation(fields: [skill_id], references: [id])
@@ -2145,7 +2146,7 @@ model hrProgramSkill {
   skill_id         String
   proficiency_gain Int             @default(1)
   created_at       DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime        @default(now())
   trainingProgram  trainingProgram @relation(fields: [program_id], references: [id])
   hrSkill          hrSkill         @relation(fields: [skill_id], references: [id])
   company          company         @relation(fields: [tenant_id], references: [id])
@@ -2163,7 +2164,7 @@ model hrRecommendationFeedback {
   outcome           String?
   timestamp         DateTime @default(now())
   company           company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at        DateTime @default(now())
 
   @@index([recommendation_id])
   @@index([tenant_id])
@@ -2182,7 +2183,7 @@ model hrRecommendation {
   severity         String     @default("MEDIUM")
   hrInsight        hrInsight? @relation(fields: [insight_id], references: [id])
   company          company    @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime   @default(now())
 
   @@index([status])
   @@index([tenant_id])
@@ -2196,7 +2197,7 @@ model hrSkill {
   category        String
   description     String?
   created_at      DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime          @default(now())
   hrEmployeeSkill hrEmployeeSkill[]
   hrPositionSkill hrPositionSkill[]
   hrProgramSkill  hrProgramSkill[]
@@ -2216,7 +2217,7 @@ model hrSuccessionCandidate {
   impact_of_loss   String           @default("MEDIUM")
   skill_gaps       String[]
   created_at       DateTime         @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
   candidate_id     String
   employee         employee         @relation(fields: [candidate_id], references: [id])
   hrSuccessionPlan hrSuccessionPlan @relation(fields: [plan_id], references: [id])
@@ -2235,7 +2236,7 @@ model hrSuccessionPlan {
   strategy              String?
   notes                 String?
   created_at            DateTime                @default(now())
-  updated_at DateTime @default(now())
+  updated_at            DateTime                @default(now())
   hrSuccessionCandidate hrSuccessionCandidate[]
   position              position                @relation(fields: [position_id], references: [id])
   company               company                 @relation(fields: [tenant_id], references: [id])
@@ -2267,7 +2268,7 @@ model hrSystemMetric {
   value       Float
   timestamp   DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([metric_name])
   @@index([tenant_id])
@@ -2288,7 +2289,7 @@ model hrTalentLead {
   status               String   @default("LEAD")
   metadata             Json?
   created_at           DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at           DateTime @default(now())
   company              company  @relation(fields: [tenant_id], references: [id])
 
   @@index([status])
@@ -2305,7 +2306,7 @@ model hrThresholdAudit {
   reason      String
   created_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id])
   @@map("hr_threshold_audits")
@@ -2320,7 +2321,7 @@ model hrWorkSchedule {
   start_date         DateTime
   end_date           DateTime
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   location_id        String?
   metadata           Json?
   name               String?
@@ -2344,7 +2345,7 @@ model hrWorkShift {
   start_time         DateTime
   end_time           DateTime
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   location_id        String?
   metadata           Json?
   notes              String?
@@ -2391,7 +2392,7 @@ model interview {
   status         String    @default("SCHEDULED")
   notes          String?
   created_at     DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime  @default(now())
   deleted_at     DateTime?
   candidate      candidate @relation(fields: [candidate_id], references: [id])
   employee       employee  @relation(fields: [interviewer_id], references: [id])
@@ -2413,7 +2414,7 @@ model inventoryAdjustment {
   approved_by     String?
   approved_at     DateTime?
   created_at      DateTime    @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime    @default(now())
   department_id   String?
   location_id     String
   is_approved     Boolean     @default(false)
@@ -2436,7 +2437,7 @@ model inventoryAlert {
   message      String
   acknowledged Boolean  @default(false)
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -2456,7 +2457,7 @@ model inventoryAuditCycle {
   opened_by       String
   closed_by       String?
   created_at      DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime @default(now())
   company         company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -2490,7 +2491,7 @@ model inventoryMovementRequest {
   status           String     @default("PENDING")
   requestedBy      String     @default("system")
   created_at       DateTime   @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime   @default(now())
   itemMaster       itemMaster @relation(fields: [product_id], references: [id])
   company          company    @relation(fields: [tenant_id], references: [id])
 
@@ -2505,7 +2506,7 @@ model inventoryPoolStock {
   reserved      Float         @default(0)
   available     Float         @default(0)
   created_at    DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime      @default(now())
   inventoryPool inventoryPool @relation(fields: [pool_id], references: [id])
   itemMaster    itemMaster    @relation(fields: [product_id], references: [id])
 
@@ -2521,7 +2522,7 @@ model inventoryPool {
   description        String?
   type               String               @default("shared")
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   deleted_at         DateTime?
   ecommerceConnector ecommerceConnector[]
   inventoryPoolStock inventoryPoolStock[]
@@ -2543,7 +2544,7 @@ model inventorySubledgerEntry {
   reversed_entry_id   String?
   posted_at           DateTime?
   created_at          DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime  @default(now())
   metadata            Json?
   company             company   @relation(fields: [tenant_id], references: [id])
 
@@ -2585,7 +2586,7 @@ model itDevice {
   location      location?       @relation(fields: [location_id], references: [id])
   employee      employee?       @relation(fields: [owner_id], references: [id])
   company       company         @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at    DateTime        @default(now())
 
   @@index([tenant_id, type])
   @@map("it_devices")
@@ -2604,7 +2605,7 @@ model itProvisioningRequest {
   requested_by       String
   provisioned_by     String?
   created_at         DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime        @default(now())
   description        String?
   priority           String          @default("MEDIUM")
   employee           employee?       @relation(fields: [employee_id], references: [id])
@@ -2624,7 +2625,7 @@ model itSetting {
   is_public   Boolean  @default(false)
   description String?
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, key])
@@ -2662,7 +2663,7 @@ model itemMaster {
   status                   String                     @default("active")
   type                     ItemType                   @default(ITEM)
   created_at               DateTime                   @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime                   @default(now())
   department_id            String?
   inventoryAdjustment      inventoryAdjustment[]
   inventoryMovementRequest inventoryMovementRequest[]
@@ -2693,7 +2694,7 @@ model jobRequisition {
   status        String      @default("open")
   openings      Int         @default(1)
   created_at    DateTime    @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime    @default(now())
   deleted_at    DateTime?
   candidate     candidate[]
   department    department? @relation(fields: [department_id], references: [id])
@@ -2713,7 +2714,7 @@ model jobRole {
   base_salary_min Decimal?      @db.Decimal(15, 2)
   base_salary_max Decimal?      @db.Decimal(15, 2)
   created_at      DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime      @default(now())
   employee        employee[]
   hrWorkShift     hrWorkShift[]
   company         company       @relation(fields: [tenant_id], references: [id])
@@ -2730,7 +2731,7 @@ model labelConfig {
   module_type String
   labels      Json
   created_at  DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime  @default(now())
   location    location? @relation(fields: [location_id], references: [id])
   company     company   @relation(fields: [tenant_id], references: [id])
 
@@ -2750,7 +2751,7 @@ model leaveRequest {
   approved_by   String?
   approved_at   DateTime?
   created_at    DateTime   @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime   @default(now())
   approval_id   String?
   department_id String
   type          String
@@ -2773,7 +2774,7 @@ model location {
   address                                                     String?
   type                                                        String
   created_at                                                  DateTime              @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                                  DateTime              @default(now())
   deleted_at                                                  DateTime?
   country                                                     String?
   currency                                                    String?
@@ -2814,7 +2815,7 @@ model mailAccount {
   is_verified  Boolean       @default(false)
   status       String        @default("active")
   created_at   DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime      @default(now())
   deleted_at   DateTime?
   company      company       @relation(fields: [tenant_id], references: [id])
   mailFolder   mailFolder[]
@@ -2831,7 +2832,7 @@ model mailFolderItem {
   message_id  String
   mailFolder  mailFolder  @relation(fields: [folder_id], references: [id], onDelete: Cascade)
   mailMessage mailMessage @relation(fields: [message_id], references: [id], onDelete: Cascade)
-  updated_at DateTime @default(now())
+  updated_at  DateTime    @default(now())
 
   @@unique([folder_id, message_id])
   @@map("mail_folder_items")
@@ -2845,7 +2846,7 @@ model mailFolder {
   created_at     DateTime         @default(now())
   mailFolderItem mailFolderItem[]
   mailAccount    mailAccount      @relation(fields: [account_id], references: [id], onDelete: Cascade)
-  updated_at DateTime @default(now())
+  updated_at     DateTime         @default(now())
 
   @@unique([account_id, name])
   @@map("mail_folders")
@@ -2858,7 +2859,7 @@ model mailLabel {
   color       String        @default("#6366f1")
   company     company       @relation(fields: [tenant_id], references: [id])
   mailMessage mailMessage[] @relation("MessageLabels")
-  updated_at DateTime @default(now())
+  updated_at  DateTime      @default(now())
 
   @@unique([tenant_id, name])
   @@map("mail_labels")
@@ -2890,7 +2891,7 @@ model mailMessage {
   company            company          @relation(fields: [tenant_id], references: [id])
   mailThread         mailThread       @relation(fields: [thread_id], references: [id])
   mailLabel          mailLabel[]      @relation("MessageLabels")
-  updated_at DateTime @default(now())
+  updated_at         DateTime         @default(now())
 
   @@index([tenant_id])
   @@index([thread_id])
@@ -2902,7 +2903,7 @@ model mailThread {
   tenant_id   String
   subject     String
   created_at  DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime      @default(now())
   mailMessage mailMessage[]
   company     company       @relation(fields: [tenant_id], references: [id])
 
@@ -2920,7 +2921,7 @@ model marketingAccount {
   scopes           String[]
   last_sync_at     DateTime
   created_at       DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime @default(now())
   company          company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -2937,7 +2938,7 @@ model marketingAlert {
   message      String
   acknowledged Boolean  @default(false)
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -2957,7 +2958,7 @@ model marketingAttribution {
   marketingCampaign  marketingCampaign @relation(fields: [campaign_id], references: [id])
   marketingLead      marketingLead     @relation(fields: [lead_id], references: [id])
   company            company           @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime          @default(now())
 
   @@index([campaign_id])
   @@index([lead_id])
@@ -2975,7 +2976,7 @@ model marketingAuditEvent {
   detail      String
   created_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id])
   @@map("marketing_audit_events")
@@ -2997,7 +2998,7 @@ model marketingCampaign {
   audience             String
   ai_recommendation    String?
   created_at           DateTime               @default(now())
-  updated_at DateTime @default(now())
+  updated_at           DateTime               @default(now())
   marketingAttribution marketingAttribution[]
   company              company                @relation(fields: [tenant_id], references: [id])
   marketingExecution   marketingExecution[]
@@ -3017,7 +3018,7 @@ model marketingExecution {
   spend             Decimal           @default(0) @db.Decimal(15, 2)
   notes             String?
   created_at        DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime          @default(now())
   marketingCampaign marketingCampaign @relation(fields: [campaign_id], references: [id])
   company           company           @relation(fields: [tenant_id], references: [id])
 
@@ -3045,7 +3046,7 @@ model marketingLead {
   qualification_reason String?
   sales_handoff_id     String?
   created_at           DateTime               @default(now())
-  updated_at DateTime @default(now())
+  updated_at           DateTime               @default(now())
   marketingAttribution marketingAttribution[]
   company              company                @relation(fields: [tenant_id], references: [id])
 
@@ -3064,7 +3065,7 @@ model marketingWorkflow {
   steps         Json
   ai_suggestion String?
   created_at    DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime @default(now())
   company       company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -3080,7 +3081,7 @@ model moduleDefinition {
   icon_url        String?
   is_global       Boolean           @default(false)
   created_at      DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime          @default(now())
   moduleLicensese moduleLicensese[]
 
   @@map("module_definitions")
@@ -3096,7 +3097,7 @@ model moduleLicenseLog {
   created_at      DateTime        @default(now())
   moduleLicensese moduleLicensese @relation(fields: [license_id], references: [id], onDelete: Cascade)
   company         company         @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
 
   @@index([license_id])
   @@index([tenant_id])
@@ -3123,7 +3124,7 @@ model moduleLicensese {
   revoke_reason    String?
   notes            String?
   created_at       DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime           @default(now())
   moduleLicenseLog moduleLicenseLog[]
   moduleDefinition moduleDefinition   @relation(fields: [module_code], references: [code])
   company          company            @relation(fields: [tenant_id], references: [id])
@@ -3145,7 +3146,7 @@ model moneySource {
   provider           String?
   last_updated       DateTime @default(now())
   company            company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime @default(now())
 
   @@unique([tenant_id, name])
   @@index([tenant_id])
@@ -3168,7 +3169,7 @@ model notification {
   retry_count        Int       @default(0)
   status             String    @default("PENDING")
   company            company   @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime  @default(now())
 
   @@index([tenant_id])
   @@index([user_id, is_read])
@@ -3185,7 +3186,7 @@ model payable {
   status                     String
   workflow_id                String?
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   workflow_request_id        String?
   financeApPaymentAllocation financeApPaymentAllocation[]
   company                    company                      @relation(fields: [tenant_id], references: [id])
@@ -3206,7 +3207,7 @@ model paymentAuditEvent {
   detail      String
   created_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([entity_id])
   @@index([tenant_id])
@@ -3221,7 +3222,7 @@ model paymentChargeback {
   amount             Decimal            @db.Decimal(15, 2)
   status             String             @default("OPEN")
   created_at         DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime           @default(now())
   paymentDispute     paymentDispute     @relation(fields: [dispute_id], references: [id])
   paymentTransaction paymentTransaction @relation(fields: [payment_id], references: [id])
   company            company            @relation(fields: [tenant_id], references: [id])
@@ -3238,7 +3239,7 @@ model paymentDevicePool {
   primary_device_id   String
   fallback_device_ids String[]
   created_at          DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime @default(now())
   company             company  @relation(fields: [tenant_id], references: [id])
 
   @@index([location_id])
@@ -3258,7 +3259,7 @@ model paymentDispute {
   provider_case_id   String?
   resolution         String?
   created_at         DateTime            @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime            @default(now())
   paymentChargeback  paymentChargeback[]
   paymentTransaction paymentTransaction  @relation(fields: [payment_id], references: [id])
   company            company             @relation(fields: [tenant_id], references: [id])
@@ -3279,7 +3280,7 @@ model paymentEvidencePack {
   created_at          DateTime             @default(now())
   company             company              @relation(fields: [tenant_id], references: [id])
   paymentTransaction  paymentTransaction[]
-  updated_at DateTime @default(now())
+  updated_at          DateTime             @default(now())
 
   @@index([tenant_id])
   @@map("payment_evidence_packs")
@@ -3295,7 +3296,7 @@ model paymentPosDevice {
   provider_id     String
   last_used_at    DateTime?
   created_at      DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
   paymentProvider paymentProvider @relation(fields: [provider_id], references: [id])
   company         company         @relation(fields: [tenant_id], references: [id])
 
@@ -3315,7 +3316,7 @@ model paymentProvider {
   priority             Int                   @default(1)
   last_heartbeat_at    DateTime              @default(now())
   created_at           DateTime              @default(now())
-  updated_at DateTime @default(now())
+  updated_at           DateTime              @default(now())
   paymentPosDevice     paymentPosDevice[]
   company              company               @relation(fields: [tenant_id], references: [id])
   paymentRetryAttempt  paymentRetryAttempt[]
@@ -3338,7 +3339,7 @@ model paymentRefund {
   scheduled_at       DateTime?
   provider_reference String?
   created_at         DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime           @default(now())
   paymentTransaction paymentTransaction @relation(fields: [payment_id], references: [id])
   company            company            @relation(fields: [tenant_id], references: [id])
 
@@ -3359,7 +3360,7 @@ model paymentRetryAttempt {
   paymentProvider    paymentProvider    @relation(fields: [provider_id], references: [id])
   company            company            @relation(fields: [tenant_id], references: [id])
   paymentTransaction paymentTransaction @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
-  updated_at DateTime @default(now())
+  updated_at         DateTime           @default(now())
 
   @@index([transaction_id])
   @@map("payment_retry_attempts")
@@ -3375,7 +3376,7 @@ model paymentRoutingPolicy {
   max_retries                 Int      @default(3)
   exponential_backoff_seconds Int      @default(5)
   created_at                  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at                  DateTime @default(now())
   company                     company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -3392,7 +3393,7 @@ model paymentSettlement {
   retry_attempts           Json?
   ledger_sync_triggered_at DateTime?
   created_at               DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime             @default(now())
   company                  company              @relation(fields: [tenant_id], references: [id])
   paymentTransaction       paymentTransaction[]
 
@@ -3418,7 +3419,7 @@ model paymentTransaction {
   approved_by                String?
   approved_at                DateTime?
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   evidence_pack_id           String?
   ledger_sync_triggered_at   DateTime?
   settlement_id              String?
@@ -3454,7 +3455,7 @@ model payrollLine {
   adjustments     Decimal                 @default(0) @db.Decimal(15, 2)
   adjustmentLines payrollAdjustmentLine[]
   created_at      DateTime                @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime                @default(now())
   employee        employee                @relation(fields: [employee_id], references: [id])
   hrPayrollRun    hrPayrollRun            @relation(fields: [payroll_run_id], references: [id])
   company         company                 @relation(fields: [tenant_id], references: [id])
@@ -3475,7 +3476,7 @@ model payrollProfile {
   social_security_no String?
   payment_method     String   @default("bank_transfer")
   created_at         DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime @default(now())
   employee           employee @relation(fields: [employee_id], references: [id])
   company            company  @relation(fields: [tenant_id], references: [id])
 
@@ -3493,7 +3494,7 @@ model performanceReview {
   rating                                               Int?
   comments                                             String?
   created_at                                           DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                           DateTime           @default(now())
   hrPerformanceCycle                                   hrPerformanceCycle @relation(fields: [cycle_id], references: [id])
   employees_performance_reviews_employee_idToemployees employee           @relation("performance_reviews_employee_idToemployees", fields: [employee_id], references: [id])
   employees_performance_reviews_reviewer_idToemployees employee           @relation("performance_reviews_reviewer_idToemployees", fields: [reviewer_id], references: [id])
@@ -3514,7 +3515,7 @@ model posDevice {
   is_active   Boolean       @default(true)
   mac_address String?
   created_at  DateTime      @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime      @default(now())
   store       store         @relation(fields: [store_id], references: [id])
   company     company       @relation(fields: [tenant_id], references: [id])
   retailOrder retailOrder[]
@@ -3535,7 +3536,7 @@ model position {
   budgeted_salary                                             Decimal?          @db.Decimal(15, 2)
   reports_to_position_id                                      String?
   created_at                                                  DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at                                                  DateTime          @default(now())
   deleted_at                                                  DateTime?
   job_post_metadata                                           Json?
   hr_career_paths_hr_career_paths_from_position_idTopositions hrCareerPath[]    @relation("hr_career_paths_from_position_idTopositions")
@@ -3585,7 +3586,7 @@ model pricingRule {
   conditions    Json?
   is_active     Boolean  @default(true)
   created_at    DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime @default(now())
 
   @@index([tenant_id])
   @@map("pricing_rules")
@@ -3601,7 +3602,7 @@ model procurementAuditEvent {
   detail      String
   created_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([entity_id])
   @@index([tenant_id])
@@ -3615,7 +3616,7 @@ model procurementCategory {
   description String?
   active      Boolean  @default(true)
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, name])
@@ -3637,7 +3638,7 @@ model procurementContract {
   notes                   String?
   attachment_ids          String[]
   created_at              DateTime                  @default(now())
-  updated_at DateTime @default(now())
+  updated_at              DateTime                  @default(now())
   procurementRequisition  procurementRequisition    @relation(fields: [requisition_id], references: [id])
   supplierMaster          supplierMaster            @relation(fields: [supplier_id], references: [id])
   company                 company                   @relation(fields: [tenant_id], references: [id])
@@ -3664,7 +3665,7 @@ model procurementDraftPo {
   quote_attachment       String?
   created_by             String
   created_at             DateTime               @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime               @default(now())
   procurementRequisition procurementRequisition @relation(fields: [requisition_id], references: [id])
   supplierBranch         supplierBranch         @relation(fields: [supplier_branch_id], references: [id])
   supplierMaster         supplierMaster         @relation(fields: [supplier_id], references: [id])
@@ -3690,7 +3691,7 @@ model procurementFinalPo {
   expected_delivery_date      DateTime?
   finance_commitment_id       String?
   created_at                  DateTime                      @default(now())
-  updated_at DateTime @default(now())
+  updated_at                  DateTime                      @default(now())
   metadata                    Json?
   procurementDraftPo          procurementDraftPo            @relation(fields: [draft_po_id], references: [id])
   procurementRequisition      procurementRequisition        @relation(fields: [requisition_id], references: [id])
@@ -3719,7 +3720,7 @@ model procurementRatingLog {
   supplierBranch     supplierBranch @relation(fields: [supplier_branch_id], references: [id])
   supplierMaster     supplierMaster @relation(fields: [supplier_id], references: [id])
   company            company        @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime       @default(now())
 
   @@index([supplier_id])
   @@index([tenant_id])
@@ -3743,7 +3744,7 @@ model procurementReceipt {
   supplierBranch     supplierBranch     @relation(fields: [supplier_branch_id], references: [id])
   supplierMaster     supplierMaster     @relation(fields: [supplier_id], references: [id])
   company            company            @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime           @default(now())
 
   @@index([final_po_id])
   @@index([tenant_id])
@@ -3763,7 +3764,7 @@ model procurementLegalHandoff {
   acknowledged_by        String?
   accepted_by            String?
   created_at             DateTime               @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime               @default(now())
   company                company                @relation(fields: [tenant_id], references: [id])
   procurementRequisition procurementRequisition @relation(fields: [requisition_id], references: [id])
   procurementContract    procurementContract    @relation(fields: [contract_id], references: [id])
@@ -3789,7 +3790,7 @@ model procurementGoodsReceiptSync {
   synced_by              String?
   synced_at              DateTime?
   created_at             DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime           @default(now())
   company                company            @relation(fields: [tenant_id], references: [id])
   procurementFinalPo     procurementFinalPo @relation(fields: [final_po_id], references: [id])
 
@@ -3810,7 +3811,7 @@ model procurementSupplierAccessRequest {
   approved_by        String?
   provisioned_by     String?
   created_at         DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime       @default(now())
   company            company        @relation(fields: [tenant_id], references: [id])
   supplierMaster     supplierMaster @relation(fields: [supplier_id], references: [id])
 
@@ -3837,7 +3838,7 @@ model procurementRequisition {
   supplier_branch_id       String?
   contract_required        Boolean                    @default(false)
   created_at               DateTime                   @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime                   @default(now())
   procurementContract      procurementContract[]
   procurementDraftPo       procurementDraftPo[]
   procurementFinalPo       procurementFinalPo[]
@@ -3881,7 +3882,7 @@ model procurementSourcingEvent {
   bid_deadline           DateTime?
   metadata               Json?
   created_at             DateTime                @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime                @default(now())
   procurementFinalPo     procurementFinalPo?     @relation(fields: [final_po_id], references: [id])
   procurementRequisition procurementRequisition? @relation(fields: [requisition_id], references: [id])
   company                company                 @relation(fields: [tenant_id], references: [id])
@@ -3898,7 +3899,7 @@ model productCategory {
   parent_id                String?
   icon                     String?
   created_at               DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at               DateTime          @default(now())
   itemMaster               itemMaster[]
   productCategory          productCategory?  @relation("product_categoriesToproduct_categories", fields: [parent_id], references: [id])
   other_product_categories productCategory[] @relation("product_categoriesToproduct_categories")
@@ -3920,7 +3921,7 @@ model productProjection {
   price              Decimal?   @db.Decimal(15, 2)
   is_active          Boolean    @default(true)
   created_at         DateTime   @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime   @default(now())
   itemMaster         itemMaster @relation(fields: [item_master_id], references: [id])
   location           location?  @relation(fields: [location_id], references: [id])
   company            company    @relation(fields: [tenant_id], references: [id])
@@ -3941,7 +3942,7 @@ model receivable {
   aging_bucket               String?
   workflow_id                String?
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   financeArPaymentAllocation financeArPaymentAllocation[]
   company                    company                      @relation(fields: [tenant_id], references: [id])
 
@@ -3957,7 +3958,7 @@ model retailCartItem {
   quantity   Float
   unit_price Decimal    @db.Decimal(15, 2)
   created_at DateTime   @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime   @default(now())
   retailCart retailCart @relation(fields: [cart_id], references: [id])
   itemMaster itemMaster @relation(fields: [product_id], references: [id])
 
@@ -3972,7 +3973,7 @@ model retailCart {
   customer_id    String           @unique
   status         String           @default("active")
   created_at     DateTime         @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime         @default(now())
   retailCartItem retailCartItem[]
   retailCustomer retailCustomer   @relation(fields: [customer_id], references: [id])
   company        company          @relation(fields: [tenant_id], references: [id])
@@ -3990,7 +3991,7 @@ model retailChannel {
   sync_frequency       String
   last_sync_at         DateTime?
   created_at           DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at           DateTime  @default(now())
   adapter_type         String    @default("CUSTOM")
   credentials          Json?
   integration_category String    @default("PRESET")
@@ -4009,7 +4010,7 @@ model retailCustomerAuth {
   last_failed_at      DateTime?
   locked_until        DateTime?
   password_updated_at DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime       @default(now())
   created_at          DateTime       @default(now())
   retailCustomer      retailCustomer @relation(fields: [customer_id], references: [id])
 
@@ -4026,7 +4027,7 @@ model retailCustomerSession {
   ip_address     String?
   user_agent     String?
   created_at     DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime       @default(now())
   retailCustomer retailCustomer @relation(fields: [customer_id], references: [id])
   company        company        @relation(fields: [tenant_id], references: [id])
 
@@ -4047,7 +4048,7 @@ model retailCustomer {
   points                Int                     @default(0)
   created_at            DateTime                @default(now())
   status                String                  @default("active")
-  updated_at DateTime @default(now())
+  updated_at            DateTime                @default(now())
   retailCart            retailCart?
   retailCustomerAuth    retailCustomerAuth?
   retailCustomerSession retailCustomerSession[]
@@ -4075,7 +4076,7 @@ model retailGatewayNode {
   region             String?
   retailLoadBalancer retailLoadBalancer? @relation(fields: [load_balancer_id], references: [id])
   company            company             @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime            @default(now())
 
   @@index([load_balancer_id])
   @@index([tenant_id])
@@ -4090,7 +4091,7 @@ model retailLoadBalancer {
   algorithm         String              @default("ROUND_ROBIN")
   status            String              @default("ONLINE")
   created_at        DateTime            @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime            @default(now())
   retailGatewayNode retailGatewayNode[]
   company           company             @relation(fields: [tenant_id], references: [id])
 
@@ -4110,7 +4111,7 @@ model retailOrderItem {
   retailOrder retailOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
   itemMaster  itemMaster  @relation(fields: [product_id], references: [id])
   company     company     @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime    @default(now())
 
   @@index([order_id])
   @@index([product_id])
@@ -4132,7 +4133,7 @@ model retailOrder {
   payment_method    String?
   payment_reference String?
   created_at        DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at        DateTime          @default(now())
   retailOrderItem   retailOrderItem[]
   employee          employee?         @relation(fields: [cashier_id], references: [id])
   retailCustomer    retailCustomer?   @relation(fields: [customer_id], references: [id])
@@ -4180,7 +4181,7 @@ model retailShift {
   status        String    @default("open")
   notes         String?
   created_at    DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime  @default(now())
   employee      employee  @relation(fields: [employee_id], references: [id])
   store         store     @relation(fields: [store_id], references: [id])
   company       company   @relation(fields: [tenant_id], references: [id])
@@ -4196,7 +4197,7 @@ model retailWishlistItem {
   wishlist_id    String
   product_id     String
   created_at     DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime       @default(now())
   itemMaster     itemMaster     @relation(fields: [product_id], references: [id])
   retailWishlist retailWishlist @relation(fields: [wishlist_id], references: [id])
 
@@ -4210,7 +4211,7 @@ model retailWishlist {
   tenant_id          String
   customer_id        String               @unique
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   retailWishlistItem retailWishlistItem[]
   retailCustomer     retailCustomer       @relation(fields: [customer_id], references: [id])
   company            company              @relation(fields: [tenant_id], references: [id])
@@ -4229,7 +4230,7 @@ model salesAlert {
   message      String
   acknowledged Boolean  @default(false)
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@index([acknowledged])
@@ -4247,7 +4248,7 @@ model salesAuditEvent {
   detail      String
   created_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([entity_id])
   @@index([tenant_id])
@@ -4272,7 +4273,7 @@ model salesLead {
   sla_due_at         DateTime
   first_response_at  DateTime?
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   company            company              @relation(fields: [tenant_id], references: [id])
   salesOpportunity   salesOpportunity[]
   salesTask          salesTask[]
@@ -4299,7 +4300,7 @@ model salesOpportunity {
   next_action         String?
   last_activity_at    DateTime             @default(now())
   created_at          DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at          DateTime             @default(now())
   salesLead           salesLead?           @relation(fields: [lead_id], references: [id])
   company             company              @relation(fields: [tenant_id], references: [id])
   salesOrder          salesOrder[]
@@ -4325,7 +4326,7 @@ model salesOrder {
   finance_invoice_id String?
   created_by         String
   created_at         DateTime         @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime         @default(now())
   salesOpportunity   salesOpportunity @relation(fields: [opportunity_id], references: [id])
   salesQuote         salesQuote?      @relation(fields: [quote_id], references: [id])
   company            company          @relation(fields: [tenant_id], references: [id])
@@ -4352,7 +4353,7 @@ model salesQuote {
   notes            String?
   created_by       String
   created_at       DateTime         @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
   salesOrder       salesOrder[]
   salesOpportunity salesOpportunity @relation(fields: [opportunity_id], references: [id])
   company          company          @relation(fields: [tenant_id], references: [id])
@@ -4375,7 +4376,7 @@ model salesTask {
   due_at           DateTime
   completed_at     DateTime?
   created_at       DateTime          @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime          @default(now())
   salesLead        salesLead?        @relation(fields: [lead_id], references: [id])
   salesOpportunity salesOpportunity? @relation(fields: [opportunity_id], references: [id])
   company          company           @relation(fields: [tenant_id], references: [id])
@@ -4399,7 +4400,7 @@ model salesTimelineEvent {
   salesLead        salesLead?       @relation(fields: [lead_id], references: [id])
   salesOpportunity salesOpportunity @relation(fields: [opportunity_id], references: [id])
   company          company          @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at       DateTime         @default(now())
 
   @@index([opportunity_id])
   @@index([tenant_id])
@@ -4414,7 +4415,7 @@ model scheduleAssignment {
   location_id    String
   effective_date DateTime
   created_at     DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime @default(now())
   employee       employee @relation(fields: [employee_id], references: [id])
   location       location @relation(fields: [location_id], references: [id])
   shift          shift    @relation(fields: [shift_id], references: [id])
@@ -4450,7 +4451,7 @@ model shiftSwapRequest {
   shift_id     String
   status       String   @default("pending")
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@map("shift_swap_requests")
@@ -4466,7 +4467,7 @@ model shift {
   flexible_window    Int                  @default(0)
   work_days          Int[]
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   deleted_at         DateTime?
   hrAttendanceRecord hrAttendanceRecord[]
   scheduleAssignment scheduleAssignment[]
@@ -4490,7 +4491,7 @@ model stockLevel {
   max_capacity       Decimal     @default(0) @db.Decimal(19, 4)
   last_stock_take_at DateTime?
   created_at         DateTime    @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime    @default(now())
   department_id      String?
   in_transit         Decimal     @default(0) @db.Decimal(19, 4)
   department         department? @relation(fields: [department_id], references: [id])
@@ -4530,7 +4531,7 @@ model stockMovement {
   company                                                     company     @relation(fields: [tenant_id], references: [id])
   departments_stock_movements_to_department_idTodepartments   department? @relation("stock_movements_to_department_idTodepartments", fields: [to_department_id], references: [id])
   locations_stock_movements_to_location_idTolocations         location?   @relation("stock_movements_to_location_idTolocations", fields: [to_location_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at                                                  DateTime    @default(now())
 
   @@unique([tenant_id, reference_id, reference_type, type, product_id, location_id])
   @@index([location_id])
@@ -4551,7 +4552,7 @@ model stockReservation {
   reference_type String?
   expires_at     DateTime?
   created_at     DateTime   @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime   @default(now())
   location       location   @relation(fields: [location_id], references: [id])
   itemMaster     itemMaster @relation(fields: [product_id], references: [id])
   company        company    @relation(fields: [tenant_id], references: [id])
@@ -4571,7 +4572,7 @@ model stockSnapshot {
   snapshot_at DateTime @default(now())
   inTransit   Float
   onHand      Float
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
 
   @@index([tenant_id, product_id])
   @@map("stock_snapshots")
@@ -4586,7 +4587,7 @@ model store {
   type               String
   status             String               @default("active")
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   deleted_at         DateTime?
   manager_id         String?
   email              String?
@@ -4625,7 +4626,7 @@ model supplierBranch {
   risk_tier              String                   @default("LOW")
   active                 Boolean                  @default(true)
   created_at             DateTime                 @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime                 @default(now())
   deleted_at             DateTime?
   contact_email          String?
   contact_person         String?
@@ -4656,7 +4657,7 @@ model supplierMaster {
   risk_tier                        String                             @default("LOW")
   categories                       String[]
   created_at                       DateTime                           @default(now())
-  updated_at DateTime @default(now())
+  updated_at                       DateTime                           @default(now())
   deleted_at                       DateTime?
   address                          String?
   contact_email                    String?
@@ -4695,7 +4696,7 @@ model supplierPortalMessage {
   supplierBranch     supplierBranch @relation(fields: [supplier_branch_id], references: [id])
   supplierMaster     supplierMaster @relation(fields: [supplier_id], references: [id])
   company            company        @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at         DateTime       @default(now())
 
   @@index([supplier_id])
   @@index([tenant_id])
@@ -4715,7 +4716,7 @@ model supplierProduct {
   quality_score  Int            @default(0)
   active         Boolean        @default(true)
   created_at     DateTime       @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime       @default(now())
   supplierBranch supplierBranch @relation(fields: [branch_id], references: [id])
   supplierMaster supplierMaster @relation(fields: [supplier_id], references: [id])
   company        company        @relation(fields: [tenant_id], references: [id])
@@ -4737,7 +4738,7 @@ model sysIdempotencyKey {
   expires_at        DateTime
   created_at        DateTime @default(now())
   company           company  @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at        DateTime @default(now())
 
   @@unique([tenant_id, key])
   @@index([expires_at])
@@ -4752,7 +4753,7 @@ model sysOutboxEvent {
   payload       Json
   status        String    @default("PENDING")
   created_at    DateTime  @default(now())
-  updated_at DateTime @default(now())
+  updated_at    DateTime  @default(now())
   attempts      Int       @default(0)
   last_error    String?
   next_retry_at DateTime?
@@ -4779,7 +4780,7 @@ model systemLog {
   created_at     DateTime @default(now())
   correlation_id String?
   company        company? @relation(fields: [tenant_id], references: [id])
-  updated_at DateTime @default(now())
+  updated_at     DateTime @default(now())
 
   @@index([created_at])
   @@index([level])
@@ -4789,14 +4790,14 @@ model systemLog {
 }
 
 model tenantSetting {
-  id               String          @id
-  tenant_id        String          @unique
-  procurement_mode             ProcurementMode @default(DIRECT)
-  enable_biometric_attendance  Boolean         @default(false)
-  biometric_config             Json?
-  created_at       DateTime        @default(now())
-  updated_at DateTime @default(now())
-  company          company         @relation(fields: [tenant_id], references: [id])
+  id                          String          @id
+  tenant_id                   String          @unique
+  procurement_mode            ProcurementMode @default(DIRECT)
+  enable_biometric_attendance Boolean         @default(false)
+  biometric_config            Json?
+  created_at                  DateTime        @default(now())
+  updated_at                  DateTime        @default(now())
+  company                     company         @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@map("tenant_settings")
@@ -4811,7 +4812,7 @@ model trainingAssignment {
   assigned_at     DateTime
   completed_at    DateTime?
   created_at      DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
   employee        employee        @relation(fields: [employee_id], references: [id])
   trainingProgram trainingProgram @relation(fields: [program_id], references: [id])
   company         company         @relation(fields: [tenant_id], references: [id])
@@ -4830,7 +4831,7 @@ model trainingProgram {
   completion_rate    Float                @default(0)
   due_date           DateTime?
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   hrProgramSkill     hrProgramSkill[]
   trainingAssignment trainingAssignment[]
   company            company              @relation(fields: [tenant_id], references: [id])
@@ -4849,7 +4850,7 @@ model treasuryTransfer {
   status         String
   requested_by   String
   created_at     DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at     DateTime @default(now())
   company        company  @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
@@ -4880,7 +4881,7 @@ model userNotificationPreference {
   channel    NotificationChannel
   enabled    Boolean             @default(true)
   created_at DateTime            @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime            @default(now())
   company    company             @relation(fields: [tenant_id], references: [id])
   user       user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
@@ -4900,7 +4901,7 @@ model user {
   phone                      String?
   status                     String                       @default("active")
   created_at                 DateTime                     @default(now())
-  updated_at DateTime @default(now())
+  updated_at                 DateTime                     @default(now())
   avatar_url                 String?
   tenant_id                  String
   chatMember                 chatMember[]
@@ -4924,7 +4925,7 @@ model workflowAuditEntry {
   after           Json?
   created_at      DateTime        @default(now())
   metadata        Json?
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
   company         company         @relation(fields: [tenant_id], references: [id])
   workflowRequest workflowRequest @relation(fields: [workflow_id], references: [id])
 
@@ -4942,7 +4943,7 @@ model workflowDefinition {
   version          Int                @default(1)
   active           Boolean            @default(true)
   created_at       DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at       DateTime           @default(now())
   company          company            @relation(fields: [tenant_id], references: [id])
   workflowInstance workflowInstance[]
 
@@ -4959,7 +4960,7 @@ model workflowInstance {
   current_state          String
   context                Json
   created_at             DateTime           @default(now())
-  updated_at DateTime @default(now())
+  updated_at             DateTime           @default(now())
   failure_at             DateTime?
   failure_reason         String?
   steps_executed         Json?
@@ -4987,7 +4988,7 @@ model workflowRequest {
   steps              Json?
   route              Json?
   created_at         DateTime             @default(now())
-  updated_at DateTime @default(now())
+  updated_at         DateTime             @default(now())
   financeArInvoice   financeArInvoice[]
   payable            payable[]
   paymentTransaction paymentTransaction[]
@@ -5007,7 +5008,7 @@ model financeSystemMapping {
   account_id  String
   status      String   @default("ACTIVE")
   created_at  DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime @default(now())
   company     company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, system_code])
@@ -5022,7 +5023,7 @@ model financeSettings {
   fiscal_year_start_day   Int      @default(1)
   auto_close_period       Boolean  @default(false)
   created_at              DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at              DateTime @default(now())
   company                 company  @relation(fields: [tenant_id], references: [id])
 
   @@map("finance_settings")
@@ -5036,7 +5037,7 @@ model payrollCategory {
   is_fixed    Boolean                 @default(false)
   status      String                  @default("ACTIVE")
   created_at  DateTime                @default(now())
-  updated_at DateTime @default(now())
+  updated_at  DateTime                @default(now())
   company     company                 @relation(fields: [tenant_id], references: [id])
   adjustments payrollAdjustmentLine[]
 
@@ -5053,7 +5054,7 @@ model payrollAdjustmentLine {
   amount          Decimal         @db.Decimal(15, 2)
   notes           String?
   created_at      DateTime        @default(now())
-  updated_at DateTime @default(now())
+  updated_at      DateTime        @default(now())
   company         company         @relation(fields: [tenant_id], references: [id])
   category        payrollCategory @relation(fields: [category_id], references: [id])
   payroll_line    payrollLine     @relation(fields: [payroll_line_id], references: [id])
@@ -5068,7 +5069,7 @@ model syncAnchor {
   table_name   String
   last_sync_at DateTime @default(now())
   created_at   DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at   DateTime @default(now())
   company      company  @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, table_name])

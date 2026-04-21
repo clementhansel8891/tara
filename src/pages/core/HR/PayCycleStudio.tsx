@@ -104,66 +104,76 @@ export default function PayCycleStudio() {
               </tr>
             </thead>
             <tbody>
-              {filteredRuns.map((run) => (
-                <tr key={run.id} className="border-t">
-                  <td className="p-3">{run.periodStart} - {run.periodEnd}</td>
-                  <td className="p-3 text-muted-foreground">{run.status}</td>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          await payrollService.submitForApproval(session.tenantId, session, run.id);
-                          refresh();
-                        }}
-                        disabled={run.status !== "DRAFT" && run.status !== "draft"}
-                      >
-                        Submit to FlowGate
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                        onClick={async () => {
-                          await payrollService.approvePayroll(session, run.id);
-                          refresh();
-                        }}
-                        disabled={(run.status !== "DRAFT" && run.status !== "draft" && run.status !== "calculated") || !financeAllowed}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          const csv = await payrollService.exportBankFile(session, run.id);
-                          const blob = new Blob([csv], { type: "text/csv" });
-                          const url = window.URL.createObjectURL(blob);
-                          const a = document.createElement("a");
-                          a.href = url;
-                          a.download = `bank_export_${run.id}.csv`;
-                          a.click();
-                        }}
-                        disabled={run.status !== "APPROVED"}
-                      >
-                        Bank Export
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                        onClick={async () => {
-                          if (confirm("Confirm disbursement and post to GL?")) {
-                            await payrollService.confirmDisbursement(session, run.id);
+              {filteredRuns.map((run) => {
+                const canSubmit = run.status === "DRAFT" || run.status === "draft";
+                const canApprove = (run.status === "DRAFT" || run.status === "draft" || run.status === "calculated") && financeAllowed;
+                const canExport = run.status === "APPROVED";
+                const canDisburse = run.status === "APPROVED" && financeAllowed;
+
+                return (
+                  <tr key={run.id} className="border-t">
+                    <td className="p-3">
+                      {run.periodStart} - {run.periodEnd}
+                    </td>
+                    <td className="p-3 text-muted-foreground">{run.status}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            await payrollService.submitForApproval(session.tenantId, session, run.id);
                             refresh();
-                          }
-                        }}
-                        disabled={run.status !== "APPROVED" || !financeAllowed}
-                      >
-                        Confirm Disbursement
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                          }}
+                          disabled={!canSubmit}
+                        >
+                          Submit to FlowGate
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={async () => {
+                            await payrollService.approvePayroll(session, run.id);
+                            refresh();
+                          }}
+                          disabled={!canApprove}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            const csv = await payrollService.exportBankFile(session, run.id);
+                            const blob = new Blob([csv], { type: "text/csv" });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = `bank_export_${run.id}.csv`;
+                            a.click();
+                          }}
+                          disabled={!canExport}
+                        >
+                          Bank Export
+                        </Button>
+                        <Button
+                          size="sm"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          onClick={async () => {
+                            if (confirm("Confirm disbursement and post to GL?")) {
+                              await payrollService.confirmDisbursement(session, run.id);
+                              refresh();
+                            }
+                          }}
+                          disabled={!canDisburse}
+                        >
+                          Confirm Disbursement
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </DataTableShell>

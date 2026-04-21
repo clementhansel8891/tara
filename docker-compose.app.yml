@@ -17,8 +17,6 @@ services:
       - RUNTIME=docker
     ports:
       - "3001:3001"
-    depends_on:
-      - db
     networks:
       - zenvix_net
 
