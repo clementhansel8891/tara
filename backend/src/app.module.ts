@@ -31,6 +31,7 @@ import { MaintenanceModule } from "./shared/maintenance/maintenance.module";
 import { IotModule } from "./shared/iot/iot.module";
 import { ReportingModule } from "./shared/reporting/reporting.module";
 import { SettingsModule } from "./core/settings/settings.module";
+import { IncentivesModule } from "./core/incentives/incentives.module";
 
 
 import { APP_GUARD } from "@nestjs/core";
@@ -86,6 +87,7 @@ import { validate } from "./config/env.validation";
     MaintenanceModule,
     IotModule,
     SettingsModule,
+    IncentivesModule,
   ],
   controllers: [HealthController],
   providers: [

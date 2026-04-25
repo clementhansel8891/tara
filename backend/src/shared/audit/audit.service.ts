@@ -47,8 +47,9 @@ export class AuditService implements OnModuleDestroy {
     chainVerificationFailures: 0,
     anchorWriteFailures: 0,
   };
-  private readonly anchorLogPath = path.join(process.cwd(), 'external_audit_anchors.log');
-  private readonly secondaryAnchorPath = path.join(process.cwd(), 'backups', 'audit_anchors.log');
+  private readonly backupDir = process.env.BACKUP_DIR || (process.env.NODE_ENV === 'production' ? '/data/backups' : path.join(process.cwd(), 'backups'));
+  private readonly anchorLogPath = process.env.ANCHOR_LOG_PATH || (process.env.NODE_ENV === 'production' ? '/data/logs/external_audit_anchors.log' : path.join(process.cwd(), 'external_audit_anchors.log'));
+  private readonly secondaryAnchorPath = path.join(this.backupDir, 'audit_anchors.log');
 
   constructor(private readonly prisma: PrismaService) {
     this.ensureBackupDir();
@@ -62,10 +63,12 @@ export class AuditService implements OnModuleDestroy {
   }
 
   private ensureBackupDir() {
-    const dir = path.dirname(this.secondaryAnchorPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    [path.dirname(this.anchorLogPath), path.dirname(this.secondaryAnchorPath)].forEach(dir => {
+      if (!fs.existsSync(dir)) {
+        console.log(`[AuditService] Creating directory: ${dir}`);
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
   }
 
   private startSelfVerificationJob() {

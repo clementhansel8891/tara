@@ -32,8 +32,11 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
-# Use non-root user for security
-RUN addgroup -S zenvix && adduser -S zenvix -G zenvix
+# Prepare persistent data directory
+RUN mkdir -p /data/backups /data/logs && \
+    addgroup -S zenvix && adduser -S zenvix -G zenvix && \
+    chown -R zenvix:zenvix /data
+
 USER zenvix
 
 EXPOSE 3001

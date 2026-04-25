@@ -414,6 +414,9 @@ model comms_chat_messages {
 }
 
 model companies {
+  sales_incentive_plans                sales_incentive_plans[]
+  sales_attributions                   sales_attributions[]
+  sales_incentive_payouts              sales_incentive_payouts[]
   id                                   String                                 @id @default(uuid())
   name                                 String
   code                                 String                                 @unique
@@ -876,6 +879,8 @@ model employees {
   stores                                                         stores[]
   training_assignments                                           training_assignments[]
   hr_sales_bonuses                                               hr_sales_bonuses[]
+  sales_attributions                                             sales_attributions[]
+  sales_incentive_payouts                                        sales_incentive_payouts[]
 
   @@unique([tenant_id, email])
   @@unique([tenant_id, employee_code])
@@ -1314,6 +1319,7 @@ model finance_journal_entries {
   finance_journal_reversals_finance_journal_reversals_original_journal_idTofinance_journal_entries finance_journal_reversals[] @relation("finance_journal_reversals_original_journal_idTofinance_journal_entries")
   finance_journal_reversals_finance_journal_reversals_reversal_journal_idTofinance_journal_entries finance_journal_reversals[] @relation("finance_journal_reversals_reversal_journal_idTofinance_journal_entries")
   finance_recon_matches                                                                            finance_recon_matches[]
+  sales_incentive_payouts                                                                          sales_incentive_payouts[]
 
   @@unique([tenant_id, ref])
   @@index([tenant_id, created_at])
@@ -2741,6 +2747,7 @@ model locations {
   inventory_transfers_to                                      inventory_transfers[]   @relation("TransferTo")
   hr_payroll_runs                                             hr_payroll_runs[]
   hr_shift_templates                                          hr_shift_templates[]
+  sales_incentive_plans                                       sales_incentive_plans[]
 
   @@unique([tenant_id, code])
   @@index([tenant_id])
@@ -3478,6 +3485,7 @@ model payroll_lines {
   employees                employees                  @relation(fields: [employee_id], references: [id])
   hr_payroll_runs          hr_payroll_runs            @relation(fields: [payroll_run_id], references: [id])
   companies                companies                  @relation(fields: [tenant_id], references: [id])
+  sales_incentive_payouts  sales_incentive_payouts[]
 
   @@index([employee_id])
   @@index([payroll_run_id])
@@ -5194,4 +5202,115 @@ model payroll_payslips {
   companies       companies     @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
+}
+
+// --- Sales Incentive Engine ---
+
+model sales_incentive_plans {
+  id                String    @id @default(uuid())
+  tenant_id         String
+  company_id        String
+  branch_id         String?
+  name              String
+  description       String?
+  is_active         Boolean   @default(true)
+  version           Int       @default(1)
+  start_date        DateTime
+  end_date          DateTime?
+  conflict_strategy String    @default("PRIORITY")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now())
+
+  rules       sales_incentive_rules[]
+  eligibility sales_incentive_eligibility[]
+  audit_logs  sales_incentive_audit_logs[]
+
+  companies companies  @relation(fields: [company_id], references: [id])
+  branches  locations? @relation(fields: [branch_id], references: [id])
+
+  @@index([tenant_id, company_id])
+}
+
+model sales_incentive_rules {
+  id              String   @id @default(uuid())
+  plan_id         String
+  priority        Int      @default(0)
+  dimension       String
+  dimension_value String?
+  base_type       String
+  value           Decimal  @db.Decimal(15, 4)
+  conditions      Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+}
+
+model sales_incentive_eligibility {
+  id          String   @id @default(uuid())
+  plan_id     String
+  target_type String
+  target_id   String
+  is_excluded Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+}
+
+model sales_attributions {
+  id               String   @id @default(uuid())
+  tenant_id        String
+  company_id       String
+  entity_type      String
+  entity_id        String
+  employee_id      String
+  share_percent    Decimal  @db.Decimal(5, 2)
+  incentive_amount Decimal  @db.Decimal(15, 4) @default(0)
+  status           String   @default("PENDING")
+  payout_id        String?
+  attribution_type String   @default("SINGLE")
+  metadata         Json?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  employees employees @relation(fields: [employee_id], references: [id])
+  companies companies @relation(fields: [company_id], references: [id])
+  payouts   sales_incentive_payouts? @relation(fields: [payout_id], references: [id])
+
+  @@index([entity_id, entity_type])
+}
+
+model sales_incentive_payouts {
+  id                String   @id @default(uuid())
+  tenant_id         String
+  company_id        String
+  employee_id       String
+  payroll_line_id   String?
+  journal_entry_id  String?
+  total_amount      Decimal  @db.Decimal(15, 4)
+  currency          String   @default("IDR")
+  status            String   @default("PENDING")
+  processed_at      DateTime?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now())
+
+  employees               employees                @relation(fields: [employee_id], references: [id])
+  companies               companies                @relation(fields: [company_id], references: [id])
+  payroll_lines           payroll_lines?           @relation(fields: [payroll_line_id], references: [id])
+  finance_journal_entries finance_journal_entries? @relation(fields: [journal_entry_id], references: [id])
+  attributions            sales_attributions[]
+
+  @@index([employee_id, status])
+}
+
+model sales_incentive_audit_logs {
+  id        String   @id @default(uuid())
+  plan_id   String
+  action    String
+  actor_id  String
+  changes   Json?
+  timestamp DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
 }

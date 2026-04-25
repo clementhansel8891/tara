@@ -109,6 +109,9 @@ model tenants {
   hr_recommendations                   hr_recommendations[]
   hr_recommendation_feedbacks          hr_recommendation_feedbacks[]
   hr_sales_bonuses                     hr_sales_bonuses[]
+  sales_incentive_plans                sales_incentive_plans[]
+  sales_attributions                   sales_attributions[]
+  sales_incentive_payouts              sales_incentive_payouts[]
   hr_shift_templates                   hr_shift_templates[]
   hr_skills                            hr_skills[]
   hr_succession_candidates             hr_succession_candidates[]
@@ -942,6 +945,9 @@ model companies {
   finance_asset_categories             finance_asset_categories[]
   hr_shift_templates                   hr_shift_templates[]
   hr_sales_bonuses                     hr_sales_bonuses[]
+  sales_incentive_plans                sales_incentive_plans[]
+  sales_attributions                   sales_attributions[]
+  sales_incentive_payouts              sales_incentive_payouts[]
   // @@map("companies") - standardized
   tenants                              tenants                                @relation(fields: [tenant_id], references: [id])
   warehouse_bins                       warehouse_bins[]
@@ -1211,6 +1217,8 @@ model employees {
   stores                                                         stores[]
   training_assignments                                           training_assignments[]
   hr_sales_bonuses                                               hr_sales_bonuses[]
+  sales_attributions                                             sales_attributions[]
+  sales_incentive_payouts                                        sales_incentive_payouts[]
   // @@map("employees") - standardized
   tenants                                                        tenants                    @relation(fields: [tenant_id], references: [id])
 
@@ -1711,6 +1719,7 @@ model finance_journal_entries {
   finance_recon_matches                                                                            finance_recon_matches[]
   // @@map("finance_journal_entries") - standardized
   tenants                                                                                          tenants                     @relation(fields: [tenant_id], references: [id])
+  sales_incentive_payouts                                                                          sales_incentive_payouts[]
 
   @@unique([tenant_id, company_id, ref])
   @@index([tenant_id, created_at])
@@ -3354,6 +3363,7 @@ model locations {
   // @@map("locations") - standardized
   tenants                                                     tenants                 @relation(fields: [tenant_id], references: [id])
   warehouse_bins                                              warehouse_bins[]
+  sales_incentive_plans                                       sales_incentive_plans[]
 
   @@unique([tenant_id, company_id, code])
   @@index([tenant_id])
@@ -4089,22 +4099,23 @@ model payment_transactions {
 }
 
 model payroll_lines {
-  id              String                     @id
-  tenant_id       String
-  company_id      String
-  payroll_run_id  String
-  employee_id     String
-  gross_pay       Decimal                    @db.Decimal(15, 2)
-  net_pay         Decimal                    @db.Decimal(15, 2)
-  adjustments     Decimal                    @default(0) @db.Decimal(15, 2)
-  adjustmentLines payroll_adjustment_lines[]
-  created_at      DateTime                   @default(now())
-  updated_at      DateTime                   @default(now())
-  employees       employees                  @relation(fields: [employee_id], references: [id])
-  hr_payroll_runs hr_payroll_runs            @relation(fields: [payroll_run_id], references: [id])
-  companies       companies                  @relation(fields: [company_id], references: [id])
+  id                      String                     @id
+  tenant_id               String
+  company_id              String
+  payroll_run_id          String
+  employee_id             String
+  gross_pay               Decimal                    @db.Decimal(15, 2)
+  net_pay                 Decimal                    @db.Decimal(15, 2)
+  adjustments             Decimal                    @default(0) @db.Decimal(15, 2)
+  adjustmentLines         payroll_adjustment_lines[]
+  created_at              DateTime                   @default(now())
+  updated_at              DateTime                   @default(now())
+  employees               employees                  @relation(fields: [employee_id], references: [id])
+  hr_payroll_runs         hr_payroll_runs            @relation(fields: [payroll_run_id], references: [id])
+  companies               companies                  @relation(fields: [company_id], references: [id])
   // @@map("payroll_lines") - standardized
-  tenants         tenants                    @relation(fields: [tenant_id], references: [id])
+  tenants                 tenants                    @relation(fields: [tenant_id], references: [id])
+  sales_incentive_payouts sales_incentive_payouts[]
 
   @@index([employee_id])
   @@index([payroll_run_id])
@@ -6027,4 +6038,115 @@ model bin_assignments {
   @@unique([tenant_id, company_id, bin_id, product_id])
   @@index([tenant_id])
   @@index([company_id])
+}
+
+// --- Sales Incentive Engine ---
+
+model sales_incentive_plans {
+  id                String    @id @default(uuid())
+  tenant_id         String
+  company_id        String
+  branch_id         String?
+  name              String
+  description       String?
+  is_active         Boolean   @default(true)
+  version           Int       @default(1)
+  start_date        DateTime
+  end_date          DateTime?
+  conflict_strategy String    @default("PRIORITY")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @default(now())
+
+  rules       sales_incentive_rules[]
+  eligibility sales_incentive_eligibility[]
+  audit_logs  sales_incentive_audit_logs[]
+
+  companies companies  @relation(fields: [company_id], references: [id])
+  tenants   tenants    @relation(fields: [tenant_id], references: [id])
+  branches  locations? @relation(fields: [branch_id], references: [id])
+
+  @@index([tenant_id, company_id])
+}
+
+model sales_incentive_rules {
+  id              String   @id @default(uuid())
+  plan_id         String
+  priority        Int      @default(0)
+  dimension       String
+  dimension_value String?
+  base_type       String
+  value           Decimal  @db.Decimal(15, 4)
+  conditions      Json?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+}
+
+model sales_incentive_eligibility {
+  id          String   @id @default(uuid())
+  plan_id     String
+  target_type String
+  target_id   String
+  is_excluded Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
+}
+
+model sales_attributions {
+  id               String   @id @default(uuid())
+  tenant_id        String
+  company_id       String
+  entity_type      String
+  entity_id        String
+  employee_id      String
+  share_percent    Decimal  @db.Decimal(5, 2)
+  attribution_type String   @default("SINGLE")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  employees employees @relation(fields: [employee_id], references: [id])
+  companies companies @relation(fields: [company_id], references: [id])
+  tenants   tenants   @relation(fields: [tenant_id], references: [id])
+
+  @@index([entity_id, entity_type])
+}
+
+model sales_incentive_payouts {
+  id                String   @id @default(uuid())
+  tenant_id         String
+  company_id        String
+  employee_id       String
+  period_start      DateTime
+  period_end        DateTime
+  gross_amount      Decimal  @db.Decimal(15, 2)
+  adjustment_amount Decimal  @default(0) @db.Decimal(15, 2)
+  net_amount        Decimal  @db.Decimal(15, 2)
+  status            String   @default("DRAFT")
+  payroll_line_id   String?
+  journal_entry_id  String?
+  notes             String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now())
+
+  employees       employees                @relation(fields: [employee_id], references: [id])
+  companies       companies                @relation(fields: [company_id], references: [id])
+  tenants         tenants                  @relation(fields: [tenant_id], references: [id])
+  payroll_lines   payroll_lines?           @relation(fields: [payroll_line_id], references: [id])
+  journal_entries finance_journal_entries? @relation(fields: [journal_entry_id], references: [id])
+
+  @@index([employee_id, period_start, period_end])
+}
+
+model sales_incentive_audit_logs {
+  id        String   @id @default(uuid())
+  plan_id   String
+  action    String
+  actor_id  String
+  changes   Json?
+  timestamp DateTime @default(now())
+
+  plan sales_incentive_plans @relation(fields: [plan_id], references: [id], onDelete: Cascade)
 }
