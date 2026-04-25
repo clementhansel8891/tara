@@ -7,6 +7,8 @@ import { PrismaService } from "../../persistence/prisma.service";
 import { RetailService } from "./retail.service";
 import { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 @Injectable()
 export class RetailPublicCustomerService {
@@ -15,13 +17,13 @@ export class RetailPublicCustomerService {
     private readonly retailService: RetailService,
   ) {}
 
-  private async getOrCreateCart(tenant_id: string, customer_id: string) {
+  private async getOrCreateCart(ctx: TenantContext, customer_id: string) {
     return this.prisma.retail_carts.upsert({
       where: { customer_id: customer_id },
       update: {},
       create: {
         id: `cart-${uuidv4().slice(0, 8)}`,
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         customer_id: customer_id,
         status: "active",
         updated_at: new Date(),
@@ -29,9 +31,9 @@ export class RetailPublicCustomerService {
     });
   }
 
-  async buildCartResponse(tenant_id: string, customer_id: string) {
+  async buildCartResponse(ctx: TenantContext, customer_id: string) {
     const cart = await this.prisma.retail_carts.findFirst({
-      where: { tenant_id: tenant_id, customer_id: customer_id },
+      where: { ...MultiTenancyUtil.getScope(ctx), customer_id: customer_id },
       include: { retail_cart_items: { include: { item_masters: true } } },
     });
 
@@ -71,7 +73,7 @@ export class RetailPublicCustomerService {
   }
 
   async addCartItem(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     payload: { product_id?: string; sku?: string; quantity?: number },
   ) {
@@ -85,17 +87,17 @@ export class RetailPublicCustomerService {
 
     const product = payload.product_id
       ? await this.prisma.item_masters.findFirst({
-          where: { id: String(payload.product_id), tenant_id: tenant_id },
+          where: { id: String(payload.product_id), ...MultiTenancyUtil.getScope(ctx) },
         })
       : await this.prisma.item_masters.findFirst({
-          where: { tenant_id: tenant_id, sku: String(payload.sku) },
+          where: { ...MultiTenancyUtil.getScope(ctx), sku: String(payload.sku) },
         });
 
     if (!product) {
       throw new NotFoundException("Product not found");
     }
 
-    const cart = await this.getOrCreateCart(tenant_id, customer_id);
+    const cart = await this.getOrCreateCart(ctx, customer_id);
     const existing = await this.prisma.retail_cart_items.findFirst({
       where: { cart_id: cart.id, product_id: product.id },
     });
@@ -121,11 +123,11 @@ export class RetailPublicCustomerService {
       });
     }
 
-    return this.buildCartResponse(tenant_id, customer_id);
+    return this.buildCartResponse(ctx, customer_id);
   }
 
   async updateCartItem(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     item_id: string,
     quantity: number,
@@ -134,7 +136,7 @@ export class RetailPublicCustomerService {
       throw new BadRequestException("quantity must be 0 or greater");
     }
 
-    const cart = await this.getOrCreateCart(tenant_id, customer_id);
+    const cart = await this.getOrCreateCart(ctx, customer_id);
     const item = await this.prisma.retail_cart_items.findFirst({
       where: { id: item_id, cart_id: cart.id },
     });
@@ -151,11 +153,11 @@ export class RetailPublicCustomerService {
       });
     }
 
-    return this.buildCartResponse(tenant_id, customer_id);
+    return this.buildCartResponse(ctx, customer_id);
   }
 
-  async removeCartItem(tenant_id: string, customer_id: string, item_id: string) {
-    const cart = await this.getOrCreateCart(tenant_id, customer_id);
+  async removeCartItem(ctx: TenantContext, customer_id: string, item_id: string) {
+    const cart = await this.getOrCreateCart(ctx, customer_id);
     const item = await this.prisma.retail_cart_items.findFirst({
       where: { id: item_id, cart_id: cart.id },
     });
@@ -163,18 +165,18 @@ export class RetailPublicCustomerService {
       throw new NotFoundException("Cart item not found");
     }
     await this.prisma.retail_cart_items.delete({ where: { id: item.id } });
-    return this.buildCartResponse(tenant_id, customer_id);
+    return this.buildCartResponse(ctx, customer_id);
   }
 
-  async clearCart(tenant_id: string, customer_id: string) {
-    const cart = await this.getOrCreateCart(tenant_id, customer_id);
+  async clearCart(ctx: TenantContext, customer_id: string) {
+    const cart = await this.getOrCreateCart(ctx, customer_id);
     await this.prisma.retail_cart_items.deleteMany({ where: { cart_id: cart.id } });
-    return this.buildCartResponse(tenant_id, customer_id);
+    return this.buildCartResponse(ctx, customer_id);
   }
 
-  async buildWishlistResponse(tenant_id: string, customer_id: string) {
+  async buildWishlistResponse(ctx: TenantContext, customer_id: string) {
     const wishlist = await this.prisma.retail_wishlists.findFirst({
-      where: { tenant_id: tenant_id, customer_id: customer_id },
+      where: { ...MultiTenancyUtil.getScope(ctx), customer_id: customer_id },
       include: { retail_wishlist_items: { include: { item_masters: true } } },
     });
 
@@ -198,7 +200,7 @@ export class RetailPublicCustomerService {
   }
 
   async addWishlistItem(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     payload: { product_id?: string; sku?: string },
   ) {
@@ -208,10 +210,10 @@ export class RetailPublicCustomerService {
 
     const product = payload.product_id
       ? await this.prisma.item_masters.findFirst({
-          where: { id: String(payload.product_id), tenant_id: tenant_id },
+          where: { id: String(payload.product_id), ...MultiTenancyUtil.getScope(ctx) },
         })
       : await this.prisma.item_masters.findFirst({
-          where: { tenant_id: tenant_id, sku: String(payload.sku) },
+          where: { ...MultiTenancyUtil.getScope(ctx), sku: String(payload.sku) },
         });
 
     if (!product) {
@@ -223,7 +225,7 @@ export class RetailPublicCustomerService {
       update: {},
       create: {
         id: `wl-${uuidv4().slice(0, 8)}`,
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         customer_id: customer_id,
         updated_at: new Date(),
       },
@@ -244,12 +246,12 @@ export class RetailPublicCustomerService {
       });
     }
 
-    return this.buildWishlistResponse(tenant_id, customer_id);
+    return this.buildWishlistResponse(ctx, customer_id);
   }
 
-  async removeWishlistItem(tenant_id: string, customer_id: string, item_id: string) {
+  async removeWishlistItem(ctx: TenantContext, customer_id: string, item_id: string) {
     const wishlist = await this.prisma.retail_wishlists.findFirst({
-      where: { tenant_id: tenant_id, customer_id: customer_id },
+      where: { ...MultiTenancyUtil.getScope(ctx), customer_id: customer_id },
     });
     if (!wishlist) {
       throw new NotFoundException("Wishlist not found");
@@ -261,11 +263,11 @@ export class RetailPublicCustomerService {
       throw new NotFoundException("Wishlist item not found");
     }
     await this.prisma.retail_wishlist_items.delete({ where: { id: item.id } });
-    return this.buildWishlistResponse(tenant_id, customer_id);
+    return this.buildWishlistResponse(ctx, customer_id);
   }
 
   async checkout(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     payload: {
       payment_status?: string;
@@ -274,7 +276,7 @@ export class RetailPublicCustomerService {
     },
   ) {
     const cart = await this.prisma.retail_carts.findFirst({
-      where: { tenant_id: tenant_id, customer_id: customer_id },
+      where: { ...MultiTenancyUtil.getScope(ctx), customer_id: customer_id },
       include: { retail_cart_items: { include: { item_masters: true } } },
     });
 
@@ -283,7 +285,7 @@ export class RetailPublicCustomerService {
     }
 
     const store = await this.prisma.stores.findFirst({
-      where: { tenant_id: tenant_id, deleted_at: null },
+      where: { ...MultiTenancyUtil.getScope(ctx), deleted_at: null },
       orderBy: { created_at: "asc" },
     });
     if (!store) {
@@ -307,7 +309,7 @@ export class RetailPublicCustomerService {
     const paymentReference = payload.paymentReference ?? undefined;
 
     const order = await this.retailService.createOrder(
-      tenant_id,
+      ctx,
       store.location_id || "",
       {
         store_id: store.id,
@@ -322,7 +324,7 @@ export class RetailPublicCustomerService {
 
     if (payment_status === "PAID") {
       await this.retailService.processPayment(
-        tenant_id,
+        ctx,
         order.id,
         {
           amount: new Prisma.Decimal(subtotal),

@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/persistence/prisma.service';
+import { PrismaService } from '../../persistence/prisma.service';
+import { TenantContext } from '../../gateway/tenant-context.interface';
+import { MultiTenancyUtil } from '../../shared/utils/multi-tenancy.util';
 
 @Injectable()
 export class RetailExportService {
@@ -7,14 +9,14 @@ export class RetailExportService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async generateReturnCsv(tenantId: string) {
-    this.logger.log(`Generating Return Metrics CSV for tenant ${tenantId}`);
+  async generateReturnCsv(ctx: TenantContext) {
+    this.logger.log(`Generating Return Metrics CSV for tenant ${ctx.tenant_id}`);
     
     // Gap Analysis Step 3 logic implementation: streaming JSON to CSV
     // using Prisma to find Refund/Return data
     const records = await this.prisma.retail_orders.findMany({
       where: {
-        tenant_id: tenantId,
+        ...MultiTenancyUtil.getScope(ctx),
         status: 'refunded'
       },
       select: {
@@ -34,11 +36,11 @@ export class RetailExportService {
     return csvHeader + csvRows;
   }
 
-  async generateAuditCsv(tenantId: string) {
-    this.logger.log(`Generating Retail Audit CSV for tenant ${tenantId}`);
+  async generateAuditCsv(ctx: TenantContext) {
+    this.logger.log(`Generating Retail Audit CSV for tenant ${ctx.tenant_id}`);
     const logs = await this.prisma.audit_logs.findMany({
       where: {
-        tenant_id: tenantId,
+        tenant_id: ctx.tenant_id,
         module: "RETAIL",
       },
       orderBy: { created_at: "desc" },
@@ -54,10 +56,10 @@ export class RetailExportService {
     return header + rows;
   }
 
-  async generateDashboardKpiCsv(tenantId: string) {
-    this.logger.log(`Generating Dashboard KPI CSV for tenant ${tenantId}`);
+  async generateDashboardKpiCsv(ctx: TenantContext) {
+    this.logger.log(`Generating Dashboard KPI CSV for tenant ${ctx.tenant_id}`);
     const shifts = await this.prisma.retail_shifts.findMany({
-      where: { tenant_id: tenantId },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { end_time: "desc" },
       take: 50,
     });

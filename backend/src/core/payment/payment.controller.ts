@@ -29,12 +29,13 @@ import { UpdateProviderStatusDto } from "./dto/update-provider-status.dto";
 import { PaymentService } from "./payment.service";
 import { PrismaService } from "../../persistence/prisma.service";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/payment")
+@Controller('payment')
 @UseInterceptors(TenantInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("payment")
@@ -54,15 +55,15 @@ export class PaymentController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const dashboardData = await this.paymentService.getDashboard(tenant_id);
+    const dashboardData = await this.paymentService.getDashboard(request.tenantContext);
 
     const moduleContributions: any = {};
     if (await isModuleActive(this.prisma, tenant_id, "retail")) {
       const activeDevices = await this.prisma.payment_pos_devices.count({
-        where: { tenant_id: tenant_id, status: "ONLINE" },
+        where: { ...MultiTenancyUtil.getScope(request.tenantContext), status: "ONLINE" },
       });
       const totalDisputes = await this.prisma.payment_disputes.count({
-        where: { tenant_id: tenant_id, status: "OPEN" },
+        where: { ...MultiTenancyUtil.getScope(request.tenantContext), status: "OPEN" },
       });
       moduleContributions.retail = {
         activeDevices,
@@ -86,14 +87,14 @@ export class PaymentController {
     return {
       success: true,
       tenant_id,
-      data: await this.paymentService.getPaymentStatus(tenant_id),
+      data: await this.paymentService.getPaymentStatus(request.tenantContext),
     };
   }
 
   @Get("transactions")
   async getTransactions(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getTransactions(tenant_id);
+    const data = await this.paymentService.getTransactions(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -108,7 +109,7 @@ export class PaymentController {
       tenant_id,
       message: "Payment request created",
       data: await this.paymentService.createTransaction(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -126,7 +127,7 @@ export class PaymentController {
       tenant_id,
       message: "Payment approved",
       data: await this.paymentService.approveTransaction(
-        tenant_id,
+        request.tenantContext,
         paymentId,
         this.actor_id(request),
       ),
@@ -144,7 +145,7 @@ export class PaymentController {
       tenant_id,
       message: "Payment rejected",
       data: await this.paymentService.rejectTransaction(
-        tenant_id,
+        request.tenantContext,
         paymentId,
         this.actor_id(request),
       ),
@@ -163,7 +164,7 @@ export class PaymentController {
       tenant_id,
       message: "Provider selected",
       data: await this.paymentService.routeTransaction(
-        tenant_id,
+        request.tenantContext,
         paymentId,
         dto,
         this.actor_id(request),
@@ -183,7 +184,7 @@ export class PaymentController {
       tenant_id,
       message: "Execution processed",
       data: await this.paymentService.executeTransaction(
-        tenant_id,
+        request.tenantContext,
         paymentId,
         dto,
         this.actor_id(request),
@@ -202,7 +203,7 @@ export class PaymentController {
       tenant_id,
       message: "Settlement confirmed",
       data: await this.paymentService.settleTransaction(
-        tenant_id,
+        request.tenantContext,
         paymentId,
         this.actor_id(request),
       ),
@@ -220,7 +221,7 @@ export class PaymentController {
       tenant_id,
       message: "Batch settlement processed",
       data: await this.paymentService.settleBatch(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -230,7 +231,7 @@ export class PaymentController {
   @Get("providers")
   async getProviders(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getProviders(tenant_id);
+    const data = await this.paymentService.getProviders(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -246,7 +247,7 @@ export class PaymentController {
       tenant_id,
       message: "Provider status updated",
       data: await this.paymentService.updateProviderStatus(
-        tenant_id,
+        request.tenantContext,
         providerId,
         dto,
         this.actor_id(request),
@@ -258,7 +259,7 @@ export class PaymentController {
   async runProviderHealthSweep(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
     const data = await this.paymentService.runProviderHealthSweep(
-      tenant_id,
+      request.tenantContext,
       this.actor_id(request),
     );
     return {
@@ -273,21 +274,21 @@ export class PaymentController {
   @Get("routing-policies")
   async getRoutingPolicies(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getRoutingPolicies(tenant_id);
+    const data = await this.paymentService.getRoutingPolicies(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("devices")
   async getDevices(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getDevices(tenant_id);
+    const data = await this.paymentService.getDevices(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("device-pools")
   async getDevicePools(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getDevicePools(tenant_id);
+    const data = await this.paymentService.getDevicePools(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -303,7 +304,7 @@ export class PaymentController {
       tenant_id,
       message: "Device status updated",
       data: await this.paymentService.updateDeviceStatus(
-        tenant_id,
+        request.tenantContext,
         device_id,
         dto,
         this.actor_id(request),
@@ -314,7 +315,7 @@ export class PaymentController {
   @Get("refunds")
   async getRefunds(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getRefunds(tenant_id);
+    const data = await this.paymentService.getRefunds(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -329,7 +330,7 @@ export class PaymentController {
       tenant_id,
       message: "Refund requested",
       data: await this.paymentService.createRefund(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -347,7 +348,7 @@ export class PaymentController {
       tenant_id,
       message: "Refund approved",
       data: await this.paymentService.approveRefund(
-        tenant_id,
+        request.tenantContext,
         refundId,
         this.actor_id(request),
       ),
@@ -365,7 +366,7 @@ export class PaymentController {
       tenant_id,
       message: "Refund executed",
       data: await this.paymentService.executeRefund(
-        tenant_id,
+        request.tenantContext,
         refundId,
         this.actor_id(request),
       ),
@@ -375,7 +376,7 @@ export class PaymentController {
   @Get("disputes")
   async getDisputes(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getDisputes(tenant_id);
+    const data = await this.paymentService.getDisputes(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -390,7 +391,7 @@ export class PaymentController {
       tenant_id,
       message: "Dispute opened",
       data: await this.paymentService.createDispute(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -409,7 +410,7 @@ export class PaymentController {
       tenant_id,
       message: "Evidence attached",
       data: await this.paymentService.attachDisputeEvidence(
-        tenant_id,
+        request.tenantContext,
         disputeId,
         dto,
         this.actor_id(request),
@@ -429,7 +430,7 @@ export class PaymentController {
       tenant_id,
       message: "Dispute stage updated",
       data: await this.paymentService.progressDispute(
-        tenant_id,
+        request.tenantContext,
         disputeId,
         dto,
         this.actor_id(request),
@@ -449,7 +450,7 @@ export class PaymentController {
       tenant_id,
       message: "Dispute resolved",
       data: await this.paymentService.resolveDispute(
-        tenant_id,
+        request.tenantContext,
         disputeId,
         dto,
         this.actor_id(request),
@@ -460,28 +461,28 @@ export class PaymentController {
   @Get("chargebacks")
   async getChargebacks(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getChargebacks(tenant_id);
+    const data = await this.paymentService.getChargebacks(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("settlements")
   async getSettlements(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getSettlements(tenant_id);
+    const data = await this.paymentService.getSettlements(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("evidence-packs")
   async getEvidencePacks(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getEvidencePacks(tenant_id);
+    const data = await this.paymentService.getEvidencePacks(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("audit-events")
   async getAuditEvents(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.paymentService.getAuditEvents(tenant_id);
+    const data = await this.paymentService.getAuditEvents(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -491,7 +492,7 @@ export class PaymentController {
     return {
       success: true,
       tenant_id,
-      data: await this.paymentService.getPaymentSettings(tenant_id),
+      data: await this.paymentService.getPaymentSettings(request.tenantContext),
     };
   }
 
@@ -505,7 +506,7 @@ export class PaymentController {
       success: true,
       tenant_id,
       message: "Payment settings updated",
-      data: await this.paymentService.updatePaymentSettings(tenant_id, data),
+      data: await this.paymentService.updatePaymentSettings(request.tenantContext, data),
     };
   }
 
@@ -520,7 +521,7 @@ export class PaymentController {
       tenant_id,
       message: "Cash payment confirmed",
       data: await this.paymentService.processCash(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -538,7 +539,7 @@ export class PaymentController {
       tenant_id,
       message: "EDC payment confirmed",
       data: await this.paymentService.confirmEDC(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -556,11 +557,10 @@ export class PaymentController {
       tenant_id,
       message: "Gateway sequence started",
       data: await this.paymentService.createGatewayPayment(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
     };
   }
 }
-

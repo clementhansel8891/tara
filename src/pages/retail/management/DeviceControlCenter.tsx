@@ -93,9 +93,9 @@ const DeviceControlCenter = () => {
   const [senMap, setSenMap] = useState<Record<string, BranchSensor[]>>({});
 
   const fetchStores = useCallback(async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     try {
-      const list = await retailService.listStores(session.tenantId, session);
+      const list = await retailService.listStores(session.tenant_id, session);
       if (list && list.length > 0) {
         setStores(list.map((s) => ({ id: s.id, name: s.name })));
         setBranch(list[0].id);
@@ -106,13 +106,13 @@ const DeviceControlCenter = () => {
   }, [session]);
 
   const fetchData = useCallback(async () => {
-    if (!session.tenantId || !branch) return;
+    if (!session.tenant_id || !branch) return;
     setIsRefreshing(true);
     try {
       const [d, c, s] = await Promise.all([
-        retailService.listDevices(session.tenantId, session, branch),
-        retailService.listCCTVs(session.tenantId, session, branch),
-        retailService.listSensors(session.tenantId, session, branch),
+        retailService.listDevices(session.tenant_id, session, branch),
+        retailService.listCCTVs(session.tenant_id, session, branch),
+        retailService.listSensors(session.tenant_id, session, branch),
       ]);
       setDevMap((p) => ({ ...p, [branch]: d as ExtDevice[] }));
       setCamMap((p) => ({ ...p, [branch]: c }));
@@ -157,10 +157,10 @@ const DeviceControlCenter = () => {
   };
 
   const handleRegister = async (f: RegForm) => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     try {
       if (tab === "devices") {
-        await retailService.registerDevice(session.tenantId, session, {
+        await retailService.registerDevice(session.tenant_id, session, {
           name: f.name,
           type: f.subType as BranchDeviceType,
           model: f.model || undefined,
@@ -171,7 +171,7 @@ const DeviceControlCenter = () => {
           locationId: branch,
         });
       } else if (tab === "cctv") {
-        await retailService.registerCCTV(session.tenantId, session, {
+        await retailService.registerCCTV(session.tenant_id, session, {
           name: f.name,
           provider: f.subType as CCTVProvider,
           model: f.model || undefined,
@@ -180,7 +180,7 @@ const DeviceControlCenter = () => {
           locationId: branch,
         });
       } else {
-        await retailService.registerSensor(session.tenantId, session, {
+        await retailService.registerSensor(session.tenant_id, session, {
           name: f.name,
           type: f.subType as SensorType,
           model: f.model || undefined,
@@ -206,12 +206,12 @@ const DeviceControlCenter = () => {
   };
 
   const handleScan = async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     setIsScanning(true);
     setShowDiscovery(true);
     try {
       const results = await retailService.scanDevices(
-        session.tenantId,
+        session.tenant_id,
         session,
       );
       setDiscoveredDevices(results as DiscoveredDevice[]);
@@ -227,10 +227,10 @@ const DeviceControlCenter = () => {
   };
 
   const handleCommit = async (discoveryId: string) => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     try {
       await retailService.commitScannedDevice(
-        session.tenantId,
+        session.tenant_id,
         session,
         discoveryId,
       );

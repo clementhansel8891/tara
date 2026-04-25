@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import {
   ProvisioningData,
   ProvisioningResult,

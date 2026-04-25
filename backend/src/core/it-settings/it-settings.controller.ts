@@ -20,7 +20,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/it-settings")
+@Controller('it-settings')
 @UseInterceptors(TenantInterceptor)
 export class ITSettingsController {
   constructor(private readonly itSettingsService: ITSettingsService) {}
@@ -30,9 +30,10 @@ export class ITSettingsController {
     @Req() request: RequestWithTenant,
     @Query("location_id") location_id?: string,
   ) {
-    const { tenant_id } = request.tenantContext;
+    const ctx = request.tenantContext;
+    const { tenant_id } = ctx;
     const devices = await this.itSettingsService.getDevices(
-      tenant_id,
+      ctx,
       location_id,
     );
     return {
@@ -48,9 +49,10 @@ export class ITSettingsController {
     @Req() request: RequestWithTenant,
     @Body() registerDeviceDto: RegisterDeviceDto,
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
+    const ctx = request.tenantContext;
+    const { tenant_id, user_id } = ctx;
     const device = await this.itSettingsService.registerDevice(
-      tenant_id,
+      ctx,
       registerDeviceDto,
       user_id,
     );
@@ -68,9 +70,10 @@ export class ITSettingsController {
     @Param("id") device_id: string,
     @Body() body: { status: string },
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
+    const ctx = request.tenantContext;
+    const { tenant_id, user_id } = ctx;
     const device = await this.itSettingsService.updateDeviceStatus(
-      tenant_id,
+      ctx,
       device_id,
       body.status,
       user_id,
@@ -88,9 +91,10 @@ export class ITSettingsController {
     @Req() request: RequestWithTenant,
     @Query("category") category?: string,
   ) {
-    const { tenant_id } = request.tenantContext;
+    const ctx = request.tenantContext;
+    const { tenant_id } = ctx;
     const settings = await this.itSettingsService.getSettings(
-      tenant_id,
+      ctx,
       category,
     );
     return {
@@ -106,8 +110,9 @@ export class ITSettingsController {
     @Req() request: RequestWithTenant,
     @Param("key") key: string,
   ) {
-    const { tenant_id } = request.tenantContext;
-    const setting = await this.itSettingsService.getSetting(tenant_id, key);
+    const ctx = request.tenantContext;
+    const { tenant_id } = ctx;
+    const setting = await this.itSettingsService.getSetting(ctx, key);
     if (!setting) {
       return {
         success: false,
@@ -129,9 +134,10 @@ export class ITSettingsController {
     @Param("key") key: string,
     @Body() updateSettingDto: UpdateSettingDto,
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
+    const ctx = request.tenantContext;
+    const { tenant_id, user_id } = ctx;
     const setting = await this.itSettingsService.updateSetting(
-      tenant_id,
+      ctx,
       key,
       updateSettingDto,
       user_id,

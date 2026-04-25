@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentAdapter, PaymentIntentResult } from "./payment.adapter.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 @Injectable()
 export class XenditAdapter implements PaymentAdapter {
   constructor(private configService: ConfigService) {}
 
-  async isAvailable(tenant_id: string): Promise<boolean> {
+  async isAvailable(ctx: TenantContext): Promise<boolean> {
     // Return true if XENDIT_SECRET_KEY is configured
     return !!this.configService.get("XENDIT_SECRET_KEY");
   }
@@ -19,7 +20,8 @@ export class XenditAdapter implements PaymentAdapter {
     transfer_data?: { destination: string };
     application_fee_amount?: number;
   }): Promise<PaymentIntentResult> {
-    if (!(await this.isAvailable(data.tenant_id))) {
+    const isAvail = await this.isAvailable({ tenant_id: data.tenant_id } as any);
+    if (!isAvail) {
       throw new Error("Xendit is not configured");
     }
 
@@ -31,10 +33,6 @@ export class XenditAdapter implements PaymentAdapter {
   }
 
   async handleWebhook(payload: any, signature: string, secret?: string) {
-    if (!(await this.isAvailable(""))) {
-      throw new Error("Xendit is not configured");
-    }
-
     // Stub logic
     const external_ref = payload.external_id;
     const status = payload.status === "PAID" ? "PAID" : "FAILED";

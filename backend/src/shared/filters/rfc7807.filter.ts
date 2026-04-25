@@ -22,11 +22,24 @@ export class Rfc7807ExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const logDir = path.join(process.cwd(), "logs");
+    if (!fs.existsSync(logDir)) {
+      try {
+        fs.mkdirSync(logDir, { recursive: true });
+      } catch (e) {
+        console.error("Failed to create logs directory", e);
+      }
+    }
+
     if (status === 400) {
-      fs.appendFileSync(
-        path.join(process.cwd(), "logs", "debug_400.log"),
-        `[${new Date().toISOString()}] 400 Error at ${request.url}\nException: ${JSON.stringify(exception, null, 2)}\nResponse: ${JSON.stringify(exception instanceof HttpException ? exception.getResponse() : {}, null, 2)}\n\n`
-      );
+      try {
+        fs.appendFileSync(
+          path.join(logDir, "debug_400.log"),
+          `[${new Date().toISOString()}] 400 Error at ${request.url}\nException: ${JSON.stringify(exception, null, 2)}\nResponse: ${JSON.stringify(exception instanceof HttpException ? exception.getResponse() : {}, null, 2)}\n\n`
+        );
+      } catch (e) {
+        console.error("Failed to write to debug_400.log", e);
+      }
     }
 
     if (status >= 500) {
@@ -43,7 +56,11 @@ User: ${userId}
 Message: ${exception.message || exception}
 Stack: ${exception.stack || 'No Stack Trace'}
 --------------------------------------------------------------------------------`;
-      fs.appendFileSync(path.join(process.cwd(), "logs", "system_errors.log"), errorLog);
+      try {
+        fs.appendFileSync(path.join(logDir, "system_errors.log"), errorLog);
+      } catch (e) {
+        console.error("Failed to write to system_errors.log", e);
+      }
       console.error(`[SYSTEM_CRITICAL_FAILURE] [RID:${requestId}] ${request.method} ${request.url}`, exception);
     }
 

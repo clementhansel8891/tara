@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { IInventoryRepository } from "./repositories/inventory.repository.interface";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 
 @Injectable()
 export class SkuGeneratorService {
@@ -9,14 +10,14 @@ export class SkuGeneratorService {
    * Generates a unique, sequential SKU based on the highest existing value in a category.
    * Pattern: [6-Digit Sequence][Category Suffix] (e.g., 530202BRTA)
    */
-  async generateSku(tenant_id: string, category: string): Promise<string> {
+  async generateSku(ctx: TenantContext, category: string): Promise<string> {
     console.log(
-      `[SkuGenerator] Generating SKU for tenant: ${tenant_id}, category: ${category}`,
+      `[SkuGenerator] Generating SKU for tenant: ${ctx.tenant_id}, category: ${category}`,
     );
 
     // 1. Fetch highest SKU in category
     const highestSku = await this.repository.findHighestSkuByCategory(
-      tenant_id,
+      ctx,
       category,
     );
 
@@ -51,7 +52,8 @@ export class SkuGeneratorService {
    * Generates a Barcode by prepending the Company Prefix (899) to the SKU.
    * Pattern: 899[SKU]
    */
-  generateBarcode(tenant_id: string, sku: string): string {
+  generateBarcode(ctx: TenantContext, sku: string): string {
     return `899${sku}`;
   }
 }
+

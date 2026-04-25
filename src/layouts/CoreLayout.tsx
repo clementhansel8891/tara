@@ -165,7 +165,7 @@ export function CoreLayout() {
                     >
                       <Icon size={18} />
                       <span className="flex-1">{label}</span>
-                      {badgeKey && unreadCounts[badgeKey] > 0 && (
+                      {badgeKey && unreadCounts && unreadCounts[badgeKey] > 0 && (
                         <span className="h-5 min-w-[20px] px-1 bg-primary text-[10px] font-black text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/20 animate-in zoom-in">
                           {unreadCounts[badgeKey] > 9 ? '9+' : unreadCounts[badgeKey]}
                         </span>

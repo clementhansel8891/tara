@@ -53,7 +53,7 @@ const PricingPromoDesk = () => {
     executePromo,
   } = useGovernance(
     focusedPromoId || "",
-    session.tenantId || "tenant",
+    session.tenant_id || "tenant",
     session,
   );
 
@@ -62,7 +62,7 @@ const PricingPromoDesk = () => {
       try {
         setIsLoading(true);
         const data = await retailService.listPromotions(
-          session.tenantId!,
+          session.tenant_id!,
           session,
         );
         const fetchedPromos = Array.isArray(data) ? data : [];
@@ -77,7 +77,7 @@ const PricingPromoDesk = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   const stats = useMemo(() => {
     const active = promotions.filter((p) => p.status === "active").length;
@@ -311,7 +311,7 @@ const PricingPromoDesk = () => {
                   <ApprovalMatrix
                     governanceState={govState}
                     onSign={(dept, isBypass) =>
-                      addSignature(dept, session.userId || "User", isBypass)
+                      addSignature(dept, session.user_id || "User", isBypass)
                     }
                     onToggleBypass={toggleBypassMode}
                     onBypassReasonChange={setBypassReason}

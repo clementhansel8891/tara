@@ -14,7 +14,7 @@ import { RolesGuard } from "../../../shared/guards/roles.guard";
 import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
 
-@Controller("v1/hr/attendance")
+@Controller('hr/attendance')
 @UseGuards(RolesGuard, TenantGuard)
 export class HrAttendanceController {
   constructor(private readonly attendanceService: HrAttendanceService) {}

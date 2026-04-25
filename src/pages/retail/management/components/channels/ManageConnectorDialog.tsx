@@ -198,7 +198,7 @@ export const ManageConnectorDialog = ({
                   <div className="space-y-4">
                     <CredentialField
                       label="Tenant ID"
-                      value={session.tenantId}
+                      value={session.tenant_id}
                       copyable
                     />
                     <CredentialField

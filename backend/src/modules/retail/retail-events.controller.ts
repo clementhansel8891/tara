@@ -3,7 +3,7 @@ import { Request } from "express";
 import { EcommerceConnectorGuard } from "./guards/ecommerce-connector.guard";
 import { RetailEventsService, RetailEvent } from "./retail-events.service";
 
-@Controller("v1/retail/events")
+@Controller('retail/events')
 @UseGuards(EcommerceConnectorGuard)
 export class RetailEventsController {
   constructor(private readonly eventsService: RetailEventsService) {}

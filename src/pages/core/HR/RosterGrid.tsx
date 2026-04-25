@@ -92,9 +92,9 @@ export default function RosterGrid() {
     const loadFilters = async () => {
       try {
         const [depts, locs, progs] = await Promise.all([
-          staffService.listDepartments(session.tenantId, session),
+          staffService.listDepartments(session.tenant_id, session),
           apiRequest<any[]>("/hr/locations", "GET", session),
-          trainingService.listPrograms(session.tenantId, session),
+          trainingService.listPrograms(session.tenant_id, session),
         ]);
         setDepartments(depts);
         setLocations(locs || []);
@@ -104,7 +104,7 @@ export default function RosterGrid() {
       }
     };
     loadFilters();
-  }, [session.tenantId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session.tenant_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load staff list
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function RosterGrid() {
       setIsLoading(true);
       try {
         const result = await staffService.listStaff(
-          session.tenantId,
+          session.tenant_id,
           session,
           { search, departmentId: department, status: status as "all", roleTitle },
           { page, pageSize: 10 },
@@ -128,7 +128,7 @@ export default function RosterGrid() {
       }
     };
     loadStaff();
-  }, [session.tenantId, search, department, status, roleTitle, page, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [session.tenant_id, search, department, status, roleTitle, page, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedEmployee = useMemo(
     () => staff.items.find((emp) => emp.id === editEmployeeId) ?? null,
@@ -170,7 +170,7 @@ export default function RosterGrid() {
     }
     setIsSaving(true);
     try {
-      await staffService.createEmployee(session.tenantId, session, {
+      await staffService.createEmployee(session.tenant_id, session, {
         employeeCode: `EMP-${Date.now()}`,
         firstName: form.firstName,
         lastName: form.lastName,
@@ -213,7 +213,7 @@ export default function RosterGrid() {
     };
     console.log("[DEBUG] Sending Update Payload:", payload);
     try {
-      await staffService.updateEmployee(session.tenantId, session, selectedEmployee.id, payload);
+      await staffService.updateEmployee(session.tenant_id, session, selectedEmployee.id, payload);
       setEditOpen(false);
       refresh();
       flash("Employee profile updated.");
@@ -228,16 +228,16 @@ export default function RosterGrid() {
     setIsSaving(true);
     try {
       if (actionType === "training" && actionEmployeeId && actionProgramId) {
-        await trainingService.assignTraining(session.tenantId, session, {
+        await trainingService.assignTraining(session.tenant_id, session, {
           employeeId: actionEmployeeId,
           programId: actionProgramId,
         });
         flash("Training program assigned successfully.");
       } else if (actionType === "review" && actionEmployeeId) {
-        await staffService.requestPerformanceReview(session.tenantId, session, actionEmployeeId);
+        await staffService.requestPerformanceReview(session.tenant_id, session, actionEmployeeId);
         flash("Performance review flow started.");
       } else if (actionType === "payroll" && actionEmployeeId) {
-        await staffService.openPayrollCase(session.tenantId, session, actionEmployeeId);
+        await staffService.openPayrollCase(session.tenant_id, session, actionEmployeeId);
         flash("Payroll case opened.");
       } else {
         flash("Please select required fields.", true);
@@ -337,7 +337,7 @@ export default function RosterGrid() {
           <Button
             variant="outline"
             onClick={() => {
-              staffService.exportStaff(session.tenantId, session);
+              staffService.exportStaff(session.tenant_id, session);
               flash("Staff directory exported to CSV.");
             }}
           >
@@ -496,7 +496,7 @@ export default function RosterGrid() {
                               className="text-rose-600"
                               onClick={async () => {
                                 try {
-                                  await staffService.requestTermination(session.tenantId, session, employee.id, "RosterGrid request");
+                                  await staffService.requestTermination(session.tenant_id, session, employee.id, "RosterGrid request");
                                   flash(`Termination initiated for ${employee.fullName}.`);
                                   refresh();
                                 } catch (err: any) {
@@ -529,7 +529,7 @@ export default function RosterGrid() {
                   variant="outline"
                   onClick={async () => {
                     try {
-                      await staffService.requestPerformanceReview(session.tenantId, session, employee.id);
+                      await staffService.requestPerformanceReview(session.tenant_id, session, employee.id);
                       flash(`Performance review requested for ${employee.fullName}.`);
                       refresh();
                     } catch (err: any) {
@@ -851,7 +851,7 @@ export default function RosterGrid() {
                     <div className="flex justify-end pt-4 mt-4 border-t">
                       <Button
                         onClick={() => {
-                          staffService.importStaff(session.tenantId, session, importSource);
+                          staffService.importStaff(session.tenant_id, session, importSource);
                           flash("Staff data import triggered.");
                           setActionOpen(false);
                         }}

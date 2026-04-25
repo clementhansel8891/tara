@@ -1,31 +1,64 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../persistence/prisma.service';
-import { ISensorRepository, SensorData } from './interfaces/sensor.repository.interface';
+import { FarmingRepository as IFarmingRepository, SensorData } from './farming.repository';
 import { AuditService } from '../../../shared/audit/audit.service';
 import { v4 as uuidv4 } from 'uuid';
-import { Prisma } from '@prisma/client';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
+import { MultiTenancyUtil } from '../../../shared/utils/multi-tenancy.util';
 
 @Injectable()
-export class FarmingDbRepository implements ISensorRepository {
+export class FarmingDbRepository extends IFarmingRepository {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
-  ) {}
+  ) {
+    super();
+  }
 
-  async logSensorReadings(tenant_id: string, readings: Partial<SensorData>[]): Promise<string[]> {
+  async getSensorLogs(ctx: TenantContext, sensor_id: string): Promise<SensorData[]> {
+    const raw = await (this.prisma as any).farmingSensorLog.findMany({
+      where: { 
+          ...MultiTenancyUtil.getScope(ctx),
+          sensor_id,
+      },
+      orderBy: { timestamp: 'desc' },
+      take: 100,
+    });
+    return raw.map((r: any) => this.mapSensor(r));
+  }
+
+  async logSensorDataToAuditChain(ctx: TenantContext, data: SensorData): Promise<string> {
+    const event = await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: 'IOT_GATEWAY',
+      module: 'FARMING_IOT',
+      action: 'SENSOR_ANCHOR',
+      entity_type: "SENSOR_READING",
+      entity_id: data.id,
+      severity: Number(data.value) > 40 ? 'WARN' : 'INFO',
+      metadata: {
+        rawReading: data.value,
+        unit: data.unit,
+        sensor_id: data.sensor_id,
+        readingCapturedAt: data.timestamp
+      },
+    });
+    return event.id;
+  }
+
+  async logSensorReadings(ctx: TenantContext, readings: Partial<SensorData>[]): Promise<string[]> {
     const ids: string[] = [];
 
-    // Transactional Batch Save
     await this.prisma.$transaction(async (tx) => {
       for (const reading of readings) {
         const id = uuidv4();
         ids.push(id);
         
-        // Using typed model instead of (tx as any)
         await (tx as any).farmingSensorLog.create({
           data: {
             id,
-            tenant_id,
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
             sensor_id: reading.sensor_id!,
             sensorType: reading.sensorType || 'GENERIC',
             value: reading.value || 0,
@@ -38,45 +71,6 @@ export class FarmingDbRepository implements ISensorRepository {
     });
 
     return ids;
-  }
-
-  async getSensorLogs(tenant_id: string, sensor_id: string, timeframe?: { start: Date; end: Date }): Promise<SensorData[]> {
-    const raw = await (this.prisma as any).farmingSensorLog.findMany({
-      where: { 
-          tenant_id, 
-          sensor_id,
-          ...(timeframe ? { timestamp: { gte: timeframe.start, lte: timeframe.end } } : {})
-      },
-      orderBy: { timestamp: 'desc' },
-      take: 100,
-    });
-    return raw.map((r: any) => this.mapSensor(r));
-  }
-
-  async anchorReadingToAuditChain(tenant_id: string, readingId: string, forensicInfo?: { ip?: string; device_model?: string }): Promise<void> {
-    const reading = await (this.prisma as any).farmingSensorLog.findUnique({
-      where: { id: readingId }
-    });
-
-    if (!reading || reading.tenant_id !== tenant_id) return;
-
-    await this.auditService.log({
-      tenant_id,
-      user_id: 'IOT_GATEWAY',
-      module: 'FARMING_IOT',
-      action: 'SENSOR_ANCHOR',
-      entity_type: "SENSOR_READING",
-      entity_id: readingId,
-      ip_address: forensicInfo?.ip,
-      device_model: forensicInfo?.device_model,
-      severity: Number(reading.value) > 40 ? 'WARN' : 'INFO',
-      metadata: {
-        rawReading: reading.value,
-        unit: reading.unit,
-        integrityHash: readingId, 
-        readingCapturedAt: reading.timestamp
-      },
-    });
   }
 
   private mapSensor(r: any): SensorData {

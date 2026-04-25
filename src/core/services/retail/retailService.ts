@@ -442,7 +442,7 @@ export const retailService = {
         amount,
         method,
         shiftId,
-        department_id: session.departmentId,
+        department_id: session.department_id,
       },
     );
   },

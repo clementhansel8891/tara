@@ -20,7 +20,7 @@ export const orgSettingsService = {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/settings/profile`, {
       headers: {
         'Authorization': `Bearer ${session.token}`,
-        'x-tenant-id': session.tenantId,
+        'x-tenant-id': session.tenant_id,
       }
     });
     const json = await res.json();
@@ -33,7 +33,7 @@ export const orgSettingsService = {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.token}`,
-        'x-tenant-id': session.tenantId,
+        'x-tenant-id': session.tenant_id,
       },
       body: JSON.stringify(data),
     });
@@ -44,7 +44,7 @@ export const orgSettingsService = {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/settings/preferences`, {
       headers: {
         'Authorization': `Bearer ${session.token}`,
-        'x-tenant-id': session.tenantId,
+        'x-tenant-id': session.tenant_id,
       }
     });
     const json = await res.json();
@@ -57,10 +57,36 @@ export const orgSettingsService = {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${session.token}`,
-        'x-tenant-id': session.tenantId,
+        'x-tenant-id': session.tenant_id,
       },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('Failed to update preferences');
+  },
+
+  async getChildCompanies(session: Session): Promise<OrgProfile[]> {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/settings/child-companies`, {
+      headers: {
+        'Authorization': `Bearer ${session.token}`,
+        'x-tenant-id': session.tenant_id,
+      }
+    });
+    const json = await res.json();
+    return json.data || [];
+  },
+
+  async createChildCompany(session: Session, data: any): Promise<OrgProfile> {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/v1/settings/child-companies`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.token}`,
+        'x-tenant-id': session.tenant_id,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Failed to create child company');
+    return json.data;
   }
 };

@@ -3,10 +3,11 @@ import { IAuthRepository } from "./auth.repository.interface";
 import { User, UserCompany } from "../entities/user.entity";
 import { v4 as uuidv4 } from "uuid";
 import { UserRole } from "../../../shared/roles";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 @Injectable()
 export class AuthMockRepository implements IAuthRepository {
-  private users: User[] = [
+  private static users: User[] = [
     {
       id: "usr-superadmin-001",
       email: "superadmin@zenvix.com",
@@ -17,13 +18,13 @@ export class AuthMockRepository implements IAuthRepository {
       status: "active",
       created_at: new Date(),
       updated_at: new Date(),
-      userCompanies: [
+      user_companies: [
         {
           id: uuidv4(),
           user_id: "usr-superadmin-001",
           tenant_id: "global",
           role: UserRole.SUPERADMIN,
-          isDefault: true,
+          is_default: true,
         },
       ],
     },
@@ -37,13 +38,33 @@ export class AuthMockRepository implements IAuthRepository {
       status: "active",
       created_at: new Date(),
       updated_at: new Date(),
-      userCompanies: [
+      user_companies: [
         {
           id: uuidv4(),
           user_id: "7f15f139-8652-4796-a2b9-9fbf25515681",
           tenant_id: "global",
           role: UserRole.SUPERADMIN,
-          isDefault: true,
+          is_default: true,
+        },
+      ],
+    },
+    {
+      id: "usr-hansel-99",
+      email: "hansel@zenvix.id",
+      password_hash:
+        "$2a$10$78DtOlsmTgp7/Ek1tqBVP.cX0a8/zYSnqB4AZllJr/pNjlChuQUdi",
+      first_name: "Hansel",
+      last_name: "Zenvix",
+      status: "active",
+      created_at: new Date(),
+      updated_at: new Date(),
+      user_companies: [
+        {
+          id: uuidv4(),
+          user_id: "usr-hansel-99",
+          tenant_id: "hansel-demo-tenant",
+          role: UserRole.OWNER,
+          is_default: true,
         },
       ],
     },
@@ -57,13 +78,13 @@ export class AuthMockRepository implements IAuthRepository {
       status: "active",
       created_at: new Date(),
       updated_at: new Date(),
-      userCompanies: [
+      user_companies: [
         {
           id: uuidv4(),
           user_id: "usr-demo-001",
           tenant_id: "tenant-a",
           role: UserRole.OWNER,
-          isDefault: true,
+          is_default: true,
         },
       ],
     },
@@ -77,29 +98,29 @@ export class AuthMockRepository implements IAuthRepository {
       status: "active",
       created_at: new Date(),
       updated_at: new Date(),
-      userCompanies: [
+      user_companies: [
         {
           id: uuidv4(),
           user_id: "user-owner-a",
           tenant_id: "tenant-a",
           role: UserRole.OWNER,
-          isDefault: true,
+          is_default: true,
         },
       ],
     },
   ];
 
-  async findByEmail(_tenant_id: string, email: string): Promise<User | null> {
-    return this.users.find((u) => u.email === email) || null;
+  async findByEmail(_ctx: TenantContext, email: string): Promise<User | null> {
+    return AuthMockRepository.users.find((u) => u.email === email) || null;
   }
 
-  async findById(_tenant_id: string, id: string): Promise<User | null> {
-    const user = this.users.find((u) => u.id === id);
+  async findById(_ctx: TenantContext, id: string): Promise<User | null> {
+    const user = AuthMockRepository.users.find((u) => u.id === id);
     if (!user) return null;
     return user;
   }
 
-  async create(_tenant_id: string, data: any): Promise<User> {
+  async create(_ctx: TenantContext, data: any): Promise<User> {
     const user: User = {
       id: uuidv4(),
       email: data.email,
@@ -110,25 +131,25 @@ export class AuthMockRepository implements IAuthRepository {
       status: "active",
       created_at: new Date(),
       updated_at: new Date(),
-      userCompanies: [],
+      user_companies: [],
     };
-    this.users.push(user);
+    AuthMockRepository.users.push(user);
     return user;
   }
 
   async update(
-    _tenant_id: string,
+    _ctx: TenantContext,
     id: string,
     data: Partial<User>,
   ): Promise<User> {
-    const index = this.users.findIndex((u) => u.id === id);
+    const index = AuthMockRepository.users.findIndex((u) => u.id === id);
     if (index === -1) throw new Error("User not found");
 
-    this.users[index] = {
-      ...this.users[index],
+    AuthMockRepository.users[index] = {
+      ...AuthMockRepository.users[index],
       ...data,
       updated_at: new Date(),
     };
-    return this.users[index];
+    return AuthMockRepository.users[index];
   }
 }

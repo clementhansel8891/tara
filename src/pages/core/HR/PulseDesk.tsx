@@ -36,8 +36,8 @@ export default function PulseDesk() {
     const loadItems = async () => {
       try {
         const [items, overview] = await Promise.all([
-          hrWorkstreamService.getPulseItems(session.tenantId, session),
-          hrService.getHrOverview(session.tenantId, session).catch(() => null),
+          hrWorkstreamService.getPulseItems(session.tenant_id, session),
+          hrService.getHrOverview(session.tenant_id, session).catch(() => null),
         ]);
         let filtered = items;
         if (statusFilter !== "all") {
@@ -57,13 +57,13 @@ export default function PulseDesk() {
       }
     };
     loadItems();
-  }, [session.tenantId, session, search, statusFilter, version]);
+  }, [session.tenant_id, session, search, statusFilter, version]);
 
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
 
   useEffect(() => {
     const loadInbox = async () => {
-      const items = await workflowService.listInbox(session.tenantId, session, session.departmentId);
+      const items = await workflowService.listInbox(session.tenant_id, session, session.department_id);
       setPendingApprovals(items);
     };
     loadInbox();
@@ -85,10 +85,10 @@ export default function PulseDesk() {
           <ZenTooltip content="Submit a new request for multi-level approval via FlowGate.">
             <Button
               onClick={async () => {
-                await workflowService.createRequest(session.tenantId, session, {
+                await workflowService.createRequest(session.tenant_id, session, {
                   entityType: "GENERAL",
-                  entityId: session.userId,
-                  makerDept: session.departmentId,
+                  entityId: session.user_id,
+                  makerDept: session.department_id,
                   destinationDept: "HR",
                   notes: "Manual request from PulseDesk",
                 });

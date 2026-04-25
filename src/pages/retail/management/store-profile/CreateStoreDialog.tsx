@@ -61,10 +61,10 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
   const selectedCountry = getCountry(selectedCountryCode);
 
   const loadFormData = React.useCallback(async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     setIsLoadingData(true);
     try {
-      const tenantId = session.tenantId;
+      const tenantId = session.tenant_id;
       const [locs, plsz, mgrs] = await Promise.all([
         hrService.listLocations(tenantId, session),
         retailService.listInventoryPools(tenantId, session),
@@ -81,14 +81,14 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
   }, [session]);
 
   useEffect(() => {
-    if (open && session.tenantId) {
+    if (open && session.tenant_id) {
       loadFormData();
     }
-  }, [open, session.tenantId, loadFormData]);
+  }, [open, session.tenant_id, loadFormData]);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
@@ -133,7 +133,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
       };
 
       const created = await retailService.createStore(
-        session.tenantId,
+        session.tenant_id,
         session,
         payload as Partial<RetailStore>,
       );

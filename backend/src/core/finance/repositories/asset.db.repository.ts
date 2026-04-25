@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../persistence/prisma.service';
@@ -7,7 +7,7 @@ import { Asset } from '../domain/asset.interfaces';
 
 @Injectable()
 export class AssetDbRepository implements IAssetRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   private get db(): Prisma.TransactionClient {
     return this.prisma as Prisma.TransactionClient;

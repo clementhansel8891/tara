@@ -64,9 +64,9 @@ export default function SupplierDesk() {
     setLoading(true);
     try {
       const [m, b, cats] = await Promise.all([
-        procurementService.listSupplierMasters(session.tenantId, session),
-        procurementService.listSupplierBranches(session.tenantId, session),
-        procurementService.listCategories(session.tenantId, session),
+        procurementService.listSupplierMasters(session.tenant_id, session),
+        procurementService.listSupplierBranches(session.tenant_id, session),
+        procurementService.listCategories(session.tenant_id, session),
       ]);
       setMasters(m);
       setBranches(b);
@@ -86,7 +86,7 @@ export default function SupplierDesk() {
     const fetchRecs = async () => {
       setRecLoading(true);
       try {
-        const recs = await procurementService.getSupplierRecommendations(session.tenantId, session, {
+        const recs = await procurementService.getSupplierRecommendations(session.tenant_id, session, {
           branchCode: recBranchCode,
           category: recCategory,
         });
@@ -98,7 +98,7 @@ export default function SupplierDesk() {
       }
     };
     fetchRecs();
-  }, [recBranchCode, recCategory, session.tenantId, session]);
+  }, [recBranchCode, recCategory, session.tenant_id, session]);
 
   const filteredMasters = useMemo(
     () =>
@@ -113,7 +113,7 @@ export default function SupplierDesk() {
   const createMaster = async () => {
     if (!name.trim()) return;
     try {
-      await procurementService.createSupplierMaster(session.tenantId, session, {
+      await procurementService.createSupplierMaster(session.tenant_id, session, {
         name,
         taxId,
         categories: categories.split(",").map((item) => item.trim()).filter(Boolean),
@@ -148,7 +148,7 @@ export default function SupplierDesk() {
   const createBranch = async () => {
     if (!supplierId) return;
     try {
-      await procurementService.createSupplierBranch(session.tenantId, session, {
+      await procurementService.createSupplierBranch(session.tenant_id, session, {
         supplierId,
         branchCode,
         branchName: branchName || `${branchCode} Branch`,
@@ -180,7 +180,7 @@ export default function SupplierDesk() {
   const handleCreateCategory = async () => {
     if (!newCatName) return;
     try {
-      await procurementService.upsertCategory(session.tenantId, session, {
+      await procurementService.upsertCategory(session.tenant_id, session, {
         name: newCatName,
         description: newCatDesc,
       });
@@ -194,7 +194,7 @@ export default function SupplierDesk() {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      await procurementService.deleteCategory(session.tenantId, session, id);
+      await procurementService.deleteCategory(session.tenant_id, session, id);
       refresh();
     } catch (err) {
       setErrorMessage("Failed to deactivate category.");

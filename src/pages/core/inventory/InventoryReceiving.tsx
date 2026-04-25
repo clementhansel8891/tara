@@ -52,7 +52,7 @@ export default function InventoryReceiving() {
 
   const refresh = useCallback(async () => {
     try {
-      const q = await inventoryService.listProcurementReceiptQueue(session.tenantId, session);
+      const q = await inventoryService.listProcurementReceiptQueue(session.tenant_id, session);
       setQueue(Array.isArray(q) ? q : []);
     } catch (err) {
       console.error("Failed to fetch procurement receipt queue:", err);
@@ -60,7 +60,7 @@ export default function InventoryReceiving() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -98,7 +98,7 @@ export default function InventoryReceiving() {
     }
     setIsProcessing(true);
     try {
-      await inventoryService.processProcurementReceipt(session.tenantId, session, {
+      await inventoryService.processProcurementReceipt(session.tenant_id, session, {
         finalPoId: selectedPO.id,
         locationId: receiveLocationId.trim(),
         items: validItems,

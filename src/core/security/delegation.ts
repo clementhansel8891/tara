@@ -21,8 +21,8 @@ export function getDelegatedRoles(session: SessionContext): Role[] {
   return read()
     .filter(
       (record) =>
-        record.tenantId === session.tenantId &&
-        record.userId === session.userId &&
+        record.tenantId === session.tenant_id &&
+        record.userId === session.user_id &&
         (!record.expiresAt || record.expiresAt >= now),
     )
     .flatMap((record) => record.roles);

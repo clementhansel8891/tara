@@ -50,7 +50,7 @@ export default function InventoryWorkspaceLayout() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="rounded bg-muted px-2 py-0.5">{session.tenantId}</span>
+            <span className="rounded bg-muted px-2 py-0.5">{session.tenant_id}</span>
             <span className="rounded bg-muted px-2 py-0.5">{session.role}</span>
           </div>
         </div>

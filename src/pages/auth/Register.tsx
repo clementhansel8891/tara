@@ -4,8 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
     phone: "",
@@ -89,10 +89,10 @@ export default function Register() {
                 </label>
                 <input
                   type="text"
-                  name="firstName"
+                  name="first_name"
                   required
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  value={formData.firstName}
+                  value={formData.first_name}
                   onChange={handleChange}
                 />
               </div>
@@ -102,10 +102,10 @@ export default function Register() {
                 </label>
                 <input
                   type="text"
-                  name="lastName"
+                  name="last_name"
                   required
                   className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  value={formData.lastName}
+                  value={formData.last_name}
                   onChange={handleChange}
                 />
               </div>

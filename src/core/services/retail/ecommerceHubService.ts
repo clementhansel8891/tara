@@ -194,4 +194,47 @@ export const ecommerceHubService = {
       session,
     );
   },
+  
+  // Products & Categories
+  async listChannelProducts(session: SessionContext, channelId: string) {
+    return apiRequest<any[]>(
+      `/retail/ecommerce-hub/channels/${channelId}/products`,
+      "GET",
+      session,
+    );
+  },
+
+  async updateChannelProducts(
+    session: SessionContext,
+    channelId: string,
+    updates: any[],
+  ) {
+    return apiRequest<{ success: boolean }>(
+      `/retail/ecommerce-hub/channels/${channelId}/products`,
+      "PUT",
+      session,
+      { updates },
+    );
+  },
+
+  async getChannelCategories(session: SessionContext, channelId: string) {
+    return apiRequest<string[]>(
+      `/retail/ecommerce-hub/channels/${channelId}/categories`,
+      "GET",
+      session,
+    );
+  },
+
+  async updateChannelCategories(
+    session: SessionContext,
+    channelId: string,
+    categories: string[],
+  ) {
+    return apiRequest<{ success: boolean }>(
+      `/retail/ecommerce-hub/channels/${channelId}/categories`,
+      "PUT",
+      session,
+      { categories },
+    );
+  },
 };

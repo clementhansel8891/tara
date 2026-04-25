@@ -44,8 +44,8 @@ export default function LeadCaptureDesk() {
   const refresh = useCallback(async () => {
     try {
       const [l, c] = await Promise.all([
-        marketingService.listLeads(session.tenantId, session),
-        marketingService.listCampaigns(session.tenantId, session),
+        marketingService.listLeads(session.tenant_id, session),
+        marketingService.listCampaigns(session.tenant_id, session),
       ]);
       setLeads(l);
       setCampaigns(c);
@@ -57,7 +57,7 @@ export default function LeadCaptureDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, campaignId]);
+  }, [session.tenant_id, campaignId]);
 
   useEffect(() => {
     refresh();
@@ -152,7 +152,7 @@ export default function LeadCaptureDesk() {
           <Button
             onClick={async () => {
               if (!companyName || !contactName) return;
-              await marketingService.captureLead(session.tenantId, session, {
+              await marketingService.captureLead(session.tenant_id, session, {
                 source,
                 companyName,
                 contactName,
@@ -212,7 +212,7 @@ export default function LeadCaptureDesk() {
                         disabled={!["QUALIFIED", "SCORED"].includes(item.status)}
                         onClick={async () => {
                           await marketingService.markLeadHandoffReady(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                           );
@@ -226,7 +226,7 @@ export default function LeadCaptureDesk() {
                         disabled={!["QUALIFIED", "HANDOFF_READY"].includes(item.status)}
                         onClick={async () => {
                           await marketingService.handoffLeadToSales(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                           );

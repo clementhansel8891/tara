@@ -15,8 +15,8 @@ export default function PaymentAuditVault() {
     const fetchData = async () => {
       try {
         const [eventsData, evidenceData] = await Promise.all([
-          paymentService.listAuditEvents(session.tenantId, session),
-          paymentService.listEvidencePacks(session.tenantId, session),
+          paymentService.listAuditEvents(session.tenant_id, session),
+          paymentService.listEvidencePacks(session.tenant_id, session),
         ]);
         setEvents(eventsData);
         setEvidence(evidenceData);

@@ -30,24 +30,28 @@ import {
   item_masters as ItemMaster,
   Prisma,
 } from "@prisma/client";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 
 @Injectable()
 export class InventoryDbRepository implements IInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard(tenant_id: string): Promise<InventoryDashboard> {
+  async getDashboard(ctx: TenantContext): Promise<InventoryDashboard> {
+    const scope = MultiTenancyUtil.getScope(ctx);
+    
     const totalItems = await this.prisma.item_masters.count({
-      where: { tenant_id: tenant_id },
+      where: scope,
     });
     const totalLocations = await this.prisma.locations.count({
-      where: { tenant_id: tenant_id },
+      where: scope,
     });
     const totalDepartments = await this.prisma.departments.count({
-      where: { tenant_id: tenant_id },
+      where: scope,
     });
 
     const stockLevels = await this.prisma.stock_levels.findMany({
-      where: { tenant_id: tenant_id },
+      where: scope,
     });
     const totalOnHandQty = stockLevels.reduce(
       (sum: number, level: StockLevel) => sum + Number(level.on_hand),
@@ -57,7 +61,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     // Valuation logic would need product cost, using base_price for now
     const products = await this.prisma.item_masters.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...scope,
         id: { in: stockLevels.map((s: StockLevel) => s.product_id) },
       },
     });
@@ -71,20 +75,20 @@ export class InventoryDbRepository implements IInventoryRepository {
     );
 
     const pendingAdjustments = await this.prisma.inventory_adjustments.count({
-      where: { tenant_id: tenant_id, status: "PENDING_APPROVAL" },
+      where: { ...scope, status: "PENDING_APPROVAL" },
     });
 
     // Placeholder checks for now
     const lowStockCount = await this.prisma.inventory_alerts.count({
-      where: { tenant_id: tenant_id, type: "LOW_STOCK", status: "OPEN" },
+      where: { ...scope, type: "LOW_STOCK", status: "OPEN" },
     });
     const expiryWarningCount = await this.prisma.inventory_alerts.count({
-      where: { tenant_id: tenant_id, type: "EXPIRY_WARNING", status: "OPEN" },
+      where: { ...scope, type: "EXPIRY_WARNING", status: "OPEN" },
     });
 
     const pendingReceiptSyncs = await this.prisma.procurement_final_pos.count({
       where: {
-        tenant_id: tenant_id,
+        ...scope,
         status: { in: ["RELEASED", "APPROVED", "DELIVERED"] },
       },
     });
@@ -102,9 +106,10 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getItems(tenant_id: string): Promise<InventoryItem[]> {
+  async getItems(ctx: TenantContext): Promise<InventoryItem[]> {
+    const scope = MultiTenancyUtil.getScope(ctx);
     const products = await this.prisma.item_masters.findMany({
-      where: { tenant_id: tenant_id, status: { not: "deleted" } },
+      where: { ...scope, status: { not: "deleted" } },
       include: { product_categories: true },
       orderBy: { created_at: "desc" },
     });
@@ -127,30 +132,29 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   async createItem(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateItemDto,
   ): Promise<InventoryItem> {
+    const scope = MultiTenancyUtil.getScope(ctx);
     // Find or create category
     let category = await this.prisma.product_categories.findFirst({
-      where: { tenant_id: tenant_id, name: data.category },
+      where: { ...scope, name: data.category },
     });
 
     if (!category) {
       category = await this.prisma.product_categories.create({
-        data: {
+        data: MultiTenancyUtil.wrapCreate(ctx, {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
           name: data.category 
-        },
+        }),
       });
     }
 
     const product = await this.prisma.item_masters.create({
-      data: {
+      data: MultiTenancyUtil.wrapCreate(ctx, {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
         category_id: category.id,
         name: data.name,
         sku: data.sku,
@@ -162,7 +166,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         module_tags: data.moduleTags ?? [],
         status: data.status || "active",
         department_id: data.departmentId || null,
-      },
+      }),
       include: { product_categories: true },
     });
 
@@ -183,12 +187,11 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getBalances(
-    tenant_id: string,
+  async getBalances(ctx: TenantContext,
     location_id?: string,
     departmentId?: string,
   ): Promise<StockBalance[]> {
-    const where: any = { tenant_id: tenant_id };
+    const where: any = { ...MultiTenancyUtil.getScope(ctx) };
     if (location_id) where.location_id = location_id;
     if (departmentId) where.department_id = departmentId;
 
@@ -218,11 +221,12 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   async getMovements(
-    tenant_id: string,
+    ctx: TenantContext,
     item_id?: string,
   ): Promise<StockMovement[]> {
-    const where: any = { tenant_id: tenant_id };
-    if (item_id) where.product_id = item_id;
+    const where = MultiTenancyUtil.getScope(ctx, {
+      ...(item_id && { product_id: item_id }),
+    });
 
     const movements = await this.prisma.stock_movements.findMany({
       where,
@@ -246,8 +250,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     }));
   }
 
-  async intakeStock(
-    tenant_id: string,
+  async intakeStock(ctx: TenantContext,
     data: StockIntakeDto,
     providedTx?: any
   ): Promise<StockMovement> {
@@ -264,7 +267,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         create: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: data.location_id,
           department_id: data.departmentId || "DEFAULT",
           product_id: data.item_id,
@@ -283,13 +286,12 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.location_id, 
           to_location_id: data.location_id,
           to_department_id: data.departmentId || null,
           quantity: data.quantity,
-          unit_cost: data.unitCost,
           type: "INTAKE",
           reference_id: data.referenceId || `INTAKE-${Date.now()}`,
           reference_type: data.referenceType || 'MANUAL',
@@ -316,7 +318,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
   }
 
-  async consumeStock(tenant_id: string, data: any, providedTx?: any): Promise<any> {
+  async consumeStock(ctx: TenantContext, data: any, providedTx?: any): Promise<any> {
     const execute = async (tx: any) => {
       // 1. Atomic Update with inline balance check
       const affectedRows = await tx.$executeRaw`
@@ -324,7 +326,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         SET on_hand = on_hand - ${data.quantity}, 
             available = available - ${data.quantity},
             updated_at = NOW()
-        WHERE tenant_id = ${tenant_id}
+        WHERE tenant_id = ${ctx.tenant_id}
           AND product_id = ${data.item_id}
           AND location_id = ${data.location_id}
           AND on_hand >= ${data.quantity}
@@ -339,7 +341,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.location_id, 
           from_location_id: data.location_id,
@@ -357,13 +359,12 @@ export class InventoryDbRepository implements IInventoryRepository {
     return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
   }
 
-  async transferStock(
-    tenant_id: string,
+  async transferStock(ctx: TenantContext,
     data: TransferStockDto,
   ): Promise<StockMovement[]> {
     // For legacy immediate transfer, we use a single transaction but lock both rows
     return this.prisma.$transaction(async (tx): Promise<StockMovement[]> => {
-      const source = await this.getLock(tx, tenant_id, data.item_id, data.fromLocationId);
+      const source = await this.getLock(tx, ctx.tenant_id, data.item_id, data.fromLocationId);
       if (!source || source.available < data.quantity) throw new Error(`Insufficient source stock for transfer`);
 
       // 1. Decrement source
@@ -385,7 +386,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           },
         },
         create: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: data.toLocationId,
           department_id: data.toDepartmentId || null,
           product_id: data.item_id,
@@ -402,7 +403,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       const outMove = await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.fromLocationId, // Mandatory location_id
           from_location_id: data.fromLocationId,
@@ -420,7 +421,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       const inMove = await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.toLocationId, // Mandatory location_id
           from_location_id: data.fromLocationId,
@@ -439,9 +440,9 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async getAdjustments(tenant_id: string): Promise<InventoryAdjustment[]> {
+  async getAdjustments(ctx: TenantContext): Promise<InventoryAdjustment[]> {
     const adjs = await this.prisma.inventory_adjustments.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
 
@@ -462,8 +463,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     }));
   }
 
-  async createAdjustment(
-    tenant_id: string,
+  async createAdjustment(ctx: TenantContext,
     data: CreateAdjustmentDto,
     providedTx?: any
   ): Promise<InventoryAdjustment> {
@@ -472,7 +472,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         item_id: data.item_id,
         location_id: data.location_id,
         department_id: data.departmentId || null,
@@ -498,14 +498,13 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async approveAdjustment(
-    tenant_id: string,
+  async approveAdjustment(ctx: TenantContext,
     adjustmentId: string,
     approvedBy: string,
   ): Promise<InventoryAdjustment> {
     return this.prisma.$transaction(async (tx) => {
       const adj = await tx.inventory_adjustments.update({
-        where: { id: adjustmentId, tenant_id: tenant_id },
+        where: { id: adjustmentId, tenant_id: ctx.tenant_id },
         data: {
           status: "APPROVED",
           approved_by: approvedBy,
@@ -522,7 +521,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           },
         },
         create: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: adj.location_id,
           department_id: adj.department_id || null,
           product_id: adj.item_id,
@@ -539,7 +538,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: adj.item_id,
           location_id: adj.location_id,
           to_location_id: adj.location_id,
@@ -570,9 +569,9 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async getAlerts(tenant_id: string): Promise<InventoryAlert[]> {
+  async getAlerts(ctx: TenantContext): Promise<InventoryAlert[]> {
     const alerts = await this.prisma.inventory_alerts.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
 
@@ -589,13 +588,12 @@ export class InventoryDbRepository implements IInventoryRepository {
     }));
   }
 
-  async setAlertStatus(
-    tenant_id: string,
+  async setAlertStatus(ctx: TenantContext,
     alertId: string,
     status: InventoryAlert["status"],
   ): Promise<InventoryAlert> {
     const alert = await this.prisma.inventory_alerts.update({
-      where: { id: alertId, tenant_id: tenant_id },
+      where: { id: alertId, tenant_id: ctx.tenant_id },
       data: { status },
     });
     return {
@@ -611,87 +609,85 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getAuditCycles(tenant_id: string): Promise<any[]> {
+  async getAuditCycles(ctx: TenantContext): Promise<any[]> {
     return this.prisma.inventory_audit_cycles.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
   }
 
-  async createAuditCycle(tenant_id: string, data: any): Promise<any> {
+  async createAuditCycle(ctx: TenantContext, data: any): Promise<any> {
     return this.prisma.inventory_audit_cycles.create({
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...data,
       },
     });
   }
 
-  async updateAuditCycle(
-    tenant_id: string,
+  async updateAuditCycle(ctx: TenantContext,
     id: string,
     data: any,
   ): Promise<any> {
     return this.prisma.inventory_audit_cycles.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, tenant_id: ctx.tenant_id },
       data,
     });
   }
 
-  async getIntegrationEvents(tenant_id: string): Promise<any[]> {
+  async getIntegrationEvents(ctx: TenantContext): Promise<any[]> {
     return this.prisma.inventory_integration_events.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
   }
 
-  async createIntegrationEvent(tenant_id: string, data: any): Promise<any> {
+  async createIntegrationEvent(ctx: TenantContext, data: any): Promise<any> {
     return this.prisma.inventory_integration_events.create({
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...data,
       },
     });
   }
 
-  async deleteItem(tenant_id: string, item_id: string): Promise<void> {
+  async deleteItem(ctx: TenantContext, item_id: string): Promise<void> {
     await this.prisma.item_masters.update({
-      where: { id: item_id, tenant_id: tenant_id },
+      where: { id: item_id, tenant_id: ctx.tenant_id },
       data: { status: "deleted" },
     });
   }
 
-  async batchDeleteItems(tenant_id: string, itemIds: string[]): Promise<void> {
+  async batchDeleteItems(ctx: TenantContext, itemIds: string[]): Promise<void> {
     await this.prisma.item_masters.updateMany({
-      where: { id: { in: itemIds }, tenant_id: tenant_id },
+      where: { id: { in: itemIds }, tenant_id: ctx.tenant_id },
       data: { status: "deleted" },
     });
   }
 
-  async itemExistsBySku(tenant_id: string, sku: string): Promise<boolean> {
+  async itemExistsBySku(ctx: TenantContext, sku: string): Promise<boolean> {
     const count = await this.prisma.item_masters.count({
-      where: { tenant_id: tenant_id, sku: sku },
+      where: { ...MultiTenancyUtil.getScope(ctx), sku: sku },
     });
     return count > 0;
   }
 
-  async batchIntakeStock(
-    tenant_id: string,
+  async batchIntakeStock(ctx: TenantContext,
     data: StockIntakeDto[],
   ): Promise<StockMovement[]> {
     return this.prisma.$transaction(async (tx) => {
       const movements: StockMovement[] = [];
       for (const intake of data) {
-        const move = await this.intakeStock(tenant_id, intake);
+        const move = await this.intakeStock(ctx, intake, tx);
         movements.push(move);
       }
       return movements;
     });
   }
 
-  async requestProcurement(tenant_id: string, data: any): Promise<any> {
+  async requestProcurement(ctx: TenantContext, data: any): Promise<any> {
     // Creates a procurement requisition triggered by inventory low-stock
     // Uses a system user/employee; data should include: departmentId, reason, items[]
     const departmentId = data.departmentId || null;
@@ -715,7 +711,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         department_id: departmentId,
         requester_id: requesterId,
         branch_code: data.branchCode || "HQ",
@@ -730,8 +726,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async batchCreateItems(
-    tenant_id: string,
+  async batchCreateItems(ctx: TenantContext,
     data: CreateItemDto[],
   ): Promise<InventoryItem[]> {
     return this.prisma.$transaction(async (tx) => {
@@ -739,7 +734,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       for (const itemData of data) {
         // Find or create category
         let category = await tx.product_categories.findFirst({
-          where: { tenant_id: tenant_id, name: itemData.category },
+          where: { ...MultiTenancyUtil.getScope(ctx), name: itemData.category },
         });
 
         if (!category) {
@@ -747,7 +742,7 @@ export class InventoryDbRepository implements IInventoryRepository {
             data: {
               id: uuidv4(),
               updated_at: new Date(),
-              tenant_id: tenant_id,
+              ...MultiTenancyUtil.getScope(ctx),
               name: itemData.category 
             },
           });
@@ -757,7 +752,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           data: {
             id: uuidv4(),
             updated_at: new Date(),
-            tenant_id: tenant_id,
+            ...MultiTenancyUtil.getScope(ctx),
             category_id: category.id,
             name: itemData.name,
             sku: itemData.sku,
@@ -793,23 +788,22 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async getNextSequence(tenant_id: string, category: string): Promise<number> {
+  async getNextSequence(ctx: TenantContext, category: string): Promise<number> {
         const count = await this.prisma.item_masters.count({
           where: {
-            tenant_id: tenant_id,
+            ...MultiTenancyUtil.getScope(ctx),
             product_categories: { name: category },
           },
         });
     return count + 1;
   }
 
-  async updateItemStatus(
-    tenant_id: string,
+  async updateItemStatus(ctx: TenantContext,
     item_id: string,
     status: string,
   ): Promise<InventoryItem> {
     const product = await this.prisma.item_masters.update({
-      where: { id: item_id, tenant_id: tenant_id },
+      where: { id: item_id, tenant_id: ctx.tenant_id },
       data: { status },
       include: { product_categories: true },
     });
@@ -830,9 +824,9 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getPendingItems(tenant_id: string): Promise<InventoryItem[]> {
+  async getPendingItems(ctx: TenantContext): Promise<InventoryItem[]> {
     const products = await this.prisma.item_masters.findMany({
-      where: { tenant_id: tenant_id, status: "pending" },
+      where: { ...MultiTenancyUtil.getScope(ctx), status: "pending" },
       include: { product_categories: true },
     });
 
@@ -852,15 +846,14 @@ export class InventoryDbRepository implements IInventoryRepository {
     }));
   }
 
-  async createMovementRequest(
-    tenant_id: string,
+  async createMovementRequest(ctx: TenantContext,
     data: CreateMovementRequestDto,
   ): Promise<MovementRequest> {
     const request = await this.prisma.inventory_movement_requests.create({
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         product_id: data.product_id,
         from_location_id: data.fromLocationId,
         to_location_id: data.toLocationId,
@@ -885,13 +878,12 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async findHighestSkuByCategory(
-    tenant_id: string,
+  async findHighestSkuByCategory(ctx: TenantContext,
     category: string,
   ): Promise<string | null> {
     const product = await this.prisma.item_masters.findFirst({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         product_categories: { name: category },
       },
       orderBy: { sku: "desc" },
@@ -905,8 +897,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   // --- Financial-Grade Hardening ---
 
 
-  async reserveStock(
-    tenant_id: string,
+  async reserveStock(ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -923,7 +914,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           available = available - ${quantity},
           updated_at = NOW()
         WHERE 
-          tenant_id = ${tenant_id} AND 
+          tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
           location_id = ${location_id} AND 
           available >= ${quantity}
@@ -940,7 +931,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: location_id,
           quantity,
@@ -956,7 +947,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: location_id,
           to_location_id: location_id,
@@ -972,8 +963,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
 
-  async releaseStock(
-    tenant_id: string,
+  async releaseStock(ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -990,7 +980,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           available = available + ${quantity},
           updated_at = NOW()
         WHERE 
-          tenant_id = ${tenant_id} AND 
+          tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
           location_id = ${location_id} AND 
           reserved >= ${quantity}
@@ -1003,7 +993,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       // 2. Update reservation status
       await t.stock_reservations.updateMany({
         where: {
-          tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id,
           location_id,
           reference_id: referenceId,
@@ -1017,7 +1007,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: location_id,
           to_location_id: location_id,
@@ -1032,8 +1022,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
 
-  async consumeFromReservation(
-    tenant_id: string,
+  async consumeFromReservation(ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -1050,7 +1039,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           reserved = reserved - ${quantity},
           updated_at = NOW()
         WHERE 
-          tenant_id = ${tenant_id} AND 
+          tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
           location_id = ${location_id} AND 
           reserved >= ${quantity} AND 
@@ -1066,7 +1055,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       // 2. Update Reservation Record
       await t.stock_reservations.updateMany({
         where: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           reference_id: referenceId,
           product_id: product_id,
           status: "PENDING",
@@ -1079,7 +1068,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: location_id,
           from_location_id: location_id,
@@ -1095,8 +1084,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
 
-  async transferOut(
-    tenant_id: string,
+  async transferOut(ctx: TenantContext,
     product_id: string,
     fromLocationId: string,
     toLocationId: string,
@@ -1115,7 +1103,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           available = available - ${quantity},
           updated_at = NOW()
         WHERE 
-          tenant_id = ${tenant_id} AND 
+          tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
           location_id = ${fromLocationId} AND 
           on_hand >= ${quantity}
@@ -1137,7 +1125,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         create: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: toLocationId,
           product_id: product_id,
           department_id: "DEFAULT",
@@ -1154,7 +1142,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: fromLocationId,
           from_location_id: fromLocationId,
@@ -1171,8 +1159,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
 
-  async transferIn(
-    tenant_id: string,
+  async transferIn(ctx: TenantContext,
     product_id: string,
     fromLocationId: string,
     toLocationId: string,
@@ -1192,7 +1179,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           available = available + ${quantity},
           updated_at = NOW()
         WHERE 
-          tenant_id = ${tenant_id} AND 
+          tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
           location_id = ${toLocationId} AND 
           in_transit >= ${quantity}
@@ -1208,7 +1195,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: product_id,
           location_id: toLocationId,
           from_location_id: fromLocationId,
@@ -1225,15 +1212,15 @@ export class InventoryDbRepository implements IInventoryRepository {
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
 
-  async takeSnapshot(tenant_id: string, location_id: string): Promise<void> {
+  async takeSnapshot(ctx: TenantContext, location_id: string): Promise<void> {
     const levels = await this.prisma.stock_levels.findMany({
-        where: { tenant_id: tenant_id, location_id: location_id }
+        where: { ...MultiTenancyUtil.getScope(ctx), location_id: location_id }
     });
 
     await this.prisma.stock_snapshots.createMany({
         data: (levels as any[]).map(l => ({
             id: uuidv4(),
-            tenant_id: tenant_id,
+            ...MultiTenancyUtil.getScope(ctx),
             location_id: l.location_id,
             product_id: l.product_id,
             onHand: l.on_hand,
@@ -1246,8 +1233,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   // --- Stock State Upgrades (Helpers) ---
-  async updateStockReserved(
-    tenant_id: string,
+  async updateStockReserved(ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -1255,11 +1241,10 @@ export class InventoryDbRepository implements IInventoryRepository {
     providedTx?: any
   ): Promise<void> {
     // Legacy helper - redirect to new formal methods if possible or keep logic
-    return this.reserveStock(tenant_id, product_id, location_id, quantity, `UP-RES-${Date.now()}`, 'ADJUSTMENT', providedTx);
+    return this.reserveStock(ctx, product_id, location_id, quantity, `UP-RES-${Date.now()}`, 'ADJUSTMENT', providedTx);
   }
 
-  async updateStockInTransit(
-    tenant_id: string,
+  async updateStockInTransit(ctx: TenantContext,
     product_id: string,
     fromLocationId: string,
     toLocationId: string,
@@ -1270,18 +1255,18 @@ export class InventoryDbRepository implements IInventoryRepository {
     // Helper used by service
     const execute = async (tx: any) => {
         if (type === 'increment') {
-            await this.transferOut(tenant_id, product_id, fromLocationId, toLocationId, quantity, `TR-OUT-${Date.now()}`, 'TRANSFER', tx);
+            await this.transferOut(ctx, product_id, fromLocationId, toLocationId, quantity, `TR-OUT-${Date.now()}`, 'TRANSFER', undefined, tx);
         } else {
-            await this.transferIn(tenant_id, product_id, fromLocationId, toLocationId, quantity, `TR-IN-${Date.now()}`, 'TRANSFER', tx);
+            await this.transferIn(ctx, product_id, fromLocationId, toLocationId, quantity, `TR-IN-${Date.now()}`, 'TRANSFER', undefined, tx);
         }
     };
     return providedTx ? execute(providedTx) : this.prisma.$transaction(execute);
   }
 
-  async findProductByCode(tenant_id: string, code: string): Promise<any | null> {
+  async findProductByCode(ctx: TenantContext, code: string): Promise<any | null> {
     return this.prisma.item_masters.findFirst({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         OR: [{ barcode: code }, { sku: code }],
       },
       include: { product_categories: true },
@@ -1292,10 +1277,10 @@ export class InventoryDbRepository implements IInventoryRepository {
    * Specialized lookup optimized for scanners.
    * Enforces Per-Tenant Uniqueness as per Phase 4 requirement.
    */
-  async lookupByBarcode(tenant_id: string, barcode: string): Promise<any | null> {
+  async lookupByBarcode(ctx: TenantContext, barcode: string): Promise<any | null> {
     return this.prisma.item_masters.findFirst({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         barcode: barcode,
         status: 'active',
       },
@@ -1306,8 +1291,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   /**
    * Atomic, low-latency stock adjustment for Edge scanners.
    */
-  async quickAdjust(
-    tenant_id: string,
+  async quickAdjust(ctx: TenantContext,
     item_id: string,
     location_id: string,
     delta: number,
@@ -1315,7 +1299,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   ): Promise<any> {
     return this.prisma.$transaction(async (tx) => {
       // 1. Row Level Lock
-      const level = await this.getLock(tx, tenant_id, item_id, location_id);
+      const level = await this.getLock(tx, ctx.tenant_id, item_id, location_id);
       
       if (!level) {
         // Auto-create level for inflow if missing
@@ -1325,7 +1309,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           data: {
             id: uuidv4(),
             updated_at: new Date(),
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             product_id: item_id,
             location_id,
             on_hand: delta,
@@ -1348,7 +1332,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: {
           id: uuidv4(),
           updated_at: new Date(),
-          tenant_id,
+          tenant_id: ctx.tenant_id,
           product_id: item_id,
           location_id,
           type: delta > 0 ? "SCAN_IN" : "SCAN_OUT",
@@ -1364,14 +1348,13 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   // --- Agentic Layer ---
-  async createAgenticEvent(
-    tenant_id: string,
+  async createAgenticEvent(ctx: TenantContext,
     data: CreateAgenticEventDto,
   ): Promise<AgenticEvent> {
     const event = await this.prisma.agentic_events.create({
       data: {
         id: uuidv4(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         event_type: data.event_type,
         entity_id: data.entity_id,
         entity_type: data.entity_type,
@@ -1395,9 +1378,9 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getTransfers(tenant_id: string): Promise<any[]> {
+  async getTransfers(ctx: TenantContext): Promise<any[]> {
     return this.prisma.inventory_transfers.findMany({
-      where: { tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       include: {
         item_masters: true,
         from_location: true,
@@ -1407,9 +1390,9 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async getTransferById(tenant_id: string, id: string): Promise<any | null> {
+  async getTransferById(ctx: TenantContext, id: string): Promise<any | null> {
     return this.prisma.inventory_transfers.findFirst({
-      where: { id, tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       include: {
         item_masters: true,
         from_location: true,
@@ -1418,22 +1401,22 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async createStockTransfer(tenant_id: string, data: any, tx?: any): Promise<any> {
+  async createStockTransfer(ctx: TenantContext, data: any, tx?: any): Promise<any> {
     const db = tx || this.prisma;
     return db.inventory_transfers.create({
       data: {
         ...data,
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         id: uuidv4(),
         updated_at: new Date(),
       },
     });
   }
 
-  async updateStockTransfer(tenant_id: string, id: string, data: any, tx?: any): Promise<any> {
+  async updateStockTransfer(ctx: TenantContext, id: string, data: any, tx?: any): Promise<any> {
     const db = tx || this.prisma;
     return db.inventory_transfers.update({
-      where: { id, tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         ...data,
         updated_at: new Date(),

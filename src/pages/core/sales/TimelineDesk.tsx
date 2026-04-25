@@ -45,8 +45,8 @@ export default function TimelineDesk() {
     try {
       setLoading(true);
       const [o, t] = await Promise.all([
-        salesService.listOpportunities(session.tenantId, session),
-        salesService.listTimelineEvents(session.tenantId, session),
+        salesService.listOpportunities(session.tenant_id, session),
+        salesService.listTimelineEvents(session.tenant_id, session),
       ]);
       setOpportunities(o);
       setTimeline(t);
@@ -59,7 +59,7 @@ export default function TimelineDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session, opportunityId]);
+  }, [session.tenant_id, session, opportunityId]);
 
   useEffect(() => {
     refresh();
@@ -120,7 +120,7 @@ export default function TimelineDesk() {
             onClick={async () => {
               if (!opportunityId || !summary) return;
               try {
-                await salesService.addTimelineEvent(session.tenantId, session, {
+                await salesService.addTimelineEvent(session.tenant_id, session, {
                   opportunityId,
                   channel,
                   direction: "OUTBOUND",

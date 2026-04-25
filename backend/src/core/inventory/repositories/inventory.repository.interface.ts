@@ -11,6 +11,7 @@ import { StockBalance } from "../entities/stock-balance.entity";
 import { StockMovement } from "../entities/stock-movement.entity";
 import { MovementRequest } from "../entities/movement-request.entity";
 import { AgenticEvent } from "../entities/agentic-event.entity";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 export {
   CreateAdjustmentDto,
@@ -41,97 +42,95 @@ export type InventoryDashboard = {
 };
 
 export abstract class IInventoryRepository {
-  abstract getDashboard(tenant_id: string): Promise<InventoryDashboard>;
-  abstract getItems(tenant_id: string): Promise<InventoryItem[]>;
+  abstract getDashboard(ctx: TenantContext): Promise<InventoryDashboard>;
+  abstract getItems(ctx: TenantContext): Promise<InventoryItem[]>;
   abstract createItem(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateItemDto,
   ): Promise<InventoryItem>;
   abstract getBalances(
-    tenant_id: string,
+    ctx: TenantContext,
     location_id?: string,
     departmentId?: string,
   ): Promise<StockBalance[]>;
   abstract getMovements(
-    tenant_id: string,
+    ctx: TenantContext,
     item_id?: string,
   ): Promise<StockMovement[]>;
 
   abstract intakeStock(
-    tenant_id: string,
+    ctx: TenantContext,
     data: StockIntakeDto,
     tx?: any
   ): Promise<StockMovement>;
 
   abstract transferStock(
-    tenant_id: string,
+    ctx: TenantContext,
     data: TransferStockDto,
   ): Promise<StockMovement[]>;
-  abstract getAdjustments(tenant_id: string): Promise<InventoryAdjustment[]>;
+  abstract getAdjustments(ctx: TenantContext): Promise<InventoryAdjustment[]>;
   abstract createAdjustment(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateAdjustmentDto,
     tx?: any
   ): Promise<InventoryAdjustment>;
   abstract approveAdjustment(
-    tenant_id: string,
+    ctx: TenantContext,
     adjustmentId: string,
     approvedBy: string,
   ): Promise<InventoryAdjustment>;
-  abstract getAlerts(tenant_id: string): Promise<InventoryAlert[]>;
+  abstract getAlerts(ctx: TenantContext): Promise<InventoryAlert[]>;
   abstract setAlertStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     alertId: string,
     status: InventoryAlert["status"],
   ): Promise<InventoryAlert>;
-  abstract getAuditCycles(tenant_id: string): Promise<any[]>;
-  abstract createAuditCycle(tenant_id: string, data: any): Promise<any>;
+  abstract getAuditCycles(ctx: TenantContext): Promise<any[]>;
+  abstract createAuditCycle(ctx: TenantContext, data: any): Promise<any>;
   abstract updateAuditCycle(
-    tenant_id: string,
+    ctx: TenantContext,
     id: string,
     data: any,
   ): Promise<any>;
-  abstract getIntegrationEvents(tenant_id: string): Promise<any[]>;
-  abstract createIntegrationEvent(tenant_id: string, data: any): Promise<any>;
-  abstract consumeStock(tenant_id: string, data: any, tx?: any): Promise<any>;
-  abstract deleteItem(tenant_id: string, item_id: string): Promise<void>;
+  abstract getIntegrationEvents(ctx: TenantContext): Promise<any[]>;
+  abstract createIntegrationEvent(ctx: TenantContext, data: any): Promise<any>;
+  abstract consumeStock(ctx: TenantContext, data: any, tx?: any): Promise<any>;
+  abstract deleteItem(ctx: TenantContext, item_id: string): Promise<void>;
   abstract batchDeleteItems(
-    tenant_id: string,
+    ctx: TenantContext,
     itemIds: string[],
   ): Promise<void>;
   abstract batchIntakeStock(
-    tenant_id: string,
+    ctx: TenantContext,
     data: StockIntakeDto[],
   ): Promise<StockMovement[]>;
   abstract batchCreateItems(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateItemDto[],
   ): Promise<InventoryItem[]>;
-  abstract itemExistsBySku(tenant_id: string, sku: string): Promise<boolean>;
-  abstract requestProcurement(tenant_id: string, data: any): Promise<any>;
+  abstract itemExistsBySku(ctx: TenantContext, sku: string): Promise<boolean>;
+  abstract requestProcurement(ctx: TenantContext, data: any): Promise<any>;
   abstract createMovementRequest(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateMovementRequestDto,
   ): Promise<MovementRequest>;
   abstract getNextSequence(
-    tenant_id: string,
+    ctx: TenantContext,
     category: string,
   ): Promise<number>;
   abstract updateItemStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     item_id: string,
     status: string,
   ): Promise<InventoryItem>;
-  abstract getPendingItems(tenant_id: string): Promise<InventoryItem[]>;
+  abstract getPendingItems(ctx: TenantContext): Promise<InventoryItem[]>;
   abstract findHighestSkuByCategory(
-    tenant_id: string,
+    ctx: TenantContext,
     category: string,
   ): Promise<string | null>;
 
-
-
   abstract reserveStock(
-    tenant_id: string,
+    ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -141,7 +140,7 @@ export abstract class IInventoryRepository {
   ): Promise<void>;
 
   abstract releaseStock(
-    tenant_id: string,
+    ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -151,7 +150,7 @@ export abstract class IInventoryRepository {
   ): Promise<void>;
 
   abstract consumeFromReservation(
-    tenant_id: string,
+    ctx: TenantContext,
     product_id: string,
     location_id: string,
     quantity: number,
@@ -161,7 +160,7 @@ export abstract class IInventoryRepository {
   ): Promise<void>;
 
   abstract transferOut(
-    tenant_id: string,
+    ctx: TenantContext,
     product_id: string,
     fromLocationId: string,
     toLocationId: string,
@@ -173,7 +172,7 @@ export abstract class IInventoryRepository {
   ): Promise<StockMovement>;
 
   abstract transferIn(
-    tenant_id: string,
+    ctx: TenantContext,
     product_id: string,
     fromLocationId: string,
     toLocationId: string,
@@ -185,22 +184,22 @@ export abstract class IInventoryRepository {
   ): Promise<StockMovement>;
 
   abstract takeSnapshot(
-    tenant_id: string,
+    ctx: TenantContext,
     location_id: string
   ): Promise<void>;
 
   abstract findProductByCode(
-    tenant_id: string,
+    ctx: TenantContext,
     code: string
   ): Promise<any | null>;
 
   abstract lookupByBarcode(
-    tenant_id: string, 
+    ctx: TenantContext, 
     barcode: string
   ): Promise<any | null>;
 
   abstract quickAdjust(
-    tenant_id: string,
+    ctx: TenantContext,
     item_id: string,
     location_id: string,
     delta: number,
@@ -208,14 +207,14 @@ export abstract class IInventoryRepository {
   ): Promise<any>;
 
   // --- Stock Transfer Lifecycle ---
-  abstract getTransfers(tenant_id: string): Promise<any[]>;
-  abstract getTransferById(tenant_id: string, id: string): Promise<any | null>;
-  abstract createStockTransfer(tenant_id: string, data: any, tx?: any): Promise<any>;
-  abstract updateStockTransfer(tenant_id: string, id: string, data: any, tx?: any): Promise<any>;
+  abstract getTransfers(ctx: TenantContext): Promise<any[]>;
+  abstract getTransferById(ctx: TenantContext, id: string): Promise<any | null>;
+  abstract createStockTransfer(ctx: TenantContext, data: any, tx?: any): Promise<any>;
+  abstract updateStockTransfer(ctx: TenantContext, id: string, data: any, tx?: any): Promise<any>;
 
   // --- Agentic Layer ---
   abstract createAgenticEvent(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateAgenticEventDto,
   ): Promise<AgenticEvent>;
 }

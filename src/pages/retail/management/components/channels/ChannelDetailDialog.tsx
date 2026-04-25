@@ -243,7 +243,7 @@ export const ChannelDetailDialog = ({
                     <div className="space-y-4">
                       <CredentialField
                         label="Tenant Scope"
-                        value={selectedChannel.tenantId ?? session.tenantId}
+                        value={selectedChannel.tenantId ?? session.tenant_id}
                         copyable
                       />
                       <CredentialField

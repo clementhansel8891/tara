@@ -37,17 +37,17 @@ const RefundReturnDesk = () => {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      if (!session.tenantId || !session.userId) return; // Guard clause
+      if (!session.tenant_id || !session.user_id) return; // Guard clause
 
       try {
         // FIX: Ensure parameters match service definition
         const shifts = await retailService.listShifts(
-          session.tenantId!,
+          session.tenant_id!,
           session,
-          session.locationId,
+          session.location_id,
         );
         const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.userId,
+          (s) => s.status === "open" && s.employeeId === session.user_id,
         );
         setActiveShift(openShift || null);
       } catch (e) {
@@ -60,16 +60,16 @@ const RefundReturnDesk = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.userId, session]);
+  }, [session.tenant_id, session.user_id, session]);
 
   const handleLookup = async () => {
     if (!ticketId) return;
     setIsSearching(true);
     try {
       const orders = await retailService.listOrders(
-        session.tenantId!,
+        session.tenant_id!,
         session,
-        session.locationId,
+        session.location_id,
       );
       const order = orders.find(
         (o) => o.id === ticketId || o.id.includes(ticketId),
@@ -115,7 +115,7 @@ const RefundReturnDesk = () => {
     setIsRefunding(true);
     try {
       await retailService.processReturn(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         foundOrder.id,
         selectedItems,

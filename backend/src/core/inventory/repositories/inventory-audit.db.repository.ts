@@ -4,6 +4,8 @@ import { PrismaService } from '../../../persistence/prisma.service';
 import { IInventoryAuditRepository } from './interfaces/inventory-audit.repository.interface';
 import { CreateAdjustmentDto } from '../dto/create-adjustment.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
+import { MultiTenancyUtil } from '../../../shared/utils/multi-tenancy.util';
 
 @Injectable()
 export class InventoryAuditDbRepository implements IInventoryAuditRepository {
@@ -19,11 +21,11 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
     return this.prisma as Prisma.TransactionClient;
   }
 
-  async createAuditCycle(tenant_id: string, data: any): Promise<AuditCycle> {
+  async createAuditCycle(ctx: TenantContext, data: any): Promise<AuditCycle> {
     return this.db.inventory_audit_cycles.create({
       data: {
         id: uuidv4(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         location_code: data.location_id, // Mapping location_id to locationCode for compatibility
         scope: data.title || 'FULL',
         status: 'OPEN',
@@ -32,28 +34,28 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
     });
   }
 
-  async getAuditCycles(tenant_id: string): Promise<AuditCycle[]> {
+  async getAuditCycles(ctx: TenantContext): Promise<AuditCycle[]> {
     return this.db.inventory_audit_cycles.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { status: 'asc' } // No start_time/created_at? I'll use status
     });
   }
 
-  async finalizeAudit(tenant_id: string, cycleId: string, performedBy: string): Promise<AuditCycle> {
+  async finalizeAudit(ctx: TenantContext, cycleId: string, performedBy: string): Promise<AuditCycle> {
     return this.db.inventory_audit_cycles.update({
-      where: { id: cycleId },
+      where: { id: cycleId, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         status: 'COMPLETED',
       }
     });
   }
 
-  async createAdjustment(tenant_id: string, data: CreateAdjustmentDto, providedTx?: any): Promise<InventoryAdjustment> {
+  async createAdjustment(ctx: TenantContext, data: CreateAdjustmentDto, providedTx?: any): Promise<InventoryAdjustment> {
     const db = providedTx || this.db;
     return db.inventory_adjustments.create({
       data: {
         id: uuidv4(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         item_id: data.item_id,
         location_id: data.location_id,
         department_id: data.departmentId || null,
@@ -66,14 +68,14 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
     });
   }
 
-  async approveAdjustment(tenant_id: string, id: string, approvedBy: string): Promise<InventoryAdjustment> {
+  async approveAdjustment(ctx: TenantContext, id: string, approvedBy: string): Promise<InventoryAdjustment> {
     const prismaService = this.prisma instanceof PrismaService ? this.prisma : null;
     if (!prismaService) throw new Error("Transaction required for approveAdjustment");
 
     return prismaService.$transaction(async (tx) => {
       // 1. Update adjustment record
       const adj = await tx.inventory_adjustments.update({
-        where: { id, tenant_id: tenant_id },
+        where: { id, ...MultiTenancyUtil.getScope(ctx) },
         data: {
           status: "APPROVED",
           approved_by: approvedBy,
@@ -93,7 +95,7 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
         },
         create: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: adj.location_id,
           department_id: adj.department_id || null,
           product_id: adj.item_id,
@@ -112,7 +114,7 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
       await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: adj.item_id,
           location_id: adj.location_id,
           to_location_id: adj.location_id,
@@ -128,9 +130,9 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
     });
   }
 
-  async getAdjustments(tenant_id: string, filters?: any): Promise<InventoryAdjustment[]> {
+  async getAdjustments(ctx: TenantContext, filters?: any): Promise<InventoryAdjustment[]> {
     return this.db.inventory_adjustments.findMany({
-      where: { ...filters, tenant_id },
+      where: { ...filters, ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: 'desc' },
       take: filters?.take || 100
     });

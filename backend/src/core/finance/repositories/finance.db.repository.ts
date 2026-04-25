@@ -3,6 +3,8 @@ import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { IFinanceRepository } from "./finance.repository.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { LedgerEntry } from "../entities/ledger-entry.entity";
 import { Transaction } from "../entities/transaction.entity";
 import { Balance } from "../entities/balance.entity";
@@ -34,6 +36,7 @@ import {
 } from "../finance.types";
 import { CreateJournalDto } from "../dto/create-journal.dto";
 
+
 @Injectable()
 export class FinanceDbRepository extends IFinanceRepository {
   constructor(private readonly prisma: PrismaService) {
@@ -41,12 +44,12 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async getLedger(
-    tenant_id: string,
+    ctx: TenantContext,
     location_id?: string,
   ): Promise<LedgerEntry[]> {
     const journalEntries = await this.prisma.finance_journal_entries.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
       },
       include: {
         finance_journal_lines: true,
@@ -87,7 +90,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createTransaction(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateTransactionDto,
     tx?: Prisma.TransactionClient,
   ): Promise<Transaction> {
@@ -122,7 +125,7 @@ export class FinanceDbRepository extends IFinanceRepository {
 
       // 2. Create Journal Entry using validated helper
       const journalEntry = await this.validateAndCreateJournal(
-        tenant_id,
+        ctx,
         {
           ref: data.referenceId || `TXN-${Date.now()}`,
           description: data.description || "POS Sales Transaction",
@@ -149,7 +152,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   private async validateAndCreateJournal(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateJournalDto,
     tx: Prisma.TransactionClient,
   ): Promise<any> {
@@ -172,7 +175,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     return tx.finance_journal_entries.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ref: data.ref || `JR-${Date.now()}`,
         description: data.description,
         fiscal_period_id: "FISCAL_AUTO",
@@ -183,7 +186,7 @@ export class FinanceDbRepository extends IFinanceRepository {
         finance_journal_lines: {
           create: data.lines.map((line: any) => ({
             id: randomUUID(),
-            tenant_id: tenant_id,
+            ...MultiTenancyUtil.getScope(ctx),
             account_id: line.accountId || line.account_id || `ACC-${line.accountCode}`,
             account_code: line.accountCode || line.account_code,
             side: new Prisma.Decimal(line.debit || 0).gt(0) ? "DEBIT" : "CREDIT",
@@ -203,21 +206,21 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createJournal(
-    tenant_id: string,
+    ctx: TenantContext,
     data: CreateJournalDto,
     tx?: Prisma.TransactionClient,
   ): Promise<any> {
     const execute = async (contextTx: Prisma.TransactionClient) => {
-      return this.validateAndCreateJournal(tenant_id, data, contextTx);
+      return this.validateAndCreateJournal(ctx, data, contextTx);
     };
 
     if (tx) return execute(tx);
     return this.prisma.$transaction(execute);
   }
 
-  async getBalance(tenant_id: string): Promise<Balance> {
+  async getBalance(ctx: TenantContext): Promise<Balance> {
     const moneySources = await this.prisma.money_sources.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
     });
 
     let totalCash = new Prisma.Decimal(0);
@@ -228,9 +231,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     // Get journal line aggregates
     const lines = await this.prisma.finance_journal_lines.findMany({
       where: {
-        finance_journal_entries: {
-          tenant_id: tenant_id,
-        },
+        ...MultiTenancyUtil.getScope(ctx),
       },
     });
 
@@ -248,7 +249,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     }
 
     return {
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       totalBalance: totalCash,
       currency: "IDR",
       lastUpdated: new Date(),
@@ -259,22 +260,22 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Assets
-  async listAssets(tenant_id: string): Promise<Asset[]> {
+  async listAssets(ctx: TenantContext): Promise<Asset[]> {
     const assets = await this.prisma.fixed_assets.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
     });
     return assets.map(this.mapAsset);
   }
 
-  async getAssetById(tenant_id: string, assetId: string): Promise<Asset | null> {
+  async getAssetById(ctx: TenantContext, assetId: string): Promise<Asset | null> {
     const asset = await this.prisma.fixed_assets.findFirst({
-      where: { id: assetId, tenant_id: tenant_id },
+      where: { id: assetId, ...MultiTenancyUtil.getScope(ctx) },
     });
     return asset ? this.mapAsset(asset) : null;
   }
 
   async createAsset(
-    tenant_id: string,
+    ctx: TenantContext,
     asset: Partial<Asset>,
     tx?: Prisma.TransactionClient,
   ): Promise<Asset> {
@@ -282,7 +283,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     const created = await db.fixed_assets.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         description: asset.description!,
         asset_class: asset.assetClass!,
         location: (asset as any).location!,
@@ -301,7 +302,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async updateAsset(
-    tenant_id: string,
+    ctx: TenantContext,
     assetId: string,
     updates: Partial<Asset>,
     tx?: Prisma.TransactionClient,
@@ -312,32 +313,32 @@ export class FinanceDbRepository extends IFinanceRepository {
       data.acquisitionDate = new Date(updates.acquisitionDate);
 
     const updated = await db.fixed_assets.update({
-      where: { id: assetId },
+      where: { id: assetId, tenant_id: ctx.tenant_id },
       data,
     });
     return this.mapAsset(updated);
   }
 
   // Capex
-  async listCapexRequests(tenant_id: string): Promise<CapexRequest[]> {
+  async listCapexRequests(ctx: TenantContext): Promise<CapexRequest[]> {
     const requests = await this.prisma.capex_requests.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
     });
     return requests.map(this.mapCapexRequest);
   }
 
   async getCapexRequestById(
-    tenant_id: string,
+    ctx: TenantContext,
     id: string,
   ): Promise<CapexRequest | null> {
     const request = await this.prisma.capex_requests.findFirst({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
     });
     return request ? this.mapCapexRequest(request) : null;
   }
 
   async createCapexRequest(
-    tenant_id: string,
+    ctx: TenantContext,
     request: Partial<CapexRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest> {
@@ -345,7 +346,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     const created = await db.capex_requests.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         asset_description: request.assetDescription!,
         requested_amount: request.requestedAmount!,
         department: request.department!,
@@ -359,14 +360,14 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async updateCapexRequest(
-    tenant_id: string,
+    ctx: TenantContext,
     id: string,
     updates: Partial<CapexRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest | null> {
     const db = tx ?? this.prisma;
     const updated = await db.capex_requests.update({
-      where: { id },
+      where: { id, tenant_id: ctx.tenant_id },
       data: {
         status: updates.status,
         current_approval_stage: updates.currentApprovalStage,
@@ -377,9 +378,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Money Sources
-  async listMoneySources(tenant_id: string): Promise<FinanceMoneySourceRow[]> {
+  async listMoneySources(ctx: TenantContext): Promise<FinanceMoneySourceRow[]> {
     const sources = await this.prisma.money_sources.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
     });
 
     const rows = sources.map((s: any) => ({
@@ -396,7 +397,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     // Industry Module Integration: Aggregate cash from open Retail shifts
     try {
       const openShifts = await this.prisma.retail_shifts.findMany({
-        where: { tenant_id: tenant_id, status: "open" },
+        where: { ...MultiTenancyUtil.getScope(ctx), status: "open" },
         select: { opening_cash: true },
       });
 
@@ -425,9 +426,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Treasury Transfers
-  async listTransfers(tenant_id: string): Promise<TreasuryTransfer[]> {
+  async listTransfers(ctx: TenantContext): Promise<TreasuryTransfer[]> {
     const transfers = await this.prisma.treasury_transfers.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: "desc" },
     });
 
@@ -446,7 +447,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createTransfer(
-    tenant_id: string,
+    ctx: TenantContext,
     data: Partial<TreasuryTransfer>,
     tx?: Prisma.TransactionClient,
   ): Promise<TreasuryTransfer> {
@@ -454,7 +455,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     const created = await db.treasury_transfers.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         from_source_id: data.fromSourceId!,
         to_source_id: data.toSourceId!,
         amount: data.amount!,
@@ -480,7 +481,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async reconcileSettlement(
-    tenant_id: string,
+    ctx: TenantContext,
     sourceId: string,
     amount: number,
     tx?: Prisma.TransactionClient,
@@ -488,7 +489,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     const db = tx ?? this.prisma;
     // Update the MoneySource balance and pending settlement
     const source = await db.money_sources.findFirst({
-      where: { id: sourceId, tenant_id: tenant_id },
+      where: { id: sourceId, ...MultiTenancyUtil.getScope(ctx) },
     });
 
     if (!source) return;
@@ -506,7 +507,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     await db.settlement_records.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         source_id: sourceId,
         amount,
         currency: source.currency,
@@ -518,10 +519,10 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Payments
-  async listPayments(tenant_id: string): Promise<FinancePaymentRow[]> {
+  async listPayments(ctx: TenantContext): Promise<FinancePaymentRow[]> {
     // Fetch internal payment requests
     const internalPayments = await this.prisma.payment_transactions.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: "desc" },
       take: 50,
     });
@@ -530,7 +531,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     let retailPayments: any[] = [];
     try {
       retailPayments = await this.prisma.payment_transactions.findMany({
-        where: { tenant_id: tenant_id, type: { in: ["RETAIL_ORDER", "ONLINE_ORDER"] } },
+        where: { ...MultiTenancyUtil.getScope(ctx), type: { in: ["RETAIL_ORDER", "ONLINE_ORDER"] } },
         orderBy: { created_at: "desc" },
         take: 20,
       });
@@ -571,7 +572,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createPaymentRequest(
-    tenant_id: string,
+    ctx: TenantContext,
     request: Partial<PaymentRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<PaymentRequest> {
@@ -579,7 +580,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     const created = await db.payment_transactions.create({
       data: {
         id: randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         idempotency_key: `pay-req-${Date.now()}-${Math.random().toString(36).substring(7)}`,
         type: "PAYMENT_REQUEST",
         amount: request.amount!,
@@ -614,22 +615,22 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async updatePaymentStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     id: string,
     status: string,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const db = tx ?? this.prisma;
     await db.payment_transactions.updateMany({
-      where: { id, tenant_id: tenant_id },
+      where: { id, tenant_id: ctx.tenant_id },
       data: { status },
     });
   }
 
   // Receivables
-  async listReceivables(tenant_id: string): Promise<FinanceReceivableRow[]> {
+  async listReceivables(ctx: TenantContext): Promise<FinanceReceivableRow[]> {
     const items = await this.prisma.receivables.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: "desc" },
     });
 
@@ -649,7 +650,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createReceivable(
-    tenant_id: string,
+    ctx: TenantContext,
     invoice: Partial<ReceivableInvoice>,
     tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice> {
@@ -657,7 +658,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       const rec = await contextTx.receivables.create({
         data: {
           id: randomUUID(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           customer_name: invoice.customer!,
           amount: invoice.amount!,
           currency: "IDR",
@@ -684,9 +685,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Payables
-  async listPayables(tenant_id: string): Promise<FinancePayableRow[]> {
+  async listPayables(ctx: TenantContext): Promise<FinancePayableRow[]> {
     const items = await this.prisma.payables.findMany({
-      where: { tenant_id: tenant_id },
+      where: { ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: "desc" },
     });
 
@@ -703,7 +704,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async createPayable(
-    tenant_id: string,
+    ctx: TenantContext,
     bill: Partial<PayableBill>,
     tx?: Prisma.TransactionClient,
   ): Promise<PayableBill> {
@@ -711,7 +712,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       const pay = await contextTx.payables.create({
         data: {
           id: randomUUID(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           vendor_name: bill.vendor!,
           amount: bill.amount!,
           currency: "IDR",
@@ -722,7 +723,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       });
 
       await this.validateAndCreateJournal(
-        tenant_id,
+        ctx,
         {
           ref: `PAY-${pay.id.substring(0, 8)}`,
           description: `Bill received from ${bill.vendor}`,
@@ -762,12 +763,12 @@ export class FinanceDbRepository extends IFinanceRepository {
 
   // Payroll
   async listPayrollEntries(
-    tenant_id: string,
+    ctx: TenantContext,
     period?: string,
   ): Promise<PayrollEntry[]> {
     const lines = await this.prisma.payroll_lines.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         hr_payroll_runs: period ? { period_end: { gte: new Date(period) } } : undefined,
       },
       include: {
@@ -794,11 +795,11 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async estimatePayroll(
-    tenant_id: string,
+    ctx: TenantContext,
     period: string,
   ): Promise<PayrollEstimate[]> {
     const employees = await this.prisma.employees.findMany({
-      where: { tenant_id: tenant_id, status: "active" },
+      where: { ...MultiTenancyUtil.getScope(ctx), status: "active" },
       include: { 
         departments: true,
         compensations: true
@@ -862,14 +863,14 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async executePayrollRun(
-    tenant_id: string,
+    ctx: TenantContext,
     period: string, // e.g. "2026-02"
     user_id: string, // for auditing
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
     const db = tx ?? this.prisma;
     const employees = await db.employees.findMany({
-      where: { tenant_id: tenant_id, status: "active" },
+      where: { ...MultiTenancyUtil.getScope(ctx), status: "active" },
       include: { compensations: true }
     });
 
@@ -914,7 +915,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       totalNet = totalNet.plus(net);
 
       return {
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         employee_id: emp.id,
         base_salary: new Prisma.Decimal(gross),
         gross_income: new Prisma.Decimal(gross),
@@ -931,9 +932,8 @@ export class FinanceDbRepository extends IFinanceRepository {
       // 1. Create the PayrollRun
       const run = await tx.hr_payroll_runs.create({
         data: {
-        id: 'pdgchkw6',
-        
-          tenant_id: tenant_id,
+        id: randomUUID(),
+          ...MultiTenancyUtil.getScope(ctx),
           period_start: periodDate,
           period_end: periodEnd,
           status: "approved",
@@ -950,9 +950,8 @@ export class FinanceDbRepository extends IFinanceRepository {
       // 2. Create the Ledger Journal Entry for the Payroll Run
       await tx.finance_journal_entries.create({
         data: {
-        id: require('crypto').randomUUID(),
-        
-          tenant_id,
+        id: randomUUID(),
+          ...MultiTenancyUtil.getScope(ctx),
           fiscal_period_id: period, 
           posting_date: new Date(),
           description: `Payroll posting for ${period}`,
@@ -961,7 +960,7 @@ export class FinanceDbRepository extends IFinanceRepository {
           finance_journal_lines: {
             create: [
               {
-                tenant_id,
+                ...MultiTenancyUtil.getScope(ctx),
                 account_id: "ACC-PAYROLL-EXP",
                 account_code: "EXP-PAYROLL", // Debit Expense
                 side: "DEBIT",
@@ -971,7 +970,7 @@ export class FinanceDbRepository extends IFinanceRepository {
                 credit: new Prisma.Decimal(0),
               },
               {
-                tenant_id,
+                ...MultiTenancyUtil.getScope(ctx),
                 account_id: "ACC-CASH",
                 account_code: "BS-CASH", // Credit Cash/Bank
                 side: "CREDIT",
@@ -981,7 +980,7 @@ export class FinanceDbRepository extends IFinanceRepository {
                 credit: totalNet,
               },
               {
-                tenant_id,
+                ...MultiTenancyUtil.getScope(ctx),
                 account_id: "ACC-TAX-LIAB",
                 account_code: "LIAB-TAXES", // Credit Liabilities
                 side: "CREDIT",
@@ -1001,9 +1000,9 @@ export class FinanceDbRepository extends IFinanceRepository {
 
   // --- NEWLY ADDED PRISMA IMPLEMENTATIONS FOR MISSING DB OPERATIONS ---
 
-  async getTransactionById(tenant_id: string, transaction_id: string): Promise<Transaction | null> {
+  async getTransactionById(ctx: TenantContext, transaction_id: string): Promise<Transaction | null> {
     const journalEntry = await this.prisma.finance_journal_entries.findFirst({
-      where: { id: transaction_id, tenant_id: tenant_id },
+      where: { id: transaction_id, ...MultiTenancyUtil.getScope(ctx) },
       include: { finance_journal_lines: true }
     });
     if (!journalEntry) return null;
@@ -1022,8 +1021,8 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Capex Budgets
-  async listCapexBudgets(tenant_id: string): Promise<FinanceCapexBudgetRow[]> {
-    const budgets = await this.prisma.capex_budgets.findMany({ where: { tenant_id: tenant_id } });
+  async listCapexBudgets(ctx: TenantContext): Promise<FinanceCapexBudgetRow[]> {
+    const budgets = await this.prisma.capex_budgets.findMany({ where: { ...MultiTenancyUtil.getScope(ctx) } });
     return budgets.map((b: any) => ({
       department: b.department,
       fiscalYear: b.period,
@@ -1033,11 +1032,11 @@ export class FinanceDbRepository extends IFinanceRepository {
     }));
   }
 
-  async setCapexBudget(tenant_id: string, budget: FinanceCapexBudgetRow): Promise<void> {
+  async setCapexBudget(ctx: TenantContext, budget: FinanceCapexBudgetRow): Promise<void> {
     await this.prisma.capex_budgets.upsert({
       where: {
         tenant_id_department_period: {
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           department: budget.department,
           period: budget.fiscalYear
         }
@@ -1049,8 +1048,8 @@ export class FinanceDbRepository extends IFinanceRepository {
         updated_at: new Date(),
       },
       create: {
-        id: '9qshn9f0',
-        tenant_id: tenant_id,
+        id: randomUUID(),
+        ...MultiTenancyUtil.getScope(ctx),
         department: budget.department,
         period: budget.fiscalYear,
         allocated_budget: budget.allocatedBudget,
@@ -1062,9 +1061,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Depreciation
-  async listAssetDepreciationEntries(tenant_id: string, assetId?: string): Promise<AssetDepreciationEntry[]> {
+  async listAssetDepreciationEntries(ctx: TenantContext, assetId?: string): Promise<AssetDepreciationEntry[]> {
     const entries = await this.prisma.asset_depreciation_entries.findMany({
-      where: { tenant_id: tenant_id, ...(assetId ? { assetId } : {}) },
+      where: { ...MultiTenancyUtil.getScope(ctx), ...(assetId ? { asset_id: assetId } : {}) },
       orderBy: { date: 'desc' }
     });
     return entries.map((e: any) => ({
@@ -1080,12 +1079,12 @@ export class FinanceDbRepository extends IFinanceRepository {
     }));
   }
 
-  async createDepreciationEntry(tenant_id: string, entry: Partial<AssetDepreciationEntry>, tx?: Prisma.TransactionClient): Promise<AssetDepreciationEntry> {
+  async createDepreciationEntry(ctx: TenantContext, entry: Partial<AssetDepreciationEntry>, tx?: Prisma.TransactionClient): Promise<AssetDepreciationEntry> {
     const db = tx ?? this.prisma;
     const created = await db.asset_depreciation_entries.create({
       data: {
-        id: 'k07ukedo',
-        tenant_id: tenant_id,
+        id: randomUUID(),
+        ...MultiTenancyUtil.getScope(ctx),
         asset_id: entry.assetId!,
         period: entry.postingDate?.substring(0, 7) || "2026-02",
         date: new Date(entry.postingDate!),
@@ -1108,9 +1107,9 @@ export class FinanceDbRepository extends IFinanceRepository {
     };
   }
 
-  async listAssetEvents(tenant_id: string, assetId?: string): Promise<AssetEvent[]> {
+  async listAssetEvents(ctx: TenantContext, assetId?: string): Promise<AssetEvent[]> {
     const events = await this.prisma.asset_events.findMany({
-      where: { tenant_id: tenant_id, ...(assetId ? { assetId } : {}) },
+      where: { ...MultiTenancyUtil.getScope(ctx), ...(assetId ? { asset_id: assetId } : {}) },
       orderBy: { date: 'desc' }
     });
     return events.map((e: any) => ({
@@ -1125,12 +1124,12 @@ export class FinanceDbRepository extends IFinanceRepository {
     }));
   }
 
-  async createAssetEvent(tenant_id: string, event: Partial<AssetEvent>, tx?: Prisma.TransactionClient): Promise<AssetEvent> {
+  async createAssetEvent(ctx: TenantContext, event: Partial<AssetEvent>, tx?: Prisma.TransactionClient): Promise<AssetEvent> {
     const db = tx ?? this.prisma;
     const created = await db.asset_events.create({
       data: {
-        id: '6of5cre2',
-        tenant_id: tenant_id,
+        id: randomUUID(),
+        ...MultiTenancyUtil.getScope(ctx),
         asset_id: event.assetId!,
         type: event.type!,
         description: event.reason || "Event generated",
@@ -1150,11 +1149,11 @@ export class FinanceDbRepository extends IFinanceRepository {
     };
   }
 
-  async getAssetAuditPack(tenant_id: string, assetId: string): Promise<AssetAuditPack> {
-    const asset = await this.getAssetById(tenant_id, assetId);
+  async getAssetAuditPack(ctx: TenantContext, assetId: string): Promise<AssetAuditPack> {
+    const asset = await this.getAssetById(ctx, assetId);
     if (!asset) throw new Error("Asset not found");
-    const depreciation = await this.listAssetDepreciationEntries(tenant_id, assetId);
-    const events = await this.listAssetEvents(tenant_id, assetId);
+    const depreciation = await this.listAssetDepreciationEntries(ctx, assetId);
+    const events = await this.listAssetEvents(ctx, assetId);
     return {
       assetId,
       depreciationEntries: depreciation,
@@ -1166,10 +1165,10 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Receivables/Payables Updates
-  async updateReceivable(tenant_id: string, id: string, updates: Partial<ReceivableInvoice>, tx?: Prisma.TransactionClient): Promise<ReceivableInvoice | null> {
+  async updateReceivable(ctx: TenantContext, id: string, updates: Partial<ReceivableInvoice>, tx?: Prisma.TransactionClient): Promise<ReceivableInvoice | null> {
     const db = tx ?? this.prisma;
     const updated = await db.receivables.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, tenant_id: ctx.tenant_id },
       data: { status: updates.status, amount: updates.amount, due_date: updates.dueDate ? new Date(updates.dueDate) : undefined, updated_at: new Date() }
     });
     return {
@@ -1181,10 +1180,10 @@ export class FinanceDbRepository extends IFinanceRepository {
     };
   }
 
-  async updatePayable(tenant_id: string, id: string, updates: Partial<PayableBill>, tx?: Prisma.TransactionClient): Promise<PayableBill | null> {
+  async updatePayable(ctx: TenantContext, id: string, updates: Partial<PayableBill>, tx?: Prisma.TransactionClient): Promise<PayableBill | null> {
     const db = tx ?? this.prisma;
     const updated = await db.payables.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, tenant_id: ctx.tenant_id },
       data: { status: updates.status, amount: updates.amount, due_date: updates.dueDate ? new Date(updates.dueDate) : undefined, updated_at: new Date() }
     });
     return {
@@ -1197,8 +1196,8 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Documents
-  async listDocuments(tenant_id: string): Promise<FinanceDocumentRow[]> {
-    const docs = await this.prisma.finance_documents.findMany({ where: { tenant_id: tenant_id }, orderBy: { created_at: 'desc' } });
+  async listDocuments(ctx: TenantContext): Promise<FinanceDocumentRow[]> {
+    const docs = await this.prisma.finance_documents.findMany({ where: { ...MultiTenancyUtil.getScope(ctx) }, orderBy: { created_at: 'desc' } });
     return docs.map((d: any) => ({
       id: d.id,
       title: d.title,
@@ -1210,12 +1209,12 @@ export class FinanceDbRepository extends IFinanceRepository {
     }));
   }
 
-  async createDocument(tenant_id: string, data: any, tx?: Prisma.TransactionClient): Promise<FinanceDocumentRow> {
+  async createDocument(ctx: TenantContext, data: any, tx?: Prisma.TransactionClient): Promise<FinanceDocumentRow> {
     const db = tx ?? this.prisma;
     const created = await db.finance_documents.create({
       data: {
-        id: 'm1v72483',
-        tenant_id: tenant_id,
+        id: randomUUID(),
+        ...MultiTenancyUtil.getScope(ctx),
         title: data.title,
         type: data.type,
         url: data.url,
@@ -1236,8 +1235,8 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Policies
-  async listPolicies(tenant_id: string): Promise<FinancePolicyRow[]> {
-    const policies = await this.prisma.finance_policies.findMany({ where: { tenant_id: tenant_id }, orderBy: { created_at: 'desc' } });
+  async listPolicies(ctx: TenantContext): Promise<FinancePolicyRow[]> {
+    const policies = await this.prisma.finance_policies.findMany({ where: { ...MultiTenancyUtil.getScope(ctx) }, orderBy: { created_at: 'desc' } });
     return policies.map((p: any) => ({
       id: p.id,
       name: p.title,
@@ -1248,9 +1247,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Periods
-  async listPeriods(tenant_id: string): Promise<AccountingPeriod[]> {
+  async listPeriods(ctx: TenantContext): Promise<AccountingPeriod[]> {
     const periods = await this.prisma.accounting_periods.findMany({ 
-      where: { tenant_id: tenant_id }, 
+      where: { ...MultiTenancyUtil.getScope(ctx) }, 
       orderBy: { start_date: 'desc' } 
     });
     return periods.map((p: any) => ({
@@ -1263,9 +1262,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Insights & Alerts
-  async getInsights(tenant_id: string): Promise<FinanceInsight[]> {
+  async getInsights(ctx: TenantContext): Promise<FinanceInsight[]> {
     const insights = await this.prisma.finance_insights.findMany({ 
-      where: { tenant_id: tenant_id }, 
+      where: { ...MultiTenancyUtil.getScope(ctx) }, 
       orderBy: { created_at: 'desc' } 
     });
     return insights.map((i: any) => ({
@@ -1277,9 +1276,9 @@ export class FinanceDbRepository extends IFinanceRepository {
     }));
   }
 
-  async getAlerts(tenant_id: string): Promise<FinanceAlert[]> {
+  async getAlerts(ctx: TenantContext): Promise<FinanceAlert[]> {
     const alerts = await this.prisma.finance_alerts.findMany({ 
-      where: { tenant_id: tenant_id, status: "UNRESOLVED" }, 
+      where: { ...MultiTenancyUtil.getScope(ctx), status: "UNRESOLVED" }, 
       orderBy: { created_at: 'desc' } 
     });
     return alerts.map((a: any) => ({
@@ -1292,11 +1291,11 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   // Payroll Extras
-  async createPayrollEntry(tenant_id: string, entry: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry> {
+  async createPayrollEntry(ctx: TenantContext, entry: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry> {
     return entry as PayrollEntry; 
   }
 
-  async updatePayrollEntry(tenant_id: string, id: string, updates: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry | null> {
+  async updatePayrollEntry(ctx: TenantContext, id: string, updates: Partial<PayrollEntry>, tx?: Prisma.TransactionClient): Promise<PayrollEntry | null> {
     return null; 
   }
 
@@ -1344,7 +1343,7 @@ export class FinanceDbRepository extends IFinanceRepository {
 
   // Bank Reconciliation & Analytics (Phase 5)
   async ingestBankTransactions(
-    tenant_id: string,
+    ctx: TenantContext,
     transactions: Partial<BankTransaction>[],
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
@@ -1352,13 +1351,13 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async getUnreconciledTransactions(
-    tenant_id: string,
+    ctx: TenantContext,
   ): Promise<BankTransaction[]> {
     return [];
   }
 
   async createReconcileMatch(
-    tenant_id: string,
+    ctx: TenantContext,
     transaction_id: string,
     journal_id: string,
     score: number,
@@ -1368,7 +1367,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   }
 
   async getPerformanceTree(
-    tenant_id: string,
+    ctx: TenantContext,
     parentId?: string,
     type?: string,
   ): Promise<PerformanceTreeNode> {

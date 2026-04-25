@@ -37,8 +37,8 @@ const InfrastructureControl = () => {
   const refresh = useCallback(async () => {
     try {
       const [nodeData, lbData] = await Promise.all([
-        retailInfrastructureService.listGatewayNodes(session.tenantId, session),
-        retailInfrastructureService.listLoadBalancers(session.tenantId, session)
+        retailInfrastructureService.listGatewayNodes(session.tenant_id, session),
+        retailInfrastructureService.listLoadBalancers(session.tenant_id, session)
       ]);
       setNodes(nodeData);
       setLbs(lbData);

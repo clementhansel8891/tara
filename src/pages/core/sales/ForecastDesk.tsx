@@ -20,8 +20,8 @@ export default function ForecastDesk() {
     try {
       setLoading(true);
       const [f, o] = await Promise.all([
-        salesService.getExecutiveForecast(session.tenantId, session),
-        salesService.listOpportunities(session.tenantId, session),
+        salesService.getExecutiveForecast(session.tenant_id, session),
+        salesService.listOpportunities(session.tenant_id, session),
       ]);
       setForecast(f);
       setOpportunities(o);

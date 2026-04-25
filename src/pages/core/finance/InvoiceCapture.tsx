@@ -30,8 +30,8 @@ export default function InvoiceCapture() {
   const [selectedInvoice, setSelectedInvoice] = useState<FinanceInvoiceRow | null>(null);
 
   const refreshInvoices = useCallback(() => {
-    financeService.listInvoices(session.tenantId, session).then(setInvoices).catch(console.error);
-  }, [session.tenantId, session]);
+    financeService.listInvoices(session.tenant_id, session).then(setInvoices).catch(console.error);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refreshInvoices();
@@ -62,14 +62,14 @@ export default function InvoiceCapture() {
 
   const captureInvoice = () => {
     if (formKind === "PAYABLE") {
-      financeService.capturePayableInvoice(session.tenantId, session, {
+      financeService.capturePayableInvoice(session.tenant_id, session, {
         vendor: counterparty,
         amount: Number(amount || "0"),
         invoiceDate,
         dueDate,
       });
     } else {
-      financeService.createReceivable(session.tenantId, session, {
+      financeService.createReceivable(session.tenant_id, session, {
         customer: counterparty,
         amount: Number(amount || "0"),
         dueDate,
@@ -77,8 +77,8 @@ export default function InvoiceCapture() {
       });
     }
     logService.log(
-      session.tenantId,
-      session.userId,
+      session.tenant_id,
+      session.user_id,
       "Captured invoice",
       `${formKind} - ${counterparty}`,
     );

@@ -1,7 +1,8 @@
 import { Controller, Post, Body, Headers, UseGuards, Logger } from "@nestjs/common";
 import { InventoryService } from "../inventory.service";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
-@Controller("v1/inventory/edge")
+@Controller('inventory/edge')
 export class InventoryEdgeController {
   private readonly logger = new Logger(InventoryEdgeController.name);
 
@@ -20,7 +21,7 @@ export class InventoryEdgeController {
     this.logger.log(`Edge Scan received for barcode ${payload.barcode}`);
     
     return this.inventoryService.processScan(
-      tenant_id || "system",
+      { tenant_id: tenant_id || "system", company_id: tenant_id || "system", branch_id: "default", user_id: user_id || "operational_scanner" } as TenantContext,
       {
         barcode: payload.barcode,
         location_id: payload.location_id,

@@ -1,3 +1,4 @@
+import { TenantContext } from '../../gateway/tenant-context.interface';
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IIoTRepository, TelemetryReading } from './repositories/iot.repository.interface';
 import { AuditService } from '../audit/audit.service';
@@ -21,14 +22,14 @@ export class UniversalIoTService {
    * 3. Publish event for industry modules (e.g. Farming) to react.
    */
   async handleTelemetry(
-    tenant_id: string, 
+    ctx: TenantContext, 
     payload: any, 
     forensicInfo?: { ip?: string; deviceModel?: string }
   ) {
     const readings: TelemetryReading[] = Array.isArray(payload) ? payload : [payload];
     
     // 1. High-Frequency Operational Log (Full Record)
-    const ids = await this.repository.logTelemetry(tenant_id, readings);
+    const ids = await this.repository.logTelemetry(ctx, readings);
 
     // 2. Intelligence & Event Loop
     for (const reading of readings) {
@@ -38,7 +39,7 @@ export class UniversalIoTService {
         if (isCritical) {
             // Audit Critical Events to Main System
             await this.auditService.log({
-                tenant_id,
+                tenant_id: ctx.tenant_id,
                 user_id: 'IOT_UNIVERSAL_GATEWAY',
                 module: 'KERNEL_IOT',
                 action: 'THRESHOLD_EXCEEDED',
@@ -56,7 +57,7 @@ export class UniversalIoTService {
             // Publish for Industry Logic
             await this.eventBus.publish({
                 event_type: 'SENSOR_THRESHOLD_EXCEEDED',
-                tenant_id,
+                tenant_id: ctx.tenant_id,
                 entity_id: reading.sensor_id,
                 entity_type: 'SENSOR',
                 source_module: 'kernel_iot',
@@ -72,10 +73,10 @@ export class UniversalIoTService {
   /**
    * Normalization Agent: Syncs aggregated telemetry to the Main DB for long-term reporting.
    */
-  async syncNormalizedData(tenant_id: string, sensor_id: string) {
+  async syncNormalizedData(ctx: TenantContext, sensor_id: string) {
     // This would be triggered by a CRON or specific workflow
     const report = await this.repository.getAggregatedReport(
-        tenant_id,
+        ctx,
         sensor_id,
         'HOUR',
         { start: new Date(Date.now() - 3600000), end: new Date() }
@@ -83,7 +84,7 @@ export class UniversalIoTService {
 
     if (report) {
          await this.auditService.log({
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             user_id: 'IOT_NORMALIZER',
             module: 'KERNEL_IOT',
             action: 'TELEMETRY_BATCH_SYNC',

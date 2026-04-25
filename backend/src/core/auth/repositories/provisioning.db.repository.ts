@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable } from "@nestjs/common";
 import { IProvisioningRepository } from "./provisioning.repository.interface";
 import { PrismaService } from "../../../persistence/prisma.service";
@@ -5,6 +7,7 @@ import {
   ProvisioningData,
   ProvisioningResult,
 } from "../entities/company-provisioning.entity";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class ProvisioningDbRepository implements IProvisioningRepository {
@@ -12,11 +15,11 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
 
   async provisionTenant(data: ProvisioningData): Promise<ProvisioningResult> {
     return await this.prisma.$transaction(async (tx) => {
-      // Create Company
+      // 1. Create Company first (needed for user.tenant_id)
       const company = await tx.companies.create({
         data: {
-        id: 'dz1ew011',
-        updated_at: new Date(),
+          id: uuidv4(),
+          updated_at: new Date(),
           name: data.name,
           code: `CMP-${Date.now().toString().slice(-6)}`,
           status: "active",
@@ -26,12 +29,31 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
         },
       });
 
-      // Map User to Company as OWNER
+      // 2. Ensure User exists (match by email to handle different IDs in mock/DB)
+      const userRecord = await tx.users.upsert({
+        where: { email: data.user.email },
+        update: {
+          tenant_id: company.id, // Update to the new company if needed
+          updated_at: new Date(),
+        }, 
+        create: {
+          id: data.user_id, // Use the provided ID if creating
+          tenant_id: company.id,
+          email: data.user.email,
+          password_hash: "mock_password_hash",
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          phone: data.user.phone,
+          updated_at: new Date(),
+        },
+      });
+
+      // 3. Map User to Company as OWNER
       await tx.user_companies.create({
         data: {
-        id: 'dv0bhsgk',
-        updated_at: new Date(),
-          user_id: data.user_id,
+          id: uuidv4(),
+          updated_at: new Date(),
+          user_id: userRecord.id, // Use the actual ID (either matched or created)
           tenant_id: company.id,
           role: "OWNER",
           is_default: true,
@@ -41,8 +63,8 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
       // Create HQ Location
       const location = await tx.locations.create({
         data: {
-        id: 'c74b543z',
-        updated_at: new Date(),
+          id: uuidv4(),
+          updated_at: new Date(),
           tenant_id: company.id,
           name: "Headquarters",
           code: "HQ",
@@ -56,8 +78,8 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
       // Create Default Department
       const department = await tx.departments.create({
         data: {
-        id: '4utnd1ir',
-        updated_at: new Date(),
+          id: uuidv4(),
+          updated_at: new Date(),
           tenant_id: company.id,
           name: "Executive",
           code: "EXEC",
@@ -68,8 +90,8 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
       // Create Employee Record for the User
       await tx.employees.create({
         data: {
-        id: 'xmle2x2e',
-        updated_at: new Date(),
+          id: uuidv4(),
+          updated_at: new Date(),
           tenant_id: company.id,
           location_id: location.id,
           department_id: department.id,
@@ -91,8 +113,8 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
       for (const moduleKey of coreModules) {
         await tx.admin_module_statuses.create({
           data: {
-        id: '2w2swik9',
-        updated_at: new Date(),
+            id: uuidv4(),
+            updated_at: new Date(),
             tenant_id: company.id,
             module_key: moduleKey,
             enabled: true,
@@ -105,7 +127,7 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
         tenant_id: company.id,
         company_name: company.name,
         location_id: location.id,
-        departmentId: department.id,
+        department_id: department.id,
       };
     });
   }

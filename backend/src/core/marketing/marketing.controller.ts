@@ -28,12 +28,13 @@ import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
 import { MarketingService } from "./marketing.service";
 import { PrismaService } from "../../persistence/prisma.service";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/marketing")
+@Controller('marketing')
 @UseInterceptors(TenantInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("marketing")
@@ -53,16 +54,16 @@ export class MarketingController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const dashboardData = await this.marketingService.getDashboard(tenant_id);
+    const dashboardData = await this.marketingService.getDashboard(request.tenantContext);
 
     const moduleContributions: any = {};
     if (await isModuleActive(this.prisma, tenant_id, "retail")) {
       const walkInCustomers = await this.prisma.retail_orders.count({
-        where: { tenant_id: tenant_id, customer_id: null },
+        where: { ...MultiTenancyUtil.getScope(request.tenantContext), customer_id: null },
       });
       const loyaltyMembers = await this.prisma.retail_orders.groupBy({
         by: ["customer_id"],
-        where: { tenant_id: tenant_id, customer_id: { not: null } },
+        where: { ...MultiTenancyUtil.getScope(request.tenantContext), customer_id: { not: null } },
       });
       moduleContributions.retail = {
         walkInCustomers,
@@ -83,14 +84,14 @@ export class MarketingController {
   @Get("channel-performance")
   async getChannelPerformance(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getChannelPerformance(tenant_id);
+    const data = await this.marketingService.getChannelPerformance(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("campaigns")
   async getCampaigns(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getCampaigns(tenant_id);
+    const data = await this.marketingService.getCampaigns(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -105,7 +106,7 @@ export class MarketingController {
       tenant_id,
       message: "Campaign created",
       data: await this.marketingService.createCampaign(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -124,7 +125,7 @@ export class MarketingController {
       tenant_id,
       message: "Campaign status updated",
       data: await this.marketingService.updateCampaignStatus(
-        tenant_id,
+        request.tenantContext,
         campaignId,
         dto,
         this.actor_id(request),
@@ -135,7 +136,7 @@ export class MarketingController {
   @Get("executions")
   async getExecutions(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getExecutions(tenant_id);
+    const data = await this.marketingService.getExecutions(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -150,7 +151,7 @@ export class MarketingController {
       tenant_id,
       message: "Execution scheduled",
       data: await this.marketingService.scheduleExecution(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -169,7 +170,7 @@ export class MarketingController {
       tenant_id,
       message: "Execution update applied",
       data: await this.marketingService.runExecution(
-        tenant_id,
+        request.tenantContext,
         executionId,
         dto,
         this.actor_id(request),
@@ -180,7 +181,7 @@ export class MarketingController {
   @Get("leads")
   async getLeads(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getLeads(tenant_id);
+    const data = await this.marketingService.getLeads(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -195,7 +196,7 @@ export class MarketingController {
       tenant_id,
       message: "Lead captured",
       data: await this.marketingService.captureLead(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -213,7 +214,7 @@ export class MarketingController {
       tenant_id,
       message: "Lead marked handoff-ready",
       data: await this.marketingService.markLeadHandoffReady(
-        tenant_id,
+        request.tenantContext,
         lead_id,
         this.actor_id(request),
       ),
@@ -231,7 +232,7 @@ export class MarketingController {
       tenant_id,
       message: "Lead handed off to Sales",
       data: await this.marketingService.handoffLeadToSales(
-        tenant_id,
+        request.tenantContext,
         lead_id,
         this.actor_id(request),
       ),
@@ -241,7 +242,7 @@ export class MarketingController {
   @Get("workflows")
   async getWorkflows(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getWorkflows(tenant_id);
+    const data = await this.marketingService.getWorkflows(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -256,7 +257,7 @@ export class MarketingController {
       tenant_id,
       message: "Workflow created",
       data: await this.marketingService.createWorkflow(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -275,7 +276,7 @@ export class MarketingController {
       tenant_id,
       message: "Workflow status updated",
       data: await this.marketingService.updateWorkflowStatus(
-        tenant_id,
+        request.tenantContext,
         workflowId,
         dto,
         this.actor_id(request),
@@ -286,7 +287,7 @@ export class MarketingController {
   @Get("accounts")
   async getAccounts(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getConnectedAccounts(tenant_id);
+    const data = await this.marketingService.getConnectedAccounts(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -301,7 +302,7 @@ export class MarketingController {
       tenant_id,
       message: "Account connected",
       data: await this.marketingService.connectAccount(
-        tenant_id,
+        request.tenantContext,
         dto,
         this.actor_id(request),
       ),
@@ -320,7 +321,7 @@ export class MarketingController {
       tenant_id,
       message: "Account status updated",
       data: await this.marketingService.updateAccountStatus(
-        tenant_id,
+        request.tenantContext,
         accountId,
         dto,
         this.actor_id(request),
@@ -331,14 +332,14 @@ export class MarketingController {
   @Get("attribution")
   async getAttribution(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getAttribution(tenant_id);
+    const data = await this.marketingService.getAttribution(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("alerts")
   async getAlerts(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getAlerts(tenant_id);
+    const data = await this.marketingService.getAlerts(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -352,7 +353,7 @@ export class MarketingController {
       success: true,
       tenant_id,
       message: "Alert acknowledged",
-      data: await this.marketingService.acknowledgeAlert(tenant_id, alertId),
+      data: await this.marketingService.acknowledgeAlert(request.tenantContext, alertId),
     };
   }
 
@@ -360,7 +361,7 @@ export class MarketingController {
   async runHealthSweep(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
     const data = await this.marketingService.runHealthSweep(
-      tenant_id,
+      request.tenantContext,
       this.actor_id(request),
     );
     return {
@@ -375,8 +376,7 @@ export class MarketingController {
   @Get("audit-events")
   async getAuditEvents(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.marketingService.getAuditEvents(tenant_id);
+    const data = await this.marketingService.getAuditEvents(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 }
-

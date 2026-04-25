@@ -63,7 +63,7 @@ export default function SchedulingStudio() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const staffResult = await staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 });
+      const staffResult = await staffService.listStaff(session.tenant_id, session, {}, { page: 1, pageSize: 50 });
       setEmployees(staffResult.items);
 
       // Fetch all roster components for the week
@@ -74,7 +74,7 @@ export default function SchedulingStudio() {
         for (const day of weekDays) {
           const dateStr = format(day, "yyyy-MM-dd");
           const schedule = await schedulingService.getDailySchedule(
-            session.tenantId,
+            session.tenant_id,
             emp.id,
             dateStr,
             session
@@ -92,7 +92,7 @@ export default function SchedulingStudio() {
 
   useEffect(() => {
     loadData();
-  }, [session.tenantId, viewDate]);
+  }, [session.tenant_id, viewDate]);
 
   const handlePrevWeek = () => setViewDate((prev) => addDays(prev, -7));
   const handleNextWeek = () => setViewDate((prev) => addDays(prev, 7));
@@ -110,7 +110,7 @@ export default function SchedulingStudio() {
     
     try {
       await schedulingService.submitOverride(
-        session.tenantId,
+        session.tenant_id,
         session,
         selectedCell.employeeId,
         overrideForm.coveringEmployeeId,

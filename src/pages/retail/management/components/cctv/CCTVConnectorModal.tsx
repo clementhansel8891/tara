@@ -86,11 +86,11 @@ export default function CCTVConnectorModal({
   };
 
   const handleTest = async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     setLoading(true);
     try {
       const res = await retailService.validateCCTVConnection(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           provider,
@@ -122,11 +122,11 @@ export default function CCTVConnectorModal({
   };
 
   const handleRegister = async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     setLoading(true);
     try {
       const saved = await retailService.registerCCTV(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           provider,

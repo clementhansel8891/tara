@@ -15,7 +15,7 @@ import { RetailPublicAuthService } from "./retail-public-auth.service";
 import { ChannelCredentialsGuard } from "./guards/channel-credentials.guard";
 import { CustomerAuthGuard } from "./guards/customer-auth.guard";
 
-@Controller("v1/retail/public/auth")
+@Controller('retail/public/auth')
 @UseInterceptors(TenantInterceptor)
 export class RetailPublicAuthController {
   constructor(private readonly authService: RetailPublicAuthService) {}
@@ -45,7 +45,7 @@ export class RetailPublicAuthController {
     }
 
     const result: { customer: any; tokens: any } = await this.authService.registerCustomer(
-      tenant_id,
+      (request as any).tenantContext,
       { name, email, password, phone },
       { ip: request.ip, user_agent: request.headers["user-agent"] ?? null },
     );
@@ -72,7 +72,7 @@ export class RetailPublicAuthController {
     }
 
     const result: { customer: any; tokens: any } = await this.authService.loginCustomer(
-      tenant_id,
+      (request as any).tenantContext,
       scope,
       { email, password },
       { ip: request.ip, user_agent: request.headers["user-agent"] ?? null },
@@ -104,7 +104,7 @@ export class RetailPublicAuthController {
     }
 
     const result = await this.authService.refreshTokens(
-      tenant_id,
+      (request as any).tenantContext,
       scope,
       refreshToken,
       { ip: request.ip, user_agent: request.headers["user-agent"] ?? null },

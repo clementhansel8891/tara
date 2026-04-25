@@ -19,7 +19,7 @@ import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
 import { Prisma } from "@prisma/client";
 
-@Controller("v1/hr/payroll")
+@Controller('hr/payroll')
 @UseGuards(RolesGuard, TenantGuard)
 export class HrPayrollController {
   constructor(private readonly payrollService: HrPayrollService) {}

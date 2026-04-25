@@ -8,7 +8,7 @@ import { listTools } from "@/core/tools/toolRegistry";
 
 export default function ToolsHome() {
   const session = useSession();
-  const tools = listTools(session.tenantId);
+  const tools = listTools(session.tenant_id);
 
   return (
     <PageShell

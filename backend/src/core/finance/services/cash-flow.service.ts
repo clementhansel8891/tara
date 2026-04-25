@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IAccountStatementProjectionRepository } from '../repositories/interfaces/account-statement-projection.repository.interface';
 import { AccountStatementProjection } from '../domain/finance.interfaces';
 import { Prisma } from '@prisma/client';
@@ -8,6 +8,7 @@ export class CashFlowService {
   private readonly logger = new Logger(CashFlowService.name);
 
   constructor(
+    @Inject('IAccountStatementProjectionRepository')
     private readonly statementRepo: IAccountStatementProjectionRepository,
   ) {}
 

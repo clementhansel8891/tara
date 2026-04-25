@@ -241,7 +241,7 @@ export default function RetailInventory() {
     // If we have a category and session, try to get a real SKU from backend
     if (formData.category && session) {
       void retailService
-        .generateSku(session.tenantId, session, formData.category)
+        .generateSku(session.tenant_id, session, formData.category)
         .then((data) => {
           if (data.sku) {
             setInventory((prev) =>
@@ -260,7 +260,7 @@ export default function RetailInventory() {
     });
     void emitRetailPushEvent({
       type: "inventory.item.created",
-      tenantId: session.tenantId,
+      tenantId: session.tenant_id,
       payload: {
         id: newItem.id,
         name: newItem.name,
@@ -313,7 +313,7 @@ export default function RetailInventory() {
     });
     void emitRetailPushEvent({
       type: "inventory.item.updated",
-      tenantId: session.tenantId,
+      tenantId: session.tenant_id,
       payload: {
         id: updatedItem.id,
         name: updatedItem.name,
@@ -343,7 +343,7 @@ export default function RetailInventory() {
     });
     void emitRetailPushEvent({
       type: "inventory.item.deleted",
-      tenantId: session.tenantId,
+      tenantId: session.tenant_id,
       payload: {
         id: selectedProduct.id,
         name: selectedProduct.name,
@@ -375,7 +375,7 @@ export default function RetailInventory() {
     });
     void emitRetailPushEvent({
       type: "inventory.stock.adjusted",
-      tenantId: session.tenantId,
+      tenantId: session.tenant_id,
       payload: {
         id: selectedProduct.id,
         name: selectedProduct.name,
@@ -445,7 +445,7 @@ export default function RetailInventory() {
           if (updated) {
             void emitRetailPushEvent({
               type: "inventory.stock.adjusted",
-              tenantId: session.tenantId,
+              tenantId: session.tenant_id,
               payload: {
                 id: updated.id,
                 name: updated.name,

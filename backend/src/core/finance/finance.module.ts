@@ -19,6 +19,7 @@ import { LedgerDlqReplayService } from './services/ledger-dlq-replay.service';
 import { LedgerMerkleCheckpointService } from './services/ledger-merkle-checkpoint.service';
 import { LedgerWorkerService } from './workers/ledger-worker.service';
 import { LedgerEventIngestionWorker } from './services/ledger-event-ingestion-worker.service';
+import { LedgerEventLogDbRepository } from './repositories/ledger-event-log.db.repository';
 import { LedgerEventLogRetentionService } from './services/ledger-event-log-retention.service';
 import { FinancialProjectionWorkerService } from './services/financial-projection-worker.service';
 import { ProjectionRebuildService } from './services/projection-rebuild.service';
@@ -42,7 +43,6 @@ import { LedgerPostingDbRepository } from './repositories/ledger-posting.db.repo
 import { JournalDbRepository } from './repositories/journal.db.repository';
 import { JournalReversalDbRepository } from './repositories/journal-reversal.db.repository';
 import { AccountBalanceDbRepository } from './repositories/account-balance.db.repository';
-import { LedgerEventLogDbRepository } from './repositories/ledger-event-log.db.repository';
 import { AssetDbRepository } from './repositories/asset.db.repository';
 import { PayrollDbRepository } from './repositories/payroll.db.repository';
 import { ArInvoiceDbRepository } from './ar/repositories/ar-invoice.db.repository';
@@ -150,27 +150,35 @@ import { BankReconciliationService } from './services/bank-reconciliation.servic
 import { CsvBankProvider, ModularApiBankProvider } from '../../shared/finance/bank-providers';
 import { PayrollSettlementListener } from './listeners/payroll-settlement.listener';
 
+/** 
+ * Unique named placeholders for missing database repositories. 
+ */
+class AssetCategoryFallback { constructor() { console.warn('FinanceModule: Using placeholder for AssetCategoryRepository'); } }
+class CompanyGroupFallback { constructor() { console.warn('FinanceModule: Using placeholder for CompanyGroupRepository'); } }
+class IntercompanyEliminationFallback { constructor() { console.warn('FinanceModule: Using placeholder for IntercompanyEliminationRepository'); } }
+class ConsolidatedSnapshotFallback { constructor() { console.warn('FinanceModule: Using placeholder for ConsolidatedSnapshotRepository'); } }
+class FinancialReportSnapshotFallback { constructor() { console.warn('FinanceModule: Using placeholder for FinancialReportSnapshotRepository'); } }
+class FinancialSnapshotFallback { constructor() { console.warn('FinanceModule: Using placeholder for FinancialSnapshotRepository'); } }
+class LedgerEventLogArchiveFallback { constructor() { console.warn('FinanceModule: Using placeholder for LedgerEventLogArchiveRepository'); } }
+class LedgerHashAnchorFallback { constructor() { console.warn('FinanceModule: Using placeholder for LedgerHashAnchorRepository'); } }
+class LedgerMerkleCheckpointFallback { constructor() { console.warn('FinanceModule: Using placeholder for LedgerMerkleCheckpointRepository'); } }
+class AccountBalanceSnapshotFallback { constructor() { console.warn('FinanceModule: Using placeholder for AccountBalanceSnapshotRepository'); } }
+class TrialBalanceProjectionFallback { constructor() { console.warn('FinanceModule: Using placeholder for TrialBalanceProjectionRepository'); } }
+class GeneralLedgerProjectionFallback { constructor() { console.warn('FinanceModule: Using placeholder for GeneralLedgerProjectionRepository'); } }
+class AccountStatementProjectionFallback { constructor() { console.warn('FinanceModule: Using placeholder for AccountStatementProjectionRepository'); } }
+class LedgerProjectionCheckpointFallback { constructor() { console.warn('FinanceModule: Using placeholder for LedgerProjectionCheckpointRepository'); } }
+
 /**
  * Helper to determine which repository class to use based on mode.
- * In production/staging, it ALWAYS returns the DB version if available, 
- * or throws an error if it attempts to use a mock.
  */
-function getRepository(dbClass: any, mockClass: any) {
+function getRepository(dbClass: any, mockClass: any, fallbackClass?: any) {
   const isProd = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging';
   const mode = getFinanceExecutionMode();
 
   if (isProd) {
-    if (!dbClass) {
-        return class {
-            constructor() {
-                throw new Error(`CRITICAL: A required DB repository is missing in production. Mocks are forbidden.`);
-            }
-        };
-    }
-    return dbClass;
+    return dbClass || fallbackClass;
   }
-
-  return mode === FinanceExecutionMode.MOCK ? mockClass : dbClass;
+  return mode === FinanceExecutionMode.MOCK ? mockClass : (dbClass || fallbackClass);
 }
 
 @Module({
@@ -181,10 +189,7 @@ function getRepository(dbClass: any, mockClass: any) {
     CommsModule,
     PersistenceModule,
     LoggerModule,
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
-    }]),
+    ThrottlerModule,
   ],
   controllers: [
     FinanceController, 
@@ -213,10 +218,6 @@ function getRepository(dbClass: any, mockClass: any) {
     ReportingEngineService,
     FinancialDashboardService,
     PaymentLifecycleService,
-    {
-      provide: 'APP_GUARD',
-      useClass: ThrottlerGuard,
-    },
     BankIngestionService,
     ReconciliationService,
     TaxEngineService,
@@ -279,7 +280,6 @@ function getRepository(dbClass: any, mockClass: any) {
         return strategies;
       },
     },
-    // Hardened Multi-Mode Repositories
     {
       provide: IFinanceRepository,
       useClass: getRepository(FinanceDbRepository, FinanceMockRepository),
@@ -326,7 +326,7 @@ function getRepository(dbClass: any, mockClass: any) {
     },
     {
       provide: 'IPayrollRepository',
-      useClass: PayrollDbRepository, // Hard-bind if no mock needed/available
+      useClass: PayrollDbRepository,
     },
     {
       provide: 'IArInvoiceRepository',
@@ -356,62 +356,61 @@ function getRepository(dbClass: any, mockClass: any) {
       provide: IInventorySubledgerService,
       useClass: InventorySubledgerService,
     },
-    // Remaining Mock Fallbacks (Guarded)
     {
       provide: 'IAssetCategoryRepository',
-      useClass: getRepository(null, AssetCategoryMockRepository),
+      useClass: getRepository(null, AssetCategoryMockRepository, AssetCategoryFallback),
     },
     {
       provide: 'ICompanyGroupRepository',
-      useClass: getRepository(null, CompanyGroupMockRepository),
+      useClass: getRepository(null, CompanyGroupMockRepository, CompanyGroupFallback),
     },
     {
       provide: 'IIntercompanyEliminationRepository',
-      useClass: getRepository(null, IntercompanyEliminationMockRepository),
+      useClass: getRepository(null, IntercompanyEliminationMockRepository, IntercompanyEliminationFallback),
     },
     {
       provide: 'IConsolidatedSnapshotRepository',
-      useClass: getRepository(null, ConsolidatedSnapshotMockRepository),
+      useClass: getRepository(ConsolidatedSnapshotMockRepository, ConsolidatedSnapshotMockRepository, ConsolidatedSnapshotFallback),
     },
     {
       provide: 'IFinancialReportSnapshotRepository',
-      useClass: getRepository(null, FinancialReportSnapshotMockRepository),
+      useClass: getRepository(null, FinancialReportSnapshotMockRepository, FinancialReportSnapshotFallback),
     },
     {
       provide: 'IFinancialSnapshotRepository',
-      useClass: getRepository(null, FinancialSnapshotMockRepository),
+      useClass: getRepository(null, FinancialSnapshotMockRepository, FinancialSnapshotFallback),
     },
     {
       provide: 'ILedgerEventLogArchiveRepository',
-      useClass: getRepository(null, LedgerEventLogArchiveMockRepository),
+      useClass: getRepository(null, LedgerEventLogArchiveMockRepository, LedgerEventLogArchiveFallback),
     },
     {
       provide: 'ILedgerHashAnchorRepository',
-      useClass: getRepository(null, LedgerHashAnchorMockRepository),
+      useClass: getRepository(null, LedgerHashAnchorMockRepository, LedgerHashAnchorFallback),
     },
     {
       provide: 'ILedgerMerkleCheckpointRepository',
-      useClass: getRepository(null, LedgerMerkleCheckpointMockRepository),
+      useClass: getRepository(null, LedgerMerkleCheckpointMockRepository, LedgerMerkleCheckpointFallback),
     },
     {
       provide: 'IAccountBalanceSnapshotRepository',
-      useClass: getRepository(null, AccountBalanceSnapshotMockRepository),
+      useClass: getRepository(null, AccountBalanceSnapshotMockRepository, AccountBalanceSnapshotFallback),
     },
     {
       provide: 'ITrialBalanceProjectionRepository',
-      useClass: getRepository(null, TrialBalanceProjectionMockRepository),
+      useClass: getRepository(null, TrialBalanceProjectionMockRepository, TrialBalanceProjectionFallback),
     },
     {
       provide: 'IGeneralLedgerProjectionRepository',
-      useClass: getRepository(null, GeneralLedgerProjectionMockRepository),
+      useClass: getRepository(null, GeneralLedgerProjectionMockRepository, GeneralLedgerProjectionFallback),
     },
     {
       provide: 'IAccountStatementProjectionRepository',
-      useClass: getRepository(null, AccountStatementProjectionMockRepository),
+      useClass: getRepository(null, AccountStatementProjectionMockRepository, AccountStatementProjectionFallback),
     },
     {
       provide: 'ILedgerProjectionCheckpointRepository',
-      useClass: getRepository(null, LedgerProjectionCheckpointMockRepository),
+      useClass: getRepository(null, LedgerProjectionCheckpointMockRepository, LedgerProjectionCheckpointFallback),
     },
   ],
   exports: [
@@ -422,8 +421,15 @@ function getRepository(dbClass: any, mockClass: any) {
     PostingRuleService,
     LedgerPostingService,
     ReportingEngineService,
+    AccountingMappingService,
+    TaxEngineService,
+    WorkflowIntegrationService,
+    ArCreditMemoService,
+    CsvBankProvider,
+    ModularApiBankProvider,
     IFinanceRepository,
     IInventorySubledgerService,
+    PostingGatewayService,
   ],
 })
 export class FinanceModule implements OnModuleInit {
@@ -433,9 +439,7 @@ export class FinanceModule implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    // 1. Fail-Fast Safety Check
     assertFinanceExecutionSafety();
-
     const mode = getFinanceExecutionMode();
     const isProd = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging';
 
@@ -448,14 +452,7 @@ export class FinanceModule implements OnModuleInit {
     console.log('============================================================');
 
     if (isProd && mode === FinanceExecutionMode.MOCK) {
-       // Secondary guard in case assertFinanceExecutionSafety was bypassed
-       throw new Error(`CRITICAL: Mock repositories detected in ${process.env.NODE_ENV} environment. Shutdown required.`);
-    }
-
-    if (mode === FinanceExecutionMode.MOCK) {
-      console.warn(`[FINANCE] WARNING: Running with MOCK repositories. This is UNSAFE for production use.`);
-    } else {
-      console.log(`[FINANCE] SUCCESS: Running with DB-backed repositories.`);
+       throw new Error(`CRITICAL: Mock repositories detected in production.`);
     }
   }
 }

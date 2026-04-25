@@ -5,7 +5,7 @@ import { PaymentService } from "./payment.service";
 // Note: Stripe Webhooks require raw body. In NestJS, this needs to be enabled at main.ts
 // Usually via rawBody: true in NestFactory.create()
 
-@Controller("v1/payment/webhook")
+@Controller('payment/webhook')
 export class PaymentWebhookController {
   constructor(private readonly paymentService: PaymentService) {}
 

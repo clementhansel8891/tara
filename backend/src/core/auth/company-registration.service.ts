@@ -2,13 +2,22 @@ import { Injectable, UnauthorizedException, Inject } from "@nestjs/common";
 import { IAuthRepository } from "./repositories/auth.repository.interface";
 import { IProvisioningRepository } from "./repositories/provisioning.repository.interface";
 import * as jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 import { CreateCompanyDto } from "./dto/create-company.dto";
 import { getCurrencyForCountry } from "../../shared/countries";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 
 @Injectable()
 export class CompanyRegistrationService {
   private readonly jwtSecret =
     process.env.JWT_SECRET || "dev-secret-key-do-not-use-in-prod";
+
+  private readonly systemCtx: TenantContext = {
+    tenant_id: "system",
+    company_id: "system",
+    branch_id: "default",
+    user_id: "system",
+  };
 
   constructor(
     @Inject(IAuthRepository) private readonly authRepo: IAuthRepository,
@@ -27,11 +36,11 @@ export class CompanyRegistrationService {
 
     const user_id = decoded.sub;
 
-    const user = await this.authRepo.findById("system", user_id);
+    const user = await this.authRepo.findById(this.systemCtx, user_id);
     if (!user) throw new UnauthorizedException("User not found");
 
     // 2. Perform Tenant Provisioning via Repository
-    return await this.provisioningRepo.provisionTenant({
+    const result = await this.provisioningRepo.provisionTenant({
       user_id,
       name: dto.name,
       country: dto.country,
@@ -45,5 +54,22 @@ export class CompanyRegistrationService {
         phone: user.phone,
       },
     });
+
+    // 3. Associate Tenant with User (Crucial for Mock/Demo logic)
+    // We add the user as OWNER of the new tenant
+    await this.authRepo.update(this.systemCtx, user_id, {
+      user_companies: [
+        ...(user.user_companies || []),
+        {
+          id: uuidv4(),
+          user_id,
+          tenant_id: result.tenant_id,
+          role: "OWNER",
+          is_default: true,
+        },
+      ],
+    });
+
+    return result;
   }
 }

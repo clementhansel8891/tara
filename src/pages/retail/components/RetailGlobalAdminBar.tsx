@@ -41,7 +41,7 @@ export const RetailGlobalAdminBar = () => {
         <Separator orientation="vertical" className="h-4 bg-white/20" />
         <div className="flex items-center gap-2">
           <span className="text-slate-500">Tenant:</span>
-          <span className="text-white">{session.tenantId}</span>
+          <span className="text-white">{session.tenant_id}</span>
           <ChevronRight className="w-3 h-3 text-slate-600" />
         </div>
         <div className="flex items-center gap-2">

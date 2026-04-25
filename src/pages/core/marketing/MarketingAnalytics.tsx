@@ -21,9 +21,9 @@ export default function MarketingAnalytics() {
   const refresh = useCallback(async () => {
     try {
       const [c, ch, a] = await Promise.all([
-        marketingService.listCampaigns(session.tenantId, session),
-        marketingService.getChannelPerformance(session.tenantId, session),
-        marketingService.listAttribution(session.tenantId, session),
+        marketingService.listCampaigns(session.tenant_id, session),
+        marketingService.getChannelPerformance(session.tenant_id, session),
+        marketingService.listAttribution(session.tenant_id, session),
       ]);
       setCampaigns(c);
       setChannelPerformance(ch);
@@ -33,7 +33,7 @@ export default function MarketingAnalytics() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();

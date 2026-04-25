@@ -52,14 +52,14 @@ export default function OrgMap() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const items = await orgService.getOrgMap(session.tenantId, session);
+        const items = await orgService.getOrgMap(session.tenant_id, session);
         setData(items.map(dept => ({ ...dept, headcount: dept.headcount ?? 0 })) as OrgMapDept[]);
       } catch (err) {
         console.error("Failed to load org map", err);
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const filteredData = data.filter((dept) =>
     search ? dept.name.toLowerCase().includes(search.toLowerCase()) : true,
@@ -155,7 +155,7 @@ export default function OrgMap() {
                   variant="outline"
                   onClick={async () => {
                     try {
-                      await orgService.routeDepartment(session.tenantId, session, dept.id, "OrgMap routing");
+                      await orgService.routeDepartment(session.tenant_id, session, dept.id, "OrgMap routing");
                       setStatusMessage(`Department ${dept.name} routed to FlowGate.`);
                       setVersion((prev) => prev + 1);
                     } catch (err) {
@@ -196,7 +196,7 @@ export default function OrgMap() {
             <Button
               onClick={async () => {
                 try {
-                  await orgService.createDepartment(session.tenantId, session, {
+                  await orgService.createDepartment(session.tenant_id, session, {
                     id: `dept-${deptCode.toLowerCase()}`,
                     name: deptName,
                     code: deptCode.toUpperCase(),
@@ -243,11 +243,11 @@ export default function OrgMap() {
               onClick={async () => {
                 try {
                   if (actionType === "risk") {
-                    await orgService.escalateStaffingRisk(session.tenantId, session, actionDeptId, actionNotes);
+                    await orgService.escalateStaffingRisk(session.tenant_id, session, actionDeptId, actionNotes);
                     setStatusMessage("Staffing risk escalated.");
                   }
                   if (actionType === "requisition") {
-                    await orgService.openRequisition(session.tenantId, session, {
+                    await orgService.openRequisition(session.tenant_id, session, {
                       title: requisitionTitle,
                       departmentId: actionDeptId,
                       openings: Number(requisitionOpenings || "1"),
@@ -255,7 +255,7 @@ export default function OrgMap() {
                     setStatusMessage("New job requisition opened.");
                   }
                   if (actionType === "route") {
-                    await orgService.routeDepartment(session.tenantId, session, actionDeptId, actionNotes);
+                    await orgService.routeDepartment(session.tenant_id, session, actionDeptId, actionNotes);
                     setStatusMessage("Department route initiated.");
                   }
                   setActionNotes("");

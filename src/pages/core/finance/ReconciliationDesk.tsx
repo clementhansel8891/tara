@@ -61,7 +61,7 @@ export const ReconciliationDesk: React.FC = () => {
   const fetchStatements = async () => {
     try {
       // In a real app, we'd list statements. For now, assume we have a list.
-      const res = await financeService.getMoneySources(session.tenantId, session);
+      const res = await financeService.getMoneySources(session.tenant_id, session);
       // Logic to list statements...
     } catch (error) {
       console.error(error);

@@ -88,7 +88,7 @@ describe("financeService end-to-end flows", () => {
       created.capex.id,
     );
     expect(hodApproved?.status).toBe("PENDING_CFO_APPROVAL");
-    expect(hodApproved?.hodApprovedBy).toBe(opsHodSession.userId);
+    expect(hodApproved?.hodApprovedBy).toBe(opsHodsession.user_id);
 
     const cfoApproved = await financeService.approveCapexRequest(
       tenantId,
@@ -96,7 +96,7 @@ describe("financeService end-to-end flows", () => {
       created.capex.id,
     );
     expect(cfoApproved?.status).toBe("APPROVED");
-    expect(cfoApproved?.cfoApprovedBy).toBe(cfoSession.userId);
+    expect(cfoApproved?.cfoApprovedBy).toBe(cfosession.user_id);
 
     const capitalized = await financeService.capitalizeAsset(
       tenantId,

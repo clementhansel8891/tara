@@ -2,7 +2,7 @@ export interface ProvisioningResult {
   tenant_id: string;
   company_name: string;
   location_id: string;
-  departmentId: string;
+  department_id: string;
 }
 
 export interface ProvisioningData {

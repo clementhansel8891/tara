@@ -5,7 +5,7 @@ import { AuditService } from '../../shared/audit/audit.service';
 import { AuditChainService } from '../../shared/audit/audit-chain.service';
 import { createHash } from 'crypto';
 
-@Controller('v1/finance/dashboard')
+@Controller('finance/dashboard')
 @UseGuards(ThrottlerGuard)
 export class FinancialDashboardController {
   constructor(

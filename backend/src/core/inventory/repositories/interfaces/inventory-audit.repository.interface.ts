@@ -1,34 +1,35 @@
 import { inventory_audit_cycles as AuditCycle, inventory_adjustments as InventoryAdjustment } from "@prisma/client";
 import { CreateAdjustmentDto } from "../../dto/create-adjustment.dto";
+import { TenantContext } from "../../../../gateway/tenant-context.interface";
 
 export interface IInventoryAuditRepository {
   /**
    * Initialize a new stock-take cycle
    */
-  createAuditCycle(tenant_id: string, data: any): Promise<AuditCycle>;
+  createAuditCycle(ctx: TenantContext, data: any): Promise<AuditCycle>;
 
   /**
    * List all audit cycles
    */
-  getAuditCycles(tenant_id: string): Promise<AuditCycle[]>;
+  getAuditCycles(ctx: TenantContext): Promise<AuditCycle[]>;
 
   /**
    * Close a cycle and trigger reconciliation
    */
-  finalizeAudit(tenant_id: string, cycleId: string, performedBy: string): Promise<AuditCycle>;
+  finalizeAudit(ctx: TenantContext, cycleId: string, performedBy: string): Promise<AuditCycle>;
 
   /**
    * Create a quantity adjustment request
    */
-  createAdjustment(tenant_id: string, data: CreateAdjustmentDto, tx?: any): Promise<InventoryAdjustment>;
+  createAdjustment(ctx: TenantContext, data: CreateAdjustmentDto, tx?: any): Promise<InventoryAdjustment>;
 
   /**
    * Approve an adjustment and update stock levels
    */
-  approveAdjustment(tenant_id: string, id: string, approvedBy: string): Promise<InventoryAdjustment>;
+  approveAdjustment(ctx: TenantContext, id: string, approvedBy: string): Promise<InventoryAdjustment>;
 
   /**
    * Historical query for adjustments
    */
-  getAdjustments(tenant_id: string, filters?: any): Promise<InventoryAdjustment[]>;
+  getAdjustments(ctx: TenantContext, filters?: any): Promise<InventoryAdjustment[]>;
 }

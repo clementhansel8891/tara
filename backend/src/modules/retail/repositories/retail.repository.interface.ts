@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { Prisma } from "@prisma/client";
 import {
   RetailStore,
@@ -22,71 +23,58 @@ export abstract class IRetailRepository {
   // ============================================================
   // BRANCHES (Physical Stores)
   // ============================================================
-  abstract listStores(
-    tenant_id: string,
+  abstract listStores( ctx: TenantContext,
     location_id?: string,
   ): Promise<RetailStore[]>;
-  abstract listCategories(tenant_id: string): Promise<any[]>;
-  abstract getStore(
-    tenant_id: string,
+  abstract listCategories( ctx: TenantContext): Promise<any[]>;
+  abstract getStore( ctx: TenantContext,
     store_id: string,
   ): Promise<RetailStore | null>;
-  abstract createStore(
-    tenant_id: string,
+  abstract createStore( ctx: TenantContext,
     data: CreateStoreDto,
   ): Promise<RetailStore>;
-  abstract updateStore(
-    tenant_id: string,
+  abstract updateStore( ctx: TenantContext,
     store_id: string,
     data: UpdateStoreDto,
   ): Promise<RetailStore>;
-  abstract deleteStore(tenant_id: string, store_id: string): Promise<void>;
+  abstract deleteStore( ctx: TenantContext, store_id: string): Promise<void>;
 
   // ============================================================
   // INVENTORY POOLS
   // ============================================================
-  abstract listInventoryPools(tenant_id: string): Promise<any[]>;
-  abstract createInventoryPool(
-    tenant_id: string,
+  abstract listInventoryPools( ctx: TenantContext): Promise<any[]>;
+  abstract createInventoryPool( ctx: TenantContext,
     data: CreateInventoryPoolDto,
   ): Promise<any>;
-  abstract getInventoryPool(
-    tenant_id: string,
+  abstract getInventoryPool( ctx: TenantContext,
     poolId: string,
   ): Promise<any | null>;
-  abstract deleteInventoryPool(tenant_id: string, poolId: string): Promise<void>;
+  abstract deleteInventoryPool( ctx: TenantContext, poolId: string): Promise<void>;
 
   // ============================================================
   // E-COMMERCE STORES
   // ============================================================
-  abstract listEcommerceStores(
-    tenant_id: string,
+  abstract listEcommerceStores( ctx: TenantContext,
     store_id?: string,
   ): Promise<any[]>;
-  abstract getEcommerceStore(
-    tenant_id: string,
+  abstract getEcommerceStore( ctx: TenantContext,
     store_id: string,
   ): Promise<any | null>;
-  abstract createEcommerceStore(
-    tenant_id: string,
+  abstract createEcommerceStore( ctx: TenantContext,
     data: CreateEcommerceStoreDto,
   ): Promise<any>;
-  abstract updateEcommerceStore(
-    tenant_id: string,
+  abstract updateEcommerceStore( ctx: TenantContext,
     store_id: string,
     data: UpdateEcommerceStoreDto,
   ): Promise<any>;
-  abstract deleteEcommerceStore(
-    tenant_id: string,
+  abstract deleteEcommerceStore( ctx: TenantContext,
     store_id: string,
   ): Promise<void>;
-  abstract linkEcommerceToBranch(
-    tenant_id: string,
+  abstract linkEcommerceToBranch( ctx: TenantContext,
     ecommerceId: string,
     branch_id: string,
   ): Promise<void>;
-  abstract unlinkEcommerceFromBranch(
-    tenant_id: string,
+  abstract unlinkEcommerceFromBranch( ctx: TenantContext,
     ecommerceId: string,
     branch_id: string,
   ): Promise<void>;
@@ -94,8 +82,7 @@ export abstract class IRetailRepository {
   // ============================================================
   // PRODUCTS
   // ============================================================
-  abstract listProducts(
-    tenant_id: string,
+  abstract listProducts( ctx: TenantContext,
     options?: {
       page?: number;
       pageSize?: number;
@@ -113,60 +100,51 @@ export abstract class IRetailRepository {
     page: number;
     pageSize: number;
   }>;
-  abstract getProduct(
-    tenant_id: string,
+  abstract getProduct( ctx: TenantContext,
     product_id: string,
   ): Promise<RetailProduct | null>;
-  abstract updateProduct(
-    tenant_id: string,
+  abstract updateProduct( ctx: TenantContext,
     product_id: string,
     data: UpdateProductDto,
     location_id?: string,
   ): Promise<RetailProduct>;
-  abstract generateNextSku(
-    tenant_id: string,
+  abstract generateNextSku( ctx: TenantContext,
     category_id: string,
   ): Promise<{ sku: string; barcode: string }>;
 
   // ============================================================
   // ORDERS
   // ============================================================
-  abstract listOrders(
-    tenant_id: string,
+  abstract listOrders( ctx: TenantContext,
     store_id?: string,
   ): Promise<RetailOrder[]>;
-  abstract getOrder(
-    tenant_id: string,
+  abstract getOrder( ctx: TenantContext,
     order_id: string,
   ): Promise<RetailOrder | null>;
-  abstract createOrder(
-    tenant_id: string,
+  abstract createOrder( ctx: TenantContext,
     location_id: string,
     data: CreateOrderDto,
     user_id: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<RetailOrder>;
-  abstract updateOrderStatus(
-    tenant_id: string,
+  abstract updateOrderStatus( ctx: TenantContext,
     order_id: string,
     status: string,
     metadata?: any,
   ): Promise<RetailOrder>;
 
-  abstract atomicCheckout(
-    tenant_id: string,
+  abstract atomicCheckout( ctx: TenantContext,
     data: CheckoutDto,
     user_id: string,
     idempotency_key?: string,
   ): Promise<RetailOrder>;
 
-  abstract voidOrder(
-    tenant_id: string,
+  abstract voidOrder( ctx: TenantContext,
     order_id: string,
     user_id: string,
   ): Promise<RetailOrder>;
 
-  abstract cancelOrder(
-    tenant_id: string,
+  abstract cancelOrder( ctx: TenantContext,
     order_id: string,
     user_id: string,
   ): Promise<RetailOrder>;
@@ -175,24 +153,25 @@ export abstract class IRetailRepository {
   // ============================================================
   // INVENTORY / STOCK
   // ============================================================
-  abstract reserveStock(
-    tenant_id: string,
+  abstract reserveStock( ctx: TenantContext,
     location_id: string,
     product_id: string,
     quantity: Prisma.Decimal,
   ): Promise<{ success: boolean; reservationId?: string }>;
-  abstract releaseStock(
-    tenant_id: string,
+  abstract releaseStock( ctx: TenantContext,
     product_id: string,
     quantity: Prisma.Decimal,
   ): Promise<void>;
-  abstract checkStock(
-    tenant_id: string,
+  abstract checkStock( ctx: TenantContext,
     product_id: string,
-  ): Promise<{ available: Prisma.Decimal; status: string }>;
+  ): Promise<{ available: Prisma.Decimal; on_hand: Prisma.Decimal; reserved: Prisma.Decimal; status: string }>;
 
-  abstract getInventoryStats(
-    tenant_id: string,
+  abstract getChannelStock( ctx: TenantContext,
+    channel_id: string,
+    product_id: string,
+  ): Promise<{ available: Prisma.Decimal; on_hand: Prisma.Decimal; reserved: Prisma.Decimal; status: string }>;
+
+  abstract getInventoryStats( ctx: TenantContext,
     options?: { category_id?: string; q?: string },
   ): Promise<{
     total: number;
@@ -212,40 +191,33 @@ export abstract class IRetailRepository {
   // ============================================================
   // SHIFTS
   // ============================================================
-  abstract getActiveShift(
-    tenant_id: string,
+  abstract getActiveShift( ctx: TenantContext,
     store_id: string,
     employee_id: string,
   ): Promise<RetailShift | null>;
-  abstract openShift(
-    tenant_id: string,
+  abstract openShift( ctx: TenantContext,
     location_id: string,
     employee_id: string,
     data: OpenShiftDto,
   ): Promise<RetailShift>;
-  abstract closeShift(
-    tenant_id: string,
+  abstract closeShift( ctx: TenantContext,
     shift_id: string,
     data: CloseShiftDto,
   ): Promise<RetailShift>;
-  abstract listShifts(
-    tenant_id: string,
+  abstract listShifts( ctx: TenantContext,
     store_id?: string,
   ): Promise<RetailShift[]>;
 
-  abstract getShift(
-    tenant_id: string,
+  abstract getShift( ctx: TenantContext,
     shift_id: string,
   ): Promise<RetailShift | null>;
 
-  abstract updateShiftStatus(
-    tenant_id: string,
+  abstract updateShiftStatus( ctx: TenantContext,
     shift_id: string,
     status: string,
   ): Promise<RetailShift>;
 
-  abstract reconcileShift(
-    tenant_id: string,
+  abstract reconcileShift( ctx: TenantContext,
     shift_id: string,
     data: {
       actual_cash: Prisma.Decimal;
@@ -259,9 +231,8 @@ export abstract class IRetailRepository {
   // ============================================================
   // PROMOTIONS
   // ============================================================
-  abstract listPromotions(tenant_id: string): Promise<any[]>;
-  abstract updatePromotion(
-    tenant_id: string,
+  abstract listPromotions( ctx: TenantContext): Promise<any[]>;
+  abstract updatePromotion( ctx: TenantContext,
     promotionId: string,
     data: any,
   ): Promise<any>;
@@ -269,69 +240,87 @@ export abstract class IRetailRepository {
   // ============================================================
   // CHANNELS (Legacy - Ecommerce Hub integration)
   // ============================================================
-  abstract listChannels(tenant_id: string): Promise<any[]>;
-  abstract createChannel(tenant_id: string, data: any): Promise<any>;
-  abstract updateChannel(
-    tenant_id: string,
+  abstract listChannels( ctx: TenantContext): Promise<any[]>;
+  abstract createChannel( ctx: TenantContext, data: any): Promise<any>;
+  abstract updateChannel( ctx: TenantContext,
     channelId: string,
     data: any,
   ): Promise<any>;
-  abstract deleteChannel(
-    tenant_id: string,
+  abstract deleteChannel( ctx: TenantContext,
     channelId: string,
   ): Promise<{ success: boolean }>;
-  abstract syncChannel(
-    tenant_id: string,
+  abstract syncChannel( ctx: TenantContext,
     channelId: string,
   ): Promise<{ success: boolean }>;
-  abstract getChannelById(
-    tenant_id: string,
+  abstract getChannelById( ctx: TenantContext,
     channelId: string,
   ): Promise<any | null>;
-  abstract updateChannelCredentials(
-    tenant_id: string,
+  abstract updateChannelCredentials( ctx: TenantContext,
     channelId: string,
     credentials: any,
   ): Promise<any>;
-  abstract findChannelByClientId(
-    tenant_id: string,
+  abstract findChannelByClientId( ctx: TenantContext,
     clientId: string,
   ): Promise<any | null>;
 
   // ============================================================
+  // CHANNEL PRODUCT MANAGEMENT (Ecommerce Hub)
+  // ============================================================
+  /** List products with their channel-specific visibility and stock limits. */
+  abstract listChannelProducts( ctx: TenantContext,
+    channel_id: string,
+    options?: { category_id?: string; q?: string },
+  ): Promise<any[]>;
+
+  /** Bulk update visibility and stock limits for multiple products on a channel. */
+  abstract updateChannelProducts( ctx: TenantContext,
+    channel_id: string,
+    updates: Array<{
+      product_id: string;
+      visible: boolean;
+      stock_limit?: number;
+    }>,
+  ): Promise<void>;
+
+  /** Update which categories are "enabled" for a specific channel. */
+  abstract updateChannelCategories( ctx: TenantContext,
+    channel_id: string,
+    categories: string[],
+  ): Promise<void>;
+
+  /** Get enabled categories for a channel. */
+  abstract getChannelCategories( ctx: TenantContext,
+    channel_id: string,
+  ): Promise<string[]>;
+
+  // ============================================================
   // DEVICES
   // ============================================================
-  abstract listDevices(tenant_id: string, store_id?: string): Promise<any[]>;
-  abstract registerDevice(
-    tenant_id: string,
+  abstract listDevices( ctx: TenantContext, store_id?: string): Promise<any[]>;
+  abstract registerDevice( ctx: TenantContext,
     location_id: string,
     data: any,
   ): Promise<any>;
-  abstract listCCTVs(tenant_id: string, store_id?: string): Promise<any[]>;
-  abstract registerCCTV(
-    tenant_id: string,
+  abstract listCCTVs( ctx: TenantContext, store_id?: string): Promise<any[]>;
+  abstract registerCCTV( ctx: TenantContext,
     location_id: string,
     data: any,
   ): Promise<any>;
-  abstract validateCCTVConnection(
-    tenant_id: string,
+  abstract validateCCTVConnection( ctx: TenantContext,
     location_id: string,
     data: any,
   ): Promise<{ success: boolean; message?: string }>;
-  abstract listSensors(tenant_id: string, store_id?: string): Promise<any[]>;
-  abstract registerSensor(
-    tenant_id: string,
+  abstract listSensors( ctx: TenantContext, store_id?: string): Promise<any[]>;
+  abstract registerSensor( ctx: TenantContext,
     location_id: string,
     data: any,
   ): Promise<any>;
-  abstract pingDevice(
-    tenant_id: string,
+  abstract pingDevice( ctx: TenantContext,
     device_id: string,
   ): Promise<{ success: boolean }>;
 
-  abstract scanDevices(tenant_id: string, location_id: string): Promise<any[]>;
-  abstract commitScannedDevice(
-    tenant_id: string,
+  abstract scanDevices( ctx: TenantContext, location_id: string): Promise<any[]>;
+  abstract commitScannedDevice( ctx: TenantContext,
     location_id: string,
     discoveryId: string,
   ): Promise<any>;
@@ -339,13 +328,11 @@ export abstract class IRetailRepository {
   // ============================================================
   // PAYMENTS & RETURNS
   // ============================================================
-  abstract processPayment(
-    tenant_id: string,
+  abstract processPayment( ctx: TenantContext,
     order_id: string,
     data: { amount: Prisma.Decimal; method: string; shift_id?: string },
   ): Promise<any>;
-  abstract processReturn(
-    tenant_id: string,
+  abstract processReturn( ctx: TenantContext,
     order_id: string,
     data: {
       itemIds: string[];
@@ -364,12 +351,10 @@ export abstract class IRetailRepository {
   // ============================================================
   // INVENTORY OPERATIONS
   // ============================================================
-  abstract submitOpname(
-    tenant_id: string,
+  abstract submitOpname( ctx: TenantContext,
     data: { store_id: string; adjustments: any[]; shift_id?: string },
   ): Promise<{ success: boolean }>;
-  abstract receiveGoods(
-    tenant_id: string,
+  abstract receiveGoods( ctx: TenantContext,
     data: {
       store_id: string;
       shipment_id: string;
@@ -383,66 +368,56 @@ export abstract class IRetailRepository {
   // ============================================================
 
   // Customers
-  abstract findCustomerByEmail(
-    tenant_id: string,
+  abstract findCustomerByEmail( ctx: TenantContext,
     email: string,
   ): Promise<any | null>;
-  abstract findCustomerById(
-    tenant_id: string,
+  abstract findCustomerById( ctx: TenantContext,
     customer_id: string,
   ): Promise<any | null>;
-  abstract createCustomer(tenant_id: string, data: any): Promise<any>;
-  abstract updateCustomer(
-    tenant_id: string,
+  abstract createCustomer( ctx: TenantContext, data: any): Promise<any>;
+  abstract updateCustomer( ctx: TenantContext,
     customer_id: string,
     data: any,
   ): Promise<any>;
 
   // Auth & Sessions
-  abstract createCustomerSession(tenant_id: string, data: any): Promise<any>;
-  abstract findCustomerSession(
-    tenant_id: string,
+  abstract createCustomerSession( ctx: TenantContext, data: any): Promise<any>;
+  abstract findCustomerSession( ctx: TenantContext,
     tokenHash: string,
   ): Promise<any | null>;
-  abstract revokeCustomerSession(
-    tenant_id: string,
+  abstract revokeCustomerSession( ctx: TenantContext,
     tokenHash: string,
   ): Promise<void>;
 
   // Cart
-  abstract getCart(tenant_id: string, customer_id: string): Promise<any | null>;
-  abstract createCart(tenant_id: string, customer_id: string): Promise<any>;
-  abstract updateCartItem(
-    tenant_id: string,
+  abstract getCart( ctx: TenantContext, customer_id: string): Promise<any | null>;
+  abstract createCart( ctx: TenantContext, customer_id: string): Promise<any>;
+  abstract updateCartItem( ctx: TenantContext,
     cartId: string,
     product_id: string,
     data: { quantity: Prisma.Decimal; unit_price: Prisma.Decimal },
   ): Promise<any>;
-  abstract removeCartItem(
-    tenant_id: string,
+  abstract removeCartItem( ctx: TenantContext,
     cartId: string,
     item_id: string,
   ): Promise<void>;
-  abstract clearCart(tenant_id: string, cartId: string): Promise<void>;
+  abstract clearCart( ctx: TenantContext, cartId: string): Promise<void>;
 
   // Wishlist
-  abstract getWishlist(
-    tenant_id: string,
+  abstract getWishlist( ctx: TenantContext,
     customer_id: string,
   ): Promise<any | null>;
-  abstract upsertWishlist(tenant_id: string, customer_id: string): Promise<any>;
-  abstract addWishlistItem(
-    tenant_id: string,
+  abstract upsertWishlist( ctx: TenantContext, customer_id: string): Promise<any>;
+  abstract addWishlistItem( ctx: TenantContext,
     wishlistId: string,
     product_id: string,
   ): Promise<any>;
-  abstract removeWishlistItem(
-    tenant_id: string,
+  abstract removeWishlistItem( ctx: TenantContext,
     wishlistId: string,
     item_id: string,
   ): Promise<void>;
 
   // Events
-  abstract logEvent(tenant_id: string, data: any): Promise<any>;
+  abstract logEvent( ctx: TenantContext, data: any): Promise<any>;
 }
 

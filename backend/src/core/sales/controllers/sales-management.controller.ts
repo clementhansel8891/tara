@@ -3,16 +3,24 @@ import {
   Get, 
   Query, 
   UseGuards, 
-  Headers,
-  Req 
+  Req,
+  UseInterceptors
 } from "@nestjs/common";
 import { SalesManagementService } from "../sales-management.service";
 import { Roles } from "../../../shared/decorators/roles.decorator";
 import { RolesGuard } from "../../../shared/guards/roles.guard";
 import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
+import { TenantInterceptor } from "../../../gateway/tenant.interceptor";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
-@Controller("v1/sales/management")
+interface RequestWithTenant extends Request {
+  tenantContext: TenantContext;
+  user?: any;
+}
+
+@Controller('sales/management')
+@UseInterceptors(TenantInterceptor)
 @UseGuards(RolesGuard, TenantGuard)
 export class SalesManagementController {
   constructor(private readonly salesService: SalesManagementService) {}
@@ -20,32 +28,30 @@ export class SalesManagementController {
   @Get("analytics")
   @Roles(UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPERADMIN)
   async getAnalytics(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() req: RequestWithTenant,
     @Query("period") period?: string,
   ) {
-    return this.salesService.getSalesAnalytics(tenant_id, period);
+    return this.salesService.getSalesAnalytics(req.tenantContext, period);
   }
 
   @Get("forecast")
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
   async getForecast(
-    @Headers("x-tenant-id") tenant_id: string,
-    @Req() req: any,
+    @Req() req: RequestWithTenant,
   ) {
-    const user_id = req.user?.id;
-    return this.salesService.getForecast(tenant_id, user_id);
+    const user_id = req.user?.id || "system";
+    return this.salesService.getForecast(req.tenantContext, user_id);
   }
 
   @Get("velocity")
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
-  async getVelocity(@Headers("x-tenant-id") tenant_id: string) {
-    return this.salesService.getPipelineVelocity(tenant_id);
+  async getVelocity(@Req() req: RequestWithTenant) {
+    return this.salesService.getPipelineVelocity(req.tenantContext);
   }
 
   @Get("sla")
   @Roles(UserRole.MANAGER, UserRole.ADMIN)
-  async getSLAPerformance(@Headers("x-tenant-id") tenant_id: string) {
-    return this.salesService.getSLAPerformance(tenant_id);
+  async getSLAPerformance(@Req() req: RequestWithTenant) {
+    return this.salesService.getSLAPerformance(req.tenantContext);
   }
 }
-

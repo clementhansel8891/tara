@@ -23,9 +23,9 @@ export default function PaymentDashboard() {
       try {
         const [metricsData, providersData, transactionsData] =
           await Promise.all([
-            paymentService.getDashboard(session.tenantId, session),
-            paymentService.listProviders(session.tenantId, session),
-            paymentService.listTransactions(session.tenantId, session),
+            paymentService.getDashboard(session.tenant_id, session),
+            paymentService.listProviders(session.tenant_id, session),
+            paymentService.listTransactions(session.tenant_id, session),
           ]);
         setMetrics(metricsData);
         setProviders(providersData);
@@ -35,7 +35,7 @@ export default function PaymentDashboard() {
       }
     };
     fetchData();
-  }, [refreshKey, session.tenantId]);
+  }, [refreshKey, session.tenant_id]);
 
   if (!metrics) {
     return (
@@ -54,7 +54,7 @@ export default function PaymentDashboard() {
           <Button
             variant="outline"
             onClick={() => {
-              paymentService.runProviderHealthCheck(session.tenantId, session);
+              paymentService.runProviderHealthCheck(session.tenant_id, session);
               setRefreshKey((value) => value + 1);
             }}
           >

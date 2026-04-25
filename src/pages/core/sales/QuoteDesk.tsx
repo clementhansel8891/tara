@@ -26,8 +26,8 @@ export default function QuoteDesk() {
     try {
       setLoading(true);
       const [o, q] = await Promise.all([
-        salesService.listOpportunities(session.tenantId, session),
-        salesService.listQuotes(session.tenantId, session),
+        salesService.listOpportunities(session.tenant_id, session),
+        salesService.listQuotes(session.tenant_id, session),
       ]);
       setOpportunities(o);
       setQuotes(q);
@@ -41,7 +41,7 @@ export default function QuoteDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session, selectedOpportunityId]);
+  }, [session.tenant_id, session, selectedOpportunityId]);
 
   useEffect(() => {
     refresh();
@@ -96,7 +96,7 @@ export default function QuoteDesk() {
           <Button
             onClick={async () => {
               try {
-                await salesService.createQuote(session.tenantId, session, {
+                await salesService.createQuote(session.tenant_id, session, {
                   opportunityId: selectedOpportunityId,
                   amount: Number(quoteAmount),
                   discountPercent: Number(discountPercent),
@@ -150,7 +150,7 @@ export default function QuoteDesk() {
                         size="sm"
                         disabled={item.status !== "DRAFT"}
                         onClick={async () => {
-                          await salesService.submitQuoteForApproval(session.tenantId, session, item.id);
+                          await salesService.submitQuoteForApproval(session.tenant_id, session, item.id);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -161,7 +161,7 @@ export default function QuoteDesk() {
                         size="sm"
                         disabled={item.status !== "PENDING_APPROVAL"}
                         onClick={async () => {
-                          await salesService.decideQuoteApproval(session.tenantId, session, item.id, true);
+                          await salesService.decideQuoteApproval(session.tenant_id, session, item.id, true);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -172,7 +172,7 @@ export default function QuoteDesk() {
                         size="sm"
                         disabled={item.status !== "PENDING_APPROVAL"}
                         onClick={async () => {
-                          await salesService.decideQuoteApproval(session.tenantId, session, item.id, false);
+                          await salesService.decideQuoteApproval(session.tenant_id, session, item.id, false);
                           setRefreshKey((value) => value + 1);
                         }}
                       >
@@ -182,7 +182,7 @@ export default function QuoteDesk() {
                         size="sm"
                         disabled={item.status !== "APPROVED"}
                         onClick={async () => {
-                          await salesService.sendQuoteToCustomer(session.tenantId, session, item.id);
+                          await salesService.sendQuoteToCustomer(session.tenant_id, session, item.id);
                           setRefreshKey((value) => value + 1);
                         }}
                       >

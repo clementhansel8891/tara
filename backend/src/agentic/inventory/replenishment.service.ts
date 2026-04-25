@@ -16,13 +16,10 @@ export class ReplenishmentService {
    * Returns a recommendation object if replenishment is needed.
    */
   async evaluateReplenishment(tenant_id: string, product_id: string, location_id: string) {
-    const level = await this.prisma.stock_levels.findUnique({
+    const level = await this.prisma.stock_levels.findFirst({
       where: {
-        location_id_product_id_department_id: {
-          location_id: location_id,
-          product_id: product_id,
-          department_id: null as any,
-        },
+        location_id: location_id,
+        product_id: product_id,
       },
     });
 

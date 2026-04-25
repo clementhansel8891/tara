@@ -154,7 +154,7 @@ export default function RetailShifts() {
 
     try {
       // 1. Log to backend attendance system
-      await attendanceService.clockIn(session.tenantId, session, {
+      await attendanceService.clockIn(session.tenant_id, session, {
         locationId: state.settings.defaultLocationId || '1', // Fallback for demo
         deviceId: 'WEB_PORTAL',
         verificationMethod: 'MANUAL',

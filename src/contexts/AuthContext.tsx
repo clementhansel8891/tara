@@ -16,12 +16,12 @@ import { retailService } from "@/core/services/retail/retailService";
 interface UserProfile {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  userCompanies?: {
-    tenantId: string;
+  first_name: string;
+  last_name: string;
+  user_companies?: {
+    tenant_id: string;
     role: string;
-    isDefault: boolean;
+    is_default: boolean;
     company: {
       id: string;
       name: string;
@@ -73,19 +73,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 permissions: parsedSession.permissions || [],
               });
             } else if (
-              data.userCompanies &&
-              data.userCompanies.length > 0
+              data.user_companies &&
+              Array.isArray(data.user_companies) &&
+              data.user_companies.length > 0
             ) {
               // Auto-select default company
               const defaultCompany =
-                data.userCompanies.find((c: any) => c.isDefault) ||
-                data.userCompanies[0];
+                data.user_companies.find((c: any) => c.is_default) ||
+                data.user_companies[0];
               const newSession = {
-                userId: data.id,
-                tenantId: defaultCompany.tenantId,
-                locationId: "", 
+                user_id: data.id,
+                tenant_id: defaultCompany.tenant_id,
+                location_id: "", 
                 role: defaultCompany.role as Role,
-                departmentId: "dept-default",
+                department_id: "dept-default",
                 token: storedToken,
                 permissions: [
                   "VIEW_FINANCIALS",
@@ -125,23 +126,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (credentials: any) => {
       try {
+        console.log("[AuthContext] Attempting login for:", credentials.email);
         const data = await apiRequest<any>("/v1/auth/login", "POST", null, credentials);
 
         if (data.token) {
+          console.log("[AuthContext] Login successful, token received");
           localStorage.setItem("ZENVIX_TOKEN", data.token);
           setUser(data.user);
 
           // If they have companies, setup session
-          if (data.user.userCompanies && data.user.userCompanies.length > 0) {
+          const companies = data.user?.user_companies || [];
+          console.log("[AuthContext] User companies:", companies.length);
+          
+          if (companies.length > 0) {
             const defaultCompany =
-              data.user.userCompanies.find((c: any) => c.isDefault) ||
-              data.user.userCompanies[0];
+              companies.find((c: any) => c.is_default) ||
+              companies[0];
+            
+            console.log("[AuthContext] Setting session for tenant:", defaultCompany.tenant_id);
             const newSession = {
-              userId: data.user.id,
-              tenantId: defaultCompany.tenantId,
-              locationId: "",
+              user_id: data.user.id,
+              tenant_id: defaultCompany.tenant_id,
+              location_id: "",
               role: defaultCompany.role as Role,
-              departmentId: "dept-ret",
+              department_id: "dept-ret",
               token: data.token,
               permissions: [
                 "VIEW_FINANCIALS",
@@ -153,12 +161,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ],
             };
             setSession(newSession);
+          } else {
+            console.warn("[AuthContext] User has no companies associated.");
           }
 
           return { success: true };
         }
+        console.error("[AuthContext] Login failed: No token in response");
         return { success: false, error: "Login failed" };
       } catch (e: any) {
+        console.error("[AuthContext] Login error:", e.message);
         return { success: false, error: e.message };
       }
     },
@@ -183,11 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (json) {
           // Create active session based on provisioned data
           const newSession = {
-            userId: user?.id || "unknown",
-            tenantId: json.tenantId || json.data?.tenantId,
-            locationId: json.locationId || json.data?.locationId,
+            user_id: user?.id || "unknown",
+            tenant_id: json.tenant_id || json.data?.tenant_id,
+            location_id: json.location_id || json.data?.location_id,
             role: Roles.SUPERADMIN, 
-            departmentId: json.departmentId || json.data?.departmentId,
+            department_id: json.department_id || json.data?.department_id,
             token: token as string,
             permissions: [
               "VIEW_FINANCIALS",
@@ -215,10 +227,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const updateLocation = useCallback(
-    (locationId: string) => {
+    (location_id: string) => {
       setSessionState((prev) => {
-        if (!prev || prev.locationId === locationId) return prev;
-        const next = { ...prev, locationId };
+        if (!prev || prev.location_id === location_id) return prev;
+        const next = { ...prev, location_id };
         localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
         return next;
       });
@@ -228,12 +240,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Auto-resolve locationId if missing but tenantId is present
   useEffect(() => {
-    if (session && session.tenantId && !session.locationId) {
-      console.log("[AuthContext] Missing locationId, attempting auto-resolution...");
-      retailService.listStores(session.tenantId, session)
+    if (session && session.tenant_id && !session.location_id) {
+      console.log("[AuthContext] Missing location_id, attempting auto-resolution...");
+      retailService.listStores(session.tenant_id, session)
         .then(stores => {
-          if (stores && stores.length > 0) {
-            console.log("[AuthContext] Auto-resolved locationId:", stores[0].id);
+          if (stores && Array.isArray(stores) && stores.length > 0) {
+            console.log("[AuthContext] Auto-resolved location_id:", stores[0].id);
             updateLocation(stores[0].id);
           }
         })

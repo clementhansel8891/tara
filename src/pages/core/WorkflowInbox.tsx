@@ -23,7 +23,7 @@ export default function WorkflowInbox() {
           description="Search and filter workflows across departments."
         >
           {canAccessWorkspace(session, "WORKFLOW") ? (
-            <ApprovalInbox tenantId={session.tenantId} session={session} />
+            <ApprovalInbox tenantId={session.tenant_id} session={session} />
           ) : (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               You do not have approvals assigned.

@@ -37,7 +37,7 @@ export default function TalentFlow() {
     const loadData = async () => {
       try {
         const [cands, stgs] = await Promise.all([
-          recruitmentService.listCandidates(session.tenantId, session),
+          recruitmentService.listCandidates(session.tenant_id, session),
           recruitmentService.getPipelineStages(),
         ]);
         setCandidates(cands);
@@ -47,7 +47,7 @@ export default function TalentFlow() {
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -56,14 +56,14 @@ export default function TalentFlow() {
         return;
       }
       try {
-        const profile = await recruitmentService.getCandidateProfile(session.tenantId, session, selectedCandidateId);
+        const profile = await recruitmentService.getCandidateProfile(session.tenant_id, session, selectedCandidateId);
         setCandidateProfile(profile);
       } catch (err) {
         console.error("Failed to load candidate profile", err);
       }
     };
     loadProfile();
-  }, [session.tenantId, session, selectedCandidateId, profileOpen]);
+  }, [session.tenant_id, session, selectedCandidateId, profileOpen]);
 
   const selectedCandidateData = useMemo(() => {
     if (!selectedCandidateId) return null;
@@ -82,7 +82,7 @@ export default function TalentFlow() {
   const handleAdvance = () => {
     if (!selectedCandidateId) return;
     try {
-      recruitmentService.advanceCandidate(session.tenantId, session, selectedCandidateId);
+      recruitmentService.advanceCandidate(session.tenant_id, session, selectedCandidateId);
       setStatusMessage("Candidate advanced to next stage.");
       setProfileOpen(false);
       setVersion(v => v + 1);
@@ -98,7 +98,7 @@ export default function TalentFlow() {
       return;
     }
     try {
-      recruitmentService.rejectCandidate(session.tenantId, session, selectedCandidateId, rejectReason);
+      recruitmentService.rejectCandidate(session.tenant_id, session, selectedCandidateId, rejectReason);
       setStatusMessage("Candidate application rejected.");
       setRejectOpen(false);
       setProfileOpen(false);
@@ -112,7 +112,7 @@ export default function TalentFlow() {
   const handleHire = async () => {
     if (!selectedCandidateId) return;
     try {
-      await recruitmentService.hireCandidate(session.tenantId, session, selectedCandidateId);
+      await recruitmentService.hireCandidate(session.tenant_id, session, selectedCandidateId);
       setStatusMessage("Candidate successfully hired and transitioned to PeopleCore.");
       setProfileOpen(false);
       setVersion(v => v + 1);
@@ -146,7 +146,7 @@ export default function TalentFlow() {
             onClick={() => {
               const target = candidates[0];
               if (target) {
-                recruitmentService.routeCandidate(session.tenantId, session, target.id);
+                recruitmentService.routeCandidate(session.tenant_id, session, target.id);
                 setStatusMessage("Candidate routed to FlowGate.");
                 setVersion((prev) => prev + 1);
               }
@@ -251,9 +251,9 @@ export default function TalentFlow() {
             <Input value={openings} onChange={(e) => setOpenings(e.target.value)} />
             <Button
               onClick={() => {
-                recruitmentService.createRequisition(session.tenantId, session, {
+                recruitmentService.createRequisition(session.tenant_id, session, {
                   title: requisitionTitle,
-                  departmentId: session.departmentId,
+                  departmentId: session.department_id,
                   status: "open",
                   openings: Number(openings || "1"),
                 });
@@ -290,7 +290,7 @@ export default function TalentFlow() {
             <Button
               onClick={() => {
                 if (actionCandidateId) {
-                  recruitmentService.scheduleInterview(session.tenantId, session, actionCandidateId, notes);
+                  recruitmentService.scheduleInterview(session.tenant_id, session, actionCandidateId, notes);
                   setStatusMessage("Interview scheduled.");
                 }
                 setNotes("");

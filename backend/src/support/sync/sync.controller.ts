@@ -3,7 +3,7 @@ import { PrismaService } from '../../persistence/prisma.service';
 import { TenantGuard } from '../../shared/guards/tenant.guard';
 import { Request } from 'express';
 
-@Controller('v1/sync')
+@Controller('sync')
 @UseGuards(TenantGuard)
 export class SyncController {
   constructor(private readonly prisma: PrismaService) {}

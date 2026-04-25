@@ -41,14 +41,14 @@ export default function PipelineBoard() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await salesService.getPipelineByStage(session.tenantId, session);
+      const data = await salesService.getPipelineByStage(session.tenant_id, session);
       setPipeline(data);
     } catch (err) {
       console.error("Failed to fetch pipeline data:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -88,7 +88,7 @@ export default function PipelineBoard() {
                           value={item.stage}
                           onValueChange={async (value: OpportunityStage) => {
                             await salesService.moveOpportunityStage(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               item.id,
                               value,

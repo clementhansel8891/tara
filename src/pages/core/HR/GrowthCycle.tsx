@@ -35,14 +35,14 @@ export default function GrowthCycle() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await performanceService.getCycleOverview(session.tenantId, session);
+        const data = await performanceService.getCycleOverview(session.tenant_id, session);
         setOverview(data);
       } catch (err) {
         console.error("Failed to load growth cycle data", err);
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const filteredCycles = overview.cycles.filter((cycle) =>
     search ? cycle.name.toLowerCase().includes(search.toLowerCase()) : true,
@@ -81,7 +81,7 @@ export default function GrowthCycle() {
             onClick={() => {
               const target = overview.cycles[0];
               if (target) {
-                performanceService.runCalibration(session.tenantId, session, target.id);
+                performanceService.runCalibration(session.tenant_id, session, target.id);
                 setVersion((prev) => prev + 1);
               }
             }}
@@ -125,7 +125,7 @@ export default function GrowthCycle() {
                   size="sm"
                   variant="outline"
                   onClick={() => {
-                    performanceService.requestReviewApproval(session.tenantId, session, review.id, review.employeeId);
+                    performanceService.requestReviewApproval(session.tenant_id, session, review.id, review.employeeId);
                     setVersion((prev) => prev + 1);
                   }}
                 >
@@ -162,7 +162,7 @@ export default function GrowthCycle() {
             <Input value={cycleDue} onChange={(e) => setCycleDue(e.target.value)} />
             <Button
               onClick={() => {
-                performanceService.createReviewCycle(session.tenantId, session, {
+                performanceService.createReviewCycle(session.tenant_id, session, {
                   name: cycleName,
                   status: "draft",
                   startDate: cycleStart,
@@ -201,7 +201,7 @@ export default function GrowthCycle() {
             <Button
               onClick={() => {
                 if (selectedCycle) {
-                  performanceService.launchCycle(session.tenantId, session, selectedCycle);
+                  performanceService.launchCycle(session.tenant_id, session, selectedCycle);
                 }
                 setNotes("");
                 setActionOpen(false);

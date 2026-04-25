@@ -46,7 +46,7 @@ export default function CoreFinance() {
     async function load() {
       try {
         const res = await financeService.getFinanceOverview(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         setData(res);

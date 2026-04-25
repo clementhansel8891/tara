@@ -46,7 +46,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/inventory")
+@Controller('inventory')
 @UseInterceptors(TenantInterceptor)
 @UseGuards(
   ModuleStateGuard,
@@ -68,7 +68,7 @@ export class InventoryController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const dashboardData = await this.inventoryService.getDashboard(tenant_id);
+    const dashboardData = await this.inventoryService.getDashboard(request.tenantContext);
 
     const moduleContributions: any = {};
     if (await isModuleActive(this.prisma, tenant_id, "retail")) {
@@ -111,7 +111,7 @@ export class InventoryController {
   @Get("items")
   async getItems(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getItems(tenant_id);
+    const data = await this.inventoryService.getItems(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -126,7 +126,7 @@ export class InventoryController {
       success: true,
       tenant_id,
       message: "Inventory item created",
-      data: await this.inventoryService.createItem(tenant_id, dto, user_id),
+      data: await this.inventoryService.createItem(request.tenantContext, dto, user_id),
     };
   }
 
@@ -138,7 +138,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     await this.inventoryService.batchDeleteItems(
-      tenant_id,
+      request.tenantContext,
       body.itemIds,
       user_id,
     );
@@ -156,7 +156,7 @@ export class InventoryController {
     @Param("id") item_id: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    await this.inventoryService.deleteItem(tenant_id, item_id, user_id);
+    await this.inventoryService.deleteItem(request.tenantContext, item_id, user_id);
     return {
       success: true,
       tenant_id,
@@ -198,7 +198,7 @@ export class InventoryController {
     }
 
     const imported = await this.inventoryService.batchCreateItems(
-      tenant_id,
+      request.tenantContext,
       result.data,
       user_id,
     );
@@ -242,7 +242,7 @@ export class InventoryController {
     }));
 
     const items = await this.inventoryService.batchCreateItems(
-      tenant_id,
+      request.tenantContext,
       data as CreateItemDto[],
       user_id,
     );
@@ -264,7 +264,7 @@ export class InventoryController {
     @Query("wmY") wmY?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const items = await this.inventoryService.getItems(tenant_id);
+    const items = await this.inventoryService.getItems(request.tenantContext);
 
     const traceId = uuidv4();
     const buffer = await this.fileProcessingService.generateExcel(
@@ -319,7 +319,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id } = request.tenantContext;
     const data = await this.inventoryService.getBalances(
-      tenant_id,
+      request.tenantContext,
       location_id,
       departmentId,
     );
@@ -332,7 +332,7 @@ export class InventoryController {
     @Query("item_id") item_id?: string,
   ) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getMovements(tenant_id, item_id);
+    const data = await this.inventoryService.getMovements(request.tenantContext, item_id);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -348,7 +348,7 @@ export class InventoryController {
       success: true,
       tenant_id,
       message: "Stock intake recorded",
-      data: await this.inventoryService.intakeStock(tenant_id, dto, user_id),
+      data: await this.inventoryService.intakeStock(request.tenantContext, dto, user_id),
     };
   }
 
@@ -364,7 +364,7 @@ export class InventoryController {
       success: true,
       tenant_id,
       message: "Stock transfer recorded",
-      data: await this.inventoryService.transferStock(tenant_id, dto, user_id),
+      data: await this.inventoryService.transferStock(request.tenantContext, dto, user_id),
     };
   }
 
@@ -383,7 +383,7 @@ export class InventoryController {
       tenant_id,
       message: "Stock consumption recorded",
       data: await this.inventoryService.consumeStock(
-        tenant_id,
+        request.tenantContext,
         dto,
         user_id,
         null,
@@ -402,7 +402,7 @@ export class InventoryController {
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    await this.inventoryService.reserveStock(tenant_id, dto, user_id || "system", correlation_id);
+    await this.inventoryService.reserveStock(request.tenantContext, dto, user_id || "system", correlation_id);
     return { success: true, message: "Stock reserved" };
   }
 
@@ -414,7 +414,7 @@ export class InventoryController {
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    await this.inventoryService.releaseStock(tenant_id, dto, user_id || "system", correlation_id);
+    await this.inventoryService.releaseStock(request.tenantContext, dto, user_id || "system", correlation_id);
     return { success: true, message: "Stock released" };
   }
 
@@ -426,7 +426,7 @@ export class InventoryController {
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    await this.inventoryService.confirmReservation(tenant_id, dto, user_id || "system", correlation_id);
+    await this.inventoryService.confirmReservation(request.tenantContext, dto, user_id || "system", correlation_id);
     return { success: true, message: "Reservation confirmed and stock consumed" };
   }
 
@@ -440,7 +440,7 @@ export class InventoryController {
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const result = await this.inventoryService.initiateTransfer(tenant_id, dto, user_id || "system", correlation_id);
+    const result = await this.inventoryService.initiateTransfer(request.tenantContext, dto, user_id || "system", correlation_id);
     return { success: true, message: "Transfer initiated (In-Transit)", ...result };
   }
 
@@ -452,7 +452,7 @@ export class InventoryController {
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.completeTransfer(tenant_id, dto, user_id || "system", correlation_id);
+    const data = await this.inventoryService.completeTransfer(request.tenantContext, dto, user_id || "system", correlation_id);
     return { success: true, message: "Transfer completed (Received)", data };
   }
 
@@ -461,7 +461,7 @@ export class InventoryController {
   @Get("stock-transfers")
   async getTransfers(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getAllTransfers(tenant_id);
+    const data = await this.inventoryService.getAllTransfers(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -472,7 +472,7 @@ export class InventoryController {
     @Body() dto: any,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.createTransfer(tenant_id, dto, user_id || "system");
+    const data = await this.inventoryService.createTransfer(request.tenantContext, dto, user_id || "system");
     return { success: true, tenant_id, message: "Stock transfer requested", data };
   }
 
@@ -483,7 +483,7 @@ export class InventoryController {
     @Param("id") id: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.pickTransfer(tenant_id, id, user_id || "system");
+    const data = await this.inventoryService.pickTransfer(request.tenantContext, id, user_id || "system");
     return { success: true, tenant_id, message: "Transfer picked", data };
   }
 
@@ -495,7 +495,7 @@ export class InventoryController {
     @Body() body: { tracking_number: string },
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.shipTransfer(tenant_id, id, body.tracking_number, user_id || "system");
+    const data = await this.inventoryService.shipTransfer(request.tenantContext, id, body.tracking_number, user_id || "system");
     return { success: true, tenant_id, message: "Transfer shipped (In-Transit)", data };
   }
 
@@ -506,7 +506,7 @@ export class InventoryController {
     @Param("id") id: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.receiveTransfer(tenant_id, id, user_id || "system");
+    const data = await this.inventoryService.receiveTransfer(request.tenantContext, id, user_id || "system");
     return { success: true, tenant_id, message: "Transfer received", data };
   }
 
@@ -517,7 +517,7 @@ export class InventoryController {
     @Query("location_id") location_id?: string,
   ) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    await this.inventoryService.runStockSnapshot(tenant_id, location_id || "ALL");
+    await this.inventoryService.runStockSnapshot(request.tenantContext, location_id || "ALL");
     return { success: true, message: "Stock snapshot taken" };
   }
 
@@ -528,7 +528,7 @@ export class InventoryController {
     @Query("category") category: string,
   ) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const sku = await this.skuGenerator.generateSku(tenant_id, category);
+    const sku = await this.skuGenerator.generateSku(request.tenantContext, category);
     return { success: true, tenant_id, sku };
   }
 
@@ -538,7 +538,7 @@ export class InventoryController {
     @Query("sku") sku: string,
   ) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const barcode = this.skuGenerator.generateBarcode(tenant_id, sku);
+    const barcode = this.skuGenerator.generateBarcode(request.tenantContext, sku);
     return { success: true, tenant_id, barcode };
   }
 
@@ -578,7 +578,7 @@ export class InventoryController {
   @Get("items/pending")
   async getPendingItems(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getPendingItems(tenant_id);
+    const data = await this.inventoryService.getPendingItems(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -589,7 +589,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const item = await this.inventoryService.approveItem(
-      tenant_id,
+      request.tenantContext,
       item_id,
       user_id || "system",
     );
@@ -608,7 +608,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const item = await this.inventoryService.rejectItem(
-      tenant_id,
+      request.tenantContext,
       item_id,
       user_id || "system",
     );
@@ -631,7 +631,7 @@ export class InventoryController {
       tenant_id,
       message: "Movement request created",
       data: await this.inventoryService.createMovementRequest(
-        tenant_id,
+        request.tenantContext,
         dto,
         user_id,
       ),
@@ -643,7 +643,7 @@ export class InventoryController {
   @Get("adjustments")
   async getAdjustments(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getAdjustments(tenant_id);
+    const data = await this.inventoryService.getAdjustments(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -654,7 +654,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const data = await this.inventoryService.createAdjustment(
-      tenant_id,
+      request.tenantContext,
       dto,
       user_id,
     );
@@ -679,7 +679,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const data = await this.inventoryService.approveAdjustment(
-      tenant_id,
+      request.tenantContext,
       adjustmentId,
       body.approvedBy || user_id || "system",
     );
@@ -699,7 +699,7 @@ export class InventoryController {
   @Get("alerts")
   async getAlerts(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getAlerts(tenant_id);
+    const data = await this.inventoryService.getAlerts(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -711,7 +711,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const data = await this.inventoryService.setAlertStatus(
-      tenant_id,
+      request.tenantContext,
       alertId,
       body.status,
     );
@@ -732,7 +732,7 @@ export class InventoryController {
   @Get("audit-cycles")
   async getAuditCycles(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getAuditCycles(tenant_id);
+    const data = await this.inventoryService.getAuditCycles(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -743,7 +743,7 @@ export class InventoryController {
     @Body() body: { locationCode: string; departmentCode?: string; scope: string },
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.createAuditCycle(tenant_id, {
+    const data = await this.inventoryService.createAuditCycle(request.tenantContext, {
       ...body,
       createdBy: user_id || "system",
     });
@@ -781,7 +781,7 @@ export class InventoryController {
     @Body() body: { countedValue?: number; varianceValue?: number; status?: string; closedBy?: string },
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.updateAuditCycle(tenant_id, cycleId, {
+    const data = await this.inventoryService.updateAuditCycle(request.tenantContext, cycleId, {
       ...body,
       closedBy: body.closedBy || user_id || "system",
     });
@@ -802,7 +802,7 @@ export class InventoryController {
   @Get("integration-events")
   async getIntegrationEvents(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getIntegrationEvents(tenant_id);
+    const data = await this.inventoryService.getIntegrationEvents(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -812,7 +812,7 @@ export class InventoryController {
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async runLowStockScan(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const result = await this.inventoryService.runLowStockScan(tenant_id);
+    const result = await this.inventoryService.runLowStockScan(request.tenantContext);
     await this.auditService.log({
       tenant_id: tenant_id,
       user_id: user_id || "system",
@@ -829,7 +829,7 @@ export class InventoryController {
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async runExpiryScan(@Req() request: RequestWithTenant) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const result = await this.inventoryService.runExpiryScan(tenant_id);
+    const result = await this.inventoryService.runExpiryScan(request.tenantContext);
     await this.auditService.log({
       tenant_id: tenant_id,
       user_id: user_id || "system",
@@ -851,7 +851,7 @@ export class InventoryController {
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
     const data = await this.inventoryService.batchIntakeStock(
-      tenant_id,
+      request.tenantContext,
       body.items || [],
       user_id,
     );
@@ -871,7 +871,7 @@ export class InventoryController {
     @Body() body: any,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
-    const data = await this.inventoryService.requestProcurement(tenant_id, {
+    const data = await this.inventoryService.requestProcurement(request.tenantContext, {
       ...body,
       requesterId: user_id || body.requesterId,
     });

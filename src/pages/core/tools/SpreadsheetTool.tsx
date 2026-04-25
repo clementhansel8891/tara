@@ -67,9 +67,9 @@ export default function SpreadsheetTool() {
               onClick={() => {
                 const content = JSON.stringify(grid);
                 if (selectedId) {
-                  updateFile(session.tenantId, session, selectedId, { name: title, content });
+                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
                 } else {
-                  const record = createFile(session.tenantId, session, {
+                  const record = createFile(session.tenant_id, session, {
                     name: title,
                     type: "sheet",
                     content,
@@ -105,7 +105,7 @@ export default function SpreadsheetTool() {
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="space-y-2">
-                {(search ? listFiles(session.tenantId, session, "sheet").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenantId, session, "sheet")).map((file) => (
+                {(search ? listFiles(session.tenant_id, session, "sheet").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenant_id, session, "sheet")).map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
@@ -126,7 +126,7 @@ export default function SpreadsheetTool() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        moveToRecycle(session.tenantId, session, file.id);
+                        moveToRecycle(session.tenant_id, session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >
@@ -214,20 +214,20 @@ export default function SpreadsheetTool() {
         </WorkspacePanel>
 
         <WorkspacePanel title="Recycle bin" description="Only owners/admins can restore.">
-          {listRecycleBin(session.tenantId, session, "sheet").length === 0 ? (
+          {listRecycleBin(session.tenant_id, session, "sheet").length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               Recycle bin is empty.
             </div>
           ) : (
             <div className="space-y-2">
-              {listRecycleBin(session.tenantId, session, "sheet").map((file) => (
+              {listRecycleBin(session.tenant_id, session, "sheet").map((file) => (
                 <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                   <div className="text-sm">{file.name}</div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      restoreFromRecycle(session.tenantId, session, file.id);
+                      restoreFromRecycle(session.tenant_id, session, file.id);
                       setVersion((prev) => prev + 1);
                     }}
                   >

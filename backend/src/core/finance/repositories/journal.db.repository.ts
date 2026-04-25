@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../persistence/prisma.service';
@@ -8,7 +8,7 @@ import { LedgerPostingContext } from '../domain/ledger-posting-context';
 
 @Injectable()
 export class JournalDbRepository implements IJournalRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   private get db(): Prisma.TransactionClient {
     return this.prisma as Prisma.TransactionClient;

@@ -55,14 +55,14 @@ export default function CampaignDesk() {
 
   const refresh = useCallback(async () => {
     try {
-      const c = await marketingService.listCampaigns(session.tenantId, session);
+      const c = await marketingService.listCampaigns(session.tenant_id, session);
       setCampaigns(c);
     } catch (err) {
       console.error("Failed to fetch campaigns:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -158,7 +158,7 @@ export default function CampaignDesk() {
           onClick={async () => {
             if (!name) return;
             try {
-              await marketingService.createCampaign(session.tenantId, session, {
+              await marketingService.createCampaign(session.tenant_id, session, {
                 name,
                 objective,
                 channelMix: CHANNEL_PRESETS[objective],
@@ -222,7 +222,7 @@ export default function CampaignDesk() {
                           e.stopPropagation();
                           try {
                             await marketingService.updateCampaignStatus(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               item.id,
                               "SCHEDULED",
@@ -243,7 +243,7 @@ export default function CampaignDesk() {
                           e.stopPropagation();
                           try {
                             await marketingService.updateCampaignStatus(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               item.id,
                               "ACTIVE",
@@ -264,7 +264,7 @@ export default function CampaignDesk() {
                           e.stopPropagation();
                           try {
                             await marketingService.updateCampaignStatus(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               item.id,
                               "PAUSED",

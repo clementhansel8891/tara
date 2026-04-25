@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { CaptureLeadDto } from "../dto/capture-lead.dto";
 import { ConnectAccountDto } from "../dto/connect-account.dto";
 import { CreateCampaignDto } from "../dto/create-campaign.dto";
@@ -35,92 +36,77 @@ export type MarketingChannelPerformance = {
 };
 
 export abstract class IMarketingRepository {
-  abstract getDashboard(tenant_id: string): Promise<MarketingDashboard>;
-  abstract getChannelPerformance(
-    tenant_id: string,
+  abstract getDashboard( ctx: TenantContext): Promise<MarketingDashboard>;
+  abstract getChannelPerformance( ctx: TenantContext,
   ): Promise<MarketingChannelPerformance[]>;
 
-  abstract getCampaigns(tenant_id: string): Promise<MarketingCampaign[]>;
-  abstract createCampaign(
-    tenant_id: string,
+  abstract getCampaigns( ctx: TenantContext): Promise<MarketingCampaign[]>;
+  abstract createCampaign( ctx: TenantContext,
     dto: CreateCampaignDto,
     actor_id: string,
   ): Promise<MarketingCampaign>;
-  abstract updateCampaignStatus(
-    tenant_id: string,
+  abstract updateCampaignStatus( ctx: TenantContext,
     campaignId: string,
     dto: UpdateCampaignStatusDto,
     actor_id: string,
   ): Promise<MarketingCampaign>;
 
-  abstract getExecutions(tenant_id: string): Promise<MarketingExecution[]>;
-  abstract scheduleExecution(
-    tenant_id: string,
+  abstract getExecutions( ctx: TenantContext): Promise<MarketingExecution[]>;
+  abstract scheduleExecution( ctx: TenantContext,
     dto: ScheduleExecutionDto,
     actor_id: string,
   ): Promise<MarketingExecution>;
-  abstract runExecution(
-    tenant_id: string,
+  abstract runExecution( ctx: TenantContext,
     executionId: string,
     dto: RunExecutionDto,
     actor_id: string,
   ): Promise<MarketingExecution>;
 
-  abstract getLeads(tenant_id: string): Promise<MarketingLead[]>;
-  abstract captureLead(
-    tenant_id: string,
+  abstract getLeads( ctx: TenantContext): Promise<MarketingLead[]>;
+  abstract captureLead( ctx: TenantContext,
     dto: CaptureLeadDto,
     actor_id: string,
   ): Promise<MarketingLead>;
-  abstract markLeadHandoffReady(
-    tenant_id: string,
+  abstract markLeadHandoffReady( ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<MarketingLead>;
-  abstract handoffLeadToSales(
-    tenant_id: string,
+  abstract handoffLeadToSales( ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<MarketingLead>;
 
-  abstract getWorkflows(tenant_id: string): Promise<MarketingWorkflow[]>;
-  abstract createWorkflow(
-    tenant_id: string,
+  abstract getWorkflows( ctx: TenantContext): Promise<MarketingWorkflow[]>;
+  abstract createWorkflow( ctx: TenantContext,
     dto: CreateWorkflowDto,
     actor_id: string,
   ): Promise<MarketingWorkflow>;
-  abstract updateWorkflowStatus(
-    tenant_id: string,
+  abstract updateWorkflowStatus( ctx: TenantContext,
     workflowId: string,
     dto: UpdateWorkflowStatusDto,
     actor_id: string,
   ): Promise<MarketingWorkflow>;
 
-  abstract getConnectedAccounts(
-    tenant_id: string,
+  abstract getConnectedAccounts( ctx: TenantContext,
   ): Promise<MarketingConnectedAccount[]>;
-  abstract connectAccount(
-    tenant_id: string,
+  abstract connectAccount( ctx: TenantContext,
     dto: ConnectAccountDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount>;
-  abstract updateAccountStatus(
-    tenant_id: string,
+  abstract updateAccountStatus( ctx: TenantContext,
     accountId: string,
     dto: UpdateAccountStatusDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount>;
 
-  abstract getAttribution(tenant_id: string): Promise<MarketingAttribution[]>;
-  abstract getAlerts(tenant_id: string): Promise<MarketingAlert[]>;
-  abstract acknowledgeAlert(
-    tenant_id: string,
+  abstract getAttribution( ctx: TenantContext): Promise<MarketingAttribution[]>;
+  abstract getAlerts( ctx: TenantContext): Promise<MarketingAlert[]>;
+  abstract acknowledgeAlert( ctx: TenantContext,
     alertId: string,
   ): Promise<MarketingAlert>;
-  abstract runHealthSweep(
-    tenant_id: string,
+  abstract runHealthSweep( ctx: TenantContext,
     actor_id: string,
   ): Promise<MarketingAlert[]>;
 
-  abstract getAuditEvents(tenant_id: string): Promise<MarketingAuditEvent[]>;
+  abstract getAuditEvents( ctx: TenantContext): Promise<MarketingAuditEvent[]>;
 }

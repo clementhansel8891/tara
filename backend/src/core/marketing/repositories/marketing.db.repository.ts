@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../../persistence/prisma.service";
 import {
@@ -22,6 +24,7 @@ import { CreateWorkflowDto } from "../dto/create-workflow.dto";
 import { UpdateWorkflowStatusDto } from "../dto/update-workflow-status.dto";
 import { ConnectAccountDto } from "../dto/connect-account.dto";
 import { UpdateAccountStatusDto } from "../dto/update-account-status.dto";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class MarketingDbRepository extends IMarketingRepository {
@@ -92,21 +95,21 @@ export class MarketingDbRepository extends IMarketingRepository {
   }
 
   // Implementation
-  async getDashboard(tenant_id: string): Promise<MarketingDashboard> {
+  async getDashboard(ctx: TenantContext): Promise<MarketingDashboard> {
     const [campaigns, leads, executions, accounts, attribution] =
       await Promise.all([
         this.prisma.marketing_campaigns.findMany({
-          where: { tenant_id: tenant_id },
+          where: MultiTenancyUtil.getScope(ctx),
         }),
-        this.prisma.marketing_leads.findMany({ where: { tenant_id: tenant_id } }),
+        this.prisma.marketing_leads.findMany({ where: MultiTenancyUtil.getScope(ctx) }),
         this.prisma.marketing_executions.findMany({
-          where: { tenant_id: tenant_id },
+          where: MultiTenancyUtil.getScope(ctx),
         }),
         this.prisma.marketing_accounts.findMany({
-          where: { tenant_id: tenant_id },
+          where: MultiTenancyUtil.getScope(ctx),
         }),
         this.prisma.marketing_attribution.findMany({
-          where: { tenant_id: tenant_id },
+          where: MultiTenancyUtil.getScope(ctx),
         }),
       ]);
 
@@ -141,11 +144,10 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async getChannelPerformance(
-    tenant_id: string,
+  async getChannelPerformance(ctx: TenantContext,
   ): Promise<MarketingChannelPerformance[]> {
     const executions = await this.prisma.marketing_executions.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
 
     const groups = executions.reduce(
@@ -167,24 +169,23 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async getCampaigns(tenant_id: string): Promise<MarketingCampaign[]> {
+  async getCampaigns(ctx: TenantContext): Promise<MarketingCampaign[]> {
     const items = await this.prisma.marketing_campaigns.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
     return items.map((i: any) => this.mapCampaign(i));
   }
 
-  async createCampaign(
-    tenant_id: string,
+  async createCampaign(ctx: TenantContext,
     dto: CreateCampaignDto,
     actor_id: string,
   ): Promise<MarketingCampaign> {
     const item = await this.prisma.marketing_campaigns.create({
       data: {
-        id: '30f50s4a',
+        id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         name: dto.name,
         objective: dto.objective,
         channel_mix: dto.channel_mix,
@@ -202,35 +203,33 @@ export class MarketingDbRepository extends IMarketingRepository {
     return this.mapCampaign(item);
   }
 
-  async updateCampaignStatus(
-    tenant_id: string,
+  async updateCampaignStatus(ctx: TenantContext,
     id: string,
     dto: UpdateCampaignStatusDto,
   ): Promise<MarketingCampaign> {
     const item = await this.prisma.marketing_campaigns.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { status: dto.status.toUpperCase() },
     });
     return this.mapCampaign(item);
   }
 
-  async getExecutions(tenant_id: string): Promise<MarketingExecution[]> {
+  async getExecutions(ctx: TenantContext): Promise<MarketingExecution[]> {
     const items = await this.prisma.marketing_executions.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { scheduled_at: "desc" },
     });
     return items.map((i: any) => this.mapExecution(i));
   }
 
-  async scheduleExecution(
-    tenant_id: string,
+  async scheduleExecution(ctx: TenantContext,
     dto: ScheduleExecutionDto,
   ): Promise<MarketingExecution> {
     const item = await this.prisma.marketing_executions.create({
       data: {
-        id: 'x4fyl78q',
+        id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         campaign_id: dto.campaignId,
         channel: dto.channel,
         scheduled_at: new Date(dto.scheduledAt),
@@ -243,13 +242,12 @@ export class MarketingDbRepository extends IMarketingRepository {
     return this.mapExecution(item);
   }
 
-  async runExecution(
-    tenant_id: string,
+  async runExecution(ctx: TenantContext,
     id: string,
     dto: RunExecutionDto,
   ): Promise<MarketingExecution> {
     const item = await this.prisma.marketing_executions.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         status: dto.failed ? "FAILED" : "COMPLETED",
         leads_generated: dto.leadsGenerated,
@@ -259,25 +257,24 @@ export class MarketingDbRepository extends IMarketingRepository {
     return this.mapExecution(item);
   }
 
-  async getLeads(tenant_id: string): Promise<MarketingLead[]> {
+  async getLeads(ctx: TenantContext): Promise<MarketingLead[]> {
     const items = await this.prisma.marketing_leads.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
     return items.map((i: any) => this.mapLead(i));
   }
 
-  async captureLead(
-    tenant_id: string,
+  async captureLead(ctx: TenantContext,
     dto: CaptureLeadDto,
   ): Promise<MarketingLead> {
     const dedupKey =
       `${dto.company_name}-${dto.email || dto.phone || dto.contact_name}`.toLowerCase();
     const item = await this.prisma.marketing_leads.create({
       data: {
-        id: 'b6fcz6j7',
+        id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         campaign_id: dto.campaignId,
         source: dto.source,
         company_name: dto.company_name,
@@ -296,31 +293,29 @@ export class MarketingDbRepository extends IMarketingRepository {
     return this.mapLead(item);
   }
 
-  async markLeadHandoffReady(
-    tenant_id: string,
+  async markLeadHandoffReady(ctx: TenantContext,
     id: string,
   ): Promise<MarketingLead> {
     const item = await this.prisma.marketing_leads.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { status: "HANDOFF_READY" },
     });
     return this.mapLead(item);
   }
 
-  async handoffLeadToSales(
-    tenant_id: string,
+  async handoffLeadToSales(ctx: TenantContext,
     id: string,
   ): Promise<MarketingLead> {
     const item = await this.prisma.marketing_leads.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { status: "HANDOFF_SENT" },
     });
     return this.mapLead(item);
   }
 
-  async getWorkflows(tenant_id: string): Promise<MarketingWorkflow[]> {
+  async getWorkflows(ctx: TenantContext): Promise<MarketingWorkflow[]> {
     const items = await this.prisma.marketing_workflows.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
     return items.map((i: any) => ({
       id: i.id,
@@ -335,15 +330,14 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async createWorkflow(
-    tenant_id: string,
+  async createWorkflow(ctx: TenantContext,
     dto: CreateWorkflowDto,
   ): Promise<MarketingWorkflow> {
     const item = await this.prisma.marketing_workflows.create({
       data: {
-        id: 'v77e462a',
+        id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         name: dto.name,
         trigger: dto.trigger,
         status: "DRAFT",
@@ -363,13 +357,12 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async updateWorkflowStatus(
-    tenant_id: string,
+  async updateWorkflowStatus(ctx: TenantContext,
     id: string,
     dto: UpdateWorkflowStatusDto,
   ): Promise<MarketingWorkflow> {
     const item = await this.prisma.marketing_workflows.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { status: dto.status.toUpperCase() },
     });
     return {
@@ -385,11 +378,10 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async getConnectedAccounts(
-    tenant_id: string,
+  async getConnectedAccounts(ctx: TenantContext,
   ): Promise<MarketingConnectedAccount[]> {
     const items = await this.prisma.marketing_accounts.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
     return items.map((i: any) => ({
       id: i.id,
@@ -405,15 +397,14 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async connectAccount(
-    tenant_id: string,
+  async connectAccount(ctx: TenantContext,
     dto: ConnectAccountDto,
   ): Promise<MarketingConnectedAccount> {
     const item = await this.prisma.marketing_accounts.create({
       data: {
-        id: 'e7imhqu6',
+        id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         provider: dto.provider,
         account_name: dto.account_name,
         status: "CONNECTED",
@@ -436,13 +427,12 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async updateAccountStatus(
-    tenant_id: string,
+  async updateAccountStatus(ctx: TenantContext,
     id: string,
     dto: UpdateAccountStatusDto,
   ): Promise<MarketingConnectedAccount> {
     const item = await this.prisma.marketing_accounts.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { status: dto.status.toUpperCase() },
     });
     return {
@@ -459,9 +449,9 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async getAttribution(tenant_id: string): Promise<MarketingAttribution[]> {
+  async getAttribution(ctx: TenantContext): Promise<MarketingAttribution[]> {
     const items = await this.prisma.marketing_attribution.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
     return items.map((i: any) => ({
@@ -477,9 +467,9 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async getAlerts(tenant_id: string): Promise<MarketingAlert[]> {
+  async getAlerts(ctx: TenantContext): Promise<MarketingAlert[]> {
     const items = await this.prisma.marketing_alerts.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
     return items.map((i: any) => ({
@@ -496,12 +486,11 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async acknowledgeAlert(
-    tenant_id: string,
+  async acknowledgeAlert(ctx: TenantContext,
     id: string,
   ): Promise<MarketingAlert> {
     const item = await this.prisma.marketing_alerts.update({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: { acknowledged: true },
     });
     return {
@@ -518,13 +507,13 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
-  async runHealthSweep(tenant_id: string): Promise<MarketingAlert[]> {
-    return this.getAlerts(tenant_id);
+  async runHealthSweep(ctx: TenantContext, actor_id: string): Promise<MarketingAlert[]> {
+    return this.getAlerts(ctx);
   }
 
-  async getAuditEvents(tenant_id: string): Promise<MarketingAuditEvent[]> {
+  async getAuditEvents(ctx: TenantContext): Promise<MarketingAuditEvent[]> {
     const items = await this.prisma.marketing_audit_events.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
       orderBy: { created_at: "desc" },
     });
     return items.map((i: any) => ({

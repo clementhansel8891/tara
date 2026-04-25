@@ -7,6 +7,7 @@ import { FinanceFiscalPeriod, FinanceFiscalYear, PeriodClosingRecord } from '../
 @Injectable()
 export class FiscalPeriodService {
   constructor(
+    @Inject('IFiscalPeriodRepository')
     private readonly fiscalRepo: IFiscalPeriodRepository,
     @Inject('IJournalRepository')
     private readonly journalRepo: IJournalRepository,

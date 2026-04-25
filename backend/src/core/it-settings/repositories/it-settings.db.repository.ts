@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable } from "@nestjs/common";
 import { it_devices as PrismaDevice, it_settings as PrismaITSetting } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
@@ -14,10 +16,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     super();
   }
 
-  async getDevices(tenant_id: string, location_id?: string): Promise<Device[]> {
+  async getDevices(ctx: TenantContext, location_id?: string): Promise<Device[]> {
     const devices = await this.prisma.it_devices.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...(location_id ? { location_id } : {}),
       },
     });
@@ -38,8 +40,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     }));
   }
 
-  async registerDevice(
-    tenant_id: string,
+  async registerDevice(ctx: TenantContext,
     data: RegisterDeviceDto,
   ): Promise<Device> {
     const created = await this.prisma.it_devices.create({
@@ -47,7 +48,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
           updated_at: new Date(),
         id: uuidv4(),
 
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         location_id: data.location_id,
         type: data.deviceType,
         name: data.deviceName,
@@ -76,13 +77,12 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     };
   }
 
-  async updateDeviceStatus(
-    tenant_id: string,
+  async updateDeviceStatus(ctx: TenantContext,
     device_id: string,
     status: string,
   ): Promise<Device> {
     const updated = await this.prisma.it_devices.update({
-      where: { id: device_id, tenant_id: tenant_id },
+      where: { id: device_id, tenant_id: ctx.tenant_id },
       data: { status },
     });
 
@@ -102,10 +102,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     };
   }
 
-  async getSettings(tenant_id: string, category?: string): Promise<Setting[]> {
+  async getSettings(ctx: TenantContext, category?: string): Promise<Setting[]> {
     const settings = await this.prisma.it_settings.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...(category ? { category } : {}),
       },
     });
@@ -123,9 +123,9 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     }));
   }
 
-  async getSetting(tenant_id: string, key: string): Promise<Setting | null> {
+  async getSetting(ctx: TenantContext, key: string): Promise<Setting | null> {
     const setting = await this.prisma.it_settings.findUnique({
-      where: { tenant_id_key: { tenant_id: tenant_id, key } },
+      where: { tenant_id_key: { ...MultiTenancyUtil.getScope(ctx), key } },
     });
 
     if (!setting) return null;
@@ -143,13 +143,12 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
     };
   }
 
-  async updateSetting(
-    tenant_id: string,
+  async updateSetting(ctx: TenantContext,
     key: string,
     data: UpdateSettingDto,
   ): Promise<Setting> {
     const updated = await this.prisma.it_settings.upsert({
-      where: { tenant_id_key: { tenant_id: tenant_id, key } },
+      where: { tenant_id_key: { ...MultiTenancyUtil.getScope(ctx), key } },
       update: {
         value: data.value,
         category: data.category,
@@ -157,7 +156,7 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
         description: data.description,
       },
       create: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         key,
         value: data.value,
         category: data.category || "general",

@@ -1,21 +1,21 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { ISensorRepository, SensorData } from './repositories/interfaces/sensor.repository.interface';
+import { Injectable, Logger } from '@nestjs/common';
+import { FarmingRepository as IFarmingRepository, SensorData } from './repositories/farming.repository';
+import { TenantContext } from '../../gateway/tenant-context.interface';
 
 @Injectable()
 export class IoTGatewayService {
   private readonly logger = new Logger(IoTGatewayService.name);
 
   constructor(
-    @Inject('ISensorRepository')
-    private readonly sensorRepo: ISensorRepository
+    private readonly sensorRepo: IFarmingRepository
   ) {}
 
   /**
    * Primary HTTP JSON Entry Point.
    * Standardizes incoming telemetry before persistence.
    */
-  async handleHttpTelemetry(tenant_id: string, payload: any, forensicInfo?: { ip?: string; deviceModel?: string }): Promise<{ status: string; ids: string[] }> {
-    this.logger.log(`IoT Gateway: Standardizing JSON Telemetry for tenant ${tenant_id}`);
+  async handleHttpTelemetry(ctx: TenantContext, payload: any, forensicInfo?: { ip?: string; deviceModel?: string }): Promise<{ status: string; ids: string[] }> {
+    this.logger.log(`IoT Gateway: Standardizing JSON Telemetry for tenant ${ctx.tenant_id}`);
     
     const readings: Partial<SensorData>[] = Array.isArray(payload) ? payload : [payload];
     
@@ -28,11 +28,26 @@ export class IoTGatewayService {
       metadata: { ...r.metadata, ingestionMethod: 'HTTP_JSON' }
     }));
 
-    const ids = await this.sensorRepo.logSensorReadings(tenant_id, processedReadings);
+    const ids = await (this.sensorRepo as any).logSensorReadings(ctx, processedReadings);
 
     // Auto-anchor critical readings (e.g., integrity check)
-    for (const id of ids) {
-        await this.sensorRepo.anchorReadingToAuditChain(tenant_id, id, forensicInfo);
+    for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const reading = processedReadings[i];
+        
+        // Construct SensorData from partial for the audit log
+        const fullData: SensorData = {
+          id: id,
+          tenant_id: ctx.tenant_id,
+          sensor_id: reading.sensor_id!,
+          sensorType: reading.sensorType || 'GENERIC',
+          value: reading.value as any,
+          unit: reading.unit || 'n/a',
+          timestamp: reading.timestamp || new Date(),
+          metadata: reading.metadata || {},
+        };
+
+        await this.sensorRepo.logSensorDataToAuditChain(ctx, fullData);
     }
 
     return { status: 'SUCCESS', ids };
@@ -42,7 +57,7 @@ export class IoTGatewayService {
    * Future MQTT Hook - Placeholder
    * Design is ready for MQTT subscription logic.
    */
-  async handleMqttTelemetry(tenant_id: string, topic: string, message: Buffer): Promise<void> {
+  async handleMqttTelemetry(ctx: TenantContext, topic: string, message: Buffer): Promise<void> {
     this.logger.log(`IoT Gateway: MQTT Hook triggered for topic ${topic} (Ready for implementation)`);
     // Parsing and routing logic would go here
   }

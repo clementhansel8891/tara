@@ -39,7 +39,7 @@ export class TenantGuard implements CanActivate {
     }
 
     // 2. OWNER & ALL OTHERS: Verify tenant association
-    const userCompanies = user.userCompanies || [];
+    const userCompanies = user.user_companies || user.userCompanies || [];
     const tenantAssoc = userCompanies.find(
       (uc: any) => uc.tenant_id === tenant_id,
     );
@@ -48,6 +48,10 @@ export class TenantGuard implements CanActivate {
       console.warn(
         `[TenantGuard] Access DENIED: No association found for user ${user.id} on tenant ${tenant_id}`,
       );
+      console.log(`[TenantGuard] Debug - User keys: ${Object.keys(user)}`);
+      console.log(`[TenantGuard] Debug - User ID in object: ${user.id}`);
+      console.log(`[TenantGuard] Debug - user_companies exists: ${!!user.user_companies}`);
+      console.log(`[TenantGuard] Debug - user_companies count: ${user.user_companies?.length ?? 'N/A'}`);
       console.log(
         `[TenantGuard] Available associations: ${JSON.stringify(userCompanies.map((uc: any) => uc.tenant_id))}`,
       );

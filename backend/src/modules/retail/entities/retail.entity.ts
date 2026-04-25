@@ -144,6 +144,7 @@ export class RetailProduct {
   status: "active" | "discontinued" | "draft";
   variants: ProductVariant[];
   seo?: SEOData;
+  stock?: number;
   metadata?: Record<string, any>;
   created_at: Date;
   updated_at: Date;

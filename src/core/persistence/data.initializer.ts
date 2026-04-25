@@ -49,7 +49,7 @@ class DataInitializer {
                  sku = EXCLUDED.sku, 
                  barcode = EXCLUDED.barcode, 
                  base_price = EXCLUDED.base_price`,
-              [p.id, session.tenantId, p.name, p.sku, p.barcode, p.description || "", p.unit || "PCS", p.base_price || 0, p.tax_rate || 0.11, p.status || "active"]
+              [p.id, session.tenant_id, p.name, p.sku, p.barcode, p.description || "", p.unit || "PCS", p.base_price || 0, p.tax_rate || 0.11, p.status || "active"]
             );
           }
         }
@@ -64,7 +64,7 @@ class DataInitializer {
                  first_name = EXCLUDED.first_name, 
                  last_name = EXCLUDED.last_name, 
                  position = EXCLUDED.position`,
-              [s.id, session.tenantId, s.first_name, s.last_name, s.email, s.position, s.location_id, s.status]
+              [s.id, session.tenant_id, s.first_name, s.last_name, s.email, s.position, s.location_id, s.status]
             );
           }
         }
@@ -78,7 +78,7 @@ class DataInitializer {
                ON CONFLICT (id) DO UPDATE SET 
                  name = EXCLUDED.name, 
                  code = EXCLUDED.code`,
-              [l.id, session.tenantId, l.name, l.code, l.type, l.status]
+              [l.id, session.tenant_id, l.name, l.code, l.type, l.status]
             );
           }
         }
@@ -92,7 +92,7 @@ class DataInitializer {
                ON CONFLICT (id) DO UPDATE SET 
                  on_hand = EXCLUDED.on_hand, 
                  available = EXCLUDED.available`,
-              [sl.id, session.tenantId, sl.location_id, sl.product_id, sl.on_hand, sl.reserved, sl.available, sl.min_buffer, sl.max_capacity]
+              [sl.id, session.tenant_id, sl.location_id, sl.product_id, sl.on_hand, sl.reserved, sl.available, sl.min_buffer, sl.max_capacity]
             );
           }
         }
@@ -106,7 +106,7 @@ class DataInitializer {
                ON CONFLICT (id) DO UPDATE SET 
                  price = EXCLUDED.price, 
                  is_current = EXCLUDED.is_current`,
-              [pr.id, session.tenantId, pr.sku_id, pr.price, pr.is_current]
+              [pr.id, session.tenant_id, pr.sku_id, pr.price, pr.is_current]
             );
           }
         }

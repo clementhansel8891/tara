@@ -82,23 +82,23 @@ export default function RetailPOS() {
 
   const handleStoreChange = useCallback(
     async (storeId: string) => {
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       try {
         const selected = await retailService.getStore(
-          session.tenantId,
+          session.tenant_id,
           storeId,
           session,
         );
         if (selected) {
           await retailService.validateAccess(
-            session.tenantId,
-            session.userId!,
+            session.tenant_id,
+            session.user_id!,
             selected.id,
             session,
           );
           setActiveStore(selected);
           const deviceList = await retailService.listDevices(
-            session.tenantId,
+            session.tenant_id,
             session,
             selected.id,
           );
@@ -118,10 +118,10 @@ export default function RetailPOS() {
 
   useEffect(() => {
     const initPOS = async () => {
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       try {
         const storeList = await retailService.listStores(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         setStores(storeList);
@@ -133,7 +133,7 @@ export default function RetailPOS() {
       }
     };
     initPOS();
-  }, [session.tenantId, session, handleStoreChange]); // Added handleStoreChange to dependency array
+  }, [session.tenant_id, session, handleStoreChange]); // Added handleStoreChange to dependency array
 
   const addToCart = (item: (typeof INVENTORY)[0]) => {
     setCart((prev) => {
@@ -155,11 +155,11 @@ export default function RetailPOS() {
   );
 
   const processCheckout = async () => {
-    if (!activeStore || !session.tenantId) return;
+    if (!activeStore || !session.tenant_id) return;
     try {
       // Atomic Backend Checkout with Idempotency
       const order = await retailService.checkout(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           store_id: activeStore.id,

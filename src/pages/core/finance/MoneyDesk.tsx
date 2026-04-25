@@ -76,11 +76,11 @@ export default function MoneyDesk() {
 
   const refreshDesk = useCallback(() => {
     financeService
-      .getAlerts(session.tenantId, session)
+      .getAlerts(session.tenant_id, session)
       .then(setAlerts)
       .catch(() => {});
     financeService
-      .getInbox(session.tenantId, session)
+      .getInbox(session.tenant_id, session)
       .then((inbox) => {
         setTasks(inbox);
         // Approvals = inbox items routed to finance that are pending
@@ -88,11 +88,11 @@ export default function MoneyDesk() {
       })
       .catch(() => {});
     financeService
-      .getMoneySources(session.tenantId, session)
+      .getMoneySources(session.tenant_id, session)
       .then(setMoneySources)
       .catch(() => {});
     financeService
-      .listPayments(session.tenantId, session)
+      .listPayments(session.tenant_id, session)
       .then(setPayments)
       .catch(() => {});
   }, [session]);
@@ -152,7 +152,7 @@ export default function MoneyDesk() {
         // Skip
       }
 
-      await financeService.createPaymentRequest(session.tenantId, session, {
+      await financeService.createPaymentRequest(session.tenant_id, session, {
         amount: Number(amount || "0"),
         method,
         source: source || undefined,
@@ -162,8 +162,8 @@ export default function MoneyDesk() {
         extraInfo: parsedExtra,
       });
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Created payment request from MoneyDesk",
         `${destination} - ${amount}`,
       );
@@ -187,11 +187,11 @@ export default function MoneyDesk() {
 
   const approveTask = (workflowId: string) => {
     financeService
-      .updatePaymentStatus(session.tenantId, workflowId, "APPROVED", session)
+      .updatePaymentStatus(session.tenant_id, workflowId, "APPROVED", session)
       .then(() => {
         logService.log(
-          session.tenantId,
-          session.userId,
+          session.tenant_id,
+          session.user_id,
           "Workflow approved",
           workflowId,
         );
@@ -207,11 +207,11 @@ export default function MoneyDesk() {
 
   const rejectTask = (workflowId: string) => {
     financeService
-      .updatePaymentStatus(session.tenantId, workflowId, "REJECTED", session)
+      .updatePaymentStatus(session.tenant_id, workflowId, "REJECTED", session)
       .then(() => {
         logService.log(
-          session.tenantId,
-          session.userId,
+          session.tenant_id,
+          session.user_id,
           "Workflow rejected",
           workflowId,
         );

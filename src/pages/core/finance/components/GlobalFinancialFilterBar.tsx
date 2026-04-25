@@ -23,7 +23,7 @@ export const GlobalFinancialFilterBar: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    financeService.listPeriods(session.tenantId, session)
+    financeService.listPeriods(session.tenant_id, session)
       .then(setPeriods)
       .catch((err) => {
         systemLogger.failure("Failed to list accounting periods", { error: err }, state.correlationId);
@@ -33,8 +33,8 @@ export const GlobalFinancialFilterBar: React.FC = () => {
 
   const handleApply = () => {
     audit.log({
-      tenantId: session.tenantId,
-      actorId: session.userId,
+      tenantId: session.tenant_id,
+      actorId: session.user_id,
       action: "FINANCE_CONTEXT_CHANGE",
       entityType: "FINANCE_CONTEXT",
       before: { companyId: state.companyId, periodId: state.periodId, correlationId: state.correlationId },

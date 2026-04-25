@@ -116,7 +116,7 @@ export default function PaymentWorkspaceLayout() {
             <div className="space-y-6 p-4">
               <WorkspacePanel>
                 <div className="space-y-1 text-xs text-muted-foreground">
-                  <p className="text-sm font-semibold text-foreground">Tenant: {session.tenantId}</p>
+                  <p className="text-sm font-semibold text-foreground">Tenant: {session.tenant_id}</p>
                   <p>Role: {session.role}</p>
                   <p>Payment engine: Locked</p>
                 </div>

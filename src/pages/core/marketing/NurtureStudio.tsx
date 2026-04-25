@@ -34,14 +34,14 @@ export default function NurtureStudio() {
 
   const refresh = useCallback(async () => {
     try {
-      const w = await marketingService.listWorkflows(session.tenantId, session);
+      const w = await marketingService.listWorkflows(session.tenant_id, session);
       setWorkflows(w);
     } catch (err) {
       console.error("Failed to fetch nurture workflows:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -96,7 +96,7 @@ export default function NurtureStudio() {
           className="mt-3"
           onClick={async () => {
             if (!name) return;
-            await marketingService.createWorkflow(session.tenantId, session, {
+            await marketingService.createWorkflow(session.tenant_id, session, {
               name,
               trigger,
               steps: [
@@ -155,7 +155,7 @@ export default function NurtureStudio() {
                         disabled={item.status === "ACTIVE"}
                         onClick={async () => {
                           await marketingService.updateWorkflowStatus(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                             "ACTIVE",
@@ -171,7 +171,7 @@ export default function NurtureStudio() {
                         disabled={item.status === "PAUSED"}
                         onClick={async () => {
                           await marketingService.updateWorkflowStatus(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                             "PAUSED",

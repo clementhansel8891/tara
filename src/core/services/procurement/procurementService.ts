@@ -36,7 +36,7 @@ const addDays = (days: number) => {
 
 const ensureTenant = (tenantId: string, session: SessionContext) => {
   if (session.role === "SUPERADMIN") return;
-  if (tenantId !== session.tenantId) throw new Error("Tenant access denied");
+  if (tenantId !== session.tenant_id) throw new Error("Tenant access denied");
 };
 
 const BUDGET_LIMITS: Record<Requisition["budgetClass"], number> = {
@@ -55,7 +55,7 @@ const logEvent = (
 ) => {
   // Direct API call for audit
   apiRequest("/v1/procurement/audit-events", "POST", session, {
-    actorId: session.userId,
+    actorId: session.user_id,
     action,
     entityType,
     entityId,
@@ -64,7 +64,7 @@ const logEvent = (
 
   audit.log({
     tenantId,
-    actorId: session.userId,
+    actorId: session.user_id,
     action: `procurement.${action}`,
     entityType: entityType.toLowerCase(),
     entityId,
@@ -218,7 +218,7 @@ export const procurementService = {
     await workflowService.createRequest(tenantId, session, {
       entityType: "PURCHASE",
       entityId: created.id,
-      makerDept: session.departmentId,
+      makerDept: session.department_id,
       destinationDept: "LEGAL",
       notes: "Supplier onboarding compliance verification",
     });
@@ -309,15 +309,15 @@ export const procurementService = {
       session,
       {
         ...payload,
-        requesterDept: session.departmentId,
-        createdBy: session.userId,
+        requesterDept: session.department_id,
+        createdBy: session.user_id,
       },
     );
 
     await workflowService.createRequest(tenantId, session, {
       entityType: "PURCHASE",
       entityId: created.id,
-      makerDept: session.departmentId,
+      makerDept: session.department_id,
       destinationDept: "REQUESTER_HOD",
       notes: "Requester HOD approval gate",
     });
@@ -471,7 +471,7 @@ export const procurementService = {
       {
         entityType: "CONTRACT",
         entityId: contract.id,
-        makerDept: session.departmentId,
+        makerDept: session.department_id,
         destinationDept: "LEGAL",
         notes: "Procurement contract ownership handoff",
       },

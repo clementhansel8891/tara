@@ -3,7 +3,7 @@ import { PrintQueueService } from './print-queue.service';
 import { DevicePairingService } from './device-pairing.service';
 import { UniversalIoTService } from './universal-iot.service';
 
-@Controller('v1/kernel/iot')
+@Controller('kernel/iot')
 export class IotController {
   constructor(
     private readonly printQueue: PrintQueueService,

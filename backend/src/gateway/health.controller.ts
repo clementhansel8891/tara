@@ -6,7 +6,7 @@ import { PrismaService } from "../persistence/prisma.service";
  * Health Controller
  * Provides liveness and readiness probes for Docker/K8s
  */
-@Controller("v1/monitoring")
+@Controller('monitoring')
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 

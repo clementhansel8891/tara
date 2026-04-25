@@ -41,7 +41,7 @@ export default function FlowGate() {
   useEffect(() => {
     const loadWorkflows = async () => {
       try {
-        const items = await workflowService.listInbox(session.tenantId, session, session.departmentId);
+        const items = await workflowService.listInbox(session.tenant_id, session, session.department_id);
         setWorkflows(items);
       } catch (err) {
         setErrorMessage("Failed to load workqueue.");
@@ -149,7 +149,7 @@ export default function FlowGate() {
                     className="flex-1 sm:flex-none flex items-center gap-2"
                     onClick={async () => {
                       try {
-                        await workflowService.approveRequest(session.tenantId, selected.id, session, notes);
+                        await workflowService.approveRequest(session.tenant_id, selected.id, session, notes);
                         setStatusMessage("Request approved successfully.");
                         setNotes("");
                         refresh();
@@ -169,7 +169,7 @@ export default function FlowGate() {
                     className="flex-1 sm:flex-none flex items-center gap-2"
                     onClick={async () => {
                       try {
-                        await workflowService.rejectRequest(session.tenantId, selected.id, session, notes);
+                        await workflowService.rejectRequest(session.tenant_id, selected.id, session, notes);
                         setStatusMessage("Request formally rejected.");
                         setNotes("");
                         refresh();
@@ -300,10 +300,10 @@ export default function FlowGate() {
             <Button
               onClick={() => {
                 try {
-                  workflowService.createRequest(session.tenantId, session, {
+                  workflowService.createRequest(session.tenant_id, session, {
                     entityType,
                     entityId: entityId || `${entityType.toLowerCase()}-${Date.now()}`,
-                    makerDept: session.departmentId,
+                    makerDept: session.department_id,
                     destinationDept,
                     notes,
                   });

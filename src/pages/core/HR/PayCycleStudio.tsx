@@ -32,17 +32,17 @@ export default function PayCycleStudio() {
     const loadData = async () => {
       try {
         // checks if payrollService methods are async in next step, but for now assuming component refactor
-        const runItems = await payrollService.listRuns(session.tenantId, session);
+        const runItems = await payrollService.listRuns(session.tenant_id, session);
         setRuns(runItems);
         
-        const workflowItems = await workflowService.listRequests(session.tenantId, { entityType: "PAYROLL" });
+        const workflowItems = await workflowService.listRequests(session.tenant_id, { entityType: "PAYROLL" });
         setWorkflows(workflowItems);
       } catch (err) {
         console.error("Failed to load pay cycle data", err);
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const filteredRuns = runs.filter((run) =>
     search ? run.id.toLowerCase().includes(search.toLowerCase()) : true,
@@ -63,7 +63,7 @@ export default function PayCycleStudio() {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            onClick={() => payrollService.lockAttendance(session.tenantId, session, periodStart, periodEnd)}
+            onClick={() => payrollService.lockAttendance(session.tenant_id, session, periodStart, periodEnd)}
           >
             Lock Attendance
           </Button>
@@ -72,7 +72,7 @@ export default function PayCycleStudio() {
             onClick={async () => {
               const target = runs[0];
               if (target) {
-                const result = await payrollService.runVarianceCheck(session.tenantId, session, target.id);
+                const result = await payrollService.runVarianceCheck(session.tenant_id, session, target.id);
                 setVarianceNote(`Variance score for ${result.runId}: ${result.varianceScore}`);
               }
             }}
@@ -122,7 +122,7 @@ export default function PayCycleStudio() {
                           size="sm"
                           variant="outline"
                           onClick={async () => {
-                            await payrollService.submitForApproval(session.tenantId, session, run.id);
+                            await payrollService.submitForApproval(session.tenant_id, session, run.id);
                             refresh();
                           }}
                           disabled={!canSubmit}
@@ -225,7 +225,7 @@ export default function PayCycleStudio() {
             </div>
             <Button
               onClick={() => {
-                payrollService.prepareCycle(session.tenantId, session, periodStart, periodEnd);
+                payrollService.prepareCycle(session.tenant_id, session, periodStart, periodEnd);
                 setDialogOpen(false);
                 setVersion((prev) => prev + 1);
               }}

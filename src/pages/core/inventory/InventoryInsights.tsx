@@ -36,11 +36,11 @@ export default function InventoryInsights() {
     setError(null);
     try {
       const [b, m, d, i, a] = await Promise.all([
-        inventoryService.listBalances(session.tenantId, session),
-        inventoryService.listMovements(session.tenantId, session),
-        inventoryService.getDashboard(session.tenantId, session),
-        inventoryService.listIntegrationEvents(session.tenantId, session),
-        inventoryService.listAgenticEvents(session.tenantId, session),
+        inventoryService.listBalances(session.tenant_id, session),
+        inventoryService.listMovements(session.tenant_id, session),
+        inventoryService.getDashboard(session.tenant_id, session),
+        inventoryService.listIntegrationEvents(session.tenant_id, session),
+        inventoryService.listAgenticEvents(session.tenant_id, session),
       ]);
       setBalances(b);
       setMovements(m);
@@ -53,7 +53,7 @@ export default function InventoryInsights() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();

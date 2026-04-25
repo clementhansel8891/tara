@@ -3,6 +3,7 @@ import { IInventorySubledgerRepository } from './repositories/interfaces/invento
 import { InventorySubledgerEntry } from './entities/inventory-subledger-entry.entity';
 import { InventoryAccountingIntegrationService } from './inventory-accounting-integration.service';
 import { Prisma } from '@prisma/client';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
 
 @Injectable()
 export class CostingEngineService {
@@ -14,8 +15,8 @@ export class CostingEngineService {
     private readonly integration: InventoryAccountingIntegrationService,
   ) {}
 
-  async processEntry(tenant_id: string, entryId: string, tx?: any, correlation_id?: string): Promise<void> {
-    const entry = await this.repository.getEntryById(tenant_id, entryId, tx);
+  async processEntry(ctx: TenantContext, entryId: string, tx?: any, correlation_id?: string): Promise<void> {
+    const entry = await this.repository.getEntryById(ctx, entryId, tx);
     
     // Hardening Rule: Process only PENDING entries
     if (!entry || entry.status !== 'PENDING') {
@@ -25,28 +26,28 @@ export class CostingEngineService {
     this.logger.log(`Processing costing for entry ${entryId} (SKU: ${entry.skuId})`);
 
     try {
-      await this.repository.updateEntryStatus(tenant_id, entryId, 'POSTING', undefined, tx); // Mark as transition state
+      await this.repository.updateEntryStatus(ctx, entryId, 'POSTING', undefined, tx); // Mark as transition state
 
       if (entry.entryType === 'PROVISIONAL_ADJUSTMENT') {
-        await this.processInbound(tenant_id, entry, tx, correlation_id);
+        await this.processInbound(ctx, entry, tx, correlation_id);
       } else if (entry.entryType === 'INVENTORY_ISSUE') {
-        await this.processOutbound(tenant_id, entry, tx, correlation_id);
+        await this.processOutbound(ctx, entry, tx, correlation_id);
       }
 
     } catch (error) {
       this.logger.error(`Failed to cost entry ${entryId}: ${error.message}`);
-      await this.repository.updateEntryStatus(tenant_id, entryId, 'FAILED', {
+      await this.repository.updateEntryStatus(ctx, entryId, 'FAILED', {
         failureType: 'SYSTEM_ERROR'
       }, tx);
     }
   }
 
-  private async processInbound(tenant_id: string, entry: InventorySubledgerEntry, tx?: any, correlation_id?: string): Promise<void> {
+  private async processInbound(ctx: TenantContext, entry: InventorySubledgerEntry, tx?: any, correlation_id?: string): Promise<void> {
     const unitCost = entry.unitCost || new Prisma.Decimal(0);
     
     const total_amount = unitCost.mul(entry.qty.abs());
     
-    const snapshot = await this.repository.createCostSnapshot(tenant_id, {
+    const snapshot = await this.repository.createCostSnapshot(ctx, {
       skuId: entry.skuId,
       location_id: entry.location_id,
       avgUnitCost: unitCost,
@@ -56,7 +57,7 @@ export class CostingEngineService {
     }, tx);
 
     // CRITICAL: Create the actual Cost Layer for future FIFO/LIFO tracking
-    await this.repository.createCostLayer(tenant_id, {
+    await this.repository.createCostLayer(ctx, {
       skuId: entry.skuId,
       location_id: entry.location_id,
       qty: entry.qty.abs(),
@@ -67,17 +68,17 @@ export class CostingEngineService {
       currency: entry.currency || 'USD',
     }, tx);
 
-    await this.repository.updateEntryStatus(tenant_id, entry.id, 'COSTED', {
+    await this.repository.updateEntryStatus(ctx, entry.id, 'COSTED', {
       costVersionId: snapshot.id,
       amount: total_amount, // Standardized as positive
     }, tx);
 
     // Trigger UFPG Integration
-    await this.integration.handleCostFinalized(tenant_id, entry, snapshot, correlation_id);
+    await this.integration.handleCostFinalized(ctx, entry, snapshot, correlation_id);
   }
 
-  private async processOutbound(tenant_id: string, entry: InventorySubledgerEntry, tx?: any, correlation_id?: string): Promise<void> {
-    const layers = await this.repository.getCostLayers(tenant_id, entry.skuId, entry.location_id, tx);
+  private async processOutbound(ctx: TenantContext, entry: InventorySubledgerEntry, tx?: any, correlation_id?: string): Promise<void> {
+    const layers = await this.repository.getCostLayers(ctx, entry.skuId, entry.location_id, tx);
     let remainingToCost = entry.qty.abs();
     let totalCost = new Prisma.Decimal(0);
     const usedLayers: { layerId: string; qty: Prisma.Decimal }[] = [];
@@ -91,7 +92,7 @@ export class CostingEngineService {
       remainingToCost = remainingToCost.minus(take);
 
       // Persist the depletion back to the DB
-      await this.repository.updateCostLayer(tenant_id, layer.id, {
+      await this.repository.updateCostLayer(ctx, layer.id, {
         remainingQty: layer.remainingQty
       }, tx);
     }
@@ -104,7 +105,7 @@ export class CostingEngineService {
 
     const avgUnitCost = totalCost.div(entry.qty.abs());
 
-    const snapshot = await this.repository.createCostSnapshot(tenant_id, {
+    const snapshot = await this.repository.createCostSnapshot(ctx, {
       skuId: entry.skuId,
       location_id: entry.location_id,
       avgUnitCost: avgUnitCost,
@@ -114,13 +115,13 @@ export class CostingEngineService {
       
     }, tx);
 
-    await this.repository.updateEntryStatus(tenant_id, entry.id, 'COSTED', {
+    await this.repository.updateEntryStatus(ctx, entry.id, 'COSTED', {
       costVersionId: snapshot.id,
       amount: totalCost, // Standardized as positive
       unitCost: avgUnitCost
     }, tx);
 
     // Trigger UFPG Integration
-    await this.integration.handleCostFinalized(tenant_id, entry, snapshot, correlation_id);
+    await this.integration.handleCostFinalized(ctx, entry, snapshot, correlation_id);
   }
 }

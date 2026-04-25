@@ -31,8 +31,8 @@ export default function RefundDesk() {
     const fetchData = async () => {
       try {
         const [transactionsData, refundsData] = await Promise.all([
-          paymentService.listTransactions(session.tenantId, session),
-          paymentService.listRefunds(session.tenantId, session),
+          paymentService.listTransactions(session.tenant_id, session),
+          paymentService.listRefunds(session.tenant_id, session),
         ]);
         setTransactions(transactionsData);
         setRefunds(refundsData);
@@ -73,7 +73,7 @@ export default function RefundDesk() {
           <Button
             onClick={() => {
               if (!paymentId || !reason || Number(amount) <= 0) return;
-              paymentService.createRefund(session.tenantId, session, {
+              paymentService.createRefund(session.tenant_id, session, {
                 paymentId,
                 type,
                 amount: Number(amount),
@@ -112,10 +112,10 @@ export default function RefundDesk() {
                 <td className="p-3"><Badge variant="outline">{refund.status}</Badge></td>
                 <td className="p-3">
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" onClick={() => { paymentService.approveRefund(session.tenantId, session, refund.id); setRefreshKey((value) => value + 1); }} disabled={refund.status !== "REQUESTED"}>
+                    <Button size="sm" variant="outline" onClick={() => { paymentService.approveRefund(session.tenant_id, session, refund.id); setRefreshKey((value) => value + 1); }} disabled={refund.status !== "REQUESTED"}>
                       Approve
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => { paymentService.executeRefund(session.tenantId, session, refund.id); setRefreshKey((value) => value + 1); }} disabled={refund.status !== "APPROVED"}>
+                    <Button size="sm" variant="outline" onClick={() => { paymentService.executeRefund(session.tenant_id, session, refund.id); setRefreshKey((value) => value + 1); }} disabled={refund.status !== "APPROVED"}>
                       Execute
                     </Button>
                   </div>

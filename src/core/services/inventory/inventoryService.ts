@@ -222,7 +222,7 @@ export const inventoryService = {
       `/inventory/adjustments/${adjustmentId}/approve`,
       "PUT",
       session,
-      { approvedBy: session.userId },
+      { approvedBy: session.user_id },
     );
   },
 
@@ -284,7 +284,7 @@ export const inventoryService = {
       {
         ...results,
         status: "COMPLETED",
-        closedBy: session.userId,
+        closedBy: session.user_id,
       },
     );
   },

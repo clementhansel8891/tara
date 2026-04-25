@@ -10,6 +10,7 @@ import {
 import { Request } from "express";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
+import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { RolesGuard } from "../../shared/guards/roles.guard";
 import { Roles } from "../../shared/decorators/roles.decorator";
 import { UserRole } from "../../shared/roles";
@@ -19,8 +20,9 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/admin/payments")
-@UseGuards(TenantInterceptor, RolesGuard)
+@Controller('admin/payments')
+@UseGuards(TenantGuard, RolesGuard)
+@UseInterceptors(TenantInterceptor)
 @Roles(UserRole.ADMIN, UserRole.OWNER)
 export class AdminPaymentController {
   constructor(private readonly paymentService: PaymentService) {}
@@ -46,8 +48,9 @@ export class AdminPaymentController {
    */
   @Get("stats")
   async getStats(@Req() request: RequestWithTenant) {
-    const { tenant_id } = request.tenantContext;
-    const stats = await this.paymentService.getPaymentStats(tenant_id);
+    const ctx = request.tenantContext;
+    const { tenant_id } = ctx;
+    const stats = await this.paymentService.getPaymentStats(ctx);
     return {
       success: true,
       tenant_id,
@@ -64,11 +67,11 @@ export class AdminPaymentController {
     @Req() request: RequestWithTenant,
     @Param("id") transactionId: string,
   ) {
-    const { tenant_id } = request.tenantContext;
+    const ctx = request.tenantContext;
     const actor_id = request.headers["x-actor-id"] as string || "admin-manual";
     
     const result = await this.paymentService.syncTransactionStatus(
-      tenant_id,
+      ctx,
       transactionId,
       { status: "PENDING" }, // Base check triggers status check
       "MANUAL",

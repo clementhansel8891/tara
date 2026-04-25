@@ -30,8 +30,8 @@ export default function InventoryAdjustments() {
   const refresh = useCallback(async () => {
     try {
       const [adj, itm] = await Promise.all([
-        inventoryService.listAdjustments(session.tenantId, session),
-        inventoryService.listItems(session.tenantId, session),
+        inventoryService.listAdjustments(session.tenant_id, session),
+        inventoryService.listItems(session.tenant_id, session),
       ]);
       setAdjustments(adj);
       setItems(itm);
@@ -40,7 +40,7 @@ export default function InventoryAdjustments() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -116,7 +116,7 @@ export default function InventoryAdjustments() {
               const selectedItem = itemId || items[0]?.id;
               if (!selectedItem) return;
               await inventoryService.requestAdjustment(
-                session.tenantId,
+                session.tenant_id,
                 session,
                 {
                   itemId: selectedItem,
@@ -177,7 +177,7 @@ export default function InventoryAdjustments() {
                         variant="outline"
                         onClick={async () => {
                           await inventoryService.approveAdjustment(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                           );

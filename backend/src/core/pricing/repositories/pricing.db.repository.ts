@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../persistence/prisma.service';
 import { IPricingRepository } from './interfaces/pricing.repository.interface';
@@ -12,11 +14,11 @@ import { Prisma } from '@prisma/client';
 export class PricingDbRepository implements IPricingRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createRule(tenant_id: string, data: CreatePricingRuleDto): Promise<PricingRule> {
+  async createRule(ctx: TenantContext, data: CreatePricingRuleDto): Promise<PricingRule> {
     const created = await this.prisma.pricing_rules.create({
       data: {
         id: uuid(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         name: data.name,
         priority: data.priority,
         logic: data.logic,
@@ -30,10 +32,10 @@ export class PricingDbRepository implements IPricingRepository {
     return this.mapRule(created);
   }
 
-  async getRules(tenant_id: string, criteria?: any): Promise<PricingRule[]> {
+  async getRules(ctx: TenantContext, criteria?: any): Promise<PricingRule[]> {
     const rules = await this.prisma.pricing_rules.findMany({
       where: {
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         is_active: true,
         ...criteria,
       },
@@ -45,7 +47,7 @@ export class PricingDbRepository implements IPricingRepository {
     return rules.map(this.mapRule);
   }
 
-  async updateRule(tenant_id: string, id: string, data: Partial<PricingRule>): Promise<PricingRule> {
+  async updateRule(ctx: TenantContext, id: string, data: Partial<PricingRule>): Promise<PricingRule> {
     const updated = await this.prisma.pricing_rules.update({
       where: { id },
       data: {
@@ -62,12 +64,12 @@ export class PricingDbRepository implements IPricingRepository {
     return this.mapRule(updated);
   }
 
-  async savePriceSnapshot(tenant_id: string, data: any): Promise<TransactionPriceSnapshot> {
+  async savePriceSnapshot(ctx: TenantContext, data: any): Promise<TransactionPriceSnapshot> {
     const created = await this.prisma.price_snapshots.create({
       data: {
           updated_at: new Date(),
         id: uuid(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         payload: data,
       },
     });
@@ -80,10 +82,10 @@ export class PricingDbRepository implements IPricingRepository {
     };
   }
 
-  async getPriceHistory(tenant_id: string, skuId: string): Promise<PriceVersion[]> {
+  async getPriceHistory(ctx: TenantContext, skuId: string): Promise<PriceVersion[]> {
     const history = await this.prisma.price_versions.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sku_id: skuId,
       },
       orderBy: {
@@ -94,12 +96,12 @@ export class PricingDbRepository implements IPricingRepository {
     return history.map(this.mapVersion);
   }
 
-  async createPriceVersion(tenant_id: string, data: any): Promise<PriceVersion> {
+  async createPriceVersion(ctx: TenantContext, data: any): Promise<PriceVersion> {
     return this.prisma.$transaction(async (tx) => {
       // Deactivate current version
       await tx.price_versions.updateMany({
         where: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           sku_id: data.skuId,
           is_current: true,
         },
@@ -111,7 +113,7 @@ export class PricingDbRepository implements IPricingRepository {
       const created = await tx.price_versions.create({
         data: {
           id: uuid(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           sku_id: data.skuId,
           price: new Prisma.Decimal(data.price),
           is_current: true,
@@ -122,10 +124,10 @@ export class PricingDbRepository implements IPricingRepository {
     });
   }
 
-  async getCurrentPriceVersion(tenant_id: string, skuId: string): Promise<PriceVersion | undefined> {
+  async getCurrentPriceVersion(ctx: TenantContext, skuId: string): Promise<PriceVersion | undefined> {
     const current = await this.prisma.price_versions.findFirst({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sku_id: skuId,
         is_current: true,
       },

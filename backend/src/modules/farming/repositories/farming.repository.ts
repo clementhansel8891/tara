@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { Prisma } from '@prisma/client';
 
 export interface SensorData {
@@ -12,12 +13,12 @@ export interface SensorData {
 }
 
 export abstract class FarmingRepository {
-  abstract getSensorLogs(tenant_id: string, sensor_id: string): Promise<SensorData[]>;
+  abstract getSensorLogs( ctx: TenantContext, sensor_id: string): Promise<SensorData[]>;
   
   /**
    * Enterprise Hook: IoT-to-Audit Stream
    * Writes "Livestock Health Sensor" data directly to the SHA-256 hash-chain (AuditLog).
    * Bypasses standard system logging for high-integrity forensics.
    */
-  abstract logSensorDataToAuditChain(tenant_id: string, data: SensorData): Promise<string>;
+  abstract logSensorDataToAuditChain( ctx: TenantContext, data: SensorData): Promise<string>;
 }

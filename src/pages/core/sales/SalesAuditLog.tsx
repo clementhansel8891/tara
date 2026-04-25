@@ -18,7 +18,7 @@ export default function SalesAuditLog() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await salesService.listAuditEvents(session.tenantId, session);
+      const data = await salesService.listAuditEvents(session.tenant_id, session);
       setEvents(data);
     } catch (err) {
       console.error("Failed to fetch audit log:", err);

@@ -13,7 +13,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/hr/compliance")
+@Controller('hr/compliance')
 @UseGuards(RolesGuard)
 export class ComplianceController {
   constructor(

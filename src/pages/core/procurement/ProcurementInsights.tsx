@@ -41,10 +41,10 @@ export default function ProcurementInsights() {
     setLoading(true);
     try {
       const [ins, leg, goods, sup] = await Promise.all([
-        procurementService.getSpendInsights(session.tenantId, session),
-        procurementService.listLegalHandoffs(session.tenantId, session),
-        procurementService.listGoodsReceiptSyncs(session.tenantId, session),
-        procurementService.listSupplierAccessProvisioning(session.tenantId, session),
+        procurementService.getSpendInsights(session.tenant_id, session),
+        procurementService.listLegalHandoffs(session.tenant_id, session),
+        procurementService.listGoodsReceiptSyncs(session.tenant_id, session),
+        procurementService.listSupplierAccessProvisioning(session.tenant_id, session),
       ]);
       setInsights(ins);
       setLegalHandoffs(leg);
@@ -71,31 +71,31 @@ export default function ProcurementInsights() {
       supplierAccess.filter(isProvisioningSlaBreached).length;
     return [
       {
-        id: `${session.tenantId}-proc-int-1`,
+        id: `${session.tenant_id}-proc-int-1`,
         label: "Legal handoffs pending",
         category: "APPROVAL" as const,
         value: String(legalPending),
       },
       {
-        id: `${session.tenantId}-proc-int-2`,
+        id: `${session.tenant_id}-proc-int-2`,
         label: "Goods receipt sync pending",
         category: "APPROVAL" as const,
         value: String(inventoryPending),
       },
       {
-        id: `${session.tenantId}-proc-int-3`,
+        id: `${session.tenant_id}-proc-int-3`,
         label: "IT provisioning pending",
         category: "APPROVAL" as const,
         value: String(itPending),
       },
       {
-        id: `${session.tenantId}-proc-int-4`,
+        id: `${session.tenant_id}-proc-int-4`,
         label: "Cross-workspace SLA breached",
         category: "RISK" as const,
         value: String(slaBreached),
       },
     ];
-  }, [goodsReceiptSyncs, legalHandoffs, session.tenantId, supplierAccess]);
+  }, [goodsReceiptSyncs, legalHandoffs, session.tenant_id, supplierAccess]);
 
   const mergedInsights = useMemo(() => [...insights, ...integrationMetrics], [insights, integrationMetrics]);
 

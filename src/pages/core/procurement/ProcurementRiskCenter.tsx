@@ -57,11 +57,11 @@ export default function ProcurementRiskCenter() {
     setLoading(true);
     try {
       const [sig, aud, leg, goods, sup] = await Promise.all([
-        procurementService.listRiskSignals(session.tenantId, session),
-        procurementService.listAuditEvents(session.tenantId, session),
-        procurementService.listLegalHandoffs(session.tenantId, session),
-        procurementService.listGoodsReceiptSyncs(session.tenantId, session),
-        procurementService.listSupplierAccessProvisioning(session.tenantId, session),
+        procurementService.listRiskSignals(session.tenant_id, session),
+        procurementService.listAuditEvents(session.tenant_id, session),
+        procurementService.listLegalHandoffs(session.tenant_id, session),
+        procurementService.listGoodsReceiptSyncs(session.tenant_id, session),
+        procurementService.listSupplierAccessProvisioning(session.tenant_id, session),
       ]);
       setSignals(sig);
       setAuditEvents(aud);
@@ -149,7 +149,7 @@ export default function ProcurementRiskCenter() {
 
   const runScan = async () => {
     try {
-      await procurementService.runRiskScan(session.tenantId, session);
+      await procurementService.runRiskScan(session.tenant_id, session);
       setStatusMessage("Anti-fraud risk scan completed.");
       refresh();
     } catch (err) {
@@ -159,7 +159,7 @@ export default function ProcurementRiskCenter() {
 
   const setStatus = async (riskSignalId: string, status: RiskSignal["status"]) => {
     try {
-      await procurementService.setRiskSignalStatus(session.tenantId, session, riskSignalId, status);
+      await procurementService.setRiskSignalStatus(session.tenant_id, session, riskSignalId, status);
       setStatusMessage(`Risk signal status updated to ${status}.`);
       refresh();
     } catch (err) {

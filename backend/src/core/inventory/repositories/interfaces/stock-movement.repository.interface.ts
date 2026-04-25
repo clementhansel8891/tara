@@ -1,6 +1,7 @@
 import { stock_movements as StockMovement, stock_levels as StockLevel } from "@prisma/client";
 import { StockIntakeDto } from "../../dto/stock-intake.dto";
 import { TransferStockDto } from "../../dto/transfer-stock.dto";
+import { TenantContext } from "../../../../gateway/tenant-context.interface";
 
 export interface StockReservation {
   product_id: string;
@@ -14,35 +15,35 @@ export interface IStockMovementRepository {
   /**
    * Atomic stock intake (PO receipt / Manual)
    */
-  intake(tenant_id: string, data: StockIntakeDto, tx?: any): Promise<StockMovement>;
+  intake(ctx: TenantContext, data: StockIntakeDto, tx?: any): Promise<StockMovement>;
 
   /**
    * Atomic stock transfer between locations
    */
-  transfer(tenant_id: string, data: TransferStockDto, tx?: any): Promise<StockMovement[]>;
+  transfer(ctx: TenantContext, data: TransferStockDto, tx?: any): Promise<StockMovement[]>;
 
   /**
    * Atomic stock consumption (Sales / Production / Waste)
    */
-  consume(tenant_id: string, data: any, tx?: any): Promise<StockMovement>;
+  consume(ctx: TenantContext, data: any, tx?: any): Promise<StockMovement>;
 
   /**
    * Set aside stock for a future transaction
    */
-  reserve(tenant_id: string, data: StockReservation, tx?: any): Promise<void>;
+  reserve(ctx: TenantContext, data: StockReservation, tx?: any): Promise<void>;
 
   /**
    * Release or cancel a reservation
    */
-  release(tenant_id: string, data: StockReservation, tx?: any): Promise<void>;
+  release(ctx: TenantContext, data: StockReservation, tx?: any): Promise<void>;
 
   /**
    * Historical query for movements
    */
-  findAll(tenant_id: string, filters?: any): Promise<StockMovement[]>;
+  findAll(ctx: TenantContext, filters?: any): Promise<StockMovement[]>;
 
   /**
    * Find current balances
    */
-  getBalances(tenant_id: string, location_id?: string, product_id?: string): Promise<StockLevel[]>;
+  getBalances(ctx: TenantContext, location_id?: string, product_id?: string): Promise<StockLevel[]>;
 }

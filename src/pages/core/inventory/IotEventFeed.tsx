@@ -18,7 +18,7 @@ export default function IotEventFeed() {
   const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await inventoryService.listIotEvents(session.tenantId, session);
+      const data = await inventoryService.listIotEvents(session.tenant_id, session);
       setEvents(data);
     } catch (error) {
       console.error("Failed to load IoT events:", error);

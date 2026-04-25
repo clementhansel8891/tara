@@ -52,9 +52,9 @@ export default function AccountDesk() {
       setLoading(true);
       try {
         const [itReqs, supReqs] = await Promise.all([
-          itService.getProvisioningRequests(session.tenantId, session),
+          itService.getProvisioningRequests(session.tenant_id, session),
           procurementService.listSupplierAccessProvisioning(
-            session.tenantId,
+            session.tenant_id,
             session,
           ),
         ]);
@@ -67,7 +67,7 @@ export default function AccountDesk() {
       }
     };
     fetchData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -193,7 +193,7 @@ export default function AccountDesk() {
                   onClick={async () => {
                     try {
                       await procurementService.updateSupplierAccessProvisioningStatus(
-                        session.tenantId,
+                        session.tenant_id,
                         session,
                         request.id,
                         "PROVISIONED",
@@ -295,7 +295,7 @@ export default function AccountDesk() {
                           (window as any)._provisionScope || "full_portal";
 
                         await itService.createProvisioningRequest(
-                          session.tenantId,
+                          session.tenant_id,
                           session,
                           {
                             employeeId: subjectId.startsWith("EMP")
@@ -364,10 +364,10 @@ export default function AccountDesk() {
                   onClick={async () => {
                     try {
                       await itService.markAsProvisioned(
-                        session.tenantId,
+                        session.tenant_id,
                         session,
                         selectedAccount.id,
-                        session.userId,
+                        session.user_id,
                       );
                       setStatusMessage(
                         `Account action for ${selectedAccount.employeeId || selectedAccount.supplierId} marked as provisioned.`,
@@ -406,7 +406,7 @@ export default function AccountDesk() {
                   onClick={async () => {
                     try {
                       await itService.deleteProvisioningRequest(
-                        session.tenantId,
+                        session.tenant_id,
                         session,
                         selectedAccount.id,
                       );
@@ -478,7 +478,7 @@ export default function AccountDesk() {
                       try {
                         const isEmployee = editData.subjectId?.startsWith("EMP");
                         await itService.updateProvisioningRequest(
-                          session.tenantId,
+                          session.tenant_id,
                           session,
                           editData.id,
                           {

@@ -32,21 +32,21 @@ export default function ConnectedAccountsDesk() {
 
   const refresh = useCallback(async () => {
     try {
-      const a = await marketingService.listConnectedAccounts(session.tenantId, session);
+      const a = await marketingService.listConnectedAccounts(session.tenant_id, session);
       setAccounts(a);
     } catch (err) {
       console.error("Failed to fetch connected accounts:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   const setStatus = async (accountId: string, status: ConnectionStatus) => {
-    await marketingService.updateAccountStatus(session.tenantId, session, accountId, status);
+    await marketingService.updateAccountStatus(session.tenant_id, session, accountId, status);
     refresh();
   };
 
@@ -92,7 +92,7 @@ export default function ConnectedAccountsDesk() {
           <Button
             onClick={async () => {
               if (!accountName) return;
-              await marketingService.connectAccount(session.tenantId, session, {
+              await marketingService.connectAccount(session.tenant_id, session, {
                 provider,
                 accountName,
                 scopes: scopes.split(",").map((item) => item.trim()).filter(Boolean),

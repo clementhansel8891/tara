@@ -37,7 +37,7 @@ export default function RetailVerification() {
     try {
       setIsVerifying(true);
       const data = await retailService.verifyTicket(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         ticketId
       );

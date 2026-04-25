@@ -39,7 +39,7 @@ export default function ReceivableDesk() {
   };
 
   const refreshReceivables = useCallback(async () => {
-    setReceivables(await financeApiClient.listReceivables(session.tenantId, session));
+    setReceivables(await financeApiClient.listReceivables(session.tenant_id, session));
   }, [session]);
 
   useEffect(() => {
@@ -74,14 +74,14 @@ export default function ReceivableDesk() {
 
   const createReceivable = async () => {
     try {
-      await financeApiClient.createReceivable(session.tenantId, session, {
+      await financeApiClient.createReceivable(session.tenant_id, session, {
         customer,
         amount: Number(amount || "0"),
         dueDate,
       });
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Created receivable",
         `${customer} - ${amount}`,
       );
@@ -98,8 +98,8 @@ export default function ReceivableDesk() {
 
   const markReceived = async (id: string) => {
     try {
-      await financeApiClient.markReceived(session.tenantId, session, id);
-      logService.log(session.tenantId, session.userId, "Marked receivable received", id);
+      await financeApiClient.markReceived(session.tenant_id, session, id);
+      logService.log(session.tenant_id, session.user_id, "Marked receivable received", id);
       setStatusMessage("Receivable marked as received and settled.");
       refreshReceivables();
     } catch (err) {
@@ -109,8 +109,8 @@ export default function ReceivableDesk() {
 
   const sendReminder = async (id: string) => {
     try {
-      await financeApiClient.sendReceivableReminder(session.tenantId, session, id);
-      logService.log(session.tenantId, session.userId, "Sent receivable reminder", id);
+      await financeApiClient.sendReceivableReminder(session.tenant_id, session, id);
+      logService.log(session.tenant_id, session.user_id, "Sent receivable reminder", id);
       setStatusMessage("Collection reminder sent to customer contact.");
     } catch (err) {
       setErrorMessage("Failed to send reminder. Email gateway offline.");

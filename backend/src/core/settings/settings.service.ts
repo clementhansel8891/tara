@@ -61,4 +61,27 @@ export class SettingsService {
 
     return result;
   }
+
+  async getChildCompanies(tenant_id: string) {
+    return this.repository.getChildCompanies(tenant_id);
+  }
+
+  async createChildCompany(tenant_id: string, data: any, user_id: string) {
+    this.logger.log(`Creating child company for parent tenant: ${tenant_id}`);
+    
+    const result = await this.repository.createChildCompany(tenant_id, data, user_id);
+
+    await this.audit.log({
+      tenant_id,
+      user_id,
+      module: 'CORE',
+      action: 'CREATE_CHILD_COMPANY',
+      entity_type: 'COMPANY',
+      entity_id: result.id,
+      metadata: { name: result.name, code: result.code },
+      severity: 'CRITICAL',
+    });
+
+    return result;
+  }
 }

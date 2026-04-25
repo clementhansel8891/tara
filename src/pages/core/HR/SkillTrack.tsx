@@ -32,10 +32,10 @@ export default function SkillTrack() {
     const loadData = async () => {
       try {
         const [comp, assgns, progs, stff] = await Promise.all([
-          trainingService.getComplianceStatus(session.tenantId, session),
-          trainingService.listAssignments(session.tenantId, session),
-          trainingService.listPrograms(session.tenantId, session),
-          staffService.listStaff(session.tenantId, session, {}, { page: 1, pageSize: 50 }),
+          trainingService.getComplianceStatus(session.tenant_id, session),
+          trainingService.listAssignments(session.tenant_id, session),
+          trainingService.listPrograms(session.tenant_id, session),
+          staffService.listStaff(session.tenant_id, session, {}, { page: 1, pageSize: 50 }),
         ]);
         setCompliance(comp);
         setAssignments(assgns);
@@ -46,7 +46,7 @@ export default function SkillTrack() {
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const filteredAssignments = assignments.filter((assignment) =>
     search ? assignment.employeeId.toLowerCase().includes(search.toLowerCase()) : true,
@@ -87,7 +87,7 @@ export default function SkillTrack() {
           <Button
             variant="outline"
             onClick={async () => {
-              await trainingService.exportCompliance(session.tenantId, session);
+              await trainingService.exportCompliance(session.tenant_id, session);
             }}
           >
             Export Compliance
@@ -129,7 +129,7 @@ export default function SkillTrack() {
                   size="sm"
                   variant="outline"
                   onClick={async () => {
-                    await trainingService.requestComplianceReview(session.tenantId, session, assignment.employeeId);
+                    await trainingService.requestComplianceReview(session.tenant_id, session, assignment.employeeId);
                     setVersion((prev) => prev + 1);
                   }}
                 >
@@ -218,12 +218,12 @@ export default function SkillTrack() {
                 try {
                   if (actionType === "bulk") {
                     const ids = bulkIds.split(",").map((id) => id.trim()).filter(Boolean);
-                    await trainingService.bulkAssign(session.tenantId, session, {
+                    await trainingService.bulkAssign(session.tenant_id, session, {
                       employeeIds: ids.length ? ids : staff.items.map((emp) => emp.id),
                       programId: selectedProgram,
                     });
                   } else if (selectedEmployee) {
-                    await trainingService.assignTraining(session.tenantId, session, {
+                    await trainingService.assignTraining(session.tenant_id, session, {
                       employeeId: selectedEmployee,
                       programId: selectedProgram,
                     });

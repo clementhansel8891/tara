@@ -129,9 +129,9 @@ export default function LedgerCore() {
 
   const refreshLedger = useCallback(async () => {
     const [payrollRows, journalRows, invoiceRows] = await Promise.all([
-      financeApiClient.getPayrollEntries(session.tenantId, session),
-      financeApiClient.listJournals(session.tenantId, session),
-      financeApiClient.listInvoices(session.tenantId, session),
+      financeApiClient.getPayrollEntries(session.tenant_id, session),
+      financeApiClient.listJournals(session.tenant_id, session),
+      financeApiClient.listInvoices(session.tenant_id, session),
     ]);
     setPayrollEntries(payrollRows);
     setJournals(journalRows);
@@ -184,10 +184,10 @@ export default function LedgerCore() {
       return;
     }
     try {
-      await financeApiClient.createJournal(session.tenantId, session, entry);
+      await financeApiClient.createJournal(session.tenant_id, session, entry);
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Created Journal Entry",
         `${entry.description} (${entry.lines.length} lines)`,
       );
@@ -214,7 +214,7 @@ export default function LedgerCore() {
     setErrorMessage(null);
     try {
       const estimates = await financeApiClient.estimatePayroll(
-        session.tenantId,
+        session.tenant_id,
         session,
         payrollPeriod,
       );
@@ -231,7 +231,7 @@ export default function LedgerCore() {
     setErrorMessage(null);
     try {
       await financeApiClient.runPayroll(
-        session.tenantId,
+        session.tenant_id,
         session,
         payrollPeriod,
       );

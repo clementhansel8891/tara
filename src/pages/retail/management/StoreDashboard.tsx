@@ -62,7 +62,7 @@ const StoreDashboard = () => {
   // Dashboard State
   const [timeRange, setTimeRange] = useState<AnalyticsTimeRange>("TODAY");
   const [scopedLocationId, setScopedLocationId] = useState<string | undefined>(
-    session.locationId,
+    session.location_id,
   );
   const [data, setData] = useState<CommandCenterAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +97,7 @@ const StoreDashboard = () => {
     try {
       setIsLoading(true);
       const analytics = await analyticsService.getCommandCenterData(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         {
           timeRange,

@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { IPaymentRepository } from "./repositories/payment.repository.interface";
 import { PaymentService } from "./payment.service";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 
 @Injectable()
 export class PaymentExpiryJob {
@@ -37,8 +38,15 @@ export class PaymentExpiryJob {
         try {
           this.logger.log(`Expiring stale transaction ${tx.id} for tenant ${tx.tenant_id}.`);
 
+          const ctx: TenantContext = {
+            tenant_id: tx.tenant_id,
+            company_id: tx.company_id,
+            branch_id: tx.branch_id,
+            ecommerce_id: tx.ecommerce_id,
+          } as TenantContext;
+
           await this.paymentService.syncTransactionStatus(
-            tx.tenant_id,
+            ctx,
             tx.id,
             { status: "FAILED" },
             tx.provider || "SYSTEM",

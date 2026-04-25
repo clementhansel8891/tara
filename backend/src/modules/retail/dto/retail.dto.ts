@@ -625,6 +625,14 @@ export class UpdateProductDto {
   reserved?: number;
 
   @IsOptional()
+  @IsNumber()
+  stock?: number;
+
+  @IsOptional()
+  @IsString()
+  userRole?: string;
+
+  @IsOptional()
   @IsString()
   location_id?: string;
 }
@@ -637,6 +645,10 @@ export class RegisterBranchDeviceDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  store_id: string;
 
   @IsString()
   @IsNotEmpty()

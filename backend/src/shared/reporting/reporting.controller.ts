@@ -31,7 +31,7 @@ interface RequestWithTenant extends Request {
  * Reporting Controller
  * Handles async job-based report generation and retrieval.
  */
-@Controller('v1/reports')
+@Controller('reports')
 @UseGuards(TenantInterceptor, RolesGuard)
 export class ReportingController {
   constructor(private readonly jobService: ReportJobService) {}

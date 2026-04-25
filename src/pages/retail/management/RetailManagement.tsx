@@ -53,10 +53,10 @@ export default function RetailManagement() {
     try {
       setLoading(true);
       const [orderList, storeList, channelList, invStats] = await Promise.all([
-        retailService.listOrders(session.tenantId, session),
-        retailService.listStores(session.tenantId, session),
+        retailService.listOrders(session.tenant_id, session),
+        retailService.listStores(session.tenant_id, session),
         ecommerceHubService.listChannels(session),
-        retailService.getInventoryStats(session.tenantId, session),
+        retailService.getInventoryStats(session.tenant_id, session),
       ]);
       setOrders(orderList);
       setStores(storeList);
@@ -113,7 +113,7 @@ export default function RetailManagement() {
       <div className="max-w-[1800px] mx-auto p-6 md:p-12 lg:p-16 space-y-16">
         {/* Header Tier */}
         <CommandCenterHeader
-          locationName={session.locationId}
+          locationName={session.location_id}
           onRefresh={refreshGlobalState}
           isLoading={loading}
         />
@@ -214,9 +214,9 @@ export default function RetailManagement() {
               </span>
             </div>
             <div className="h-4 w-px bg-slate-200" />
-            <span>RLS Context: {session.tenantId}</span>
+            <span>RLS Context: {session.tenant_id}</span>
             <div className="h-4 w-px bg-slate-200" />
-            <span>Node: {session.locationId || "ROOT_CONTEXT"}</span>
+            <span>Node: {session.location_id || "ROOT_CONTEXT"}</span>
           </div>
           <div className="flex items-center gap-10">
             <span className="hover:text-blue-600 cursor-pointer transition-colors border-b border-transparent hover:border-blue-600">

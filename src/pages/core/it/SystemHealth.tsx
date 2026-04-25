@@ -17,7 +17,7 @@ export default function SystemHealth() {
     const fetchHealth = async () => {
       setLoading(true);
       try {
-        const data = await itService.getSystemHealth(session.tenantId, session);
+        const data = await itService.getSystemHealth(session.tenant_id, session);
         setHealthData(data);
       } catch (err) {
         console.error("Failed to fetch system health", err);
@@ -26,7 +26,7 @@ export default function SystemHealth() {
       }
     };
     fetchHealth();
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   const filtered = healthData.filter((evt) =>
     search ? evt.component.toLowerCase().includes(search.toLowerCase()) : true,

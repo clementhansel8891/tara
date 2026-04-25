@@ -1,6 +1,8 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../../persistence/prisma.service';
 import { IWarehouseRepository } from './repositories/interfaces/warehouse.repository.interface';
+import { TenantContext } from '../../gateway/tenant-context.interface';
+import { MultiTenancyUtil } from '../../shared/utils/multi-tenancy.util';
 
 @Injectable()
 export class WarehouseService {
@@ -12,12 +14,9 @@ export class WarehouseService {
     private readonly warehouseRepo: IWarehouseRepository,
   ) {}
 
-  async getBins(tenantId: string, locationId: string) {
-    return (this.prisma as any).warehouseBin.findMany({
-      where: {
-        tenant_id: tenantId,
-        location_id: locationId,
-      },
+  async getBins(ctx: TenantContext, locationId: string) {
+    return (this.prisma as any).warehouse_bins.findMany({
+      where: MultiTenancyUtil.getScope(ctx, { location_id: locationId }),
       include: {
         assignments: {
           include: {
@@ -28,40 +27,35 @@ export class WarehouseService {
     });
   }
 
-  async createBin(tenantId: string, locationId: string, data: any) {
-    return (this.prisma as any).warehouseBin.create({
-      data: {
+  async createBin(ctx: TenantContext, locationId: string, data: any) {
+    return (this.prisma as any).warehouse_bins.create({
+      data: MultiTenancyUtil.wrapCreate(ctx, {
         ...data,
-        tenant_id: tenantId,
         location_id: locationId,
-      },
+      }),
     });
   }
 
-  async getBinStock(tenantId: string, binId: string) {
-    return (this.prisma as any).stockBinAssignment.findMany({
-      where: {
-        tenant_id: tenantId,
-        bin_id: binId,
-      },
+  async getBinStock(ctx: TenantContext, binId: string) {
+    return (this.prisma as any).stock_bin_assignments.findMany({
+      where: MultiTenancyUtil.getScope(ctx, { bin_id: binId }),
       include: {
         product: true,
       },
     });
   }
 
-  async assignStock(tenantId: string, binId: string, data: { product_id: string; quantity: number }) {
+  async assignStock(ctx: TenantContext, binId: string, data: { product_id: string; quantity: number }) {
     // Upsert assignment
-    const existing = await (this.prisma as any).stockBinAssignment.findFirst({
-      where: {
-        tenant_id: tenantId,
+    const existing = await (this.prisma as any).stock_bin_assignments.findFirst({
+      where: MultiTenancyUtil.getScope(ctx, {
         bin_id: binId,
         product_id: data.product_id,
-      },
+      }),
     });
 
     if (existing) {
-      return (this.prisma as any).stockBinAssignment.update({
+      return (this.prisma as any).stock_bin_assignments.update({
         where: { id: existing.id },
         data: {
           quantity: Number(existing.quantity) + data.quantity,
@@ -69,13 +63,12 @@ export class WarehouseService {
       });
     }
 
-    return (this.prisma as any).stockBinAssignment.create({
-      data: {
-        tenant_id: tenantId,
+    return (this.prisma as any).stock_bin_assignments.create({
+      data: MultiTenancyUtil.wrapCreate(ctx, {
         bin_id: binId,
         product_id: data.product_id,
         quantity: data.quantity,
-      },
+      }),
     });
   }
 }

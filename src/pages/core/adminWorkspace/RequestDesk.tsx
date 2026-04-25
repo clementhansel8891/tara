@@ -27,7 +27,7 @@ export default function RequestDesk() {
 
   const refresh = useCallback(async () => {
     try {
-      const data = await adminService.getRequests(session.tenantId, session);
+      const data = await adminService.getRequests(session.tenant_id, session);
       setRequests(data);
     } catch (err) {
       console.error("Failed to fetch requests", err);
@@ -92,7 +92,7 @@ export default function RequestDesk() {
                 if (!form.title || !form.department) {
                   throw new Error("Missing fields");
                 }
-                await adminService.createRequest(session.tenantId, session, {
+                await adminService.createRequest(session.tenant_id, session, {
                   type: "general", // Can be extended
                   title: form.title,
                   description: form.details,

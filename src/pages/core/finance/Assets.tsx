@@ -149,12 +149,12 @@ export default function Assets() {
     if (!currentSession?.tenantId) return;
 
     const [assetRows, capexRows, documentRows, budgetRows, depEntries, events] = await Promise.all([
-      financeApiClient.listAssets(currentSession.tenantId, currentSession),
-      financeApiClient.listCapexRequests(currentSession.tenantId, currentSession),
-      financeApiClient.listDocuments(currentSession.tenantId, currentSession),
-      financeApiClient.listCapexBudgets(currentSession.tenantId, currentSession),
-      financeApiClient.listAssetDepreciationEntries(currentSession.tenantId, currentSession),
-      financeApiClient.listAssetEvents(currentSession.tenantId, currentSession),
+      financeApiClient.listAssets(currentsession.tenant_id, currentSession),
+      financeApiClient.listCapexRequests(currentsession.tenant_id, currentSession),
+      financeApiClient.listDocuments(currentsession.tenant_id, currentSession),
+      financeApiClient.listCapexBudgets(currentsession.tenant_id, currentSession),
+      financeApiClient.listAssetDepreciationEntries(currentsession.tenant_id, currentSession),
+      financeApiClient.listAssetEvents(currentsession.tenant_id, currentSession),
     ]);
     setAssets(assetRows);
     setCapexRequests(capexRows);
@@ -203,10 +203,10 @@ export default function Assets() {
 
   const createCapex = async () => {
     await runAction(async () => {
-      await financeApiClient.createCapexRequest(session.tenantId, session, capexForm);
+      await financeApiClient.createCapexRequest(session.tenant_id, session, capexForm);
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Created CAPEX request",
         capexForm.assetDescription,
       );
@@ -218,8 +218,8 @@ export default function Assets() {
 
   const approveCapex = async (requestId: string) => {
     await runAction(async () => {
-      await financeApiClient.approveCapexRequest(session.tenantId, session, requestId);
-      logService.log(session.tenantId, session.userId, "Approved CAPEX request", requestId);
+      await financeApiClient.approveCapexRequest(session.tenant_id, session, requestId);
+      logService.log(session.tenant_id, session.user_id, "Approved CAPEX request", requestId);
       await loadData();
     }, "CAPEX request approved.");
   };
@@ -227,12 +227,12 @@ export default function Assets() {
   const rejectCapex = async (requestId: string) => {
     await runAction(async () => {
       await financeApiClient.rejectCapexRequest(
-        session.tenantId,
+        session.tenant_id,
         session,
         requestId,
         "Rejected from Assets workspace",
       );
-      logService.log(session.tenantId, session.userId, "Rejected CAPEX request", requestId);
+      logService.log(session.tenant_id, session.user_id, "Rejected CAPEX request", requestId);
       await loadData();
     }, "CAPEX request rejected.");
   };
@@ -240,12 +240,12 @@ export default function Assets() {
   const capitalize = async (assetId: string) => {
     await runAction(async () => {
       await financeApiClient.capitalizeAsset(
-        session.tenantId,
+        session.tenant_id,
         session,
         assetId,
         new Date().toISOString().slice(0, 10),
       );
-      logService.log(session.tenantId, session.userId, "Capitalized asset", assetId);
+      logService.log(session.tenant_id, session.user_id, "Capitalized asset", assetId);
       await loadData();
     }, "Asset capitalized.");
   };
@@ -253,13 +253,13 @@ export default function Assets() {
   const impairment = async () => {
     if (!selectedAsset) return;
     await runAction(async () => {
-      await financeApiClient.recordAssetImpairment(session.tenantId, session, {
+      await financeApiClient.recordAssetImpairment(session.tenant_id, session, {
         assetId: selectedAsset.id,
         impairmentAmount: impairmentForm.amount,
         reason: impairmentForm.reason,
         attachmentDocumentIds: selectedDocumentIds,
       });
-      logService.log(session.tenantId, session.userId, "Recorded impairment", selectedAsset.id);
+      logService.log(session.tenant_id, session.user_id, "Recorded impairment", selectedAsset.id);
       setImpairmentDialogOpen(false);
       setSelectedAsset(null);
       await loadData();
@@ -269,13 +269,13 @@ export default function Assets() {
   const revalue = async () => {
     if (!selectedAsset) return;
     await runAction(async () => {
-      await financeApiClient.recordAssetRevaluation(session.tenantId, session, {
+      await financeApiClient.recordAssetRevaluation(session.tenant_id, session, {
         assetId: selectedAsset.id,
         revaluedAmount: revaluationForm.amount,
         reason: revaluationForm.reason,
         attachmentDocumentIds: selectedDocumentIds,
       });
-      logService.log(session.tenantId, session.userId, "Recorded revaluation", selectedAsset.id);
+      logService.log(session.tenant_id, session.user_id, "Recorded revaluation", selectedAsset.id);
       setRevaluationDialogOpen(false);
       setSelectedAsset(null);
       await loadData();
@@ -285,13 +285,13 @@ export default function Assets() {
   const dispose = async () => {
     if (!selectedAsset) return;
     await runAction(async () => {
-      await financeApiClient.disposeAsset(session.tenantId, session, {
+      await financeApiClient.disposeAsset(session.tenant_id, session, {
         assetId: selectedAsset.id,
         disposalType: disposalForm.type,
         proceeds: disposalForm.proceeds,
         attachmentDocumentIds: selectedDocumentIds,
       });
-      logService.log(session.tenantId, session.userId, "Disposed asset", selectedAsset.id);
+      logService.log(session.tenant_id, session.user_id, "Disposed asset", selectedAsset.id);
       setDisposalDialogOpen(false);
       setSelectedAsset(null);
       await loadData();
@@ -301,7 +301,7 @@ export default function Assets() {
   const runScheduledDepreciation = async () => {
     await runAction(async () => {
       const result = await financeApiClient.runScheduledPeriodDepreciation(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           periodStart: runForm.periodStart,
@@ -311,7 +311,7 @@ export default function Assets() {
         },
       );
       setRunResult(result);
-      logService.log(session.tenantId, session.userId, "Scheduled depreciation run", result.runId);
+      logService.log(session.tenant_id, session.user_id, "Scheduled depreciation run", result.runId);
       await loadData();
     }, "Scheduled depreciation run completed.");
   };
@@ -322,7 +322,7 @@ export default function Assets() {
       // For now, we'll mock it via createCapex and auto-approve/capitalize if it's a "backfill"
       // or just assume the service has a direct method.
       // Since we follow DEV_MOCK_MODE, we can assume it's available or we add it to mock.
-      await financeApiClient.createCapexRequest(session.tenantId, session, {
+      await financeApiClient.createCapexRequest(session.tenant_id, session, {
         assetDescription: registerAssetForm.description || "",
         requestedAmount: registerAssetForm.acquisitionCost || 0,
         department: registerAssetForm.department || "",
@@ -335,14 +335,14 @@ export default function Assets() {
         assetClass: registerAssetForm.assetClass || "EQUIPMENT",
       });
       
-      logService.log(session.tenantId, session.userId, "Manually registered asset", registerAssetForm.description);
+      logService.log(session.tenant_id, session.user_id, "Manually registered asset", registerAssetForm.description);
       setRegisterAssetDialogOpen(false);
       await loadData();
     }, "Asset registered successfully.");
   };
 
   const openAuditPack = async (assetId: string) => {
-    const pack = await financeApiClient.generateAssetAuditPack(session.tenantId, session, assetId);
+    const pack = await financeApiClient.generateAssetAuditPack(session.tenant_id, session, assetId);
     setSelectedAudit(pack);
   };
 
@@ -354,7 +354,7 @@ export default function Assets() {
         mimeType: format === "JSON" ? "application/json" : "application/pdf",
         data: format === "JSON" ? "{}" : new ArrayBuffer(0) 
       };
-      // const artifact = await financeApiClient.downloadAssetAuditPack(session.tenantId, assetId, format);
+      // const artifact = await financeApiClient.downloadAssetAuditPack(session.tenant_id, assetId, format);
       const blob = new Blob([artifact.data as any], { type: artifact.mimeType });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");

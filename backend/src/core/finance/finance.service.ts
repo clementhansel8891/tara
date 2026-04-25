@@ -1,4 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { PrismaService } from "../../persistence/prisma.service";
 import { Prisma } from "@prisma/client";
 import { IFinanceRepository } from "./repositories/finance.repository.interface";
@@ -42,6 +43,7 @@ export class FinanceService {
   private readonly logger = new Logger(FinanceService.name);
 
   constructor(
+    @Inject(IFinanceRepository)
     private readonly financeRepository: IFinanceRepository,
     private readonly auditService: AuditService,
     private readonly fileProcessingService: FileProcessingService,
@@ -54,19 +56,19 @@ export class FinanceService {
 
   // Phase 5: Bank Reconciliation Orchestration
   async processBankStatement(
-    tenant_id: string,
+    ctx: TenantContext,
     source: 'CSV' | 'API',
     user_id: string,
     fileBuffer?: Buffer
   ): Promise<void> {
     const provider = source === 'CSV' ? this.csvBankProvider : this.apiBankProvider;
-    this.logger.log(`[FinanceService] Processing statement from ${source} for tenant ${tenant_id}`);
+    this.logger.log(`[FinanceService] Processing statement from ${source} for tenant ${ctx.tenant_id}`);
 
     if (source === 'CSV' && !fileBuffer) {
       throw new Error('CSV file buffer is required for CSV ingestion');
     }
 
-    const transactions = await provider.fetchStatements(tenant_id, { buffer: fileBuffer as any });
+    const transactions = await provider.fetchStatements(ctx.tenant_id, { buffer: fileBuffer as any });
     
     if (transactions.length > 0) {
       const bankTxns = transactions.map(t => ({
@@ -74,12 +76,12 @@ export class FinanceService {
         amount: new Prisma.Decimal(t.amount),
         status: 'UNRECONCILED' as any
       }));
-      await this.financeRepository.ingestBankTransactions(tenant_id, bankTxns);
-      await this.autoMatchBankTransactions(tenant_id);
+      await this.financeRepository.ingestBankTransactions(ctx, bankTxns);
+      await this.autoMatchBankTransactions(ctx);
     }
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: 'FINANCE',
       action: 'BANK_STATEMENT_PROCESSED',
@@ -89,9 +91,9 @@ export class FinanceService {
     });
   }
 
-  private async autoMatchBankTransactions(tenant_id: string): Promise<void> {
-    const unreconciled = await this.financeRepository.getUnreconciledTransactions(tenant_id);
-    const ledger = await this.financeRepository.getLedger(tenant_id);
+  private async autoMatchBankTransactions(ctx: TenantContext): Promise<void> {
+    const unreconciled = await this.financeRepository.getUnreconciledTransactions(ctx);
+    const ledger = await this.financeRepository.getLedger(ctx);
 
     for (const stmt of unreconciled) {
       // Logic: Exact Amount + Date Proxy (within 3 days)
@@ -102,27 +104,27 @@ export class FinanceService {
       );
 
       if (match) {
-        await this.financeRepository.createReconcileMatch(tenant_id, stmt.id, match.id, 0.95);
+        await this.financeRepository.createReconcileMatch(ctx, stmt.id, match.id, 0.95);
       }
     }
   }
 
   // Phase 5: Hierarchical Performance Dashboard (Multi-Level Roll-up)
   async getPerformanceDashboard(
-    tenant_id: string,
+    ctx: TenantContext,
     scope: 'TENANT' | 'BRANCH' | 'STORE' | 'ECOMMERCE',
     nodeId?: string
   ): Promise<PerformanceTreeNode> {
     this.logger.log(`[FinanceService] Calculating Performance Tree for ${scope}:${nodeId || 'ROOT'}`);
     
     // Recursive aggregation logic moved to Repository for DB-level performance
-    const tree = await this.financeRepository.getPerformanceTree(tenant_id, nodeId, scope);
+    const tree = await this.financeRepository.getPerformanceTree(ctx, nodeId, scope);
     
     return tree;
   }
 
   async finalizePayrollSettlement(
-    tenant_id: string,
+    ctx: TenantContext,
     runId: string,
     payload: any
   ): Promise<void> {
@@ -131,7 +133,7 @@ export class FinanceService {
     // Logic: Verify total gross matches expectations, then tag journal entries as 'FINALIZED'
     // in this phase, we just log the audit trail for security compliance
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: 'SYSTEM',
       module: 'FINANCE',
       action: 'PAYROLL_SETTLEMENT_FINALIZED',

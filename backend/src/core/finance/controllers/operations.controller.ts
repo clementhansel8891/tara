@@ -9,7 +9,7 @@ import { TenantContext } from '../../../gateway/tenant-context.interface';
 import { UserRole } from '../../../shared/roles';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 
-@Controller('v1/finance/operations')
+@Controller('finance/operations')
 @UseGuards(TenantGuard, RolesGuard)
 export class OperationsController {
   constructor(

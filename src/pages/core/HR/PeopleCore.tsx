@@ -99,7 +99,7 @@ export default function PeopleCore() {
       setIsLoading(true);
       try {
         const data = await peopleService.getEmployee360(
-          session.tenantId,
+          session.tenant_id,
           employeeId,
           session,
         );
@@ -113,14 +113,14 @@ export default function PeopleCore() {
     if (employeeId) {
       loadRecord();
     }
-  }, [session.tenantId, session, employeeId]);
+  }, [session.tenant_id, session, employeeId]);
 
   useEffect(() => {
     const loadOrg = async () => {
       try {
         const [depts, locs] = await Promise.all([
-          staffService.listDepartments(session.tenantId, session),
-          hrService.listLocations(session.tenantId, session),
+          staffService.listDepartments(session.tenant_id, session),
+          hrService.listLocations(session.tenant_id, session),
         ]);
         setAvailableDepts(depts);
         setAvailableLocations(locs);
@@ -137,7 +137,7 @@ export default function PeopleCore() {
     const loadRetail = async () => {
       if (!record?.employee?.locationId) return;
       try {
-        const shifts = await retailService.listShifts(session.tenantId, session, {
+        const shifts = await retailService.listShifts(session.tenant_id, session, {
           employee_id: employeeId,
           limit: 10,
         });
@@ -246,7 +246,7 @@ export default function PeopleCore() {
                   await workflowService.createRequest(employee.tenantId, session, {
                     entityType: "PERSONNEL_ESCALATION",
                     entityId: employee.id,
-                    makerDept: session.departmentId || "MGMT",
+                    makerDept: session.department_id || "MGMT",
                     destinationDept: "ADMIN",
                     notes: "Automated administrative escalation from PeopleCore.",
                   });
@@ -272,7 +272,7 @@ export default function PeopleCore() {
                   await workflowService.createRequest(employee.tenantId, session, {
                     entityType: "PERFORMANCE",
                     entityId: employee.id,
-                    makerDept: session.departmentId,
+                    makerDept: session.department_id,
                     destinationDept: "HR",
                     notes: "PeopleCore routing",
                   });
@@ -660,10 +660,10 @@ export default function PeopleCore() {
         description="Comments, mentions, and audit context."
       >
         <ActivityThread
-          tenantId={session.tenantId}
+          tenantId={session.tenant_id}
           entityType="employee"
           entityId={employee.id}
-          actorId={session.userId}
+          actorId={session.user_id}
         />
       </WorkspacePanel>
 
@@ -733,10 +733,10 @@ export default function PeopleCore() {
                     onClick={async () => {
                       setIsProcessing(true);
                       try {
-                        await workflowService.createRequest(session.tenantId, session, {
+                        await workflowService.createRequest(session.tenant_id, session, {
                           entityType: workflowType,
                           entityId: employee.id,
-                          makerDept: session.departmentId,
+                          makerDept: session.department_id,
                           destinationDept,
                           notes,
                         });
@@ -817,7 +817,7 @@ export default function PeopleCore() {
                 setIsProcessing(true);
                 try {
                   await staffService.updateEmployee(
-                    session.tenantId,
+                    session.tenant_id,
                     session,
                     employee.id,
                     {

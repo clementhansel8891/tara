@@ -7,7 +7,7 @@ import { TenantContext } from '../../../gateway/tenant-context.interface';
 import { UserRole } from '../../../shared/roles';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 
-@Controller('v1/finance/reports/certified')
+@Controller('finance/reports/certified')
 @UseGuards(TenantGuard, RolesGuard)
 export class CertifiedReportingController {
   private readonly logger = new Logger(CertifiedReportingController.name);

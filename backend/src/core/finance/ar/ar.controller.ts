@@ -11,7 +11,7 @@ import { Roles } from '../../../shared/decorators/roles.decorator';
 import { TenantCtx } from '../../../gateway/tenant-context.decorator';
 import { TenantContext } from '../../../gateway/tenant-context.interface';
 
-@Controller('v1/finance/ar')
+@Controller('finance/ar')
 @UseGuards(TenantGuard)
 export class ArController {
   constructor(

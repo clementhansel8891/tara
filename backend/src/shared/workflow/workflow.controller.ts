@@ -19,7 +19,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/workflow")
+@Controller('workflow')
 // @UseInterceptors(TenantInterceptor)
 // @UseGuards(TenantGuard)
 export class WorkflowController {

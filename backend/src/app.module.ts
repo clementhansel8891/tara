@@ -42,16 +42,6 @@ import { validate } from "./config/env.validation";
 /**
  * App Module
  * Root application module for Zenvix Backend
- *
- * Imports:
- * - FinanceModule: Finance & Accounting (Core Module 1)
- * - HRModule: Global HR & Identity (Core Module 2)
- * - ITSettingsModule: IT, Settings & Device Bridge (Core Module 3)
- * - PersistenceModule: Global Database Connection (Prisma)
- *
- * Future modules:
- * - Industry modules (Retail, F&B, etc.)
- * - Support modules (Sync Engine, Payment Engine, etc.)
  */
 @Module({
   imports: [
@@ -59,12 +49,11 @@ import { validate } from "./config/env.validation";
       validate,
       isGlobal: true,
     }),
-    // Disable cron jobs in Vercel to prevent side effects in serverless functions
     ...(process.env.VERCEL === "1" ? [] : [ScheduleModule.forRoot()]),
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 100, // 100 requests per minute
+        limit: 100,
       },
     ]),
     LoggerModule,
@@ -76,6 +65,8 @@ import { validate } from "./config/env.validation";
     CommandBusModule,
     ComplianceEngineModule,
     AutomationModule,
+    AuditModule,
+    ReportingModule,
     FinanceModule,
     HRModule,
     ITSettingsModule,
@@ -88,18 +79,14 @@ import { validate } from "./config/env.validation";
     PaymentModule,
     RetailModule,
     ExplorerModule,
-    AuditModule,
     AuthModule,
     PricingModule,
     AgenticModule,
     WorkflowEngineModule,
     MaintenanceModule,
     IotModule,
-    ReportingModule,
     SettingsModule,
-
   ],
-
   controllers: [HealthController],
   providers: [
     {

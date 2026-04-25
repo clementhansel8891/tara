@@ -53,12 +53,12 @@ const ReceivingTerminal = () => {
     const fetchData = async () => {
       try {
         const shifts = await retailService.listShifts(
-          session.tenantId!,
+          session.tenant_id!,
           session,
-          session.locationId,
+          session.location_id,
         );
         const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.userId,
+          (s) => s.status === "open" && s.employeeId === session.user_id,
         );
         setActiveShift(openShift || null);
       } catch (e) {
@@ -66,7 +66,7 @@ const ReceivingTerminal = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.userId, session]);
+  }, [session.tenant_id, session.user_id, session]);
 
   useEffect(() => {
     // Mock fetching POs
@@ -119,9 +119,9 @@ const ReceivingTerminal = () => {
     setIsProcessing(true);
     try {
       await retailService.receiveGoods(
-        session.tenantId!,
+        session.tenant_id!,
         session,
-        session.locationId || "unassigned", // Use dynamic location context
+        session.location_id || "unassigned", // Use dynamic location context
         activeShipment.id, // shipmentId
         activeShipment.items.map((i) => ({
           itemId: i.itemId,

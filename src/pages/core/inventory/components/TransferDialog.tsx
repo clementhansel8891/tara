@@ -62,7 +62,7 @@ export function TransferDialog({
     setLoading(true);
     setError(null);
     try {
-      await inventoryService.recordTransfer(session.tenantId, session, {
+      await inventoryService.recordTransfer(session.tenant_id, session, {
         itemId: selectedBalance.item.id,
         fromLocationCode: selectedBalance.balance.locationCode,
         fromDepartmentCode: selectedBalance.balance.departmentCode,

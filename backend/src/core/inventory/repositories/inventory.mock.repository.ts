@@ -16,6 +16,7 @@ import {
   CreateAgenticEventDto,
   AgenticEvent,
 } from "./inventory.repository.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 @Injectable()
 export class InventoryMockRepository implements IInventoryRepository {
@@ -27,7 +28,37 @@ export class InventoryMockRepository implements IInventoryRepository {
   private movementRequests: any[] = [];
   private agenticEvents: any[] = [];
 
-  async getDashboard(tenant_id: string): Promise<InventoryDashboard> {
+  constructor() {
+    const hanselTenant = "hansel-demo-tenant";
+    const loc1 = "hansel-loc-1";
+    const loc2 = "hansel-loc-2";
+
+    this.items = [
+      { id: "hansel-prod-1", tenant_id: hanselTenant, sku: "ELEC-MBP-M3", name: "MacBook Pro 14 M3", category: "Electronics", barcode: "888123456789", status: "active", created_at: new Date() },
+      { id: "hansel-prod-2", tenant_id: hanselTenant, sku: "ELEC-IPN-15P", name: "iPhone 15 Pro Max", category: "Electronics", barcode: "888987654321", status: "active", created_at: new Date() },
+      { id: "hansel-prod-3", tenant_id: hanselTenant, sku: "ELEC-AIR-PRO", name: "AirPods Pro Gen 2", category: "Electronics", barcode: "111222333444", status: "active", created_at: new Date() },
+      { id: "hansel-prod-4", tenant_id: hanselTenant, sku: "SOFT-OFFICE-365", name: "Office 365 Personal", category: "Software", barcode: "555666777888", status: "active", created_at: new Date() },
+    ];
+
+    this.balances = [
+      // Product 1
+      { id: "bal-1-1", tenant_id: hanselTenant, product_id: "hansel-prod-1", location_id: loc1, quantity: 10, available: 8, reserved: 2 },
+      { id: "bal-1-2", tenant_id: hanselTenant, product_id: "hansel-prod-1", location_id: loc2, quantity: 5, available: 5, reserved: 0 },
+      // Product 2
+      { id: "bal-2-1", tenant_id: hanselTenant, product_id: "hansel-prod-2", location_id: loc1, quantity: 20, available: 20, reserved: 0 },
+      { id: "bal-2-2", tenant_id: hanselTenant, product_id: "hansel-prod-2", location_id: loc2, quantity: 15, available: 10, reserved: 5 },
+      // Product 3
+      { id: "bal-3-1", tenant_id: hanselTenant, product_id: "hansel-prod-3", location_id: loc1, quantity: 50, available: 50, reserved: 0 },
+      // Product 4
+      { id: "bal-4-1", tenant_id: hanselTenant, product_id: "hansel-prod-4", location_id: loc1, quantity: 100, available: 100, reserved: 0 },
+    ];
+
+    this.alerts = [
+        { id: "alt-1", tenant_id: hanselTenant, product_id: "hansel-prod-1", type: "LOW_STOCK", message: "Low stock alert for MacBook Pro", status: "active", severity: "HIGH", created_at: new Date() }
+    ];
+  }
+
+  async getDashboard(ctx: TenantContext): Promise<InventoryDashboard> {
     return {
       totalItems: this.items.length,
       totalLocations: 5,
@@ -41,105 +72,105 @@ export class InventoryMockRepository implements IInventoryRepository {
     };
   }
 
-  async getItems(tenant_id: string): Promise<InventoryItem[]> {
-    return this.items.filter((i) => i.tenant_id === tenant_id);
+  async getItems(ctx: TenantContext): Promise<InventoryItem[]> {
+    return this.items.filter((i) => i.tenant_id === ctx.tenant_id);
   }
 
-  async createItem(tenant_id: string, data: CreateItemDto): Promise<InventoryItem> {
-    const item = { id: "item-" + Math.random(), tenant_id, ...data, created_at: new Date() };
+  async createItem(ctx: TenantContext, data: CreateItemDto): Promise<InventoryItem> {
+    const item = { id: "item-" + Math.random(), tenant_id: ctx.tenant_id, ...data, created_at: new Date() };
     this.items.push(item);
     return item as any;
   }
 
-  async getBalances(tenant_id: string): Promise<StockBalance[]> {
-    return this.balances.filter((b) => b.tenant_id === tenant_id);
+  async getBalances(ctx: TenantContext): Promise<StockBalance[]> {
+    return this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
   }
 
-  async getMovements(tenant_id: string): Promise<StockMovement[]> {
-    return this.movements.filter((m) => m.tenant_id === tenant_id);
+  async getMovements(ctx: TenantContext): Promise<StockMovement[]> {
+    return this.movements.filter((m) => m.tenant_id === ctx.tenant_id);
   }
 
-  async intakeStock(tenant_id: string, data: StockIntakeDto, tx?: any): Promise<StockMovement> {
-    const move = { id: "move-" + Math.random(), tenant_id, ...data, type: "RECEIPT", created_at: new Date() };
+  async intakeStock(ctx: TenantContext, data: StockIntakeDto, tx?: any): Promise<StockMovement> {
+    const move = { id: "move-" + Math.random(), tenant_id: ctx.tenant_id, ...data, type: "RECEIPT", created_at: new Date() };
     this.movements.push(move);
     return move as any;
   }
 
-  async transferStock(tenant_id: string, data: TransferStockDto): Promise<StockMovement[]> {
-    const move = { id: "move-" + Math.random(), tenant_id, ...data, type: "TRANSFER", created_at: new Date() };
+  async transferStock(ctx: TenantContext, data: TransferStockDto): Promise<StockMovement[]> {
+    const move = { id: "move-" + Math.random(), tenant_id: ctx.tenant_id, ...data, type: "TRANSFER", created_at: new Date() };
     this.movements.push(move);
     return [move as any];
   }
 
-  async deleteItem(tenant_id: string, item_id: string): Promise<void> {
+  async deleteItem(ctx: TenantContext, item_id: string): Promise<void> {
     this.items = this.items.filter((i) => i.id !== item_id);
   }
 
-  async batchDeleteItems(tenant_id: string, itemIds: string[]): Promise<void> {
+  async batchDeleteItems(ctx: TenantContext, itemIds: string[]): Promise<void> {
     this.items = this.items.filter((i) => !itemIds.includes(i.id));
   }
 
-  async batchIntakeStock(tenant_id: string, data: StockIntakeDto[]): Promise<StockMovement[]> {
+  async batchIntakeStock(ctx: TenantContext, data: StockIntakeDto[]): Promise<StockMovement[]> {
     const moves: StockMovement[] = [];
     for (const d of data) {
-      moves.push(await this.intakeStock(tenant_id, d));
+      moves.push(await this.intakeStock(ctx, d));
     }
     return moves;
   }
 
-  async batchCreateItems(tenant_id: string, data: CreateItemDto[]): Promise<InventoryItem[]> {
+  async batchCreateItems(ctx: TenantContext, data: CreateItemDto[]): Promise<InventoryItem[]> {
     const items: InventoryItem[] = [];
     for (const d of data) {
-      items.push(await this.createItem(tenant_id, d));
+      items.push(await this.createItem(ctx, d));
     }
     return items;
   }
 
-  async itemExistsBySku(tenant_id: string, sku: string): Promise<boolean> {
-    return this.items.some((i) => i.tenant_id === tenant_id && i.sku === sku);
+  async itemExistsBySku(ctx: TenantContext, sku: string): Promise<boolean> {
+    return this.items.some((i) => i.tenant_id === ctx.tenant_id && i.sku === sku);
   }
 
-  async getAdjustments(tenant_id: string): Promise<InventoryAdjustment[]> {
-    return this.adjustments.filter((a) => a.tenant_id === tenant_id);
+  async getAdjustments(ctx: TenantContext): Promise<InventoryAdjustment[]> {
+    return this.adjustments.filter((a) => a.tenant_id === ctx.tenant_id);
   }
 
-  async createAdjustment(tenant_id: string, data: CreateAdjustmentDto, tx?: any): Promise<InventoryAdjustment> {
-    const adj = { id: "adj-" + Math.random(), tenant_id, ...data, status: "pending", created_at: new Date() };
+  async createAdjustment(ctx: TenantContext, data: CreateAdjustmentDto, tx?: any): Promise<InventoryAdjustment> {
+    const adj = { id: "adj-" + Math.random(), tenant_id: ctx.tenant_id, ...data, status: "pending", created_at: new Date() };
     this.adjustments.push(adj);
     return adj as any;
   }
 
-  async approveAdjustment(tenant_id: string, id: string, approvedBy: string): Promise<InventoryAdjustment> {
+  async approveAdjustment(ctx: TenantContext, id: string, approvedBy: string): Promise<InventoryAdjustment> {
     const adj = this.adjustments.find((a) => a.id === id);
     if (adj) adj.status = "approved";
     return adj as any;
   }
 
-  async getAlerts(tenant_id: string): Promise<InventoryAlert[]> {
-    return this.alerts.filter((a) => a.tenant_id === tenant_id);
+  async getAlerts(ctx: TenantContext): Promise<InventoryAlert[]> {
+    return this.alerts.filter((a) => a.tenant_id === ctx.tenant_id);
   }
 
-  async setAlertStatus(tenant_id: string, alertId: string, status: InventoryAlert["status"]): Promise<InventoryAlert> {
+  async setAlertStatus(ctx: TenantContext, alertId: string, status: InventoryAlert["status"]): Promise<InventoryAlert> {
     const alert = this.alerts.find((a) => a.id === alertId);
     if (alert) alert.status = status;
     return alert as any;
   }
 
-  async updateAlertStatus(tenant_id: string, alertId: string, status: InventoryAlert["status"]): Promise<InventoryAlert> {
-    return this.setAlertStatus(tenant_id, alertId, status);
+  async updateAlertStatus(ctx: TenantContext, alertId: string, status: InventoryAlert["status"]): Promise<InventoryAlert> {
+    return this.setAlertStatus(ctx, alertId, status);
   }
 
-  async getAuditCycles(tenant_id: string): Promise<any[]> { return []; }
-  async createAuditCycle(tenant_id: string, data: any): Promise<any> { return {}; }
-  async updateAuditCycle(tenant_id: string, id: string, data: any): Promise<any> { return {}; }
-  async getIntegrationEvents(tenant_id: string): Promise<any[]> { return []; }
-  async createIntegrationEvent(tenant_id: string, data: any): Promise<any> { return {}; }
-  async consumeStock(tenant_id: string, data: any, tx?: any): Promise<any> { return {}; }
+  async getAuditCycles(ctx: TenantContext): Promise<any[]> { return []; }
+  async createAuditCycle(ctx: TenantContext, data: any): Promise<any> { return {}; }
+  async updateAuditCycle(ctx: TenantContext, id: string, data: any): Promise<any> { return {}; }
+  async getIntegrationEvents(ctx: TenantContext): Promise<any[]> { return []; }
+  async createIntegrationEvent(ctx: TenantContext, data: any): Promise<any> { return {}; }
+  async consumeStock(ctx: TenantContext, data: any, tx?: any): Promise<any> { return {}; }
 
-  async createMovementRequest(tenant_id: string, data: CreateMovementRequestDto): Promise<MovementRequest> {
+  async createMovementRequest(ctx: TenantContext, data: CreateMovementRequestDto): Promise<MovementRequest> {
     const request: MovementRequest = {
       id: "mov-" + Math.random(),
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       product_id: data.product_id,
       fromLocationId: data.fromLocationId,
       toLocationId: data.toLocationId,
@@ -154,41 +185,41 @@ export class InventoryMockRepository implements IInventoryRepository {
     return request;
   }
 
-  async getNextSequence(tenant_id: string, category: string): Promise<number> { return 1; }
-  async updateItemStatus(tenant_id: string, item_id: string, status: string): Promise<InventoryItem> { return {} as any; }
-  async getPendingItems(tenant_id: string): Promise<InventoryItem[]> { return []; }
-  async findHighestSkuByCategory(tenant_id: string, category: string): Promise<string | null> { return null; }
+  async getNextSequence(ctx: TenantContext, category: string): Promise<number> { return 1; }
+  async updateItemStatus(ctx: TenantContext, item_id: string, status: string): Promise<InventoryItem> { return {} as any; }
+  async getPendingItems(ctx: TenantContext): Promise<InventoryItem[]> { return []; }
+  async findHighestSkuByCategory(ctx: TenantContext, category: string): Promise<string | null> { return null; }
 
-  async reserveStock(tenant_id: string, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async releaseStock(tenant_id: string, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async consumeFromReservation(tenant_id: string, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async transferOut(tenant_id: string, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
-  async transferIn(tenant_id: string, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
-  async takeSnapshot(tenant_id: string, location_id?: string): Promise<void> { return; }
+  async reserveStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
+  async releaseStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
+  async consumeFromReservation(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
+  async transferOut(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
+  async transferIn(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
+  async takeSnapshot(ctx: TenantContext, location_id?: string): Promise<void> { return; }
 
-  async updateStockReserved(tenant_id: string, product_id: string, location_id: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
-  async updateStockInTransit(tenant_id: string, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
-  async findProductByCode(tenant_id: string, code: string): Promise<any | null> { return null; }
+  async updateStockReserved(ctx: TenantContext, product_id: string, location_id: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
+  async updateStockInTransit(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
+  async findProductByCode(ctx: TenantContext, code: string): Promise<any | null> { return null; }
 
-  async lookupByBarcode(tenant_id: string, barcode: string): Promise<any | null> {
-    return this.items.find(i => i.tenant_id === tenant_id && i.barcode === barcode) || null;
+  async lookupByBarcode(ctx: TenantContext, barcode: string): Promise<any | null> {
+    return this.items.find(i => i.tenant_id === ctx.tenant_id && i.barcode === barcode) || null;
   }
 
-  async quickAdjust(tenant_id: string, item_id: string, location_id: string, delta: number, user_id: string): Promise<any> {
+  async quickAdjust(ctx: TenantContext, item_id: string, location_id: string, delta: number, user_id: string): Promise<any> {
     return { id: 'lvl-' + Math.random(), on_hand: 100 + delta };
   }
 
-  async createAgenticEvent(tenant_id: string, data: CreateAgenticEventDto): Promise<AgenticEvent> {
-    const event = { id: "evt-" + Math.random(), tenant_id, ...data, created_at: new Date() };
+  async createAgenticEvent(ctx: TenantContext, data: CreateAgenticEventDto): Promise<AgenticEvent> {
+    const event = { id: "evt-" + Math.random(), tenant_id: ctx.tenant_id, ...data, created_at: new Date() };
     this.agenticEvents.push(event);
     return event as any;
   }
 
-  async requestProcurement(tenant_id: string, data: any): Promise<any> { return {}; }
+  async requestProcurement(ctx: TenantContext, data: any): Promise<any> { return {}; }
 
   // --- Stock Transfer Lifecycle ---
-  async getTransfers(tenant_id: string): Promise<any[]> { return []; }
-  async getTransferById(tenant_id: string, id: string): Promise<any | null> { return null; }
-  async createStockTransfer(tenant_id: string, data: any, tx?: any): Promise<any> { return { id: "mock-id", ...data }; }
-  async updateStockTransfer(tenant_id: string, id: string, data: any, tx?: any): Promise<any> { return { id, ...data }; }
+  async getTransfers(ctx: TenantContext): Promise<any[]> { return []; }
+  async getTransferById(ctx: TenantContext, id: string): Promise<any | null> { return null; }
+  async createStockTransfer(ctx: TenantContext, data: any, tx?: any): Promise<any> { return { id: "mock-id", ...data }; }
+  async updateStockTransfer(ctx: TenantContext, id: string, data: any, tx?: any): Promise<any> { return { id, ...data }; }
 }

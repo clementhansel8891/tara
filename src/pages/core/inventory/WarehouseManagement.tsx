@@ -18,12 +18,12 @@ export default function WarehouseManagement() {
   const [selectedBin, setSelectedBin] = useState<WarehouseBin | null>(null);
   const [binStock, setBinStock] = useState<BinAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [locationId, setLocationId] = useState(session.locationId || "MAIN"); // Default to session location or "MAIN"
+  const [locationId, setLocationId] = useState(session.location_id || "MAIN"); // Default to session location or "MAIN"
 
   const loadBins = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await inventoryService.getWarehouseBins(session.tenantId, session, locationId);
+      const data = await inventoryService.getWarehouseBins(session.tenant_id, session, locationId);
       setBins(data);
     } catch (error) {
       console.error("Failed to load bins:", error);
@@ -39,7 +39,7 @@ export default function WarehouseManagement() {
   const viewBinStock = async (bin: WarehouseBin) => {
     setSelectedBin(bin);
     try {
-      const stock = await inventoryService.getBinStock(session.tenantId, session, bin.id);
+      const stock = await inventoryService.getBinStock(session.tenant_id, session, bin.id);
       setBinStock(stock);
     } catch (error) {
       console.error("Failed to load bin stock:", error);
@@ -53,7 +53,7 @@ export default function WarehouseManagement() {
         subtitle="Configure physical storage hierarchy and track stock at the bin level."
         primaryAction={
           <Button onClick={() => {
-            inventoryService.initiateAudit(session.tenantId, session, {
+            inventoryService.initiateAudit(session.tenant_id, session, {
               location_code: locationId,
               scope: "FULL",
             });
@@ -78,7 +78,7 @@ export default function WarehouseManagement() {
               />
             </div>
             <Button onClick={() => {
-              inventoryService.listAuditCycles(session.tenantId, session);
+              inventoryService.listAuditCycles(session.tenant_id, session);
             }} variant="outline" size="icon">
               <Search className="h-4 w-4" />
             </Button>
@@ -179,7 +179,7 @@ export default function WarehouseManagement() {
                           </td>
                           <td className="p-3 text-right">
                             <Button onClick={() => {
-                              inventoryService.initiateAudit(session.tenantId, session, {
+                              inventoryService.initiateAudit(session.tenant_id, session, {
                                 location_code: locationId,
                                 scope: "INCREMENTAL",
                               });
@@ -197,7 +197,7 @@ export default function WarehouseManagement() {
                    Print Label
                 </Button>
                 <Button onClick={() => {
-                  inventoryService.initiateAudit(session.tenantId, session, {
+                  inventoryService.initiateAudit(session.tenant_id, session, {
                     location_code: locationId,
                     scope: "FULL",
                   });

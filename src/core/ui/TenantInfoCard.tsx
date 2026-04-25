@@ -14,16 +14,16 @@ export const TenantInfoCard: React.FC = () => {
   const session = useSession();
 
   // Lookup company name from user profile or fall back to name from any associated company
-  const activeCompany = user?.userCompanies?.find(
-    (c) => c.tenantId === session.tenantId
+  const activeCompany = user?.user_companies?.find(
+    (c) => c.tenant_id === session.tenant_id
   );
   
   // If no exact match for current tenant context, just use the first available company name
   // to prevent showing "System Workspace" when we have real data available.
-  const fallbackCompany = user?.userCompanies?.[0]?.company?.name;
+  const fallbackCompany = user?.user_companies?.[0]?.company?.name;
   const companyName = activeCompany?.company?.name || fallbackCompany || "System Workspace";
   
-  const userName = user ? `${user.firstName} ${user.lastName}` : "Authenticated User";
+  const userName = user ? `${user.first_name} ${user.last_name}` : "Authenticated User";
   const departmentName = session.departmentName || "General Operations";
 
   return (

@@ -39,8 +39,8 @@ export default function OpportunityDesk() {
     try {
       setLoading(true);
       const [o, q] = await Promise.all([
-        salesService.listOpportunities(session.tenantId, session),
-        salesService.listQuotes(session.tenantId, session),
+        salesService.listOpportunities(session.tenant_id, session),
+        salesService.listQuotes(session.tenant_id, session),
       ]);
       setOpportunities(o);
       setQuotes(q);
@@ -49,7 +49,7 @@ export default function OpportunityDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -112,7 +112,7 @@ export default function OpportunityDesk() {
                       value={op.stage}
                       onValueChange={async (value: OpportunityStage) => {
                         await salesService.moveOpportunityStage(
-                          session.tenantId,
+                          session.tenant_id,
                           session,
                           op.id,
                           value,
@@ -147,7 +147,7 @@ export default function OpportunityDesk() {
                         variant="outline"
                         disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}
                         onClick={async () => {
-                          await salesService.closeWonOpportunity(session.tenantId, session, op.id);
+                          await salesService.closeWonOpportunity(session.tenant_id, session, op.id);
                           setRefreshKey((current) => current + 1);
                         }}
                       >
@@ -159,7 +159,7 @@ export default function OpportunityDesk() {
                         disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}
                         onClick={async () => {
                           await salesService.closeLostOpportunity(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             op.id,
                             "Lost to competitor pricing.",

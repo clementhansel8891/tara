@@ -10,6 +10,8 @@ import { createHash, randomBytes } from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import * as jwt from "jsonwebtoken";
 import { ConfigService } from "@nestjs/config";
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 export interface CustomerAuthPayload {
   sub: string;
@@ -38,7 +40,7 @@ export class RetailPublicAuthService {
   }
 
   async registerCustomer(
-    tenant_id: string,
+    ctx: TenantContext,
     payload: { name: string; email: string; phone?: string; password?: string },
     meta: { ip?: string | null; user_agent?: string | null },
   ): Promise<{ customer: any; tokens: any }> {
@@ -52,7 +54,7 @@ export class RetailPublicAuthService {
       .digest("hex");
 
     const existing = await this.prisma.retail_customers.findFirst({
-      where: { tenant_id: tenant_id, email: normalizedEmail },
+      where: { ...MultiTenancyUtil.getScope(ctx), email: normalizedEmail },
     });
     if (existing) {
       throw new ForbiddenException("Email already registered");
@@ -62,7 +64,7 @@ export class RetailPublicAuthService {
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         name: payload.name.trim(),
         email: normalizedEmail,
         phone: payload.phone?.trim() || null,
@@ -81,7 +83,7 @@ export class RetailPublicAuthService {
     });
 
     const tokens = await this.issueTokens(
-      { id: customer.id, tenant_id: tenant_id },
+      { id: customer.id, tenantContext: ctx },
       { channel_id: 'default', branch_id: 'default' }, // Internal placeholder or derive from context
       meta,
     );
@@ -90,14 +92,14 @@ export class RetailPublicAuthService {
   }
 
   async loginCustomer(
-    tenant_id: string,
+    ctx: TenantContext,
     scope: ConnectorScope,
     payload: { email: string; password?: string },
     meta: { ip?: string | null; user_agent?: string | null },
   ): Promise<{ customer: any; tokens: any }> {
     const normalizedEmail = payload.email.trim().toLowerCase();
     const customer = await this.prisma.retail_customers.findFirst({
-      where: { tenant_id: tenant_id, email: normalizedEmail },
+      where: { ...MultiTenancyUtil.getScope(ctx), email: normalizedEmail },
     });
     if (!customer) {
       throw new UnauthorizedException("Invalid credentials");
@@ -120,7 +122,7 @@ export class RetailPublicAuthService {
     }
 
     const tokens = await this.issueTokens(
-      { id: customer.id, tenant_id: tenant_id },
+      { id: customer.id, tenantContext: ctx },
       scope,
       meta,
     );
@@ -132,7 +134,7 @@ export class RetailPublicAuthService {
   }
 
   async refreshTokens(
-    tenant_id: string,
+    ctx: TenantContext,
     scope: ConnectorScope,
     refreshToken: string,
     meta: { ip?: string | null; user_agent?: string | null },
@@ -150,7 +152,7 @@ export class RetailPublicAuthService {
     }
 
     const customer = await this.prisma.retail_customers.findFirst({
-      where: { id: session.customer_id, tenant_id: tenant_id },
+      where: { id: session.customer_id, ...MultiTenancyUtil.getScope(ctx) },
     });
     if (!customer) {
       throw new UnauthorizedException("Invalid session");
@@ -162,7 +164,7 @@ export class RetailPublicAuthService {
     });
 
     const tokens = await this.issueTokens(
-      { id: customer.id, tenant_id: tenant_id },
+      { id: customer.id, tenantContext: ctx },
       scope,
       meta,
     );
@@ -193,14 +195,14 @@ export class RetailPublicAuthService {
   }
 
   private async issueTokens(
-    customer: { id: string; tenant_id: string },
+    customer: { id: string; tenantContext: TenantContext },
     scope: ConnectorScope,
     meta: { ip?: string | null; user_agent?: string | null },
   ) {
     const accessToken = (jwt.sign as any)(
       {
         sub: customer.id,
-        tenant_id: customer.tenant_id,
+        tenant_id: customer.tenantContext.tenant_id,
         connector_id: scope.channel_id,
         branch_id: scope.branch_id,
         scope: "retail.public",
@@ -219,7 +221,7 @@ export class RetailPublicAuthService {
         id: 'al4zz5uh',
         updated_at: new Date(),
         customer_id: customer.id,
-        tenant_id: customer.tenant_id,
+        ...MultiTenancyUtil.getScope(customer.tenantContext),
         token_hash: refreshHash,
         expires_at: expiresAt,
         ip_address: meta.ip ?? null,
@@ -243,14 +245,14 @@ export class RetailPublicAuthService {
   }
 
   async validateEcommerceConnector(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string,
     clientSecret: string,
   ): Promise<ConnectorScope> {
     const apiHash = createHash("sha256").update(clientSecret).digest("hex");
     const connector = await this.prisma.ecommerce_connectors.findFirst({
       where: {
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         domain: clientId,
         api_key: apiHash,
         deleted_at: null,

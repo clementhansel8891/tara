@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ILedgerMerkleCheckpointRepository } from '../repositories/interfaces/ledger-merkle-checkpoint.repository.interface';
 import { IJournalRepository } from '../repositories/interfaces/journal.repository.interface';
 import { LedgerMerkleCheckpoint, CheckpointChainResult, JournalEntry } from '../domain/finance.interfaces';
@@ -9,7 +9,9 @@ export class LedgerMerkleCheckpointService {
   private readonly logger = new Logger(LedgerMerkleCheckpointService.name);
 
   constructor(
+    @Inject('ILedgerMerkleCheckpointRepository')
     private readonly checkpointRepo: ILedgerMerkleCheckpointRepository,
+    @Inject('IJournalRepository')
     private readonly journalRepo: IJournalRepository,
   ) {}
 

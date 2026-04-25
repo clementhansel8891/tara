@@ -60,7 +60,7 @@ export function AdjustmentDialog({
     setLoading(true);
     setError(null);
     try {
-      await inventoryService.requestAdjustment(session.tenantId, session, {
+      await inventoryService.requestAdjustment(session.tenant_id, session, {
         itemId: selectedBalance.item.id,
         locationCode: selectedBalance.balance.locationCode,
         departmentCode: selectedBalance.balance.departmentCode,

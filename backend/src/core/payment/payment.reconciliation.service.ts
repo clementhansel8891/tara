@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { IPaymentRepository } from "./repositories/payment.repository.interface";
 import { PaymentService } from "./payment.service";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 
 @Injectable()
 export class PaymentReconciliationService {
@@ -48,8 +49,15 @@ export class PaymentReconciliationService {
             `Transaction ${tx.id} status changed from PENDING to ${status.status}. Resetting retry count.`,
           );
 
+          const ctx: TenantContext = {
+            tenant_id: tx.tenant_id,
+            company_id: tx.company_id,
+            branch_id: tx.branch_id,
+            ecommerce_id: tx.ecommerce_id,
+          } as TenantContext;
+
           await this.paymentService.syncTransactionStatus(
-            tx.tenant_id,
+            ctx,
             tx.id,
             {
               status: status.status as any,
@@ -62,9 +70,16 @@ export class PaymentReconciliationService {
             "reconciliation-job",
           );
         } else {
+          const ctx: TenantContext = {
+            tenant_id: tx.tenant_id,
+            company_id: tx.company_id,
+            branch_id: tx.branch_id,
+            ecommerce_id: tx.ecommerce_id,
+          } as TenantContext;
+
           // Still pending, just update last checked
           await this.repository.updateTransactionStatus(
-            tx.tenant_id,
+            ctx,
             tx.id,
             { status: "PENDING", last_checked_at: now, retry_count: retryCount },
             "reconciliation-job"
@@ -75,9 +90,16 @@ export class PaymentReconciliationService {
           `Failed to reconcile transaction ${tx.id}: ${error.message}. Incrementing backoff.`,
         );
         
+        const ctx: TenantContext = {
+          tenant_id: tx.tenant_id,
+          company_id: tx.company_id,
+          branch_id: tx.branch_id,
+          ecommerce_id: tx.ecommerce_id,
+        } as TenantContext;
+
         // Update backoff counters
         await this.repository.updateTransactionStatus(
-          tx.tenant_id,
+          ctx,
           tx.id,
           { 
             status: "PENDING", 

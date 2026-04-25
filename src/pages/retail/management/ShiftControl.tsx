@@ -98,7 +98,7 @@ const ShiftControl = () => {
   // Governance specifically for Shifts
   const { auditLog, addSignature } = useGovernance(
     "GLOBAL_SHIFT_ROSTER",
-    session.tenantId!,
+    session.tenant_id!,
     session,
   );
 
@@ -107,9 +107,9 @@ const ShiftControl = () => {
       try {
         setIsLoading(true);
         const data = await retailService.listShifts(
-          session.tenantId!,
+          session.tenant_id!,
           session,
-          session.locationId,
+          session.location_id,
         );
         setShifts(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -119,7 +119,7 @@ const ShiftControl = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.locationId, session]);
+  }, [session.tenant_id, session.location_id, session]);
 
   const stats = useMemo(() => {
     const active = shifts.filter((s) => s.status === "open").length;
@@ -167,7 +167,7 @@ const ShiftControl = () => {
       ).length;
       await addSignature(
         "Superadmin",
-        session.userId,
+        session.user_id,
         true,
         `Published ${affectedCount} shifts: ${reason}`,
       );
@@ -194,7 +194,7 @@ const ShiftControl = () => {
     if (!activeShift) return;
     try {
       setIsLoading(true);
-      await retailService.reconcileShift(session.tenantId!, session, activeShift.id);
+      await retailService.reconcileShift(session.tenant_id!, session, activeShift.id);
       toast({
         title: "Reconciliation Complete",
         description: "The shift has been audited and reconciled successfully.",
@@ -232,7 +232,7 @@ const ShiftControl = () => {
       <div className="px-6 py-6 border-b bg-white shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
           title="Workforce Intelligence Hub"
-          subtitle={`Node: ${session.locationId || "CENTRAL"} • Labor Efficiency: ${stats.efficiency}% • Risk: LOW`}
+          subtitle={`Node: ${session.location_id || "CENTRAL"} • Labor Efficiency: ${stats.efficiency}% • Risk: LOW`}
         />
         <div className="flex items-center gap-3">
           <Button

@@ -1,3 +1,4 @@
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { Injectable, Logger } from "@nestjs/common";
 import { CreateAdjustmentDto } from "./dto/create-adjustment.dto";
 import { CreateItemDto } from "./dto/create-item.dto";
@@ -24,23 +25,23 @@ export class InventoryService {
 
   private readonly logger = new Logger(InventoryService.name);
 
-  async getDashboard(tenant_id: string) {
-    return this.repository.getDashboard(tenant_id);
+  async getDashboard(ctx: TenantContext) {
+    return this.repository.getDashboard(ctx);
   }
 
-  async getItems(tenant_id: string) {
-    return this.repository.getItems(tenant_id);
+  async getItems(ctx: TenantContext) {
+    return this.repository.getItems(ctx);
   }
 
-  async createItem(tenant_id: string, data: CreateItemDto, user_id?: string) {
+  async createItem(ctx: TenantContext, data: CreateItemDto, user_id?: string) {
     // Phase 1: Auto-generate SKU if missing or empty
     if (!data.sku || data.sku.trim() === "") {
-      data.sku = await this.skuGenerator.generateSku(tenant_id, data.category);
+      data.sku = await this.skuGenerator.generateSku(ctx, data.category);
     }
 
     // Always ensure a barcode exists (tightly coupled)
     if (!data.barcode || data.barcode.trim() === "") {
-      data.barcode = this.skuGenerator.generateBarcode(tenant_id, data.sku);
+      data.barcode = this.skuGenerator.generateBarcode(ctx, data.sku);
     }
 
     // Default to pending for HOD approval as per user requirement, but allow override if explicitly set
@@ -49,10 +50,10 @@ export class InventoryService {
       status: data.status || "pending",
     };
 
-    const item = await this.repository.createItem(tenant_id, itemData);
+    const item = await this.repository.createItem(ctx, itemData);
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "CREATE_PENDING",
@@ -64,31 +65,30 @@ export class InventoryService {
     return item;
   }
 
-  async getBalances(
-    tenant_id: string,
+  async getBalances(ctx: TenantContext,
     location_id?: string,
     departmentId?: string,
   ) {
-    return this.repository.getBalances(tenant_id, location_id, departmentId);
+    return this.repository.getBalances(ctx, location_id, departmentId);
   }
 
-  async getMovements(tenant_id: string, item_id?: string) {
-    return this.repository.getMovements(tenant_id, item_id);
+  async getMovements(ctx: TenantContext, item_id?: string) {
+    return this.repository.getMovements(ctx, item_id);
   }
 
-  async intakeStock(tenant_id: string, data: StockIntakeDto, user_id?: string, tx?: any, correlation_id?: string) {
-    const result = await this.repository.intakeStock(tenant_id, data, tx);
+  async intakeStock(ctx: TenantContext, data: StockIntakeDto, user_id?: string, tx?: any, correlation_id?: string) {
+    const result = await this.repository.intakeStock(ctx, data, tx);
     
     // Emit standardized event (V1 Schema matching EventRegistry)
     await this.eventBus.publish({
       event_type: 'STOCK_MOVEMENT_CREATED',
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: result.id,
       entity_type: 'STOCK_MOVEMENT',
       source_module: 'inventory',
       payload: {
         movementId: result.id,
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         product_id: data.item_id,
         location_id: data.location_id,
         quantity: data.quantity,
@@ -103,7 +103,7 @@ export class InventoryService {
 
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "INTAKE",
@@ -115,25 +115,24 @@ export class InventoryService {
     return result;
   }
 
-  async consumeStock(
-    tenant_id: string,
+  async consumeStock(ctx: TenantContext,
     data: any,
     user_id?: string,
     tx?: any,
     correlation_id?: string,
   ) {
     // Phase 4: Hardened consumption with available check (moved to repo)
-    const result = await this.repository.consumeStock(tenant_id, data, tx);
+    const result = await this.repository.consumeStock(ctx, data, tx);
 
     await this.eventBus.publish({
         event_type: 'STOCK_MOVEMENT_CREATED',
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: result.id,
         entity_type: 'STOCK_MOVEMENT',
         source_module: 'inventory',
         payload: {
           movementId: result.id,
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           product_id: data.item_id,
           location_id: data.location_id,
           quantity: -data.quantity,
@@ -148,7 +147,7 @@ export class InventoryService {
 
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "CONSUME",
@@ -166,14 +165,13 @@ export class InventoryService {
 
   // --- Financial-Grade Reservation Lifecycle ---
 
-  async reserveStock(
-    tenant_id: string,
+  async reserveStock(ctx: TenantContext,
     data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
     user_id: string,
     correlation_id?: string
   ) {
     await this.repository.reserveStock(
-        tenant_id, 
+        ctx,
         data.product_id, 
         data.location_id, 
         data.quantity, 
@@ -183,7 +181,7 @@ export class InventoryService {
     
     await this.eventBus.publish({
         event_type: 'STOCK_RESERVED',
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: data.product_id,
         entity_type: 'PRODUCT',
         source_module: 'inventory',
@@ -196,14 +194,13 @@ export class InventoryService {
     });
   }
 
-  async releaseStock(
-    tenant_id: string,
+  async releaseStock(ctx: TenantContext,
     data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
     user_id: string,
     correlation_id?: string
   ) {
     await this.repository.releaseStock(
-        tenant_id, 
+        ctx,
         data.product_id, 
         data.location_id, 
         data.quantity, 
@@ -213,7 +210,7 @@ export class InventoryService {
     
     await this.eventBus.publish({
         event_type: 'STOCK_RELEASED',
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: data.product_id,
         entity_type: 'PRODUCT',
         source_module: 'inventory',
@@ -226,14 +223,13 @@ export class InventoryService {
     });
   }
 
-  async confirmReservation(
-    tenant_id: string,
+  async confirmReservation(ctx: TenantContext,
     data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
     user_id: string,
     correlation_id?: string
   ) {
     await this.repository.consumeFromReservation(
-        tenant_id, 
+        ctx,
         data.product_id, 
         data.location_id, 
         data.quantity, 
@@ -243,13 +239,13 @@ export class InventoryService {
 
     await this.eventBus.publish({
         event_type: 'STOCK_MOVEMENT_CREATED',
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: data.referenceId,
         entity_type: 'STOCK_MOVEMENT',
         source_module: 'inventory',
         payload: {
             movementId: data.referenceId,
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             product_id: data.product_id,
             location_id: data.location_id,
             quantity: -data.quantity,
@@ -266,19 +262,18 @@ export class InventoryService {
 
   // --- In-Transit / Multi-Step Transfer ---
 
-  async initiateTransfer(
-    tenant_id: string,
+  async initiateTransfer(ctx: TenantContext,
     data: { product_id: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string, transferGroupId?: string },
     user_id: string,
     correlation_id?: string
   ) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Virtual Transit Pool logic
-      const transitLocation = await this.getOrCreateTransitLocation(tenant_id, data.fromLocationId, data.toLocationId);
+      const transitLocation = await this.getOrCreateTransitLocation(ctx, data.fromLocationId, data.toLocationId);
       const groupId = data.transferGroupId || `TRG-${Date.now()}`;
       
       const move = await this.repository.transferOut(
-          tenant_id, 
+          ctx,
           data.product_id, 
           data.fromLocationId, 
           transitLocation.id, // Move to transit pool
@@ -291,19 +286,19 @@ export class InventoryService {
 
       // 2. Update status to SHIPPED (IN_TRANSIT)
       await tx.inventory_movement_requests.updateMany({
-        where: { tenant_id, id: data.referenceId, status: 'PENDING' },
+        where: { tenant_id: ctx.tenant_id, id: data.referenceId, status: 'PENDING' },
         data: { status: 'SHIPPED', updated_at: new Date() }
       });
       
       await this.eventBus.publish({
           event_type: 'STOCK_MOVEMENT_CREATED',
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           entity_id: move.id,
           entity_type: 'STOCK_MOVEMENT',
           source_module: 'inventory',
           payload: {
               movementId: move.id,
-              tenant_id: tenant_id,
+              tenant_id: ctx.tenant_id,
               product_id: data.product_id,
               fromLocationId: data.fromLocationId,
               transitLocationId: transitLocation.id,
@@ -324,18 +319,17 @@ export class InventoryService {
     });
   }
 
-  async completeTransfer(
-    tenant_id: string,
+  async completeTransfer(ctx: TenantContext,
     data: { product_id: string; fromLocationId: string; toLocationId: string; quantity: number; referenceId: string; referenceType: string, transferGroupId?: string, transitLocationId?: string },
     user_id: string,
     correlation_id?: string
   ) {
     return this.prisma.$transaction(async (tx) => {
       // If transitLocationId not provided, recover it
-      const transitLocationId = data.transitLocationId || (await this.getOrCreateTransitLocation(tenant_id, data.fromLocationId, data.toLocationId)).id;
+      const transitLocationId = data.transitLocationId || (await this.getOrCreateTransitLocation(ctx, data.fromLocationId, data.toLocationId)).id;
       
       const move = await this.repository.transferIn(
-          tenant_id, 
+          ctx,
           data.product_id, 
           transitLocationId, // Move FROM transit pool
           data.toLocationId, 
@@ -348,19 +342,19 @@ export class InventoryService {
 
       // 2. Update status to COMPLETED (RECEIVED)
       await tx.inventory_movement_requests.updateMany({
-        where: { tenant_id, id: data.referenceId, status: 'SHIPPED' },
+        where: { tenant_id: ctx.tenant_id, id: data.referenceId, status: 'SHIPPED' },
         data: { status: 'COMPLETED', updated_at: new Date() }
       });
       
       await this.eventBus.publish({
           event_type: 'STOCK_MOVEMENT_CREATED',
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           entity_id: move.id,
           entity_type: 'STOCK_MOVEMENT',
           source_module: 'inventory',
           payload: {
               movementId: move.id,
-              tenant_id: tenant_id,
+              tenant_id: ctx.tenant_id,
               product_id: data.product_id,
               fromLocationId: transitLocationId,
               toLocationId: data.toLocationId,
@@ -379,19 +373,19 @@ export class InventoryService {
     });
   }
 
-  private async getOrCreateTransitLocation(tenant_id: string, fromId: string, toId: string) {
+  private async getOrCreateTransitLocation(ctx: TenantContext, fromId: string, toId: string) {
     const transitName = `Transit Pool (${fromId.substring(0,4)} to ${toId.substring(0,4)})`;
     const transitCode = `TR-${fromId.substring(0,4)}-${toId.substring(0,4)}`;
 
     let location = await this.prisma.locations.findFirst({
-        where: { tenant_id, type: 'TRANSIT', code: transitCode }
+        where: { tenant_id: ctx.tenant_id, type: 'TRANSIT', code: transitCode }
     });
 
     if (!location) {
         location = await this.prisma.locations.create({
             data: {
                 id: uuidv4(),
-                tenant_id,
+                tenant_id: ctx.tenant_id,
                 name: transitName,
                 code: transitCode,
                 type: 'TRANSIT',
@@ -406,12 +400,12 @@ export class InventoryService {
 
   // --- NEW Stock Transfer Lifecycle (Grading to Production) ---
 
-  async getAllTransfers(tenant_id: string) {
-    return this.repository.getTransfers(tenant_id);
+  async getAllTransfers(ctx: TenantContext) {
+    return this.repository.getTransfers(ctx);
   }
 
-  async createTransfer(tenant_id: string, data: any, user_id: string) {
-    const transfer = await this.repository.createStockTransfer(tenant_id, {
+  async createTransfer(ctx: TenantContext, data: any, user_id: string) {
+    const transfer = await this.repository.createStockTransfer(ctx, {
       ...data,
       status: 'REQUESTED',
       requested_by: user_id,
@@ -419,7 +413,7 @@ export class InventoryService {
     });
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: 'inventory',
       action: 'TRANSFER_REQUESTED',
@@ -431,16 +425,16 @@ export class InventoryService {
     return transfer;
   }
 
-  async pickTransfer(tenant_id: string, id: string, user_id: string) {
+  async pickTransfer(ctx: TenantContext, id: string, user_id: string) {
     return this.prisma.$transaction(async (tx) => {
-      const transfer = await this.repository.getTransferById(tenant_id, id);
+      const transfer = await this.repository.getTransferById(ctx, id);
       if (!transfer || transfer.status !== 'REQUESTED') {
         throw new Error('Transfer not found or not in REQUESTED status');
       }
 
       // Reserve stock at source
       await this.repository.reserveStock(
-        tenant_id,
+        ctx,
         transfer.item_id,
         transfer.from_location_id,
         transfer.quantity,
@@ -449,14 +443,14 @@ export class InventoryService {
         tx
       );
 
-      const updated = await this.repository.updateStockTransfer(tenant_id, id, {
+      const updated = await this.repository.updateStockTransfer(ctx, id, {
         status: 'PICKED',
         picked_by: user_id,
         picked_at: new Date(),
       }, tx);
 
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: 'inventory',
         action: 'TRANSFER_PICKED',
@@ -468,20 +462,20 @@ export class InventoryService {
     });
   }
 
-  async shipTransfer(tenant_id: string, id: string, tracking_number: string, user_id: string) {
+  async shipTransfer(ctx: TenantContext, id: string, tracking_number: string, user_id: string) {
     return this.prisma.$transaction(async (tx) => {
-      const transfer = await this.repository.getTransferById(tenant_id, id);
+      const transfer = await this.repository.getTransferById(ctx, id);
       if (!transfer || (transfer.status !== 'REQUESTED' && transfer.status !== 'PICKED')) {
         throw new Error('Transfer not found or cannot be shipped');
       }
 
-      const transitLocation = await this.getOrCreateTransitLocation(tenant_id, transfer.from_location_id, transfer.to_location_id);
+      const transitLocation = await this.getOrCreateTransitLocation(ctx, transfer.from_location_id, transfer.to_location_id);
       
       // If was PICKED, release reservation and then transfer out. 
       // If was REQUESTED, just transfer out (which checks available).
       if (transfer.status === 'PICKED') {
         await this.repository.releaseStock(
-            tenant_id,
+            ctx,
             transfer.item_id,
             transfer.from_location_id,
             transfer.quantity,
@@ -493,7 +487,7 @@ export class InventoryService {
 
       // Atomic movement to Transit Pool
       await this.repository.transferOut(
-        tenant_id,
+        ctx,
         transfer.item_id,
         transfer.from_location_id,
         transitLocation.id,
@@ -504,7 +498,7 @@ export class InventoryService {
         tx
       );
 
-      const updated = await this.repository.updateStockTransfer(tenant_id, id, {
+      const updated = await this.repository.updateStockTransfer(ctx, id, {
         status: 'IN_TRANSIT',
         shipped_by: user_id,
         shipped_at: new Date(),
@@ -512,7 +506,7 @@ export class InventoryService {
       }, tx);
 
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: 'inventory',
         action: 'TRANSFER_SHIPPED',
@@ -525,18 +519,18 @@ export class InventoryService {
     });
   }
 
-  async receiveTransfer(tenant_id: string, id: string, user_id: string) {
+  async receiveTransfer(ctx: TenantContext, id: string, user_id: string) {
     return this.prisma.$transaction(async (tx) => {
-      const transfer = await this.repository.getTransferById(tenant_id, id);
+      const transfer = await this.repository.getTransferById(ctx, id);
       if (!transfer || transfer.status !== 'IN_TRANSIT') {
         throw new Error('Transfer not found or not in IN_TRANSIT status');
       }
 
-      const transitLocation = await this.getOrCreateTransitLocation(tenant_id, transfer.from_location_id, transfer.to_location_id);
+      const transitLocation = await this.getOrCreateTransitLocation(ctx, transfer.from_location_id, transfer.to_location_id);
 
       // Move FROM transit pool to Destination
       await this.repository.transferIn(
-        tenant_id,
+        ctx,
         transfer.item_id,
         transitLocation.id,
         transfer.to_location_id,
@@ -547,14 +541,14 @@ export class InventoryService {
         tx
       );
 
-      const updated = await this.repository.updateStockTransfer(tenant_id, id, {
+      const updated = await this.repository.updateStockTransfer(ctx, id, {
         status: 'RECEIVED',
         received_by: user_id,
         received_at: new Date(),
       }, tx);
 
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: 'inventory',
         action: 'TRANSFER_RECEIVED',
@@ -566,7 +560,7 @@ export class InventoryService {
     });
   }
 
-  async cleanupExpiredReservations(tenant_id?: string) {
+  async cleanupExpiredReservations(ctx?: TenantContext) {
     const ttlMinutes = 30;
     const expiryTime = new Date(Date.now() - ttlMinutes * 60 * 1000);
 
@@ -574,7 +568,7 @@ export class InventoryService {
         status: 'PENDING',
         created_at: { lt: expiryTime }
     };
-    if (tenant_id) where.tenant_id = tenant_id;
+    if (ctx) where.tenant_id = ctx.tenant_id;
 
     const expired = await this.prisma.stock_reservations.findMany({ where });
 
@@ -582,7 +576,7 @@ export class InventoryService {
         if (!res.tenant_id) continue;
         try {
             await this.repository.releaseStock(
-                res.tenant_id,
+                { tenant_id: res.tenant_id } as TenantContext,
                 res.product_id,
                 res.location_id,
                 Number(res.quantity),
@@ -598,20 +592,20 @@ export class InventoryService {
     return expired.length;
   }
 
-  async runStockSnapshot(tenant_id: string, location_id: string) {
-    await this.repository.takeSnapshot(tenant_id, location_id);
+  async runStockSnapshot(ctx: TenantContext, location_id: string) {
+    await this.repository.takeSnapshot(ctx, location_id);
   }
 
-  async initializeStock(tenant_id: string, data: any, user_id?: string, correlation_id?: string) {
+  async initializeStock(ctx: TenantContext, data: any, user_id?: string, correlation_id?: string) {
     // Manual Creation flow initializer
     await this.eventBus.publish({
         event_type: 'INVENTORY_STOCK_INITIALIZED',
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: data.sku,
         entity_type: 'ITEM',
         source_module: 'inventory',
         payload: {
-            tenant_id: tenant_id,
+            tenant_id: ctx.tenant_id,
             sku: data.sku,
             location_id: data.location_id,
             quantity: data.quantity,
@@ -623,8 +617,7 @@ export class InventoryService {
     });
   }
 
-  async transferStock(
-    tenant_id: string,
+  async transferStock(ctx: TenantContext,
     data: TransferStockDto,
     user_id?: string,
     correlation_id?: string,
@@ -636,19 +629,19 @@ export class InventoryService {
     // For Phase 3, we implement the two-step logic if it's a 'shipment' 
     // but for simple 'transfer' we'll stick to standardized emission.
 
-    const result = await (this.repository as any).transferStock(tenant_id, data);
+    const result = await (this.repository as any).transferStock(ctx, data);
     
     // Emit standardized events (One for OUT, one for IN if immediate)
     for (const move of result) {
         await this.eventBus.publish({
             event_type: 'STOCK_MOVEMENT_CREATED',
-            tenant_id: tenant_id,
+            tenant_id: ctx.tenant_id,
             entity_id: move.id,
             entity_type: 'STOCK_MOVEMENT',
             source_module: 'inventory',
             payload: {
                 movementId: move.id,
-                tenant_id: tenant_id,
+                tenant_id: ctx.tenant_id,
                 product_id: data.item_id,
                 location_id: move.movementType === 'transfer_out' ? data.fromLocationId : data.toLocationId,
                 quantity: move.movementType === 'transfer_out' ? -data.quantity : data.quantity,
@@ -664,7 +657,7 @@ export class InventoryService {
 
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "TRANSFER",
@@ -680,21 +673,20 @@ export class InventoryService {
     return result;
   }
 
-  async getAdjustments(tenant_id: string) {
-    return this.repository.getAdjustments(tenant_id);
+  async getAdjustments(ctx: TenantContext) {
+    return this.repository.getAdjustments(ctx);
   }
 
-  async createAdjustment(
-    tenant_id: string,
+  async createAdjustment(ctx: TenantContext,
     data: CreateAdjustmentDto,
     user_id?: string,
     tx?: any,
     correlation_id?: string
   ) {
-    const adjustment = await this.repository.createAdjustment(tenant_id, data, tx);
+    const adjustment = await this.repository.createAdjustment(ctx, data, tx);
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "ADJUST_CREATE",
@@ -710,13 +702,12 @@ export class InventoryService {
     return adjustment;
   }
 
-  async approveAdjustment(
-    tenant_id: string,
+  async approveAdjustment(ctx: TenantContext,
     adjustmentId: string,
     approvedBy: string,
   ) {
     const result = await this.repository.approveAdjustment(
-      tenant_id,
+      ctx,
       adjustmentId,
       approvedBy,
     );
@@ -724,13 +715,13 @@ export class InventoryService {
     // Emit standardized event
     await this.eventBus.publish({
       event_type: 'STOCK_MOVEMENT_CREATED',
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: adjustmentId,
       entity_type: 'STOCK_MOVEMENT',
       source_module: 'inventory',
       payload: {
         movementId: adjustmentId,
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         product_id: result.item_id,
         location_id: result.location_id,
         quantity: result.requestedDelta,
@@ -745,42 +736,41 @@ export class InventoryService {
     return result;
   }
 
-  async getAlerts(tenant_id: string) {
-    return this.repository.getAlerts(tenant_id);
+  async getAlerts(ctx: TenantContext) {
+    return this.repository.getAlerts(ctx);
   }
 
-  async setAlertStatus(
-    tenant_id: string,
+  async setAlertStatus(ctx: TenantContext,
     alertId: string,
     status: "open" | "acknowledged" | "resolved",
   ) {
-    return this.repository.setAlertStatus(tenant_id, alertId, status);
+    return this.repository.setAlertStatus(ctx, alertId, status);
   }
 
-  async getAuditCycles(tenant_id: string) {
-    return this.repository.getAuditCycles(tenant_id);
+  async getAuditCycles(ctx: TenantContext) {
+    return this.repository.getAuditCycles(ctx);
   }
 
-  async createAuditCycle(tenant_id: string, data: any) {
-    return this.repository.createAuditCycle(tenant_id, data);
+  async createAuditCycle(ctx: TenantContext, data: any) {
+    return this.repository.createAuditCycle(ctx, data);
   }
 
-  async updateAuditCycle(tenant_id: string, id: string, data: any) {
-    return this.repository.updateAuditCycle(tenant_id, id, data);
+  async updateAuditCycle(ctx: TenantContext, id: string, data: any) {
+    return this.repository.updateAuditCycle(ctx, id, data);
   }
 
-  async getIntegrationEvents(tenant_id: string) {
-    return this.repository.getIntegrationEvents(tenant_id);
+  async getIntegrationEvents(ctx: TenantContext) {
+    return this.repository.getIntegrationEvents(ctx);
   }
 
-  async createIntegrationEvent(tenant_id: string, data: any) {
-    return this.repository.createIntegrationEvent(tenant_id, data);
+  async createIntegrationEvent(ctx: TenantContext, data: any) {
+    return this.repository.createIntegrationEvent(ctx, data);
   }
 
-  async runLowStockScan(tenant_id: string) {
+  async runLowStockScan(ctx: TenantContext) {
     // Query all stock levels and flag those at/below their minBuffer threshold
     const all = await this.prisma.stock_levels.findMany({
-      where: { tenant_id: tenant_id },
+      where: { tenant_id: ctx.tenant_id },
     });
     const low = all.filter((s: any) => Number(s.on_hand) <= Number(s.min_buffer));
 
@@ -789,7 +779,7 @@ export class InventoryService {
     for (const level of low) {
       const existing = await this.prisma.inventory_alerts.findFirst({
         where: {
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           entity_id: level.product_id,
           type: "LOW_STOCK",
           status: "OPEN",
@@ -800,7 +790,7 @@ export class InventoryService {
           data: {
         id: uuidv4(),
         updated_at: new Date(),
-            tenant_id: tenant_id,
+            tenant_id: ctx.tenant_id,
             type: "LOW_STOCK",
             severity: Number(level.on_hand) === 0 ? "HIGH" : "MEDIUM",
             status: "OPEN",
@@ -812,12 +802,12 @@ export class InventoryService {
         // Emit standardized LOW_STOCK_ALERT event
         await this.eventBus.publish({
             event_type: 'LOW_STOCK_ALERT',
-            tenant_id: tenant_id,
+            tenant_id: ctx.tenant_id,
             entity_id: level.product_id,
             entity_type: 'PRODUCT',
             source_module: 'inventory',
             payload: {
-                tenant_id: tenant_id,
+                tenant_id: ctx.tenant_id,
                 product_id: level.product_id,
                 location_id: level.location_id,
                 currentLevel: Number(level.on_hand),
@@ -838,11 +828,11 @@ export class InventoryService {
     };
   }
 
-  async runExpiryScan(tenant_id: string) {
+  async runExpiryScan(ctx: TenantContext) {
     // Return count of currently open expiry-related alerts from DB
     const openExpiryAlerts = await this.prisma.inventory_alerts.count({
       where: {
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         type: "EXPIRY_WARNING",
         status: "OPEN",
       },
@@ -850,11 +840,11 @@ export class InventoryService {
     return { scanned: 0, expiryFound: openExpiryAlerts };
   }
 
-  async deleteItem(tenant_id: string, item_id: string, user_id?: string) {
-    const result = await this.repository.deleteItem(tenant_id, item_id);
+  async deleteItem(ctx: TenantContext, item_id: string, user_id?: string) {
+    const result = await this.repository.deleteItem(ctx, item_id);
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "DELETE",
@@ -865,15 +855,14 @@ export class InventoryService {
     return result;
   }
 
-  async batchDeleteItems(
-    tenant_id: string,
+  async batchDeleteItems(ctx: TenantContext,
     itemIds: string[],
     user_id?: string,
   ) {
-    const result = await this.repository.batchDeleteItems(tenant_id, itemIds);
+    const result = await this.repository.batchDeleteItems(ctx, itemIds);
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "BATCH_DELETE",
@@ -885,15 +874,14 @@ export class InventoryService {
     return result;
   }
 
-  async batchIntakeStock(
-    tenant_id: string,
+  async batchIntakeStock(ctx: TenantContext,
     data: StockIntakeDto[],
     user_id?: string,
   ) {
-    const result = await this.repository.batchIntakeStock(tenant_id, data);
+    const result = await this.repository.batchIntakeStock(ctx, data);
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "BATCH_INTAKE",
@@ -905,12 +893,11 @@ export class InventoryService {
     return result;
   }
 
-  async requestProcurement(tenant_id: string, data: any) {
-    return this.repository.requestProcurement(tenant_id, data);
+  async requestProcurement(ctx: TenantContext, data: any) {
+    return this.repository.requestProcurement(ctx, data);
   }
 
-  async batchCreateItems(
-    tenant_id: string,
+  async batchCreateItems(ctx: TenantContext,
     data: CreateItemDto[],
     user_id?: string,
   ) {
@@ -918,25 +905,25 @@ export class InventoryService {
     for (const itemData of data) {
       if (!itemData.sku || itemData.sku.trim() === "") {
         itemData.sku = await this.skuGenerator.generateSku(
-          tenant_id,
+          ctx,
           itemData.category,
         );
       }
       if (!itemData.barcode || itemData.barcode.trim() === "") {
         itemData.barcode = this.skuGenerator.generateBarcode(
-          tenant_id,
+          ctx,
           itemData.sku,
         );
       }
     }
 
     const items = await this.repository.batchCreateItems(
-      tenant_id,
+      ctx,
       data.map((d) => ({ ...d, status: "pending" })),
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "BATCH_CREATE_PENDING",
@@ -948,18 +935,18 @@ export class InventoryService {
     return items;
   }
 
-  async getPendingItems(tenant_id: string) {
-    return this.repository.getPendingItems(tenant_id);
+  async getPendingItems(ctx: TenantContext) {
+    return this.repository.getPendingItems(ctx);
   }
 
-  async approveItem(tenant_id: string, item_id: string, user_id: string) {
+  async approveItem(ctx: TenantContext, item_id: string, user_id: string) {
     const item = await this.repository.updateItemStatus(
-      tenant_id,
+      ctx,
       item_id,
       "active",
     );
     await this.auditService.log({
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "inventory",
       action: "APPROVE",
@@ -970,14 +957,14 @@ export class InventoryService {
     return item;
   }
 
-  async rejectItem(tenant_id: string, item_id: string, user_id: string) {
+  async rejectItem(ctx: TenantContext, item_id: string, user_id: string) {
     const item = await this.repository.updateItemStatus(
-      tenant_id,
+      ctx,
       item_id,
       "rejected",
     );
     await this.auditService.log({
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "inventory",
       action: "REJECT",
@@ -988,18 +975,17 @@ export class InventoryService {
     return item;
   }
 
-  async createMovementRequest(
-    tenant_id: string,
+  async createMovementRequest(ctx: TenantContext,
     data: CreateMovementRequestDto,
     user_id?: string,
   ) {
     const request = await this.repository.createMovementRequest(
-      tenant_id,
+      ctx,
       data,
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "inventory",
         action: "REQUEST_MOVEMENT",
@@ -1013,27 +999,26 @@ export class InventoryService {
 
 
   // --- Agentic Layer ---
-  async createAgenticEvent(tenant_id: string, data: CreateAgenticEventDto) {
-    return this.repository.createAgenticEvent(tenant_id, data);
+  async createAgenticEvent(ctx: TenantContext, data: CreateAgenticEventDto) {
+    return this.repository.createAgenticEvent(ctx, data);
   }
 
-  async processScan(
-    tenant_id: string,
+  async processScan(ctx: TenantContext,
     params: { barcode: string; location_id: string; delta: number },
     user_id: string,
     correlation_id?: string
   ) {
-    this.logger.log(`Processing Edge Scan: ${params.barcode} for tenant ${tenant_id}`);
+    this.logger.log(`Processing Edge Scan: ${params.barcode} for tenant ${ctx.tenant_id}`);
     
     // 1. Efficient Lookup
-    const item = await this.repository.lookupByBarcode(tenant_id, params.barcode);
+    const item = await this.repository.lookupByBarcode(ctx, params.barcode);
     if (!item) {
         throw new Error(`Item not found for barcode: ${params.barcode}`);
     }
 
     // 2. Atomic Adjustment
     const result = await this.repository.quickAdjust(
-        tenant_id,
+        ctx,
         item.id,
         params.location_id,
         params.delta,
@@ -1043,7 +1028,7 @@ export class InventoryService {
     // 3. Emit Event for downstream logic (e.g. Real-time dashboards, IoT alerts)
     await this.eventBus.publish({
         event_type: 'INVENTORY_SCAN_PROCESSED',
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         entity_id: item.id,
         entity_type: 'ITEM',
         source_module: 'inventory',

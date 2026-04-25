@@ -39,7 +39,7 @@ export default function PayableDesk() {
   };
 
   const refreshPayables = useCallback(async () => {
-    setPayables(await financeApiClient.listPayables(session.tenantId, session));
+    setPayables(await financeApiClient.listPayables(session.tenant_id, session));
   }, [session]);
 
   useEffect(() => {
@@ -75,14 +75,14 @@ export default function PayableDesk() {
 
   const createPayable = async () => {
     try {
-      await financeApiClient.createPayable(session.tenantId, session, {
+      await financeApiClient.createPayable(session.tenant_id, session, {
         vendor,
         amount: Number(amount || "0"),
         dueDate,
       });
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Created payable",
         `${vendor} - ${amount}`,
       );
@@ -99,8 +99,8 @@ export default function PayableDesk() {
 
   const approvePayable = async (id: string) => {
     try {
-      await financeApiClient.approvePayable(session.tenantId, session, id);
-      logService.log(session.tenantId, session.userId, "Approved payable", id);
+      await financeApiClient.approvePayable(session.tenant_id, session, id);
+      logService.log(session.tenant_id, session.user_id, "Approved payable", id);
       setStatusMessage("Payable approved by department HOD.");
       refreshPayables();
     } catch (err) {
@@ -110,8 +110,8 @@ export default function PayableDesk() {
 
   const markPaid = async (id: string) => {
     try {
-      await financeApiClient.markPaid(session.tenantId, session, id);
-      logService.log(session.tenantId, session.userId, "Marked payable paid", id);
+      await financeApiClient.markPaid(session.tenant_id, session, id);
+      logService.log(session.tenant_id, session.user_id, "Marked payable paid", id);
       setStatusMessage("Payable marked as paid and posted to ledger.");
       refreshPayables();
     } catch (err) {

@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../persistence/prisma.service';
 import { IIoTRepository, TelemetryReading } from './iot.repository.interface';
@@ -14,7 +16,7 @@ export class IoTDbRepository implements IIoTRepository {
    * In production, this would hit an operational DB (e.g. TimescaleDB).
    * Here we use the specialized `farming_sensor_logs` as our operational table.
    */
-  async logTelemetry(tenant_id: string, readings: TelemetryReading[]): Promise<string[]> {
+  async logTelemetry(ctx: TenantContext, readings: TelemetryReading[]): Promise<string[]> {
     const ids: string[] = [];
 
     // Use a separate transaction pattern to avoid blocking the main system threads
@@ -27,7 +29,7 @@ export class IoTDbRepository implements IIoTRepository {
         await (tx as any).farmingSensorLog.create({
           data: {
             id,
-            tenant_id,
+            ...MultiTenancyUtil.getScope(ctx),
             sensor_id: reading.sensor_id,
             sensor_type: reading.sensor_type,
             value: reading.value,
@@ -42,10 +44,10 @@ export class IoTDbRepository implements IIoTRepository {
     return ids;
   }
 
-  async getFullHistory(tenant_id: string, sensor_id: string, timeframe: { start: Date; end: Date }): Promise<TelemetryReading[]> {
+  async getFullHistory(ctx: TenantContext, sensor_id: string, timeframe: { start: Date; end: Date }): Promise<TelemetryReading[]> {
     return (this.prisma as any).farmingSensorLog.findMany({
       where: {
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sensor_id,
         timestamp: { gte: timeframe.start, lte: timeframe.end },
       },
@@ -56,10 +58,10 @@ export class IoTDbRepository implements IIoTRepository {
   /**
    * Normalization Agent: Aggregates operational data for the Main DB.
    */
-  async getAggregatedReport(tenant_id: string, sensor_id: string, interval: 'HOUR' | 'DAY', timeframe: { start: Date; end: Date }): Promise<any> {
+  async getAggregatedReport(ctx: TenantContext, sensor_id: string, interval: 'HOUR' | 'DAY', timeframe: { start: Date; end: Date }): Promise<any> {
     // This simulates the "normalization" mentioned by the user.
     // In a real system, this would be a specialized SQL aggregation query.
-    const logs = await this.getFullHistory(tenant_id, sensor_id, timeframe);
+    const logs = await this.getFullHistory(ctx, sensor_id, timeframe);
     
     if (logs.length === 0) return null;
 

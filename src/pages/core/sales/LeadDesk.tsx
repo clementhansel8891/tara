@@ -34,7 +34,7 @@ export default function LeadDesk() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await salesService.listLeads(session.tenantId, session);
+      const data = await salesService.listLeads(session.tenant_id, session);
       setLeads(data);
     } catch (err) {
       console.error("Failed to fetch leads:", err);
@@ -42,7 +42,7 @@ export default function LeadDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -70,7 +70,7 @@ export default function LeadDesk() {
               variant="outline"
               onClick={async () => {
                 try {
-                  await salesService.runSlaSweep(session.tenantId, session);
+                  await salesService.runSlaSweep(session.tenant_id, session);
                   setStatusMessage("SLA sweep completed. Delinquent leads flagged.");
                   setRefreshKey((value) => value + 1);
                 } catch (err) {
@@ -114,7 +114,7 @@ export default function LeadDesk() {
             onClick={async () => {
               if (!companyName || !contactName) return;
               try {
-                await salesService.createLead(session.tenantId, session, {
+                await salesService.createLead(session.tenant_id, session, {
                   companyName,
                   contactName,
                   source: "MARKETING",
@@ -187,7 +187,7 @@ export default function LeadDesk() {
                           e.stopPropagation();
                           try {
                             await salesService.updateLeadStatus(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               lead.id,
                               "CONTACTED",
@@ -209,7 +209,7 @@ export default function LeadDesk() {
                           e.stopPropagation();
                           try {
                             await salesService.updateLeadStatus(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               lead.id,
                               "QUALIFIED",
@@ -230,7 +230,7 @@ export default function LeadDesk() {
                           e.stopPropagation();
                           try {
                             await salesService.convertLeadToOpportunity(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               lead.id,
                             );

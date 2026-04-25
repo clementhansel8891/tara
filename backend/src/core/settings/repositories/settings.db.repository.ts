@@ -86,4 +86,46 @@ export class SettingsDbRepository implements ISettingsRepository {
       });
     }
   }
+
+  async getChildCompanies(tenant_id: string): Promise<any[]> {
+    return this.prisma.companies.findMany({
+      where: {
+        tenant_id,
+        NOT: {
+          id: tenant_id // Exclude self if tenant_id = id
+        }
+      },
+      orderBy: { created_at: 'desc' }
+    });
+  }
+
+  async createChildCompany(tenant_id: string, data: any, user_id: string): Promise<any> {
+    const code = data.code || `CC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Create the child company
+      const company = await tx.companies.create({
+        data: {
+          name: data.name,
+          code,
+          industry: data.industry || 'retail',
+          country: data.country || 'US',
+          currency: data.currency || 'USD',
+          tenant_id, // Link to parent
+        }
+      });
+
+      // 2. Link the creator as OWNER of the new child company
+      await tx.user_companies.create({
+        data: {
+          user_id,
+          tenant_id: company.id,
+          role: 'OWNER',
+          is_default: false
+        }
+      });
+
+      return company;
+    });
+  }
 }

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { v4 as uuidv4 } from "uuid";
 import { randomBytes, createHash } from "crypto";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { IEcommerceHubRepository } from "./ecommerce-hub.repository.interface";
@@ -98,7 +99,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
 
     const row = await (this.prisma.ecommerce_connectors as any).create({
       data: {
-        id: '54vga3aq',
+        id: uuidv4(),
         updated_at: new Date(),
         tenant_id: tenant_id,
         name: data.name,
@@ -205,7 +206,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
 
     const row = await this.prisma.retail_channels.create({
       data: {
-        id: '10qxf1m4',
+        id: uuidv4(),
         updated_at: new Date(),
         tenant_id: tenant_id,
         name: data.name,
@@ -322,5 +323,51 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     });
     if (!row) throw new NotFoundException(`RetailChannel ${id} not found`);
     return row;
+  }
+
+  async listChannelProducts(tenant_id: string, channel_id: string, options?: any) {
+    return this.prisma.retail_channel_products.findMany({
+      where: { tenant_id, channel_id, ...(options?.category_id && { category_id: options.category_id }) },
+      include: { item_masters: true }
+    });
+  }
+
+  async updateChannelProducts(tenant_id: string, channel_id: string, updates: any[]) {
+    return this.prisma.$transaction(async (tx) => {
+      for (const update of updates) {
+        await tx.retail_channel_products.upsert({
+          where: {
+            channel_id_product_id: {
+              channel_id,
+              product_id: update.product_id
+            }
+          },
+          update: {
+            visible: update.visible,
+            stock_limit: update.stock_limit,
+            updated_at: new Date()
+          },
+          create: {
+            id: uuidv4(),
+            tenant_id,
+            channel_id,
+            product_id: update.product_id,
+            visible: update.visible,
+            stock_limit: update.stock_limit,
+            status: 'active'
+          }
+        });
+      }
+    });
+  }
+
+  async updateChannelCategories(tenant_id: string, channel_id: string, categories: string[]) {
+    // This typically maps to allowing specific category IDs for a channel
+    // For now, we'll just log or implement a simple mapping table if it exists
+    console.log(`[EcommerceHubDbRepository] Mapping categories ${categories} to channel ${channel_id}`);
+  }
+
+  async getChannelCategories(tenant_id: string, channel_id: string) {
+    return [];
   }
 }

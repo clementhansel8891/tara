@@ -4,6 +4,7 @@ import { InventorySubledgerEntry } from './entities/inventory-subledger-entry.en
 import { CostSnapshot } from './entities/cost-snapshot.entity';
 import { IInventorySubledgerRepository } from './repositories/interfaces/inventory-subledger.repository.interface';
 import { PrePostingValidator } from './validators/pre-posting.validator';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
@@ -17,14 +18,14 @@ export class InventoryAccountingIntegrationService {
     private readonly validator: PrePostingValidator,
   ) {}
 
-  async handleCostFinalized(tenant_id: string, entry: InventorySubledgerEntry, snapshot: CostSnapshot, correlation_id?: string): Promise<void> {
+  async handleCostFinalized(ctx: TenantContext, entry: InventorySubledgerEntry, snapshot: CostSnapshot, correlation_id?: string): Promise<void> {
     this.logger.log(`Integrating subledger entry ${entry.id} with UFPG`);
     
     // 1. Pre-Posting Validation
     const valResult = await this.validator.validate(entry);
     if (!valResult.valid) {
       this.logger.error(`Audit Block: Entry ${entry.id} failed validation: ${valResult.error}`);
-      await this.repository.updateEntryStatus(tenant_id, entry.id, 'FAILED', {
+      await this.repository.updateEntryStatus(ctx, entry.id, 'FAILED', {
         failureType: 'VALIDATION_ERROR'
       });
       return;
@@ -36,7 +37,7 @@ export class InventoryAccountingIntegrationService {
 
     const request = {
       request_id: entry.postingRequestId, // Use unique request ID for UFPG idempotency
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       company_id,
       sourceEventId: entry.id,
       event_type,
@@ -62,14 +63,14 @@ export class InventoryAccountingIntegrationService {
       
       if (result.status === 'FAILED') {
         this.logger.error(`UFPG posting failed for entry ${entry.id}: ${result.errorMessage}`);
-        await this.repository.updateEntryStatus(tenant_id, entry.id, 'FAILED', {
+        await this.repository.updateEntryStatus(ctx, entry.id, 'FAILED', {
           failureType: 'INTEGRATION_ERROR'
         });
       } else {
         this.logger.log(`UFPG posting successful for entry ${entry.id}: Journal ${result.journalId}`);
         // Lock the entry upon success
-        await this.repository.lockEntry(tenant_id, entry.id);
-        await this.repository.updateEntryStatus(tenant_id, entry.id, 'POSTED', {
+        await this.repository.lockEntry(ctx, entry.id);
+        await this.repository.updateEntryStatus(ctx, entry.id, 'POSTED', {
           glJournalId: result.journalId,
           postedAt: new Date(),
           postedPeriodId: entry.accountingPeriodId
@@ -77,7 +78,7 @@ export class InventoryAccountingIntegrationService {
       }
     } catch (error) {
       this.logger.error(`UFPG integration exception for ${entry.id}: ${error.message}`);
-      await this.repository.updateEntryStatus(tenant_id, entry.id, 'FAILED', {
+      await this.repository.updateEntryStatus(ctx, entry.id, 'FAILED', {
         failureType: 'SYSTEM_ERROR'
       });
     }

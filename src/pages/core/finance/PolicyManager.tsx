@@ -44,8 +44,8 @@ export default function PolicyManager() {
   };
 
   const refreshPolicies = useCallback(async () => {
-    setPolicies(await financeApiClient.listPolicies(session.tenantId, session));
-    setCapexBudgets(await financeApiClient.listCapexBudgets(session.tenantId, session));
+    setPolicies(await financeApiClient.listPolicies(session.tenant_id, session));
+    setCapexBudgets(await financeApiClient.listCapexBudgets(session.tenant_id, session));
   }, [session]);
 
   useEffect(() => {
@@ -70,8 +70,8 @@ export default function PolicyManager() {
 
   const savePolicy = async () => {
     try {
-      await financeApiClient.createPolicy(session.tenantId, session, policyForm);
-      logService.log(session.tenantId, session.userId, "Created policy", policyForm.title);
+      await financeApiClient.createPolicy(session.tenant_id, session, policyForm);
+      logService.log(session.tenant_id, session.user_id, "Created policy", policyForm.title);
       setStatusMessage(`Policy "${policyForm.title}" created successfully.`);
       setDialogOpen(false);
       setPolicyForm({ title: "", type: "APPROVAL_LIMIT", description: "", threshold: 0 });
@@ -83,8 +83,8 @@ export default function PolicyManager() {
 
   const togglePolicy = async (id: string) => {
     try {
-      await financeApiClient.togglePolicy(session.tenantId, session, id);
-      logService.log(session.tenantId, session.userId, "Toggled policy active state", id);
+      await financeApiClient.togglePolicy(session.tenant_id, session, id);
+      logService.log(session.tenant_id, session.user_id, "Toggled policy active state", id);
       setStatusMessage("Policy status updated successfully.");
       await refreshPolicies();
     } catch (err) {
@@ -95,10 +95,10 @@ export default function PolicyManager() {
   const saveCapexBudget = async () => {
     try {
       if (!budgetForm.department.trim()) return;
-      await financeApiClient.setCapexBudget(session.tenantId, session, budgetForm);
+      await financeApiClient.setCapexBudget(session.tenant_id, session, budgetForm);
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         "Set CAPEX budget",
         `${budgetForm.department}:${budgetForm.totalBudget}`,
       );

@@ -39,7 +39,7 @@ export default function DeviceDesk() {
     const fetchDevices = async () => {
       setLoading(true);
       try {
-        const data = await itSettingsService.getDevices(session.tenantId, session);
+        const data = await itSettingsService.getDevices(session.tenant_id, session);
         setDevices(data);
       } catch (err) {
         setErrorMessage("Failed to fetch devices.");
@@ -48,7 +48,7 @@ export default function DeviceDesk() {
       }
     };
     fetchDevices();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -173,7 +173,7 @@ export default function DeviceDesk() {
                         const locationId = (document.getElementById("reg-location-id") as HTMLInputElement).value;
                         const deviceType = (window as any)._regDeviceType || "iot";
 
-                        await itSettingsService.registerDevice(session.tenantId, session, {
+                        await itSettingsService.registerDevice(session.tenant_id, session, {
                           deviceName,
                           deviceType,
                           locationId,
@@ -226,7 +226,7 @@ export default function DeviceDesk() {
                 onClick={async () => {
                   try {
                     if (selectedDevice) {
-                      await itSettingsService.updateDeviceStatus(session.tenantId, session, selectedDevice.id, "audited");
+                      await itSettingsService.updateDeviceStatus(session.tenant_id, session, selectedDevice.id, "audited");
                       setStatusMessage(`Audit signal sent for device ${selectedDevice.deviceName}.`);
                       setVersion((prev) => prev + 1);
                       setSelectedDevice(null);
@@ -245,7 +245,7 @@ export default function DeviceDesk() {
                 onClick={async () => {
                   try {
                     if (selectedDevice) {
-                      await itSettingsService.updateDeviceStatus(session.tenantId, session, selectedDevice.id, "wiped");
+                      await itSettingsService.updateDeviceStatus(session.tenant_id, session, selectedDevice.id, "wiped");
                       setStatusMessage(`Wipe command queued for ${selectedDevice.deviceName}. Security policy enforced.`);
                       setVersion((prev) => prev + 1);
                       setSelectedDevice(null);

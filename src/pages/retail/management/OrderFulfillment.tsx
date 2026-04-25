@@ -38,7 +38,7 @@ const OrderFulfillment = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await retailService.listOrders(session.tenantId!, session);
+        const data = await retailService.listOrders(session.tenant_id!, session);
         setOrders(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error(e);
@@ -47,7 +47,7 @@ const OrderFulfillment = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   const stats = useMemo(() => {
     const pending = orders.filter((o) => o.status === "paid").length;
@@ -63,7 +63,7 @@ const OrderFulfillment = () => {
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
       await retailService.updateOrderStatus(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         orderId,
         newStatus,
@@ -104,7 +104,7 @@ const OrderFulfillment = () => {
       <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
         <PageHeader
           title="Multi-Channel Fulfillment Engine"
-          subtitle={`Node: ${session.locationId || "CENTRAL_HUB"} • Velocity: 94.2% • SLA Gaps: MINIMAL`}
+          subtitle={`Node: ${session.location_id || "CENTRAL_HUB"} • Velocity: 94.2% • SLA Gaps: MINIMAL`}
         />
         <div className="flex items-center gap-3">
           <Button disabled title="Not available yet"

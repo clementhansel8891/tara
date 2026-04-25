@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../persistence/prisma.service';
 import { ILedgerEventLogRepository } from './interfaces/ledger-event-log.repository.interface';
@@ -6,7 +6,7 @@ import { LedgerEventLog } from '../domain/finance.interfaces';
 
 @Injectable()
 export class LedgerEventLogDbRepository implements ILedgerEventLogRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   private get db(): Prisma.TransactionClient {
     return this.prisma as Prisma.TransactionClient;

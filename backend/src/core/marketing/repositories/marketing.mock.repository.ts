@@ -25,6 +25,7 @@ import {
   MarketingChannelPerformance,
   MarketingDashboard,
 } from "./marketing.repository.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 type TenantMarketingStore = {
   campaigns: MarketingCampaign[];
@@ -78,7 +79,7 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   private scoreLead(dto: CaptureLeadDto) {
-    const base = LEAD_SOURCE_SCORE[dto.source];
+    const base = LEAD_SOURCE_SCORE[dto.source as keyof typeof LEAD_SOURCE_SCORE];
     const industryBoost =
       dto.industry &&
       ["Manufacturing", "Retail", "Technology"].includes(dto.industry)
@@ -177,194 +178,17 @@ export class MarketingMockRepository extends IMarketingRepository {
         created_at: this.addDays(-3),
         updated_at: this.now(),
       },
-      {
-        id: `${tenant_id}-cmp-002`,
-        tenant_id,
-        name: "Ops Summit Webinar",
-        objective: "nurture",
-        channel_mix: ["webinar", "email", "whatsapp"],
-        owner_id: "mkt-ava",
-        owner_name: "Ava Reynolds",
-        budget: 45000,
-        currency: "USD",
-        status: "scheduled",
-        start_date: "2026-05-10",
-        end_date: "2026-05-31",
-        audience: "COO and finance transformation teams",
-        aiRecommendation:
-          "Use two-touch reminder sequence to improve attendance.",
-        created_at: this.addDays(-2),
-        updated_at: this.now(),
-      },
     ];
-
-    const executions: MarketingExecution[] = [
-      {
-        id: `${tenant_id}-exec-001`,
-        tenant_id,
-        campaignId: `${tenant_id}-cmp-001`,
-        channel: "meta_ads",
-        scheduledAt: this.addDays(-1),
-        status: "running",
-        leadsGenerated: 84,
-        spend: 18000,
-        notes: "Creative set B currently outperforming by 23%.",
-        created_at: this.addDays(-1),
-        updated_at: this.now(),
-      },
-      {
-        id: `${tenant_id}-exec-002`,
-        tenant_id,
-        campaignId: `${tenant_id}-cmp-002`,
-        channel: "email",
-        scheduledAt: this.addDays(1),
-        status: "scheduled",
-        leadsGenerated: 0,
-        spend: 0,
-        created_at: this.now(),
-        updated_at: this.now(),
-      },
-    ];
-
-    const leads: MarketingLead[] = [
-      {
-        id: `${tenant_id}-lead-001`,
-        tenant_id,
-        campaignId: `${tenant_id}-cmp-001`,
-        source: "meta_lead_ads",
-        company_name: "Orion Manufacturing",
-        contact_name: "Mia Chen",
-        email: "mia.chen@orion.example",
-        phone: "+1-202-555-0192",
-        country: "US",
-        industry: "Manufacturing",
-        employeeBand: "201-500",
-        dedupKey: "orion-manufacturing-mia.chen@orion.example",
-        score: 86,
-        intent: "high",
-        status: "handoff_ready",
-        qualificationReason:
-          "High intent from pricing and demo request signal.",
-        created_at: this.now(),
-        updated_at: this.now(),
-      },
-      {
-        id: `${tenant_id}-lead-002`,
-        tenant_id,
-        campaignId: `${tenant_id}-cmp-001`,
-        source: "landing_page",
-        company_name: "Northline Group",
-        contact_name: "Carlos Nguyen",
-        email: "carlos@northline.example",
-        country: "US",
-        industry: "Retail",
-        employeeBand: "51-200",
-        dedupKey: "northline-group-carlos@northline.example",
-        score: 72,
-        intent: "medium",
-        status: "scored",
-        qualificationReason:
-          "Strong campaign engagement, no buying window stated.",
-        created_at: this.now(),
-        updated_at: this.now(),
-      },
-    ];
-
-    const workflows: MarketingWorkflow[] = [
-      {
-        id: `${tenant_id}-wf-001`,
-        tenant_id,
-        name: "High intent follow-up",
-        status: "active",
-        trigger: "new_lead",
-        steps: [
-          {
-            id: `${tenant_id}-wf-001-step-1`,
-            order: 1,
-            channel: "email",
-            waitHours: 0,
-            messageTemplate: "welcome-high-intent",
-          },
-          {
-            id: `${tenant_id}-wf-001-step-2`,
-            order: 2,
-            channel: "whatsapp",
-            waitHours: 12,
-            messageTemplate: "demo-reminder",
-          },
-        ],
-        aiSuggestion: "Add retargeting touchpoint for no-reply branch.",
-        created_at: this.addDays(-2),
-        updated_at: this.now(),
-      },
-    ];
-
-    const accounts: MarketingConnectedAccount[] = [
-      {
-        id: `${tenant_id}-acct-meta`,
-        tenant_id,
-        provider: "meta",
-        account_name: "Zenvix Meta Business",
-        status: "connected",
-        tokenExpiresAt: this.addDays(20),
-        scopes: ["ads_read", "leads_retrieval"],
-        lastSyncAt: this.now(),
-        created_at: this.addDays(-10),
-        updated_at: this.now(),
-      },
-      {
-        id: `${tenant_id}-acct-google`,
-        tenant_id,
-        provider: "google",
-        account_name: "Zenvix Google Ads",
-        status: "connected",
-        tokenExpiresAt: this.addDays(15),
-        scopes: ["adwords.read"],
-        lastSyncAt: this.now(),
-        created_at: this.addDays(-10),
-        updated_at: this.now(),
-      },
-    ];
-
-    const attribution: MarketingAttribution[] = [
-      {
-        id: `${tenant_id}-attr-001`,
-        tenant_id,
-        campaignId: `${tenant_id}-cmp-001`,
-        lead_id: `${tenant_id}-lead-001`,
-        revenueAttributed: 230000,
-        spend: 18000,
-        roiPercent: 1177.78,
-        created_at: this.now(),
-      },
-    ];
-
-    const alerts: MarketingAlert[] = [
-      {
-        id: `${tenant_id}-alert-001`,
-        tenant_id,
-        type: "lead_spike",
-        severity: "medium",
-        entity_type: "campaign",
-        entity_id: `${tenant_id}-cmp-001`,
-        message: "Lead volume 42% above baseline in the last six hours.",
-        acknowledged: false,
-        created_at: this.now(),
-        updated_at: this.now(),
-      },
-    ];
-
-    const audit: MarketingAuditEvent[] = [];
 
     const seeded: TenantMarketingStore = {
       campaigns,
-      executions,
-      leads,
-      workflows,
-      accounts,
-      attribution,
-      alerts,
-      audit,
+      executions: [],
+      leads: [],
+      workflows: [],
+      accounts: [],
+      attribution: [],
+      alerts: [],
+      audit: [],
     };
     this.store.set(tenant_id, seeded);
     return seeded;
@@ -414,8 +238,8 @@ export class MarketingMockRepository extends IMarketingRepository {
     return account;
   }
 
-  async getDashboard(tenant_id: string): Promise<MarketingDashboard> {
-    const store = this.getStore(tenant_id);
+  async getDashboard(ctx: TenantContext): Promise<MarketingDashboard> {
+    const store = this.getStore(ctx.tenant_id);
     const now = this.now();
     const spendToDate = store.executions.reduce(
       (sum, item) => sum + item.spend,
@@ -455,9 +279,9 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async getChannelPerformance(
-    tenant_id: string,
+    ctx: TenantContext,
   ): Promise<MarketingChannelPerformance[]> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const channels: MarketingExecution["channel"][] = [
       "meta_ads",
       "google_ads",
@@ -480,20 +304,20 @@ export class MarketingMockRepository extends IMarketingRepository {
     });
   }
 
-  async getCampaigns(tenant_id: string): Promise<MarketingCampaign[]> {
-    return this.getStore(tenant_id).campaigns;
+  async getCampaigns(ctx: TenantContext): Promise<MarketingCampaign[]> {
+    return this.getStore(ctx.tenant_id).campaigns;
   }
 
   async createCampaign(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CreateCampaignDto,
     actor_id: string,
   ): Promise<MarketingCampaign> {
-    const store = this.getStore(tenant_id);
-    const owner = this.pickOwner(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
+    const owner = this.pickOwner(ctx.tenant_id);
     const created: MarketingCampaign = {
-      id: this.id(`${tenant_id}-cmp`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-cmp`),
+      tenant_id: ctx.tenant_id,
       name: dto.name,
       objective: dto.objective,
       channel_mix: dto.channel_mix,
@@ -512,7 +336,7 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.campaigns.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "campaign.created",
       "campaign",
@@ -523,16 +347,16 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async updateCampaignStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     campaignId: string,
     dto: UpdateCampaignStatusDto,
     actor_id: string,
   ): Promise<MarketingCampaign> {
-    const campaign = this.findCampaign(tenant_id, campaignId);
+    const campaign = this.findCampaign(ctx.tenant_id, campaignId);
     campaign.status = dto.status;
     campaign.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "campaign.status_changed",
       "campaign",
@@ -542,20 +366,20 @@ export class MarketingMockRepository extends IMarketingRepository {
     return campaign;
   }
 
-  async getExecutions(tenant_id: string): Promise<MarketingExecution[]> {
-    return this.getStore(tenant_id).executions;
+  async getExecutions(ctx: TenantContext): Promise<MarketingExecution[]> {
+    return this.getStore(ctx.tenant_id).executions;
   }
 
   async scheduleExecution(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: ScheduleExecutionDto,
     actor_id: string,
   ): Promise<MarketingExecution> {
-    this.findCampaign(tenant_id, dto.campaignId);
-    const store = this.getStore(tenant_id);
+    this.findCampaign(ctx.tenant_id, dto.campaignId);
+    const store = this.getStore(ctx.tenant_id);
     const created: MarketingExecution = {
-      id: this.id(`${tenant_id}-exec`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-exec`),
+      tenant_id: ctx.tenant_id,
       campaignId: dto.campaignId,
       channel: dto.channel,
       scheduledAt: new Date(dto.scheduledAt),
@@ -568,7 +392,7 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.executions.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "execution.scheduled",
       "execution",
@@ -579,12 +403,12 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async runExecution(
-    tenant_id: string,
+    ctx: TenantContext,
     executionId: string,
     dto: RunExecutionDto,
     actor_id: string,
   ): Promise<MarketingExecution> {
-    const execution = this.findExecution(tenant_id, executionId);
+    const execution = this.findExecution(ctx.tenant_id, executionId);
     const failed = dto.failed ?? false;
     execution.status = failed ? "failed" : "completed";
     execution.leadsGenerated =
@@ -593,8 +417,8 @@ export class MarketingMockRepository extends IMarketingRepository {
       dto.spend ?? Math.max(1500, Math.round(Math.random() * 12000));
     execution.updated_at = this.now();
     if (failed) {
-      this.createAlertIfMissing(tenant_id, {
-        tenant_id,
+      this.createAlertIfMissing(ctx.tenant_id, {
+        tenant_id: ctx.tenant_id,
         type: "campaign_failure",
         severity: "high",
         entity_type: "campaign",
@@ -604,7 +428,7 @@ export class MarketingMockRepository extends IMarketingRepository {
       });
     }
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "execution.ran",
       "execution",
@@ -614,16 +438,16 @@ export class MarketingMockRepository extends IMarketingRepository {
     return execution;
   }
 
-  async getLeads(tenant_id: string): Promise<MarketingLead[]> {
-    return this.getStore(tenant_id).leads;
+  async getLeads(ctx: TenantContext): Promise<MarketingLead[]> {
+    return this.getStore(ctx.tenant_id).leads;
   }
 
   async captureLead(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CaptureLeadDto,
     actor_id: string,
   ): Promise<MarketingLead> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const dedupKey =
       `${dto.company_name}-${dto.email ?? dto.phone ?? dto.contact_name}`
         .trim()
@@ -632,7 +456,7 @@ export class MarketingMockRepository extends IMarketingRepository {
     if (duplicate) {
       duplicate.updated_at = this.now();
       this.addAudit(
-        tenant_id,
+        ctx.tenant_id,
         actor_id,
         "lead.deduplicated",
         "lead",
@@ -644,8 +468,8 @@ export class MarketingMockRepository extends IMarketingRepository {
 
     const score = this.scoreLead(dto);
     const created: MarketingLead = {
-      id: this.id(`${tenant_id}-lead`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-lead`),
+      tenant_id: ctx.tenant_id,
       campaignId: dto.campaignId,
       source: dto.source,
       company_name: dto.company_name,
@@ -668,7 +492,7 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.leads.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "lead.captured",
       "lead",
@@ -679,18 +503,18 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async markLeadHandoffReady(
-    tenant_id: string,
+    ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<MarketingLead> {
-    const lead = this.findLead(tenant_id, lead_id);
+    const lead = this.findLead(ctx.tenant_id, lead_id);
     if (!["scored", "qualified", "captured"].includes(lead.status)) {
       throw new BadRequestException("Lead cannot be moved to handoff ready.");
     }
     lead.status = "handoff_ready";
     lead.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "lead.handoff_ready",
       "lead",
@@ -701,12 +525,12 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async handoffLeadToSales(
-    tenant_id: string,
+    ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<MarketingLead> {
-    const store = this.getStore(tenant_id);
-    const lead = this.findLead(tenant_id, lead_id);
+    const store = this.getStore(ctx.tenant_id);
+    const lead = this.findLead(ctx.tenant_id, lead_id);
     if (!["qualified", "handoff_ready"].includes(lead.status)) {
       throw new BadRequestException("Lead is not qualified for Sales handoff.");
     }
@@ -732,8 +556,8 @@ export class MarketingMockRepository extends IMarketingRepository {
             )
           : 0;
       store.attribution.unshift({
-        id: this.id(`${tenant_id}-attr`),
-        tenant_id,
+        id: this.id(`${ctx.tenant_id}-attr`),
+        tenant_id: ctx.tenant_id,
         campaignId: lead.campaignId,
         lead_id: lead.id,
         opportunityId: lead.salesHandoffId,
@@ -744,7 +568,7 @@ export class MarketingMockRepository extends IMarketingRepository {
       });
     }
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "lead.handoff_sent",
       "lead",
@@ -754,19 +578,19 @@ export class MarketingMockRepository extends IMarketingRepository {
     return lead;
   }
 
-  async getWorkflows(tenant_id: string): Promise<MarketingWorkflow[]> {
-    return this.getStore(tenant_id).workflows;
+  async getWorkflows(ctx: TenantContext): Promise<MarketingWorkflow[]> {
+    return this.getStore(ctx.tenant_id).workflows;
   }
 
   async createWorkflow(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CreateWorkflowDto,
     actor_id: string,
   ): Promise<MarketingWorkflow> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const created: MarketingWorkflow = {
-      id: this.id(`${tenant_id}-wf`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-wf`),
+      tenant_id: ctx.tenant_id,
       name: dto.name,
       status: "draft",
       trigger: dto.trigger,
@@ -778,7 +602,7 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.workflows.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "workflow.created",
       "workflow",
@@ -789,44 +613,44 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async updateWorkflowStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     workflowId: string,
     dto: UpdateWorkflowStatusDto,
     actor_id: string,
   ): Promise<MarketingWorkflow> {
-    const workflow = this.findWorkflow(tenant_id, workflowId);
+    const workflow = this.findWorkflow(ctx.tenant_id, workflowId);
     workflow.status = dto.status;
     workflow.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "workflow.status_changed",
       "workflow",
       workflow.id,
-      workflow.status,
+      dto.status,
     );
     return workflow;
   }
 
   async getConnectedAccounts(
-    tenant_id: string,
+    ctx: TenantContext,
   ): Promise<MarketingConnectedAccount[]> {
-    return this.getStore(tenant_id).accounts;
+    return this.getStore(ctx.tenant_id).accounts;
   }
 
   async connectAccount(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: ConnectAccountDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const created: MarketingConnectedAccount = {
-      id: this.id(`${tenant_id}-acct`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-acct`),
+      tenant_id: ctx.tenant_id,
       provider: dto.provider,
       account_name: dto.account_name,
       status: "connected",
-      tokenExpiresAt: this.addDays(20),
+      tokenExpiresAt: this.addDays(30),
       scopes: dto.scopes,
       lastSyncAt: this.now(),
       created_at: this.now(),
@@ -834,51 +658,47 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.accounts.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "account.connected",
       "account",
       created.id,
-      `${created.provider}:${created.account_name}`,
+      created.provider,
     );
     return created;
   }
 
   async updateAccountStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     accountId: string,
     dto: UpdateAccountStatusDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount> {
-    const account = this.findAccount(tenant_id, accountId);
+    const account = this.findAccount(ctx.tenant_id, accountId);
     account.status = dto.status;
     account.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "account.status_changed",
       "account",
       account.id,
-      account.status,
+      dto.status,
     );
     return account;
   }
 
-  async getAttribution(tenant_id: string): Promise<MarketingAttribution[]> {
-    return this.getStore(tenant_id).attribution;
+  async getAttribution(ctx: TenantContext): Promise<MarketingAttribution[]> {
+    return this.getStore(ctx.tenant_id).attribution;
   }
 
-  async getAlerts(tenant_id: string): Promise<MarketingAlert[]> {
-    return this.getStore(tenant_id).alerts;
+  async getAlerts(ctx: TenantContext): Promise<MarketingAlert[]> {
+    return this.getStore(ctx.tenant_id).alerts;
   }
 
-  async acknowledgeAlert(
-    tenant_id: string,
-    alertId: string,
-  ): Promise<MarketingAlert> {
-    const alert = this.getStore(tenant_id).alerts.find(
-      (item) => item.id === alertId,
-    );
+  async acknowledgeAlert(ctx: TenantContext, alertId: string): Promise<MarketingAlert> {
+    const store = this.getStore(ctx.tenant_id);
+    const alert = store.alerts.find((item) => item.id === alertId);
     if (!alert) throw new NotFoundException("Alert not found");
     alert.acknowledged = true;
     alert.updated_at = this.now();
@@ -886,79 +706,36 @@ export class MarketingMockRepository extends IMarketingRepository {
   }
 
   async runHealthSweep(
-    tenant_id: string,
+    ctx: TenantContext,
     actor_id: string,
   ): Promise<MarketingAlert[]> {
-    const store = this.getStore(tenant_id);
-    const now = this.now().getTime();
-
+    const store = this.getStore(ctx.tenant_id);
     store.accounts.forEach((account) => {
-      const expiresInHours =
-        (account.tokenExpiresAt.getTime() - now) / (1000 * 60 * 60);
-      if (expiresInHours <= 72) {
-        this.createAlertIfMissing(tenant_id, {
-          tenant_id,
+      if (account.tokenExpiresAt < this.now()) {
+        account.status = "expired";
+        this.createAlertIfMissing(ctx.tenant_id, {
+          tenant_id: ctx.tenant_id,
           type: "token_expiry",
-          severity: expiresInHours <= 24 ? "high" : "medium",
+          severity: "high",
           entity_type: "account",
           entity_id: account.id,
-          message: `${account.provider} token expires soon.`,
+          message: `Connection for ${account.provider} has expired.`,
           acknowledged: false,
         });
       }
     });
-
-    store.leads.forEach((lead) => {
-      if (
-        lead.status === "handoff_ready" &&
-        lead.updated_at.getTime() < now - 1000 * 60 * 60 * 4
-      ) {
-        this.createAlertIfMissing(tenant_id, {
-          tenant_id,
-          type: "handoff_delay",
-          severity: "high",
-          entity_type: "lead",
-          entity_id: lead.id,
-          message: `Qualified lead ${lead.company_name} not handed off within SLA.`,
-          acknowledged: false,
-        });
-      }
-    });
-
-    const todayLeads = store.leads.filter((lead) => {
-      const date = lead.created_at;
-      const nowDate = this.now();
-      return (
-        date.getFullYear() === nowDate.getFullYear() &&
-        date.getMonth() === nowDate.getMonth() &&
-        date.getDate() === nowDate.getDate()
-      );
-    }).length;
-    if (todayLeads >= 20) {
-      const campaignId = store.campaigns[0]?.id ?? "unknown";
-      this.createAlertIfMissing(tenant_id, {
-        tenant_id,
-        type: "lead_spike",
-        severity: "medium",
-        entity_type: "campaign",
-        entity_id: campaignId,
-        message: "Lead volume above daily baseline.",
-        acknowledged: false,
-      });
-    }
-
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
-      "health.sweep",
-      "alert",
-      "health-sweep",
-      "Marketing health checks executed.",
+      "health.sweep_ran",
+      "account",
+      "all",
+      "manual sweep",
     );
     return store.alerts;
   }
 
-  async getAuditEvents(tenant_id: string): Promise<MarketingAuditEvent[]> {
-    return this.getStore(tenant_id).audit;
+  async getAuditEvents(ctx: TenantContext): Promise<MarketingAuditEvent[]> {
+    return this.getStore(ctx.tenant_id).audit;
   }
 }

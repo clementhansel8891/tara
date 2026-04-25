@@ -19,14 +19,14 @@ export default function SalesOrderDesk() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await salesService.listOrders(session.tenantId, session);
+      const data = await salesService.listOrders(session.tenant_id, session);
       setOrders(data);
     } catch (err) {
       console.error("Failed to fetch sales orders:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();

@@ -61,7 +61,7 @@ const StaffAssignments = () => {
   // Governance specifically for Staff
   const { auditLog, addSignature } = useGovernance(
     "GLOBAL_STAFF_ROSTER",
-    session.tenantId!,
+    session.tenant_id!,
     session,
   );
 
@@ -70,9 +70,9 @@ const StaffAssignments = () => {
       try {
         setIsLoading(true);
         const data = await hrService.listEmployees(
-          session.tenantId!,
+          session.tenant_id!,
           session,
-          session.locationId,
+          session.location_id,
         );
         setStaff(data);
       } catch (error) {
@@ -87,7 +87,7 @@ const StaffAssignments = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.locationId, session, toast]);
+  }, [session.tenant_id, session.location_id, session, toast]);
 
   const handleDelete = async (id: string) => {
     if (
@@ -95,13 +95,13 @@ const StaffAssignments = () => {
     )
       return;
     try {
-      await hrService.deleteEmployee(session.tenantId!, session, id);
+      await hrService.deleteEmployee(session.tenant_id!, session, id);
       setStaff((prev) => prev.filter((s) => s.id !== id));
 
       // Log governance action
       await addSignature(
         "Superadmin",
-        session.userId,
+        session.user_id,
         true,
         `Revoked access for personnel ${id}`,
       );
@@ -125,7 +125,7 @@ const StaffAssignments = () => {
     try {
       // Update employee properties via HR Service
       await hrService.updateEmployee(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         selectedStaffForRoleEdit.id,
         { roleTitle: newRole }
@@ -138,7 +138,7 @@ const StaffAssignments = () => {
       // Append proof of modification leveraging existing governance framework with 'Superadmin / Owner Bypass' mode.
       await addSignature(
         "Superadmin",
-        session.userId,
+        session.user_id,
         true,
         `Role Modified to ${newRole}: ${reason}`,
       );
@@ -180,7 +180,7 @@ const StaffAssignments = () => {
       <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
         <PageHeader
           title="Staff & Access Governance"
-          subtitle={`${session.locationId || "GLOBAL"} • ${staff.length} Personnel • Workforce Access Control`}
+          subtitle={`${session.location_id || "GLOBAL"} • ${staff.length} Personnel • Workforce Access Control`}
         />
         <div className="flex items-center gap-3">
           <Button

@@ -36,7 +36,7 @@ interface RequestWithTenant extends Request {
   customerAuth?: { sub: string; tenant_id: string };
 }
 
-@Controller("v1/retail/public")
+@Controller('retail/public')
 @UseInterceptors(TenantInterceptor)
 export class RetailPublicGatewayController {
   constructor(private readonly gatewayService: RetailGatewayService) {}
@@ -52,7 +52,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.registerCustomer(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       payload,
@@ -68,7 +68,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.loginCustomer(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       payload,
@@ -84,7 +84,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.refreshTokens(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       payload,
@@ -97,14 +97,14 @@ export class RetailPublicGatewayController {
     @Body("refreshToken") refreshToken: string,
   ) {
     const { tenant_id } = request.tenantContext;
-    return this.gatewayService.logoutCustomer(tenant_id, refreshToken);
+    return this.gatewayService.logoutCustomer(request.tenantContext, refreshToken);
   }
 
   @Get("auth/me")
   async getMe(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.mapToPublicCustomer(
-      await this.gatewayService.findCustomerById(auth.tenant_id, auth.sub),
+      await this.gatewayService.findCustomerById(request.tenantContext, auth.sub),
     );
   }
 
@@ -117,7 +117,7 @@ export class RetailPublicGatewayController {
     @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenant_id } = request.tenantContext;
-    return this.gatewayService.getProducts(tenant_id, clientId, clientSecret);
+    return this.gatewayService.getProducts(request.tenantContext, clientId, clientSecret);
   }
 
   @Get("products/:id")
@@ -129,7 +129,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.getProductById(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       product_id,
@@ -143,7 +143,7 @@ export class RetailPublicGatewayController {
     @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenant_id } = request.tenantContext;
-    return this.gatewayService.getCategories(tenant_id, clientId, clientSecret);
+    return this.gatewayService.getCategories(request.tenantContext, clientId, clientSecret);
   }
 
   @Get("promotions")
@@ -153,7 +153,7 @@ export class RetailPublicGatewayController {
     @Headers("x-client-secret") clientSecret: string,
   ) {
     const { tenant_id } = request.tenantContext;
-    return this.gatewayService.getPromotions(tenant_id, clientId, clientSecret);
+    return this.gatewayService.getPromotions(request.tenantContext, clientId, clientSecret);
   }
 
   // --- Cart ---
@@ -161,7 +161,7 @@ export class RetailPublicGatewayController {
   @Get("cart")
   async getCart(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.getCart(auth.tenant_id, auth.sub);
+    return this.gatewayService.getCart(request.tenantContext, auth.sub);
   }
 
   @Post("cart/items")
@@ -170,7 +170,7 @@ export class RetailPublicGatewayController {
     @Body() payload: CartItemDto,
   ) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.addToCart(auth.tenant_id, auth.sub, payload);
+    return this.gatewayService.addToCart(request.tenantContext, auth.sub, payload);
   }
 
   @Patch("cart/items/:id")
@@ -181,7 +181,7 @@ export class RetailPublicGatewayController {
   ) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.updateCartItem(
-      auth.tenant_id,
+      request.tenantContext,
       auth.sub,
       item_id,
       payload,
@@ -195,7 +195,7 @@ export class RetailPublicGatewayController {
   ) {
     const authCtx = this.getCustomerAuth(request);
     return this.gatewayService.removeFromCart(
-      authCtx.tenant_id,
+      request.tenantContext,
       authCtx.sub,
       item_id,
     );
@@ -204,7 +204,7 @@ export class RetailPublicGatewayController {
   @Delete("cart")
   async clearCart(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.clearCart(auth.tenant_id, auth.sub);
+    return this.gatewayService.clearCart(request.tenantContext, auth.sub);
   }
 
   // --- Wishlist ---
@@ -212,7 +212,7 @@ export class RetailPublicGatewayController {
   @Get("wishlist")
   async getWishlist(@Req() request: RequestWithTenant) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.getWishlist(auth.tenant_id, auth.sub);
+    return this.gatewayService.getWishlist(request.tenantContext, auth.sub);
   }
 
   @Post("wishlist/items")
@@ -221,7 +221,7 @@ export class RetailPublicGatewayController {
     @Body() payload: WishlistItemDto,
   ) {
     const auth = this.getCustomerAuth(request);
-    return this.gatewayService.addToWishlist(auth.tenant_id, auth.sub, payload);
+    return this.gatewayService.addToWishlist(request.tenantContext, auth.sub, payload);
   }
 
   @Delete("wishlist/items/:id")
@@ -231,7 +231,7 @@ export class RetailPublicGatewayController {
   ) {
     const auth = this.getCustomerAuth(request);
     return this.gatewayService.removeFromWishlist(
-      auth.tenant_id,
+      request.tenantContext,
       auth.sub,
       item_id,
     );
@@ -248,7 +248,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.createOrder(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       payload,
@@ -266,7 +266,7 @@ export class RetailPublicGatewayController {
   ) {
     const { tenant_id } = request.tenantContext;
     return this.gatewayService.logEvent(
-      tenant_id,
+      request.tenantContext,
       clientId,
       clientSecret,
       payload,

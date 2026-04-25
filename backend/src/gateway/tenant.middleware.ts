@@ -57,10 +57,11 @@ export class TenantMiddleware implements NestMiddleware {
 
     const user_id = verifiedUser.id;
     const location_id = req.headers["x-location-id"];
+    const ecommerce_id = req.headers["x-ecommerce-id"];
     const company_id = req.headers["x-company-id"] || tenant_id;
 
     // 4. Role Extraction & Verification (STRICT MODE)
-    const userCompanies = verifiedUser.userCompanies || [];
+    const userCompanies = verifiedUser.user_companies || [];
     let activeRole: string | null = null;
 
     // Check for Global Superadmin first
@@ -92,6 +93,7 @@ export class TenantMiddleware implements NestMiddleware {
       tenant_id: tenant_id as string,
       company_id: company_id as string,
       location_id: location_id as string | undefined,
+      ecommerce_id: ecommerce_id as string | undefined,
       user_id,
       role: activeRole,
     };

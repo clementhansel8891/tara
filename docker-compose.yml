@@ -3,9 +3,9 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: zenvix
-      POSTGRES_PASSWORD: zenvix_dev_password
-      POSTGRES_DB: zenvix_dev
+      POSTGRES_USER: ${POSTGRES_USER:-zenvix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zenvix_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-zenvix_dev}
     ports:
       - "5433:5432"
     volumes:
@@ -19,10 +19,14 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # These will be provided by Railway/Docker if not set here
-      # DATABASE_URL is only needed for 'db' mode
       - NODE_ENV=production
-      - PERSISTENCE_MODE=mock
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-zenvix}:${POSTGRES_PASSWORD:-zenvix_dev_password}@db:5432/${POSTGRES_DB:-zenvix_dev}?schema=public
+      - RUNTIME=docker
+      - STRIPE_SECRET_KEY=sk_test_placeholder
+      - STRIPE_WEBHOOK_SECRET=whsec_placeholder
+      - FRONTEND_URL=http://localhost:80
+    volumes:
+      - ./backups:/app/backups
     depends_on:
       - db
 

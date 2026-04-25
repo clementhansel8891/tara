@@ -18,8 +18,8 @@ export default function DeviceRoutingDesk() {
     const fetchData = async () => {
       try {
         const [devicesData, poolsData] = await Promise.all([
-          paymentService.listDevices(session.tenantId, session),
-          paymentService.listDevicePools(session.tenantId, session),
+          paymentService.listDevices(session.tenant_id, session),
+          paymentService.listDevicePools(session.tenant_id, session),
         ]);
         setDevices(devicesData);
         setPools(poolsData);
@@ -27,7 +27,7 @@ export default function DeviceRoutingDesk() {
         // Resolve selected devices for each pool
         const selectedMap = new Map<string, PosDevice | null>();
         for (const pool of poolsData) {
-          const selected = await paymentService.resolveDeviceForLocation(session.tenantId, pool.location);
+          const selected = await paymentService.resolveDeviceForLocation(session.tenant_id, pool.location);
           selectedMap.set(pool.location, selected);
         }
         setSelectedDevices(selectedMap);
@@ -39,7 +39,7 @@ export default function DeviceRoutingDesk() {
   }, [refreshKey, session]);
 
   const setStatus = (deviceId: string, status: PosDevice["status"]) => {
-    paymentService.setDeviceStatus(session.tenantId, session, deviceId, status);
+    paymentService.setDeviceStatus(session.tenant_id, session, deviceId, status);
     setRefreshKey((value) => value + 1);
   };
 

@@ -84,7 +84,7 @@ export default function CoreDashboard() {
     async function load() {
       try {
         const res = await adminService.getDashboardMetrics(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         setKpis(res.kpis || []);

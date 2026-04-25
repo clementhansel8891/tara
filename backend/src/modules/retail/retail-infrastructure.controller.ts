@@ -18,7 +18,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/retail/infrastructure")
+@Controller('retail/infrastructure')
 @UseInterceptors(TenantInterceptor)
 export class RetailInfrastructureController {
   constructor(private readonly infraService: RetailInfrastructureService) {}

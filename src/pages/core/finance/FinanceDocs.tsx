@@ -28,8 +28,8 @@ export default function FinanceDocs() {
   const [type, setType] = useState("INVOICE");
   const [description, setDescription] = useState("");
   const refreshDocs = useCallback(async () => {
-    setDocs(await financeApiClient.listDocuments(session.tenantId, session));
-  }, [session.tenantId, session]);
+    setDocs(await financeApiClient.listDocuments(session.tenant_id, session));
+  }, [session.tenant_id, session]);
 
   const [docs, setDocs] = useState<FinanceDocumentRow[]>([]);
   const [selectedItem, setSelectedItem] = useState<FinanceDocumentRow | null>(null);
@@ -49,13 +49,13 @@ export default function FinanceDocs() {
   );
 
   const uploadDoc = async () => {
-    await financeApiClient.uploadDocumentForApproval(session.tenantId, session, {
+    await financeApiClient.uploadDocumentForApproval(session.tenant_id, session, {
       title,
       type,
       description,
       file: null,
     });
-    logService.log(session.tenantId, session.userId, "Uploaded finance document", title);
+    logService.log(session.tenant_id, session.user_id, "Uploaded finance document", title);
     setDialogOpen(false);
     setTitle("");
     setType("INVOICE");
@@ -64,8 +64,8 @@ export default function FinanceDocs() {
   };
 
   const updateStatus = async (id: string, status: "APPROVED" | "REJECTED") => {
-    await financeApiClient.updateDocumentStatus(session.tenantId, session, id, status);
-    logService.log(session.tenantId, session.userId, "Updated finance document status", `${id} -> ${status}`);
+    await financeApiClient.updateDocumentStatus(session.tenant_id, session, id, status);
+    logService.log(session.tenant_id, session.user_id, "Updated finance document status", `${id} -> ${status}`);
     refreshDocs();
   };
 

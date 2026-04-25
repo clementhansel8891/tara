@@ -69,14 +69,14 @@ const CashierPOS = () => {
   // Always passes a large pageSize so the backend doesn't truncate the result.
   const fetchProducts = React.useCallback(
     async (categoryId?: string) => {
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       setIsProductsLoading(true);
       try {
         const prodData = await retailService.listInventory(
-          session.tenantId,
+          session.tenant_id,
           session,
           {
-            locationId: session.locationId,
+            locationId: session.location_id,
             categoryId,
             pageSize: 2000, // Ensure we get all items, not just the 20-item default
           },
@@ -94,25 +94,25 @@ const CashierPOS = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [session.tenantId, session.userId, session.locationId],
+    [session.tenant_id, session.user_id, session.location_id],
   );
 
   useEffect(() => {
     const init = async () => {
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       try {
         setIsLoading(true);
         const [catData, shifts] = await Promise.all([
-          retailService.listCategories(session.tenantId, session),
+          retailService.listCategories(session.tenant_id, session),
           retailService.listShifts(
-            session.tenantId,
+            session.tenant_id,
             session,
-            session.locationId,
+            session.location_id,
           ),
         ]);
         setCategories(catData);
         const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.userId,
+          (s) => s.status === "open" && s.employeeId === session.user_id,
         );
         setActiveShift(openShift || null);
         // Fetch products without a category filter (all items)
@@ -130,7 +130,7 @@ const CashierPOS = () => {
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenantId, session.userId, session.locationId]);
+  }, [session.tenant_id, session.user_id, session.location_id]);
 
   // When the user changes category, re-fetch from the server with the correct filter
   useEffect(() => {
@@ -224,7 +224,7 @@ const CashierPOS = () => {
     receivedAmount?: number,
     channel?: string,
   ) => {
-    if (cart.length === 0 || !session.tenantId) return;
+    if (cart.length === 0 || !session.tenant_id) return;
 
     if (!activeStore?.id) {
       toast({
@@ -255,7 +255,7 @@ const CashierPOS = () => {
 
       // Atomic Backend Checkout with Idempotency
       const order = await retailService.checkout(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           store_id: activeStore.id,

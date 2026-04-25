@@ -76,12 +76,12 @@ export default function PurchaseRequestDesk() {
     setLoading(true);
     try {
       const [reqs, pos, m, b, over, cats] = await Promise.all([
-        procurementService.listRequisitions(session.tenantId, session),
-        procurementService.listDraftPurchaseOrders(session.tenantId, session),
-        procurementService.listSupplierMasters(session.tenantId, session),
-        procurementService.listSupplierBranches(session.tenantId, session),
-        procurementService.getOverview(session.tenantId, session),
-        procurementService.listCategories(session.tenantId, session),
+        procurementService.listRequisitions(session.tenant_id, session),
+        procurementService.listDraftPurchaseOrders(session.tenant_id, session),
+        procurementService.listSupplierMasters(session.tenant_id, session),
+        procurementService.listSupplierBranches(session.tenant_id, session),
+        procurementService.getOverview(session.tenant_id, session),
+        procurementService.listCategories(session.tenant_id, session),
       ]);
       setRequisitions(reqs);
       setDraftPos(pos);
@@ -94,7 +94,7 @@ export default function PurchaseRequestDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -114,7 +114,7 @@ export default function PurchaseRequestDesk() {
 
   const createRequisition = async () => {
     try {
-      await procurementService.createRequisition(session.tenantId, session, {
+      await procurementService.createRequisition(session.tenant_id, session, {
         title,
         description,
         category,
@@ -140,7 +140,7 @@ export default function PurchaseRequestDesk() {
   const approveRequesterHod = async (requisitionId: string) => {
     try {
       await procurementService.approveRequesterHod(
-        session.tenantId,
+        session.tenant_id,
         session,
         requisitionId,
       );
@@ -154,7 +154,7 @@ export default function PurchaseRequestDesk() {
   const buildDraftPo = async () => {
     try {
       await procurementService.buildDraftPurchaseOrder(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           requisitionId: selectedRequisitionId,
@@ -192,7 +192,7 @@ export default function PurchaseRequestDesk() {
   const approveDraft = async (draftId: string) => {
     try {
       await procurementService.approveDraftByProcurementHod(
-        session.tenantId,
+        session.tenant_id,
         session,
         draftId,
       );
@@ -209,7 +209,7 @@ export default function PurchaseRequestDesk() {
   ) => {
     try {
       await procurementService.setFinalApproval(
-        session.tenantId,
+        session.tenant_id,
         session,
         requisitionId,
         approver,
@@ -223,7 +223,7 @@ export default function PurchaseRequestDesk() {
 
   const runRiskScan = async () => {
     try {
-      await procurementService.runRiskScan(session.tenantId, session);
+      await procurementService.runRiskScan(session.tenant_id, session);
       setStatusMessage(
         "Anti-fraud risk scan completed. No critical threats found.",
       );

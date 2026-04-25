@@ -9,6 +9,9 @@ export class PaymentRetryAttempt {
 export class PaymentTransaction {
   id: string;
   tenant_id: string;
+  company_id?: string;
+  branch_id?: string;
+  ecommerce_id?: string;
   externalReference?: string;
   type:
     | "vendor_payout"

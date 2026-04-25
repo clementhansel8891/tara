@@ -36,7 +36,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
     try {
       await Promise.all(
         selectedBalances.map(b =>
-          inventoryService.recordTransfer(session.tenantId, session, {
+          inventoryService.recordTransfer(session.tenant_id, session, {
             itemId: b.itemId,
             fromLocationCode: b.locationCode,
             fromDepartmentCode: b.departmentCode,

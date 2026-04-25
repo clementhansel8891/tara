@@ -21,9 +21,29 @@ import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { orgSettingsService, OrgProfile, TenantPreferences } from "@/core/services/orgSettingsService";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Building2 } from "lucide-react";
 
 const SETTINGS_TABS = [
   { value: "general", label: "General" },
+  { value: "child-companies", label: "Child Companies" },
   { value: "taxes", label: "Taxes" },
   { value: "roles", label: "Roles" },
   { value: "integrations", label: "Integrations" },
@@ -49,18 +69,28 @@ export default function CoreSettings() {
   
   const [profile, setProfile] = useState<OrgProfile | null>(null);
   const [preferences, setPreferences] = useState<TenantPreferences | null>(null);
+  const [childCompanies, setChildCompanies] = useState<OrgProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isAddingChild, setIsAddingChild] = useState(false);
+  const [newChild, setNewChild] = useState({
+    name: "",
+    industry: "retail",
+    country: "US",
+    currency: "USD"
+  });
 
   useEffect(() => {
     async function init() {
       try {
-        const [p, pref] = await Promise.all([
+        const [p, pref, children] = await Promise.all([
           orgSettingsService.getProfile(session),
-          orgSettingsService.getPreferences(session)
+          orgSettingsService.getPreferences(session),
+          orgSettingsService.getChildCompanies(session)
         ]);
         setProfile(p);
         setPreferences(pref);
+        setChildCompanies(children);
       } catch (err) {
         console.error("Failed to load settings:", err);
       } finally {
@@ -69,6 +99,22 @@ export default function CoreSettings() {
     }
     init();
   }, [session]);
+
+  const handleCreateChildCompany = async () => {
+    if (!newChild.name) return;
+    setSaving(true);
+    try {
+      const created = await orgSettingsService.createChildCompany(session, newChild);
+      setChildCompanies([created, ...childCompanies]);
+      setIsAddingChild(false);
+      setNewChild({ name: "", industry: "retail", country: "US", currency: "USD" });
+      toast({ title: "Success", description: `Child company ${created.name} created.` });
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to create child company.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!profile) return;
@@ -291,6 +337,122 @@ export default function CoreSettings() {
                     onCheckedChange={(checked) => setPreferences(prev => prev ? { ...prev, enable_biometric_attendance: checked } : null)}
                   />
                 </div>
+              </div>
+            </WorkspacePanel>
+          </TabsContent>
+
+          <TabsContent value="child-companies" className="space-y-6">
+            <WorkspacePanel
+              title="Child Companies"
+              description="Manage subsidiary entities within your organization hierarchy."
+              action={
+                <Dialog open={isAddingChild} onOpenChange={setIsAddingChild}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="mr-2 h-4 w-4" /> Add Company
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Child Company</DialogTitle>
+                      <DialogDescription>
+                        Create a new subsidiary linked to this root organization.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="child-name">Company name</Label>
+                        <Input
+                          id="child-name"
+                          value={newChild.name}
+                          onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label>Industry</Label>
+                          <Select
+                            value={newChild.industry}
+                            onValueChange={(val) => setNewChild({ ...newChild, industry: val })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="retail">Retail</SelectItem>
+                              <SelectItem value="hospitality">Hospitality</SelectItem>
+                              <SelectItem value="manufacturing">Manufacturing</SelectItem>
+                              <SelectItem value="services">Services</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Country</Label>
+                          <Select
+                            value={newChild.country}
+                            onValueChange={(val) => setNewChild({ ...newChild, country: val })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="US">United States</SelectItem>
+                              <SelectItem value="ID">Indonesia</SelectItem>
+                              <SelectItem value="SG">Singapore</SelectItem>
+                              <SelectItem value="GB">United Kingdom</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsAddingChild(false)}>Cancel</Button>
+                      <Button loading={saving} onClick={handleCreateChildCompany}>Create</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              }
+            >
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Industry</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {childCompanies.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                          No child companies found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      childCompanies.map((child: any) => (
+                        <TableRow key={child.id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center">
+                              <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                              {child.name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{child.code}</TableCell>
+                          <TableCell className="capitalize">{child.industry}</TableCell>
+                          <TableCell>{child.country}</TableCell>
+                          <TableCell>
+                            <Badge variant={child.status === 'active' ? 'success' : 'secondary'}>
+                              {child.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             </WorkspacePanel>
           </TabsContent>

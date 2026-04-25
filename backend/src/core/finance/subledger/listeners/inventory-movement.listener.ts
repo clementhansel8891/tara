@@ -4,6 +4,7 @@ import { IInventorySubledgerRepository } from '../repositories/interfaces/invent
 import { CostingEngineService } from '../costing-engine.service';
 import { v4 as uuid } from 'uuid';
 import { Prisma } from '@prisma/client';
+import { TenantContext } from '../../../../gateway/tenant-context.interface';
 
 @Injectable()
 export class InventoryMovementListener implements OnModuleInit {
@@ -30,9 +31,16 @@ export class InventoryMovementListener implements OnModuleInit {
     
     this.logger.log(`Finance Domain: Processing stock movement for transaction ${inventoryTransactionId} (Type: ${entryType})`);
     
+    const ctx: TenantContext = {
+      tenant_id,
+      company_id: tenant_id,
+      branch_id: "default",
+      user_id: "system",
+    };
+
     try {
       // 1. Idempotency Check (inventoryTransactionId + entryType)
-      const existing = await this.repository.findEntryBySourceEvent(tenant_id, inventoryTransactionId, entryType, event.tx);
+      const existing = await this.repository.findEntryBySourceEvent(ctx, inventoryTransactionId, entryType, event.tx);
       if (existing) {
         this.logger.warn(`Duplicate event detected. Skipping processing for movement: ${inventoryTransactionId}`);
         return;
@@ -45,7 +53,7 @@ export class InventoryMovementListener implements OnModuleInit {
       }
 
       // 3. Record in Financial Sub-ledger
-      const entry = await this.repository.createEntry(tenant_id, {
+      const entry = await this.repository.createEntry(ctx, {
         inventoryTransactionId,
         sourceEventId: inventoryTransactionId,
         postingRequestId: uuid(),
@@ -65,10 +73,10 @@ export class InventoryMovementListener implements OnModuleInit {
 
       // 4. Trigger Costing Engine (Only for Issues/Movements needing valuation)
       if (entryType === 'INVENTORY_ISSUE') {
-        await this.costingEngine.processEntry(tenant_id, entry.id, event.tx, event.correlation_id);
+        await this.costingEngine.processEntry(ctx, entry.id, event.tx, event.correlation_id);
       } else {
         // Receipts/Adjustments might be auto-costed if provisional is final
-        await this.costingEngine.processEntry(tenant_id, entry.id, event.tx, event.correlation_id);
+        await this.costingEngine.processEntry(ctx, entry.id, event.tx, event.correlation_id);
       }
 
     } catch (error) {

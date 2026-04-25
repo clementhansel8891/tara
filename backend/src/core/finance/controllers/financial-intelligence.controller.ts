@@ -8,7 +8,7 @@ import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { TenantCtx } from '../../../gateway/tenant-context.decorator';
 import { TenantContext } from '../../../gateway/tenant-context.interface';
 
-@Controller('v1/finance/intelligence')
+@Controller('finance/intelligence')
 @UseGuards(TenantGuard, RolesGuard)
 export class FinancialIntelligenceController {
   constructor(

@@ -132,6 +132,9 @@ export class HRService {
         user_id,
         event_reference_id,
         payload: {
+          employee_id: employee.id,
+          candidateId: employee.id,
+          email: employee.email,
           first_name: employee.first_name,
           last_name: employee.last_name,
           department_id: employee.department_id,

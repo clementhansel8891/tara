@@ -61,7 +61,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
   const loadFormData = React.useCallback(async () => {
     setIsLoadingData(true);
     try {
-      const tenantId = session.tenantId;
+      const tenantId = session.tenant_id;
       if (!tenantId) return;
 
       const [locs, plsz, mgrs] = await Promise.all([
@@ -80,10 +80,10 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
   }, [session]);
 
   useEffect(() => {
-    if (open && session.tenantId) {
+    if (open && session.tenant_id) {
       loadFormData();
     }
-  }, [open, session.tenantId, loadFormData]);
+  }, [open, session.tenant_id, loadFormData]);
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,7 +129,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
       };
 
       const created = await retailService.createStore(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         payload as Partial<RetailStore>,
       );

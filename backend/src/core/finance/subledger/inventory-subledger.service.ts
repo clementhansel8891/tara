@@ -4,6 +4,7 @@ import { InventorySubledgerEntry } from './entities/inventory-subledger-entry.en
 import { IInventorySubledgerService } from './inventory-subledger.service.interface';
 import { AccountingMappingService } from '../services/accounting-mapping.service';
 import { SubledgerEntryType, SubledgerEntryStatus } from '../entities/finance-subledger.entity';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
 
 @Injectable()
 export class InventorySubledgerService implements IInventorySubledgerService {
@@ -19,7 +20,7 @@ export class InventorySubledgerService implements IInventorySubledgerService {
    * Records a subledger entry with standardized lifecycle and account resolution.
    * Lifecycle: PENDING -> VALIDATED -> POSTING -> POSTED
    */
-  async recordEntry(tenant_id: string, data: Partial<InventorySubledgerEntry>): Promise<InventorySubledgerEntry> {
+  async recordEntry(ctx: TenantContext, data: Partial<InventorySubledgerEntry>): Promise<InventorySubledgerEntry> {
     this.logger.log(`Recording inventory subledger entry for transaction ${data.inventoryTransactionId}`);
 
     // 1. Map entryType to unified SubledgerEntryType
@@ -33,8 +34,8 @@ export class InventorySubledgerService implements IInventorySubledgerService {
 
     // 2. Resolve Accounting Mapping
     const mapping = await this.mappingService.resolveAccounts(
-        tenant_id,
-        'COMP-001', // Default or from context
+        ctx.tenant_id,
+        ctx.company_id || 'COMP-001', // Use company from context
         unifiedType,
         'INV_TRANSACTION'
     );
@@ -44,11 +45,11 @@ export class InventorySubledgerService implements IInventorySubledgerService {
     data.creditAccountId = mapping.creditAccountId;
     data.status = 'VALIDATED' as any; // Standardized state
 
-    return this.repository.createEntry(tenant_id, data);
+    return this.repository.createEntry(ctx, data);
   }
 
-  async getSkuValuation(tenant_id: string, skuId: string, location_id: string) {
-    const valuation = await this.repository.getCurrentValuation(tenant_id, skuId, location_id);
+  async getSkuValuation(ctx: TenantContext, skuId: string, location_id: string) {
+    const valuation = await this.repository.getCurrentValuation(ctx, skuId, location_id);
     return {
       ...valuation,
       unitCost: Number(valuation.unitCost),

@@ -17,7 +17,7 @@ import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
 import { CreateRequisitionDto } from "../dto";
 
-@Controller("v1/hr/recruitment")
+@Controller('hr/recruitment')
 @UseGuards(RolesGuard, TenantGuard)
 export class HrRecruitmentController {
   constructor(private readonly recruitmentService: HrRecruitmentService) {}

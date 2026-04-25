@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { IITSettingsRepository } from "./it-settings.repository.interface";
 import { Device } from "../entities/device.entity";
@@ -71,18 +72,6 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        id: "tenant-002-dev-3",
-        tenant_id: "tenant-002",
-        location_id: "location-003",
-        deviceType: "pos",
-        deviceName: "Store 2 POS",
-        ip_address: "192.168.3.101",
-        status: "offline",
-        lastSeen: new Date(Date.now() - 3600000),
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
     );
 
     // Tenant 001 settings
@@ -95,17 +84,6 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
         category: "general",
         isPublic: true,
         description: "Company timezone",
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
-      {
-        id: "tenant-001-set-2",
-        tenant_id: "tenant-001",
-        key: "company.currency",
-        value: "USD",
-        category: "finance",
-        isPublic: true,
-        description: "Default currency",
         created_at: new Date(),
         updated_at: new Date(),
       },
@@ -124,22 +102,11 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
         created_at: new Date(),
         updated_at: new Date(),
       },
-      {
-        id: "tenant-002-set-2",
-        tenant_id: "tenant-002",
-        key: "company.currency",
-        value: "SGD",
-        category: "finance",
-        isPublic: true,
-        description: "Default currency",
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
     );
   }
 
-  async getDevices(tenant_id: string, location_id?: string): Promise<Device[]> {
-    let devices = this.devices.filter((dev) => dev.tenant_id === tenant_id);
+  async getDevices(ctx: TenantContext, location_id?: string): Promise<Device[]> {
+    let devices = this.devices.filter((dev) => dev.tenant_id === ctx.tenant_id);
     if (location_id) {
       devices = devices.filter((dev) => dev.location_id === location_id);
     }
@@ -147,12 +114,12 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
   }
 
   async registerDevice(
-    tenant_id: string,
+    ctx: TenantContext,
     data: RegisterDeviceDto,
   ): Promise<Device> {
     const device: Device = {
-      id: `${tenant_id}-dev-${this.devices.length + 1}`,
-      tenant_id,
+      id: `${ctx.tenant_id}-dev-${this.devices.length + 1}`,
+      tenant_id: ctx.tenant_id,
       location_id: data.location_id,
       deviceType: data.deviceType as any,
       deviceName: data.deviceName,
@@ -168,12 +135,12 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
   }
 
   async updateDeviceStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     device_id: string,
     status: string,
   ): Promise<Device> {
     const index = this.devices.findIndex(
-      (dev) => dev.tenant_id === tenant_id && dev.id === device_id,
+      (dev) => dev.tenant_id === ctx.tenant_id && dev.id === device_id,
     );
     if (index === -1) {
       throw new NotFoundException("Device not found");
@@ -184,35 +151,35 @@ export class ITSettingsMockRepository extends IITSettingsRepository {
     return this.devices[index];
   }
 
-  async getSettings(tenant_id: string, category?: string): Promise<Setting[]> {
-    let settings = this.settings.filter((set) => set.tenant_id === tenant_id);
+  async getSettings(ctx: TenantContext, category?: string): Promise<Setting[]> {
+    let settings = this.settings.filter((set) => set.tenant_id === ctx.tenant_id);
     if (category) {
       settings = settings.filter((set) => set.category === category);
     }
     return settings;
   }
 
-  async getSetting(tenant_id: string, key: string): Promise<Setting | null> {
+  async getSetting(ctx: TenantContext, key: string): Promise<Setting | null> {
     const setting = this.settings.find(
-      (set) => set.tenant_id === tenant_id && set.key === key,
+      (set) => set.tenant_id === ctx.tenant_id && set.key === key,
     );
     return setting || null;
   }
 
   async updateSetting(
-    tenant_id: string,
+    ctx: TenantContext,
     key: string,
     data: UpdateSettingDto,
   ): Promise<Setting> {
     const index = this.settings.findIndex(
-      (set) => set.tenant_id === tenant_id && set.key === key,
+      (set) => set.tenant_id === ctx.tenant_id && set.key === key,
     );
 
     if (index === -1) {
       // Create new setting
       const setting: Setting = {
-        id: `${tenant_id}-set-${this.settings.length + 1}`,
-        tenant_id,
+        id: `${ctx.tenant_id}-set-${this.settings.length + 1}`,
+        tenant_id: ctx.tenant_id,
         key,
         value: data.value,
         category: (data.category as any) || "general",

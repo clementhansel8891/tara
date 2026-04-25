@@ -26,9 +26,9 @@ export default function InventoryAuditLog() {
   const refresh = useCallback(async () => {
     try {
       const [m, c, i] = await Promise.all([
-        inventoryService.listMovements(session.tenantId, session),
-        inventoryService.listAuditCycles(session.tenantId, session),
-        inventoryService.listIntegrationEvents(session.tenantId, session),
+        inventoryService.listMovements(session.tenant_id, session),
+        inventoryService.listAuditCycles(session.tenant_id, session),
+        inventoryService.listIntegrationEvents(session.tenant_id, session),
       ]);
       setMovements(m);
       setCycles(c);
@@ -38,7 +38,7 @@ export default function InventoryAuditLog() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -73,7 +73,7 @@ export default function InventoryAuditLog() {
           <Button
             onClick={async () => {
               await inventoryService.startAuditCycle(
-                session.tenantId,
+                session.tenant_id,
                 session,
                 {
                   locationCode: "JKT-WH",
@@ -165,7 +165,7 @@ export default function InventoryAuditLog() {
                           variant="outline"
                           onClick={async () => {
                             await inventoryService.closeAuditCycle(
-                              session.tenantId,
+                              session.tenant_id,
                               session,
                               cycle.id,
                               {

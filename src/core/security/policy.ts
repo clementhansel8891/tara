@@ -47,10 +47,10 @@ export function canApproveWorkflow(
   if (session.role === Roles.SUPERADMIN) return true;
 
   /** Tenant boundary enforced */
-  if (workflow.tenantId !== session.tenantId) return false;
+  if (workflow.tenantId !== session.tenant_id) return false;
 
   /** Resolve session department */
-  const dept = resolveDepartment(session.departmentId)?.code;
+  const dept = resolveDepartment(session.department_id)?.code;
 
   /** Delegation expansion */
   const delegatedRoles = getDelegatedRoles(session);
@@ -100,7 +100,7 @@ export function canViewStaffRecord(
   if (session.role === Roles.SUPERADMIN) return true;
 
   /** Tenant boundary enforced */
-  if (staff.tenantId !== session.tenantId) return false;
+  if (staff.tenantId !== session.tenant_id) return false;
 
   /** Tenant owners always see all */
   if (session.role === Roles.OWNER) return true;
@@ -118,14 +118,14 @@ export function canViewStaffRecord(
    * Department heads see only their department staff
    */
   if (session.role === Roles.DEPT_HEAD) {
-    return staff.departmentId === session.departmentId;
+    return staff.departmentId === session.department_id;
   }
 
   /**
    * Staff roles see only themselves
    */
   if (isStaffRole(session.role)) {
-    return staff.userId === session.userId || staff.id === session.userId;
+    return staff.userId === session.user_id || staff.id === session.user_id;
   }
 
   /** Default deny */

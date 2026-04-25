@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Plus,
   RefreshCw,
@@ -85,7 +85,7 @@ const EcommerceConnector = () => {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     fetchChannels();
@@ -139,11 +139,11 @@ const EcommerceConnector = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* ── Header ── */}
+      {/* -- Header -- */}
       <div className="px-8 py-5 border-b bg-white shrink-0 flex items-center justify-between gap-6">
         <PageHeader
           title="Commerce Channels"
-          subtitle={`${stats.active} active · ${stats.total} total channels connected`}
+          subtitle={`${stats.active} active � ${stats.total} total channels connected`}
         />
         <div className="flex items-center gap-3">
           <Button
@@ -163,9 +163,9 @@ const EcommerceConnector = () => {
         </div>
       </div>
 
-      {/* ── Body: Two-column layout ── */}
+      {/* -- Body: Two-column layout -- */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ── LEFT: Channel List ── */}
+        {/* -- LEFT: Channel List -- */}
         <div className="w-80 shrink-0 flex flex-col border-r bg-slate-50/60 overflow-hidden">
           {/* KPI strip */}
           <div className="grid grid-cols-3 gap-2 p-4 shrink-0">
@@ -285,7 +285,7 @@ const EcommerceConnector = () => {
           </div>
         </div>
 
-        {/* ── RIGHT: Channel Profile Panel ── */}
+        {/* -- RIGHT: Channel Profile Panel -- */}
         <div className="flex-1 flex flex-col overflow-hidden bg-white relative">
           {selectedChannel && (
             <button
@@ -306,7 +306,7 @@ const EcommerceConnector = () => {
         </div>
       </div>
 
-      {/* ── Create Dialog ── */}
+      {/* -- Create Dialog -- */}
       <CreateChannelDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}

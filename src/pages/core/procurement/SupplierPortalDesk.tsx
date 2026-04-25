@@ -42,9 +42,9 @@ export default function SupplierPortalDesk() {
     setLoading(true);
     try {
       const [msg, sup, br] = await Promise.all([
-        procurementService.listPortalMessages(session.tenantId, session),
-        procurementService.listSupplierMasters(session.tenantId, session),
-        procurementService.listSupplierBranches(session.tenantId, session),
+        procurementService.listPortalMessages(session.tenant_id, session),
+        procurementService.listSupplierMasters(session.tenant_id, session),
+        procurementService.listSupplierBranches(session.tenant_id, session),
       ]);
       setMessages(msg);
       setSuppliers(sup);
@@ -54,7 +54,7 @@ export default function SupplierPortalDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -73,7 +73,7 @@ export default function SupplierPortalDesk() {
   const createMessage = async () => {
     if (!supplierId || !supplierBranchId || !content.trim()) return;
     try {
-      await procurementService.createPortalMessage(session.tenantId, session, {
+      await procurementService.createPortalMessage(session.tenant_id, session, {
         supplierId,
         supplierBranchId,
         direction,

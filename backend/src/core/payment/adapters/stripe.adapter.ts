@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 import { ConfigService } from "@nestjs/config";
 import { PaymentAdapter, PaymentIntentResult } from "./payment.adapter.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 @Injectable()
 export class StripeAdapter implements PaymentAdapter {
@@ -18,7 +19,7 @@ export class StripeAdapter implements PaymentAdapter {
     }
   }
 
-  async isAvailable(tenant_id: string): Promise<boolean> {
+  async isAvailable(ctx: TenantContext): Promise<boolean> {
     // Advanced: Check tenant's custom stripe connect status in DB. 
     // Basic: Check if Stripe API key is configured.
     return this.isConfigured;

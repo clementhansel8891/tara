@@ -26,7 +26,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/retail/ecommerce-hub")
+@Controller('retail/ecommerce-hub')
 @UseInterceptors(TenantInterceptor)
 export class EcommerceHubController {
   constructor(private readonly hubService: EcommerceHubService) {}
@@ -205,6 +205,60 @@ export class EcommerceHubController {
       user_id,
     );
     return this.ok(tenant_id, data);
+  }
+
+  // ── Channel Product Management ─────────────────────────────
+
+  @Get("channels/:id/products")
+  async listChannelProducts(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+  ) {
+    const { tenant_id } = req.tenantContext;
+    const data = await this.hubService.listChannelProducts(tenant_id, id);
+    return this.ok(tenant_id, data);
+  }
+
+  @Put("channels/:id/products")
+  async updateChannelProducts(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() body: { updates: any[] },
+  ) {
+    const { tenant_id, user_id } = req.tenantContext;
+    await this.hubService.updateChannelProducts(
+      tenant_id,
+      id,
+      body.updates,
+      user_id,
+    );
+    return this.ok(tenant_id, { success: true });
+  }
+
+  @Get("channels/:id/categories")
+  async getChannelCategories(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+  ) {
+    const { tenant_id } = req.tenantContext;
+    const data = await this.hubService.getChannelCategories(tenant_id, id);
+    return this.ok(tenant_id, data);
+  }
+
+  @Put("channels/:id/categories")
+  async updateChannelCategories(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() body: { categories: string[] },
+  ) {
+    const { tenant_id, user_id } = req.tenantContext;
+    await this.hubService.updateChannelCategories(
+      tenant_id,
+      id,
+      body.categories,
+      user_id,
+    );
+    return this.ok(tenant_id, { success: true });
   }
 }
 

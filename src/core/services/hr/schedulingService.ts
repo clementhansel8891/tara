@@ -141,7 +141,7 @@ export const schedulingService = {
     reason: string,
   ) {
     const data = {
-      requester_id: session.userId,
+      requester_id: session.user_id,
       target_id: targetEmployeeId,
       shift_id: shiftId,
       status: "PENDING",
@@ -160,8 +160,8 @@ export const schedulingService = {
     await workflowService.createRequest(tenantId, session, {
       entityType: "SHIFT_SWAP",
       entityId: response.id,
-      makerDept: session.departmentId,
-      destinationDept: session.departmentId,
+      makerDept: session.department_id,
+      destinationDept: session.department_id,
       notes: `Shift Swap Request: ${reason}`,
       metadata: { date, targetEmployeeId },
     });
@@ -209,7 +209,7 @@ export const schedulingService = {
     await workflowService.createRequest(tenantId, session, {
       entityType: "EMERGENCY_OVERRIDE",
       entityId: response.id,
-      makerDept: session.departmentId,
+      makerDept: session.department_id,
       destinationDept: "HR",
       notes: `Emergency Override: ${reason}`,
       metadata: { date, absentEmployeeId, coveringEmployeeId },
@@ -217,7 +217,7 @@ export const schedulingService = {
 
     audit.log({
       tenantId,
-      actorId: session.userId,
+      actorId: session.user_id,
       action: "schedule.override",
       entityType: "schedule_override",
       entityId: response.id,
@@ -232,7 +232,7 @@ export const schedulingService = {
         shiftId: shiftId,
         date: date,
         reason: response.reason,
-        authorizedBy: session.userId,
+        authorizedBy: session.user_id,
         payrollImpact: true,
         createdAt: response.created_at,
         updatedAt: response.updated_at,

@@ -57,7 +57,7 @@ const SelfServiceKiosk = () => {
     const fetchData = async () => {
       try {
         const data = await retailService.listInventory(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         setProducts(data);
@@ -66,7 +66,7 @@ const SelfServiceKiosk = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   const addToCart = (product: RetailProduct) => {
     setCart((prev) => {
@@ -125,7 +125,7 @@ const SelfServiceKiosk = () => {
   );
 
   const handleCheckout = async () => {
-    if (cart.length === 0 || !session.tenantId) return;
+    if (cart.length === 0 || !session.tenant_id) return;
 
     if (!activeStore?.id) {
       toast({
@@ -140,7 +140,7 @@ const SelfServiceKiosk = () => {
     try {
       // Atomic Backend Checkout with Idempotency
       await retailService.checkout(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           store_id: activeStore.id,
@@ -215,7 +215,7 @@ const SelfServiceKiosk = () => {
                 {activeStore?.name || activeChannel?.name || "Zenvix Kiosk V2"}
               </h1>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 italic">
-                Station ID: KIOSK-SELF-{session.locationId} • Secured by Zenvix
+                Station ID: KIOSK-SELF-{session.location_id} • Secured by Zenvix
               </p>
             </div>
           </div>
@@ -238,7 +238,7 @@ const SelfServiceKiosk = () => {
               onClick={() =>
                 toast({
                   title: "Kiosk Support",
-                  description: `Terminal ID: KIOSK-SELF-${session.locationId}. Please see the floor supervisor for manual assistance.`,
+                  description: `Terminal ID: KIOSK-SELF-${session.location_id}. Please see the floor supervisor for manual assistance.`,
                 })
               }
             >

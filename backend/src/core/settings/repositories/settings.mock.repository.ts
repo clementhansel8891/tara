@@ -35,4 +35,17 @@ export class SettingsMockRepository implements ISettingsRepository {
     this.mockPreferences = { ...this.mockPreferences, ...data, tenant_id };
     return this.mockPreferences;
   }
+
+  async getChildCompanies(tenant_id: string): Promise<any[]> {
+    return [];
+  }
+
+  async createChildCompany(tenant_id: string, data: any, user_id: string): Promise<any> {
+    return {
+      id: `child-${Math.random().toString(36).substring(2, 9)}`,
+      ...data,
+      tenant_id,
+      created_at: new Date()
+    };
+  }
 }

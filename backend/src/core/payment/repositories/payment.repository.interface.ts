@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { AttachDisputeEvidenceDto } from "../dto/attach-dispute-evidence.dto";
 import { CreateDisputeDto } from "../dto/create-dispute.dto";
 import { CreatePaymentTransactionDto } from "../dto/create-payment-transaction.dto";
@@ -38,123 +39,104 @@ export type PaymentDashboard = {
 };
 
 export abstract class IPaymentRepository {
-  abstract getDashboard(tenant_id: string): Promise<PaymentDashboard>;
+  abstract getDashboard( ctx: TenantContext): Promise<PaymentDashboard>;
 
-  abstract getTransactions(tenant_id: string): Promise<PaymentTransaction[]>;
-  abstract createTransaction(
-    tenant_id: string,
+  abstract getTransactions( ctx: TenantContext): Promise<PaymentTransaction[]>;
+  abstract createTransaction( ctx: TenantContext,
     dto: CreatePaymentTransactionDto,
     actor_id: string,
   ): Promise<PaymentTransaction>;
-  abstract approveTransaction(
-    tenant_id: string,
+  abstract approveTransaction( ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ): Promise<PaymentTransaction>;
-  abstract rejectTransaction(
-    tenant_id: string,
+  abstract rejectTransaction( ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ): Promise<PaymentTransaction>;
-  abstract routeTransaction(
-    tenant_id: string,
+  abstract routeTransaction( ctx: TenantContext,
     paymentId: string,
     dto: RoutePaymentDto,
     actor_id: string,
   ): Promise<PaymentTransaction>;
-  abstract executeTransaction(
-    tenant_id: string,
+  abstract executeTransaction( ctx: TenantContext,
     paymentId: string,
     dto: ExecutePaymentDto,
     actor_id: string,
   ): Promise<PaymentTransaction>;
-  abstract settleTransaction(
-    tenant_id: string,
+  abstract settleTransaction( ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ): Promise<PaymentTransaction>;
 
-  abstract getProviders(tenant_id: string): Promise<PaymentProvider[]>;
-  abstract updateProviderStatus(
-    tenant_id: string,
+  abstract getProviders( ctx: TenantContext): Promise<PaymentProvider[]>;
+  abstract updateProviderStatus( ctx: TenantContext,
     providerId: string,
     dto: UpdateProviderStatusDto,
     actor_id: string,
   ): Promise<PaymentProvider>;
-  abstract runProviderHealthSweep(
-    tenant_id: string,
+  abstract runProviderHealthSweep( ctx: TenantContext,
     actor_id: string,
   ): Promise<PaymentProvider[]>;
 
-  abstract getRoutingPolicies(
-    tenant_id: string,
+  abstract getRoutingPolicies( ctx: TenantContext,
   ): Promise<PaymentRoutingPolicy[]>;
-  abstract getDevices(tenant_id: string): Promise<PaymentDevice[]>;
-  abstract getDevicePools(tenant_id: string): Promise<PaymentDevicePool[]>;
-  abstract updateDeviceStatus(
-    tenant_id: string,
+  abstract getDevices( ctx: TenantContext): Promise<PaymentDevice[]>;
+  abstract getDevicePools( ctx: TenantContext): Promise<PaymentDevicePool[]>;
+  abstract updateDeviceStatus( ctx: TenantContext,
     device_id: string,
     dto: UpdateDeviceStatusDto,
     actor_id: string,
   ): Promise<PaymentDevice>;
 
-  abstract getRefunds(tenant_id: string): Promise<PaymentRefund[]>;
-  abstract createRefund(
-    tenant_id: string,
+  abstract getRefunds( ctx: TenantContext): Promise<PaymentRefund[]>;
+  abstract createRefund( ctx: TenantContext,
     dto: CreateRefundDto,
     actor_id: string,
   ): Promise<PaymentRefund>;
-  abstract approveRefund(
-    tenant_id: string,
+  abstract approveRefund( ctx: TenantContext,
     refundId: string,
     actor_id: string,
   ): Promise<PaymentRefund>;
-  abstract executeRefund(
-    tenant_id: string,
+  abstract executeRefund( ctx: TenantContext,
     refundId: string,
     actor_id: string,
   ): Promise<PaymentRefund>;
 
-  abstract getDisputes(tenant_id: string): Promise<PaymentDispute[]>;
-  abstract createDispute(
-    tenant_id: string,
+  abstract getDisputes( ctx: TenantContext): Promise<PaymentDispute[]>;
+  abstract createDispute( ctx: TenantContext,
     dto: CreateDisputeDto,
     actor_id: string,
   ): Promise<PaymentDispute>;
-  abstract attachDisputeEvidence(
-    tenant_id: string,
+  abstract attachDisputeEvidence( ctx: TenantContext,
     disputeId: string,
     dto: AttachDisputeEvidenceDto,
     actor_id: string,
   ): Promise<PaymentDispute>;
-  abstract progressDispute(
-    tenant_id: string,
+  abstract progressDispute( ctx: TenantContext,
     disputeId: string,
     dto: ProgressDisputeDto,
     actor_id: string,
   ): Promise<PaymentDispute>;
-  abstract resolveDispute(
-    tenant_id: string,
+  abstract resolveDispute( ctx: TenantContext,
     disputeId: string,
     dto: ResolveDisputeDto,
     actor_id: string,
   ): Promise<PaymentDispute>;
 
-  abstract getChargebacks(tenant_id: string): Promise<PaymentChargeback[]>;
-  abstract getSettlements(tenant_id: string): Promise<PaymentSettlement[]>;
-  abstract getEvidencePacks(tenant_id: string): Promise<PaymentEvidencePack[]>;
-  abstract getAuditEvents(tenant_id: string): Promise<PaymentAuditEvent[]>;
+  abstract getChargebacks( ctx: TenantContext): Promise<PaymentChargeback[]>;
+  abstract getSettlements( ctx: TenantContext): Promise<PaymentSettlement[]>;
+  abstract getEvidencePacks( ctx: TenantContext): Promise<PaymentEvidencePack[]>;
+  abstract getAuditEvents( ctx: TenantContext): Promise<PaymentAuditEvent[]>;
 
   // Unified Gateway & Settings
-  abstract getPaymentSettings(tenant_id: string): Promise<any>;
-  abstract updatePaymentSettings(tenant_id: string, data: any): Promise<any>;
-  abstract getGatewayAccount(
-    tenant_id: string,
+  abstract getPaymentSettings( ctx: TenantContext): Promise<any>;
+  abstract updatePaymentSettings( ctx: TenantContext, data: any): Promise<any>;
+  abstract getGatewayAccount( ctx: TenantContext,
     provider: string,
   ): Promise<any>;
-  abstract upsertGatewayAccount(tenant_id: string, data: any): Promise<any>;
-  abstract updateTransactionStatus(
-    tenant_id: string,
+  abstract upsertGatewayAccount( ctx: TenantContext, data: any): Promise<any>;
+  abstract updateTransactionStatus( ctx: TenantContext,
     id: string,
     data: {
       status: "PENDING" | "PAID" | "FAILED" | "SETTLED" | "REFUNDED";
@@ -175,12 +157,12 @@ export abstract class IPaymentRepository {
     payload: any,
   ): Promise<boolean>;
 
-  abstract createPlatformFeeLedger(
-    tenant_id: string,
+  abstract createPlatformFeeLedger( ctx: TenantContext,
     transaction_id: string,
     amount: number,
     provider: string,
   ): Promise<void>;
 
   abstract findPendingTransactions(): Promise<PaymentTransaction[]>;
+  abstract findTransactionByExternalRef(external_ref: string): Promise<PaymentTransaction | undefined>;
 }

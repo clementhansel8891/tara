@@ -30,20 +30,20 @@ export function useInventoryStore() {
   // Load stores
   useEffect(() => {
     retailService
-      .listStores(session.tenantId!, session)
+      .listStores(session.tenant_id!, session)
       .then((data) => {
         setStores(data);
         if (data.length) setSelectedStoreId(data[0].id);
       })
       .catch(console.error);
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   // Load inventory
   useEffect(() => {
     if (!selectedStoreId) return;
     setIsLoading(true);
     retailService
-      .listInventory(session.tenantId!, session)
+      .listInventory(session.tenant_id!, session)
       .then((data) => {
         const items: InventoryItemView[] = (
           Array.isArray(data) ? data : []
@@ -68,7 +68,7 @@ export function useInventoryStore() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
-  }, [selectedStoreId, session.tenantId, session]);
+  }, [selectedStoreId, session.tenant_id, session]);
 
   const stats = useMemo(
     () => ({

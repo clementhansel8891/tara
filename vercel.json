@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "backend/src/vercel.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:match*",
+      "destination": "backend/src/vercel.ts"
+    },
+    {
+      "source": "/v1/:match*",
+      "destination": "backend/src/vercel.ts"
+    },
+    {
+      "source": "/socket.io/:match*",
+      "destination": "backend/src/vercel.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

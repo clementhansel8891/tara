@@ -19,8 +19,11 @@ export class PeriodClosingService {
   private readonly logger = new Logger(PeriodClosingService.name);
 
   constructor(
+    @Inject('IFiscalPeriodRepository')
     private readonly fiscalRepo: IFiscalPeriodRepository,
+    @Inject('IJournalRepository')
     private readonly journalRepo: IJournalRepository,
+    @Inject('IAccountBalanceRepository')
     private readonly balanceRepo: IAccountBalanceRepository,
     @Inject('IUnitOfWork')
     private readonly uow: IUnitOfWork,

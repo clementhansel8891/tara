@@ -31,7 +31,7 @@ export default function AuditVault() {
   const [selectedRow, setSelectedRow] = useState<AuditRow | null>(null);
 
   const rows = useMemo(() => {
-    const ledgerRows: AuditRow[] = auditLedger.list(session.tenantId).map((entry) => ({
+    const ledgerRows: AuditRow[] = auditLedger.list(session.tenant_id).map((entry) => ({
       id: entry.id,
       timestamp: entry.timestamp,
       actor: entry.actorId,
@@ -40,7 +40,7 @@ export default function AuditVault() {
       source: "AUDIT_LEDGER",
     }));
 
-    const financeRows: AuditRow[] = logService.listLogs(session.tenantId).map((entry) => ({
+    const financeRows: AuditRow[] = logService.listLogs(session.tenant_id).map((entry) => ({
       id: entry.id,
       timestamp: entry.timestamp,
       actor: entry.userId,
@@ -50,7 +50,7 @@ export default function AuditVault() {
     }));
 
     return [...ledgerRows, ...financeRows].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   const filteredRows = useMemo(
     () =>

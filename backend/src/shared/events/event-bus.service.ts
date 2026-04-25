@@ -77,7 +77,7 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
       // Group by aggregate_id (or NULL) to enforce strict sequential processing per-aggregate
       const aggregateGroups = new Map<string, typeof pendingDeliveries>();
       for (const d of pendingDeliveries as any[]) {
-        const key = d.eventId.aggregate_id || `NO_AGGREGATE_${d.id}`; // If no aggregate, they run freely
+        const key = d.event_id.aggregate_id || `NO_AGGREGATE_${d.id}`; // If no aggregate, they run freely
         if (!aggregateGroups.has(key)) aggregateGroups.set(key, []);
         aggregateGroups.get(key)!.push(d);
       }
@@ -86,9 +86,9 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
       await Promise.all(
         Array.from(aggregateGroups.entries() as any).map(async ([_groupKey, groupDeliveries]: [any, any[]]) => {
           for (const delivery of groupDeliveries) {
-            const sub = this.subscriptions.find(s => s.handlerName === delivery.handlerName);
+            const sub = this.subscriptions.find(s => s.handlerName === delivery.handler_name);
             if (!sub) continue; 
-            await this.executeHandler(delivery.domainEvents.id, delivery.domainEvents as any, sub);
+            await this.executeHandler(delivery.domain_events.id, delivery.domain_events as any, sub);
           }
         })
       );
@@ -107,14 +107,14 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn(`Recovering stuck event ${event.id} (stuck in PROCESSING since ${event.processing_started_at})`);
         // We move it to FAILED to allow the standard retry logic to pick up the deliveries
         await this.prisma.$transaction(async (tx: any) => {
-          await tx.domainEvent.update({
+          await tx.domain_events.update({
             where: { id: event.id },
             data: { status: 'FAILED' }
           });
           // Also fail any deliveries that are still in PROCESSING for this event
           await tx.event_deliveries.updateMany({
-            where: { eventId: event.id, status: 'PROCESSING', tenant_id: event.tenant_id },
-            data: { status: 'FAILED', lastError: 'PROCESSING_TIMEOUT_RECOVERY' }
+            where: { event_id: event.id, status: 'PROCESSING', tenant_id: event.tenant_id },
+            data: { status: 'FAILED', last_error: 'PROCESSING_TIMEOUT_RECOVERY' }
           });
         });
       }
@@ -183,9 +183,9 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
       const execute = async (tx: any) => {
         // 1. Check idempotency if a key was provided
         if (event.idempotency_key) {
-          const existing = await tx.domainEvent.findUnique({
+          const existing = await tx.domain_events.findUnique({
             where: {
-              tenantId_idempotency_key: {
+              tenant_id_idempotency_key: {
                 tenant_id: event.tenant_id,
                 idempotency_key: event.idempotency_key,
               }
@@ -198,7 +198,7 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
         }
 
         // 2. Persist event to the Event Store
-        const domainEventRecord = await tx.domainEvent.create({
+        const domainEventRecord = await tx.domain_events.create({
           data: {
         id: uuidv4(),
         updated_at: new Date(),
@@ -223,8 +223,8 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
           await tx.event_deliveries.createMany({
             data: matchingSubs.map(sub => ({
               tenant_id: event.tenant_id,
-              eventId: domainEventRecord.id,
-              handlerName: sub.handlerName,
+              event_id: domainEventRecord.id,
+              handler_name: sub.handlerName,
               status: 'PENDING',
               attempts: 0,
             })),
@@ -438,15 +438,15 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
 
     await this.prisma.$transaction(async (tx: any) => {
       // 1. Reset parent status
-      await tx.domainEvent.update({
+      await tx.domain_events.update({
         where: { id: eventId },
         data: { status: 'PENDING', processing_started_at: null }
       });
 
       // 2. Reset all deliveries to PENDING
       await tx.event_deliveries.updateMany({
-        where: { eventId },
-        data: { status: 'PENDING', attempts: 0, lastError: null, nextRetryAt: null }
+        where: { event_id: eventId },
+        data: { status: 'PENDING', attempts: 0, last_error: null, next_retry_at: null }
       });
     });
   }
@@ -486,11 +486,11 @@ export class EventBusService implements OnModuleInit, OnModuleDestroy {
       event_type: e.event_type,
       status: e.status,
       created_at: e.created_at,
-      deliveries: e.eventDeliveries.map((d: any) => ({
-        handler: d.handlerName,
+      deliveries: e.event_deliveries.map((d: any) => ({
+        handler: d.handler_name,
         status: d.status,
         attempts: d.attempts,
-        lastError: d.lastError
+        last_error: d.last_error
       }))
     }));
   }

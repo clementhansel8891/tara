@@ -22,7 +22,7 @@ import {
   UpdateWorkShiftDto 
 } from "../dto";
 
-@Controller("v1/hr/scheduling")
+@Controller('hr/scheduling')
 @UseGuards(RolesGuard, TenantGuard)
 export class HrSchedulingController {
   constructor(private readonly schedulingService: SchedulingService) {}

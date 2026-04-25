@@ -89,6 +89,111 @@ export class HRMockRepository extends IHRRepository {
   private payrolls: Payroll[] = [];
   private disbursementLogs: any[] = [];
 
+  constructor() {
+    super();
+    const hanselTenant = "hansel-demo-tenant";
+    const loc1 = "hansel-loc-1";
+    const loc2 = "hansel-loc-2";
+
+    // 1. Seed Departments
+    this.departments = [
+      {
+        id: "hansel-dept-1",
+        tenant_id: hanselTenant,
+        name: "Retail Operations",
+        code: "DEPT-RET",
+        status: "active",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        id: "hansel-dept-2",
+        tenant_id: hanselTenant,
+        name: "Logistics & Warehouse",
+        code: "DEPT-LOG",
+        status: "active",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      {
+        id: "hansel-dept-3",
+        tenant_id: hanselTenant,
+        name: "Corporate Admin",
+        code: "DEPT-ADM",
+        status: "active",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+    ];
+
+    // 2. Seed Employees
+    const employeesData = [
+      { id: "hansel-emp-1", first_name: "Budi", last_name: "Santoso", email: "budi@zenvix.id", position: "Store Manager", role_title: "Store Manager", dept_id: "hansel-dept-1", loc: loc1 },
+      { id: "hansel-emp-2", first_name: "Siti", last_name: "Aminah", email: "siti@zenvix.id", position: "Senior Cashier", role_title: "Senior Cashier", dept_id: "hansel-dept-1", loc: loc1 },
+      { id: "hansel-emp-3", first_name: "Agus", last_name: "Pratama", email: "agus@zenvix.id", position: "Warehouse Lead", role_title: "Warehouse Lead", dept_id: "hansel-dept-2", loc: loc2 },
+      { id: "hansel-emp-4", first_name: "Dewi", last_name: "Lestari", email: "dewi@zenvix.id", position: "IT Support", role_title: "IT Support", dept_id: "hansel-dept-3", loc: loc1 },
+      { id: "hansel-emp-5", first_name: "Rudi", last_name: "Hermawan", email: "rudi@zenvix.id", position: "Retail Associate", role_title: "Retail Associate", dept_id: "hansel-dept-1", loc: loc2 },
+    ];
+
+    this.employees = employeesData.map(emp => ({
+      id: emp.id,
+      tenant_id: hanselTenant,
+      first_name: emp.first_name,
+      last_name: emp.last_name,
+      full_name: `${emp.first_name} ${emp.last_name}`,
+      email: emp.email,
+      status: "active",
+      employee_code: emp.id.toUpperCase(),
+      hire_date: new Date(2023, 0, 1),
+      employment_type: "full_time",
+      department_id: emp.dept_id,
+      location_id: emp.loc,
+      position: emp.position,
+      role_title: emp.role_title,
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as any));
+
+    // 3. Seed Attendance (Last 3 days)
+    const now = new Date();
+    employeesData.forEach(emp => {
+      for (let day = 0; day < 3; day++) {
+        const date = new Date(now);
+        date.setDate(now.getDate() - day);
+        date.setHours(8, 0, 0, 0); // 8 AM check-in
+
+        this.attendance.push({
+          id: `att-${emp.id}-${day}`,
+          tenant_id: hanselTenant,
+          employee_id: emp.id,
+          location_id: emp.loc,
+          check_in_time: date,
+          check_out_time: new Date(date.getTime() + 9 * 60 * 60 * 1000), // +9 hours
+          status: "present",
+          date: date,
+          type: "manual",
+          work_duration_minutes: 540,
+          created_at: date,
+          updated_at: date,
+        } as any);
+      }
+    });
+
+    // 4. Seed Payroll History
+    this.payrolls = this.employees.map(emp => ({
+        id: `pay-${emp.id}-APR`,
+        tenant_id: hanselTenant,
+        employee_id: emp.id,
+        period: "2024-04",
+        grossPay: 8000000 + (Math.random() * 5000000),
+        netPay: 7500000,
+        status: "processed",
+        base_salary: 8000000,
+        created_at: new Date(),
+        updated_at: new Date()
+    } as any));
+  }
+
   // Get By ID Methods
   async getEmployeeById(tenant_id: string, employee_id: string): Promise<Employee | null> {
     return this.employees.find((e) => e.id === employee_id && e.tenant_id === tenant_id) || null;

@@ -6,7 +6,7 @@ import { AuditModule } from "../audit/audit.module";
 
 @Global()
 @Module({
-  imports: [EventsModule, LoggerModule, AuditModule],
+  imports: [],
   providers: [AutomationService],
   exports: [AutomationService],
 })

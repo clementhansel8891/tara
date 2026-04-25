@@ -5,6 +5,8 @@ import { IStockMovementRepository, StockReservation } from './interfaces/stock-m
 import { StockIntakeDto } from '../dto/stock-intake.dto';
 import { TransferStockDto } from '../dto/transfer-stock.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
+import { MultiTenancyUtil } from '../../../shared/utils/multi-tenancy.util';
 
 @Injectable()
 export class StockMovementDbRepository implements IStockMovementRepository {
@@ -17,7 +19,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     return (this.prisma as Prisma.TransactionClient);
   }
 
-  async intake(tenant_id: string, data: StockIntakeDto, providedTx?: any): Promise<StockMovement> {
+  async intake(ctx: TenantContext, data: StockIntakeDto, providedTx?: any): Promise<StockMovement> {
     const execute = async (tx: Prisma.TransactionClient) => {
       // 1. Update or create stock level
       await tx.stock_levels.upsert({
@@ -30,7 +32,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         },
         create: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: data.location_id,
           department_id: data.departmentId || null,
           product_id: data.item_id,
@@ -49,7 +51,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       return tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.location_id,
           to_location_id: data.location_id,
@@ -66,7 +68,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     return providedTx ? execute(providedTx) : (this.prisma as PrismaService).$transaction(execute);
   }
 
-  async transfer(tenant_id: string, data: TransferStockDto, providedTx?: any): Promise<StockMovement[]> {
+  async transfer(ctx: TenantContext, data: TransferStockDto, providedTx?: any): Promise<StockMovement[]> {
     const execute = async (tx: Prisma.TransactionClient) => {
       // 1. Decrement source
       await tx.stock_levels.update({
@@ -95,7 +97,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         },
         create: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           location_id: data.toLocationId,
           department_id: data.toDepartmentId || null,
           product_id: data.item_id,
@@ -114,7 +116,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       const outMove = await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.fromLocationId,
           from_location_id: data.fromLocationId,
@@ -132,7 +134,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       const inMove = await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.toLocationId,
           from_location_id: data.fromLocationId,
@@ -153,7 +155,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     return providedTx ? execute(providedTx) : (this.prisma as PrismaService).$transaction(execute);
   }
 
-  async consume(tenant_id: string, data: any, providedTx?: any): Promise<StockMovement> {
+  async consume(ctx: TenantContext, data: any, providedTx?: any): Promise<StockMovement> {
     const execute = async (tx: Prisma.TransactionClient) => {
       await tx.stock_levels.update({
         where: {
@@ -173,7 +175,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       return tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
           location_id: data.location_id,
           from_location_id: data.location_id,
@@ -189,7 +191,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     return providedTx ? execute(providedTx) : (this.prisma as PrismaService).$transaction(execute);
   }
 
-  async reserve(tenant_id: string, data: StockReservation, providedTx?: any): Promise<void> {
+  async reserve(ctx: TenantContext, data: StockReservation, providedTx?: any): Promise<void> {
     const execute = async (tx: Prisma.TransactionClient) => {
         // Increment reserved, decrement available
         await tx.stock_levels.update({
@@ -210,7 +212,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         await tx.stock_reservations.create({
             data: {
                 id: uuidv4(),
-                tenant_id: tenant_id,
+                ...MultiTenancyUtil.getScope(ctx),
                 product_id: data.product_id,
                 location_id: data.location_id,
                 quantity: data.quantity,
@@ -223,7 +225,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     return providedTx ? execute(providedTx) : (this.prisma as PrismaService).$transaction(execute);
   }
 
-  async release(tenant_id: string, data: StockReservation, providedTx?: any): Promise<void> {
+  async release(ctx: TenantContext, data: StockReservation, providedTx?: any): Promise<void> {
     const execute = async (tx: Prisma.TransactionClient) => {
         // Decrement reserved, increment available
         await tx.stock_levels.update({
@@ -243,24 +245,24 @@ export class StockMovementDbRepository implements IStockMovementRepository {
 
         // Soft delete or update reservation
         await tx.stock_reservations.updateMany({
-            where: { reference_id: data.referenceId, tenant_id: tenant_id },
+            where: { reference_id: data.referenceId, ...MultiTenancyUtil.getScope(ctx) },
             data: { status: 'RELEASED' }
         });
     };
     return providedTx ? execute(providedTx) : (this.prisma as PrismaService).$transaction(execute);
   }
 
-  async findAll(tenant_id: string, filters?: any): Promise<StockMovement[]> {
+  async findAll(ctx: TenantContext, filters?: any): Promise<StockMovement[]> {
     return this.db.stock_movements.findMany({
-      where: { ...filters, tenant_id },
+      where: { ...filters, ...MultiTenancyUtil.getScope(ctx) },
       orderBy: { created_at: 'desc' },
       take: filters?.take || 100
     });
   }
 
-  async getBalances(tenant_id: string, location_id?: string, product_id?: string): Promise<StockLevel[]> {
+  async getBalances(ctx: TenantContext, location_id?: string, product_id?: string): Promise<StockLevel[]> {
     return this.db.stock_levels.findMany({
-      where: { tenant_id: tenant_id, location_id: location_id, product_id: product_id },
+      where: { ...MultiTenancyUtil.getScope(ctx), location_id, product_id },
       orderBy: { updated_at: 'desc' }
     });
   }

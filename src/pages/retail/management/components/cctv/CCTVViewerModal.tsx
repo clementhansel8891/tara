@@ -263,11 +263,11 @@ const IntegrationSetup: React.FC<{
 
   const session = useSession();
   const handleConnect = async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
     setSaving(true);
     try {
       const resp = await retailService.validateCCTVConnection(
-        session.tenantId,
+        session.tenant_id,
         session,
         {
           provider: cam.provider,

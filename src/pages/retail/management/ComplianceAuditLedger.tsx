@@ -62,7 +62,7 @@ const ComplianceAuditLedger = () => {
         setIsLoading(false);
       }
     };
-    if (session.tenantId) fetchLogs();
+    if (session.tenant_id) fetchLogs();
   }, [session]);
 
   const handleExport = async (format: 'pdf' | 'csv') => {

@@ -37,9 +37,9 @@ export default function PoReleaseDesk() {
     setLoading(true);
     try {
       const [r, d, f] = await Promise.all([
-        procurementService.listRequisitions(session.tenantId, session),
-        procurementService.listDraftPurchaseOrders(session.tenantId, session),
-        procurementService.listFinalPurchaseOrders(session.tenantId, session),
+        procurementService.listRequisitions(session.tenant_id, session),
+        procurementService.listDraftPurchaseOrders(session.tenant_id, session),
+        procurementService.listFinalPurchaseOrders(session.tenant_id, session),
       ]);
       setRequisitions(r);
       setDrafts(d);
@@ -49,7 +49,7 @@ export default function PoReleaseDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -88,7 +88,7 @@ export default function PoReleaseDesk() {
   const confirmQuote = async () => {
     if (!selectedDraftId) return;
     try {
-      await procurementService.confirmSupplierQuote(session.tenantId, session, {
+      await procurementService.confirmSupplierQuote(session.tenant_id, session, {
         draftPoId: selectedDraftId,
         quoteReference: quoteReference || `Q-${Date.now()}`,
         quoteNotes,
@@ -106,7 +106,7 @@ export default function PoReleaseDesk() {
 
   const releasePo = async (requisitionId: string) => {
     try {
-      await procurementService.releasePurchaseOrder(session.tenantId, session, requisitionId);
+      await procurementService.releasePurchaseOrder(session.tenant_id, session, requisitionId);
       setStatusMessage("Purchase Order released and synchronized with Payable/Receipt systems.");
       refresh();
     } catch (err) {
@@ -116,7 +116,7 @@ export default function PoReleaseDesk() {
 
   const recordReceipt = async (finalPoId: string) => {
     try {
-      await procurementService.recordReceipt(session.tenantId, session, {
+      await procurementService.recordReceipt(session.tenant_id, session, {
         finalPoId,
         deliveryOnTime: true,
         quantityAccuracy: 96,

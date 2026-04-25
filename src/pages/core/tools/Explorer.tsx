@@ -77,19 +77,19 @@ export default function Explorer() {
 
   const files = useMemo(() => {
     if (activeFolder === "recycle") {
-      const scoped = listRecycleBin(session.tenantId, session);
+      const scoped = listRecycleBin(session.tenant_id, session);
       if (!search) return scoped;
       const lower = search.toLowerCase();
       return scoped.filter((file) => file.name.toLowerCase().includes(lower));
     }
     const scoped = search
-      ? searchFiles(session.tenantId, session, search)
-      : listFiles(session.tenantId, session);
+      ? searchFiles(session.tenant_id, session, search)
+      : listFiles(session.tenant_id, session);
     return scoped.filter((file) => file.folderId === activeFolder);
   }, [session, search, version, activeFolder]);
 
   const folders = useMemo(
-    () => listFolders(session.tenantId, session),
+    () => listFolders(session.tenant_id, session),
     [session, version],
   );
 
@@ -179,9 +179,9 @@ export default function Explorer() {
   const handleDrop = (data: string, folderId: string) => {
     try {
       const ids = JSON.parse(data) as string[];
-      ids.forEach((id) => moveFile(session.tenantId, session, id, folderId));
+      ids.forEach((id) => moveFile(session.tenant_id, session, id, folderId));
     } catch {
-      if (data) moveFile(session.tenantId, session, data, folderId);
+      if (data) moveFile(session.tenant_id, session, data, folderId);
     }
     setVersion((prev) => prev + 1);
   };
@@ -280,7 +280,7 @@ export default function Explorer() {
                 onDrop={(event) => {
                   const folderPayload = event.dataTransfer.getData("application/x-folder");
                   if (folderPayload && folderPayload !== folder.id) {
-                    moveFolder(session.tenantId, session, folderPayload, folder.id);
+                    moveFolder(session.tenant_id, session, folderPayload, folder.id);
                     setVersion((prev) => prev + 1);
                     return;
                   }
@@ -338,7 +338,7 @@ export default function Explorer() {
                 const name = `New Folder ${folders.length + 1}`;
                 const parent =
                   activeFolder === "root" || activeFolder === "recycle" ? undefined : activeFolder;
-                createFolder(session.tenantId, session, name, parent);
+                createFolder(session.tenant_id, session, name, parent);
                 setVersion((prev) => prev + 1);
               }}
             >
@@ -354,7 +354,7 @@ export default function Explorer() {
                 onDrop={(event) => {
                   const folderPayload = event.dataTransfer.getData("application/x-folder");
                   if (folderPayload && folderPayload !== "root") {
-                    moveFolder(session.tenantId, session, folderPayload, undefined);
+                    moveFolder(session.tenant_id, session, folderPayload, undefined);
                     setVersion((prev) => prev + 1);
                     return;
                   }
@@ -393,7 +393,7 @@ export default function Explorer() {
                   <Button
                     size="sm"
                     onClick={() => {
-                      renameFolder(session.tenantId, session, renameFolderId, renameFolderValue);
+                      renameFolder(session.tenant_id, session, renameFolderId, renameFolderValue);
                       setRenameFolderId(null);
                       setRenameFolderValue("");
                       setVersion((prev) => prev + 1);
@@ -484,7 +484,7 @@ export default function Explorer() {
                     variant="outline"
                     disabled={selectedIds.length === 0}
                     onClick={() => {
-                      selectedIds.forEach((id) => moveFile(session.tenantId, session, id, bulkMoveTarget));
+                      selectedIds.forEach((id) => moveFile(session.tenant_id, session, id, bulkMoveTarget));
                       setSelectedIds([]);
                       setVersion((prev) => prev + 1);
                     }}
@@ -496,7 +496,7 @@ export default function Explorer() {
                     variant="outline"
                     disabled={selectedIds.length === 0}
                     onClick={() => {
-                      selectedIds.forEach((id) => moveToRecycle(session.tenantId, session, id));
+                      selectedIds.forEach((id) => moveToRecycle(session.tenant_id, session, id));
                       setSelectedIds([]);
                       setVersion((prev) => prev + 1);
                     }}
@@ -510,7 +510,7 @@ export default function Explorer() {
                   variant="outline"
                   disabled={selectedIds.length === 0}
                   onClick={() => {
-                    selectedIds.forEach((id) => restoreFromRecycle(session.tenantId, session, id));
+                    selectedIds.forEach((id) => restoreFromRecycle(session.tenant_id, session, id));
                     setSelectedIds([]);
                     setVersion((prev) => prev + 1);
                   }}
@@ -656,7 +656,7 @@ export default function Explorer() {
                         onDrop={(event) => {
                           const folderPayload = event.dataTransfer.getData("application/x-folder");
                           if (folderPayload && folderPayload !== folder.id) {
-                            moveFolder(session.tenantId, session, folderPayload, folder.id);
+                            moveFolder(session.tenant_id, session, folderPayload, folder.id);
                             setVersion((prev) => prev + 1);
                             return;
                           }
@@ -720,7 +720,7 @@ export default function Explorer() {
                                     value={editingValue}
                                     onChange={(event) => setEditingValue(event.target.value)}
                                     onBlur={() => {
-                                      renameFile(session.tenantId, session, file.id, editingValue);
+                                      renameFile(session.tenant_id, session, file.id, editingValue);
                                       setEditingId(null);
                                       setVersion((prev) => prev + 1);
                                     }}
@@ -748,7 +748,7 @@ export default function Explorer() {
                               <ContextMenuSeparator />
                               <ContextMenuItem
                                 onClick={() => {
-                                  restoreFromRecycle(session.tenantId, session, file.id);
+                                  restoreFromRecycle(session.tenant_id, session, file.id);
                                   setVersion((prev) => prev + 1);
                                 }}
                               >
@@ -766,7 +766,7 @@ export default function Explorer() {
                               <ContextMenuSeparator />
                               <ContextMenuItem
                                 onClick={() => {
-                                  moveToRecycle(session.tenantId, session, file.id);
+                                  moveToRecycle(session.tenant_id, session, file.id);
                                   setVersion((prev) => prev + 1);
                                 }}
                               >
@@ -881,7 +881,7 @@ export default function Explorer() {
                     onDrop={(event) => {
                       const folderPayload = event.dataTransfer.getData("application/x-folder");
                       if (folderPayload && folderPayload !== folder.id) {
-                        moveFolder(session.tenantId, session, folderPayload, folder.id);
+                        moveFolder(session.tenant_id, session, folderPayload, folder.id);
                         setVersion((prev) => prev + 1);
                         return;
                       }
@@ -944,7 +944,7 @@ export default function Explorer() {
                                 value={editingValue}
                                 onChange={(event) => setEditingValue(event.target.value)}
                                 onBlur={() => {
-                                  renameFile(session.tenantId, session, file.id, editingValue);
+                                  renameFile(session.tenant_id, session, file.id, editingValue);
                                   setEditingId(null);
                                   setVersion((prev) => prev + 1);
                                 }}
@@ -976,7 +976,7 @@ export default function Explorer() {
                           <ContextMenuSeparator />
                           <ContextMenuItem
                             onClick={() => {
-                              restoreFromRecycle(session.tenantId, session, file.id);
+                              restoreFromRecycle(session.tenant_id, session, file.id);
                               setVersion((prev) => prev + 1);
                             }}
                           >
@@ -994,7 +994,7 @@ export default function Explorer() {
                           <ContextMenuSeparator />
                           <ContextMenuItem
                             onClick={() => {
-                              moveToRecycle(session.tenantId, session, file.id);
+                              moveToRecycle(session.tenant_id, session, file.id);
                               setVersion((prev) => prev + 1);
                             }}
                           >
@@ -1039,7 +1039,7 @@ export default function Explorer() {
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          moveToRecycle(session.tenantId, session, selectedFile.id);
+                          moveToRecycle(session.tenant_id, session, selectedFile.id);
                           setPreviewOpen(false);
                           setVersion((prev) => prev + 1);
                         }}
@@ -1052,7 +1052,7 @@ export default function Explorer() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        restoreFromRecycle(session.tenantId, session, selectedFile.id);
+                        restoreFromRecycle(session.tenant_id, session, selectedFile.id);
                         setPreviewOpen(false);
                         setVersion((prev) => prev + 1);
                       }}
@@ -1086,7 +1086,7 @@ export default function Explorer() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            moveFile(session.tenantId, session, selectedFile.id, folder.id);
+                            moveFile(session.tenant_id, session, selectedFile.id, folder.id);
                             setVersion((prev) => prev + 1);
                           }}
                         >

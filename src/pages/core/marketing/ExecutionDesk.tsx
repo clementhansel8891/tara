@@ -42,8 +42,8 @@ export default function ExecutionDesk() {
   const refresh = useCallback(async () => {
     try {
       const [c, e] = await Promise.all([
-        marketingService.listCampaigns(session.tenantId, session),
-        marketingService.listExecutions(session.tenantId, session),
+        marketingService.listCampaigns(session.tenant_id, session),
+        marketingService.listExecutions(session.tenant_id, session),
       ]);
       setCampaigns(c);
       setExecutions(e);
@@ -55,7 +55,7 @@ export default function ExecutionDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, campaignId]);
+  }, [session.tenant_id, campaignId]);
 
   useEffect(() => {
     refresh();
@@ -128,7 +128,7 @@ export default function ExecutionDesk() {
           <Button
             onClick={async () => {
               if (!campaignId) return;
-              await marketingService.scheduleExecution(session.tenantId, session, {
+              await marketingService.scheduleExecution(session.tenant_id, session, {
                 campaignId,
                 channel,
                 scheduledAt: new Date(scheduledAt).toISOString(),
@@ -185,7 +185,7 @@ export default function ExecutionDesk() {
                         size="sm"
                         variant="outline"
                         onClick={async () => {
-                          await marketingService.runExecution(session.tenantId, session, item.id);
+                          await marketingService.runExecution(session.tenant_id, session, item.id);
                           refresh();
                         }}
                       >
@@ -195,7 +195,7 @@ export default function ExecutionDesk() {
                         size="sm"
                         variant="outline"
                         onClick={async () => {
-                          await marketingService.runExecution(session.tenantId, session, item.id, {
+                          await marketingService.runExecution(session.tenant_id, session, item.id, {
                             failed: true,
                           });
                           refresh();

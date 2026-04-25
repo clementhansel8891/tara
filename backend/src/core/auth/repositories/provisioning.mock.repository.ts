@@ -17,7 +17,7 @@ export class ProvisioningMockRepository implements IProvisioningRepository {
       tenant_id: uuidv4(),
       company_name: data.name,
       location_id: uuidv4(),
-      departmentId: uuidv4(),
+      department_id: uuidv4(),
     };
   }
 }

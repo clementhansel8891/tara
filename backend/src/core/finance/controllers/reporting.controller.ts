@@ -6,7 +6,7 @@ import { RolesGuard } from '../../../shared/guards/roles.guard';
 import { TenantCtx } from '../../../gateway/tenant-context.decorator';
 import { TenantContext } from '../../../gateway/tenant-context.interface';
 
-@Controller('v1/finance/reporting')
+@Controller('finance/reporting')
 @UseGuards(TenantGuard, RolesGuard)
 export class ReportingController {
   constructor(

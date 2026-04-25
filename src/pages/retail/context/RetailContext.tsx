@@ -73,12 +73,12 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
   const initializedRef = useRef(false);
 
   const refreshState = useCallback(async () => {
-    if (!session.tenantId) return;
+    if (!session.tenant_id) return;
 
     try {
       const [fetchedStores, fetchedChannels] = await Promise.all([
-        retailService.listStores(session.tenantId, session),
-        retailService.listChannels(session.tenantId, session),
+        retailService.listStores(session.tenant_id, session),
+        retailService.listChannels(session.tenant_id, session),
       ]);
 
       setStores(fetchedStores);
@@ -99,7 +99,7 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
         const defaultStore = fetchedStores[0];
         setActiveStore(defaultStore);
         // Only sync location if it actually changed
-        if (session.locationId !== defaultStore.id) {
+        if (session.location_id !== defaultStore.id) {
           updateLocationRef.current(defaultStore.id);
         }
       } else if (currentActiveStore) {
@@ -127,9 +127,9 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
         }
       }
 
-      const shifts = await retailService.listShifts(session.tenantId, session);
+      const shifts = await retailService.listShifts(session.tenant_id, session);
       const openShift = shifts.find(
-        (s) => s.status === "open" && s.employeeId === session.userId,
+        (s) => s.status === "open" && s.employeeId === session.user_id,
       );
       setActiveShift(openShift || null);
     } catch (e) {
@@ -140,13 +140,13 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
     // CRITICAL: Only depend on stable primitive session values.
     // DO NOT add activeStore/activeChannel here - that causes an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenantId, session.userId]);
+  }, [session.tenant_id, session.user_id]);
 
   useEffect(() => {
     refreshState();
     // Only re-run when the authenticated user/tenant changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenantId, session.userId]);
+  }, [session.tenant_id, session.user_id]);
 
   const setStore = useCallback(
     async (storeId: string | null) => {
@@ -154,16 +154,16 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
         setActiveStore(null);
         return;
       }
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       const store = await retailService.getStore(
-        session.tenantId,
+        session.tenant_id,
         storeId,
         session,
       );
       if (store) {
         setActiveStore(store);
         setActiveChannel(null); // Clear channel when store is selected
-        if (session.locationId !== store.id) {
+        if (session.location_id !== store.id) {
           updateLocation(store.id); // Sync with session
         }
       }
@@ -181,12 +181,12 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
       if (channel) {
         setActiveChannel(channel);
         setActiveStore(null); // Clear store when channel is selected
-        if (session.locationId !== channel.id) {
+        if (session.location_id !== channel.id) {
           updateLocation(channel.id); // Sync with session
         }
       }
     },
-    [channels, session.locationId, updateLocation],
+    [channels, session.location_id, updateLocation],
   );
 
   const value = useMemo(

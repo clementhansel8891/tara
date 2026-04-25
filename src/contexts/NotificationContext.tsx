@@ -79,8 +79,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const socket = io(`${socketUrl}/notifications`, {
         path: "/socket.io",
         query: {
-          tenantId: session.tenantId,
-          userId: session.userId
+          tenantId: session.tenant_id,
+          userId: session.user_id
         }
       });
 

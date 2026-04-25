@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { CloseOpportunityDto } from "../dto/close-opportunity.dto";
 import { CreateLeadDto } from "../dto/create-lead.dto";
 import { CreateOpportunityDto } from "../dto/create-opportunity.dto";
@@ -70,10 +71,6 @@ export class SalesMockRepository extends ISalesRepository {
     return new Date();
   }
 
-  private nowIso() {
-    return this.now().toISOString();
-  }
-
   private id(prefix: string) {
     return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
   }
@@ -108,23 +105,6 @@ export class SalesMockRepository extends ISalesRepository {
         created_at: this.addDays(-1),
         updated_at: this.now(),
       },
-      {
-        id: `${tenant_id}-lead-2`,
-        tenant_id,
-        company_name: "Northline Group",
-        contact_name: "Carlos Nguyen",
-        source: "referral",
-        owner_id: "rep-ava",
-        owner_name: "Ava Reynolds",
-        score: 74,
-        potential_value: 260000,
-        currency: "USD",
-        priority: "medium",
-        status: "new",
-        sla_due_at: this.addDays(0),
-        created_at: this.addDays(-1),
-        updated_at: this.now(),
-      },
     ];
 
     const opportunities: SalesOpportunity[] = [
@@ -148,56 +128,9 @@ export class SalesMockRepository extends ISalesRepository {
       },
     ];
 
-    const quotes: SalesQuote[] = [
-      {
-        id: `${tenant_id}-quote-1`,
-        tenant_id,
-        opportunityId: `${tenant_id}-opp-1`,
-        account_name: "Acme Retail",
-        version: 1,
-        amount: 420000,
-        discountPercent: 5,
-        netAmount: 399000,
-        currency: "USD",
-        status: "pending_approval",
-        validUntil: this.addDays(14),
-        createdBy: "rep-jessie",
-        created_at: this.addDays(-1),
-        updated_at: this.now(),
-      },
-    ];
-
-    const timeline: SalesTimelineEvent[] = [
-      {
-        id: `${tenant_id}-timeline-1`,
-        tenant_id,
-        opportunityId: `${tenant_id}-opp-1`,
-        lead_id: `${tenant_id}-lead-1`,
-        channel: "email",
-        direction: "outbound",
-        summary: "Proposal sent",
-        detail: "Shared v1 proposal and timeline.",
-        createdBy: "rep-jessie",
-        created_at: this.now(),
-      },
-    ];
-
-    const tasks: SalesTask[] = [
-      {
-        id: `${tenant_id}-task-1`,
-        tenant_id,
-        opportunityId: `${tenant_id}-opp-1`,
-        title: "Follow-up call with buyer",
-        owner_id: "rep-jessie",
-        owner_name: "Jessie Allan",
-        status: "pending",
-        priority: "high",
-        dueAt: this.addDays(1),
-        created_at: this.now(),
-        updated_at: this.now(),
-      },
-    ];
-
+    const quotes: SalesQuote[] = [];
+    const timeline: SalesTimelineEvent[] = [];
+    const tasks: SalesTask[] = [];
     const alerts: SalesAlert[] = [];
     const orders: SalesOrder[] = [];
     const audit: SalesAuditEvent[] = [];
@@ -317,8 +250,8 @@ export class SalesMockRepository extends ISalesRepository {
     return created;
   }
 
-  async getDashboard(tenant_id: string): Promise<SalesDashboard> {
-    const store = this.getStore(tenant_id);
+  async getDashboard(ctx: TenantContext): Promise<SalesDashboard> {
+    const store = this.getStore(ctx.tenant_id);
     const now = new Date();
     const openOpps = store.opportunities.filter(
       (item) => item.stage !== "closed_won" && item.stage !== "closed_lost",
@@ -353,8 +286,8 @@ export class SalesMockRepository extends ISalesRepository {
     };
   }
 
-  async getManagerMetrics(tenant_id: string): Promise<SalesManagerMetrics> {
-    const store = this.getStore(tenant_id);
+  async getManagerMetrics(ctx: TenantContext): Promise<SalesManagerMetrics> {
+    const store = this.getStore(ctx.tenant_id);
     const openOpps = store.opportunities.filter(
       (item) => item.stage !== "closed_won" && item.stage !== "closed_lost",
     );
@@ -381,9 +314,9 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async getExecutiveForecast(
-    tenant_id: string,
+    ctx: TenantContext,
   ): Promise<SalesExecutiveForecast> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const openOpps = store.opportunities.filter(
       (item) => item.stage !== "closed_won" && item.stage !== "closed_lost",
     );
@@ -411,8 +344,8 @@ export class SalesMockRepository extends ISalesRepository {
     };
   }
 
-  async getNextBestActions(tenant_id: string): Promise<SalesNextAction[]> {
-    const store = this.getStore(tenant_id);
+  async getNextBestActions(ctx: TenantContext): Promise<SalesNextAction[]> {
+    const store = this.getStore(ctx.tenant_id);
     return [
       {
         id: this.id("nba"),
@@ -425,45 +358,45 @@ export class SalesMockRepository extends ISalesRepository {
     ];
   }
 
-  async getSalesAnalytics(tenant_id: string): Promise<any> {
+  async getSalesAnalytics(ctx: TenantContext): Promise<any> {
     return {
       revenueByMonth: [],
       topReps: [],
     };
   }
 
-  async getForecast(tenant_id: string): Promise<any> {
+  async getForecast(ctx: TenantContext): Promise<any> {
     return {
       forecastedValue: 1200000,
       confidence: 85,
     };
   }
 
-  async getPipelineVelocity(tenant_id: string): Promise<any> {
+  async getPipelineVelocity(ctx: TenantContext): Promise<any> {
     return {
       avgDaysPerStage: {},
       totalDaysToClose: 24,
     };
   }
 
-  async getSLAPerformance(tenant_id: string): Promise<any> {
+  async getSLAPerformance(ctx: TenantContext): Promise<any> {
     return {
       metRate: 94,
       breachCount: 2,
     };
   }
 
-  async getLeads(tenant_id: string, status?: string): Promise<SalesLead[]> {
-    const leads = this.getStore(tenant_id).leads;
+  async getLeads(ctx: TenantContext, status?: string): Promise<SalesLead[]> {
+    const leads = this.getStore(ctx.tenant_id).leads;
     return status ? leads.filter((item) => item.status === status) : leads;
   }
 
-  async createLead(tenant_id: string, dto: CreateLeadDto, tx?: any): Promise<SalesLead> {
-    const store = this.getStore(tenant_id);
-    const owner = this.findRepWithLowestLoad(tenant_id);
+  async createLead(ctx: TenantContext, dto: CreateLeadDto): Promise<SalesLead> {
+    const store = this.getStore(ctx.tenant_id);
+    const owner = this.findRepWithLowestLoad(ctx.tenant_id);
     const created: SalesLead = {
-      id: this.id(`${tenant_id}-lead`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-lead`),
+      tenant_id: ctx.tenant_id,
       company_name: dto.company_name,
       contact_name: dto.contact_name,
       contact_email: dto.contact_email,
@@ -482,7 +415,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.leads.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       "system",
       "lead.created",
       "lead",
@@ -493,18 +426,18 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async updateLeadStatus(
-    tenant_id: string,
+    ctx: TenantContext,
     lead_id: string,
     dto: UpdateLeadStatusDto,
   ): Promise<SalesLead> {
-    const lead = this.findLead(tenant_id, lead_id);
+    const lead = this.findLead(ctx.tenant_id, lead_id);
     lead.status = dto.status;
     lead.updated_at = this.now();
     if (dto.status === "contacted" && !lead.firstResponseAt) {
       lead.firstResponseAt = this.now();
     }
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       "system",
       "lead.status_changed",
       "lead",
@@ -515,20 +448,20 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async convertLead(
-    tenant_id: string,
+    ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<SalesOpportunity> {
-    const lead = this.findLead(tenant_id, lead_id);
+    const lead = this.findLead(ctx.tenant_id, lead_id);
     if (lead.status !== "qualified" && lead.status !== "contacted") {
       throw new BadRequestException(
         "Lead must be contacted or qualified first.",
       );
     }
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const created: SalesOpportunity = {
-      id: this.id(`${tenant_id}-opp`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-opp`),
+      tenant_id: ctx.tenant_id,
       lead_id: lead.id,
       account_name: lead.company_name,
       owner_id: lead.owner_id,
@@ -548,7 +481,7 @@ export class SalesMockRepository extends ISalesRepository {
     lead.updated_at = this.now();
     store.opportunities.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "lead.converted",
       "opportunity",
@@ -558,24 +491,23 @@ export class SalesMockRepository extends ISalesRepository {
     return created;
   }
 
-  async getOpportunities(tenant_id: string, stage?: string): Promise<SalesOpportunity[]> {
-    const opps = this.getStore(tenant_id).opportunities;
+  async getOpportunities(ctx: TenantContext, stage?: string): Promise<SalesOpportunity[]> {
+    const opps = this.getStore(ctx.tenant_id).opportunities;
     return stage ? opps.filter((item) => item.stage === stage) : opps;
   }
 
   async createOpportunity(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CreateOpportunityDto,
-    tx?: any,
   ): Promise<SalesOpportunity> {
-    const store = this.getStore(tenant_id);
+    const store = this.getStore(ctx.tenant_id);
     const owner =
       dto.owner_id && dto.owner_name
         ? { id: dto.owner_id, name: dto.owner_name }
-        : this.findRepWithLowestLoad(tenant_id);
+        : this.findRepWithLowestLoad(ctx.tenant_id);
     const created: SalesOpportunity = {
-      id: this.id(`${tenant_id}-opp`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-opp`),
+      tenant_id: ctx.tenant_id,
       lead_id: dto.lead_id,
       account_name: dto.account_name,
       owner_id: owner.id,
@@ -593,7 +525,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.opportunities.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       "system",
       "opportunity.created",
       "opportunity",
@@ -604,26 +536,17 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async moveOpportunityStage(
-    tenant_id: string,
+    ctx: TenantContext,
     opportunityId: string,
     dto: MoveOpportunityStageDto,
   ): Promise<SalesOpportunity> {
-    const opportunity = this.findOpportunity(tenant_id, opportunityId);
+    const opportunity = this.findOpportunity(ctx.tenant_id, opportunityId);
     opportunity.stage = dto.stage;
     opportunity.probability = STAGE_PROBABILITY[dto.stage];
     opportunity.lastActivityAt = this.now();
     opportunity.updated_at = this.now();
-    if (dto.stage === "closed_won" || dto.stage === "closed_lost") {
-      opportunity.health = "low_risk";
-    } else if (opportunity.probability < 40) {
-      opportunity.health = "high_risk";
-    } else if (opportunity.probability < 65) {
-      opportunity.health = "medium_risk";
-    } else {
-      opportunity.health = "low_risk";
-    }
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       "system",
       "opportunity.stage_changed",
       "opportunity",
@@ -634,22 +557,19 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async closeOpportunity(
-    tenant_id: string,
+    ctx: TenantContext,
     opportunityId: string,
     dto: CloseOpportunityDto,
   ): Promise<SalesOpportunity | SalesOrder> {
-    const store = this.getStore(tenant_id);
-    const opportunity = this.findOpportunity(tenant_id, opportunityId);
+    const store = this.getStore(ctx.tenant_id);
+    const opportunity = this.findOpportunity(ctx.tenant_id, opportunityId);
     const actor = dto.actor_id || "system";
     if (dto.result === "lost") {
       opportunity.stage = "closed_lost";
       opportunity.probability = 0;
-      opportunity.health = "low_risk";
-      opportunity.nextAction = "Closed lost";
       opportunity.updated_at = this.now();
-      opportunity.lastActivityAt = this.now();
       this.addAudit(
-        tenant_id,
+        ctx.tenant_id,
         actor,
         "opportunity.closed_lost",
         "opportunity",
@@ -660,12 +580,10 @@ export class SalesMockRepository extends ISalesRepository {
     }
     opportunity.stage = "closed_won";
     opportunity.probability = 100;
-    opportunity.health = "low_risk";
     opportunity.updated_at = this.now();
-    opportunity.lastActivityAt = this.now();
     const order: SalesOrder = {
-      id: this.id(`${tenant_id}-order`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-order`),
+      tenant_id: ctx.tenant_id,
       opportunityId: opportunity.id,
       quoteId: dto.quoteId,
       customerName: opportunity.account_name,
@@ -680,7 +598,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.orders.unshift(order);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor,
       "opportunity.closed_won",
       "order",
@@ -690,17 +608,17 @@ export class SalesMockRepository extends ISalesRepository {
     return order;
   }
 
-  async getQuotes(tenant_id: string, dealId?: string): Promise<SalesQuote[]> {
-    const quotes = this.getStore(tenant_id).quotes;
+  async getQuotes(ctx: TenantContext, dealId?: string): Promise<SalesQuote[]> {
+    const quotes = this.getStore(ctx.tenant_id).quotes;
     return dealId ? quotes.filter((item) => item.opportunityId === dealId) : quotes;
   }
 
   async createQuote(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CreateQuoteDto,
   ): Promise<SalesQuote> {
-    const store = this.getStore(tenant_id);
-    const opportunity = this.findOpportunity(tenant_id, dto.opportunityId);
+    const store = this.getStore(ctx.tenant_id);
+    const opportunity = this.findOpportunity(ctx.tenant_id, dto.opportunityId);
     const versions = store.quotes
       .filter((item) => item.opportunityId === dto.opportunityId)
       .map((item) => item.version);
@@ -711,8 +629,8 @@ export class SalesMockRepository extends ISalesRepository {
       dto.amount - dto.amount * (discountPercent / 100),
     );
     const created: SalesQuote = {
-      id: this.id(`${tenant_id}-quote`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-quote`),
+      tenant_id: ctx.tenant_id,
       opportunityId: dto.opportunityId,
       account_name: opportunity.account_name,
       version: nextVersion,
@@ -729,7 +647,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.quotes.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       created.createdBy,
       "quote.created",
       "quote",
@@ -739,23 +657,15 @@ export class SalesMockRepository extends ISalesRepository {
     return created;
   }
 
-  async submitQuote(tenant_id: string, quoteId: string): Promise<SalesQuote> {
-    const quote = this.findQuote(tenant_id, quoteId);
+  async submitQuote(ctx: TenantContext, quoteId: string): Promise<SalesQuote> {
+    const quote = this.findQuote(ctx.tenant_id, quoteId);
     if (quote.status !== "draft") {
       throw new BadRequestException("Only draft quotes can be submitted.");
     }
     quote.status = "pending_approval";
     quote.updated_at = this.now();
-    this.createAlertIfMissing(
-      tenant_id,
-      "quote_approval_delay",
-      "quote",
-      quote.id,
-      `Quote ${quote.id} pending approval`,
-      "medium",
-    );
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       "system",
       "quote.submitted",
       "quote",
@@ -766,11 +676,11 @@ export class SalesMockRepository extends ISalesRepository {
   }
 
   async decideQuote(
-    tenant_id: string,
+    ctx: TenantContext,
     quoteId: string,
     dto: QuoteDecisionDto,
   ): Promise<SalesQuote> {
-    const quote = this.findQuote(tenant_id, quoteId);
+    const quote = this.findQuote(ctx.tenant_id, quoteId);
     if (quote.status !== "pending_approval") {
       throw new BadRequestException("Quote is not pending approval.");
     }
@@ -779,7 +689,7 @@ export class SalesMockRepository extends ISalesRepository {
     quote.approvalAt = this.now();
     quote.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       quote.approvalBy,
       dto.approved ? "quote.approved" : "quote.rejected",
       "quote",
@@ -789,19 +699,19 @@ export class SalesMockRepository extends ISalesRepository {
     return quote;
   }
 
-  async getTimeline(tenant_id: string): Promise<SalesTimelineEvent[]> {
-    return this.getStore(tenant_id).timeline;
+  async getTimeline(ctx: TenantContext): Promise<SalesTimelineEvent[]> {
+    return this.getStore(ctx.tenant_id).timeline;
   }
 
   async createTimelineEvent(
-    tenant_id: string,
+    ctx: TenantContext,
     dto: CreateTimelineEventDto,
   ): Promise<SalesTimelineEvent> {
-    this.findOpportunity(tenant_id, dto.opportunityId);
-    const store = this.getStore(tenant_id);
+    this.findOpportunity(ctx.tenant_id, dto.opportunityId);
+    const store = this.getStore(ctx.tenant_id);
     const created: SalesTimelineEvent = {
-      id: this.id(`${tenant_id}-timeline`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-timeline`),
+      tenant_id: ctx.tenant_id,
       opportunityId: dto.opportunityId,
       lead_id: dto.lead_id,
       channel: dto.channel,
@@ -813,7 +723,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.timeline.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       created.createdBy,
       "timeline.logged",
       "timeline",
@@ -823,16 +733,16 @@ export class SalesMockRepository extends ISalesRepository {
     return created;
   }
 
-  async getDeals(tenant_id: string, status?: string): Promise<any[]> {
-    const orders = this.getStore(tenant_id).orders;
+  async getDeals(ctx: TenantContext, status?: string): Promise<any[]> {
+    const orders = this.getStore(ctx.tenant_id).orders;
     return status ? orders.filter((o) => o.status === status) : orders;
   }
 
-  async createDeal(tenant_id: string, dto: any, tx?: any): Promise<any> {
-    const store = this.getStore(tenant_id);
+  async createDeal(ctx: TenantContext, dto: any): Promise<any> {
+    const store = this.getStore(ctx.tenant_id);
     const created = {
       id: this.id("deal"),
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       ...dto,
       created_at: this.now(),
       updated_at: this.now(),
@@ -840,15 +750,16 @@ export class SalesMockRepository extends ISalesRepository {
     store.orders.unshift(created as any);
     return created;
   }
-  async getTasks(tenant_id: string): Promise<SalesTask[]> {
-    return this.getStore(tenant_id).tasks;
+
+  async getTasks(ctx: TenantContext): Promise<SalesTask[]> {
+    return this.getStore(ctx.tenant_id).tasks;
   }
 
-  async createTask(tenant_id: string, dto: CreateTaskDto): Promise<SalesTask> {
-    const store = this.getStore(tenant_id);
+  async createTask(ctx: TenantContext, dto: CreateTaskDto): Promise<SalesTask> {
+    const store = this.getStore(ctx.tenant_id);
     const created: SalesTask = {
-      id: this.id(`${tenant_id}-task`),
-      tenant_id,
+      id: this.id(`${ctx.tenant_id}-task`),
+      tenant_id: ctx.tenant_id,
       opportunityId: dto.opportunityId,
       lead_id: dto.lead_id,
       title: dto.title,
@@ -862,7 +773,7 @@ export class SalesMockRepository extends ISalesRepository {
     };
     store.tasks.unshift(created);
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       created.owner_id,
       "task.created",
       "task",
@@ -872,8 +783,8 @@ export class SalesMockRepository extends ISalesRepository {
     return created;
   }
 
-  async completeTask(tenant_id: string, taskId: string): Promise<SalesTask> {
-    const task = this.getStore(tenant_id).tasks.find(
+  async completeTask(ctx: TenantContext, taskId: string): Promise<SalesTask> {
+    const task = this.getStore(ctx.tenant_id).tasks.find(
       (item) => item.id === taskId,
     );
     if (!task) throw new NotFoundException("Task not found");
@@ -881,7 +792,7 @@ export class SalesMockRepository extends ISalesRepository {
     task.completedAt = this.now();
     task.updated_at = this.now();
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       task.owner_id,
       "task.completed",
       "task",
@@ -891,16 +802,16 @@ export class SalesMockRepository extends ISalesRepository {
     return task;
   }
 
-  async getOrders(tenant_id: string): Promise<SalesOrder[]> {
-    return this.getStore(tenant_id).orders;
+  async getOrders(ctx: TenantContext): Promise<SalesOrder[]> {
+    return this.getStore(ctx.tenant_id).orders;
   }
 
-  async getAlerts(tenant_id: string): Promise<SalesAlert[]> {
-    return this.getStore(tenant_id).alerts;
+  async getAlerts(ctx: TenantContext): Promise<SalesAlert[]> {
+    return this.getStore(ctx.tenant_id).alerts;
   }
 
-  async runSlaSweep(tenant_id: string, actor_id: string): Promise<SalesAlert[]> {
-    const store = this.getStore(tenant_id);
+  async runSlaSweep(ctx: TenantContext, actor_id: string): Promise<SalesAlert[]> {
+    const store = this.getStore(ctx.tenant_id);
     const now = this.now().getTime();
     store.leads.forEach((lead) => {
       if (
@@ -908,7 +819,7 @@ export class SalesMockRepository extends ISalesRepository {
         lead.sla_due_at.getTime() < now
       ) {
         this.createAlertIfMissing(
-          tenant_id,
+          ctx.tenant_id,
           "lead_sla_breach",
           "lead",
           lead.id,
@@ -917,44 +828,8 @@ export class SalesMockRepository extends ISalesRepository {
         );
       }
     });
-    store.tasks.forEach((task) => {
-      if (
-        (task.status === "pending" || task.status === "in_progress") &&
-        task.dueAt.getTime() < now
-      ) {
-        task.status = "overdue";
-        task.updated_at = this.now();
-        this.createAlertIfMissing(
-          tenant_id,
-          "follow_up_overdue",
-          "task",
-          task.id,
-          `Follow-up overdue: ${task.title}`,
-          task.priority === "urgent" ? "high" : "medium",
-        );
-      }
-    });
-    store.opportunities.forEach((opportunity) => {
-      const staleHours = this.hoursSince(opportunity.lastActivityAt);
-      if (
-        opportunity.stage !== "closed_won" &&
-        opportunity.stage !== "closed_lost" &&
-        staleHours > 72
-      ) {
-        opportunity.health = "high_risk";
-        opportunity.updated_at = this.now();
-        this.createAlertIfMissing(
-          tenant_id,
-          "deal_risk",
-          "opportunity",
-          opportunity.id,
-          `Deal appears stalled for ${opportunity.account_name}`,
-          "high",
-        );
-      }
-    });
     this.addAudit(
-      tenant_id,
+      ctx.tenant_id,
       actor_id,
       "sla.sweep",
       "alert",
@@ -964,8 +839,8 @@ export class SalesMockRepository extends ISalesRepository {
     return store.alerts;
   }
 
-  async getAuditEvents(tenant_id: string): Promise<SalesAuditEvent[]> {
-    return this.getStore(tenant_id).audit;
+  async getAuditEvents(ctx: TenantContext): Promise<SalesAuditEvent[]> {
+    return this.getStore(ctx.tenant_id).audit;
   }
 
   private hoursSince(date: Date) {

@@ -1,3 +1,4 @@
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { Injectable } from "@nestjs/common";
 import { CloseOpportunityDto } from "./dto/close-opportunity.dto";
 import { CreateLeadDto } from "./dto/create-lead.dto";
@@ -19,31 +20,30 @@ export class SalesService {
     private readonly auditService: AuditService,
   ) {}
 
-  async getDashboard(tenant_id: string) {
-    return this.repository.getDashboard(tenant_id);
+  async getDashboard(ctx: TenantContext) {
+    return this.repository.getDashboard(ctx);
   }
 
-  async getManagerMetrics(tenant_id: string) {
-    return this.repository.getManagerMetrics(tenant_id);
+  async getManagerMetrics(ctx: TenantContext) {
+    return this.repository.getManagerMetrics(ctx);
   }
 
-  async getExecutiveForecast(tenant_id: string) {
-    return this.repository.getExecutiveForecast(tenant_id);
+  async getExecutiveForecast(ctx: TenantContext) {
+    return this.repository.getExecutiveForecast(ctx);
   }
 
-  async getNextBestActions(tenant_id: string) {
-    return this.repository.getNextBestActions(tenant_id);
+  async getNextBestActions(ctx: TenantContext) {
+    return this.repository.getNextBestActions(ctx);
   }
 
-  async getLeads(tenant_id: string) {
-    return this.repository.getLeads(tenant_id);
+  async getLeads(ctx: TenantContext) {
+    return this.repository.getLeads(ctx);
   }
 
-  async createLead(tenant_id: string, dto: CreateLeadDto, user_id?: string) {
-    const lead = await this.repository.createLead(tenant_id, dto);
+  async createLead(ctx: TenantContext, dto: CreateLeadDto, user_id?: string) {
+    const lead = await this.repository.createLead(ctx, dto);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "sales",
         action: "CREATE",
@@ -55,16 +55,15 @@ export class SalesService {
     return lead;
   }
 
-  async updateLeadStatus(
-    tenant_id: string,
+  async updateLeadStatus(ctx: TenantContext,
     lead_id: string,
     dto: UpdateLeadStatusDto,
     user_id?: string,
   ) {
-    const lead = await this.repository.updateLeadStatus(tenant_id, lead_id, dto);
+    const lead = await this.repository.updateLeadStatus(ctx, lead_id, dto);
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "UPDATE_STATUS",
@@ -76,14 +75,13 @@ export class SalesService {
     return lead;
   }
 
-  async convertLead(tenant_id: string, lead_id: string, actor_id: string) {
+  async convertLead(ctx: TenantContext, lead_id: string, actor_id: string) {
     const opportunity = await this.repository.convertLead(
-      tenant_id,
+      ctx,
       lead_id,
       actor_id,
     );
-    await this.auditService.log({
-      tenant_id,
+    await this.auditService.log({ tenant_id: ctx.tenant_id ,
       user_id: actor_id,
       module: "sales",
       action: "CONVERT",
@@ -94,19 +92,18 @@ export class SalesService {
     return opportunity;
   }
 
-  async getOpportunities(tenant_id: string) {
-    return this.repository.getOpportunities(tenant_id);
+  async getOpportunities(ctx: TenantContext) {
+    return this.repository.getOpportunities(ctx);
   }
 
-  async createOpportunity(
-    tenant_id: string,
+  async createOpportunity(ctx: TenantContext,
     dto: CreateOpportunityDto,
     user_id?: string,
   ) {
-    const opportunity = await this.repository.createOpportunity(tenant_id, dto);
+    const opportunity = await this.repository.createOpportunity(ctx, dto);
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "CREATE",
@@ -118,20 +115,19 @@ export class SalesService {
     return opportunity;
   }
 
-  async moveOpportunityStage(
-    tenant_id: string,
+  async moveOpportunityStage(ctx: TenantContext,
     opportunityId: string,
     dto: MoveOpportunityStageDto,
     user_id?: string,
   ) {
     const opportunity = await this.repository.moveOpportunityStage(
-      tenant_id,
+      ctx,
       opportunityId,
       dto,
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "MOVE_STAGE",
@@ -143,20 +139,19 @@ export class SalesService {
     return opportunity;
   }
 
-  async closeOpportunity(
-    tenant_id: string,
+  async closeOpportunity(ctx: TenantContext,
     opportunityId: string,
     dto: CloseOpportunityDto,
     user_id?: string,
   ) {
     const opportunity = await this.repository.closeOpportunity(
-      tenant_id,
+      ctx,
       opportunityId,
       dto,
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "CLOSE",
@@ -168,15 +163,14 @@ export class SalesService {
     return opportunity;
   }
 
-  async getQuotes(tenant_id: string) {
-    return this.repository.getQuotes(tenant_id);
+  async getQuotes(ctx: TenantContext) {
+    return this.repository.getQuotes(ctx);
   }
 
-  async createQuote(tenant_id: string, dto: CreateQuoteDto, user_id?: string) {
-    const quote = await this.repository.createQuote(tenant_id, dto);
+  async createQuote(ctx: TenantContext, dto: CreateQuoteDto, user_id?: string) {
+    const quote = await this.repository.createQuote(ctx, dto);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "sales",
         action: "CREATE",
@@ -191,11 +185,10 @@ export class SalesService {
     return quote;
   }
 
-  async submitQuote(tenant_id: string, quoteId: string, user_id?: string) {
-    const quote = await this.repository.submitQuote(tenant_id, quoteId);
+  async submitQuote(ctx: TenantContext, quoteId: string, user_id?: string) {
+    const quote = await this.repository.submitQuote(ctx, quoteId);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "sales",
         action: "SUBMIT",
@@ -206,16 +199,15 @@ export class SalesService {
     return quote;
   }
 
-  async decideQuote(
-    tenant_id: string,
+  async decideQuote(ctx: TenantContext,
     quoteId: string,
     dto: QuoteDecisionDto,
     user_id?: string,
   ) {
-    const quote = await this.repository.decideQuote(tenant_id, quoteId, dto);
+    const quote = await this.repository.decideQuote(ctx, quoteId, dto);
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "DECIDE",
@@ -227,19 +219,18 @@ export class SalesService {
     return quote;
   }
 
-  async getTimeline(tenant_id: string) {
-    return this.repository.getTimeline(tenant_id);
+  async getTimeline(ctx: TenantContext) {
+    return this.repository.getTimeline(ctx);
   }
 
-  async createTimelineEvent(
-    tenant_id: string,
+  async createTimelineEvent(ctx: TenantContext,
     dto: CreateTimelineEventDto,
     user_id?: string,
   ) {
-    const event = await this.repository.createTimelineEvent(tenant_id, dto);
+    const event = await this.repository.createTimelineEvent(ctx, dto);
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "sales",
         action: "CREATE_EVENT",
@@ -251,15 +242,14 @@ export class SalesService {
     return event;
   }
 
-  async getTasks(tenant_id: string) {
-    return this.repository.getTasks(tenant_id);
+  async getTasks(ctx: TenantContext) {
+    return this.repository.getTasks(ctx);
   }
 
-  async createTask(tenant_id: string, dto: CreateTaskDto, user_id?: string) {
-    const task = await this.repository.createTask(tenant_id, dto);
+  async createTask(ctx: TenantContext, dto: CreateTaskDto, user_id?: string) {
+    const task = await this.repository.createTask(ctx, dto);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "sales",
         action: "CREATE",
@@ -271,11 +261,10 @@ export class SalesService {
     return task;
   }
 
-  async completeTask(tenant_id: string, taskId: string, user_id?: string) {
-    const task = await this.repository.completeTask(tenant_id, taskId);
+  async completeTask(ctx: TenantContext, taskId: string, user_id?: string) {
+    const task = await this.repository.completeTask(ctx, taskId);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "sales",
         action: "COMPLETE",
@@ -286,18 +275,17 @@ export class SalesService {
     return task;
   }
 
-  async getOrders(tenant_id: string) {
-    return this.repository.getOrders(tenant_id);
+  async getOrders(ctx: TenantContext) {
+    return this.repository.getOrders(ctx);
   }
 
-  async getAlerts(tenant_id: string) {
-    return this.repository.getAlerts(tenant_id);
+  async getAlerts(ctx: TenantContext) {
+    return this.repository.getAlerts(ctx);
   }
 
-  async runSlaSweep(tenant_id: string, actor_id: string) {
-    const alerts = await this.repository.runSlaSweep(tenant_id, actor_id);
-    await this.auditService.log({
-      tenant_id,
+  async runSlaSweep(ctx: TenantContext, actor_id: string) {
+    const alerts = await this.repository.runSlaSweep(ctx, actor_id);
+    await this.auditService.log({ tenant_id: ctx.tenant_id ,
       user_id: actor_id,
       module: "sales",
       action: "RUN_SLA_SWEEP",
@@ -308,7 +296,7 @@ export class SalesService {
     return alerts;
   }
 
-  async getAuditEvents(tenant_id: string) {
-    return this.repository.getAuditEvents(tenant_id);
+  async getAuditEvents(ctx: TenantContext) {
+    return this.repository.getAuditEvents(ctx);
   }
 }

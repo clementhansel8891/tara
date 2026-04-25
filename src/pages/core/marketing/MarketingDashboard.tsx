@@ -27,9 +27,9 @@ export default function MarketingDashboard() {
   const refresh = useCallback(async () => {
     try {
       const [m, c, a] = await Promise.all([
-        marketingService.getDashboard(session.tenantId, session),
-        marketingService.listCampaigns(session.tenantId, session),
-        marketingService.listAlerts(session.tenantId, session),
+        marketingService.getDashboard(session.tenant_id, session),
+        marketingService.listCampaigns(session.tenant_id, session),
+        marketingService.listAlerts(session.tenant_id, session),
       ]);
       setMetrics(m);
       setCampaigns(c);
@@ -78,7 +78,7 @@ export default function MarketingDashboard() {
               variant="outline"
               onClick={async () => {
                 await marketingService.runHealthSweep(
-                  session.tenantId,
+                  session.tenant_id,
                   session,
                 );
                 refresh();
@@ -232,7 +232,7 @@ export default function MarketingDashboard() {
                         variant="outline"
                         onClick={async () => {
                           await marketingService.acknowledgeAlert(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                           );

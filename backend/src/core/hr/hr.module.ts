@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from "@nestjs/common";
+import { Module, OnModuleInit, forwardRef } from "@nestjs/common";
 import { HRController } from "./hr.controller";
 import { WorkflowController } from "../../shared/workflow/workflow.controller";
 import { HRService } from "./hr.service";
@@ -35,12 +35,12 @@ import { FinanceModule } from "../finance/finance.module";
 import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
 import { IdempotencyInterceptor } from "../../shared/interceptors/idempotency.interceptor";
 import { PrismaService } from "../../persistence/prisma.service";
+import { TimeAndAttendanceService } from "./time/time.service";
 
 import { FileProcessingModule } from "../../shared/file-processing/file-processing.module";
 import { AuditModule } from "../../shared/audit/audit.module";
 import { LoggerModule } from "../../shared/logger/logger.module";
 import { ComplianceEngineModule } from "../../modules/compliance/compliance.module";
-import { ComplianceEngineService } from "../../modules/compliance/compliance.service";
 
 // Phase 3: Automation Hooks
 import { HRAutomationModule } from "./automation/automation.module";
@@ -74,9 +74,28 @@ import { CommsModule } from "../../shared/comms/comms.module";
  * Core module for Human Resources operations
  */
 @Module({
-  imports: [FileProcessingModule, AuditModule, LoggerModule, ComplianceEngineModule, HRAutomationModule, TimeAndAttendanceModule, CommsModule, FinanceModule],
-  controllers: [HRController, WorkflowController, ComplianceController, HrPayrollController, HrSchedulingController],
+  imports: [
+    FileProcessingModule, 
+    AuditModule, 
+    LoggerModule, 
+    ComplianceEngineModule, 
+    HRAutomationModule, 
+    forwardRef(() => TimeAndAttendanceModule), 
+    CommsModule, 
+    forwardRef(() => FinanceModule)
+  ],
+  controllers: [
+    HRController, 
+    WorkflowController, 
+    ComplianceController, 
+    HrPayrollController, 
+    HrSchedulingController
+  ],
   providers: [
+    {
+      provide: IHRRepository,
+      useClass: HRDbRepository,
+    },
     HRService,
     TalentSourcingService,
     ComplianceService,
@@ -94,6 +113,7 @@ import { CommsModule } from "../../shared/comms/comms.module";
     LearningService,
     LaborCostService,
     HRInsightService,
+    TimeAndAttendanceService,
     HRActionService,
     HRConsistencyService,
     HRMetricService,
@@ -105,7 +125,6 @@ import { CommsModule } from "../../shared/comms/comms.module";
     PrismaService,
     HRMutationInterceptor,
     IdempotencyInterceptor,
-    // Phase 1: Command Handlers
     HireEmployeeCommandHandler,
     PromoteEmployeeCommandHandler,
     TransferEmployeeCommandHandler,
@@ -121,17 +140,19 @@ import { CommsModule } from "../../shared/comms/comms.module";
     ExportGovernmentReportCommandHandler,
     EnableComplianceModuleCommandHandler,
     HRCommandRegistrar,
-    // Phase 4: Compliance Engine
-    ComplianceEngineService,
-    {
-      provide: IHRRepository,
-      useClass: HRDbRepository,
-    },
   ],
-  exports: [HRService, SchedulingService, HrSettlementService, IHRRepository],
+  exports: [
+    IHRRepository,
+    HRService,
+    HrSettlementService,
+    HRInsightService,
+    TimeAndAttendanceService,
+  ],
 })
 export class HRModule implements OnModuleInit {
-  constructor(private readonly registrar: HRCommandRegistrar) {}
+  constructor(
+    private readonly registrar: HRCommandRegistrar
+  ) {}
 
   onModuleInit(): void {
     this.registrar.register();

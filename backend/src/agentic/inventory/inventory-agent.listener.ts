@@ -3,6 +3,7 @@ import { EventBusService, DomainEvent } from '../../shared/events/event-bus.serv
 import { ReplenishmentService } from './replenishment.service';
 import { AnomalyDetectorService } from './anomaly-detector.service';
 import { IInventoryRepository } from '../../core/inventory/repositories/inventory.repository.interface';
+import { TenantContext } from '../../gateway/tenant-context.interface';
 
 @Injectable()
 export class InventoryAgentListener implements OnModuleInit {
@@ -35,10 +36,17 @@ export class InventoryAgentListener implements OnModuleInit {
 
     this.logger.debug(`Agent analyzing movement: ${quantity} for Product ${product_id}`);
 
+    const ctx: TenantContext = {
+      tenant_id,
+      company_id: tenant_id,
+      branch_id: "default",
+      user_id: "system",
+    };
+
     // Check for spikes
     const isSpike = await this.anomalyDetector.detectSpike(tenant_id, product_id, location_id, quantity);
     if (isSpike) {
-      await this.inventoryRepo.createAgenticEvent(tenant_id, {
+      await this.inventoryRepo.createAgenticEvent(ctx, {
         event_type: 'STOCK_SPIKE_DETECTED',
         entity_id: product_id,
         entity_type: 'PRODUCT',
@@ -54,7 +62,7 @@ export class InventoryAgentListener implements OnModuleInit {
     const recommendation = await this.replenishment.evaluateReplenishment(tenant_id, product_id, location_id);
     if (recommendation) {
       this.logger.log(`Replenishment recommended: ${recommendation.recommendedQty} for Product ${product_id}`);
-      await this.inventoryRepo.createAgenticEvent(tenant_id, {
+      await this.inventoryRepo.createAgenticEvent(ctx, {
         event_type: 'REPLENISHMENT_RECOMMENDED',
         entity_id: product_id,
         entity_type: 'PRODUCT',

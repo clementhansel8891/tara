@@ -41,12 +41,12 @@ const ShiftCloseTerminal = () => {
     const fetchShift = async () => {
       try {
         const shifts = await retailService.listShifts(
-          session.tenantId!,
+          session.tenant_id!,
           session,
-          session.locationId,
+          session.location_id,
         );
         const current = shifts.find(
-          (s) => s.employeeId === session.userId && s.status === "open",
+          (s) => s.employeeId === session.user_id && s.status === "open",
         );
         if (current) {
           setActiveShift(current);
@@ -58,7 +58,7 @@ const ShiftCloseTerminal = () => {
       }
     };
     fetchShift();
-  }, [session.tenantId, session.userId, session.locationId, session]);
+  }, [session.tenant_id, session.user_id, session.location_id, session]);
 
   const variance = actualCash ? parseInt(actualCash) - EXPECTED_CASH : 0;
   const needsExplanation = Math.abs(variance) > 10000;
@@ -93,7 +93,7 @@ const ShiftCloseTerminal = () => {
     setIsClosing(true);
     try {
       await retailService.closeShift(
-        session.tenantId!,
+        session.tenant_id!,
         session,
         activeShift.id,
         parseInt(actualCash),

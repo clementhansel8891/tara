@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { IFinanceRepository } from "./finance.repository.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { LedgerEntry } from "../entities/ledger-entry.entity";
 import { Transaction } from "../entities/transaction.entity";
 import { Balance } from "../entities/balance.entity";
@@ -131,21 +132,21 @@ export class FinanceMockRepository extends IFinanceRepository {
 
   // --- Implementation ---
 
-  async getLedger(
-    tenant_id: string,
+  async getLedger(ctx: TenantContext,
     location_id?: string,
   ): Promise<LedgerEntry[]> {
+    const tenant_id = ctx.tenant_id;
     return this.ledgerEntries.filter(
       (e) =>
         e.tenant_id === tenant_id && (!location_id || e.location_id === location_id),
     );
   }
 
-  async createTransaction(
-    tenant_id: string,
+  async createTransaction(ctx: TenantContext,
     data: CreateTransactionDto,
     tx?: Prisma.TransactionClient,
   ): Promise<Transaction> {
+    const tenant_id = ctx.tenant_id;
     const txn: Transaction = {
       id: `${tenant_id}-txn-${Date.now()}`,
       tenant_id,
@@ -162,7 +163,8 @@ export class FinanceMockRepository extends IFinanceRepository {
     return txn;
   }
 
-  async createJournal(tenant_id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+  async createJournal(ctx: TenantContext, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    const tenant_id = ctx.tenant_id;
     const journal = {
       id: `${tenant_id}-jr-${Date.now()}`,
       tenant_id,
@@ -178,7 +180,8 @@ export class FinanceMockRepository extends IFinanceRepository {
     return journal;
   }
 
-  async getBalance(tenant_id: string): Promise<Balance> {
+  async getBalance(ctx: TenantContext): Promise<Balance> {
+    const tenant_id = ctx.tenant_id;
     return {
       tenant_id,
       totalBalance: new Prisma.Decimal(100000), // Mock fixed balance
@@ -190,10 +193,10 @@ export class FinanceMockRepository extends IFinanceRepository {
     };
   }
 
-  async getTransactionById(
-    tenant_id: string,
+  async getTransactionById(ctx: TenantContext,
     transaction_id: string,
   ): Promise<Transaction | null> {
+    const tenant_id = ctx.tenant_id;
     return (
       this.transactions.find(
         (t) => t.tenant_id === tenant_id && t.id === transaction_id,
@@ -202,20 +205,22 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Money Sources
-  async listMoneySources(tenant_id: string): Promise<FinanceMoneySourceRow[]> {
+  async listMoneySources(ctx: TenantContext): Promise<FinanceMoneySourceRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.moneySources;
   }
 
   // Treasury
-  async listTransfers(tenant_id: string): Promise<TreasuryTransfer[]> {
+  async listTransfers(ctx: TenantContext): Promise<TreasuryTransfer[]> {
+    const tenant_id = ctx.tenant_id;
     return this.transfers.filter((t: any) => t.tenant_id === tenant_id);
   }
 
-  async createTransfer(
-    tenant_id: string,
+  async createTransfer(ctx: TenantContext,
     data: Partial<TreasuryTransfer>,
     tx?: Prisma.TransactionClient,
   ): Promise<TreasuryTransfer> {
+    const tenant_id = ctx.tenant_id;
     const transfer: TreasuryTransfer = {
       id: `TR-${Date.now()}`,
       tenant_id,
@@ -232,12 +237,12 @@ export class FinanceMockRepository extends IFinanceRepository {
     return transfer;
   }
 
-  async reconcileSettlement(
-    tenant_id: string,
+  async reconcileSettlement(ctx: TenantContext,
     sourceId: string,
     amount: number,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
+    const tenant_id = ctx.tenant_id;
     const source = this.moneySources.find((s) => s.id === sourceId);
     if (source) {
       source.balance = source.balance.plus(amount);
@@ -251,15 +256,18 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Assets
-  async listAssets(tenant_id: string): Promise<Asset[]> {
+  async listAssets(ctx: TenantContext): Promise<Asset[]> {
+    const tenant_id = ctx.tenant_id;
     return this.assets; // No tenant filter for simplicity in mock, or add filtering
   }
 
-  async getAssetById(tenant_id: string, assetId: string): Promise<Asset | null> {
+  async getAssetById(ctx: TenantContext, assetId: string): Promise<Asset | null> {
+    const tenant_id = ctx.tenant_id;
     return this.assets.find((a) => a.tenant_id === tenant_id && a.id === assetId) || null;
   }
 
-  async createAsset(tenant_id: string, asset: Partial<Asset>, tx?: Prisma.TransactionClient): Promise<Asset> {
+  async createAsset(ctx: TenantContext, asset: Partial<Asset>, tx?: Prisma.TransactionClient): Promise<Asset> {
+    const tenant_id = ctx.tenant_id;
     const newAsset = {
       ...asset,
       id: `ast-${Date.now()}`,
@@ -269,12 +277,12 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newAsset;
   }
 
-  async updateAsset(
-    tenant_id: string,
+  async updateAsset(ctx: TenantContext,
     assetId: string,
     updates: Partial<Asset>,
     tx?: Prisma.TransactionClient,
   ): Promise<Asset | null> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.assets.findIndex((a) => a.id === assetId);
     if (idx === -1) return null;
     this.assets[idx] = { ...this.assets[idx], ...updates };
@@ -282,22 +290,23 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Capex
-  async listCapexRequests(tenant_id: string): Promise<CapexRequest[]> {
+  async listCapexRequests(ctx: TenantContext): Promise<CapexRequest[]> {
+    const tenant_id = ctx.tenant_id;
     return this.capexRequests;
   }
 
-  async getCapexRequestById(
-    tenant_id: string,
+  async getCapexRequestById(ctx: TenantContext,
     id: string,
   ): Promise<CapexRequest | null> {
+    const tenant_id = ctx.tenant_id;
     return this.capexRequests.find((c: any) => c.id === id) || null;
   }
 
-  async createCapexRequest(
-    tenant_id: string,
+  async createCapexRequest(ctx: TenantContext,
     request: Partial<CapexRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest> {
+    const tenant_id = ctx.tenant_id;
     const newReq = {
       ...request,
       id: `cpx-${Date.now()}`,
@@ -307,26 +316,27 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newReq;
   }
 
-  async updateCapexRequest(
-    tenant_id: string,
+  async updateCapexRequest(ctx: TenantContext,
     id: string,
     updates: Partial<CapexRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<CapexRequest | null> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.capexRequests.findIndex((c: any) => c.id === id);
     if (idx === -1) return null;
     this.capexRequests[idx] = { ...this.capexRequests[idx], ...updates };
     return this.capexRequests[idx];
   }
 
-  async listCapexBudgets(tenant_id: string): Promise<FinanceCapexBudgetRow[]> {
+  async listCapexBudgets(ctx: TenantContext): Promise<FinanceCapexBudgetRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.capexBudgets;
   }
 
-  async setCapexBudget(
-    tenant_id: string,
+  async setCapexBudget(ctx: TenantContext,
     budget: FinanceCapexBudgetRow,
   ): Promise<void> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.capexBudgets.findIndex(
       (b) => b.department === budget.department,
     );
@@ -338,20 +348,20 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Depreciation & Events
-  async listAssetDepreciationEntries(
-    tenant_id: string,
+  async listAssetDepreciationEntries(ctx: TenantContext,
     assetId?: string,
   ): Promise<AssetDepreciationEntry[]> {
+    const tenant_id = ctx.tenant_id;
     return this.depreciationEntries.filter(
       (d) => !assetId || d.assetId === assetId,
     );
   }
 
-  async createDepreciationEntry(
-    tenant_id: string,
+  async createDepreciationEntry(ctx: TenantContext,
     entry: Partial<AssetDepreciationEntry>,
     tx?: Prisma.TransactionClient,
   ): Promise<AssetDepreciationEntry> {
+    const tenant_id = ctx.tenant_id;
     const newEntry = {
       ...entry,
       id: `dep-${Date.now()}`,
@@ -360,27 +370,27 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newEntry;
   }
 
-  async listAssetEvents(
-    tenant_id: string,
+  async listAssetEvents(ctx: TenantContext,
     assetId?: string,
   ): Promise<AssetEvent[]> {
+    const tenant_id = ctx.tenant_id;
     return this.assetEvents.filter((e) => !assetId || e.assetId === assetId);
   }
 
-  async createAssetEvent(
-    tenant_id: string,
+  async createAssetEvent(ctx: TenantContext,
     event: Partial<AssetEvent>,
     tx?: Prisma.TransactionClient,
   ): Promise<AssetEvent> {
+    const tenant_id = ctx.tenant_id;
     const newEvent = { ...event, id: `evt-${Date.now()}` } as AssetEvent;
     this.assetEvents.push(newEvent);
     return newEvent;
   }
 
-  async getAssetAuditPack(
-    tenant_id: string,
+  async getAssetAuditPack(ctx: TenantContext,
     assetId: string,
   ): Promise<AssetAuditPack> {
+    const tenant_id = ctx.tenant_id;
     return {
       assetId,
       capexRequest: this.capexRequests.find((c: any) =>
@@ -397,15 +407,16 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Receivables
-  async listReceivables(tenant_id: string): Promise<FinanceReceivableRow[]> {
+  async listReceivables(ctx: TenantContext): Promise<FinanceReceivableRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.receivables;
   }
 
-  async createReceivable(
-    tenant_id: string,
+  async createReceivable(ctx: TenantContext,
     invoice: Partial<ReceivableInvoice>,
     tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice> {
+    const tenant_id = ctx.tenant_id;
     const newInv = {
       ...invoice,
       id: `inv-${Date.now()}`,
@@ -427,12 +438,12 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newInv;
   }
 
-  async updateReceivable(
-    tenant_id: string,
+  async updateReceivable(ctx: TenantContext,
     id: string,
     updates: Partial<ReceivableInvoice>,
     tx?: Prisma.TransactionClient,
   ): Promise<ReceivableInvoice | null> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.receivableInvoices.findIndex((i) => i.id === id);
     if (idx === -1) return null;
     this.receivableInvoices[idx] = {
@@ -443,15 +454,16 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Payables
-  async listPayables(tenant_id: string): Promise<FinancePayableRow[]> {
+  async listPayables(ctx: TenantContext): Promise<FinancePayableRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.payables;
   }
 
-  async createPayable(
-    tenant_id: string,
+  async createPayable(ctx: TenantContext,
     bill: Partial<PayableBill>,
     tx?: Prisma.TransactionClient,
   ): Promise<PayableBill> {
+    const tenant_id = ctx.tenant_id;
     const newBill = {
       ...bill,
       id: `bill-${Date.now()}`,
@@ -472,12 +484,12 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newBill;
   }
 
-  async updatePayable(
-    tenant_id: string,
+  async updatePayable(ctx: TenantContext,
     id: string,
     updates: Partial<PayableBill>,
     tx?: Prisma.TransactionClient,
   ): Promise<PayableBill | null> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.payableBills.findIndex((i) => i.id === id);
     if (idx === -1) return null;
     this.payableBills[idx] = { ...this.payableBills[idx], ...updates };
@@ -485,7 +497,8 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Payments
-  async listPayments(tenant_id: string): Promise<FinancePaymentRow[]> {
+  async listPayments(ctx: TenantContext): Promise<FinancePaymentRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.payments.map((p) => ({
       id: p.id,
       beneficiary: p.beneficiary,
@@ -497,11 +510,11 @@ export class FinanceMockRepository extends IFinanceRepository {
     }));
   }
 
-  async createPaymentRequest(
-    tenant_id: string,
+  async createPaymentRequest(ctx: TenantContext,
     request: Partial<PaymentRequest>,
     tx?: Prisma.TransactionClient,
   ): Promise<PaymentRequest> {
+    const tenant_id = ctx.tenant_id;
     const newPay = {
       ...request,
       id: `pay-${Date.now()}`,
@@ -511,83 +524,88 @@ export class FinanceMockRepository extends IFinanceRepository {
     return newPay;
   }
 
-  async updatePaymentStatus(
-    tenant_id: string,
+  async updatePaymentStatus(ctx: TenantContext,
     id: string,
     status: string,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
+    const tenant_id = ctx.tenant_id;
     const p = this.payments.find((p) => p.id === id);
     if (p) p.status = status as any;
   }
 
   // Documents
-  async listDocuments(tenant_id: string): Promise<FinanceDocumentRow[]> {
+  async listDocuments(ctx: TenantContext): Promise<FinanceDocumentRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.documents;
   }
 
-  async createDocument(
-    tenant_id: string,
+  async createDocument(ctx: TenantContext,
     doc: Partial<FinanceDocumentRow>,
     tx?: Prisma.TransactionClient,
   ): Promise<FinanceDocumentRow> {
+    const tenant_id = ctx.tenant_id;
     const newDoc = { ...doc, id: `doc-${Date.now()}` } as FinanceDocumentRow;
     this.documents.push(newDoc);
     return newDoc;
   }
 
   // Policies & Periods
-  async listPolicies(tenant_id: string): Promise<FinancePolicyRow[]> {
+  async listPolicies(ctx: TenantContext): Promise<FinancePolicyRow[]> {
+    const tenant_id = ctx.tenant_id;
     return this.policies;
   }
 
-  async listPeriods(tenant_id: string): Promise<AccountingPeriod[]> {
+  async listPeriods(ctx: TenantContext): Promise<AccountingPeriod[]> {
+    const tenant_id = ctx.tenant_id;
     return this.periods;
   }
 
   // Insights & Alerts
-  async getInsights(tenant_id: string): Promise<FinanceInsight[]> {
+  async getInsights(ctx: TenantContext): Promise<FinanceInsight[]> {
+    const tenant_id = ctx.tenant_id;
     return [];
   }
 
-  async getAlerts(tenant_id: string): Promise<FinanceAlert[]> {
+  async getAlerts(ctx: TenantContext): Promise<FinanceAlert[]> {
+    const tenant_id = ctx.tenant_id;
     return this.alerts;
   }
 
   // Payroll
-  async listPayrollEntries(
-    tenant_id: string,
+  async listPayrollEntries(ctx: TenantContext,
     period?: string,
   ): Promise<PayrollEntry[]> {
+    const tenant_id = ctx.tenant_id;
     return this.payroll;
   }
 
-  async createPayrollEntry(
-    tenant_id: string,
+  async createPayrollEntry(ctx: TenantContext,
     entry: Partial<PayrollEntry>,
     tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry> {
+    const tenant_id = ctx.tenant_id;
     const newEntry = { ...entry, id: `pay-${Date.now()}` } as PayrollEntry;
     this.payroll.push(newEntry);
     return newEntry;
   }
 
-  async updatePayrollEntry(
-    tenant_id: string,
+  async updatePayrollEntry(ctx: TenantContext,
     id: string,
     updates: Partial<PayrollEntry>,
     tx?: Prisma.TransactionClient,
   ): Promise<PayrollEntry | null> {
+    const tenant_id = ctx.tenant_id;
     const idx = this.payroll.findIndex((p) => p.id === id);
     if (idx === -1) return null;
     this.payroll[idx] = { ...this.payroll[idx], ...updates };
     return this.payroll[idx];
   }
 
-  async estimatePayroll(
-    tenant_id: string,
+  async estimatePayroll(ctx: TenantContext,
     period: string,
   ): Promise<PayrollEstimate[]> {
+    const tenant_id = ctx.tenant_id;
     const estimatesMap = new Map<string, PayrollEstimate>();
 
     for (const emp of this.employees) {
@@ -639,13 +657,13 @@ export class FinanceMockRepository extends IFinanceRepository {
     return Array.from(estimatesMap.values());
   }
 
-  async executePayrollRun(
-    tenant_id: string,
+  async executePayrollRun(ctx: TenantContext,
     period: string,
     user_id: string,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const estimates = await this.estimatePayroll(tenant_id, period);
+    const tenant_id = ctx.tenant_id;
+    const estimates = await this.estimatePayroll(ctx, period);
     if (estimates.length === 0) return;
 
     estimates.forEach(est => {
@@ -664,35 +682,35 @@ export class FinanceMockRepository extends IFinanceRepository {
   }
 
   // Bank Reconciliation & Analytics (Phase 5)
-  async ingestBankTransactions(
-    tenant_id: string,
+  async ingestBankTransactions(ctx: TenantContext,
     transactions: Partial<BankTransaction>[],
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
+    const tenant_id = ctx.tenant_id;
     // Mock ingestion logic
   }
 
   async getUnreconciledTransactions(
-    tenant_id: string
+    ctx: TenantContext
   ): Promise<BankTransaction[]> {
     return [];
   }
 
-  async createReconcileMatch(
-    tenant_id: string,
+  async createReconcileMatch(ctx: TenantContext,
     transaction_id: string,
     journal_id: string,
     score: number,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
+    const tenant_id = ctx.tenant_id;
     // Mock match logic
   }
 
-  async getPerformanceTree(
-    tenant_id: string,
+  async getPerformanceTree(ctx: TenantContext,
     parentId?: string,
     type?: string
   ): Promise<PerformanceTreeNode> {
+    const tenant_id = ctx.tenant_id;
     return {
       id: "root",
       name: "Global Operations",

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { PrismaService } from "../../../../persistence/prisma.service";
@@ -9,7 +9,7 @@ import { ArInvoiceStatus } from "../domain/ar.constants";
 @Injectable()
 export class ArInvoiceDbRepository implements IArInvoiceRepository {
   constructor(
-    private readonly prisma: PrismaService | Prisma.TransactionClient,
+    @Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient,
   ) {}
 
   private get db(): Prisma.TransactionClient {

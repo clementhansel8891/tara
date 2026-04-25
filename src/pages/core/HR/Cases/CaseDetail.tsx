@@ -16,7 +16,7 @@ export default function CaseDetail() {
   const caseId = params.id ?? "";
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
-  const record = useMemo(() => caseService.getCase(session.tenantId, caseId, session), [session, caseId]);
+  const record = useMemo(() => caseService.getCase(session.tenant_id, caseId, session), [session, caseId]);
 
   if (!record) {
     return (
@@ -36,7 +36,7 @@ export default function CaseDetail() {
         primaryAction={
           <Button
             onClick={() =>
-              caseService.updateStatus(session.tenantId, session, record.id, "resolved")
+              caseService.updateStatus(session.tenant_id, session, record.id, "resolved")
             }
           >
             Mark Resolved
@@ -49,10 +49,10 @@ export default function CaseDetail() {
           <Button
             variant="outline"
             onClick={() => {
-              workflowService.createRequest(session.tenantId, session, {
+              workflowService.createRequest(session.tenant_id, session, {
                 entityType: "CASE",
                 entityId: record.id,
-                makerDept: session.departmentId,
+                makerDept: session.department_id,
                 destinationDept: "HR",
                 notes: "Case routing",
               });
@@ -91,10 +91,10 @@ export default function CaseDetail() {
 
       <WorkspacePanel title="Insights" description="Activity and collaboration.">
         <ActivityThread
-          tenantId={session.tenantId}
+          tenantId={session.tenant_id}
           entityType="hr_case"
           entityId={record.id}
-          actorId={session.userId}
+          actorId={session.user_id}
         />
       </WorkspacePanel>
 
@@ -107,7 +107,7 @@ export default function CaseDetail() {
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Escalation details" />
             <Button
               onClick={() => {
-                caseService.escalateCase(session.tenantId, session, record.id, notes);
+                caseService.escalateCase(session.tenant_id, session, record.id, notes);
                 setNotes("");
                 setDialogOpen(false);
               }}

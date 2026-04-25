@@ -115,7 +115,7 @@ class SyncManager {
       // 1. Get last sync anchor
       const anchorResult = await db.query<any>(
         "SELECT last_sync FROM sync_anchors WHERE entity_type = 'GLOBAL' AND tenant_id = $1",
-        [session.tenantId]
+        [session.tenant_id]
       );
       
       const lastSync = (anchorResult as any)[0]?.last_sync || new Date(0).toISOString();
@@ -135,7 +135,7 @@ class SyncManager {
         VALUES ($1, $2, $3, $4) 
         ON CONFLICT (tenant_id, entity_type) 
         DO UPDATE SET last_sync = EXCLUDED.last_sync`,
-        [`anchor-${Date.now()}`, session.tenantId, 'GLOBAL', now]
+        [`anchor-${Date.now()}`, session.tenant_id, 'GLOBAL', now]
       );
 
       console.log(`[SyncManager] Delta pull complete at ${now}`);

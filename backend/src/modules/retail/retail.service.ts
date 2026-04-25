@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 import { IRetailRepository } from "./repositories/retail.repository.interface";
 import { SkuGeneratorService } from "../../core/inventory/sku-generator.service";
@@ -51,25 +52,23 @@ export class RetailService {
   ) {}
 
   // Stores (Physical Branches)
-  async listStores(
-    tenant_id: string,
+  async listStores(ctx: TenantContext,
     location_id?: string,
   ): Promise<RetailStore[]> {
-    return this.retailRepository.listStores(tenant_id, location_id);
+    return this.retailRepository.listStores(ctx, location_id);
   }
 
-  async listCategories(tenant_id: string): Promise<any[]> {
-    return this.retailRepository.listCategories(tenant_id);
+  async listCategories(ctx: TenantContext): Promise<any[]> {
+    return this.retailRepository.listCategories(ctx);
   }
 
-  async createStore(
-    tenant_id: string,
+  async createStore(ctx: TenantContext,
     data: CreateStoreDto,
     user_id: string,
   ): Promise<RetailStore> {
-    const store = await this.retailRepository.createStore(tenant_id, data);
+    const store = await this.retailRepository.createStore(ctx, data);
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CREATE",
@@ -80,19 +79,18 @@ export class RetailService {
     return store;
   }
 
-  async updateStore(
-    tenant_id: string,
+  async updateStore(ctx: TenantContext,
     store_id: string,
     data: UpdateStoreDto,
     user_id: string,
   ): Promise<RetailStore> {
     const store = await this.retailRepository.updateStore(
-      tenant_id,
+      ctx,
       store_id,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UPDATE",
@@ -103,14 +101,13 @@ export class RetailService {
     return store;
   }
 
-  async deleteStore(
-    tenant_id: string,
+  async deleteStore(ctx: TenantContext,
     store_id: string,
     user_id: string,
   ): Promise<void> {
     await this.prisma.retail_cart_items.deleteMany({ where: { cart_id: store_id } });
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "DELETE",
@@ -120,21 +117,20 @@ export class RetailService {
   }
 
   // Inventory Pools
-  async listInventoryPools(tenant_id: string): Promise<any[]> {
-    return this.retailRepository.listInventoryPools(tenant_id);
+  async listInventoryPools(ctx: TenantContext): Promise<any[]> {
+    return this.retailRepository.listInventoryPools(ctx);
   }
 
-  async createInventoryPool(
-    tenant_id: string,
+  async createInventoryPool(ctx: TenantContext,
     data: CreateInventoryPoolDto,
     user_id: string,
   ): Promise<any> {
     const pool = await this.retailRepository.createInventoryPool(
-      tenant_id,
+      ctx,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CREATE",
@@ -145,21 +141,20 @@ export class RetailService {
     return pool;
   }
 
-  async getInventoryPool(tenant_id: string, poolId: string): Promise<any> {
-    const pool = await this.retailRepository.getInventoryPool(tenant_id, poolId);
+  async getInventoryPool(ctx: TenantContext, poolId: string): Promise<any> {
+    const pool = await this.retailRepository.getInventoryPool(ctx, poolId);
     if (!pool)
       throw new NotFoundException(`Inventory pool ${poolId} not found`);
     return pool;
   }
 
-  async deleteInventoryPool(
-    tenant_id: string,
+  async deleteInventoryPool(ctx: TenantContext,
     poolId: string,
     user_id: string,
   ): Promise<void> {
-    await this.retailRepository.deleteInventoryPool(tenant_id, poolId);
+    await this.retailRepository.deleteInventoryPool(ctx, poolId);
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "DELETE",
@@ -169,16 +164,15 @@ export class RetailService {
   }
 
   // E-Commerce Stores
-  async listEcommerceStores(
-    tenant_id: string,
+  async listEcommerceStores(ctx: TenantContext,
     store_id?: string,
   ): Promise<any[]> {
-    return this.retailRepository.listEcommerceStores(tenant_id, store_id);
+    return this.retailRepository.listEcommerceStores(ctx, store_id);
   }
 
-  async getEcommerceStore(tenant_id: string, store_id: string): Promise<any> {
+  async getEcommerceStore(ctx: TenantContext, store_id: string): Promise<any> {
     const store = await this.retailRepository.getEcommerceStore(
-      tenant_id,
+      ctx,
       store_id,
     );
     if (!store)
@@ -186,17 +180,16 @@ export class RetailService {
     return store;
   }
 
-  async createEcommerceStore(
-    tenant_id: string,
+  async createEcommerceStore(ctx: TenantContext,
     data: CreateEcommerceStoreDto,
     user_id: string,
   ): Promise<any> {
     const store = await this.retailRepository.createEcommerceStore(
-      tenant_id,
+      ctx,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CREATE",
@@ -207,19 +200,18 @@ export class RetailService {
     return store;
   }
 
-  async updateEcommerceStore(
-    tenant_id: string,
+  async updateEcommerceStore(ctx: TenantContext,
     store_id: string,
     data: UpdateEcommerceStoreDto,
     user_id: string,
   ): Promise<any> {
     const store = await this.retailRepository.updateEcommerceStore(
-      tenant_id,
+      ctx,
       store_id,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UPDATE",
@@ -230,14 +222,13 @@ export class RetailService {
     return store;
   }
 
-  async deleteEcommerceStore(
-    tenant_id: string,
+  async deleteEcommerceStore(ctx: TenantContext,
     store_id: string,
     user_id: string,
   ): Promise<void> {
-    await this.retailRepository.deleteEcommerceStore(tenant_id, store_id);
+    await this.retailRepository.deleteEcommerceStore(ctx, store_id);
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "DELETE",
@@ -246,19 +237,18 @@ export class RetailService {
     });
   }
 
-  async linkEcommerceToBranch(
-    tenant_id: string,
+  async linkEcommerceToBranch(ctx: TenantContext,
     ecommerceId: string,
     branch_id: string,
     user_id: string,
   ): Promise<void> {
     await this.retailRepository.linkEcommerceToBranch(
-      tenant_id,
+      ctx,
       ecommerceId,
       branch_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "LINK",
@@ -268,19 +258,18 @@ export class RetailService {
     });
   }
 
-  async unlinkEcommerceFromBranch(
-    tenant_id: string,
+  async unlinkEcommerceFromBranch(ctx: TenantContext,
     ecommerceId: string,
     branch_id: string,
     user_id: string,
   ): Promise<void> {
     await this.retailRepository.unlinkEcommerceFromBranch(
-      tenant_id,
+      ctx,
       ecommerceId,
       branch_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UNLINK",
@@ -291,8 +280,7 @@ export class RetailService {
   }
 
   // Products
-  async listProducts(
-    tenant_id: string,
+  async listProducts(ctx: TenantContext,
     options?: {
       page?: number;
       pageSize?: number;
@@ -306,28 +294,27 @@ export class RetailService {
       location_id?: string;
     },
   ) {
-    return this.retailRepository.listProducts(tenant_id, options);
+    return this.retailRepository.listProducts(ctx, options);
   }
 
-  async getProduct(tenant_id: string, product_id: string) {
-    return this.retailRepository.getProduct(tenant_id, product_id);
+  async getProduct(ctx: TenantContext, product_id: string) {
+    return this.retailRepository.getProduct(ctx, product_id);
   }
 
-  async updateProduct(
-    tenant_id: string,
+  async updateProduct(ctx: TenantContext,
     product_id: string,
     data: UpdateProductDto,
     user_id: string,
     location_id?: string,
   ) {
     const updated = await this.retailRepository.updateProduct(
-      tenant_id,
+      ctx,
       product_id,
       data,
       location_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UPDATE",
@@ -338,65 +325,107 @@ export class RetailService {
     return updated;
   }
 
-  async findProductBySku(tenant_id: string, sku: string): Promise<any> {
+  async findProductBySku(ctx: TenantContext, sku: string): Promise<any> {
     return this.prisma.item_masters.findFirst({
       where: {
-        tenant_id: tenant_id,
+        tenant_id: ctx.tenant_id,
         sku,
         status: "active",
       },
     });
   }
 
-  async generateNextSku(
-    tenant_id: string,
+  async generateNextSku(ctx: TenantContext,
     category_id: string,
   ): Promise<{ sku: string; barcode: string }> {
-    const sku = await this.skuGenerator.generateSku(tenant_id, category_id);
-    const barcode = this.skuGenerator.generateBarcode(tenant_id, sku);
+    const sku = await this.skuGenerator.generateSku(ctx, category_id);
+    const barcode = this.skuGenerator.generateBarcode(ctx, sku);
     return { sku, barcode };
   }
 
-  async listOrders(tenant_id: string, store_id?: string): Promise<RetailOrder[]> {
-    return this.retailRepository.listOrders(tenant_id, store_id);
+  async listOrders(ctx: TenantContext, store_id?: string): Promise<RetailOrder[]> {
+    return this.retailRepository.listOrders(ctx, store_id);
   }
 
-  async createOrder(
-    tenant_id: string,
+  async createOrder(ctx: TenantContext,
     location_id: string,
     data: CreateOrderDto,
     user_id: string,
   ): Promise<RetailOrder> {
-    // 1. Initial creation (PENDING)
-    const order = await this.retailRepository.createOrder(
-      tenant_id,
-      location_id,
-      data,
-      user_id,
-    );
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Reserve Stock
+      for (const item of data.items) {
+        const q = new Prisma.Decimal(item.quantity);
+        
+        // ATOMIC RESERVATION (Prevents Race Conditions)
+        const updatedCount = await tx.$executeRaw`
+          UPDATE stock_levels 
+          SET available = available - ${Number(q)},
+              reserved = reserved + ${Number(q)},
+              updated_at = NOW()
+          WHERE tenant_id = ${ctx.tenant_id}
+            AND location_id = ${location_id}
+            AND product_id = ${item.product_id}
+            AND available >= ${Number(q)}
+        `;
 
-    // Audit initial creation
-    await this.auditService.log({
-      tenant_id,
-      user_id,
-      module: "retail",
-      action: "CREATE",
-      entity_type: "ORDER",
-      entity_id: order.id,
-      metadata: { total: order.grand_total, itemCount: order.items.length },
+        if (updatedCount === 0) {
+          throw new BadRequestException(`Insufficient stock for product ${item.product_id} at location ${location_id}`);
+        }
+
+        // Track Reservation
+        await tx.stock_reservations.create({
+          data: {
+            id: uuidv4(),
+            tenant_id: ctx.tenant_id,
+            location_id,
+            product_id: item.product_id,
+            quantity: Number(q),
+            status: 'PENDING',
+            reference_id: 'pending_order', 
+            reference_type: 'ECOMMERCE',
+            expires_at: new Date(Date.now() + 30 * 60 * 1000), 
+          }
+        });
+      }
+
+      // 2. Initial creation (PENDING)
+      const order = await this.retailRepository.createOrder(
+        ctx,
+        location_id,
+        data,
+        user_id,
+        tx,
+      );
+
+      // 3. Update reservation with order_id
+      await tx.stock_reservations.updateMany({
+        where: { tenant_id: ctx.tenant_id, reference_id: 'pending_order', status: 'PENDING' },
+        data: { reference_id: order.id }
+      });
+
+      // Audit initial creation
+      await this.auditService.log({
+        tenant_id: ctx.tenant_id,
+        user_id,
+        module: "retail",
+        action: "CREATE",
+        entity_type: "ORDER",
+        entity_id: order.id,
+        metadata: { total: order.grand_total, itemCount: order.items.length },
+      }, tx);
+
+      return order;
     });
-
-    return order;
   }
 
-  async checkout(
-    tenant_id: string,
+  async checkout(ctx: TenantContext,
     data: CheckoutDto,
     user_id: string,
     idempotency_key?: string,
   ): Promise<any> {
     const order = await this.retailRepository.atomicCheckout(
-      tenant_id,
+      ctx,
       data,
       user_id,
       idempotency_key,
@@ -413,11 +442,11 @@ export class RetailService {
 
     let paymentResult: any = null;
     if (data.payment_method === "GATEWAY") {
-       paymentResult = await this.paymentService.createGatewayPayment(tenant_id, paymentDto, user_id);
+       paymentResult = await this.paymentService.createGatewayPayment(ctx, paymentDto, user_id);
     } else if (data.payment_method === "EDC") {
-       paymentResult = await this.paymentService.confirmEDC(tenant_id, {...paymentDto, externalRef: data.external_ref}, user_id);
+       paymentResult = await this.paymentService.confirmEDC(ctx, {...paymentDto, externalRef: data.external_ref}, user_id);
     } else {
-       paymentResult = await this.paymentService.processCash(tenant_id, paymentDto, user_id);
+       paymentResult = await this.paymentService.processCash(ctx, paymentDto, user_id);
     }
 
     // REAL-TIME SALES BONUS INTEGRATION (If Paid immediately)
@@ -429,7 +458,7 @@ export class RetailService {
         await this.prisma.hr_sales_bonuses.create({
           data: {
             id: `BON-${order.id.slice(-8).toUpperCase()}-${Date.now().toString().slice(-4)}`,
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             employee_id: order.cashier_id,
             order_id: order.id,
             amount: bonusAmount,
@@ -441,7 +470,7 @@ export class RetailService {
     }
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CHECKOUT",
@@ -460,12 +489,11 @@ export class RetailService {
   }
 
 
-  async calculateTax(
-    tenant_id: string,
+  async calculateTax(ctx: TenantContext,
     order_id: string,
     user_id?: string,
   ): Promise<number> {
-    const order = await this.retailRepository.getOrder(tenant_id, order_id);
+    const order = await this.retailRepository.getOrder(ctx, order_id);
     if (!order) throw new NotFoundException("Order not found");
 
     // DECIMAL-SAFE: Precise tax calculation using Prisma.Decimal
@@ -474,7 +502,7 @@ export class RetailService {
     const tax_total = subtotal.mul(taxRate);
 
     await this.retailRepository.updateOrderStatus(
-      tenant_id,
+      ctx,
       order_id,
       order.status,
       { tax_total: tax_total },
@@ -482,7 +510,7 @@ export class RetailService {
 
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "retail",
         action: "CALCULATE_TAX",
@@ -496,22 +524,21 @@ export class RetailService {
 
   }
 
-  async updateOrderStatus(
-    tenant_id: string,
+  async updateOrderStatus(ctx: TenantContext,
     order_id: string,
     status: string,
     metadata?: any,
     user_id?: string,
   ): Promise<RetailOrder> {
     const order = await this.retailRepository.updateOrderStatus(
-      tenant_id,
+      ctx,
       order_id,
       status,
       metadata,
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "retail",
         action: "UPDATE_STATUS",
@@ -523,20 +550,19 @@ export class RetailService {
     return order;
   }
 
-  async voidOrder(
-    tenant_id: string,
+  async voidOrder(ctx: TenantContext,
     order_id: string,
     user_id: string,
   ): Promise<RetailOrder> {
     const order = await this.retailRepository.voidOrder(
-      tenant_id,
+      ctx,
       order_id,
       user_id,
     );
 
     await this.eventBus.publish({
       event_type: "RETAIL_ORDER_VOIDED",
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: order_id,
       entity_type: "ORDER",
       source_module: "retail",
@@ -547,20 +573,19 @@ export class RetailService {
     return order;
   }
 
-  async cancelOrder(
-    tenant_id: string,
+  async cancelOrder(ctx: TenantContext,
     order_id: string,
     user_id: string,
   ): Promise<RetailOrder> {
     const order = await this.retailRepository.cancelOrder(
-      tenant_id,
+      ctx,
       order_id,
       user_id,
     );
 
     await this.eventBus.publish({
       event_type: "RETAIL_ORDER_CANCELLED",
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: order_id,
       entity_type: "ORDER",
       source_module: "retail",
@@ -572,28 +597,29 @@ export class RetailService {
   }
 
 
-  async getStockStatus(tenant_id: string, product_id: string) {
-    return this.retailRepository.checkStock(tenant_id, product_id);
+  async getStockStatus(ctx: TenantContext, product_id: string) {
+    return this.retailRepository.checkStock(ctx, product_id);
   }
 
-  async getInventoryStats(
-    tenant_id: string,
+  async getChannelStockStatus(ctx: TenantContext, channel_id: string, product_id: string) {
+    return this.retailRepository.getChannelStock(ctx, channel_id, product_id);
+  }
+
+  async getInventoryStats(ctx: TenantContext,
     options?: { category_id?: string; q?: string },
   ) {
-    return this.retailRepository.getInventoryStats(tenant_id, options);
+    return this.retailRepository.getInventoryStats(ctx, options);
   }
 
   // Shifts
-  async getActiveShift(
-    tenant_id: string,
+  async getActiveShift(ctx: TenantContext,
     store_id: string,
     employee_id: string,
   ): Promise<RetailShift | null> {
-    return this.retailRepository.getActiveShift(tenant_id, store_id, employee_id);
+    return this.retailRepository.getActiveShift(ctx, store_id, employee_id);
   }
 
-  async openShift(
-    tenant_id: string,
+  async openShift(ctx: TenantContext,
     location_id: string,
     employee_id: string,
     data: OpenShiftDto,
@@ -601,7 +627,7 @@ export class RetailService {
   ): Promise<RetailShift> {
     // Check if already has an active shift
     const active = await this.retailRepository.getActiveShift(
-      tenant_id,
+      ctx,
       data.store_id,
       employee_id,
     );
@@ -609,7 +635,7 @@ export class RetailService {
       throw new Error("Shift already active for this employee and store.");
     }
     const shift = await this.retailRepository.openShift(
-      tenant_id,
+      ctx,
       location_id,
       employee_id,
       data,
@@ -617,7 +643,7 @@ export class RetailService {
 
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "retail",
         action: "OPEN_SHIFT",
@@ -630,14 +656,13 @@ export class RetailService {
     return shift;
   }
 
-  async closeShift(
-    tenant_id: string,
+  async closeShift(ctx: TenantContext,
     shift_id: string,
     data: CloseShiftDto,
     user_id: string,
   ): Promise<RetailShift> {
     const shift = await this.retailRepository.closeShift(
-      tenant_id,
+      ctx,
       shift_id,
       data,
     );
@@ -648,7 +673,7 @@ export class RetailService {
     if (Math.abs(variance) > 0.01) {
         // Raise Audit Alert
         await this.auditService.log({
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             user_id,
             module: "retail",
             action: "SHIFT_VARIANCE_DETECTED",
@@ -665,7 +690,7 @@ export class RetailService {
         // Trigger Event for downstream monitoring/notifications
         await this.eventBus.publish({
             event_type: 'RETAIL_SHIFT_VARIANCE',
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             entity_id: shift_id,
             entity_type: 'SHIFT',
             source_module: 'retail',
@@ -675,7 +700,7 @@ export class RetailService {
     }
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CLOSE_SHIFT",
@@ -686,12 +711,11 @@ export class RetailService {
     return shift;
   }
 
-  async listShifts(tenant_id: string, store_id?: string): Promise<RetailShift[]> {
-    return this.retailRepository.listShifts(tenant_id, store_id);
+  async listShifts(ctx: TenantContext, store_id?: string): Promise<RetailShift[]> {
+    return this.retailRepository.listShifts(ctx, store_id);
   }
 
-  async reconcileShift(
-    tenant_id: string,
+  async reconcileShift(ctx: TenantContext,
     shift_id: string,
     data: ReconcileShiftDto,
     user_id: string,
@@ -699,7 +723,7 @@ export class RetailService {
     return this.prisma.$transaction(async (tx) => {
       // 1. Fetch shift
       const shift = await tx.retail_shifts.findFirst({
-        where: { id: shift_id, tenant_id },
+        where: { id: shift_id, tenant_id: ctx.tenant_id},
         include: { stores: true },
       });
 
@@ -717,7 +741,7 @@ export class RetailService {
       // 2. Finance Posting (Location-Aware)
       if (Math.abs(variance) > 0.0001) {
         await this.financeRepository.createJournal(
-          tenant_id,
+          ctx,
           {
             ref: `RECON-${shift_id.slice(-6).toUpperCase()}`,
             description: `Shift Recon: ${data.reason}`,
@@ -744,7 +768,7 @@ export class RetailService {
 
       // 3. Update Retail State
       const updated = await this.retailRepository.reconcileShift(
-        tenant_id,
+        ctx,
         shift_id,
         {
           actual_cash: new Prisma.Decimal(actual),
@@ -756,7 +780,7 @@ export class RetailService {
 
       // 4. Audit
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "retail",
         action: "RECONCILE_SHIFT",
@@ -776,23 +800,22 @@ export class RetailService {
   }
 
   // Promotions
-  async listPromotions(tenant_id: string): Promise<any[]> {
-    return this.retailRepository.listPromotions(tenant_id);
+  async listPromotions(ctx: TenantContext): Promise<any[]> {
+    return this.retailRepository.listPromotions(ctx);
   }
 
-  async updatePromotion(
-    tenant_id: string,
+  async updatePromotion(ctx: TenantContext,
     promotionId: string,
     data: any,
     user_id: string,
   ): Promise<any> {
     const promo = await this.retailRepository.updatePromotion(
-      tenant_id,
+      ctx,
       promotionId,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UPDATE",
@@ -804,12 +827,11 @@ export class RetailService {
   }
 
   // Channels
-  async listChannels(tenant_id: string): Promise<any[]> {
-    return this.retailRepository.listChannels(tenant_id);
+  async listChannels(ctx: TenantContext): Promise<any[]> {
+    return this.retailRepository.listChannels(ctx);
   }
 
-  async createChannel(
-    tenant_id: string,
+  async createChannel(ctx: TenantContext,
     data: any,
     user_id: string,
   ): Promise<any> {
@@ -835,12 +857,12 @@ export class RetailService {
     };
 
     const channel = await this.retailRepository.createChannel(
-      tenant_id,
+      ctx,
       payload,
     );
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "CREATE",
@@ -856,19 +878,18 @@ export class RetailService {
     };
   }
 
-  async updateChannel(
-    tenant_id: string,
+  async updateChannel(ctx: TenantContext,
     channelId: string,
     data: any,
     user_id: string,
   ): Promise<any> {
     const channel = await this.retailRepository.updateChannel(
-      tenant_id,
+      ctx,
       channelId,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "UPDATE",
@@ -879,17 +900,16 @@ export class RetailService {
     return channel;
   }
 
-  async deleteChannel(
-    tenant_id: string,
+  async deleteChannel(ctx: TenantContext,
     channelId: string,
     user_id: string,
   ): Promise<{ success: boolean }> {
     const result = await this.retailRepository.deleteChannel(
-      tenant_id,
+      ctx,
       channelId,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "DELETE",
@@ -899,14 +919,13 @@ export class RetailService {
     return result;
   }
 
-  async syncChannel(
-    tenant_id: string,
+  async syncChannel(ctx: TenantContext,
     channelId: string,
     user_id: string,
   ): Promise<{ success: boolean }> {
-    const result = await this.retailRepository.syncChannel(tenant_id, channelId);
+    const result = await this.retailRepository.syncChannel(ctx, channelId);
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "SYNC",
@@ -916,20 +935,18 @@ export class RetailService {
     return result;
   }
 
-  async getChannelById(
-    tenant_id: string,
+  async getChannelById(ctx: TenantContext,
     channelId: string,
   ): Promise<any | null> {
-    return this.retailRepository.getChannelById(tenant_id, channelId);
+    return this.retailRepository.getChannelById(ctx, channelId);
   }
 
-  async rotateChannelCredentials(
-    tenant_id: string,
+  async rotateChannelCredentials(ctx: TenantContext,
     channelId: string,
     user_id: string,
   ): Promise<{ clientId: string; clientSecret: string }> {
     const channel = await this.retailRepository.getChannelById(
-      tenant_id,
+      ctx,
       channelId,
     );
     if (!channel) {
@@ -956,13 +973,13 @@ export class RetailService {
     };
 
     await this.retailRepository.updateChannelCredentials(
-      tenant_id,
+      ctx,
       channelId,
       credentialsPayload,
     );
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "ROTATE_CREDENTIALS",
@@ -973,13 +990,12 @@ export class RetailService {
     return { clientId, clientSecret };
   }
 
-  async revokeChannelCredentials(
-    tenant_id: string,
+  async revokeChannelCredentials(ctx: TenantContext,
     channelId: string,
     user_id: string,
   ): Promise<{ clientId: string }> {
     const channel = await this.retailRepository.getChannelById(
-      tenant_id,
+      ctx,
       channelId,
     );
     if (!channel) {
@@ -1010,13 +1026,13 @@ export class RetailService {
     };
 
     await this.retailRepository.updateChannelCredentials(
-      tenant_id,
+      ctx,
       channelId,
       credentialsPayload,
     );
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "REVOKE_CREDENTIALS",
@@ -1039,31 +1055,29 @@ export class RetailService {
     return createHash("sha256").update(secret).digest("hex");
   }
 
-  async findChannelByClientId(
-    tenant_id: string,
+  async findChannelByClientId(ctx: TenantContext,
     clientId: string,
   ): Promise<any | null> {
-    return this.retailRepository.findChannelByClientId(tenant_id, clientId);
+    return this.retailRepository.findChannelByClientId(ctx, clientId);
   }
 
   // Devices
-  async listDevices(tenant_id: string, store_id?: string): Promise<any[]> {
-    return this.retailRepository.listDevices(tenant_id, store_id);
+  async listDevices(ctx: TenantContext, store_id?: string): Promise<any[]> {
+    return this.retailRepository.listDevices(ctx, store_id);
   }
 
-  async registerDevice(
-    tenant_id: string,
+  async registerDevice(ctx: TenantContext,
     location_id: string,
     data: RegisterBranchDeviceDto,
     user_id: string,
   ): Promise<any> {
     const device = await this.retailRepository.registerDevice(
-      tenant_id,
+      ctx,
       location_id,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "it",
       action: "REGISTER",
@@ -1074,35 +1088,33 @@ export class RetailService {
     return device;
   }
 
-  async listCCTVs(tenant_id: string, store_id?: string): Promise<any[]> {
-    return this.retailRepository.listCCTVs(tenant_id, store_id);
+  async listCCTVs(ctx: TenantContext, store_id?: string): Promise<any[]> {
+    return this.retailRepository.listCCTVs(ctx, store_id);
   }
 
-  async validateCCTVConnection(
-    tenant_id: string,
+  async validateCCTVConnection(ctx: TenantContext,
     location_id: string,
     data: Partial<RegisterCCTVCameraDto>,
   ): Promise<{ success: boolean; message?: string }> {
     return this.retailRepository.validateCCTVConnection(
-      tenant_id,
+      ctx,
       location_id,
       data,
     );
   }
 
-  async registerCCTV(
-    tenant_id: string,
+  async registerCCTV(ctx: TenantContext,
     location_id: string,
     data: RegisterCCTVCameraDto,
     user_id: string,
   ): Promise<any> {
     const camera = await this.retailRepository.registerCCTV(
-      tenant_id,
+      ctx,
       location_id,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "it",
       action: "REGISTER",
@@ -1113,23 +1125,22 @@ export class RetailService {
     return camera;
   }
 
-  async listSensors(tenant_id: string, store_id?: string): Promise<any[]> {
-    return this.retailRepository.listSensors(tenant_id, store_id);
+  async listSensors(ctx: TenantContext, store_id?: string): Promise<any[]> {
+    return this.retailRepository.listSensors(ctx, store_id);
   }
 
-  async registerSensor(
-    tenant_id: string,
+  async registerSensor(ctx: TenantContext,
     location_id: string,
     data: RegisterBranchSensorDto,
     user_id: string,
   ): Promise<any> {
     const sensor = await this.retailRepository.registerSensor(
-      tenant_id,
+      ctx,
       location_id,
       data,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "it",
       action: "REGISTER",
@@ -1140,31 +1151,29 @@ export class RetailService {
     return sensor;
   }
 
-  async pingDevice(
-    tenant_id: string,
+  async pingDevice(ctx: TenantContext,
     device_id: string,
   ): Promise<{ success: boolean }> {
-    return this.retailRepository.pingDevice(tenant_id, device_id);
+    return this.retailRepository.pingDevice(ctx, device_id);
   }
 
-  async scanDevices(tenant_id: string, location_id: string): Promise<any[]> {
-    return this.retailRepository.scanDevices(tenant_id, location_id);
+  async scanDevices(ctx: TenantContext, location_id: string): Promise<any[]> {
+    return this.retailRepository.scanDevices(ctx, location_id);
   }
 
-  async commitScannedDevice(
-    tenant_id: string,
+  async commitScannedDevice(ctx: TenantContext,
     location_id: string,
     discoveryId: string,
     user_id: string,
   ): Promise<any> {
     const device = await this.retailRepository.commitScannedDevice(
-      tenant_id,
+      ctx,
       location_id,
       discoveryId,
     );
     if (device) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "it",
         action: "REGISTER",
@@ -1181,13 +1190,12 @@ export class RetailService {
   }
 
   // Payments & Returns
-  async processPayment(
-    tenant_id: string,
+  async processPayment(ctx: TenantContext,
     order_id: string,
     data: { amount: Prisma.Decimal; method: string; shift_id?: string },
     user_id: string,
   ): Promise<any> {
-    const order = await this.retailRepository.getOrder(tenant_id, order_id);
+    const order = await this.retailRepository.getOrder(ctx, order_id);
     if (!order) throw new NotFoundException("Order not found");
 
     // ATOMIC CHECKOUT TRANSACTION
@@ -1196,7 +1204,7 @@ export class RetailService {
       const movements = [];
       for (const item of order.items) {
         const move = await this.inventoryService.consumeStock(
-          tenant_id,
+          ctx,
           {
             item_id: item.product_id,
             location_id: (order as any).location_id || "default",
@@ -1215,7 +1223,7 @@ export class RetailService {
       await tx.payment_transactions.create({
         data: {
           id: uuidv4(),
-          tenant_id: tenant_id,
+          tenant_id: ctx.tenant_id,
           type: "RETAIL_SALE",
           amount: data.amount,
           currency: "IDR",
@@ -1230,7 +1238,7 @@ export class RetailService {
 
       // 3. Create Financial Journal Entry
       await this.financeRepository.createJournal(
-        tenant_id,
+        ctx,
         {
           ref: order.id,
           description: `POS Sale - Order ${order.id}`,
@@ -1264,7 +1272,7 @@ export class RetailService {
     // 5. Post-transaction tasks (Events, Audits)
     await this.eventBus.publish({
       event_type: "RETAIL_SALE_COMPLETED",
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: order_id,
       entity_type: "ORDER",
       source_module: "retail",
@@ -1279,7 +1287,7 @@ export class RetailService {
     });
 
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "PAYMENT_COMPLETE",
@@ -1295,8 +1303,7 @@ export class RetailService {
     return result;
   }
 
-  async processReturn(
-    tenant_id: string,
+  async processReturn(ctx: TenantContext,
     order_id: string,
     data: { 
         itemIds: string[]; 
@@ -1308,7 +1315,7 @@ export class RetailService {
     return await this.prisma.$transaction(async (tx) => {
         // 1. Get Order Details with items
         const order = await tx.retail_orders.findUnique({
-            where: { id: order_id, tenant_id: tenant_id },
+            where: { id: order_id, tenant_id: ctx.tenant_id },
             include: { retail_order_items: true, stores: true }
         });
         if (!order) throw new NotFoundException("Order not found");
@@ -1317,7 +1324,7 @@ export class RetailService {
 
         // 2. Filter items and check idempotency (delegated to repository for flag updates)
         // Note: Repository.processReturn handles the flag and basic checks
-        await this.retailRepository.processReturn(tenant_id, order_id, data, tx);
+        await this.retailRepository.processReturn(ctx, order_id, data, tx);
 
         let totalRefundAmount = 0;
         let totalTaxReversal = 0;
@@ -1345,7 +1352,7 @@ export class RetailService {
 
             // 4. Restore Inventory via InventoryService (Standardized way)
             // This ensures movement logs and condition routing are applied correctly
-            await this.inventoryService.intakeStock(tenant_id, {
+            await this.inventoryService.intakeStock(ctx, {
                 item_id: item.product_id,
                 location_id: location_id,
                 quantity: q,
@@ -1360,7 +1367,7 @@ export class RetailService {
             if (conditionData.condition === 'damaged_repairable') {
                 await this.eventBus.publish({
                     event_type: 'INVENTORY_REPAIR_NEEDED',
-                    tenant_id,
+                    tenant_id: ctx.tenant_id,
                     entity_id: item.product_id,
                     entity_type: 'PRODUCT',
                     source_module: 'retail',
@@ -1370,7 +1377,7 @@ export class RetailService {
             } else if (conditionData.condition === 'damaged_unrepairable') {
                 await this.eventBus.publish({
                     event_type: 'INVENTORY_WASTE_DETECTED',
-                    tenant_id,
+                    tenant_id: ctx.tenant_id,
                     entity_id: item.product_id,
                     entity_type: 'PRODUCT',
                     source_module: 'retail',
@@ -1382,7 +1389,7 @@ export class RetailService {
 
         // 6. Create Journal Entries (The 6-Line Reversal)
         // Revenue Reversal (Debit Returns, Debit Tax, Credit Cash/AR)
-        await this.financeRepository.createJournal(tenant_id, {
+        await this.financeRepository.createJournal(ctx, {
             sourceEventId: `RET-${order_id}-${Date.now()}`,
             referenceType: 'RETAIL_RETURN',
             referenceId: order_id,
@@ -1399,7 +1406,7 @@ export class RetailService {
 
         // 7. Audit Log
         await this.auditService.log({
-            tenant_id,
+            tenant_id: ctx.tenant_id,
             user_id,
             module: "retail",
             action: "RETURN_COMPLETE",
@@ -1418,15 +1425,14 @@ export class RetailService {
   }
 
   // Inventory Operations
-  async submitOpname(
-    tenant_id: string,
+  async submitOpname(ctx: TenantContext,
     data: { store_id: string; adjustments: any[]; shift_id?: string },
     user_id: string,
   ): Promise<{ success: boolean }> {
     // 1. Emit Opname Event (adjustments handled by listener)
     await this.eventBus.publish({
       event_type: "RETAIL_OPNAME_SUBMITTED",
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: data.store_id,
       entity_type: "STORE",
       source_module: "retail",
@@ -1439,11 +1445,11 @@ export class RetailService {
     });
 
     // 2. Call Repository
-    const result = await this.retailRepository.submitOpname(tenant_id, data);
+    const result = await this.retailRepository.submitOpname(ctx, data);
 
     // 3. Audit Log
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "STOCK_OPNAME",
@@ -1455,8 +1461,7 @@ export class RetailService {
     return result;
   }
 
-  async receiveGoods(
-    tenant_id: string,
+  async receiveGoods(ctx: TenantContext,
     data: {
       store_id: string;
       shipment_id: string;
@@ -1468,7 +1473,7 @@ export class RetailService {
     // 1. Emit Goods Receipt Event to trigger Inventory Intake
     await this.eventBus.publish({
       event_type: "RETAIL_GOODS_RECEIVED",
-      tenant_id: tenant_id,
+      tenant_id: ctx.tenant_id,
       entity_id: data.shipment_id,
       entity_type: "SHIPMENT",
       source_module: "retail",
@@ -1481,11 +1486,11 @@ export class RetailService {
     });
 
     // 2. Call Repository
-    const result = await this.retailRepository.receiveGoods(tenant_id, data);
+    const result = await this.retailRepository.receiveGoods(ctx, data);
 
     // 3. Audit Log
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id,
       module: "retail",
       action: "STOCK_INTAKE",
@@ -1499,19 +1504,18 @@ export class RetailService {
 
   // --- Public Gateway (Customer, Cart, Wishlist) ---
 
-  async findCustomerByEmail(tenant_id: string, email: string) {
-    return this.retailRepository.findCustomerByEmail(tenant_id, email);
+  async findCustomerByEmail(ctx: TenantContext, email: string) {
+    return this.retailRepository.findCustomerByEmail(ctx, email);
   }
 
-  async findCustomerById(tenant_id: string, customer_id: string) {
-    return this.retailRepository.findCustomerById(tenant_id, customer_id);
+  async findCustomerById(ctx: TenantContext, customer_id: string) {
+    return this.retailRepository.findCustomerById(ctx, customer_id);
   }
 
-  async createCustomer(tenant_id: string, data: any, user_id?: string) {
-    const customer = await this.retailRepository.createCustomer(tenant_id, data);
+  async createCustomer(ctx: TenantContext, data: any, user_id?: string) {
+    const customer = await this.retailRepository.createCustomer(ctx, data);
     if (user_id) {
-      await this.auditService.log({
-        tenant_id,
+      await this.auditService.log({ tenant_id: ctx.tenant_id ,
         user_id,
         module: "retail",
         action: "CREATE",
@@ -1523,20 +1527,19 @@ export class RetailService {
     return customer;
   }
 
-  async updateCustomer(
-    tenant_id: string,
+  async updateCustomer(ctx: TenantContext,
     customer_id: string,
     data: any,
     user_id?: string,
   ) {
     const customer = await this.retailRepository.updateCustomer(
-      tenant_id,
+      ctx,
       customer_id,
       data,
     );
     if (user_id) {
       await this.auditService.log({
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         user_id,
         module: "retail",
         action: "UPDATE",
@@ -1548,89 +1551,86 @@ export class RetailService {
     return customer;
   }
 
-  async createCustomerSession(tenant_id: string, data: any) {
-    return this.retailRepository.createCustomerSession(tenant_id, data);
+  async createCustomerSession(ctx: TenantContext, data: any) {
+    return this.retailRepository.createCustomerSession(ctx, data);
   }
 
-  async findCustomerSession(tenant_id: string, tokenHash: string) {
-    return this.retailRepository.findCustomerSession(tenant_id, tokenHash);
+  async findCustomerSession(ctx: TenantContext, tokenHash: string) {
+    return this.retailRepository.findCustomerSession(ctx, tokenHash);
   }
 
-  async revokeCustomerSession(tenant_id: string, tokenHash: string) {
-    return this.retailRepository.revokeCustomerSession(tenant_id, tokenHash);
+  async revokeCustomerSession(ctx: TenantContext, tokenHash: string) {
+    return this.retailRepository.revokeCustomerSession(ctx, tokenHash);
   }
 
-  async getCart(tenant_id: string, customer_id: string) {
-    return this.retailRepository.getCart(tenant_id, customer_id);
+  async getCart(ctx: TenantContext, customer_id: string) {
+    return this.retailRepository.getCart(ctx, customer_id);
   }
 
-  async createCart(tenant_id: string, customer_id: string) {
-    return this.retailRepository.createCart(tenant_id, customer_id);
+  async createCart(ctx: TenantContext, customer_id: string) {
+    return this.retailRepository.createCart(ctx, customer_id);
   }
 
-  async updateCartItem(
-    tenant_id: string,
+  async updateCartItem(ctx: TenantContext,
     cartId: string,
     product_id: string,
     data: { quantity: Prisma.Decimal; unit_price: Prisma.Decimal },
   ) {
     return this.retailRepository.updateCartItem(
-      tenant_id,
+      ctx,
       cartId,
       product_id,
       data,
     );
   }
 
-  async removeCartItem(tenant_id: string, cartId: string, item_id: string) {
-    return this.retailRepository.removeCartItem(tenant_id, cartId, item_id);
+  async removeCartItem(ctx: TenantContext, cartId: string, item_id: string) {
+    return this.retailRepository.removeCartItem(ctx, cartId, item_id);
   }
 
-  async clearCart(tenant_id: string, cartId: string) {
-    return this.retailRepository.clearCart(tenant_id, cartId);
+  async clearCart(ctx: TenantContext, cartId: string) {
+    return this.retailRepository.clearCart(ctx, cartId);
   }
 
-  async getWishlist(tenant_id: string, customer_id: string) {
-    return this.retailRepository.getWishlist(tenant_id, customer_id);
+  async getWishlist(ctx: TenantContext, customer_id: string) {
+    return this.retailRepository.getWishlist(ctx, customer_id);
   }
 
-  async upsertWishlist(tenant_id: string, customer_id: string) {
-    return this.retailRepository.upsertWishlist(tenant_id, customer_id);
+  async upsertWishlist(ctx: TenantContext, customer_id: string) {
+    return this.retailRepository.upsertWishlist(ctx, customer_id);
   }
 
-  async addWishlistItem(
-    tenant_id: string,
+  async addWishlistItem(ctx: TenantContext,
     wishlistId: string,
     product_id: string,
   ) {
     return this.retailRepository.addWishlistItem(
-      tenant_id,
+      ctx,
       wishlistId,
       product_id,
     );
   }
 
-  async removeWishlistItem(
-    tenant_id: string,
+  async removeWishlistItem(ctx: TenantContext,
     wishlistId: string,
     item_id: string,
   ) {
     return this.retailRepository.removeWishlistItem(
-      tenant_id,
+      ctx,
       wishlistId,
       item_id,
     );
   }
 
-  async logEvent(tenant_id: string, data: any) {
-    return this.retailRepository.logEvent(tenant_id, data);
+  async logEvent(ctx: TenantContext, data: any) {
+    return this.retailRepository.logEvent(ctx, data);
   }
 
-  async printOrder(tenant_id: string, order_id: string): Promise<Buffer> {
-    const order = await this.retailRepository.getOrder(tenant_id, order_id);
+  async printOrder(ctx: TenantContext, order_id: string): Promise<Buffer> {
+    const order = await this.retailRepository.getOrder(ctx, order_id);
     if (!order) throw new NotFoundException("Order not found");
 
-    const store = await this.retailRepository.getStore(tenant_id, order.store_id);
+    const store = await this.retailRepository.getStore(ctx, order.store_id);
     
     return this.retailPrint.generateReceiptPayload({
       storeName: store?.name || "Zenvix Retail",

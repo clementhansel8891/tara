@@ -158,11 +158,11 @@ export default function ChatHub() {
 
   // Socket setup
   useEffect(() => {
-    if (!session.userId) return;
+    if (!session.user_id) return;
     const socketUrl = window.location.origin;
     socketRef.current = io(`${socketUrl}/chat`, {
       path: "/socket.io",
-      query: { tenantId: session.tenantId, userId: session.userId }
+      query: { tenantId: session.tenant_id, userId: session.user_id }
     });
 
     socketRef.current.on("newMessage", (msg: ChatMessage) => {
@@ -175,7 +175,7 @@ export default function ChatHub() {
     });
 
     return () => { socketRef.current?.disconnect(); };
-  }, [session.userId, session.tenantId]);
+  }, [session.user_id, session.tenant_id]);
 
   useEffect(() => {
     if (selectedRoom && socketRef.current) {
@@ -190,8 +190,8 @@ export default function ChatHub() {
     socketRef.current.emit("sendMessage", {
       roomId: selectedRoom.id,
       body: newMessage,
-      tenantId: session.tenantId,
-      userId: session.userId,
+      tenantId: session.tenant_id,
+      userId: session.user_id,
     });
     setNewMessage("");
   };
@@ -221,7 +221,7 @@ export default function ChatHub() {
   };
 
   const filteredEmployees = employees.filter(emp => {
-    if (!emp.userId || emp.userId === session.userId) return false;
+    if (!emp.userId || emp.userId === session.user_id) return false;
     const matchesSearch = emp.fullName?.toLowerCase().includes(empFilter.search.toLowerCase());
     const matchesDept = empFilter.dept === 'all' || emp.departmentId === empFilter.dept;
     return matchesSearch && matchesDept;
@@ -333,7 +333,7 @@ export default function ChatHub() {
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-slate-50/20 dark:bg-slate-900/10">
                    {messages.map((msg, i) => {
-                     const isMe = msg.senderId === session.userId;
+                     const isMe = msg.senderId === session.user_id;
                       return (
                         <div key={msg.id || i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                           <div className={`max-w-[70%] space-y-2`}>

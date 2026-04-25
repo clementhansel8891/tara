@@ -6,6 +6,8 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { PrismaService } from "../../persistence/prisma.service";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { RetailService } from "./retail.service";
 import {
   RetailPublicOrderRequestDto,
@@ -39,46 +41,53 @@ export interface PublicProductView {
 
 @Injectable()
 export class RetailGatewayService {
-  constructor(private readonly retailService: RetailService) {}
+  constructor(
+    private readonly retailService: RetailService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   // --- Products ---
 
   async getProducts(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
   ): Promise<PublicProductView[]> {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
+    const channel = await this.authenticateChannel(ctx, clientId, clientSecret);
     const { items: products } = await this.retailService.listProducts(
-      tenant_id,
+      ctx,
       { page: 1, pageSize: 200 },
     );
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      sku: product.sku,
-      price: Number(product.base_price),
-      stock_levels: "IN_STOCK",
-      category: product.category_id,
-      maxQuantity: 999,
+    
+    return Promise.all(products.map(async (product) => {
+      const stock = await this.retailService.getChannelStockStatus(ctx, channel.id, product.id);
+      return {
+        id: product.id,
+        name: product.name,
+        sku: product.sku,
+        price: Number(product.base_price),
+        stock_levels: stock.status as any,
+        category: product.category_id,
+        maxQuantity: Number(stock.available),
+      };
     }));
   }
 
   async getProductById(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
     product_id: string,
   ): Promise<any> {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
+    const channel = await this.authenticateChannel(ctx, clientId, clientSecret);
     const { items: products } = await this.retailService.listProducts(
-      tenant_id,
+      ctx,
       { page: 1, pageSize: 200 },
     );
     const product = products.find((p) => p.id === product_id);
     if (!product) throw new NotFoundException("Product not found");
 
-    const stock = await this.retailService.getStockStatus(tenant_id, product_id);
+    const stock = await this.retailService.getChannelStockStatus(ctx, channel.id, product_id);
 
     return {
       id: product.id,
@@ -91,15 +100,16 @@ export class RetailGatewayService {
       variants: product.variants,
       seo: product.seo,
       stock_levels: stock.status,
+      maxQuantity: Number(stock.available),
     };
   }
 
   async getCategories(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
   ): Promise<any[]> {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
+    await this.authenticateChannel(ctx, clientId, clientSecret);
     // Mocking tree structure since repository doesn't support it yet
     return [
       {
@@ -121,13 +131,13 @@ export class RetailGatewayService {
   }
 
   async getPromotions(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
     category_id?: string,
   ): Promise<any[]> {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
-    const promos = await this.retailService.listPromotions(tenant_id);
+    await this.authenticateChannel(ctx, clientId, clientSecret);
+    const promos = await this.retailService.listPromotions(ctx);
     return promos.map((p) => ({
       id: p.id,
       code: p.code || `PROMO-${p.id.slice(0, 4)}`,
@@ -141,19 +151,19 @@ export class RetailGatewayService {
   // --- Auth & Customer ---
 
   async registerCustomer(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string,
     clientSecret: string,
     data: CustomerRegisterDto,
   ) {
     const scope = await this.authenticateChannel(
-      tenant_id,
+      ctx,
       clientId,
       clientSecret,
     );
 
     const existing = await this.retailService.findCustomerByEmail(
-      tenant_id,
+      ctx,
       data.email,
     );
     if (existing) {
@@ -161,7 +171,7 @@ export class RetailGatewayService {
     }
 
     const password_hash = await bcrypt.hash(data.password, 10);
-    const customer = await this.retailService.createCustomer(tenant_id, {
+    const customer = await this.retailService.createCustomer(ctx, {
       name: data.name,
       email: data.email,
       phone: data.phone,
@@ -176,19 +186,19 @@ export class RetailGatewayService {
   }
 
   async loginCustomer(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string,
     clientSecret: string,
     data: CustomerLoginDto,
   ) {
     const scope = await this.authenticateChannel(
-      tenant_id,
+      ctx,
       clientId,
       clientSecret,
     );
 
     const customer = await this.retailService.findCustomerByEmail(
-      tenant_id,
+      ctx,
       data.email,
     );
     if (!customer || !customer.auth) {
@@ -211,20 +221,20 @@ export class RetailGatewayService {
   }
 
   async refreshTokens(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string,
     clientSecret: string,
     data: CustomerRefreshDto,
   ) {
     const scope = await this.authenticateChannel(
-      tenant_id,
+      ctx,
       clientId,
       clientSecret,
     );
 
     const tokenHash = this.hashToken(data.refreshToken);
     const session = await this.retailService.findCustomerSession(
-      tenant_id,
+      ctx,
       tokenHash,
     );
     if (!session) {
@@ -232,7 +242,7 @@ export class RetailGatewayService {
     }
 
     const customer = await this.retailService.findCustomerById(
-      tenant_id,
+      ctx,
       session.customer_id,
     );
     if (!customer) {
@@ -240,109 +250,109 @@ export class RetailGatewayService {
     }
 
     // Revoke old session
-    await this.retailService.revokeCustomerSession(tenant_id, tokenHash);
+    await this.retailService.revokeCustomerSession(ctx, tokenHash);
 
     const tokens = await this.issueTokens(customer, scope);
     return tokens;
   }
 
-  async logoutCustomer(tenant_id: string, refreshToken: string) {
+  async logoutCustomer(ctx: TenantContext, refreshToken: string) {
     const tokenHash = this.hashToken(refreshToken);
-    await this.retailService.revokeCustomerSession(tenant_id, tokenHash);
+    await this.retailService.revokeCustomerSession(ctx, tokenHash);
     return { success: true };
   }
 
   // --- Cart ---
 
-  async getCart(tenant_id: string, customer_id: string) {
-    let cart = await this.retailService.getCart(tenant_id, customer_id);
+  async getCart(ctx: TenantContext, customer_id: string) {
+    let cart = await this.retailService.getCart(ctx, customer_id);
     if (!cart) {
-      cart = await this.retailService.createCart(tenant_id, customer_id);
+      cart = await this.retailService.createCart(ctx, customer_id);
     }
     return this.mapCartResponse(cart);
   }
 
-  async addToCart(tenant_id: string, customer_id: string, data: CartItemDto) {
-    let cart = await this.retailService.getCart(tenant_id, customer_id);
+  async addToCart(ctx: TenantContext, customer_id: string, data: CartItemDto) {
+    let cart = await this.retailService.getCart(ctx, customer_id);
     if (!cart) {
-      cart = await this.retailService.createCart(tenant_id, customer_id);
+      cart = await this.retailService.createCart(ctx, customer_id);
     }
 
     const { items: products } = await this.retailService.listProducts(
-      tenant_id,
+      ctx,
       { page: 1, pageSize: 200 },
     );
     const product = products.find((p) => p.id === data.product_id);
     if (!product) throw new NotFoundException("Product not found");
 
-    await this.retailService.updateCartItem(tenant_id, cart.id, data.product_id, {
+    await this.retailService.updateCartItem(ctx, cart.id, data.product_id, {
       quantity: new Prisma.Decimal(data.quantity),
       unit_price: new Prisma.Decimal(String(product.base_price)),
     });
 
-    return this.getCart(tenant_id, customer_id);
+    return this.getCart(ctx, customer_id);
   }
 
   async updateCartItem(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     item_id: string,
     data: UpdateCartItemDto,
   ) {
-    const cart = await this.retailService.getCart(tenant_id, customer_id);
+    const cart = await this.retailService.getCart(ctx, customer_id);
     if (!cart) throw new NotFoundException("Cart not found");
 
     const item = cart.items.find((i: any) => i.id === item_id);
     if (!item) throw new NotFoundException("Item not found in cart");
 
-    await this.retailService.updateCartItem(tenant_id, cart.id, item.product_id, {
+    await this.retailService.updateCartItem(ctx, cart.id, item.product_id, {
       quantity: new Prisma.Decimal(data.quantity),
       unit_price: new Prisma.Decimal(String(item.unit_price)),
     });
 
-    return this.getCart(tenant_id, customer_id);
+    return this.getCart(ctx, customer_id);
   }
 
-  async removeFromCart(tenant_id: string, customer_id: string, item_id: string) {
-    const cart = await this.retailService.getCart(tenant_id, customer_id);
+  async removeFromCart(ctx: TenantContext, customer_id: string, item_id: string) {
+    const cart = await this.retailService.getCart(ctx, customer_id);
     if (!cart) throw new NotFoundException("Cart not found");
 
-    await this.retailService.removeCartItem(tenant_id, cart.id, item_id);
-    return this.getCart(tenant_id, customer_id);
+    await this.retailService.removeCartItem(ctx, cart.id, item_id);
+    return this.getCart(ctx, customer_id);
   }
 
-  async clearCart(tenant_id: string, customer_id: string) {
-    const cart = await this.retailService.getCart(tenant_id, customer_id);
+  async clearCart(ctx: TenantContext, customer_id: string) {
+    const cart = await this.retailService.getCart(ctx, customer_id);
     if (!cart) return { success: true };
 
-    await this.retailService.clearCart(tenant_id, cart.id);
+    await this.retailService.clearCart(ctx, cart.id);
     return { success: true };
   }
 
   // --- Wishlist ---
 
-  async getWishlist(tenant_id: string, customer_id: string) {
-    let wishlist = await this.retailService.getWishlist(tenant_id, customer_id);
+  async getWishlist(ctx: TenantContext, customer_id: string) {
+    let wishlist = await this.retailService.getWishlist(ctx, customer_id);
     if (!wishlist) {
-      wishlist = await this.retailService.upsertWishlist(tenant_id, customer_id);
+      wishlist = await this.retailService.upsertWishlist(ctx, customer_id);
     }
     return this.mapWishlistResponse(wishlist);
   }
 
   async addToWishlist(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     data: WishlistItemDto,
   ) {
-    let wishlist = await this.retailService.getWishlist(tenant_id, customer_id);
+    let wishlist = await this.retailService.getWishlist(ctx, customer_id);
     if (!wishlist) {
-      wishlist = await this.retailService.upsertWishlist(tenant_id, customer_id);
+      wishlist = await this.retailService.upsertWishlist(ctx, customer_id);
     }
 
     let product_id = data.product_id;
     if (!product_id && data.sku) {
       const { items: products } = await this.retailService.listProducts(
-        tenant_id,
+        ctx,
         { page: 1, pageSize: 200 },
       );
       const product = products.find((p) => p.sku === data.sku);
@@ -351,33 +361,58 @@ export class RetailGatewayService {
 
     if (!product_id) throw new NotFoundException("Product not found");
 
-    await this.retailService.addWishlistItem(tenant_id, wishlist.id, product_id);
-    return this.getWishlist(tenant_id, customer_id);
+    await this.retailService.addWishlistItem(ctx, wishlist.id, product_id);
+    return this.getWishlist(ctx, customer_id);
   }
 
   async removeFromWishlist(
-    tenant_id: string,
+    ctx: TenantContext,
     customer_id: string,
     item_id: string,
   ) {
-    const wishlist = await this.retailService.getWishlist(tenant_id, customer_id);
+    const wishlist = await this.retailService.getWishlist(ctx, customer_id);
     if (!wishlist) throw new NotFoundException("Wishlist not found");
 
-    await this.retailService.removeWishlistItem(tenant_id, wishlist.id, item_id);
-    return this.getWishlist(tenant_id, customer_id);
+    await this.retailService.removeWishlistItem(ctx, wishlist.id, item_id);
+    return this.getWishlist(ctx, customer_id);
   }
 
   // --- Orders ---
 
   async createOrder(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
     payload: RetailPublicOrderRequestDto,
   ) {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
+    await this.authenticateChannel(ctx, clientId, clientSecret);
+    
+    // Find a system employee to act as cashier for public orders
+    const employees = await this.prisma.employees.findMany({
+      where: { tenant_id: ctx.tenant_id },
+      take: 1
+    });
+    console.log(`[Gateway] Found ${employees.length} employees for tenant ${ctx.tenant_id}`);
+    const systemEmployee = employees.find((e: any) => e.first_name === 'System') || employees[0];
+    const cashier_id = systemEmployee?.id || "";
+    console.log(`[Gateway] Using cashier_id: ${cashier_id}`);
 
-    const stores = await this.retailService.listStores(tenant_id);
+    // Find or create customer
+    let customerId = null;
+    if (payload.customer?.email) {
+      const customer = await this.retailService.findCustomerByEmail(ctx, payload.customer.email);
+      if (customer) {
+        customerId = customer.id;
+      } else {
+        const newCust = await this.retailService.createCustomer(ctx, {
+          email: payload.customer.email,
+          name: payload.customer.name || payload.customer.email
+        });
+        customerId = newCust.id;
+      }
+    }
+
+    const stores = await this.retailService.listStores(ctx);
     const store = stores[0];
     if (!store) {
       throw new NotFoundException(
@@ -389,7 +424,7 @@ export class RetailGatewayService {
       payload.items.map(async (item) => {
         // Optimization: Find by SKU directly instead of listing 200 products
         const product = await this.retailService.findProductBySku(
-          tenant_id,
+          ctx,
           item.sku,
         );
         if (!product) {
@@ -413,27 +448,27 @@ export class RetailGatewayService {
     const payment_method = this.normalizePaymentMethod(payload.payment_method);
 
     const order = await this.retailService.createOrder(
-      tenant_id,
+      ctx,
       store.location_id,
       {
         store_id: store.id,
-        terminal_id: "api-gateway",
-        customer_id: payload.customer?.email,
+        terminal_id: "",
+        customer_id: customerId,
         items: resolvedItems.map(i => ({ ...i, quantity: String(i.quantity) })),
         payment_method: payment_method,
         grand_total: grand_total.toString(),
       },
-      clientId ?? "api-gateway",
+      cashier_id,
     );
 
     // Calculate tax via service
-    const tax_amount = await this.retailService.calculateTax(tenant_id, order.id);
+    const tax_amount = await this.retailService.calculateTax(ctx, order.id);
 
     if (payload.payment_status === "PAID") {
       // NOTE: In a production environment, this should be verified against a payment provider webhook.
       // We log this as an 'EXTERNAL_TRUSTED_PAYMENT' for audit visibility.
       await this.retailService.processPayment(
-        tenant_id,
+        ctx,
         order.id,
         {
           amount: (order.grand_total as unknown as Prisma.Decimal).add(tax_amount),
@@ -457,9 +492,9 @@ export class RetailGatewayService {
     };
   }
 
-  async findCustomerById(tenant_id: string, customer_id: string) {
+  async findCustomerById(ctx: TenantContext, customer_id: string) {
     const customer = await this.retailService.findCustomerById(
-      tenant_id,
+      ctx,
       customer_id,
     );
     if (!customer) throw new NotFoundException("Customer not found");
@@ -469,12 +504,12 @@ export class RetailGatewayService {
   // --- Events ---
 
   async logEvent(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string,
     clientSecret: string,
     data: any,
   ) {
-    await this.authenticateChannel(tenant_id, clientId, clientSecret);
+    await this.authenticateChannel(ctx, clientId, clientSecret);
 
     // Add validation to prevent 500 errors on missing mandatory fields
     if (!data?.type || !data?.actor || !data?.timestamp) {
@@ -494,7 +529,7 @@ export class RetailGatewayService {
       },
     };
 
-    const entry = await this.retailService.logEvent(tenant_id, processedData);
+    const entry = await this.retailService.logEvent(ctx, processedData);
     return {
       success: true,
       data: {
@@ -507,11 +542,11 @@ export class RetailGatewayService {
   // --- Helpers ---
 
   async authenticateChannel(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
   ) {
-    return this.authenticate(tenant_id, clientId, clientSecret);
+    return this.authenticate(ctx, clientId, clientSecret);
   }
 
   private normalizePaymentMethod(
@@ -531,7 +566,7 @@ export class RetailGatewayService {
   }
 
   private async authenticate(
-    tenant_id: string,
+    ctx: TenantContext,
     clientId: string | undefined,
     clientSecret: string | undefined,
   ) {
@@ -542,7 +577,7 @@ export class RetailGatewayService {
     }
 
     const channel = await this.retailService.findChannelByClientId(
-      tenant_id,
+      ctx,
       clientId,
     );
     if (!channel) {
@@ -589,7 +624,7 @@ export class RetailGatewayService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_TTL_DAYS);
 
-    await this.retailService.createCustomerSession(customer.tenant_id, {
+    await this.retailService.createCustomerSession(customer.tenantContext || { tenant_id: customer.tenant_id }, {
       customer_id: customer.id,
       tokenHash,
       expires_at: expiresAt,

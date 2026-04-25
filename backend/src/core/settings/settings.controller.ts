@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { SettingsService } from './settings.service';
 import { TenantInterceptor } from '../../gateway/tenant.interceptor';
@@ -11,7 +11,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller('v1/settings')
+@Controller('settings')
 @UseGuards(TenantInterceptor, RolesGuard)
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
@@ -55,6 +55,27 @@ export class SettingsController {
       success: true,
       message: 'Preferences updated',
       data: await this.settingsService.updatePreferences(tenant_id, body, user_id || 'system'),
+    };
+  }
+
+  @Get('child-companies')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  async getChildCompanies(@Req() req: RequestWithTenant) {
+    const { tenant_id } = req.tenantContext;
+    return {
+      success: true,
+      data: await this.settingsService.getChildCompanies(tenant_id),
+    };
+  }
+
+  @Post('child-companies')
+  @Roles(UserRole.OWNER)
+  async createChildCompany(@Req() req: RequestWithTenant, @Body() body: any) {
+    const { tenant_id, user_id } = req.tenantContext;
+    return {
+      success: true,
+      message: 'Child company created',
+      data: await this.settingsService.createChildCompany(tenant_id, body, user_id || 'system'),
     };
   }
 }

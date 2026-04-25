@@ -1,4 +1,5 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { Injectable } from "@nestjs/common";
 import { PaymentStateMachine } from "./utils/payment-state.machine";
 import { AttachDisputeEvidenceDto } from "./dto/attach-dispute-evidence.dto";
 import { CreateDisputeDto } from "./dto/create-dispute.dto";
@@ -19,11 +20,9 @@ import { IFinanceRepository } from "../finance/repositories/finance.repository.i
 
 @Injectable()
 export class PaymentService {
-  // HARDENED: Strict Gateway Circuit Breaker
-  // Structure: { failure_count: number, last_failure_at: number }
   private readonly circuitBreakers = new Map<string, { failure_count: number, last_failure_at: number }>();
   private readonly FAILURE_THRESHOLD = 3;
-  private readonly CB_COOLDOWN_MS = 60000; // 60s
+  private readonly CB_COOLDOWN_MS = 60000;
   private readonly IS_STATELESS = process.env.VERCEL === "1";
 
   constructor(
@@ -36,7 +35,6 @@ export class PaymentService {
 
   public getAdapter(provider: string): PaymentAdapter {
     if (this.IS_STATELESS) {
-      // In Serverless mode, skip circuit breaker as memory is not persistent
       return this.resolveAdapter(provider);
     }
 
@@ -46,7 +44,6 @@ export class PaymentService {
       if (now - cb.last_failure_at < this.CB_COOLDOWN_MS) {
         throw new Error(`Gateway ${provider} is temporarily disabled due to multiple failures.`);
       } else {
-        // Cooldown passed, reset partially
         this.resetFailure(provider);
       }
     }
@@ -64,7 +61,7 @@ export class PaymentService {
   }
 
   private recordFailure(provider: string) {
-    if (this.IS_STATELESS) return; // Cannot rely on local memory in Vercel
+    if (this.IS_STATELESS) return;
 
     const cb = this.circuitBreakers.get(provider) || { failure_count: 0, last_failure_at: 0 };
     this.circuitBreakers.set(provider, {
@@ -81,75 +78,68 @@ export class PaymentService {
     this.resetFailure(provider);
   }
 
-  async getDashboard(tenant_id: string) {
-    return this.repository.getDashboard(tenant_id);
+  async getDashboard(ctx: TenantContext) {
+    return this.repository.getDashboard(ctx);
   }
 
-  async getTransactions(tenant_id: string) {
-    return this.repository.getTransactions(tenant_id);
+  async getTransactions(ctx: TenantContext) {
+    return this.repository.getTransactions(ctx);
   }
 
-  async createTransaction(
-    tenant_id: string,
+  async createTransaction(ctx: TenantContext,
     dto: CreatePaymentTransactionDto,
     actor_id: string,
   ) {
-    return this.repository.createTransaction(tenant_id, dto, actor_id);
+    return this.repository.createTransaction(ctx, dto, actor_id);
   }
 
-  async approveTransaction(
-    tenant_id: string,
+  async approveTransaction(ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ) {
-    return this.repository.approveTransaction(tenant_id, paymentId, actor_id);
+    return this.repository.approveTransaction(ctx, paymentId, actor_id);
   }
 
-  async rejectTransaction(
-    tenant_id: string,
+  async rejectTransaction(ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ) {
-    return this.repository.rejectTransaction(tenant_id, paymentId, actor_id);
+    return this.repository.rejectTransaction(ctx, paymentId, actor_id);
   }
 
-  async routeTransaction(
-    tenant_id: string,
+  async routeTransaction(ctx: TenantContext,
     paymentId: string,
     dto: RoutePaymentDto,
     actor_id: string,
   ) {
-    return this.repository.routeTransaction(tenant_id, paymentId, dto, actor_id);
+    return this.repository.routeTransaction(ctx, paymentId, dto, actor_id);
   }
 
-  async executeTransaction(
-    tenant_id: string,
+  async executeTransaction(ctx: TenantContext,
     paymentId: string,
     dto: ExecutePaymentDto,
     actor_id: string,
   ) {
     return this.repository.executeTransaction(
-      tenant_id,
+      ctx,
       paymentId,
       dto,
       actor_id,
     );
   }
 
-  async settleTransaction(
-    tenant_id: string,
+  async settleTransaction(ctx: TenantContext,
     paymentId: string,
     actor_id: string,
   ) {
-    return this.repository.settleTransaction(tenant_id, paymentId, actor_id);
+    return this.repository.settleTransaction(ctx, paymentId, actor_id);
   }
 
-  async settleBatch(
-    tenant_id: string,
+  async settleBatch(ctx: TenantContext,
     dto: { transactionIds: string[] },
     actor_id: string,
   ) {
-    const transactions = await this.repository.getTransactions(tenant_id);
+    const transactions = await this.repository.getTransactions(ctx);
     const toSettle = transactions.filter(
       (t) =>
         dto.transactionIds.includes(t.id) &&
@@ -160,15 +150,13 @@ export class PaymentService {
 
     let settledCount = 0;
     for (const tx of toSettle) {
-      // 1. Final Fee and Net Calculation
       const realizedFee = tx.platformFeePending || 0;
       const gatewayFee = tx.gatewayFee || 0;
       const totalAmount = Number(tx.amount);
-      const settledAmount = totalAmount - gatewayFee; // What actually reaches the bank
+      const settledAmount = totalAmount - gatewayFee;
 
-      // 2. Perform Fee Realization
       await this.repository.updateTransactionStatus(
-        tenant_id,
+        ctx,
         tx.id,
         { 
           status: "SETTLED",
@@ -178,17 +166,15 @@ export class PaymentService {
         actor_id,
       );
 
-      // Insert into Fee Ledger (Officialized Revenue)
       if (realizedFee > 0) {
         await this.repository.createPlatformFeeLedger(
-          tenant_id,
+          ctx,
           tx.id,
           realizedFee,
           tx.provider || "MANUAL"
         );
       }
 
-      // 3. ASYNC FINANCE LEDGER INTEGRATION
       const accountCode = tx.method === "CASH" ? "1000" : "1001";
       const description = tx.method === "CASH" ? "Cash dropped to Vault" : "Batch Settlement Deposit";
       
@@ -200,9 +186,9 @@ export class PaymentService {
           description: description,
         },
         {
-          accountCode: "1002", // POS Gateway Clearing (AR)
+          accountCode: "1002",
           debit: 0,
-          credit: totalAmount, // Credit the full gross amount
+          credit: totalAmount,
           description: "Clear Accounts Receivable",
         },
       ];
@@ -216,7 +202,7 @@ export class PaymentService {
         });
       }
 
-      await this.financeRepository.createJournal(tenant_id, {
+      await this.financeRepository.createJournal(ctx, {
         ref: `BATCH-${tx.id.substring(0, 8)}`,
         description: `${tx.method} Batch Settlement for ${tx.externalReference || tx.id}`,
         lines,
@@ -228,141 +214,133 @@ export class PaymentService {
     return { settledCount };
   }
 
-  async getProviders(tenant_id: string) {
-    return this.repository.getProviders(tenant_id);
+  async getProviders(ctx: TenantContext) {
+    return this.repository.getProviders(ctx);
   }
 
-  async updateProviderStatus(
-    tenant_id: string,
+  async updateProviderStatus(ctx: TenantContext,
     providerId: string,
     dto: UpdateProviderStatusDto,
     actor_id: string,
   ) {
     return this.repository.updateProviderStatus(
-      tenant_id,
+      ctx,
       providerId,
       dto,
       actor_id,
     );
   }
 
-  async runProviderHealthSweep(tenant_id: string, actor_id: string) {
-    return this.repository.runProviderHealthSweep(tenant_id, actor_id);
+  async runProviderHealthSweep(ctx: TenantContext, actor_id: string) {
+    return this.repository.runProviderHealthSweep(ctx, actor_id);
   }
 
-  async getRoutingPolicies(tenant_id: string) {
-    return this.repository.getRoutingPolicies(tenant_id);
+  async getRoutingPolicies(ctx: TenantContext) {
+    return this.repository.getRoutingPolicies(ctx);
   }
 
-  async getDevices(tenant_id: string) {
-    return this.repository.getDevices(tenant_id);
+  async getDevices(ctx: TenantContext) {
+    return this.repository.getDevices(ctx);
   }
 
-  async getDevicePools(tenant_id: string) {
-    return this.repository.getDevicePools(tenant_id);
+  async getDevicePools(ctx: TenantContext) {
+    return this.repository.getDevicePools(ctx);
   }
 
-  async updateDeviceStatus(
-    tenant_id: string,
+  async updateDeviceStatus(ctx: TenantContext,
     device_id: string,
     dto: UpdateDeviceStatusDto,
     actor_id: string,
   ) {
-    return this.repository.updateDeviceStatus(tenant_id, device_id, dto, actor_id);
+    return this.repository.updateDeviceStatus(ctx, device_id, dto, actor_id);
   }
 
-  async getRefunds(tenant_id: string) {
-    return this.repository.getRefunds(tenant_id);
+  async getRefunds(ctx: TenantContext) {
+    return this.repository.getRefunds(ctx);
   }
 
-  async createRefund(tenant_id: string, dto: CreateRefundDto, actor_id: string) {
-    return this.repository.createRefund(tenant_id, dto, actor_id);
+  async createRefund(ctx: TenantContext, dto: CreateRefundDto, actor_id: string) {
+    return this.repository.createRefund(ctx, dto, actor_id);
   }
 
-  async approveRefund(tenant_id: string, refundId: string, actor_id: string) {
-    return this.repository.approveRefund(tenant_id, refundId, actor_id);
+  async approveRefund(ctx: TenantContext, refundId: string, actor_id: string) {
+    return this.repository.approveRefund(ctx, refundId, actor_id);
   }
 
-  async executeRefund(tenant_id: string, refundId: string, actor_id: string) {
-    return this.repository.executeRefund(tenant_id, refundId, actor_id);
+  async executeRefund(ctx: TenantContext, refundId: string, actor_id: string) {
+    return this.repository.executeRefund(ctx, refundId, actor_id);
   }
 
-  async getDisputes(tenant_id: string) {
-    return this.repository.getDisputes(tenant_id);
+  async getDisputes(ctx: TenantContext) {
+    return this.repository.getDisputes(ctx);
   }
 
-  async createDispute(
-    tenant_id: string,
+  async createDispute(ctx: TenantContext,
     dto: CreateDisputeDto,
     actor_id: string,
   ) {
-    return this.repository.createDispute(tenant_id, dto, actor_id);
+    return this.repository.createDispute(ctx, dto, actor_id);
   }
 
-  async attachDisputeEvidence(
-    tenant_id: string,
+  async attachDisputeEvidence(ctx: TenantContext,
     disputeId: string,
     dto: AttachDisputeEvidenceDto,
     actor_id: string,
   ) {
     return this.repository.attachDisputeEvidence(
-      tenant_id,
+      ctx,
       disputeId,
       dto,
       actor_id,
     );
   }
 
-  async progressDispute(
-    tenant_id: string,
+  async progressDispute(ctx: TenantContext,
     disputeId: string,
     dto: ProgressDisputeDto,
     actor_id: string,
   ) {
-    return this.repository.progressDispute(tenant_id, disputeId, dto, actor_id);
+    return this.repository.progressDispute(ctx, disputeId, dto, actor_id);
   }
 
-  async resolveDispute(
-    tenant_id: string,
+  async resolveDispute(ctx: TenantContext,
     disputeId: string,
     dto: ResolveDisputeDto,
     actor_id: string,
   ) {
-    return this.repository.resolveDispute(tenant_id, disputeId, dto, actor_id);
+    return this.repository.resolveDispute(ctx, disputeId, dto, actor_id);
   }
 
-  async getChargebacks(tenant_id: string) {
-    return this.repository.getChargebacks(tenant_id);
+  async getChargebacks(ctx: TenantContext) {
+    return this.repository.getChargebacks(ctx);
   }
 
-  async getSettlements(tenant_id: string) {
-    return this.repository.getSettlements(tenant_id);
+  async getSettlements(ctx: TenantContext) {
+    return this.repository.getSettlements(ctx);
   }
 
-  async getEvidencePacks(tenant_id: string) {
-    return this.repository.getEvidencePacks(tenant_id);
+  async getEvidencePacks(ctx: TenantContext) {
+    return this.repository.getEvidencePacks(ctx);
   }
 
-  async getAuditEvents(tenant_id: string) {
-    return this.repository.getAuditEvents(tenant_id);
+  async getAuditEvents(ctx: TenantContext) {
+    return this.repository.getAuditEvents(ctx);
   }
 
-  // Unified Gateway & Settings
-  async getPaymentSettings(tenant_id: string) {
-    return this.repository.getPaymentSettings(tenant_id);
+  async getPaymentSettings(ctx: TenantContext) {
+    return this.repository.getPaymentSettings(ctx);
   }
 
-  async updatePaymentSettings(tenant_id: string, data: any) {
-    return this.repository.updatePaymentSettings(tenant_id, data);
+  async updatePaymentSettings(ctx: TenantContext, data: any) {
+    return this.repository.updatePaymentSettings(ctx, data);
   }
 
-  async getPaymentStatus(tenant_id: string) {
+  async getPaymentStatus(ctx: TenantContext) {
     const configuredProviders: string[] = [];
-    if (await this.stripeAdapter.isAvailable(tenant_id)) configuredProviders.push("STRIPE");
-    if (await this.xenditAdapter.isAvailable(tenant_id)) configuredProviders.push("XENDIT");
-    if (await this.midtransAdapter.isAvailable(tenant_id)) configuredProviders.push("MIDTRANS");
+    if (await this.stripeAdapter.isAvailable(ctx)) configuredProviders.push("STRIPE");
+    if (await this.xenditAdapter.isAvailable(ctx)) configuredProviders.push("XENDIT");
+    if (await this.midtransAdapter.isAvailable(ctx)) configuredProviders.push("MIDTRANS");
 
-    // Filter by circuit breaker
     const availableProviders = configuredProviders.filter(p => {
       const cb = this.circuitBreakers.get(p);
       if (!cb) return true;
@@ -373,24 +351,20 @@ export class PaymentService {
     const is_total_outage = configuredProviders.length > 0 && availableProviders.length === 0;
 
     return {
-      cash: true, // Always available
-      edc: true,  // Always available manually
+      cash: true,
+      edc: true,
       gateway: availableProviders.length > 0,
       available_providers: availableProviders,
       reason: is_total_outage ? "Gateway temporarily unavailable due to upstream connectivity issues" : undefined,
     };
   }
 
-  /**
-   * Non-blocking Cash Payment
-   */
-  async processCash(
-    tenant_id: string,
+  async processCash(ctx: TenantContext,
     dto: CreatePaymentTransactionDto,
     actor_id: string,
   ) {
     const transaction = await this.repository.createTransaction(
-      tenant_id,
+      ctx,
       {
         ...dto,
         method: "CASH",
@@ -399,9 +373,8 @@ export class PaymentService {
       actor_id,
     );
 
-    // Cash is immediately "paid" upon staff confirmation
     return this.repository.updateTransactionStatus(
-      tenant_id,
+      ctx,
       transaction.id,
       {
         status: "PAID",
@@ -411,16 +384,12 @@ export class PaymentService {
     );
   }
 
-  /**
-   * Non-blocking EDC Confirmation
-   */
-  async confirmEDC(
-    tenant_id: string,
+  async confirmEDC(ctx: TenantContext,
     dto: CreatePaymentTransactionDto,
     actor_id: string,
   ) {
     const transaction = await this.repository.createTransaction(
-      tenant_id,
+      ctx,
       {
         ...dto,
         method: "EDC",
@@ -429,9 +398,8 @@ export class PaymentService {
       actor_id,
     );
 
-    // EDC is considered paid once the staff enters the trace number
     return this.repository.updateTransactionStatus(
-      tenant_id,
+      ctx,
       transaction.id,
       {
         status: "PAID",
@@ -442,33 +410,26 @@ export class PaymentService {
     );
   }
 
-  /**
-   * Unified Generic Gateway Payment
-   */
-  async createGatewayPayment(
-    tenant_id: string,
+  async createGatewayPayment(ctx: TenantContext,
     dto: CreatePaymentTransactionDto,
     actor_id: string,
   ) {
-    const settings = await this.getPaymentSettings(tenant_id);
+    const settings = await this.getPaymentSettings(ctx);
     const provider = dto.provider || "STRIPE";
     
-    // Gateway Fallback Check
     if (provider !== "MANUAL") {
-       const status = await this.getPaymentStatus(tenant_id);
+       const status = await this.getPaymentStatus(ctx);
        if (!status.gateway || !status.available_providers.includes(provider)) {
-         throw new Error(`Gateway ${provider} is currently unavailable for tenant ${tenant_id}`);
+         throw new Error(`Gateway ${provider} is currently unavailable for tenant ${ctx.tenant_id}`);
        }
     }
 
     const adapter = this.getAdapter(provider);
-
-    // Calculate Fees (1% Zenvix Fee)
     const zenvixFee = Math.floor(dto.amount * 0.01);
     const feeAbsorbedBy = settings.fee_absorption_mode || "MERCHANT";
 
     const transaction = await this.repository.createTransaction(
-      tenant_id,
+      ctx,
       {
         ...dto,
         method: "GATEWAY",
@@ -481,19 +442,18 @@ export class PaymentService {
       const gatewayResult = await adapter.createPaymentIntent({
         amount: feeAbsorbedBy === "CUSTOMER" ? dto.amount + zenvixFee : dto.amount,
         currency: dto.currency || "IDR",
-        tenant_id,
+        tenant_id: ctx.tenant_id,
         order_id: transaction.id, 
         application_fee_amount: zenvixFee,
       });
 
-      // Update with External Ref 
       await this.repository.updateTransactionStatus(
-        tenant_id,
+        ctx,
         transaction.id,
         {
           status: "PENDING",
           external_ref: gatewayResult.transaction_id || gatewayResult.client_secret || "", 
-          platform_fee_pending: zenvixFee, // Hardened: Track as pending
+          platform_fee_pending: zenvixFee,
         },
         actor_id,
       );
@@ -508,52 +468,59 @@ export class PaymentService {
     }
   }
 
-  /**
-   * Universal Webhook Handler (via Adapters)
-   */
   async handleGatewayWebhookPayload(
     provider: string,
     payload: any,
     signature: string,
+    ctx?: TenantContext,
   ) {
     const adapter = this.getAdapter(provider);
-    
-    // Abstracted parsing & verification
     const result = await adapter.handleWebhook(
       payload, 
       signature, 
       process.env[`${provider.toUpperCase()}_WEBHOOK_SECRET`]
     );
 
-    // Provide a generic fallback event id. Real providers send specific event IDs.
-    const event_id = result.raw_event?.id || result.raw_event?.event_id || result.external_ref;
+    const event_id = (result as any).raw_event?.id || (result as any).raw_event?.event_id || result.external_ref;
 
-    // Idempotency check with Repository Event Logger
-    const isNewEvent = await this.repository.checkAndInsertWebhookEvent(event_id, provider, payload);
+    const isNewEvent = await this.repository.checkAndInsertWebhookEvent(event_id!, provider, payload);
     if (!isNewEvent) {
       console.warn(`[PaymentWebhook] Ignored duplicate event ${event_id} from ${provider}`);
       return;
     }
 
-    const tenant_id = result.raw_event?.data?.object?.metadata?.tenant_id || "zenvix"; 
-    
-    const transactions = await this.repository.getTransactions(tenant_id);
-    const tx = transactions.find((t) => t.externalRef === result.external_ref || t.id === result.external_ref);
+    let effectiveCtx = ctx;
+    let tx;
+
+    if (!effectiveCtx) {
+       tx = await this.repository.findTransactionByExternalRef(result.external_ref);
+       if (tx) {
+         effectiveCtx = {
+           tenant_id: tx.tenant_id,
+           company_id: tx.company_id,
+           branch_id: tx.branch_id,
+           ecommerce_id: tx.ecommerce_id,
+         } as TenantContext;
+       }
+    } else {
+       const transactions = await this.repository.getTransactions(effectiveCtx);
+       tx = transactions.find((t) => t.externalRef === result.external_ref || t.id === result.external_ref);
+    }
 
     if (!tx || tx.paymentStatus === "PAID") return; 
+    if (!effectiveCtx) {
+       console.error(`[PaymentWebhook] Could not determine tenant context for external_ref ${result.external_ref}`);
+       return;
+    }
 
-    return this.syncTransactionStatus(tenant_id, tx.id, {
+    return this.syncTransactionStatus(effectiveCtx, tx.id, {
       status: result.status,
       gateway_fee: result.gateway_fee,
       net_amount: result.net_amount,
     }, provider, "webhook");
   }
 
-  /**
-   * Unified transaction status synchronizer
-   */
-  async syncTransactionStatus(
-    tenant_id: string,
+  async syncTransactionStatus(ctx: TenantContext,
     transaction_id: string,
     data: {
       status: "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "SETTLED";
@@ -566,37 +533,34 @@ export class PaymentService {
     provider: string,
     actor_id: string,
   ) {
-    const transactions = await this.repository.getTransactions(tenant_id);
+    const transactions = await this.repository.getTransactions(ctx);
     const tx = transactions.find((t) => t.id === transaction_id);
     if (!tx) return;
 
-    // HARDENED: State Machine Enforcement
     PaymentStateMachine.validate(tx.paymentStatus || "PENDING", data.status);
 
-    // Idempotency: Avoid double processing
     if (tx.paymentStatus === data.status) {
       return tx;
     }
 
-    // MANDATORY: Full Financial Reversal for Refunds
     if (data.status === "REFUNDED") {
       const accountCode = tx.method === "CASH" ? "1000" : "1001";
       const totalAmount = Number(tx.amount);
       const feeAmount = tx.platformFeeRealized ? Number(tx.platformFeeRealized) : 0;
       const netReversal = totalAmount - feeAmount;
 
-      await this.financeRepository.createJournal(tenant_id, {
+      await this.financeRepository.createJournal(ctx, {
         ref: `REV-${tx.id.substring(0, 8)}`,
         description: `Full Refund Reversal [${tx.method}] - Gross: ${totalAmount}, Platform: ${feeAmount}`,
         lines: [
           {
-            accountCode: "4100", // Sales Returns
+            accountCode: "4100",
             debit: totalAmount,
             credit: 0,
             description: "Gross Revenue Reversal (DR 4100)",
           },
           {
-            accountCode: accountCode, // 1000/1001 Cash/Bank
+            accountCode: accountCode,
             debit: 0,
             credit: netReversal,
             description: "Cash/Bank Outflow Reversal",
@@ -604,7 +568,7 @@ export class PaymentService {
           ...(feeAmount > 0
             ? [
                 {
-                  accountCode: "4000-PLT", // Platform Revenue
+                  accountCode: "4000-PLT",
                   debit: feeAmount,
                   credit: 0,
                   description: "Zenvix Platform Fee Income Reversal",
@@ -616,7 +580,7 @@ export class PaymentService {
     }
 
     const updated = await this.repository.updateTransactionStatus(
-      tenant_id,
+      ctx,
       tx.id,
       data,
       actor_id,
@@ -625,11 +589,8 @@ export class PaymentService {
     return updated;
   }
 
-  /**
-   * Universal Refund Handler
-   */
-  async refundPayment(tenant_id: string, transaction_id: string, actor_id: string) {
-    const transactions = await this.repository.getTransactions(tenant_id);
+  async refundPayment(ctx: TenantContext, transaction_id: string, actor_id: string) {
+    const transactions = await this.repository.getTransactions(ctx);
     const tx = transactions.find((t) => t.id === transaction_id);
     if (!tx) throw new Error("Transaction not found");
 
@@ -657,18 +618,13 @@ export class PaymentService {
     }
 
     if (success) {
-      await this.syncTransactionStatus(tenant_id, tx.id, { status: "REFUNDED" }, providerName, actor_id);
+      await this.syncTransactionStatus(ctx, tx.id, { status: "REFUNDED" }, providerName, actor_id);
       return { success: true, method: tx.method };
     }
 
     throw new Error("Unable to refund given transaction state");
   }
 
-  // --- OBSERVABILITY ---
-
-  /**
-   * Get health of all payment providers (Circuit Breaker states)
-   */
   getProviderHealth() {
     const health: Record<string, any> = {
       STRIPE: { status: "HEALTHY" },
@@ -689,11 +645,8 @@ export class PaymentService {
     return health;
   }
 
-  /**
-   * Get overall payment statistics for management
-   */
-  async getPaymentStats(tenant_id: string) {
-    const transactions = await this.repository.getTransactions(tenant_id);
+  async getPaymentStats(ctx: TenantContext) {
+    const transactions = await this.repository.getTransactions(ctx);
     
     const stats = {
       volume: 0,
@@ -709,8 +662,8 @@ export class PaymentService {
 
     transactions.forEach(tx => {
       const status = tx.paymentStatus || "PENDING";
-      if (stats.counts[status] !== undefined) {
-        stats.counts[status]++;
+      if (stats.counts[status as keyof typeof stats.counts] !== undefined) {
+        stats.counts[status as keyof typeof stats.counts]++;
       }
 
       const amount = Number(tx.amount || 0);

@@ -67,7 +67,7 @@ export default function TreasuryMap() {
   }, [session.role]);
 
   const { sources, transfers, createTransfer, reconcileSettlement } =
-    useTreasury(session.tenantId, session);
+    useTreasury(session.tenant_id, session);
 
   const filteredSources = useMemo(
     () =>
@@ -94,8 +94,8 @@ export default function TreasuryMap() {
 
       // Audit log
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         `${isHighLevelRole ? "Saved" : "Requested"} Transfer: ${JSON.stringify(
           transferRequest,
         )}`,
@@ -117,8 +117,8 @@ export default function TreasuryMap() {
       if (!selectedSource) return;
       reconcileSettlement(selectedSource.id, reconcileAmount);
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         `Reconciled ${selectedSource.name} pending settlement: ${reconcileAmount}`,
       );
       setStatusMessage(`Successfully reconciled ${selectedSource.name}.`);

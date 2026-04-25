@@ -40,9 +40,9 @@ export default function ContractDesk() {
     setLoading(true);
     try {
       const [c, r, s] = await Promise.all([
-        procurementService.listContracts(session.tenantId, session),
-        procurementService.listRequisitions(session.tenantId, session),
-        procurementService.listSupplierMasters(session.tenantId, session),
+        procurementService.listContracts(session.tenant_id, session),
+        procurementService.listRequisitions(session.tenant_id, session),
+        procurementService.listSupplierMasters(session.tenant_id, session),
       ]);
       setContracts(c);
       setRequisitions(r);
@@ -52,7 +52,7 @@ export default function ContractDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -73,7 +73,7 @@ export default function ContractDesk() {
   const upsertContract = async () => {
     if (!requisitionId || !supplierId) return;
     try {
-      await procurementService.upsertContractForRequisition(session.tenantId, session, {
+      await procurementService.upsertContractForRequisition(session.tenant_id, session, {
         requisitionId,
         supplierId,
         notes,
@@ -92,7 +92,7 @@ export default function ContractDesk() {
 
   const approveLegal = async (contractId: string) => {
     try {
-      await procurementService.approveLegalContract(session.tenantId, session, contractId);
+      await procurementService.approveLegalContract(session.tenant_id, session, contractId);
       setStatusMessage("Legal approval recorded.");
       refresh();
     } catch (err) {
@@ -102,7 +102,7 @@ export default function ContractDesk() {
 
   const sign = async (contractId: string, party: "SUPPLIER" | "PROCUREMENT_HOD" | "FINANCE_HOD") => {
     try {
-      await procurementService.signContractParty(session.tenantId, session, contractId, party);
+      await procurementService.signContractParty(session.tenant_id, session, contractId, party);
       setStatusMessage(`Contract signed by ${party}.`);
       refresh();
     } catch (err) {

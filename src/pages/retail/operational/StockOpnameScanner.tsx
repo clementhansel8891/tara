@@ -48,18 +48,18 @@ const StockOpnameScanner = () => {
     const fetchData = async () => {
       try {
         const data = await retailService.listInventory(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         setProducts(data);
 
         // Fetch active shift
         const shifts = await retailService.listShifts(
-          session.tenantId,
+          session.tenant_id,
           session,
         );
         const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.userId,
+          (s) => s.status === "open" && s.employeeId === session.user_id,
         );
         setActiveShift(openShift || null);
       } catch (error) {
@@ -69,7 +69,7 @@ const StockOpnameScanner = () => {
       }
     };
     fetchData();
-  }, [session.tenantId, session.userId, session]);
+  }, [session.tenant_id, session.user_id, session]);
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,9 +122,9 @@ const StockOpnameScanner = () => {
     setIsSubmitting(true);
     try {
       await retailService.submitOpname(
-        session.tenantId!,
+        session.tenant_id!,
         session,
-        session.locationId || "unassigned",
+        session.location_id || "unassigned",
         history.map((h) => ({ sku: h.sku, actualCount: h.actualCount })),
         activeShift?.id,
       );

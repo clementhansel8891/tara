@@ -23,10 +23,10 @@ export default function FinanceInsights() {
     const companyId = "C1"; // Mock company for demo context
     const fiscalPeriodId = "P1";
 
-    financeService.getFinanceInsights(session.tenantId, session).then(setInsights).catch(console.error);
+    financeService.getFinanceInsights(session.tenant_id, session).then(setInsights).catch(console.error);
     financeService.verifyLedgerIntegrity(session, companyId).then(setAuditIntegrity).catch(console.error);
     financeService.getBudgetVariance(session, companyId, fiscalPeriodId).then(setBudgetVariance).catch(console.error);
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   const filteredInsights = useMemo(
     () =>

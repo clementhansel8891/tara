@@ -1,3 +1,4 @@
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { Injectable } from "@nestjs/common";
 import { CaptureLeadDto } from "./dto/capture-lead.dto";
 import { ConnectAccountDto } from "./dto/connect-account.dto";
@@ -18,30 +19,29 @@ export class MarketingService {
     private readonly auditService: AuditService,
   ) {}
 
-  async getDashboard(tenant_id: string) {
-    return this.repository.getDashboard(tenant_id);
+  async getDashboard(ctx: TenantContext) {
+    return this.repository.getDashboard(ctx);
   }
 
-  async getChannelPerformance(tenant_id: string) {
-    return this.repository.getChannelPerformance(tenant_id);
+  async getChannelPerformance(ctx: TenantContext) {
+    return this.repository.getChannelPerformance(ctx);
   }
 
-  async getCampaigns(tenant_id: string) {
-    return this.repository.getCampaigns(tenant_id);
+  async getCampaigns(ctx: TenantContext) {
+    return this.repository.getCampaigns(ctx);
   }
 
-  async createCampaign(
-    tenant_id: string,
+  async createCampaign(ctx: TenantContext,
     dto: CreateCampaignDto,
     actor_id: string,
   ) {
     const campaign = await this.repository.createCampaign(
-      tenant_id,
+      ctx,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "CREATE",
@@ -52,20 +52,19 @@ export class MarketingService {
     return campaign;
   }
 
-  async updateCampaignStatus(
-    tenant_id: string,
+  async updateCampaignStatus(ctx: TenantContext,
     campaignId: string,
     dto: UpdateCampaignStatusDto,
     actor_id: string,
   ) {
     const campaign = await this.repository.updateCampaignStatus(
-      tenant_id,
+      ctx,
       campaignId,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "UPDATE_STATUS",
@@ -76,22 +75,21 @@ export class MarketingService {
     return campaign;
   }
 
-  async getExecutions(tenant_id: string) {
-    return this.repository.getExecutions(tenant_id);
+  async getExecutions(ctx: TenantContext) {
+    return this.repository.getExecutions(ctx);
   }
 
-  async scheduleExecution(
-    tenant_id: string,
+  async scheduleExecution(ctx: TenantContext,
     dto: ScheduleExecutionDto,
     actor_id: string,
   ) {
     const execution = await this.repository.scheduleExecution(
-      tenant_id,
+      ctx,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "SCHEDULE",
@@ -102,20 +100,19 @@ export class MarketingService {
     return execution;
   }
 
-  async runExecution(
-    tenant_id: string,
+  async runExecution(ctx: TenantContext,
     executionId: string,
     dto: RunExecutionDto,
     actor_id: string,
   ) {
     const execution = await this.repository.runExecution(
-      tenant_id,
+      ctx,
       executionId,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "RUN",
@@ -126,14 +123,13 @@ export class MarketingService {
     return execution;
   }
 
-  async getLeads(tenant_id: string) {
-    return this.repository.getLeads(tenant_id);
+  async getLeads(ctx: TenantContext) {
+    return this.repository.getLeads(ctx);
   }
 
-  async captureLead(tenant_id: string, dto: CaptureLeadDto, actor_id: string) {
-    const lead = await this.repository.captureLead(tenant_id, dto, actor_id);
-    await this.auditService.log({
-      tenant_id,
+  async captureLead(ctx: TenantContext, dto: CaptureLeadDto, actor_id: string) {
+    const lead = await this.repository.captureLead(ctx, dto, actor_id);
+    await this.auditService.log({ tenant_id: ctx.tenant_id ,
       user_id: actor_id,
       module: "marketing",
       action: "CAPTURE",
@@ -144,18 +140,17 @@ export class MarketingService {
     return lead;
   }
 
-  async markLeadHandoffReady(
-    tenant_id: string,
+  async markLeadHandoffReady(ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ) {
     const lead = await this.repository.markLeadHandoffReady(
-      tenant_id,
+      ctx,
       lead_id,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "HANDOFF_READY",
@@ -165,14 +160,13 @@ export class MarketingService {
     return lead;
   }
 
-  async handoffLeadToSales(tenant_id: string, lead_id: string, actor_id: string) {
+  async handoffLeadToSales(ctx: TenantContext, lead_id: string, actor_id: string) {
     const lead = await this.repository.handoffLeadToSales(
-      tenant_id,
+      ctx,
       lead_id,
       actor_id,
     );
-    await this.auditService.log({
-      tenant_id,
+    await this.auditService.log({ tenant_id: ctx.tenant_id ,
       user_id: actor_id,
       module: "marketing",
       action: "HANDOFF_TO_SALES",
@@ -182,22 +176,21 @@ export class MarketingService {
     return lead;
   }
 
-  async getWorkflows(tenant_id: string) {
-    return this.repository.getWorkflows(tenant_id);
+  async getWorkflows(ctx: TenantContext) {
+    return this.repository.getWorkflows(ctx);
   }
 
-  async createWorkflow(
-    tenant_id: string,
+  async createWorkflow(ctx: TenantContext,
     dto: CreateWorkflowDto,
     actor_id: string,
   ) {
     const workflow = await this.repository.createWorkflow(
-      tenant_id,
+      ctx,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "CREATE",
@@ -208,20 +201,19 @@ export class MarketingService {
     return workflow;
   }
 
-  async updateWorkflowStatus(
-    tenant_id: string,
+  async updateWorkflowStatus(ctx: TenantContext,
     workflowId: string,
     dto: UpdateWorkflowStatusDto,
     actor_id: string,
   ) {
     const workflow = await this.repository.updateWorkflowStatus(
-      tenant_id,
+      ctx,
       workflowId,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "UPDATE_STATUS",
@@ -232,22 +224,21 @@ export class MarketingService {
     return workflow;
   }
 
-  async getConnectedAccounts(tenant_id: string) {
-    return this.repository.getConnectedAccounts(tenant_id);
+  async getConnectedAccounts(ctx: TenantContext) {
+    return this.repository.getConnectedAccounts(ctx);
   }
 
-  async connectAccount(
-    tenant_id: string,
+  async connectAccount(ctx: TenantContext,
     dto: ConnectAccountDto,
     actor_id: string,
   ) {
     const account = await this.repository.connectAccount(
-      tenant_id,
+      ctx,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "CONNECT",
@@ -258,20 +249,19 @@ export class MarketingService {
     return account;
   }
 
-  async updateAccountStatus(
-    tenant_id: string,
+  async updateAccountStatus(ctx: TenantContext,
     accountId: string,
     dto: UpdateAccountStatusDto,
     actor_id: string,
   ) {
     const account = await this.repository.updateAccountStatus(
-      tenant_id,
+      ctx,
       accountId,
       dto,
       actor_id,
     );
     await this.auditService.log({
-      tenant_id,
+      tenant_id: ctx.tenant_id,
       user_id: actor_id,
       module: "marketing",
       action: "UPDATE_STATUS",
@@ -282,22 +272,21 @@ export class MarketingService {
     return account;
   }
 
-  async getAttribution(tenant_id: string) {
-    return this.repository.getAttribution(tenant_id);
+  async getAttribution(ctx: TenantContext) {
+    return this.repository.getAttribution(ctx);
   }
 
-  async getAlerts(tenant_id: string) {
-    return this.repository.getAlerts(tenant_id);
+  async getAlerts(ctx: TenantContext) {
+    return this.repository.getAlerts(ctx);
   }
 
-  async acknowledgeAlert(tenant_id: string, alertId: string) {
-    return this.repository.acknowledgeAlert(tenant_id, alertId);
+  async acknowledgeAlert(ctx: TenantContext, alertId: string) {
+    return this.repository.acknowledgeAlert(ctx, alertId);
   }
 
-  async runHealthSweep(tenant_id: string, actor_id: string) {
-    const findings = await this.repository.runHealthSweep(tenant_id, actor_id);
-    await this.auditService.log({
-      tenant_id,
+  async runHealthSweep(ctx: TenantContext, actor_id: string) {
+    const findings = await this.repository.runHealthSweep(ctx, actor_id);
+    await this.auditService.log({ tenant_id: ctx.tenant_id ,
       user_id: actor_id,
       module: "marketing",
       action: "RUN_HEALTH_SWEEP",
@@ -308,7 +297,7 @@ export class MarketingService {
     return findings;
   }
 
-  async getAuditEvents(tenant_id: string) {
-    return this.repository.getAuditEvents(tenant_id);
+  async getAuditEvents(ctx: TenantContext) {
+    return this.repository.getAuditEvents(ctx);
   }
 }

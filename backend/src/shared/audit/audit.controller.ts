@@ -8,7 +8,7 @@ import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../roles';
 
 
-@Controller('v1/audit')
+@Controller('audit')
 @UseGuards(TenantInterceptor, RolesGuard)
 export class AuditController {
   constructor(

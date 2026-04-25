@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { IAccountBalanceSnapshotRepository } from '../repositories/interfaces/account-balance-snapshot.repository.interface';
 import { IFiscalPeriodRepository } from '../repositories/interfaces/fiscal.repository.interface';
@@ -11,8 +11,11 @@ export class AccountBalanceSnapshotService {
   private readonly logger = new Logger(AccountBalanceSnapshotService.name);
 
   constructor(
+    @Inject('IAccountBalanceSnapshotRepository')
     private readonly snapshotRepo: IAccountBalanceSnapshotRepository,
+    @Inject('IFiscalPeriodRepository')
     private readonly fiscalRepo: IFiscalPeriodRepository,
+    @Inject('IJournalRepository')
     private readonly journalRepo: IJournalRepository,
   ) {}
 

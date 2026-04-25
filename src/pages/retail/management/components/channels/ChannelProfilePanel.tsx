@@ -49,6 +49,7 @@ import { MarketplaceSettingsPanel } from "./MarketplaceSettingsPanel";
 import { HeadlessSettingsPanel } from "./HeadlessSettingsPanel";
 import { WebhookSettingsPanel } from "./WebhookSettingsPanel";
 import { WebhookBridgeSettingsPanel } from "./WebhookBridgeSettingsPanel";
+import { ChannelProductWizard } from "./ChannelProductWizard";
 
 const PLATFORM_ICONS: Record<string, React.ElementType> = {
   HEADLESS: Globe,
@@ -247,6 +248,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
 
   const tabs = [
     { id: "overview", label: "Overview", icon: LayoutGrid },
+    { id: "products", label: "Products", icon: ShoppingBag },
     { id: "settings", label: "Settings", icon: Settings2 },
     { id: "webhooks", label: "Webhooks", icon: Zap },
     { id: "danger", label: "Danger Zone", icon: AlertTriangle },
@@ -405,6 +407,15 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                 </Button>
               </div>
             </div>
+          </TabsContent>
+
+          {/* ── Products Tab ── */}
+          <TabsContent value="products" className="p-0 mt-0 h-full">
+            <ChannelProductWizard 
+              channelId={channel.id} 
+              session={session} 
+              onFinished={() => setActiveTab("overview")}
+            />
           </TabsContent>
 
           {/* ── Settings Tab ── */}

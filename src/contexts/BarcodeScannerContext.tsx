@@ -60,7 +60,7 @@ export const BarcodeScannerProvider: React.FC<BarcodeScannerProviderProps> = ({
       }
 
       // Buffer printable characters
-      if (e.key.length === 1) {
+      if (e.key?.length === 1) {
         // If it's been a while since the last key, it might be the start of a new scan or manual typing
         // We reset the buffer if the gap is too large (> 100ms)
         if (diff > 100) {

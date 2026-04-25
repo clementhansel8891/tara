@@ -8,7 +8,7 @@ import { TenantContext } from '../../../gateway/tenant-context.interface';
 import { UserRole } from '../../../shared/roles';
 import { Roles } from '../../../shared/decorators/roles.decorator';
 
-@Controller('v1/finance/compliance')
+@Controller('finance/compliance')
 @UseGuards(TenantGuard, RolesGuard)
 export class ComplianceController {
   constructor(

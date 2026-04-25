@@ -24,4 +24,6 @@ export interface ISettingsRepository {
   updateProfile(tenant_id: string, data: OrgProfileDto): Promise<any>;
   getPreferences(tenant_id: string): Promise<any>;
   updatePreferences(tenant_id: string, data: TenantPreferencesDto): Promise<any>;
+  createChildCompany(tenant_id: string, data: any, user_id: string): Promise<any>;
+  getChildCompanies(tenant_id: string): Promise<any[]>;
 }

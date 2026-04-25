@@ -151,7 +151,7 @@ export class SchedulingService {
   // --- Overrides & Swaps ---
 
   async listOverrides(tenant_id: string): Promise<any[]> {
-    return this.prisma.emergencyOverride.findMany({
+    return this.prisma.emergency_overrides.findMany({
       where: { tenant_id },
       orderBy: { start_date: "desc" },
     });
@@ -160,7 +160,7 @@ export class SchedulingService {
   async saveOverride(tenant_id: string, data: any, user_id: string) {
     const event_reference_id = `EVT-HR-OVERRIDE-${Date.now()}`;
     return this.prisma.$transaction(async (tx: any) => {
-      const override = await tx.emergencyOverride.upsert({
+      const override = await tx.emergency_overrides.upsert({
         where: { id: data.id || `ovr_${Date.now()}` },
         update: {
           reason: data.reason,
@@ -194,7 +194,7 @@ export class SchedulingService {
   }
 
   async listSwaps(tenant_id: string): Promise<any[]> {
-    return this.prisma.shiftSwapRequest.findMany({
+    return this.prisma.shift_swap_requests.findMany({
       where: { tenant_id },
       orderBy: { created_at: "desc" },
     });
@@ -203,7 +203,7 @@ export class SchedulingService {
   async saveSwapRequest(tenant_id: string, data: any, user_id: string) {
     const event_reference_id = `EVT-HR-SWAP-${Date.now()}`;
     return this.prisma.$transaction(async (tx: any) => {
-      const swap = await tx.shiftSwapRequest.upsert({
+      const swap = await tx.shift_swap_requests.upsert({
         where: { id: data.id || `swp_${Date.now()}` },
         update: {
           status: data.status,
@@ -235,7 +235,7 @@ export class SchedulingService {
   }
 
   async listAllShifts(tenant_id: string): Promise<any[]> {
-    return this.prisma.shift.findMany({
+    return this.prisma.shifts.findMany({
       where: {
         tenant_id,
         deleted_at: null,
@@ -246,12 +246,12 @@ export class SchedulingService {
   async listAllAssignments(tenant_id: string, employee_id?: string): Promise<any[]> {
     const where: any = { tenant_id };
     if (employee_id) where.employee_id = employee_id;
-    return this.prisma.scheduleAssignment.findMany({
+    return this.prisma.schedule_assignments.findMany({
       where,
       include: {
-        shift: true,
-        employee: true,
-        location: true,
+        shifts: true,
+        employees: true,
+        locations: true,
       },
     });
   }

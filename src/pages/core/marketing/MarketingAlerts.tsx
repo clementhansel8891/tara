@@ -18,14 +18,14 @@ export default function MarketingAlerts() {
 
   const refresh = useCallback(async () => {
     try {
-      const a = await marketingService.listAlerts(session.tenantId, session);
+      const a = await marketingService.listAlerts(session.tenant_id, session);
       setAlerts(a);
     } catch (err) {
       console.error("Failed to fetch marketing alerts:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -61,7 +61,7 @@ export default function MarketingAlerts() {
             <Button
               variant="outline"
               onClick={async () => {
-                await marketingService.runHealthSweep(session.tenantId, session);
+                await marketingService.runHealthSweep(session.tenant_id, session);
                 refresh();
               }}
             >
@@ -112,7 +112,7 @@ export default function MarketingAlerts() {
                         variant="outline"
                         onClick={async () => {
                           await marketingService.acknowledgeAlert(
-                            session.tenantId,
+                            session.tenant_id,
                             session,
                             item.id,
                           );

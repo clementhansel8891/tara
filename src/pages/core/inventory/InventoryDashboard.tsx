@@ -21,8 +21,8 @@ export default function InventoryDashboard() {
   const refresh = useCallback(async () => {
     try {
       const [m, a] = await Promise.all([
-        inventoryService.getDashboard(session.tenantId, session),
-        inventoryService.listAlerts(session.tenantId, session),
+        inventoryService.getDashboard(session.tenant_id, session),
+        inventoryService.listAlerts(session.tenant_id, session),
       ]);
       setMetrics(m);
       setAlerts(a);
@@ -31,7 +31,7 @@ export default function InventoryDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();
@@ -58,7 +58,7 @@ export default function InventoryDashboard() {
         primaryAction={
           <Button
             onClick={async () => {
-              await inventoryService.runLowStockScan(session.tenantId, session);
+              await inventoryService.runLowStockScan(session.tenant_id, session);
               refresh();
             }}
           >
@@ -69,7 +69,7 @@ export default function InventoryDashboard() {
           <Button
             variant="outline"
             onClick={async () => {
-              await inventoryService.runExpiryScan(session.tenantId, session);
+              await inventoryService.runExpiryScan(session.tenant_id, session);
               refresh();
             }}
           >

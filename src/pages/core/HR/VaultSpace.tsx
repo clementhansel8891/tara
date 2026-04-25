@@ -29,13 +29,13 @@ export default function VaultSpace() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const items = await documentService.listVaultItems(session.tenantId, session);
+        const items = await documentService.listVaultItems(session.tenant_id, session);
         const filtered = search
           ? items.filter((item) => item.title.toLowerCase().includes(search.toLowerCase()))
           : items;
         setDocuments(filtered);
 
-        const comp = await legalService.getComplianceCases(session.tenantId, session);
+        const comp = await legalService.getComplianceCases(session.tenant_id, session);
         setCompliance(comp);
       } catch (error) {
         console.error("Failed to load vault data", error);
@@ -52,7 +52,7 @@ export default function VaultSpace() {
         primaryAction={
           <Button
             onClick={async () => {
-              await documentService.createVaultItem(session.tenantId, session, {
+              await documentService.createVaultItem(session.tenant_id, session, {
                 title: "Employment Pack",
                 type: "CONTRACT",
               });
@@ -81,7 +81,7 @@ export default function VaultSpace() {
           <Button
             variant="outline"
             onClick={async () => {
-              await documentService.exportVault(session.tenantId, session);
+              await documentService.exportVault(session.tenant_id, session);
             }}
           >
             Export Staff Report
@@ -134,10 +134,10 @@ export default function VaultSpace() {
                   size="sm"
                   variant="outline"
                   onClick={async () => {
-                    await workflowService.createRequest(session.tenantId, session, {
+                    await workflowService.createRequest(session.tenant_id, session, {
                       entityType: "CONTRACT",
                       entityId: contract.id,
-                      makerDept: session.departmentId,
+                      makerDept: session.department_id,
                       destinationDept: "LEGAL",
                       notes: "VaultSpace routing",
                     });
@@ -191,14 +191,14 @@ export default function VaultSpace() {
             <Button
               onClick={async () => {
                 if (actionType === "contract") {
-                  await legalService.createContract(session.tenantId, session, {
+                  await legalService.createContract(session.tenant_id, session, {
                     title: docTitle,
                     type: "internal",
                     status: "draft",
                   });
                 }
                 if (actionType === "attach") {
-                  await documentService.attachDocument(session.tenantId, session, {
+                  await documentService.attachDocument(session.tenant_id, session, {
                     title: docTitle,
                     type: docType,
                     metadata: notes ? { notes } : undefined,

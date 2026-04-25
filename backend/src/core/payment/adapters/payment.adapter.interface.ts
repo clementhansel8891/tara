@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+
 export interface PaymentIntentResult {
   transaction_id?: string;
   client_secret?: string;
@@ -34,5 +36,5 @@ export interface PaymentAdapter {
 
   refund(external_ref: string, amount?: number): Promise<boolean>;
 
-  isAvailable(tenant_id: string): Promise<boolean>;
+  isAvailable(ctx: TenantContext): Promise<boolean>;
 }

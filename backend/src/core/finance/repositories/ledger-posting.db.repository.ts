@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../persistence/prisma.service';
 import { ILedgerPostingRepository } from './interfaces/ledger-posting.repository.interface';
@@ -7,7 +7,7 @@ import { LedgerPostingStatus } from '../domain/finance.constants';
 
 @Injectable()
 export class LedgerPostingDbRepository implements ILedgerPostingRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   private get db(): Prisma.TransactionClient {
     return this.prisma as Prisma.TransactionClient;

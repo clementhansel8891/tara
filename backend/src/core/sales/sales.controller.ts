@@ -28,12 +28,13 @@ import { UpdateLeadStatusDto } from "./dto/update-lead-status.dto";
 import { SalesService } from "./sales.service";
 import { PrismaService } from "../../persistence/prisma.service";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/sales")
+@Controller('sales')
 @UseInterceptors(TenantInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard)
 @RequiredModule("sales")
@@ -46,7 +47,7 @@ export class SalesController {
   @Get("dashboard")
   async getDashboard(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const dashboardData = await this.salesService.getDashboard(tenant_id);
+    const dashboardData = await this.salesService.getDashboard(request.tenantContext);
 
     // Core Module Integration: Retail Contributions
     const moduleContributions: any = {};
@@ -57,7 +58,7 @@ export class SalesController {
 
       const retailRevenueAgg = await this.prisma.retail_orders.aggregate({
         where: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(request.tenantContext),
           status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
           created_at: { gte: startOfWeek },
         },
@@ -66,7 +67,7 @@ export class SalesController {
 
       const retailOrders = await this.prisma.retail_orders.count({
         where: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(request.tenantContext),
           created_at: { gte: startOfWeek },
         },
       });
@@ -93,7 +94,7 @@ export class SalesController {
     return {
       success: true,
       tenant_id,
-      data: await this.salesService.getManagerMetrics(tenant_id),
+      data: await this.salesService.getManagerMetrics(request.tenantContext),
     };
   }
 
@@ -103,7 +104,7 @@ export class SalesController {
     return {
       success: true,
       tenant_id,
-      data: await this.salesService.getExecutiveForecast(tenant_id),
+      data: await this.salesService.getExecutiveForecast(request.tenantContext),
     };
   }
 
@@ -113,14 +114,14 @@ export class SalesController {
     return {
       success: true,
       tenant_id,
-      data: await this.salesService.getNextBestActions(tenant_id),
+      data: await this.salesService.getNextBestActions(request.tenantContext),
     };
   }
 
   @Get("leads")
   async getLeads(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getLeads(tenant_id);
+    const data = await this.salesService.getLeads(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -134,7 +135,7 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Lead created",
-      data: await this.salesService.createLead(tenant_id, dto, user_id),
+      data: await this.salesService.createLead(request.tenantContext, dto, user_id),
     };
   }
 
@@ -150,7 +151,7 @@ export class SalesController {
       tenant_id,
       message: "Lead status updated",
       data: await this.salesService.updateLeadStatus(
-        tenant_id,
+        request.tenantContext,
         lead_id,
         dto,
         user_id,
@@ -169,7 +170,7 @@ export class SalesController {
       tenant_id,
       message: "Lead converted to opportunity",
       data: await this.salesService.convertLead(
-        tenant_id,
+        request.tenantContext,
         lead_id,
         user_id || "system",
       ),
@@ -179,7 +180,7 @@ export class SalesController {
   @Get("opportunities")
   async getOpportunities(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getOpportunities(tenant_id);
+    const data = await this.salesService.getOpportunities(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -193,7 +194,7 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Opportunity created",
-      data: await this.salesService.createOpportunity(tenant_id, dto, user_id),
+      data: await this.salesService.createOpportunity(request.tenantContext, dto, user_id),
     };
   }
 
@@ -209,7 +210,7 @@ export class SalesController {
       tenant_id,
       message: "Opportunity stage updated",
       data: await this.salesService.moveOpportunityStage(
-        tenant_id,
+        request.tenantContext,
         opportunityId,
         dto,
         user_id,
@@ -229,7 +230,7 @@ export class SalesController {
       tenant_id,
       message: "Opportunity close operation complete",
       data: await this.salesService.closeOpportunity(
-        tenant_id,
+        request.tenantContext,
         opportunityId,
         dto,
         user_id,
@@ -240,7 +241,7 @@ export class SalesController {
   @Get("quotes")
   async getQuotes(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getQuotes(tenant_id);
+    const data = await this.salesService.getQuotes(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -254,7 +255,7 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Quote created",
-      data: await this.salesService.createQuote(tenant_id, dto, user_id),
+      data: await this.salesService.createQuote(request.tenantContext, dto, user_id),
     };
   }
 
@@ -268,7 +269,7 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Quote submitted for approval",
-      data: await this.salesService.submitQuote(tenant_id, quoteId, user_id),
+      data: await this.salesService.submitQuote(request.tenantContext, quoteId, user_id),
     };
   }
 
@@ -283,14 +284,14 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Quote decision recorded",
-      data: await this.salesService.decideQuote(tenant_id, quoteId, dto, user_id),
+      data: await this.salesService.decideQuote(request.tenantContext, quoteId, dto, user_id),
     };
   }
 
   @Get("timeline")
   async getTimeline(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getTimeline(tenant_id);
+    const data = await this.salesService.getTimeline(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -304,14 +305,14 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Timeline event created",
-      data: await this.salesService.createTimelineEvent(tenant_id, dto, user_id),
+      data: await this.salesService.createTimelineEvent(request.tenantContext, dto, user_id),
     };
   }
 
   @Get("tasks")
   async getTasks(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getTasks(tenant_id);
+    const data = await this.salesService.getTasks(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -325,7 +326,7 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Task created",
-      data: await this.salesService.createTask(tenant_id, dto, user_id),
+      data: await this.salesService.createTask(request.tenantContext, dto, user_id),
     };
   }
 
@@ -339,21 +340,21 @@ export class SalesController {
       success: true,
       tenant_id,
       message: "Task marked done",
-      data: await this.salesService.completeTask(tenant_id, taskId, user_id),
+      data: await this.salesService.completeTask(request.tenantContext, taskId, user_id),
     };
   }
 
   @Get("orders")
   async getOrders(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getOrders(tenant_id);
+    const data = await this.salesService.getOrders(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
   @Get("alerts")
   async getAlerts(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getAlerts(tenant_id);
+    const data = await this.salesService.getAlerts(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -361,7 +362,7 @@ export class SalesController {
   async runSlaSweep(@Req() request: RequestWithTenant) {
     const { tenant_id, user_id } = request.tenantContext;
     const data = await this.salesService.runSlaSweep(
-      tenant_id,
+      request.tenantContext,
       user_id || "system",
     );
     return {
@@ -376,8 +377,7 @@ export class SalesController {
   @Get("audit-events")
   async getAuditEvents(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-    const data = await this.salesService.getAuditEvents(tenant_id);
+    const data = await this.salesService.getAuditEvents(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 }
-

@@ -37,7 +37,7 @@ export const useGovernance = (
         promoId,
         version: 1, // Mocked version
         timestamp: new Date().toISOString(),
-        actor: session.userId || "Unknown Actor",
+        actor: session.user_id || "Unknown Actor",
         role: role as DepartmentRole,
         action,
         details,

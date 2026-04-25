@@ -93,7 +93,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
           onChange={(event) => setSearch(event.target.value)}
           className="min-w-[240px]"
         />
-        <Badge variant="outline">Dept: {session.departmentId}</Badge>
+        <Badge variant="outline">Dept: {session.department_id}</Badge>
       </div>
 
       <Tabs value={tab} onValueChange={(value) => setTab(value as "ALL" | WorkflowStatus)}>

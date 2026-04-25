@@ -28,9 +28,7 @@ import { useDbPersistence } from "../../shared/persistence.mode";
     },
     {
       provide: IProvisioningRepository,
-      useClass: useDbPersistence()
-        ? ProvisioningDbRepository
-        : ProvisioningMockRepository,
+      useClass: ProvisioningDbRepository,
     },
   ],
   exports: [AuthService, ModuleStateGuard, BranchGatingGuard], // Export in case other modules need to decode JWTs or enforce architectural gates

@@ -35,8 +35,8 @@ export default function LexBoard() {
     const loadData = async () => {
       try {
         const [comp, handoffs] = await Promise.all([
-          legalService.getComplianceCases(session.tenantId, session),
-          procurementService.listLegalHandoffs(session.tenantId, session),
+          legalService.getComplianceCases(session.tenant_id, session),
+          procurementService.listLegalHandoffs(session.tenant_id, session),
         ]);
         setCompliance(comp);
         setProcurementHandoffs(handoffs);
@@ -45,7 +45,7 @@ export default function LexBoard() {
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
 
   const filteredContracts = compliance.contracts.filter((contract) =>
     search ? contract.title.toLowerCase().includes(search.toLowerCase()) : true,
@@ -69,10 +69,10 @@ export default function LexBoard() {
             onClick={async () => {
               const target = compliance.contracts[0];
               if (target) {
-                await workflowService.createRequest(session.tenantId, session, {
+                await workflowService.createRequest(session.tenant_id, session, {
                   entityType: "CONTRACT",
                   entityId: target.id,
-                  makerDept: session.departmentId,
+                  makerDept: session.department_id,
                   destinationDept: "LEGAL",
                   notes: "LexBoard routing",
                 });
@@ -86,7 +86,7 @@ export default function LexBoard() {
             onClick={async () => {
               const target = compliance.contracts[0];
               if (target) {
-                await legalService.requestRenewal(session.tenantId, session, target.id);
+                await legalService.requestRenewal(session.tenant_id, session, target.id);
                 setVersion((prev) => prev + 1);
               }
             }}
@@ -141,7 +141,7 @@ export default function LexBoard() {
                   disabled={handoff.status !== "PENDING_LEGAL_ACK"}
                   onClick={async () => {
                     await procurementService.acknowledgeLegalHandoff(
-                      session.tenantId,
+                      session.tenant_id,
                       session,
                       handoff.id,
                     );
@@ -166,10 +166,10 @@ export default function LexBoard() {
                   size="sm"
                   variant="outline"
                   onClick={async () => {
-                    await workflowService.createRequest(session.tenantId, session, {
+                    await workflowService.createRequest(session.tenant_id, session, {
                       entityType: "CONTRACT",
                       entityId: contract.id,
-                      makerDept: session.departmentId,
+                      makerDept: session.department_id,
                       destinationDept: "LEGAL",
                       notes: "LexBoard approval",
                     });
@@ -217,7 +217,7 @@ export default function LexBoard() {
               title="Template Preview"
               content={buildTemplatePreview(selectedTemplate)}
               onSave={async () => {
-                await legalService.createContract(session.tenantId, session, {
+                await legalService.createContract(session.tenant_id, session, {
                   title: "Generated Contract",
                   type: "internal",
                   status: "draft",

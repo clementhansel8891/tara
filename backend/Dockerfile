@@ -7,9 +7,9 @@ WORKDIR /app
 RUN apk add --no-cache openssl shadow
 
 COPY backend/package*.json ./
-COPY prisma ./prisma/
+COPY backend/prisma ./prisma/
 
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 COPY backend/ .
 

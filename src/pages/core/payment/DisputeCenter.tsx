@@ -23,9 +23,9 @@ export default function DisputeCenter() {
     const fetchData = async () => {
       try {
         const [transactionsData, disputesData, chargebacksData] = await Promise.all([
-          paymentService.listTransactions(session.tenantId, session),
-          paymentService.listDisputes(session.tenantId, session),
-          paymentService.listChargebacks(session.tenantId, session),
+          paymentService.listTransactions(session.tenant_id, session),
+          paymentService.listDisputes(session.tenant_id, session),
+          paymentService.listChargebacks(session.tenant_id, session),
         ]);
         setTransactions(transactionsData);
         setDisputes(disputesData);
@@ -62,7 +62,7 @@ export default function DisputeCenter() {
             onClick={() => {
               const selected = eligible.find((item) => item.id === paymentId);
               if (!selected || Number(amount) <= 0 || !reason) return;
-              paymentService.openDispute(session.tenantId, session, {
+              paymentService.openDispute(session.tenant_id, session, {
                 paymentId: selected.id,
                 amount: Number(amount),
                 reason,
@@ -106,13 +106,13 @@ export default function DisputeCenter() {
                       value={evidence}
                       onChange={(event) => setEvidence(event.target.value)}
                     />
-                    <Button size="sm" variant="outline" onClick={() => { if (!evidence) return; paymentService.attachDisputeEvidence(session.tenantId, session, item.id, evidence); setEvidence(""); setRefreshKey((value) => value + 1); }}>
+                    <Button size="sm" variant="outline" onClick={() => { if (!evidence) return; paymentService.attachDisputeEvidence(session.tenant_id, session, item.id, evidence); setEvidence(""); setRefreshKey((value) => value + 1); }}>
                       Attach
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => { const next = nextStatus(item.status); if (next === item.status) return; paymentService.progressDispute(session.tenantId, session, item.id, next); setRefreshKey((value) => value + 1); }} disabled={["PROVIDER_SUBMITTED", "RESOLVED", "REJECTED"].includes(item.status)}>
+                    <Button size="sm" variant="outline" onClick={() => { const next = nextStatus(item.status); if (next === item.status) return; paymentService.progressDispute(session.tenant_id, session, item.id, next); setRefreshKey((value) => value + 1); }} disabled={["PROVIDER_SUBMITTED", "RESOLVED", "REJECTED"].includes(item.status)}>
                       Next Stage
                     </Button>
-                    <Button size="sm" onClick={() => { paymentService.resolveDispute(session.tenantId, session, item.id, "WON"); setRefreshKey((value) => value + 1); }} disabled={item.status !== "PROVIDER_SUBMITTED"}>
+                    <Button size="sm" onClick={() => { paymentService.resolveDispute(session.tenant_id, session, item.id, "WON"); setRefreshKey((value) => value + 1); }} disabled={item.status !== "PROVIDER_SUBMITTED"}>
                       Resolve
                     </Button>
                   </div>

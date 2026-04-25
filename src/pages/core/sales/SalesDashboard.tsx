@@ -26,9 +26,9 @@ export default function SalesDashboard() {
     try {
       setLoading(true);
       const [m, n, l] = await Promise.all([
-        salesService.getDashboard(session.tenantId, session),
-        salesService.getNextBestActions(session.tenantId, session),
-        salesService.listLeads(session.tenantId, session),
+        salesService.getDashboard(session.tenant_id, session),
+        salesService.getNextBestActions(session.tenant_id, session),
+        salesService.listLeads(session.tenant_id, session),
       ]);
       setMetrics(m);
       setNextActions(n);
@@ -42,7 +42,7 @@ export default function SalesDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -78,7 +78,7 @@ export default function SalesDashboard() {
             <Button
               variant="outline"
               onClick={async () => {
-                await salesService.runSlaSweep(session.tenantId, session);
+                await salesService.runSlaSweep(session.tenant_id, session);
                 refresh();
               }}
             >

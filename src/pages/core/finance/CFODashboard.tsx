@@ -72,8 +72,8 @@ const CFODashboardContent: React.FC = () => {
   useEffect(() => {
     if (state.companyId && state.periodId) {
       audit.log({
-        tenantId: session.tenantId,
-        actorId: session.userId,
+        tenantId: session.tenant_id,
+        actorId: session.user_id,
         action: "FINANCE_DASHBOARD_VIEW",
         entityType: "FINANCE_DASHBOARD",
         before: { correlationId: state.correlationId, snapshotSequence: state.snapshotSequence },
@@ -84,8 +84,8 @@ const CFODashboardContent: React.FC = () => {
   useEffect(() => {
     if (summary?.period?.status === "CLOSED") {
       audit.log({
-        tenantId: session.tenantId,
-        actorId: session.userId,
+        tenantId: session.tenant_id,
+        actorId: session.user_id,
         action: "FINANCE_CLOSED_PERIOD_VIEW",
         entityType: "FINANCE_PERIOD",
         entityId: state.periodId,

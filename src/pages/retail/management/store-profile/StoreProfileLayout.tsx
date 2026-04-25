@@ -92,21 +92,21 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
     }
 
     if (role === "store_manager") {
-      if (session.locationId) {
-        setSelectedStoreId(session.locationId);
+      if (session.location_id) {
+        setSelectedStoreId(session.location_id);
       } else {
         // If manager has no assigned store, maybe redirect or show error
         console.warn("Store Manager has no assigned locationId in session");
       }
     }
-  }, [session, session.locationId, navigate, toast]);
+  }, [session, session.location_id, navigate, toast]);
 
   // 2. Data Fetching
   useEffect(() => {
     const fetchStores = async () => {
-      if (!session.tenantId) return;
+      if (!session.tenant_id) return;
       try {
-        const data = await retailService.listStores(session.tenantId, session);
+        const data = await retailService.listStores(session.tenant_id, session);
         setStores(data);
         if (data.length > 0) {
           setSelectedStoreId((prev) =>
@@ -118,7 +118,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
       }
     };
     fetchStores();
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   // 3. Sync local state when selected store changes
   useEffect(() => {
@@ -139,17 +139,17 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const saveConfig = async () => {
-    if (!localStore || !session.tenantId) return;
+    if (!localStore || !session.tenant_id) return;
     setIsSaving(true);
     try {
-      await retailService.updateStore(session.tenantId, session, localStore);
+      await retailService.updateStore(session.tenant_id, session, localStore);
       toast({
         title: "Node Synchronized",
         description: `Configuration parameters for ${localStore.name} updated globally.`,
       });
       setIsDirty(false);
       // Refresh stores list to get updated version
-      const data = await retailService.listStores(session.tenantId, session);
+      const data = await retailService.listStores(session.tenant_id, session);
       setStores(data);
     } catch (e) {
       toast({
@@ -281,7 +281,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                 onSuccess={async (newStore) => {
                   // Refresh list
                   const data = await retailService.listStores(
-                    session.tenantId!,
+                    session.tenant_id!,
                     session,
                   );
                   setStores(data);

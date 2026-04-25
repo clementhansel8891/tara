@@ -98,7 +98,7 @@ interface RequestWithTenant extends Request {
  * REST API endpoints for HR operations
  * All endpoints require x-tenant-id header
  */
-@Controller("v1/hr")
+@Controller('hr')
 @UseInterceptors(TenantInterceptor, HRMutationInterceptor, IdempotencyInterceptor)
 @UseGuards(ModuleStateGuard, BranchGatingGuard, TenantGuard, RolesGuard)
 @RequiredModule("hr")

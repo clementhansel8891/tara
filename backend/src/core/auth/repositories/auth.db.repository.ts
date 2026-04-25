@@ -1,3 +1,5 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { Injectable } from "@nestjs/common";
 import { IAuthRepository } from "./auth.repository.interface";
 import { PrismaService } from "../../../persistence/prisma.service";
@@ -7,11 +9,11 @@ import { User } from "../entities/user.entity";
 export class AuthDbRepository implements IAuthRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findByEmail(tenant_id: string, email: string): Promise<User | null> {
+  async findByEmail(ctx: TenantContext, email: string): Promise<User | null> {
     return this.prisma.users.findUnique({
       where: {
         tenant_id_email: {
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           email,
         },
       },
@@ -25,7 +27,7 @@ export class AuthDbRepository implements IAuthRepository {
     }) as any;
   }
 
-  async findById(_tenant_id: string, id: string): Promise<User | null> {
+  async findById(_ctx: TenantContext, id: string): Promise<User | null> {
     return this.prisma.users.findUnique({
       where: { id },
       include: {
@@ -38,12 +40,11 @@ export class AuthDbRepository implements IAuthRepository {
     }) as any;
   }
 
-  async create(tenant_id: string, data: any): Promise<User> {
+  async create(ctx: TenantContext, data: any): Promise<User> {
     return this.prisma.users.create({
       data: {
-        id: 'e7b9ynfa',
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         email: data.email,
         password_hash: data.password_hash,
         first_name: data.first_name,
@@ -54,7 +55,7 @@ export class AuthDbRepository implements IAuthRepository {
   }
 
   async update(
-    _tenant_id: string,
+    _ctx: TenantContext,
     id: string,
     data: Partial<User>,
   ): Promise<User> {

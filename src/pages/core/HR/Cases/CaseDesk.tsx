@@ -31,14 +31,14 @@ export default function CaseDesk() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const items = await caseService.listCases(session.tenantId, session);
+        const items = await caseService.listCases(session.tenant_id, session);
         setCases(items);
       } catch (err) {
         console.error("Failed to load cases", err);
       }
     };
     loadData();
-  }, [session.tenantId, session, version]);
+  }, [session.tenant_id, session, version]);
   const filtered = cases.filter((item) =>
     search ? item.title.toLowerCase().includes(search.toLowerCase()) : true,
   );
@@ -51,13 +51,13 @@ export default function CaseDesk() {
         primaryAction={
           <Button
             onClick={() => {
-              caseService.createCase(session.tenantId, session, {
+              caseService.createCase(session.tenant_id, session, {
                 title: "New HR Case",
                 type: "dispute",
                 status: "open",
                 priority: "medium",
-                departmentId: session.departmentId,
-                ownerId: session.userId,
+                departmentId: session.department_id,
+                ownerId: session.user_id,
               });
               setVersion((prev) => prev + 1);
             }}
@@ -75,7 +75,7 @@ export default function CaseDesk() {
             onClick={() => {
               setActionType("assign");
               setSelectedCase(cases[0]?.id ?? "");
-              setOwnerId(session.userId);
+              setOwnerId(session.user_id);
               setDialogOpen(true);
             }}
           >
@@ -151,9 +151,9 @@ export default function CaseDesk() {
               onClick={() => {
                 if (!selectedCase) return;
                 if (actionType === "assign") {
-                  caseService.assignOwner(session.tenantId, session, selectedCase, ownerId || session.userId);
+                  caseService.assignOwner(session.tenant_id, session, selectedCase, ownerId || session.user_id);
                 } else {
-                  caseService.escalateCase(session.tenantId, session, selectedCase, notes);
+                  caseService.escalateCase(session.tenant_id, session, selectedCase, notes);
                 }
                 setDialogOpen(false);
                 setNotes("");

@@ -40,7 +40,7 @@ export function TransferDesk() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await inventoryService.listStockTransfers(session.tenantId, session);
+      const data = await inventoryService.listStockTransfers(session.tenant_id, session);
       setTransfers(data);
     } catch (err: any) {
       setErrorMessage("Failed to load transfers: " + err.message);
@@ -56,7 +56,7 @@ export function TransferDesk() {
   const handlePick = async (id: string) => {
     setIsBusy(true);
     try {
-      await inventoryService.pickStockTransfer(session.tenantId, session, id);
+      await inventoryService.pickStockTransfer(session.tenant_id, session, id);
       setStatusMessage("Transfer items picked and reserved.");
       refresh();
     } catch (err: any) {
@@ -73,7 +73,7 @@ export function TransferDesk() {
     }
     setIsBusy(true);
     try {
-      await inventoryService.shipStockTransfer(session.tenantId, session, selectedTransfer.id, trackingNumber);
+      await inventoryService.shipStockTransfer(session.tenant_id, session, selectedTransfer.id, trackingNumber);
       setStatusMessage("Transfer marked as In-Transit.");
       setIsShipOpen(false);
       setTrackingNumber("");
@@ -88,7 +88,7 @@ export function TransferDesk() {
   const handleReceive = async (id: string) => {
     setIsBusy(true);
     try {
-      await inventoryService.receiveStockTransfer(session.tenantId, session, id);
+      await inventoryService.receiveStockTransfer(session.tenant_id, session, id);
       setStatusMessage("Shipment accepted and stock updated.");
       refresh();
     } catch (err: any) {

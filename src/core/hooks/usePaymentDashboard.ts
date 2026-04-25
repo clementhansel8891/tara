@@ -52,10 +52,10 @@ export function usePaymentDashboard(): PaymentDashboardState {
     setError(null);
     try {
       const [dashboardData, txns, providerList, deviceList] = await Promise.allSettled([
-        paymentService.getDashboard(session.tenantId, session),
-        paymentService.listTransactions(session.tenantId, session),
-        paymentService.listProviders(session.tenantId, session),
-        paymentService.listDevices(session.tenantId, session),
+        paymentService.getDashboard(session.tenant_id, session),
+        paymentService.listTransactions(session.tenant_id, session),
+        paymentService.listProviders(session.tenant_id, session),
+        paymentService.listDevices(session.tenant_id, session),
       ]);
 
       setMetrics(

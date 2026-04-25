@@ -15,7 +15,7 @@ import { UserRole } from '../../shared/roles';
 import { TenantCtx } from '../../gateway/tenant-context.decorator';
 import { TenantContext } from '../../gateway/tenant-context.interface';
 
-@Controller('v1/finance')
+@Controller('finance')
 @UseGuards(TenantGuard, RolesGuard)
 export class FinanceController {
   constructor(

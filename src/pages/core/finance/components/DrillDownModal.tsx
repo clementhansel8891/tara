@@ -53,8 +53,8 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       audit.log({
-        tenantId: session.tenantId,
-        actorId: session.userId,
+        tenantId: session.tenant_id,
+        actorId: session.user_id,
         action: "FINANCE_DRILLDOWN_VIEW",
         entityType: "FINANCE_ACCOUNT",
         entityId: accountId,

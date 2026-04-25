@@ -1,3 +1,4 @@
+import { TenantContext } from "../../gateway/tenant-context.interface";
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IPricingRepository } from './repositories/interfaces/pricing.repository.interface';
 import { IInventorySubledgerService } from '../finance/subledger/inventory-subledger.service.interface';
@@ -20,8 +21,8 @@ export class PricingEngineService {
    * Calculates the real-time price for an SKU based on cost and active rules.
    * L0 (Cost) -> L1 (Internal) -> L2 (Sales Exposure)
    */
-  async calculatePrice(tenant_id: string, skuId: string, location_id: string): Promise<PricingQuoteDto> {
-    const cacheKey = `${tenant_id}:${skuId}:${location_id}`;
+  async calculatePrice(ctx: TenantContext, skuId: string, location_id: string): Promise<PricingQuoteDto> {
+    const cacheKey = `${ctx.tenant_id}:${skuId}:${location_id}`;
     const cached = this.cache.get(cacheKey);
 
     if (cached && cached.expiry > Date.now()) {
@@ -30,14 +31,14 @@ export class PricingEngineService {
 
     // ... (rest of the logic remains same, will wrap in the file)
     // 1. Fetch L0: Real-time Cost from Sub-ledger
-    const valuation = await this.inventorySubledger.getSkuValuation(tenant_id, skuId, location_id);
+    const valuation = await this.inventorySubledger.getSkuValuation(ctx, skuId, location_id);
     const baseCost = valuation.unitCost;
 
     // 2. Fetch active rules sorted by priority
-    const rules = await this.repository.getRules(tenant_id);
+    const rules = await this.repository.getRules(ctx);
 
     if (rules.length === 0) {
-      this.logger.warn(`No active pricing rules for tenant ${tenant_id}. Using cost as price.`);
+      this.logger.warn(`No active pricing rules for tenant ${ctx.tenant_id}. Using cost as price.`);
       return {
         skuId,
         location_id,
@@ -97,7 +98,7 @@ export class PricingEngineService {
   /**
    * Exposure Layer API for POS/Orders
    */
-  async getQuote(tenant_id: string, skuId: string, location_id: string): Promise<PricingQuoteDto> {
-    return this.calculatePrice(tenant_id, skuId, location_id);
+  async getQuote(ctx: TenantContext, skuId: string, location_id: string): Promise<PricingQuoteDto> {
+    return this.calculatePrice(ctx, skuId, location_id);
   }
 }

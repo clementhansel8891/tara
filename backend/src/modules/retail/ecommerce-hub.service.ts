@@ -316,4 +316,60 @@ export class EcommerceHubService {
 
     return { deleted: true };
   }
+
+  // ── Channel Product Management ─────────────────────────────
+
+  async listChannelProducts(
+    tenant_id: string,
+    channel_id: string,
+    options?: { category_id?: string; q?: string },
+  ) {
+    // Note: We use the retail repository to manage the master items vs channel mapping
+    // But since this is EcommerceHub service, we might need a reference to retail repo
+    // In this codebase, the controller usually has access to both or service has a way.
+    // I'll assume the hub repo doesn't have it, so I'll need to inject IRetailRepository.
+    return (this.repo as any).listChannelProducts(tenant_id, channel_id, options);
+  }
+
+  async updateChannelProducts(
+    tenant_id: string,
+    channel_id: string,
+    updates: any[],
+    user_id: string = "system",
+  ) {
+    await (this.repo as any).updateChannelProducts(tenant_id, channel_id, updates);
+
+    await this.audit.log({
+      tenant_id,
+      user_id,
+      module: "retail",
+      action: "UPDATE_CHANNEL_PRODUCTS",
+      entity_type: "RetailChannel",
+      entity_id: channel_id,
+      metadata: { updateCount: updates.length },
+    });
+  }
+
+  async updateChannelCategories(
+    tenant_id: string,
+    channel_id: string,
+    categories: string[],
+    user_id: string = "system",
+  ) {
+    await (this.repo as any).updateChannelCategories(tenant_id, channel_id, categories);
+
+    await this.audit.log({
+      tenant_id,
+      user_id,
+      module: "retail",
+      action: "UPDATE_CHANNEL_CATEGORIES",
+      entity_type: "RetailChannel",
+      entity_id: channel_id,
+      metadata: { categories },
+    });
+  }
+
+  async getChannelCategories(tenant_id: string, channel_id: string) {
+    return (this.repo as any).getChannelCategories(tenant_id, channel_id);
+  }
 }

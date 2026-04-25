@@ -11,22 +11,22 @@ const createId = () =>
 
 const canSeeFile = (session: SessionContext, file: ToolFileRecord) => {
   if (session.role === Roles.SUPERADMIN) return true;
-  if (file.tenantId !== session.tenantId) return false;
+  if (file.tenantId !== session.tenant_id) return false;
   if (([Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) return true;
   if (session.role === Roles.DEPT_HEAD || session.role === Roles.HR_ADMIN || session.role === Roles.FINANCE_ADMIN) {
-    return file.departmentId === session.departmentId;
+    return file.departmentId === session.department_id;
   }
-  return file.departmentId === session.departmentId && file.ownerId === session.userId;
+  return file.departmentId === session.department_id && file.ownerId === session.user_id;
 };
 
 const canManageFile = (session: SessionContext, file: ToolFileRecord) => {
   if (session.role === Roles.SUPERADMIN) return true;
-  if (file.tenantId !== session.tenantId) return false;
+  if (file.tenantId !== session.tenant_id) return false;
   if (([Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) return true;
   if (([Roles.DEPT_HEAD, Roles.HR_ADMIN, Roles.FINANCE_ADMIN] as readonly string[]).includes(session.role)) {
-    return file.departmentId === session.departmentId;
+    return file.departmentId === session.department_id;
   }
-  return file.departmentId === session.departmentId && file.ownerId === session.userId;
+  return file.departmentId === session.department_id && file.ownerId === session.user_id;
 };
 
 const canManageFolders = (session: SessionContext) => {
@@ -77,7 +77,7 @@ export function listFolders(tenantId: string, session: SessionContext): ToolFold
   return toolFolderRepo
     .list()
     .filter((folder) => folder.tenantId === tenantId)
-    .filter((folder) => folder.departmentId === session.departmentId);
+    .filter((folder) => folder.departmentId === session.department_id);
 }
 
 export function createFolder(
@@ -91,7 +91,7 @@ export function createFolder(
   const folder: ToolFolder = {
     id: createId(),
     tenantId,
-    departmentId: session.departmentId,
+    departmentId: session.department_id,
     name,
     parentId,
     createdAt: now,
@@ -99,7 +99,7 @@ export function createFolder(
   };
   toolFolderRepo.create(folder);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_folder",
     actionType: "create",
@@ -120,7 +120,7 @@ export function renameFolder(
   const updated = { ...current, name, updatedAt: new Date().toISOString() };
   toolFolderRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_folder",
     actionType: "rename",
@@ -145,7 +145,7 @@ export function moveFolder(
   };
   toolFolderRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_folder",
     actionType: "move",
@@ -163,8 +163,8 @@ export function createFile(
   const record: ToolFileRecord = {
     id: createId(),
     tenantId,
-    departmentId: session.departmentId,
-    ownerId: session.userId,
+    departmentId: session.department_id,
+    ownerId: session.user_id,
     folderId: payload.folderId ?? "root",
     name: payload.name,
     type: payload.type,
@@ -174,7 +174,7 @@ export function createFile(
   };
   toolFileRepo.create(record);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_file",
     actionType: "create",
@@ -198,7 +198,7 @@ export function updateFile(
   };
   toolFileRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_file",
     actionType: "update",
@@ -221,7 +221,7 @@ export function moveToRecycle(
   };
   toolFileRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_file",
     actionType: "delete",
@@ -247,7 +247,7 @@ export function restoreFromRecycle(
   };
   toolFileRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_file",
     actionType: "restore",
@@ -271,7 +271,7 @@ export function moveFile(
   };
   toolFileRepo.update(updated);
   logAction({
-    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
     tenantId,
     entityType: "tool_file",
     actionType: "move",

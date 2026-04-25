@@ -60,8 +60,8 @@ export default function PaymentExecutionHub() {
     const fetchData = async () => {
       try {
         const [providersData, transactionsData] = await Promise.all([
-          paymentService.listProviders(session.tenantId, session),
-          paymentService.listTransactions(session.tenantId, session),
+          paymentService.listProviders(session.tenant_id, session),
+          paymentService.listTransactions(session.tenant_id, session),
         ]);
         setProviders(providersData);
         setTransactions(transactionsData);
@@ -120,7 +120,7 @@ export default function PaymentExecutionHub() {
             onClick={() => {
               if (!destination || Number(amount) <= 0) return;
               try {
-                paymentService.createExecutionRequest(session.tenantId, session, {
+                paymentService.createExecutionRequest(session.tenant_id, session, {
                   type,
                   destination,
                   amount: Number(amount),
@@ -188,7 +188,7 @@ export default function PaymentExecutionHub() {
                       onClick={(e) => {
                         e.stopPropagation();
                         try {
-                          paymentService.approveRequest(session.tenantId, session, item.id);
+                          paymentService.approveRequest(session.tenant_id, session, item.id);
                           setStatusMessage("Payment approved.");
                           refresh();
                         } catch (err) {
@@ -205,7 +205,7 @@ export default function PaymentExecutionHub() {
                       onClick={(e) => {
                         e.stopPropagation();
                         try {
-                          paymentService.selectProvider(session.tenantId, session, item.id, providerId);
+                          paymentService.selectProvider(session.tenant_id, session, item.id, providerId);
                           setStatusMessage(`Provider ${providerId} selected.`);
                           refresh();
                         } catch (err) {
@@ -222,7 +222,7 @@ export default function PaymentExecutionHub() {
                       onClick={(e) => {
                         e.stopPropagation();
                         try {
-                          paymentService.executePayment(session.tenantId, session, item.id);
+                          paymentService.executePayment(session.tenant_id, session, item.id);
                           setStatusMessage("Execution batch submitted to gateway.");
                           refresh();
                         } catch (err) {
@@ -239,7 +239,7 @@ export default function PaymentExecutionHub() {
                       onClick={(e) => {
                         e.stopPropagation();
                         try {
-                          paymentService.confirmSettlement(session.tenantId, session, item.id);
+                          paymentService.confirmSettlement(session.tenant_id, session, item.id);
                           setStatusMessage("Settlement confirmed and reconciled.");
                           refresh();
                         } catch (err) {
@@ -256,7 +256,7 @@ export default function PaymentExecutionHub() {
                       onClick={(e) => {
                         e.stopPropagation();
                         try {
-                          paymentService.rejectRequest(session.tenantId, session, item.id, "Rejected from execution queue.");
+                          paymentService.rejectRequest(session.tenant_id, session, item.id, "Rejected from execution queue.");
                           setStatusMessage("Payment request rejected.");
                           refresh();
                         } catch (err) {

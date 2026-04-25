@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Headers, Param, Query, Ip, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Req, UseInterceptors, UseGuards, Ip } from '@nestjs/common';
 import { FarmingService } from './farming.service';
 import { IoTGatewayService } from './iot-gateway.service';
+import { TenantInterceptor } from '../../gateway/tenant.interceptor';
+import { TenantContext } from '../../gateway/tenant-context.interface';
+import { Request } from 'express';
+import { TenantGuard } from '../../shared/guards/tenant.guard';
 
-@Controller('v1/farming')
+interface RequestWithTenant extends Request {
+  tenantContext: TenantContext;
+}
+
+@Controller('farming')
+@UseInterceptors(TenantInterceptor)
+@UseGuards(TenantGuard)
 export class FarmingController {
   constructor(
     private readonly farmingService: FarmingService,
@@ -11,10 +21,10 @@ export class FarmingController {
 
   @Get('sensors/:sensor_id/logs')
   async getLogs(
-    @Headers('x-tenant-id') tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Param('sensor_id') sensor_id: string,
   ) {
-    return this.farmingService.getLogs(tenant_id || 'system', sensor_id);
+    return this.farmingService.getLogs(request.tenantContext, sensor_id);
   }
 
   /**
@@ -23,21 +33,23 @@ export class FarmingController {
    */
   @Post('iot/ingest')
   async ingestTelemetry(
-    @Headers('x-tenant-id') tenant_id: string,
-    @Headers('x-device-model') deviceModel: string,
-    @Ip() ip: string,
+    @Req() request: RequestWithTenant,
+    @Req() req: any,
     @Body() payload: any,
   ) {
-    return this.iotGateway.handleHttpTelemetry(tenant_id || 'system', payload, { ip, deviceModel });
+    const deviceModel = req.headers['x-device-model'] as string;
+    const ip = req.ip;
+    return this.iotGateway.handleHttpTelemetry(request.tenantContext, payload, { ip, deviceModel });
   }
 
   @Post('sensors/log')
   async logReading(
-    @Headers('x-tenant-id') tenant_id: string,
-    @Headers('x-device-model') deviceModel: string,
-    @Ip() ip: string,
+    @Req() request: RequestWithTenant,
+    @Req() req: any,
     @Body() data: any,
   ) {
-    return this.farmingService.logReading(tenant_id || 'system', { ...data, metadata: { ...data.metadata, ip, deviceModel } });
+    const deviceModel = req.headers['x-device-model'] as string;
+    const ip = req.ip;
+    return this.farmingService.logReading(request.tenantContext, { ...data, metadata: { ...data.metadata, ip, deviceModel } });
   }
 }

@@ -8,7 +8,7 @@ export class User {
   status: string;
   created_at: Date;
   updated_at: Date;
-  userCompanies?: UserCompany[];
+  user_companies?: UserCompany[];
 }
 
 export class UserCompany {
@@ -16,6 +16,6 @@ export class UserCompany {
   user_id: string;
   tenant_id: string;
   role: string;
-  isDefault: boolean;
+  is_default: boolean;
   company?: any; // Avoiding deep circular imports for now
 }

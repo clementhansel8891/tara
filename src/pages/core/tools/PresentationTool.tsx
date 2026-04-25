@@ -68,9 +68,9 @@ export default function PresentationTool() {
               onClick={() => {
                 const content = JSON.stringify(slides);
                 if (selectedId) {
-                  updateFile(session.tenantId, session, selectedId, { name: title, content });
+                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
                 } else {
-                  const record = createFile(session.tenantId, session, {
+                  const record = createFile(session.tenant_id, session, {
                     name: title,
                     type: "slide",
                     content,
@@ -93,8 +93,8 @@ export default function PresentationTool() {
                 onClick={() => {
                   const payload = slides.map((slide) => `${slide.title}\n${slide.body}`).join("\n\n");
                   const blob = exportPdf({
-                    tenantId: session.tenantId,
-                    actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+                    tenantId: session.tenant_id,
+                    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
                     filename: `${title}.pdf`,
                     content: payload,
                     source: "slides",
@@ -123,7 +123,7 @@ export default function PresentationTool() {
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="space-y-2">
-                {(search ? listFiles(session.tenantId, session, "slide").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenantId, session, "slide")).map((file) => (
+                {(search ? listFiles(session.tenant_id, session, "slide").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenant_id, session, "slide")).map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
@@ -146,7 +146,7 @@ export default function PresentationTool() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        moveToRecycle(session.tenantId, session, file.id);
+                        moveToRecycle(session.tenant_id, session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >
@@ -201,20 +201,20 @@ export default function PresentationTool() {
         </WorkspacePanel>
 
         <WorkspacePanel title="Recycle bin" description="Only owners/admins can restore.">
-          {listRecycleBin(session.tenantId, session, "slide").length === 0 ? (
+          {listRecycleBin(session.tenant_id, session, "slide").length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               Recycle bin is empty.
             </div>
           ) : (
             <div className="space-y-2">
-              {listRecycleBin(session.tenantId, session, "slide").map((file) => (
+              {listRecycleBin(session.tenant_id, session, "slide").map((file) => (
                 <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                   <div className="text-sm">{file.name}</div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      restoreFromRecycle(session.tenantId, session, file.id);
+                      restoreFromRecycle(session.tenant_id, session, file.id);
                       setVersion((prev) => prev + 1);
                     }}
                   >

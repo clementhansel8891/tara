@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../persistence/prisma.service';
 import { IPayrollRepository } from './interfaces/payroll.repository.interface';
@@ -6,7 +6,7 @@ import { PayrollRecord } from '../domain/finance.interfaces';
 
 @Injectable()
 export class PayrollDbRepository implements IPayrollRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   private get db(): Prisma.TransactionClient {
     if (this.prisma instanceof PrismaService) {

@@ -17,14 +17,14 @@ export default function MarketingAuditLog() {
 
   const refresh = useCallback(async () => {
     try {
-      const e = await marketingService.listAuditEvents(session.tenantId, session);
+      const e = await marketingService.listAuditEvents(session.tenant_id, session);
       setEvents(e);
     } catch (err) {
       console.error("Failed to fetch marketing audit events:", err);
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId]);
+  }, [session.tenant_id]);
 
   useEffect(() => {
     refresh();

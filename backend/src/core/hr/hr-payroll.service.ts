@@ -10,7 +10,6 @@ import {
 } from "./entities/hr.entity";
 import { Prisma } from "@prisma/client";
 
-import { HrPayrollController } from "./controllers/hr-payroll.controller";
 import { PayrollEngineService } from "./payroll-engine.service";
 import { PayslipService } from "./payslip.service";
 import { v4 as uuidv4 } from "uuid";

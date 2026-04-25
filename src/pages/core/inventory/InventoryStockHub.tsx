@@ -134,7 +134,7 @@ export default function InventoryStockHub() {
     }
     setIsCreating(true);
     try {
-      await inventoryService.createItem(session.tenantId, session, {
+      await inventoryService.createItem(session.tenant_id, session, {
         sku: newItemSku.trim() || "",
         barcode: newItemBarcode.trim() || undefined,
         name: newItemName.trim(),
@@ -169,10 +169,10 @@ export default function InventoryStockHub() {
   const refresh = useCallback(async () => {
     try {
       const [i, b, d, locs] = await Promise.all([
-        inventoryService.listItems(session.tenantId, session),
-        inventoryService.listBalances(session.tenantId, session),
-        orgService.getOrgMap(session.tenantId, session),
-        hrService.listLocations(session.tenantId, session),
+        inventoryService.listItems(session.tenant_id, session),
+        inventoryService.listBalances(session.tenant_id, session),
+        orgService.getOrgMap(session.tenant_id, session),
+        hrService.listLocations(session.tenant_id, session),
       ]);
       setItems(i);
       setBalances(b);
@@ -278,7 +278,7 @@ export default function InventoryStockHub() {
     if (!confirm(`Delete ${selectedIds.length} items?`)) return;
     try {
       await inventoryService.batchDeleteItems(
-        session.tenantId,
+        session.tenant_id,
         session,
         selectedIds,
       );
@@ -307,7 +307,7 @@ export default function InventoryStockHub() {
           <div className="flex items-center gap-2">
             <ExportButton
               endpoint="/inventory/items/export"
-              filename={`zenvix_inventory_${session.tenantId}.xlsx`}
+              filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
             />
             <Button
               variant="outline"
@@ -320,7 +320,7 @@ export default function InventoryStockHub() {
               onClick={async () => {
                 try {
                   await inventoryService.runLowStockScan(
-                    session.tenantId,
+                    session.tenant_id,
                     session,
                   );
                   setStatusMessage(
@@ -628,7 +628,7 @@ export default function InventoryStockHub() {
             <ItemCreationTab
               canWrite={true}
               session={session}
-              tenantId={session.tenantId}
+              tenantId={session.tenant_id}
               categoryOptions={[
                 { id: "all", name: "All Categories" },
                 ...ITEM_CATEGORIES.map((c) => ({ id: c, name: c })),

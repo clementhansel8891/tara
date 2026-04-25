@@ -38,16 +38,16 @@ export async function apiRequest<T>(
     headers["x-correlation-id"] = correlationId;
   }
 
-  const finalTenantId = tenantId || session?.tenantId;
+  const finalTenantId = tenantId || session?.tenant_id;
   if (finalTenantId) {
     headers["x-tenant-id"] = finalTenantId;
   }
 
   if (session) {
-    headers["x-actor-id"] = session.userId;
+    headers["x-actor-id"] = session.user_id;
     headers["x-user-role"] = session.role;
-    if (session.locationId) {
-      headers["x-location-id"] = session.locationId;
+    if (session.location_id) {
+      headers["x-location-id"] = session.location_id;
     }
     if (session.token) {
       headers["Authorization"] = `Bearer ${session.token}`;
@@ -86,21 +86,28 @@ export async function apiRequest<T>(
     return (await response.blob()) as unknown as T;
   }
 
-  const result = await response.json();
+  const result = await response.json().catch(() => ({}));
 
+  // 🛡️ DEFENSIVE MAPPING GATES
   // If the result contains data AND meta (pagination), merge them if possible or return root
   if (result && typeof result === "object") {
-    if (result.data !== undefined && result.meta !== undefined) {
+    const hasData = result.data !== undefined;
+    const hasMeta = result.meta !== undefined;
+
+    if (hasData && hasMeta) {
       if (Array.isArray(result.data)) {
         // Return the array with meta attached to match the frontend "paginated array" pattern
         return Object.assign(result.data, { meta: result.meta }) as T;
       }
-      return result.data as T;
+      return (result.data || {}) as T;
     }
-    if (result.data !== undefined) {
-      return result.data as T;
+    
+    if (hasData) {
+      // If data is null or undefined, but exists, return a safe fallback based on expected type T
+      return (result.data ?? {}) as T;
     }
   }
 
-  return result as T;
+  // Ensure we never return undefined for a successful response
+  return (result ?? {}) as T;
 }

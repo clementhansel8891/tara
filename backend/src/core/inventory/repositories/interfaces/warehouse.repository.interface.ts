@@ -1,4 +1,5 @@
 import { locations as Location } from "@prisma/client";
+import { TenantContext } from "../../../../gateway/tenant-context.interface";
 
 export interface WarehouseStats {
   totalItems: number;
@@ -9,27 +10,27 @@ export interface WarehouseStats {
 
 export abstract class IWarehouseRepository {
   /**
-   * Find all warehouse locations for a tenant
+   * Find all warehouse locations for a tenant/company
    */
-  abstract findAll(tenant_id: string): Promise<Location[]>;
+  abstract findAll(ctx: TenantContext): Promise<Location[]>;
 
   /**
    * Find a specific warehouse by ID
    */
-  abstract findById(tenant_id: string, id: string): Promise<Location | null>;
+  abstract findById(ctx: TenantContext, id: string): Promise<Location | null>;
 
   /**
    * Get financial and operational stats for a specific warehouse
    */
-  abstract getInventoryStats(tenant_id: string, location_id: string): Promise<WarehouseStats>;
+  abstract getInventoryStats(ctx: TenantContext, location_id: string): Promise<WarehouseStats>;
 
   /**
-   * Update compliance status (e.g., for audits or safety checks)
+   * Update compliance status
    */
-  abstract updateComplianceStatus(tenant_id: string, id: string, status: string): Promise<Location>;
+  abstract updateComplianceStatus(ctx: TenantContext, id: string, status: string): Promise<Location>;
 
   /**
-   * IoT Placeholder: Register a sensor gateway for this warehouse
+   * IoT Placeholder: Register a sensor gateway
    */
-  abstract registerSensorGateway?(tenant_id: string, location_id: string, gatewayId: string): Promise<void>;
+  abstract registerSensorGateway?(ctx: TenantContext, location_id: string, gatewayId: string): Promise<void>;
 }

@@ -74,10 +74,10 @@ export default function PayFlow() {
   const [batchPayments, setBatchPayments] = useState<Payment[]>([]);
   const [selectedItem, setSelectedItem] = useState<Payment | null>(null);
 
-  const { sources } = useTreasury(session.tenantId, session);
+  const { sources } = useTreasury(session.tenant_id, session);
 
   const fetchPayments = useCallback(async () => {
-    const raw = await financeApiClient.listPayments(session.tenantId, session);
+    const raw = await financeApiClient.listPayments(session.tenant_id, session);
     return raw.map((payment) => ({
       ...payment,
       destination: payment.beneficiary,
@@ -138,7 +138,7 @@ export default function PayFlow() {
   );
 
   const handleCreatePayment = async () => {
-    await financeApiClient.createPayment(session.tenantId, session, {
+    await financeApiClient.createPayment(session.tenant_id, session, {
       amount: payment.amount,
       beneficiary: payment.destination,
       method: payment.method as "QRIS" | "GOPAY" | "OVO" | "DANA" | "SHOPEEPAY" | "BANK_TRANSFER" | "CARD",
@@ -146,8 +146,8 @@ export default function PayFlow() {
       extraInfo: { scheduledDate: payment.scheduledDate, recurring: payment.recurring }
     });
     logService.log(
-      session.tenantId,
-      session.userId,
+      session.tenant_id,
+      session.user_id,
       `Created Payment: ${JSON.stringify(payment)}`,
     );
     setDialogOpen(false);
@@ -164,7 +164,7 @@ export default function PayFlow() {
 
   const handleCreateBatch = async () => {
     await Promise.all(batchPayments.map(async (p) => {
-      await financeApiClient.createPayment(session.tenantId, session, {
+      await financeApiClient.createPayment(session.tenant_id, session, {
         amount: p.amount,
         beneficiary: p.destination,
         method: p.method as "QRIS" | "GOPAY" | "OVO" | "DANA" | "SHOPEEPAY" | "BANK_TRANSFER" | "CARD",
@@ -172,8 +172,8 @@ export default function PayFlow() {
         extraInfo: { scheduledDate: p.scheduledDate, recurring: p.recurring }
       });
       logService.log(
-        session.tenantId,
-        session.userId,
+        session.tenant_id,
+        session.user_id,
         `Created Payment: ${JSON.stringify(p)}`,
       );
     }));
@@ -183,8 +183,8 @@ export default function PayFlow() {
   };
 
   const handleApprovalAction = async (id: string, action: "APPROVED" | "REJECTED") => {
-    await financeApiClient.updatePaymentStatus(session.tenantId, session, id, action);
-    logService.log(session.tenantId, session.userId, `Payment ${id} ${action}`);
+    await financeApiClient.updatePaymentStatus(session.tenant_id, session, id, action);
+    logService.log(session.tenant_id, session.user_id, `Payment ${id} ${action}`);
     refreshPayments();
   };
 

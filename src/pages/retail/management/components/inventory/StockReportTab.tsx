@@ -100,7 +100,7 @@ export const StockReportTab: React.FC<Props> = ({
       };
 
       if (session?.userId) {
-        logAuditAction(session.userId, "EXPORT_REPORT", payload);
+        logAuditAction(session.user_id, "EXPORT_REPORT", payload);
       }
 
       toast({

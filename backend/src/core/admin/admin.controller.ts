@@ -29,7 +29,7 @@ interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
 }
 
-@Controller("v1/admin")
+@Controller('admin')
 @UseGuards(TenantInterceptor, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.OWNER)
 export class AdminController {

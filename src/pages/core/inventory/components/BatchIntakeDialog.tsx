@@ -61,7 +61,7 @@ export function BatchIntakeDialog({
     setLoading(true);
     setError(null);
     try {
-      await inventoryService.batchRecordIntake(session.tenantId, session, valid);
+      await inventoryService.batchRecordIntake(session.tenant_id, session, valid);
       onSuccess();
       onOpenChange(false);
       reset();

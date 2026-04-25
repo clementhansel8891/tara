@@ -17,8 +17,8 @@ export default function InsightLayer() {
   const [approvals, setApprovals] = useState<any[]>([]);
 
   useEffect(() => {
-    analyticsService.listMetrics(session.tenantId, session).then(setMetrics);
-    const flows = workflowService.listRequests(session.tenantId);
+    analyticsService.listMetrics(session.tenant_id, session).then(setMetrics);
+    const flows = workflowService.listRequests(session.tenant_id);
     setApprovals(flows.filter((flow: any) => flow.status === "PENDING"));
   }, [session]);
 
@@ -30,7 +30,7 @@ export default function InsightLayer() {
         primaryAction={
           <Button
             onClick={async () => {
-              const id = await analyticsService.generateReport(session.tenantId, session);
+              const id = await analyticsService.generateReport(session.tenant_id, session);
               setReportId(id);
             }}
           >
@@ -46,7 +46,7 @@ export default function InsightLayer() {
             variant="outline"
             onClick={() => {
               if (reportId) {
-                analyticsService.shareReport(session.tenantId, session, reportId);
+                analyticsService.shareReport(session.tenant_id, session, reportId);
               }
             }}
           >
@@ -56,7 +56,7 @@ export default function InsightLayer() {
             variant="outline"
             onClick={() => {
               const target = reportId ?? "insight-report";
-              analyticsService.routeInsight(session.tenantId, session, target);
+              analyticsService.routeInsight(session.tenant_id, session, target);
             }}
           >
             Send to FlowGate
@@ -96,7 +96,7 @@ export default function InsightLayer() {
             {approvals.slice(0, 3).map((flow) => (
               <div key={flow.id} className="flex items-center justify-between rounded-lg border p-3">
                 <span>{flow.entityType}</span>
-                <Button size="sm" variant="outline" onClick={() => workflowService.approveRequest(session.tenantId, flow.id, session)}>
+                <Button size="sm" variant="outline" onClick={() => workflowService.approveRequest(session.tenant_id, flow.id, session)}>
                   Review
                 </Button>
               </div>

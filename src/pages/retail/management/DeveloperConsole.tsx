@@ -146,10 +146,10 @@ const DeveloperConsole = ({
       let result: PublicProductDTO[] | PublicOrderResponseDTO | ApiErrorResponse;
       // Routing Logic (Gateway Dispatcher)
       if (endpoint === "/products" && method === "GET") {
-        result = await retailGateway.getProducts(session.tenantId, headers);
+        result = await retailGateway.getProducts(session.tenant_id, headers);
       } else if (endpoint === "/orders" && method === "POST") {
         const body = JSON.parse(requestBody);
-        result = await retailGateway.createOrder(session.tenantId, headers, body);
+        result = await retailGateway.createOrder(session.tenant_id, headers, body);
       } else {
         throw { code: 404, error: "Not Found", details: "Endpoint not implemented in simulation" };
       }

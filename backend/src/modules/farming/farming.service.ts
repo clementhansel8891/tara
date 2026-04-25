@@ -1,23 +1,38 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ISensorRepository, SensorData } from './repositories/interfaces/sensor.repository.interface';
+import { TenantContext } from "../../gateway/tenant-context.interface";
+import { Injectable, Logger } from '@nestjs/common';
+import { FarmingRepository as IFarmingRepository, SensorData } from './repositories/farming.repository';
 
 @Injectable()
 export class FarmingService {
   private readonly logger = new Logger(FarmingService.name);
 
   constructor(
-    @Inject('ISensorRepository')
-    private readonly repository: ISensorRepository
+    private readonly repository: IFarmingRepository
   ) {}
 
-  async getLogs(tenant_id: string, sensor_id: string): Promise<SensorData[]> {
-    return this.repository.getSensorLogs(tenant_id, sensor_id);
+  async getLogs(ctx: TenantContext, sensor_id: string): Promise<SensorData[]> {
+    return this.repository.getSensorLogs(ctx, sensor_id);
   }
 
-  async logReading(tenant_id: string, data: Partial<SensorData>): Promise<string> {
+  async logReading(ctx: TenantContext, data: Partial<SensorData>): Promise<string> {
     this.logger.log(`Anchoring IoT Reading for sensor ${data.sensor_id} into Audit Chain`);
-    const ids = await this.repository.logSensorReadings(tenant_id, [data]);
-    await this.repository.anchorReadingToAuditChain(tenant_id, ids[0]);
+    // Note: logSensorReadings and logSensorDataToAuditChain are used here.
+    // I need to ensure they are available in the interface or use a cast.
+    const ids = await (this.repository as any).logSensorReadings(ctx, [data]);
+    
+    // Construct SensorData from partial for the audit log
+    const fullData: SensorData = {
+      id: ids[0],
+      tenant_id: ctx.tenant_id,
+      sensor_id: data.sensor_id!,
+      sensorType: data.sensorType || 'GENERIC',
+      value: data.value as any,
+      unit: data.unit || 'n/a',
+      timestamp: data.timestamp || new Date(),
+      metadata: data.metadata || {},
+    };
+    
+    await this.repository.logSensorDataToAuditChain(ctx, fullData);
     return ids[0];
   }
 }

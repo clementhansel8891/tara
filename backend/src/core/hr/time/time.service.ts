@@ -98,7 +98,14 @@ export class TimeAndAttendanceService {
         throw new Error("Employee already has an active clock-in session for today.");
       }
 
-      // 2. Shift Resolution
+      // ──────────────────────────────────────────────
+      // 2. Location & Schedule Validation (Ship or No Ship Filter)
+      // ──────────────────────────────────────────────
+      const employee = await this.hrRepository.getEmployeeById(tenant_id, employee_id);
+      if (!employee) throw new Error("Employee not found");
+
+      // Verify primary location binding
+      const isPrimaryLocation = location_id === employee.location_id;
       let latenessMinutes = 0;
       let status = "PRESENT";
       let workShiftId = data.shift_id;
@@ -115,6 +122,13 @@ export class TimeAndAttendanceService {
       if (activeShift) {
         workShiftId = activeShift.id;
         const shiftStart = new Date(activeShift.start_time);
+        
+        // STRICT LOCATION MATCH: Must match shift location or primary location
+        const isShiftLocation = location_id === activeShift.location_id;
+        if (!isShiftLocation && !isPrimaryLocation) {
+          throw new Error(`Location mismatch. This shift is assigned to location ${activeShift.location_id}. Access denied.`);
+        }
+
         if (now > shiftStart) {
           latenessMinutes = Math.floor((now.getTime() - shiftStart.getTime()) / (1000 * 60));
           if (latenessMinutes > (activeShift.hr_work_schedules?.metadata?.grace_minutes || 0)) {
@@ -122,7 +136,11 @@ export class TimeAndAttendanceService {
           }
         }
       } else {
-        // 3. Unscheduled Handling (As requested by user: allow but alert)
+        // 3. Unscheduled Handling (Strict location check still applies)
+        if (!isPrimaryLocation) {
+          throw new Error(`Location mismatch. Employee is assigned to location ${employee.location_id}. Unscheduled clock-in at other locations is denied.`);
+        }
+        
         status = "UNSCHEDULED";
         if (!data.reason) {
           throw new Error("Clock-in reason is required for unscheduled shifts.");

@@ -176,14 +176,14 @@ export default function HRWorkspaceLayout() {
   const location = useLocation();
 
   const sections: MenuSection[] = BASE_SECTIONS.map((section) => {
-    if (section.title === "People" && session.userId) {
+    if (section.title === "People" && session.user_id) {
       return {
         ...section,
         items: [
           ...section.items,
           {
             label: "PeopleCore",
-            to: `/core/hr/people/${session.userId}`,
+            to: `/core/hr/people/${session.user_id}`,
             icon: LayoutGrid,
             roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN", "STAFF"],
           },
@@ -268,10 +268,10 @@ export default function HRWorkspaceLayout() {
               <WorkspacePanel>
                 <div className="space-y-1 text-xs text-muted-foreground">
                   <p className="text-sm font-semibold text-foreground">
-                    Tenant: {session.tenantId}
+                    Tenant: {session.tenant_id}
                   </p>
                   <p>Role: {session.role}</p>
-                  <p>Department: {session.departmentId}</p>
+                  <p>Department: {session.department_id}</p>
                 </div>
               </WorkspacePanel>
 

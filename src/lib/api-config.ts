@@ -8,10 +8,24 @@
 const getApiBaseUrl = () => {
   // Check for the environment variable defined in Render/Vite/Railway
   // Standardizing on VITE_API_URL, but keeping VITE_API_BASE_URL for compatibility
-  const envUrl =
-    import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+  const envUrl = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL) as string;
 
   if (envUrl && envUrl !== "") {
+    // 🛡️ LEGACY CIRCUIT BREAKER
+    // If the URL contains the legacy railway string, it's likely a misconfiguration in the hosting control panel
+    if (envUrl.includes("zenvix.up.railway.app")) {
+      console.warn(
+        "%c[api-config] ⚠️ LEGACY URL DETECTED",
+        "background: #ef4444; color: white; padding: 2px 4px; border-radius: 4px;",
+        "'zenvix.up.railway.app' is no longer in use. Please update your Vercel Project Environment Variables (VITE_API_URL) to point to your new backend or leave it empty for relative pathing."
+      );
+      
+      // Force fallback to relative path in production to avoid CORS errors with the dead railway backend
+      if (import.meta.env.PROD) {
+        return "/api";
+      }
+    }
+
     const sanitizedUrl = envUrl.replace(/\/$/, "");
     console.log(
       "%c[api-config] 🚀 API ROUTING ACTIVE",
@@ -22,11 +36,13 @@ const getApiBaseUrl = () => {
   }
 
   // fallback to local proxy path
-  console.warn(
-    "%c[api-config] ⚠️ FALLBACK TO LOCAL PROXY",
-    "background: #f59e0b; color: white; padding: 2px 4px; border-radius: 4px;",
-    "If you are on Vercel, check that VITE_API_URL is set in Settings.",
-  );
+  if (import.meta.env.PROD) {
+    console.log(
+      "%c[api-config] 🚀 API ROUTING ACTIVE (RELATIVE)",
+      "background: #10b981; color: white; padding: 2px 4px; border-radius: 4px;",
+      "/api"
+    );
+  }
   return "/api";
 };
 

@@ -23,9 +23,9 @@ export default function ManagerDesk() {
     try {
       setLoading(true);
       const [m, o, a] = await Promise.all([
-        salesService.getManagerMetrics(session.tenantId, session),
-        salesService.listOpportunities(session.tenantId, session),
-        salesService.listAlerts(session.tenantId, session),
+        salesService.getManagerMetrics(session.tenant_id, session),
+        salesService.listOpportunities(session.tenant_id, session),
+        salesService.listAlerts(session.tenant_id, session),
       ]);
       setMetrics(m);
       setOpportunities(o);
@@ -35,7 +35,7 @@ export default function ManagerDesk() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenantId, session]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -63,7 +63,7 @@ export default function ManagerDesk() {
             <Button
               variant="outline"
               onClick={async () => {
-                await salesService.runSlaSweep(session.tenantId, session);
+                await salesService.runSlaSweep(session.tenant_id, session);
                 setRefreshKey((value) => value + 1);
               }}
             >
@@ -165,7 +165,7 @@ export default function ManagerDesk() {
                       size="sm"
                       variant="outline"
                       onClick={async () => {
-                        await salesService.acknowledgeAlert(session.tenantId, session, alert.id);
+                        await salesService.acknowledgeAlert(session.tenant_id, session, alert.id);
                         setRefreshKey((value) => value + 1);
                       }}
                     >

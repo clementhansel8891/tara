@@ -17,7 +17,7 @@ import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
 import { CreateLeaveRequestDto } from "../dto";
 
-@Controller("v1/hr/leaves")
+@Controller('hr/leaves')
 @UseGuards(RolesGuard, TenantGuard)
 export class HrLeaveController {
   constructor(private readonly leaveService: HrLeaveService) {}

@@ -5,6 +5,8 @@ import { InventorySubledgerEntry } from '../entities/inventory-subledger-entry.e
 import { CostLayer } from '../entities/cost-layer.entity';
 import { CostSnapshot } from '../entities/cost-snapshot.entity';
 import { Prisma } from '@prisma/client';
+import { MultiTenancyUtil } from '../../../../shared/utils/multi-tenancy.util';
+import { TenantContext } from '../../../../gateway/tenant-context.interface';
 
 @Injectable()
 export class InventorySubledgerDbRepository implements IInventorySubledgerRepository {
@@ -62,13 +64,13 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     };
   }
 
-  async createEntry(tenant_id: string, data: Partial<InventorySubledgerEntry>, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
+  async createEntry(ctx: TenantContext, data: Partial<InventorySubledgerEntry>, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
     const db = tx ?? this.prisma;
     
     const dbEntry = await db.inventory_subledger_entries.create({
       data: {
         id: require('crypto').randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         source_event_id: data.sourceEventId || `inv-${Date.now()}`,
         entry_type: data.entryType!,
         status: data.status || 'PENDING',
@@ -94,46 +96,45 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     return this.mapToEntity(dbEntry);
   }
 
-  async getEntryById(tenant_id: string, id: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
+  async getEntryById(ctx: TenantContext, id: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
     const db = tx ?? this.prisma;
     const dbEntry = await db.inventory_subledger_entries.findFirst({
-      where: { id, tenant_id: tenant_id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
     });
     if (!dbEntry) throw new Error(`Subledger Entry ${id} not found`);
     return this.mapToEntity(dbEntry);
   }
 
-  async findEntryBySourceEvent(tenant_id: string, sourceEventId: string, entryType: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry | null> {
+  async findEntryBySourceEvent(ctx: TenantContext, sourceEventId: string, entryType: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry | null> {
     const db = tx ?? this.prisma;
     const dbEntry = await db.inventory_subledger_entries.findFirst({
-      where: { tenant_id: tenant_id, source_event_id: sourceEventId, entry_type: entryType },
+      where: { ...MultiTenancyUtil.getScope(ctx), source_event_id: sourceEventId, entry_type: entryType },
     });
     return dbEntry ? this.mapToEntity(dbEntry) : null;
   }
 
-  async updateEntryStatus(tenant_id: string, id: string, status: string, additionalMetadata?: any, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
+  async updateEntryStatus(ctx: TenantContext, id: string, status: string, additionalMetadata?: any, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
     const db = tx ?? this.prisma;
     
     const dbEntry = await db.inventory_subledger_entries.update({
-      where: { id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         status,
         posted_at: status === 'POSTED' ? new Date() : undefined,
-        
       },
     });
     return this.mapToEntity(dbEntry);
   }
 
-  async lockEntry(tenant_id: string, id: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
-    return this.updateEntryStatus(tenant_id, id, 'POSTED', undefined, tx);
+  async lockEntry(ctx: TenantContext, id: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
+    return this.updateEntryStatus(ctx, id, 'POSTED', undefined, tx);
   }
 
-  async getCostLayers(tenant_id: string, skuId: string, location_id: string, tx?: Prisma.TransactionClient): Promise<CostLayer[]> {
+  async getCostLayers(ctx: TenantContext, skuId: string, location_id: string, tx?: Prisma.TransactionClient): Promise<CostLayer[]> {
     const db = tx ?? this.prisma;
     const dbLayers = await db.cost_layers.findMany({
       where: {
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sku_id: skuId,
         location_id: location_id,
         remaining_qty: { gt: 0 },
@@ -143,12 +144,12 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     return dbLayers.map((l: any) => this.mapToCostLayer(l));
   }
 
-  async createCostLayer(tenant_id: string, data: Partial<CostLayer>, tx?: Prisma.TransactionClient): Promise<CostLayer> {
+  async createCostLayer(ctx: TenantContext, data: Partial<CostLayer>, tx?: Prisma.TransactionClient): Promise<CostLayer> {
     const db = tx ?? this.prisma;
     const dbLayer = await db.cost_layers.create({
       data: {
         id: require('crypto').randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sku_id: data.skuId!,
         location_id: data.location_id!,
         qty: Number(data.qty?.toString() || '0'),
@@ -162,10 +163,10 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     return this.mapToCostLayer(dbLayer);
   }
 
-  async updateCostLayer(tenant_id: string, id: string, data: Partial<CostLayer>, tx?: Prisma.TransactionClient): Promise<CostLayer> {
+  async updateCostLayer(ctx: TenantContext, id: string, data: Partial<CostLayer>, tx?: Prisma.TransactionClient): Promise<CostLayer> {
     const db = tx ?? this.prisma;
     const dbLayer = await db.cost_layers.update({
-      where: { id },
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         remaining_qty: data.remainingQty !== undefined ? Number(data.remainingQty.toString()) : undefined,
       },
@@ -173,12 +174,12 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     return this.mapToCostLayer(dbLayer);
   }
 
-  async createCostSnapshot(tenant_id: string, data: Partial<CostSnapshot>, tx?: Prisma.TransactionClient): Promise<CostSnapshot> {
+  async createCostSnapshot(ctx: TenantContext, data: Partial<CostSnapshot>, tx?: Prisma.TransactionClient): Promise<CostSnapshot> {
     const db = tx ?? this.prisma;
     const dbSnapshot = await db.cost_snapshots.create({
       data: {
         id: require('crypto').randomUUID(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         sku_id: data.skuId!,
         location_id: data.location_id!,
         total_qty: Number(data.totalQty?.toString() || '0'),
@@ -201,8 +202,8 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     };
   }
 
-  async getCurrentValuation(tenant_id: string, skuId: string, location_id: string, tx?: Prisma.TransactionClient): Promise<{ unitCost: Prisma.Decimal; currency: string; method: string }> {
-    const layers = await this.getCostLayers(tenant_id, skuId, location_id, tx);
+  async getCurrentValuation(ctx: TenantContext, skuId: string, location_id: string, tx?: Prisma.TransactionClient): Promise<{ unitCost: Prisma.Decimal; currency: string; method: string }> {
+    const layers = await this.getCostLayers(ctx, skuId, location_id, tx);
     if (layers.length === 0) return { unitCost: new Prisma.Decimal(0), currency: 'USD', method: 'FIFO' };
     
     let totalQty = new Prisma.Decimal(0);

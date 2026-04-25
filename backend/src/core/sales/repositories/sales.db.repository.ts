@@ -4,7 +4,10 @@ import {
   SalesDashboard,
   SalesManagerMetrics,
   SalesExecutiveForecast,
+  SalesNextAction,
 } from "./sales.repository.interface";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 import { PrismaService } from "../../../persistence/prisma.service";
 import { SalesLead } from "../entities/sales-lead.entity";
 import { SalesOpportunity } from "../entities/sales-opportunity.entity";
@@ -28,15 +31,15 @@ import { CreateTaskDto } from "../dto/create-task.dto";
 export class SalesDbRepository implements ISalesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard(tenant_id: string): Promise<SalesDashboard> {
+  async getDashboard(ctx: TenantContext): Promise<SalesDashboard> {
     const [leads, opportunities, quotes, alerts] = await Promise.all([
-      this.prisma.sales_leads.count({ where: { tenant_id: tenant_id, status: "NEW" } }),
-      this.prisma.sales_opportunities.findMany({ where: { tenant_id: tenant_id } }),
+      this.prisma.sales_leads.count({ where: { ...MultiTenancyUtil.getScope(ctx), status: "NEW" } }),
+      this.prisma.sales_opportunities.findMany({ where: MultiTenancyUtil.getScope(ctx) }),
       this.prisma.sales_quotes.count({
-        where: { tenant_id: tenant_id, status: "PENDING_APPROVAL" },
+        where: { ...MultiTenancyUtil.getScope(ctx), status: "PENDING_APPROVAL" },
       }),
       this.prisma.sales_alerts.count({
-        where: { tenant_id: tenant_id, acknowledged: false },
+        where: { ...MultiTenancyUtil.getScope(ctx), acknowledged: false },
       }),
     ]);
 
@@ -61,9 +64,9 @@ export class SalesDbRepository implements ISalesRepository {
     };
   }
 
-  async getManagerMetrics(tenant_id: string): Promise<SalesManagerMetrics> {
+  async getManagerMetrics(ctx: TenantContext): Promise<SalesManagerMetrics> {
     const opportunities = await this.prisma.sales_opportunities.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     });
     return {
       totalReps: 5,
@@ -81,8 +84,7 @@ export class SalesDbRepository implements ISalesRepository {
     };
   }
 
-  async getExecutiveForecast(
-    tenant_id: string,
+  async getExecutiveForecast(ctx: TenantContext,
   ): Promise<SalesExecutiveForecast> {
     return {
       openPipelineValue: 500000000,
@@ -95,36 +97,36 @@ export class SalesDbRepository implements ISalesRepository {
     };
   }
 
-  async getNextBestActions(tenant_id: string): Promise<any[]> {
+  async getNextBestActions(ctx: TenantContext): Promise<any[]> {
     return [];
   }
 
-  async getSalesAnalytics(tenant_id: string): Promise<any> {
+  async getSalesAnalytics(ctx: TenantContext): Promise<any> {
     return {};
   }
 
-  async getForecast(tenant_id: string): Promise<any> {
+  async getForecast(ctx: TenantContext): Promise<any> {
     return {};
   }
 
-  async getPipelineVelocity(tenant_id: string): Promise<any> {
+  async getPipelineVelocity(ctx: TenantContext): Promise<any> {
     return {};
   }
 
-  async getSLAPerformance(tenant_id: string): Promise<any> {
+  async getSLAPerformance(ctx: TenantContext): Promise<any> {
     return {};
   }
 
-  async getLeads(tenant_id: string): Promise<SalesLead[]> {
-    return this.prisma.sales_leads.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getLeads(ctx: TenantContext): Promise<SalesLead[]> {
+    return this.prisma.sales_leads.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 
-  async createLead(tenant_id: string, dto: CreateLeadDto, tx?: any): Promise<SalesLead> {
+  async createLead(ctx: TenantContext, dto: CreateLeadDto, tx?: any): Promise<SalesLead> {
     return (tx || this.prisma).sales_leads.create({
       data: {
         id: 'pw28wagj',
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
         amount: dto.potential_value, // Map potential_value if needed or use schema field
         sla_due_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24h SLA
@@ -132,8 +134,7 @@ export class SalesDbRepository implements ISalesRepository {
     }) as any;
   }
 
-  async updateLeadStatus(
-    tenant_id: string,
+  async updateLeadStatus(ctx: TenantContext,
     lead_id: string,
     dto: UpdateLeadStatusDto,
   ): Promise<SalesLead> {
@@ -143,8 +144,7 @@ export class SalesDbRepository implements ISalesRepository {
     }) as any;
   }
 
-  async convertLead(
-    tenant_id: string,
+  async convertLead(ctx: TenantContext,
     lead_id: string,
     actor_id: string,
   ): Promise<SalesOpportunity> {
@@ -157,7 +157,7 @@ export class SalesDbRepository implements ISalesRepository {
       data: {
         id: '3hwpa82g',
         updated_at: new Date(),
-        tenant_id: tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         lead_id: lead_id,
         account_name: lead.company_name,
         owner_id: lead.owner_id,
@@ -169,14 +169,13 @@ export class SalesDbRepository implements ISalesRepository {
     }) as any;
   }
 
-  async getOpportunities(tenant_id: string): Promise<SalesOpportunity[]> {
+  async getOpportunities(ctx: TenantContext): Promise<SalesOpportunity[]> {
     return this.prisma.sales_opportunities.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     }) as any;
   }
 
-  async createOpportunity(
-    tenant_id: string,
+  async createOpportunity(ctx: TenantContext,
     dto: CreateOpportunityDto,
     tx?: any
   ): Promise<SalesOpportunity> {
@@ -184,14 +183,13 @@ export class SalesDbRepository implements ISalesRepository {
       data: {
         id: '1n82ax4i',
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
       } as any,
     }) as any;
   }
 
-  async moveOpportunityStage(
-    tenant_id: string,
+  async moveOpportunityStage(ctx: TenantContext,
     opportunityId: string,
     dto: MoveOpportunityStageDto,
   ): Promise<SalesOpportunity> {
@@ -201,8 +199,7 @@ export class SalesDbRepository implements ISalesRepository {
     }) as any;
   }
 
-  async closeOpportunity(
-    tenant_id: string,
+  async closeOpportunity(ctx: TenantContext,
     opportunityId: string,
     dto: CloseOpportunityDto,
   ): Promise<SalesOpportunity | SalesOrder> {
@@ -216,7 +213,7 @@ export class SalesDbRepository implements ISalesRepository {
         data: {
         id: 'k6yujvxm',
         updated_at: new Date(),
-          tenant_id: tenant_id,
+          ...MultiTenancyUtil.getScope(ctx),
           opportunity_id: opportunityId,
           customer_name: result.account_name,
           amount: result.amount,
@@ -228,33 +225,31 @@ export class SalesDbRepository implements ISalesRepository {
     return result as any;
   }
 
-  async getQuotes(tenant_id: string): Promise<SalesQuote[]> {
-    return this.prisma.sales_quotes.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getQuotes(ctx: TenantContext): Promise<SalesQuote[]> {
+    return this.prisma.sales_quotes.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 
-  async createQuote(
-    tenant_id: string,
+  async createQuote(ctx: TenantContext,
     dto: CreateQuoteDto,
   ): Promise<SalesQuote> {
     return this.prisma.sales_quotes.create({
       data: {
         id: 'c7ms6sin',
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
       } as any,
     }) as any;
   }
 
-  async submitQuote(tenant_id: string, quoteId: string): Promise<SalesQuote> {
+  async submitQuote(ctx: TenantContext, quoteId: string): Promise<SalesQuote> {
     return this.prisma.sales_quotes.update({
       where: { id: quoteId },
       data: { status: "PENDING_APPROVAL" },
     }) as any;
   }
 
-  async decideQuote(
-    tenant_id: string,
+  async decideQuote(ctx: TenantContext,
     quoteId: string,
     dto: QuoteDecisionDto,
   ): Promise<SalesQuote> {
@@ -268,76 +263,75 @@ export class SalesDbRepository implements ISalesRepository {
     }) as any;
   }
 
-  async getTimeline(tenant_id: string): Promise<SalesTimelineEvent[]> {
+  async getTimeline(ctx: TenantContext): Promise<SalesTimelineEvent[]> {
     return this.prisma.sales_timeline_events.findMany({
-      where: { tenant_id: tenant_id },
+      where: MultiTenancyUtil.getScope(ctx),
     }) as any;
   }
 
-  async createTimelineEvent(
-    tenant_id: string,
+  async createTimelineEvent(ctx: TenantContext,
     dto: CreateTimelineEventDto,
   ): Promise<SalesTimelineEvent> {
     return this.prisma.sales_timeline_events.create({
       data: {
         id: 'r7o3tw1n',
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
       } as any,
     }) as any;
   }
 
-  async getTasks(tenant_id: string): Promise<SalesTask[]> {
-    return this.prisma.sales_tasks.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getTasks(ctx: TenantContext): Promise<SalesTask[]> {
+    return this.prisma.sales_tasks.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 
-  async createTask(tenant_id: string, dto: CreateTaskDto): Promise<SalesTask> {
+  async createTask(ctx: TenantContext, dto: CreateTaskDto): Promise<SalesTask> {
     return this.prisma.sales_tasks.create({
       data: {
         id: 't8rtxr3e',
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
       } as any,
     }) as any;
   }
 
-  async getDeals(tenant_id: string): Promise<any[]> {
-    return this.prisma.sales_opportunities.findMany({ where: { tenant_id } });
+  async getDeals(ctx: TenantContext): Promise<any[]> {
+    return this.prisma.sales_opportunities.findMany({ where: { ...MultiTenancyUtil.getScope(ctx) } });
   }
 
-  async createDeal(tenant_id: string, dto: any, tx?: any): Promise<any> {
+  async createDeal(ctx: TenantContext, dto: any, tx?: any): Promise<any> {
     return (tx || this.prisma).sales_opportunities.create({
       data: {
         id: `DEAL-${Date.now()}`,
         updated_at: new Date(),
-        tenant_id,
+        ...MultiTenancyUtil.getScope(ctx),
         ...dto,
       },
     });
   }
 
-  async completeTask(tenant_id: string, taskId: string): Promise<SalesTask> {
+  async completeTask(ctx: TenantContext, taskId: string): Promise<SalesTask> {
     return this.prisma.sales_tasks.update({
       where: { id: taskId },
       data: { status: "COMPLETED", completed_at: new Date() },
     }) as any;
   }
 
-  async getOrders(tenant_id: string): Promise<SalesOrder[]> {
-    return this.prisma.sales_orders.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getOrders(ctx: TenantContext): Promise<SalesOrder[]> {
+    return this.prisma.sales_orders.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 
-  async getAlerts(tenant_id: string): Promise<SalesAlert[]> {
-    return this.prisma.sales_alerts.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getAlerts(ctx: TenantContext): Promise<SalesAlert[]> {
+    return this.prisma.sales_alerts.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 
-  async runSlaSweep(tenant_id: string, actor_id: string): Promise<SalesAlert[]> {
+  async runSlaSweep(ctx: TenantContext, actor_id: string): Promise<SalesAlert[]> {
     return [];
   }
 
-  async getAuditEvents(tenant_id: string): Promise<SalesAuditEvent[]> {
-    return this.prisma.sales_audit_events.findMany({ where: { tenant_id: tenant_id } }) as any;
+  async getAuditEvents(ctx: TenantContext): Promise<SalesAuditEvent[]> {
+    return this.prisma.sales_audit_events.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
 }

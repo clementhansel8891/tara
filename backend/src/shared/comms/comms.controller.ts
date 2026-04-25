@@ -5,7 +5,7 @@ import { ChatService } from './chat.service';
 import { NotificationService } from './notification.service';
 import { TenantGuard } from '../guards/tenant.guard';
 
-@Controller('v1/comms')
+@Controller('comms')
 @UseGuards(TenantGuard)
 export class CommsController {
   constructor(

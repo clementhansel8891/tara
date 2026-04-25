@@ -33,20 +33,20 @@ export default function DocumentTool() {
   );
 
   const files = useMemo(
-    () => (search ? [] : listFiles(session.tenantId, session, "doc")),
+    () => (search ? [] : listFiles(session.tenant_id, session, "doc")),
     [session, version, search],
   );
   const searchResults = useMemo(
     () =>
       search
-        ? listFiles(session.tenantId, session, "doc").filter((file) =>
+        ? listFiles(session.tenant_id, session, "doc").filter((file) =>
             file.name.toLowerCase().includes(search.toLowerCase()),
           )
         : [],
     [session, search, version],
   );
   const recycleBin = useMemo(
-    () => listRecycleBin(session.tenantId, session, "doc"),
+    () => listRecycleBin(session.tenant_id, session, "doc"),
     [session, version],
   );
 
@@ -54,8 +54,8 @@ export default function DocumentTool() {
     const blob =
       ext === "pdf"
         ? exportPdf({
-            tenantId: session.tenantId,
-            actor: { userId: session.userId, role: session.role, departmentId: session.departmentId },
+            tenantId: session.tenant_id,
+            actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
             filename: createFilename(title, ext),
             content,
             source: "docs",
@@ -78,9 +78,9 @@ export default function DocumentTool() {
             <Button
               onClick={() => {
                 if (selectedId) {
-                  updateFile(session.tenantId, session, selectedId, { name: title, content });
+                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
                 } else {
-                  const record = createFile(session.tenantId, session, {
+                  const record = createFile(session.tenant_id, session, {
                     name: title,
                     type: "doc",
                     content,
@@ -139,7 +139,7 @@ export default function DocumentTool() {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        moveToRecycle(session.tenantId, session, file.id);
+                        moveToRecycle(session.tenant_id, session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >
@@ -202,7 +202,7 @@ export default function DocumentTool() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      restoreFromRecycle(session.tenantId, session, file.id);
+                      restoreFromRecycle(session.tenant_id, session, file.id);
                       setVersion((prev) => prev + 1);
                     }}
                   >

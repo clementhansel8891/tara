@@ -1,3 +1,4 @@
+import { TenantContext } from "../../../gateway/tenant-context.interface";
 import { CreateRequisitionDto } from "../dto/create-requisition.dto";
 import { CreateSupplierDto } from "../dto/create-supplier.dto";
 import { CreateSupplierBranchDto } from "../dto/create-supplier-branch.dto";
@@ -20,64 +21,64 @@ import { Supplier } from "../entities/supplier.entity";
 
 export abstract class IProcurementRepository {
   // Suppliers
-  abstract getSuppliers(tenant_id: string): Promise<Supplier[]>;
-  abstract createSupplier(tenant_id: string, data: CreateSupplierDto): Promise<Supplier>;
+  abstract getSuppliers( ctx: TenantContext): Promise<Supplier[]>;
+  abstract createSupplier( ctx: TenantContext, data: CreateSupplierDto): Promise<Supplier>;
 
   // Supplier Branches
-  abstract getSupplierBranches(tenant_id: string): Promise<any[]>;
-  abstract createSupplierBranch(tenant_id: string, data: CreateSupplierBranchDto): Promise<any>;
+  abstract getSupplierBranches( ctx: TenantContext): Promise<any[]>;
+  abstract createSupplierBranch( ctx: TenantContext, data: CreateSupplierBranchDto): Promise<any>;
 
   // Supplier Products
-  abstract getSupplierProducts(tenant_id: string): Promise<any[]>;
-  abstract upsertSupplierProduct(tenant_id: string, data: UpsertSupplierProductDto): Promise<any>;
+  abstract getSupplierProducts( ctx: TenantContext): Promise<any[]>;
+  abstract upsertSupplierProduct( ctx: TenantContext, data: UpsertSupplierProductDto): Promise<any>;
 
   // Supplier Recommendations
-  abstract getSupplierRecommendations(tenant_id: string, params: any): Promise<any[]>;
+  abstract getSupplierRecommendations( ctx: TenantContext, params: any): Promise<any[]>;
 
   // Categories
-  abstract getCategories(tenant_id: string): Promise<any[]>;
-  abstract upsertCategory(tenant_id: string, data: CreateProcurementCategoryDto | UpdateProcurementCategoryDto): Promise<any>;
-  abstract deleteCategory(tenant_id: string, id: string): Promise<any>;
+  abstract getCategories( ctx: TenantContext): Promise<any[]>;
+  abstract upsertCategory( ctx: TenantContext, data: CreateProcurementCategoryDto | UpdateProcurementCategoryDto): Promise<any>;
+  abstract deleteCategory( ctx: TenantContext, id: string): Promise<any>;
 
   // Requisitions
-  abstract getRequisitions(tenant_id: string): Promise<Requisition[]>;
-  abstract createRequisition(tenant_id: string, data: CreateRequisitionDto): Promise<Requisition>;
-  abstract approveRequesterHod(tenant_id: string, requisitionId: string): Promise<Requisition>;
-  abstract approveFinal(tenant_id: string, requisitionId: string, data: ApproveFinalDto): Promise<Requisition>;
+  abstract getRequisitions( ctx: TenantContext): Promise<Requisition[]>;
+  abstract createRequisition( ctx: TenantContext, data: CreateRequisitionDto): Promise<Requisition>;
+  abstract approveRequesterHod( ctx: TenantContext, requisitionId: string): Promise<Requisition>;
+  abstract approveFinal( ctx: TenantContext, requisitionId: string, data: ApproveFinalDto): Promise<Requisition>;
 
   // Draft POs
-  abstract getDraftPurchaseOrders(tenant_id: string): Promise<any[]>;
-  abstract createDraftPurchaseOrder(tenant_id: string, data: CreateDraftPoDto, createdBy: string): Promise<any>;
-  abstract approveDraftByProcurementHod(tenant_id: string, draftPoId: string): Promise<any>;
-  abstract confirmSupplierQuote(tenant_id: string, draftPoId: string, data: ConfirmQuoteDto): Promise<any>;
+  abstract getDraftPurchaseOrders( ctx: TenantContext): Promise<any[]>;
+  abstract createDraftPurchaseOrder( ctx: TenantContext, data: CreateDraftPoDto, createdBy: string): Promise<any>;
+  abstract approveDraftByProcurementHod( ctx: TenantContext, draftPoId: string): Promise<any>;
+  abstract confirmSupplierQuote( ctx: TenantContext, draftPoId: string, data: ConfirmQuoteDto): Promise<any>;
 
   // Purchase Orders (Final)
-  abstract releasePurchaseOrder(tenant_id: string, data: ReleasePoDto): Promise<PurchaseOrder>;
-  abstract getPurchaseOrders(tenant_id: string): Promise<PurchaseOrder[]>;
+  abstract releasePurchaseOrder( ctx: TenantContext, data: ReleasePoDto): Promise<PurchaseOrder>;
+  abstract getPurchaseOrders( ctx: TenantContext): Promise<PurchaseOrder[]>;
 
   // Receipts
-  abstract createReceipt(tenant_id: string, data: CreateReceiptDto, createdBy: string): Promise<any>;
+  abstract createReceipt( ctx: TenantContext, data: CreateReceiptDto, createdBy: string): Promise<any>;
 
   // Contracts
-  abstract getContracts(tenant_id: string): Promise<any[]>;
-  abstract createContract(tenant_id: string, data: CreateContractDto, createdBy: string): Promise<any>;
-  abstract approveLegalContract(tenant_id: string, contractId: string): Promise<any>;
-  abstract signContract(tenant_id: string, contractId: string, data: SignContractDto): Promise<any>;
+  abstract getContracts( ctx: TenantContext): Promise<any[]>;
+  abstract createContract( ctx: TenantContext, data: CreateContractDto, createdBy: string): Promise<any>;
+  abstract approveLegalContract( ctx: TenantContext, contractId: string): Promise<any>;
+  abstract signContract( ctx: TenantContext, contractId: string, data: SignContractDto): Promise<any>;
 
   // Risk Management
-  abstract getRiskSignals(tenant_id: string): Promise<ProcurementRisk[]>;
-  abstract runRiskScan(tenant_id: string): Promise<ProcurementRisk[]>;
-  abstract createRiskSignal(tenant_id: string, data: CreateRiskSignalDto): Promise<any>;
-  abstract updateRiskSignalStatus(tenant_id: string, riskSignalId: string, status: string): Promise<any>;
+  abstract getRiskSignals( ctx: TenantContext): Promise<ProcurementRisk[]>;
+  abstract runRiskScan( ctx: TenantContext): Promise<ProcurementRisk[]>;
+  abstract createRiskSignal( ctx: TenantContext, data: CreateRiskSignalDto): Promise<any>;
+  abstract updateRiskSignalStatus( ctx: TenantContext, riskSignalId: string, status: string): Promise<any>;
 
   // Portal Messages
-  abstract getPortalMessages(tenant_id: string): Promise<any[]>;
-  abstract createPortalMessage(tenant_id: string, data: CreatePortalMessageDto, createdBy: string): Promise<any>;
+  abstract getPortalMessages( ctx: TenantContext): Promise<any[]>;
+  abstract createPortalMessage( ctx: TenantContext, data: CreatePortalMessageDto, createdBy: string): Promise<any>;
 
   // Audit Events
-  abstract getAuditEvents(tenant_id: string): Promise<any[]>;
-  abstract createAuditEvent(tenant_id: string, actor_id: string, action: string, entity_type: string, entity_id: string, detail?: string): Promise<any>;
+  abstract getAuditEvents( ctx: TenantContext): Promise<any[]>;
+  abstract createAuditEvent( ctx: TenantContext, actor_id: string, action: string, entity_type: string, entity_id: string, detail?: string): Promise<any>;
 
   // Spend Insights
-  abstract getSpendInsights(tenant_id: string): Promise<any[]>;
+  abstract getSpendInsights( ctx: TenantContext): Promise<any[]>;
 }

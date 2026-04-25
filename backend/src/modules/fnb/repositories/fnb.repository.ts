@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { TenantContext } from '../../../gateway/tenant-context.interface';
 
 export interface RecipeIngredient {
   item_id: string;
@@ -19,13 +20,13 @@ export interface Recipe {
 }
 
 export abstract class FnbRepository {
-  abstract getRecipes(tenant_id: string): Promise<Recipe[]>;
-  abstract getRecipeById(tenant_id: string, id: string): Promise<Recipe | null>;
-  abstract createRecipe(tenant_id: string, data: any): Promise<Recipe>;
+  abstract getRecipes(ctx: TenantContext): Promise<Recipe[]>;
+  abstract getRecipeById(ctx: TenantContext, id: string): Promise<Recipe | null>;
+  abstract createRecipe(ctx: TenantContext, data: any): Promise<Recipe>;
   
   /**
    * Enterprise Hook: Recipe-to-Inventory deductive link
    * Deducts ingredients from Inventory when a recipe is sold/produced.
    */
-  abstract deductIngredientsFromInventory(tenant_id: string, recipeId: string, yieldQuantity: number): Promise<void>;
+  abstract deductIngredientsFromInventory(ctx: TenantContext, recipeId: string, yieldQuantity: number): Promise<void>;
 }
