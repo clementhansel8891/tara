@@ -6,12 +6,20 @@ import { MarketingService } from "./marketing.service";
 import { MarketingDbRepository } from "./repositories/marketing.db.repository";
 import { MarketingMockRepository } from "./repositories/marketing.mock.repository";
 import { IMarketingRepository } from "./repositories/marketing.repository.interface";
+import { Customer360Service } from "./customer-360.service";
+import { OmnichannelService } from "./omnichannel.service";
+import { MarketingAutomationEngine } from "./automation-engine.service";
+import { BookingService } from "./booking.service";
 
 @Module({
   controllers: [MarketingController],
   providers: [
     PrismaService,
     MarketingService,
+    Customer360Service,
+    OmnichannelService,
+    MarketingAutomationEngine,
+    BookingService,
     {
       provide: IMarketingRepository,
       useClass: useDbPersistence()
@@ -19,6 +27,11 @@ import { IMarketingRepository } from "./repositories/marketing.repository.interf
         : MarketingMockRepository,
     },
   ],
-  exports: [MarketingService],
+  exports: [
+    MarketingService,
+    Customer360Service,
+    OmnichannelService,
+    BookingService,
+  ],
 })
 export class MarketingModule {}

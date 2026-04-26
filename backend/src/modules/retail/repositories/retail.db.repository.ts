@@ -735,10 +735,11 @@ export class RetailDbRepository implements IRetailRepository {
     return this.prisma.$transaction(async (tx) => {
       const stock = await tx.stock_levels.findUnique({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id,
             product_id,
-            department_id: null as any,
+            department_id: "DEFAULT",
           },
         },
       });
@@ -2068,7 +2069,7 @@ export class RetailDbRepository implements IRetailRepository {
 
     // 2. Find Ecommerce Connector with same name/clientId to get linked stores
     // (Assuming name parity or we can use settings)
-    const connector = await (this.prisma.ecommerce_connectors as any).findFirst({
+    const connector = await this.prisma.ecommerce_connectors.findFirst({
       where: { ...MultiTenancyUtil.getScope(ctx), name: channel.name },
       include: { stores: { select: { location_id: true } } }
     });

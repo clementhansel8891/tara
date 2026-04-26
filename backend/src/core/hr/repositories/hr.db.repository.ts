@@ -209,7 +209,7 @@ export class HRDbRepository implements IHRRepository {
     // Ensure UserCompany association exists for multi-tenancy access
     await db.user_companies.upsert({
       where: {
-        user_id_tenant_id: {
+        tenant_id_user_id: {
           user_id: user.id,
           tenant_id: tenant_id
         }
@@ -235,7 +235,7 @@ export class HRDbRepository implements IHRRepository {
         email: data.email,
         phone: data.phone,
         manager_id: data.manager_id,
-        position: data.role_title || "Staff",
+        positions: data.role_title || "Staff",
         employment_type: data.employment_type || "full_time",
         base_salary: data.base_salary ? new Prisma.Decimal(data.base_salary.toString()) : undefined,
         hourly_rate: data.hourly_rate ? new Prisma.Decimal(data.hourly_rate.toString()) : undefined,
@@ -1057,8 +1057,8 @@ export class HRDbRepository implements IHRRepository {
       department_id: e.department_id,
       manager_id: e.manager_id || undefined,
       user_id: e.user_id || undefined,
-      role_title: e.position || e.role_title || "",
-      position: e.position || "",
+      role_title: (e as any).positions || e.role_title || "",
+      position: (e as any).positions || "",
       position_id: e.position_id || undefined,
       status: e.status?.toLowerCase() as any,
       employment_type: e.employment_type as any,
@@ -1304,7 +1304,7 @@ export class HRDbRepository implements IHRRepository {
       title: i.title,
       scheduledAt: i.scheduled_at,
       duration: i.duration,
-      location: i || undefined,
+      location: i.location || undefined,
       status: i.status as any,
       notes: i.notes || undefined,
       created_at: i.created_at,
@@ -1564,18 +1564,19 @@ export class HRDbRepository implements IHRRepository {
     };
   }
 
-  private mapPositionSkill(s: any): PositionSkill {
+  private mapPositionSkill(ps: any): PositionSkill {
     return {
-      id: s.id,
-      tenant_id: s.tenant_id,
-      position_id: s.position_id,
-      skill_id: s.skill_id,
-      minProficiency: s.min_proficiency,
-      isMandatory: s.is_mandatory || false,
-      skill: (s as any).hrSkill ? this.mapSkill((s as any).hrSkill) : undefined,
-      position: (s as any).position ? this.mapPosition((s as any).position) : undefined,
-      created_at: s.created_at,
-      updated_at: s.updated_at,
+      id: ps.id,
+      tenant_id: ps.tenant_id,
+      position_id: ps.position_id,
+      skill_id: ps.skill_id,
+      minProficiency: ps.min_proficiency,
+      isMandatory: ps.is_mandatory,
+      importance: ps.importance as any,
+      position: ps.positions ? this.mapPosition(ps.positions) : undefined,
+      skill: ps.hr_skills ? this.mapSkill(ps.hr_skills) : undefined,
+      created_at: ps.created_at,
+      updated_at: ps.updated_at,
     };
   }
 
@@ -1707,7 +1708,7 @@ export class HRDbRepository implements IHRRepository {
     const employee = await this.prisma.employees.update({
       where: { id: employee_id, tenant_id: tenant_id },
       data: {
-        position: data.newRole,
+        positions: data.newRole,
         base_salary: data.newSalary,
         status: "promoted",
       },
@@ -1823,7 +1824,7 @@ export class HRDbRepository implements IHRRepository {
       }
 
       await tx.user_companies.upsert({
-        where: { user_id_tenant_id: { user_id: user.id, tenant_id: tenant_id } },
+        where: { tenant_id_user_id: { user_id: user.id, tenant_id: tenant_id } },
         update: {},
         create: { user_id: user.id, tenant_id: tenant_id, role: 'MEMBER' }
       });
@@ -1839,7 +1840,7 @@ export class HRDbRepository implements IHRRepository {
           phone: candidate.phone,
           location_id: data.location_id || "loc-default",
           department_id: data.department_id || candidate.job_requisitions?.department_id || "",
-          position: data.position || candidate.job_requisitions?.title || "Staff",
+          positions: data.position || candidate.job_requisitions?.title || "Staff",
           employee_code: data.employee_code || `EMP-${Date.now()}`,
           status: "probation",
           hire_date: data.hire_date ? new Date(data.hire_date) : new Date(),
@@ -2189,7 +2190,7 @@ export class HRDbRepository implements IHRRepository {
         title: data.title,
         scheduled_at: new Date(data.scheduledAt),
         duration: data.duration || 30,
-        location: data.location || "Online",
+        locations: data.location || "Online",
         status: "SCHEDULED",
         notes: data.notes,
         updated_at: new Date(),
@@ -2496,10 +2497,11 @@ export class HRDbRepository implements IHRRepository {
   async updateEmployeeSkill(tenant_id: string, data: any): Promise<EmployeeSkill> {
     const skill = await this.prisma.hr_employee_skills.upsert({
       where: {
-        employee_id_skill_id: {
+        tenant_id_employee_id_skill_id: {
+          tenant_id: tenant_id,
           employee_id: data.employee_id,
-          skill_id: data.skill_id,
-        },
+          skill_id: data.skill_id
+        }
       },
       create: {
         id: uuidv4(),
@@ -2937,10 +2939,11 @@ export class HRDbRepository implements IHRRepository {
   async updatePositionSkill(tenant_id: string, data: any): Promise<PositionSkill> {
     const skill = await this.prisma.hr_position_skills.upsert({
       where: {
-        position_id_skill_id: {
+        tenant_id_position_id_skill_id: {
+          tenant_id: tenant_id,
           position_id: data.position_id,
-          skill_id: data.skill_id,
-        },
+          skill_id: data.skill_id
+        }
       },
       create: {
         id: uuidv4(),

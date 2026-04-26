@@ -30,7 +30,7 @@ export class LedgerEventLogDbRepository implements ILedgerEventLogRepository {
 
   async findBySourceEventId(tenant_id: string, company_id: string, sourceEventId: string): Promise<LedgerEventLog | null> {
     const res = await this.db.finance_ledger_event_log.findUnique({
-      where: { tenant_id_company_id_source_event_id: { tenant_id: tenant_id, company_id: company_id, source_event_id: sourceEventId } }
+      where: { tenant_id_source_event_id: { tenant_id: tenant_id, source_event_id: sourceEventId } }
     });
     return res as unknown as LedgerEventLog;
   }

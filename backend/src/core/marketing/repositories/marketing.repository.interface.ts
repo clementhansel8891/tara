@@ -16,6 +16,12 @@ import { MarketingCampaign } from "../entities/marketing-campaign.entity";
 import { MarketingExecution } from "../entities/marketing-execution.entity";
 import { MarketingLead } from "../entities/marketing-lead.entity";
 import { MarketingWorkflow } from "../entities/marketing-workflow.entity";
+import { MarketingContact } from "../entities/marketing-contact.entity";
+import { MarketingFunnel } from "../entities/marketing-funnel.entity";
+import { MarketingAppointment } from "../entities/marketing-appointment.entity";
+import { MarketingAutomationRule } from "../entities/marketing-automation.entity";
+import { MarketingCreativeAsset } from "../entities/marketing-creative-asset.entity";
+import { MarketingOmnichannelMessage } from "../entities/marketing-message.entity";
 
 export type MarketingDashboard = {
   activeCampaigns: number;
@@ -109,4 +115,25 @@ export abstract class IMarketingRepository {
   ): Promise<MarketingAlert[]>;
 
   abstract getAuditEvents( ctx: TenantContext): Promise<MarketingAuditEvent[]>;
+
+  // --- Growth Engine Extensions ---
+  
+  abstract getContacts(ctx: TenantContext): Promise<MarketingContact[]>;
+  abstract getContactById(ctx: TenantContext, id: string): Promise<MarketingContact>;
+  abstract createContact(ctx: TenantContext, data: Partial<MarketingContact>): Promise<MarketingContact>;
+  
+  abstract getFunnels(ctx: TenantContext): Promise<MarketingFunnel[]>;
+  abstract createFunnel(ctx: TenantContext, data: Partial<MarketingFunnel>): Promise<MarketingFunnel>;
+  
+  abstract getAppointments(ctx: TenantContext): Promise<MarketingAppointment[]>;
+  abstract createAppointment(ctx: TenantContext, data: Partial<MarketingAppointment>): Promise<MarketingAppointment>;
+  
+  abstract getAutomationRules(ctx: TenantContext): Promise<MarketingAutomationRule[]>;
+  abstract createAutomationRule(ctx: TenantContext, data: Partial<MarketingAutomationRule>): Promise<MarketingAutomationRule>;
+  
+  abstract getMessages(ctx: TenantContext, contactId?: string): Promise<MarketingOmnichannelMessage[]>;
+  abstract sendMessage(ctx: TenantContext, data: Partial<MarketingOmnichannelMessage>): Promise<MarketingOmnichannelMessage>;
+  
+  abstract getCreativeAssets(ctx: TenantContext): Promise<MarketingCreativeAsset[]>;
+  abstract createCreativeAsset(ctx: TenantContext, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset>;
 }

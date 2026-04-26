@@ -11,6 +11,12 @@ import { MarketingCampaign } from "../entities/marketing-campaign.entity";
 import { MarketingExecution } from "../entities/marketing-execution.entity";
 import { MarketingLead } from "../entities/marketing-lead.entity";
 import { MarketingWorkflow } from "../entities/marketing-workflow.entity";
+import { MarketingContact } from "../entities/marketing-contact.entity";
+import { MarketingFunnel } from "../entities/marketing-funnel.entity";
+import { MarketingAppointment } from "../entities/marketing-appointment.entity";
+import { MarketingAutomationRule } from "../entities/marketing-automation.entity";
+import { MarketingCreativeAsset } from "../entities/marketing-creative-asset.entity";
+import { MarketingOmnichannelMessage } from "../entities/marketing-message.entity";
 import { MarketingConnectedAccount } from "../entities/marketing-account.entity";
 import { MarketingAttribution } from "../entities/marketing-attribution.entity";
 import { MarketingAlert } from "../entities/marketing-alert.entity";
@@ -526,5 +532,177 @@ export class MarketingDbRepository extends IMarketingRepository {
       detail: i.detail,
       created_at: i.created_at,
     }));
+  }
+
+  // --- Growth Engine Extensions ---
+
+  async getContacts(ctx: TenantContext): Promise<MarketingContact[]> {
+    const items = await this.prisma.marketing_contacts.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { created_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async getContactById(ctx: TenantContext, id: string): Promise<MarketingContact> {
+    const item = await this.prisma.marketing_contacts.findUnique({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      include: {
+        marketing_leads: true,
+        retail_customers: true,
+        sales_leads: true,
+      }
+    });
+    if (!item) throw new Error("Contact not found");
+    return item as any;
+  }
+
+  async createContact(ctx: TenantContext, data: Partial<MarketingContact>): Promise<MarketingContact> {
+    const item = await this.prisma.marketing_contacts.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
+        email: data.email,
+        phone: data.phone,
+        tags: data.tags || [],
+        score: data.score || 0,
+        status: data.status || "ACTIVE",
+        behavioral_data: data.behavioral_data || {},
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+    });
+    return item as any;
+  }
+
+  async getFunnels(ctx: TenantContext): Promise<MarketingFunnel[]> {
+    const items = await this.prisma.marketing_funnels.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      include: { steps: true },
+      orderBy: { created_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async createFunnel(ctx: TenantContext, data: Partial<MarketingFunnel>): Promise<MarketingFunnel> {
+    const item = await this.prisma.marketing_funnels.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        name: data.name || "Unnamed Funnel",
+        description: data.description,
+        status: "DRAFT",
+        created_at: new Date(),
+        updated_at: new Date(),
+      },
+      include: { steps: true }
+    });
+    return item as any;
+  }
+
+  async getAppointments(ctx: TenantContext): Promise<MarketingAppointment[]> {
+    const items = await this.prisma.marketing_appointments.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { scheduled_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async createAppointment(ctx: TenantContext, data: Partial<MarketingAppointment>): Promise<MarketingAppointment> {
+    const item = await this.prisma.marketing_appointments.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        contact_id: data.contact_id!,
+        staff_id: data.staff_id,
+        scheduled_at: new Date(data.scheduled_at!),
+        duration_mins: data.duration_mins || 30,
+        status: "SCHEDULED",
+        notes: data.notes,
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+    });
+    return item as any;
+  }
+
+  async getAutomationRules(ctx: TenantContext): Promise<MarketingAutomationRule[]> {
+    const items = await this.prisma.marketing_automation_rules.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { created_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async createAutomationRule(ctx: TenantContext, data: Partial<MarketingAutomationRule>): Promise<MarketingAutomationRule> {
+    const item = await this.prisma.marketing_automation_rules.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        name: data.name || "Unnamed Rule",
+        trigger_event: data.trigger_event || "lead.created",
+        conditions: data.conditions || {},
+        actions: data.actions || {},
+        status: "INACTIVE",
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+    });
+    return item as any;
+  }
+
+  async getMessages(ctx: TenantContext, contactId?: string): Promise<MarketingOmnichannelMessage[]> {
+    const items = await this.prisma.marketing_omnichannel_messages.findMany({
+      where: {
+        ...MultiTenancyUtil.getScope(ctx),
+        ...(contactId ? { contact_id: contactId } : {})
+      },
+      orderBy: { sent_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async sendMessage(ctx: TenantContext, data: Partial<MarketingOmnichannelMessage>): Promise<MarketingOmnichannelMessage> {
+    const item = await this.prisma.marketing_omnichannel_messages.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        contact_id: data.contact_id!,
+        channel: data.channel || "EMAIL",
+        direction: "OUTBOUND",
+        content: data.content || "",
+        status: "SENT",
+        sent_at: new Date(),
+        metadata: data.metadata || {},
+      }
+    });
+    return item as any;
+  }
+
+  async getCreativeAssets(ctx: TenantContext): Promise<MarketingCreativeAsset[]> {
+    const items = await this.prisma.marketing_creative_assets.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { created_at: "desc" },
+    });
+    return items.map(i => i as any);
+  }
+
+  async createCreativeAsset(ctx: TenantContext, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset> {
+    const item = await this.prisma.marketing_creative_assets.create({
+      data: {
+        id: uuidv4(),
+        ...MultiTenancyUtil.getScope(ctx),
+        name: data.name || "Unnamed Asset",
+        type: data.type || "IMAGE",
+        url: data.url || "",
+        tags: data.tags || [],
+        metadata: data.metadata || {},
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+    });
+    return item as any;
   }
 }

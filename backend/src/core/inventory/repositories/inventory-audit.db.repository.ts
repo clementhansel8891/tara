@@ -87,7 +87,8 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
       // 2. Update stock level
       await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: adj.location_id,
             product_id: adj.item_id,
             department_id: adj.department_id ?? (null as any),

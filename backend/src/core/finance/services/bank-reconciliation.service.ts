@@ -12,7 +12,6 @@ export class BankReconciliationService {
    */
   async ingestStatement(tenant_id: string, data: {
     bank_account_id: string;
-    gl_account_id?: string;
     statement_date: string;
     opening_balance: number;
     closing_balance: number;
@@ -29,7 +28,6 @@ export class BankReconciliationService {
         data: {
           tenant_id,
           bank_account_id: data.bank_account_id,
-          gl_account_id: data.gl_account_id,
           statement_date: new Date(data.statement_date),
           opening_balance: data.opening_balance,
           closing_balance: data.closing_balance,

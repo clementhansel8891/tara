@@ -118,6 +118,26 @@ export class SalesController {
     };
   }
 
+  @Get("forecast")
+  async getForecast(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    return {
+      success: true,
+      tenant_id,
+      data: await this.salesService.getForecast(request.tenantContext),
+    };
+  }
+
+  @Get("analytics")
+  async getAnalytics(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    return {
+      success: true,
+      tenant_id,
+      data: await this.salesService.getSalesAnalytics(request.tenantContext),
+    };
+  }
+
   @Get("leads")
   async getLeads(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;

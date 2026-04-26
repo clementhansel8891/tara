@@ -39,8 +39,7 @@ export class SalesManagementController {
   async getForecast(
     @Req() req: RequestWithTenant,
   ) {
-    const user_id = req.user?.id || "system";
-    return this.salesService.getForecast(req.tenantContext, user_id);
+    return this.salesService.getForecast(req.tenantContext);
   }
 
   @Get("velocity")

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestj
 import { IncentivesService } from './incentives.service';
 import { CreateIncentivePlanDto } from './dto/create-plan.dto';
 import { CreateIncentiveRuleDto } from './dto/create-rule.dto';
+import { UpdateIncentivePlanDto } from './dto/update-plan.dto';
 
 @Controller('incentives')
 export class IncentivesController {
@@ -23,8 +24,18 @@ export class IncentivesController {
   }
 
   @Patch('plans/:id/status')
-  updateStatus(@Param('id') id: string, @Body('is_active') is_active: boolean) {
-    return this.incentivesService.updatePlanStatus(id, is_active);
+  updateStatus(@Param('id') id: string, @Body('is_active') is_active: boolean, @Body('actor_id') actor_id?: string) {
+    return this.incentivesService.updatePlanStatus(id, is_active, actor_id);
+  }
+
+  @Patch('plans/:id')
+  updatePlan(@Param('id') id: string, @Body() dto: UpdateIncentivePlanDto, @Body('actor_id') actor_id?: string) {
+    return this.incentivesService.updatePlan(id, dto, actor_id);
+  }
+
+  @Get('plans/:id/audit-logs')
+  getAuditLogs(@Param('id') id: string) {
+    return this.incentivesService.getAuditLogs(id);
   }
 
   @Delete('plans/:id')
@@ -47,7 +58,28 @@ export class IncentivesController {
     return this.incentivesService.getEligibleStaff(id);
   }
 
+  @Post('recalculate')
+  recalculate(
+    @Query('tenant_id') tenant_id: string,
+    @Query('company_id') company_id: string,
+    @Body() data: { start_date: string; end_date: string }
+  ) {
+    return this.incentivesService.recalculatePeriod(
+      tenant_id,
+      company_id,
+      new Date(data.start_date),
+      new Date(data.end_date)
+    );
+  }
+
+  @Get('analytics')
+
+  getAnalytics(@Query('tenant_id') tenant_id: string, @Query('company_id') company_id: string) {
+    return this.incentivesService.getIncentiveAnalytics(tenant_id, company_id);
+  }
+
   @Post('process-payouts')
+
   processPayouts(
     @Body() data: { tenant_id: string; company_id: string; start_date: string; end_date: string }
   ) {

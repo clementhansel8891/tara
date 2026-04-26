@@ -76,6 +76,7 @@ import AccountDesk from "@/pages/core/it/AccountDesk";
 import DeviceDesk from "@/pages/core/it/DeviceDesk";
 import SystemHealth from "@/pages/core/it/SystemHealth";
 import SalesWorkspaceLayout from "@/pages/core/sales/SalesWorkspaceLayout";
+import SalesOverview from "@/pages/core/sales/SalesOverview";
 import SalesDashboard from "@/pages/core/sales/SalesDashboard";
 import LeadDesk from "@/pages/core/sales/LeadDesk";
 import PipelineBoard from "@/pages/core/sales/PipelineBoard";
@@ -86,6 +87,7 @@ import SalesOrderDesk from "@/pages/core/sales/SalesOrderDesk";
 import ManagerDesk from "@/pages/core/sales/ManagerDesk";
 import ForecastDesk from "@/pages/core/sales/ForecastDesk";
 import SalesAuditLog from "@/pages/core/sales/SalesAuditLog";
+import IncentiveDesk from "@/pages/core/sales/Incentives/IncentiveDesk";
 import MarketingWorkspaceLayout from "@/pages/core/marketing/MarketingWorkspaceLayout";
 import CampaignDesk from "@/pages/core/marketing/CampaignDesk";
 import ExecutionDesk from "@/pages/core/marketing/ExecutionDesk";
@@ -158,7 +160,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         </ProtectedRoute>
       }
     >
-      <Route index element={<MoneyDesk />} />
+      <Route index element={<CFODashboard />} />
       <Route
         path="moneydesk"
         element={
@@ -517,7 +519,15 @@ export function buildCoreRoutes(): JSX.Element[] {
         </ProtectedRoute>
       }
     >
-      <Route index element={<SalesDashboard />} />
+      <Route index element={<Navigate to="overview" replace />} />
+      <Route
+        path="overview"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <SalesOverview />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="dashboard"
         element={
@@ -595,6 +605,14 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.sales.access" scope="COMPANY">
             <SalesAuditLog />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="incentives"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <IncentiveDesk />
           </ProtectedRoute>
         }
       />

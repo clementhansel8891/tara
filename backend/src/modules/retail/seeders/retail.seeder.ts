@@ -23,6 +23,7 @@ export class RetailSeeder {
         company = await this.prisma.companies.create({
           data: {
             id: this.TENANT_ID,
+            tenant_id: this.TENANT_ID,
             name: "Zenvix Demo Corp",
             code: "ZDX",
             industry: "retail",
@@ -175,7 +176,7 @@ export class RetailSeeder {
           first_name: "Andi",
           last_name: "Cashier",
           email: "cashier.demo@zenvix.id",
-          position: "Sales Associate",
+          positions: "Sales Associate",
           employee_code: "EMP-C-01",
           hire_date: new Date(),
           status: "active",

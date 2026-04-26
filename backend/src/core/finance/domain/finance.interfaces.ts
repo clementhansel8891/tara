@@ -110,6 +110,8 @@ export interface AccountBalanceSnapshot {
 
 export interface SnapshotApplicationLog {
   id?: string;
+  tenant_id: string;
+  company_id: string;
   snapshotId?: string;
   ledgerEntryId: string;
   accountId: string;

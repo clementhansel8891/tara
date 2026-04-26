@@ -62,6 +62,14 @@ export const salesService = {
     return apiRequest<SalesNextAction[]>("/v1/sales/nba", "GET", session);
   },
 
+  async getForecast(tenantId: string, session: SessionContext) {
+    return apiRequest<any>("/v1/sales/forecast", "GET", session);
+  },
+
+  async getAnalytics(tenantId: string, session: SessionContext) {
+    return apiRequest<any>("/v1/sales/analytics", "GET", session);
+  },
+
   async createLead(
     tenantId: string,
     session: SessionContext,

@@ -101,6 +101,8 @@ export class AccountBalanceSnapshotService {
       await this.propagateForwardResilient(tenant_id, company_id, line.accountId, period.fiscalYearId, period.periodNumber, netDelta, currency);
       
       await this.snapshotRepo.addLog({ 
+        tenant_id,
+        company_id,
         snapshotId: snapshot.id,
         ledgerEntryId: entry.id, 
         accountId: line.accountId, 

@@ -97,7 +97,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     const plainApiKey = generateKey("znx_ec_gw");
     const apiKeyHash = hashSecret(plainApiKey);
 
-    const row = await (this.prisma.ecommerce_connectors as any).create({
+    const row = await this.prisma.ecommerce_connectors.create({
       data: {
         id: uuidv4(),
         updated_at: new Date(),
@@ -105,7 +105,7 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
         name: data.name,
         platform: data.platform,
         domain: data.domain,
-        apiKey: apiKeyHash,
+        api_key: apiKeyHash,
         status: "active",
         inventory_pool_id: data.inventoryPoolId,
         settings: (data.settings ?? {}) as any,
@@ -124,16 +124,16 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     data: UpdateEcommerceConnectorDto,
   ): Promise<EcommerceConnector> {
     await this.requireConnector(tenant_id, id);
-    const row = await (this.prisma.ecommerce_connectors as any).update({
+    const row = await this.prisma.ecommerce_connectors.update({
       where: { id },
       data: {
         ...(data.name !== undefined && { name: data.name }),
         ...(data.platform !== undefined && { platform: data.platform }),
         ...(data.domain !== undefined && { domain: data.domain }),
         ...(data.status !== undefined && { status: data.status }),
-        ...(data.settings !== undefined && { settings: data.settings }),
+        ...(data.settings !== undefined && { settings: data.settings as any }),
         ...(data.inventoryPoolId !== undefined && {
-          inventory_pool_id: data.inventoryPoolId,
+          inventory_pools: data.inventoryPoolId ? { connect: { id: data.inventoryPoolId } } : { disconnect: true },
         }),
         ...(data.branchIds !== undefined && {
           stores: {
@@ -153,16 +153,16 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
     await this.requireConnector(tenant_id, id);
     const plainApiKey = generateKey("zvx_ec");
     const apiKeyHash = hashSecret(plainApiKey);
-    await (this.prisma.ecommerce_connectors as any).update({
+    await this.prisma.ecommerce_connectors.update({
       where: { id },
-      data: { apiKey: apiKeyHash },
+      data: { api_key: apiKeyHash },
     });
     return { plainApiKey };
   }
 
   async deleteConnector(tenant_id: string, id: string): Promise<void> {
     await this.requireConnector(tenant_id, id);
-    await (this.prisma.ecommerce_connectors as any).update({
+    await this.prisma.ecommerce_connectors.update({
       where: { id },
       data: { deleted_at: new Date(), status: "revoked" },
     });
@@ -337,7 +337,8 @@ export class EcommerceHubDbRepository implements IEcommerceHubRepository {
       for (const update of updates) {
         await tx.retail_channel_products.upsert({
           where: {
-            channel_id_product_id: {
+            tenant_id_channel_id_product_id: {
+              tenant_id,
               channel_id,
               product_id: update.product_id
             }

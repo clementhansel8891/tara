@@ -5,6 +5,7 @@ export class PositionSkill {
   skill_id: string;
   minProficiency: number;
   isMandatory: boolean;
+  importance: "low" | "medium" | "high";
   created_at: Date;
   updated_at: Date;
 

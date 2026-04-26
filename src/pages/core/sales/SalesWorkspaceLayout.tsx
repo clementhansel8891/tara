@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   Rocket,
   ScrollText,
+  LayoutDashboard,
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -32,7 +33,8 @@ const SECTIONS: MenuSection[] = [
   {
     title: "Operations",
     items: [
-      { label: "Sales Dashboard", to: "/core/sales/dashboard", icon: Gauge },
+      { label: "Sales Overview", to: "/core/sales/overview", icon: LayoutDashboard },
+      { label: "Sales Command Center", to: "/core/sales/dashboard", icon: Gauge },
       { label: "Leads", to: "/core/sales/leads", icon: Rocket },
       { label: "Pipeline Board", to: "/core/sales/pipeline", icon: ClipboardList },
       { label: "Opportunities", to: "/core/sales/opps", icon: BadgeDollarSign },
@@ -46,6 +48,7 @@ const SECTIONS: MenuSection[] = [
     items: [
       { label: "Manager View", to: "/core/sales/manager", icon: Gauge },
       { label: "Executive Forecast", to: "/core/sales/forecast", icon: BadgeDollarSign },
+      { label: "Incentives Management", to: "/core/sales/incentives", icon: Wallet },
       { label: "Audit Log", to: "/core/sales/audit", icon: ScrollText },
     ],
   },

@@ -7,8 +7,8 @@ export class CreateIncentiveRuleDto {
   @IsInt()
   priority: number;
 
-  @IsEnum(['SKU', 'CATEGORY', 'GLOBAL', 'TRANSACTION_TOTAL'])
-  dimension: 'SKU' | 'CATEGORY' | 'GLOBAL' | 'TRANSACTION_TOTAL';
+  @IsEnum(['SKU', 'CATEGORY', 'GLOBAL', 'TRANSACTION_TOTAL', 'TOTAL_VOLUME'])
+  dimension: 'SKU' | 'CATEGORY' | 'GLOBAL' | 'TRANSACTION_TOTAL' | 'TOTAL_VOLUME';
 
   @IsOptional()
   @IsString()
@@ -23,4 +23,9 @@ export class CreateIncentiveRuleDto {
   @IsOptional()
   @IsJSON()
   conditions?: any;
+
+  @IsOptional()
+  @IsJSON()
+  scales?: { threshold: number; value: number }[];
 }
+

@@ -32,16 +32,31 @@ export class SalesDbRepository implements ISalesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboard(ctx: TenantContext): Promise<SalesDashboard> {
-    const [leads, opportunities, quotes, alerts] = await Promise.all([
-      this.prisma.sales_leads.count({ where: { ...MultiTenancyUtil.getScope(ctx), status: "NEW" } }),
-      this.prisma.sales_opportunities.findMany({ where: MultiTenancyUtil.getScope(ctx) }),
+    const scope = MultiTenancyUtil.getScope(ctx);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const [leads, opportunities, quotes, alerts, followUps] = await Promise.all([
+      this.prisma.sales_leads.count({ 
+        where: { ...scope, status: "NEW" } 
+      }),
+      this.prisma.sales_opportunities.findMany({ 
+        where: { ...scope, stage: { notIn: ["CLOSED_WON", "CLOSED_LOST"] } } 
+      }),
       this.prisma.sales_quotes.count({
-        where: { ...MultiTenancyUtil.getScope(ctx), status: "PENDING_APPROVAL" },
+        where: { ...scope, status: "PENDING_APPROVAL" },
       }),
       this.prisma.sales_alerts.count({
-        where: { ...MultiTenancyUtil.getScope(ctx), acknowledged: false },
+        where: { ...scope, acknowledged: false },
       }),
+      this.prisma.sales_tasks.count({
+        where: { ...scope, status: { not: "COMPLETED" }, dueAt: { lt: now } }
+      })
     ]);
+
+    const slaDueToday = await this.prisma.sales_leads.count({
+      where: { ...scope, sla_due_at: { gte: startOfToday, lt: new Date(startOfToday.getTime() + 86400000) } }
+    });
 
     const pipelineValue = opportunities.reduce(
       (sum: number, op: any) => sum + Number(op.amount),
@@ -54,46 +69,112 @@ export class SalesDbRepository implements ISalesRepository {
 
     return {
       openLeads: leads,
-      slaDueToday: 0, // Placeholder
-      overdueFollowUps: 0, // Placeholder
+      slaDueToday,
+      overdueFollowUps: followUps,
       openOpportunities: opportunities.length,
       pipelineValue,
-      weightedPipelineValue: weightedValue,
+      weightedPipelineValue: Math.round(weightedValue),
       pendingQuoteApprovals: quotes,
       dealRiskCount: alerts,
     };
   }
 
   async getManagerMetrics(ctx: TenantContext): Promise<SalesManagerMetrics> {
+    const scope = MultiTenancyUtil.getScope(ctx);
     const opportunities = await this.prisma.sales_opportunities.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
+      where: { ...scope, stage: { notIn: ["CLOSED_WON", "CLOSED_LOST"] } },
     });
+
+    const reps = await this.prisma.sales_opportunities.groupBy({
+      by: ['owner_id'],
+      where: scope,
+      _count: true
+    });
+
+    const stalledCount = await this.prisma.sales_opportunities.count({
+      where: { 
+        ...scope, 
+        stage: { notIn: ["CLOSED_WON", "CLOSED_LOST"] },
+        updated_at: { lt: new Date(Date.now() - 72 * 60 * 60 * 1000) } // 72h no activity
+      }
+    });
+
+    const breaches = await this.prisma.sales_alerts.count({
+      where: { ...scope, type: "lead_sla_breach", acknowledged: false }
+    });
+
+    const quotes = await this.prisma.sales_quotes.count({
+      where: { ...scope, status: "PENDING_APPROVAL" }
+    });
+
     return {
-      totalReps: 5,
+      totalReps: reps.length,
       openPipeline: opportunities.reduce(
         (sum: number, op: any) => sum + Number(op.amount),
         0,
       ),
-      weightedForecast: opportunities.reduce(
+      weightedForecast: Math.round(opportunities.reduce(
         (sum: number, op: any) => sum + Number(op.amount) * (op.probability / 100),
         0,
-      ),
-      stalledDeals: 2,
-      slaBreaches: 1,
-      approvalsPending: 3,
+      )),
+      stalledDeals: stalledCount,
+      slaBreaches: breaches,
+      approvalsPending: quotes,
     };
   }
 
-  async getExecutiveForecast(ctx: TenantContext,
-  ): Promise<SalesExecutiveForecast> {
+  async getExecutiveForecast(ctx: TenantContext): Promise<SalesExecutiveForecast> {
+    const scope = MultiTenancyUtil.getScope(ctx);
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0,0,0,0);
+
+    const [openOpps, closedOpps] = await Promise.all([
+      this.prisma.sales_opportunities.findMany({
+        where: { ...scope, stage: { notIn: ["CLOSED_WON", "CLOSED_LOST"] } }
+      }),
+      this.prisma.sales_opportunities.findMany({
+        where: { ...scope, stage: { in: ["CLOSED_WON", "CLOSED_LOST"] }, updated_at: { gte: startOfMonth } }
+      })
+    ]);
+
+    const wonThisPeriod = closedOpps
+      .filter(o => o.stage === "CLOSED_WON")
+      .reduce((sum, o) => sum + Number(o.amount), 0);
+
+    const lostThisPeriod = closedOpps
+      .filter(o => o.stage === "CLOSED_LOST")
+      .reduce((sum, o) => sum + Number(o.amount), 0);
+
+    const wonCount = closedOpps.filter(o => o.stage === "CLOSED_WON").length;
+    const closedCount = closedOpps.length;
+    const conversionRate = closedCount > 0 ? (wonCount / closedCount) * 100 : 0;
+
+    const weightedValue = openOpps.reduce(
+      (sum, op) => sum + Number(op.amount) * (op.probability / 100),
+      0
+    );
+
+    // Avg Deal Cycle calculation (for won deals)
+    const wonDealsHistory = await this.prisma.sales_opportunities.findMany({
+      where: { ...scope, stage: "CLOSED_WON" },
+      select: { created_at: true, updated_at: true }
+    });
+
+    let totalDays = 0;
+    wonDealsHistory.forEach(d => {
+      totalDays += (d.updated_at.getTime() - d.created_at.getTime()) / (1000 * 60 * 60 * 24);
+    });
+    const avgCycle = wonDealsHistory.length > 0 ? totalDays / wonDealsHistory.length : 0;
+
     return {
-      openPipelineValue: 500000000,
-      weightedForecastValue: 350000000,
-      wonThisPeriod: 150000000,
-      lostThisPeriod: 20000000,
-      conversionRate: 65,
-      avgDealCycleDays: 14,
-      forecastAccuracy: 92,
+      openPipelineValue: openOpps.reduce((sum, o) => sum + Number(o.amount), 0),
+      weightedForecastValue: Math.round(weightedValue),
+      wonThisPeriod,
+      lostThisPeriod,
+      conversionRate: Math.round(conversionRate),
+      avgDealCycleDays: Math.round(avgCycle),
+      forecastAccuracy: 0, // Needs historical baseline to calculate
     };
   }
 
@@ -102,11 +183,73 @@ export class SalesDbRepository implements ISalesRepository {
   }
 
   async getSalesAnalytics(ctx: TenantContext): Promise<any> {
-    return {};
+    const scope = MultiTenancyUtil.getScope(ctx);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
+    const orders = await this.prisma.sales_orders.findMany({
+      where: { ...scope, created_at: { gte: startOfYear } },
+      select: { amount: true, created_at: true }
+    });
+
+    const revenueByMonth = Array(12).fill(0);
+    orders.forEach(o => {
+      const month = o.created_at.getMonth();
+      revenueByMonth[month] += Number(o.amount);
+    });
+
+    const topReps = await this.prisma.sales_opportunities.groupBy({
+      by: ['owner_name'],
+      where: { ...scope, stage: "CLOSED_WON" },
+      _sum: { amount: true },
+      orderBy: { _sum: { amount: 'desc' } },
+      take: 5
+    });
+
+    return {
+      revenueByMonth: revenueByMonth.map((val, idx) => ({ 
+        month: new Date(0, idx).toLocaleString('default', { month: 'short' }),
+        revenue: val 
+      })),
+      topReps: topReps.map(r => ({ name: r.owner_name, total: r._sum.amount }))
+    };
   }
 
   async getForecast(ctx: TenantContext): Promise<any> {
-    return {};
+    const scope = MultiTenancyUtil.getScope(ctx);
+    const now = new Date();
+    
+    const openOpps = await this.prisma.sales_opportunities.findMany({
+      where: { 
+        ...scope, 
+        stage: { notIn: ["CLOSED_WON", "CLOSED_LOST"] },
+        expected_close_date: { gte: now }
+      },
+      select: { amount: true, probability: true, expected_close_date: true }
+    });
+
+    // Project 6 months forward
+    const projections = Array(6).fill(0).map((_, i) => {
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      return {
+        month: date.toLocaleString('default', { month: 'short' }),
+        year: date.getFullYear(),
+        weighted: 0,
+        commit: 0
+      };
+    });
+
+    openOpps.forEach(op => {
+      const monthDiff = (op.expected_close_date.getFullYear() - now.getFullYear()) * 12 + 
+                        (op.expected_close_date.getMonth() - now.getMonth());
+      if (monthDiff >= 0 && monthDiff < 6) {
+        projections[monthDiff].weighted += Number(op.amount) * (op.probability / 100);
+        if (op.probability >= 80) {
+          projections[monthDiff].commit += Number(op.amount);
+        }
+      }
+    });
+
+    return projections;
   }
 
   async getPipelineVelocity(ctx: TenantContext): Promise<any> {

@@ -182,9 +182,8 @@ export class InsightService {
 
     const existing = await this.prisma.finance_insight_snapshots.findUnique({
       where: {
-        tenant_id_company_id_snapshot_sequence_forecast_hash: {
+        tenant_id_snapshot_sequence_forecast_hash: {
           tenant_id: tenant_id,
-          company_id: company_id,
           snapshot_sequence: snapshotSequence,
           forecast_hash: normalizedForecastHash,
         },
@@ -332,9 +331,8 @@ export class InsightService {
         this.logger.warn(`[CONCURRENCY] InsightSnapshot unique constraint caught. Falling back to fetch.`, correlation_id);
         const lateExisting = await this.prisma.finance_insight_snapshots.findUnique({
           where: {
-            tenant_id_company_id_snapshot_sequence_forecast_hash: {
+            tenant_id_snapshot_sequence_forecast_hash: {
               tenant_id: tenant_id,
-              company_id: company_id,
               snapshot_sequence: snapshotSequence,
               forecast_hash: normalizedForecastHash,
             },

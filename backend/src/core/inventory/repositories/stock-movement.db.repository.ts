@@ -24,7 +24,8 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       // 1. Update or create stock level
       await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
             department_id: data.departmentId || (undefined as unknown as string),
@@ -73,7 +74,8 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       // 1. Decrement source
       await tx.stock_levels.update({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.fromLocationId,
             product_id: data.item_id,
             department_id: data.fromDepartmentId || (undefined as unknown as string),
@@ -89,7 +91,8 @@ export class StockMovementDbRepository implements IStockMovementRepository {
       // 2. Increment destination
       await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.toLocationId,
             product_id: data.item_id,
             department_id: data.toDepartmentId || (undefined as unknown as string),
@@ -159,7 +162,8 @@ export class StockMovementDbRepository implements IStockMovementRepository {
     const execute = async (tx: Prisma.TransactionClient) => {
       await tx.stock_levels.update({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
             department_id: data.department_id ?? (null as any),
@@ -196,10 +200,11 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         // Increment reserved, decrement available
         await tx.stock_levels.update({
             where: {
-                location_id_product_id_department_id: {
+                tenant_id_location_id_product_id_department_id: {
+                    tenant_id: ctx.tenant_id,
                     location_id: data.location_id,
                     product_id: data.product_id,
-                    department_id: (null as any),
+                    department_id: "DEFAULT",
                 },
             },
             data: {
@@ -230,10 +235,11 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         // Decrement reserved, increment available
         await tx.stock_levels.update({
             where: {
-                location_id_product_id_department_id: {
+                tenant_id_location_id_product_id_department_id: {
+                    tenant_id: ctx.tenant_id,
                     location_id: data.location_id,
                     product_id: data.product_id,
-                    department_id: (null as any),
+                    department_id: "DEFAULT",
                 },
             },
             data: {

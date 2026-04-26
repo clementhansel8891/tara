@@ -9,7 +9,7 @@ import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { useSession } from "@/core/security/session";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { AlertCircle, FileCheck, ShieldAlert, Share2, MessageSquare, Activity } from "lucide-react";
+import { AlertCircle, FileCheck, ShieldAlert, Share2, MessageSquare, Activity, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEffect } from "react";
@@ -18,6 +18,7 @@ import { systemLogger } from "@/core/logging/systemLogger";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { CashflowIntelligenceTab } from "./components/CashflowIntelligenceTab";
+import { CfoChartsSection } from "./components/CfoChartsSection";
 
 const CFODashboardContent: React.FC = () => {
   const { state, lockSequence } = useCFO();
@@ -192,6 +193,8 @@ const CFODashboardContent: React.FC = () => {
           <KPICard title="Total Assets" value={summary?.kpis?.totalAssets || 0} trend="NEUTRAL" />
         </div>
 
+        <CfoChartsSection summaryData={summary?.kpis} />
+
         <Tabs defaultValue="tb" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="tb">Trial Balance</TabsTrigger>
@@ -243,19 +246,3 @@ export const CFODashboard: React.FC = () => (
   </CFOProvider>
 );
 
-const Filter = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);

@@ -56,6 +56,20 @@ import { IFinanceRepository } from './repositories/finance.repository.interface'
 import { FinanceDbRepository } from './repositories/finance.db.repository';
 import { AssetService } from './services/asset.service';
 import { DepreciationScheduler } from './services/depreciation-scheduler.service';
+import { AssetCategoryDbRepository } from './repositories/asset-category.db.repository';
+import { LedgerHashAnchorDbRepository } from './repositories/ledger-hash-anchor.db.repository';
+import { LedgerMerkleCheckpointDbRepository } from './repositories/ledger-merkle-checkpoint.db.repository';
+import { FinancialSnapshotDbRepository } from './repositories/financial-snapshot.db.repository';
+import { FinancialReportSnapshotDbRepository } from './repositories/financial-report-snapshot.db.repository';
+import { CompanyGroupDbRepository } from './repositories/company-group.db.repository';
+import { IntercompanyEliminationDbRepository } from './repositories/intercompany-elimination.db.repository';
+import { TrialBalanceProjectionDbRepository } from './repositories/trial-balance-projection.db.repository';
+import { GeneralLedgerProjectionDbRepository } from './repositories/general-ledger-projection.db.repository';
+import { AccountStatementProjectionDbRepository } from './repositories/account-statement-projection.db.repository';
+import { LedgerProjectionCheckpointDbRepository } from './repositories/ledger-projection-checkpoint.db.repository';
+import { LedgerEventLogArchiveDbRepository } from './repositories/ledger-event-log-archive.db.repository';
+import { AccountBalanceSnapshotDbRepository } from './repositories/account-balance-snapshot.db.repository';
+import { ConsolidatedSnapshotDbRepository } from './repositories/consolidated-snapshot.db.repository';
 
 // Mocks
 import { CoaMockRepository } from './repositories/coa.mock.repository';
@@ -358,59 +372,59 @@ function getRepository(dbClass: any, mockClass: any, fallbackClass?: any) {
     },
     {
       provide: 'IAssetCategoryRepository',
-      useClass: getRepository(null, AssetCategoryMockRepository, AssetCategoryFallback),
+      useClass: getRepository(AssetCategoryDbRepository, AssetCategoryMockRepository, AssetCategoryFallback),
     },
     {
       provide: 'ICompanyGroupRepository',
-      useClass: getRepository(null, CompanyGroupMockRepository, CompanyGroupFallback),
+      useClass: getRepository(CompanyGroupDbRepository, CompanyGroupMockRepository, CompanyGroupFallback),
     },
     {
       provide: 'IIntercompanyEliminationRepository',
-      useClass: getRepository(null, IntercompanyEliminationMockRepository, IntercompanyEliminationFallback),
+      useClass: getRepository(IntercompanyEliminationDbRepository, IntercompanyEliminationMockRepository, IntercompanyEliminationFallback),
     },
     {
       provide: 'IConsolidatedSnapshotRepository',
-      useClass: getRepository(ConsolidatedSnapshotMockRepository, ConsolidatedSnapshotMockRepository, ConsolidatedSnapshotFallback),
+      useClass: getRepository(ConsolidatedSnapshotDbRepository, ConsolidatedSnapshotMockRepository, ConsolidatedSnapshotFallback),
     },
     {
       provide: 'IFinancialReportSnapshotRepository',
-      useClass: getRepository(null, FinancialReportSnapshotMockRepository, FinancialReportSnapshotFallback),
+      useClass: getRepository(FinancialReportSnapshotDbRepository, FinancialReportSnapshotMockRepository, FinancialReportSnapshotFallback),
     },
     {
       provide: 'IFinancialSnapshotRepository',
-      useClass: getRepository(null, FinancialSnapshotMockRepository, FinancialSnapshotFallback),
+      useClass: getRepository(FinancialSnapshotDbRepository, FinancialSnapshotMockRepository, FinancialSnapshotFallback),
     },
     {
       provide: 'ILedgerEventLogArchiveRepository',
-      useClass: getRepository(null, LedgerEventLogArchiveMockRepository, LedgerEventLogArchiveFallback),
+      useClass: getRepository(LedgerEventLogArchiveDbRepository, LedgerEventLogArchiveMockRepository, LedgerEventLogArchiveFallback),
     },
     {
       provide: 'ILedgerHashAnchorRepository',
-      useClass: getRepository(null, LedgerHashAnchorMockRepository, LedgerHashAnchorFallback),
+      useClass: getRepository(LedgerHashAnchorDbRepository, LedgerHashAnchorMockRepository, LedgerHashAnchorFallback),
     },
     {
       provide: 'ILedgerMerkleCheckpointRepository',
-      useClass: getRepository(null, LedgerMerkleCheckpointMockRepository, LedgerMerkleCheckpointFallback),
+      useClass: getRepository(LedgerMerkleCheckpointDbRepository, LedgerMerkleCheckpointMockRepository, LedgerMerkleCheckpointFallback),
     },
     {
       provide: 'IAccountBalanceSnapshotRepository',
-      useClass: getRepository(null, AccountBalanceSnapshotMockRepository, AccountBalanceSnapshotFallback),
+      useClass: getRepository(AccountBalanceSnapshotDbRepository, AccountBalanceSnapshotMockRepository, AccountBalanceSnapshotFallback),
     },
     {
       provide: 'ITrialBalanceProjectionRepository',
-      useClass: getRepository(null, TrialBalanceProjectionMockRepository, TrialBalanceProjectionFallback),
+      useClass: getRepository(TrialBalanceProjectionDbRepository, TrialBalanceProjectionMockRepository, TrialBalanceProjectionFallback),
     },
     {
       provide: 'IGeneralLedgerProjectionRepository',
-      useClass: getRepository(null, GeneralLedgerProjectionMockRepository, GeneralLedgerProjectionFallback),
+      useClass: getRepository(GeneralLedgerProjectionDbRepository, GeneralLedgerProjectionMockRepository, GeneralLedgerProjectionFallback),
     },
     {
       provide: 'IAccountStatementProjectionRepository',
-      useClass: getRepository(null, AccountStatementProjectionMockRepository, AccountStatementProjectionFallback),
+      useClass: getRepository(AccountStatementProjectionDbRepository, AccountStatementProjectionMockRepository, AccountStatementProjectionFallback),
     },
     {
       provide: 'ILedgerProjectionCheckpointRepository',
-      useClass: getRepository(null, LedgerProjectionCheckpointMockRepository, LedgerProjectionCheckpointFallback),
+      useClass: getRepository(LedgerProjectionCheckpointDbRepository, LedgerProjectionCheckpointMockRepository, LedgerProjectionCheckpointFallback),
     },
   ],
   exports: [

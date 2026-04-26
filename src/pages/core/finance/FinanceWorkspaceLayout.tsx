@@ -34,9 +34,15 @@ type MenuSection = { title: string; items: MenuItem[] };
 
 const SECTIONS: MenuSection[] = [
   {
+    title: "Strategic",
+    items: [
+      { label: "CFO Dashboard", to: "/core/finance", icon: LayoutGrid },
+    ],
+  },
+  {
     title: "Operations",
     items: [
-      { label: "Money Desk", to: "/core/finance/moneydesk", icon: LayoutGrid },
+      { label: "Money Desk", to: "/core/finance/moneydesk", icon: Banknote },
       { label: "Treasury Map", to: "/core/finance/treasury", icon: Wallet },
       { label: "Ledger Core", to: "/core/finance/ledger", icon: FileSpreadsheet },
       { label: "Invoice Capture", to: "/core/finance/invoices", icon: FileText },

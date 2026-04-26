@@ -50,7 +50,7 @@ export class PayslipService {
       doc.fontSize(10).fillColor('black');
       doc.text(`Name: ${employee.first_name} ${employee.last_name}`);
       doc.text(`Employee Code: ${employee.employee_code}`);
-      doc.text(`Position: ${employee.position}`);
+      doc.text(`Position: ${employee.positions}`);
       doc.moveDown();
 
       // --- Earnings ---

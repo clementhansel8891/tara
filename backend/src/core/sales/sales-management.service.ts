@@ -13,8 +13,8 @@ export class SalesManagementService {
     return this.salesRepository.getSalesAnalytics(ctx, period);
   }
 
-  async getForecast(ctx: TenantContext, user_id?: string): Promise<any> {
-    return this.salesRepository.getForecast(ctx, user_id);
+  async getForecast(ctx: TenantContext): Promise<any> {
+    return this.salesRepository.getForecast(ctx);
   }
 
   async getPipelineVelocity(ctx: TenantContext): Promise<any> {

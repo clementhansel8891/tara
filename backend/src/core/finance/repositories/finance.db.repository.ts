@@ -1024,7 +1024,7 @@ export class FinanceDbRepository extends IFinanceRepository {
   async listCapexBudgets(ctx: TenantContext): Promise<FinanceCapexBudgetRow[]> {
     const budgets = await this.prisma.capex_budgets.findMany({ where: { ...MultiTenancyUtil.getScope(ctx) } });
     return budgets.map((b: any) => ({
-      department: b.department,
+      department: b.department_id,
       fiscalYear: b.period,
       allocatedBudget: b.allocatedBudget,
       committedBudget: b.committedBudget,
@@ -1035,9 +1035,9 @@ export class FinanceDbRepository extends IFinanceRepository {
   async setCapexBudget(ctx: TenantContext, budget: FinanceCapexBudgetRow): Promise<void> {
     await this.prisma.capex_budgets.upsert({
       where: {
-        tenant_id_department_period: {
+        tenant_id_department_id_period: {
           tenant_id: ctx.tenant_id,
-          department: budget.department,
+          department_id: budget.department,
           period: budget.fiscalYear
         }
       },
@@ -1050,7 +1050,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       create: {
         id: randomUUID(),
         ...MultiTenancyUtil.getScope(ctx),
-        department: budget.department,
+        department_id: budget.department,
         period: budget.fiscalYear,
         allocated_budget: budget.allocatedBudget,
         committed_budget: budget.committedBudget,
@@ -1313,7 +1313,7 @@ export class FinanceDbRepository extends IFinanceRepository {
       description: a.description,
       assetClass: a.asset_class,
       location: a,
-      department: a.department,
+      department: a.department_id,
       acquisitionCost: a.acquisition_cost,
       acquisitionDate: a.acquisition_date.toISOString(),
       usefulLifeYears: a.useful_life_years,

@@ -7,9 +7,10 @@ async function main() {
 
   // 1. Seed Companies
   const companies = [
-    { id: "tenant-001", name: "Zenvix HQ", code: "ZX-HQ", status: "active", updated_at: new Date() },
+    { id: "tenant-001", tenant_id: "tenant-001", name: "Zenvix HQ", code: "ZX-HQ", status: "active", updated_at: new Date() },
     {
       id: "tenant-002",
+      tenant_id: "tenant-002",
       name: "Zenvix Retail",
       code: "ZX-RT",
       status: "active",
@@ -17,6 +18,7 @@ async function main() {
     },
     {
       id: "comp-demo-a",
+      tenant_id: "comp-demo-a",
       name: "Demo Corp A",
       code: "DEMO-A",
       status: "active",
@@ -92,7 +94,7 @@ async function main() {
   for (const company of companies) {
     await prisma.user_companies.upsert({
       where: {
-        user_id_tenant_id: {
+        tenant_id_user_id: {
           user_id: "user-demo",
           tenant_id: company.id,
         },

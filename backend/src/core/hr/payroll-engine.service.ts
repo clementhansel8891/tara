@@ -92,7 +92,7 @@ export class PayrollEngineService {
     );
 
     // 4. Fetch Manual Adjustments
-    const manualAdjustments = await this.prisma.payroll_adjustments.findMany({
+    const manualAdjustments = await this.prisma.hr_payroll_adjustments.findMany({
       where: {
         tenant_id,
         employee_id,

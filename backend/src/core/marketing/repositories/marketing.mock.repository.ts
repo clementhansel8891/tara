@@ -20,6 +20,12 @@ import { MarketingCampaign } from "../entities/marketing-campaign.entity";
 import { MarketingExecution } from "../entities/marketing-execution.entity";
 import { MarketingLead } from "../entities/marketing-lead.entity";
 import { MarketingWorkflow } from "../entities/marketing-workflow.entity";
+import { MarketingContact } from "../entities/marketing-contact.entity";
+import { MarketingFunnel } from "../entities/marketing-funnel.entity";
+import { MarketingAppointment } from "../entities/marketing-appointment.entity";
+import { MarketingAutomationRule } from "../entities/marketing-automation.entity";
+import { MarketingCreativeAsset } from "../entities/marketing-creative-asset.entity";
+import { MarketingOmnichannelMessage } from "../entities/marketing-message.entity";
 import {
   IMarketingRepository,
   MarketingChannelPerformance,
@@ -36,6 +42,12 @@ type TenantMarketingStore = {
   attribution: MarketingAttribution[];
   alerts: MarketingAlert[];
   audit: MarketingAuditEvent[];
+  contacts: MarketingContact[];
+  funnels: MarketingFunnel[];
+  appointments: MarketingAppointment[];
+  automation: MarketingAutomationRule[];
+  assets: MarketingCreativeAsset[];
+  messages: MarketingOmnichannelMessage[];
 };
 
 const OWNER_POOL = [
@@ -189,6 +201,12 @@ export class MarketingMockRepository extends IMarketingRepository {
       attribution: [],
       alerts: [],
       audit: [],
+      contacts: [],
+      funnels: [],
+      appointments: [],
+      automation: [],
+      assets: [],
+      messages: [],
     };
     this.store.set(tenant_id, seeded);
     return seeded;
@@ -737,5 +755,148 @@ export class MarketingMockRepository extends IMarketingRepository {
 
   async getAuditEvents(ctx: TenantContext): Promise<MarketingAuditEvent[]> {
     return this.getStore(ctx.tenant_id).audit;
+  }
+
+  // --- Growth Engine Mock Extensions ---
+
+  async getContacts(ctx: TenantContext): Promise<MarketingContact[]> {
+    return this.getStore(ctx.tenant_id).contacts;
+  }
+
+  async getContactById(ctx: TenantContext, id: string): Promise<MarketingContact> {
+    const contact = this.getStore(ctx.tenant_id).contacts.find(c => c.id === id);
+    if (!contact) throw new NotFoundException("Contact not found");
+    return contact;
+  }
+
+  async createContact(ctx: TenantContext, data: Partial<MarketingContact>): Promise<MarketingContact> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingContact = {
+      id: this.id("mkt-contact"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      first_name: data.first_name || "",
+      last_name: data.last_name || "",
+      email: data.email,
+      phone: data.phone,
+      tags: data.tags || [],
+      score: 0,
+      status: "ACTIVE",
+      created_at: this.now(),
+      updated_at: this.now(),
+      ...data,
+    };
+    store.contacts.unshift(created);
+    return created;
+  }
+
+  async getFunnels(ctx: TenantContext): Promise<MarketingFunnel[]> {
+    return this.getStore(ctx.tenant_id).funnels;
+  }
+
+  async createFunnel(ctx: TenantContext, data: Partial<MarketingFunnel>): Promise<MarketingFunnel> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingFunnel = {
+      id: this.id("mkt-funnel"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      name: data.name || "Unnamed Funnel",
+      status: "DRAFT",
+      steps: [],
+      created_at: this.now(),
+      updated_at: this.now(),
+      ...data,
+    };
+    store.funnels.unshift(created);
+    return created;
+  }
+
+  async getAppointments(ctx: TenantContext): Promise<MarketingAppointment[]> {
+    return this.getStore(ctx.tenant_id).appointments;
+  }
+
+  async createAppointment(ctx: TenantContext, data: Partial<MarketingAppointment>): Promise<MarketingAppointment> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingAppointment = {
+      id: this.id("mkt-appt"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      contact_id: data.contact_id || "",
+      scheduled_at: data.scheduled_at || this.now(),
+      duration_mins: data.duration_mins || 30,
+      status: "SCHEDULED",
+      created_at: this.now(),
+      updated_at: this.now(),
+      ...data,
+    };
+    store.appointments.unshift(created);
+    return created;
+  }
+
+  async getAutomationRules(ctx: TenantContext): Promise<MarketingAutomationRule[]> {
+    return this.getStore(ctx.tenant_id).automation;
+  }
+
+  async createAutomationRule(ctx: TenantContext, data: Partial<MarketingAutomationRule>): Promise<MarketingAutomationRule> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingAutomationRule = {
+      id: this.id("mkt-auto"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      name: data.name || "Unnamed Rule",
+      trigger_event: data.trigger_event || "lead.created",
+      status: "INACTIVE",
+      created_at: this.now(),
+      updated_at: this.now(),
+      ...data,
+    };
+    store.automation.unshift(created);
+    return created;
+  }
+
+  async getMessages(ctx: TenantContext, contactId?: string): Promise<MarketingOmnichannelMessage[]> {
+    const store = this.getStore(ctx.tenant_id);
+    if (contactId) return store.messages.filter(m => m.contact_id === contactId);
+    return store.messages;
+  }
+
+  async sendMessage(ctx: TenantContext, data: Partial<MarketingOmnichannelMessage>): Promise<MarketingOmnichannelMessage> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingOmnichannelMessage = {
+      id: this.id("mkt-msg"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      contact_id: data.contact_id || "",
+      channel: data.channel || "EMAIL",
+      direction: "OUTBOUND",
+      content: data.content || "",
+      status: "SENT",
+      sent_at: this.now(),
+      ...data,
+    };
+    store.messages.unshift(created);
+    return created;
+  }
+
+  async getCreativeAssets(ctx: TenantContext): Promise<MarketingCreativeAsset[]> {
+    return this.getStore(ctx.tenant_id).assets;
+  }
+
+  async createCreativeAsset(ctx: TenantContext, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset> {
+    const store = this.getStore(ctx.tenant_id);
+    const created: MarketingCreativeAsset = {
+      id: this.id("mkt-asset"),
+      tenant_id: ctx.tenant_id,
+      company_id: "default-company",
+      name: data.name || "Unnamed Asset",
+      type: data.type || "IMAGE",
+      url: data.url || "",
+      tags: data.tags || [],
+      created_at: this.now(),
+      updated_at: this.now(),
+      ...data,
+    };
+    store.assets.unshift(created);
+    return created;
   }
 }

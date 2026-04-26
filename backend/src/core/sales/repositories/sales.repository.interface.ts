@@ -57,7 +57,7 @@ export abstract class ISalesRepository {
   abstract getNextBestActions( ctx: TenantContext): Promise<SalesNextAction[]>;
 
   abstract getSalesAnalytics( ctx: TenantContext, period?: string): Promise<any>;
-  abstract getForecast( ctx: TenantContext, user_id?: string): Promise<any>;
+  abstract getForecast( ctx: TenantContext): Promise<any>;
   abstract getPipelineVelocity( ctx: TenantContext): Promise<any>;
   abstract getSLAPerformance( ctx: TenantContext): Promise<any>;
 

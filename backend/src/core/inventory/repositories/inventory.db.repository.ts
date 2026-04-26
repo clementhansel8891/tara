@@ -258,7 +258,8 @@ export class InventoryDbRepository implements IInventoryRepository {
       // 1. Atomic Upsert
       const level = await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
             department_id: data.departmentId || "DEFAULT",
@@ -379,10 +380,11 @@ export class InventoryDbRepository implements IInventoryRepository {
       // 2. Increment dest (standard immediate logic)
       const dest = await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: data.toLocationId,
             product_id: data.item_id,
-            department_id: data.toDepartmentId ?? (null as any),
+            department_id: data.toDepartmentId || "DEFAULT",
           },
         },
         create: {
@@ -514,7 +516,8 @@ export class InventoryDbRepository implements IInventoryRepository {
 
       const level = await tx.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: adj.location_id,
             product_id: adj.item_id,
             department_id: adj.department_id ?? (null as any),

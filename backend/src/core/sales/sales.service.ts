@@ -12,12 +12,14 @@ import { UpdateLeadStatusDto } from "./dto/update-lead-status.dto";
 import { SalesNextAction } from "./entities/sales-next-action.entity";
 import { ISalesRepository } from "./repositories/sales.repository.interface";
 import { AuditService } from "../../shared/audit/audit.service";
+import { EventBusService } from "../../shared/events/event-bus.service";
 
 @Injectable()
 export class SalesService {
   constructor(
     private readonly repository: ISalesRepository,
     private readonly auditService: AuditService,
+    private readonly eventBus: EventBusService,
   ) {}
 
   async getDashboard(ctx: TenantContext) {
@@ -34,6 +36,14 @@ export class SalesService {
 
   async getNextBestActions(ctx: TenantContext) {
     return this.repository.getNextBestActions(ctx);
+  }
+
+  async getForecast(ctx: TenantContext) {
+    return this.repository.getForecast(ctx);
+  }
+
+  async getSalesAnalytics(ctx: TenantContext) {
+    return this.repository.getSalesAnalytics(ctx);
   }
 
   async getLeads(ctx: TenantContext) {
@@ -144,7 +154,7 @@ export class SalesService {
     dto: CloseOpportunityDto,
     user_id?: string,
   ) {
-    const opportunity = await this.repository.closeOpportunity(
+    const result = await this.repository.closeOpportunity(
       ctx,
       opportunityId,
       dto,
@@ -160,7 +170,21 @@ export class SalesService {
         metadata: { status: dto.result, reason: dto.reason },
       });
     }
-    return opportunity;
+
+    // Trigger Incentive Engine if Won
+    if (dto.result === "won") {
+        await this.eventBus.publish({
+            event_type: "SALES_ORDER_COMPLETED",
+            tenant_id: ctx.tenant_id,
+            entity_id: (result as any).id,
+            entity_type: "SALES_ORDER",
+            source_module: "SALES",
+            user_id: user_id || "SYSTEM",
+            payload: { order_id: (result as any).id },
+        });
+    }
+
+    return result;
   }
 
   async getQuotes(ctx: TenantContext) {

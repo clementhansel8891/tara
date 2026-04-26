@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useCFO } from "../CFOContext";
+import { useCFO } from "@/core/finance/CFOContext";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";

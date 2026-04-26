@@ -28,6 +28,7 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
 import { financeService } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
+import { Landmark, TrendingUp, TrendingDown, ArrowRightLeft } from "lucide-react";
 import type { FinanceAlert } from "@/core/types/finance/assets";
 import type {
   PaymentMethod,
@@ -229,7 +230,7 @@ export default function MoneyDesk() {
     <div className="space-y-6">
       <PageHeader
         title="Money Desk"
-        subtitle="Finance operating inbox for approvals, alerts, and routed tasks."
+        subtitle="Treasury control center for liquidity management and payment execution."
         primaryAction={
           <Button onClick={() => setDialogOpen(true)}>
             Create Payment Request
@@ -237,7 +238,7 @@ export default function MoneyDesk() {
         }
         secondaryActions={
           <Input
-            placeholder="Search approvals, alerts, or tasks"
+            placeholder="Search payments or accounts"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="min-w-[220px]"
@@ -245,9 +246,23 @@ export default function MoneyDesk() {
         }
       />
 
+      <div className="grid gap-4 md:grid-cols-3">
+        {moneySources.slice(0, 3).map((source) => (
+          <div key={source.id} className="bg-white p-4 rounded-xl border border-primary/10 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{source.name}</p>
+              <p className="text-xl font-black text-primary">{source.currency} {(source as any).balance?.toLocaleString() || "0"}</p>
+            </div>
+            <div className="p-2 bg-primary/5 rounded-lg">
+              <Landmark className="w-5 h-5 text-primary" />
+            </div>
+          </div>
+        ))}
+      </div>
+
       <WorkspacePanel
-        title="Work Queue"
-        description="Cross-module approvals and operational alerts."
+        title="Treasury Ops & Work Queue"
+        description="Active payment requests and treasury alerts requiring immediate action."
       >
         {statusMessage ? (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
