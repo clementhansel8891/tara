@@ -15,6 +15,7 @@ model tenants {
   created_at                             DateTime                                 @default(now())
   updated_at                             DateTime                                 @default(now())
   deleted_at                             DateTime?
+  branding_config                        Json? // Custom logos, colors, etc.
   companies                              companies[]
   users                                  users[]
   accounting_periods                     accounting_periods[]
@@ -3754,6 +3755,7 @@ model marketing_attribution {
   revenue_attributed  Decimal             @db.Decimal(15, 2)
   spend               Decimal             @db.Decimal(15, 2)
   roi_percent         Decimal             @db.Decimal(10, 2)
+  model               String?             @default("LAST_CLICK")
   created_at          DateTime            @default(now())
   marketing_campaigns marketing_campaigns @relation(fields: [campaign_id], references: [id])
   marketing_leads     marketing_leads     @relation(fields: [lead_id], references: [id])
@@ -6431,6 +6433,8 @@ model marketing_funnel_steps {
   type       String // PAGE, FORM, REDIRECT
   order      Int
   config     Json? // Block-based design config
+  is_ab_test Boolean  @default(false)
+  variants   Json?    // Array of variant configs for split testing
   stats      Json? // { views: 0, conversions: 0 }
   created_at DateTime @default(now())
   updated_at DateTime @default(now())

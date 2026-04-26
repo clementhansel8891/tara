@@ -468,7 +468,8 @@ export class MarketingDbRepository extends IMarketingRepository {
       opportunityId: i.opportunityId,
       revenueAttributed: Number(i.revenueAttributed),
       spend: Number(i.spend),
-      roiPercent: Number(i.roiPercent),
+      roiPercent: Number(i.roi_percent),
+      model: i.model || "LAST_CLICK",
       created_at: i.created_at,
     }));
   }
@@ -704,5 +705,27 @@ export class MarketingDbRepository extends IMarketingRepository {
       }
     });
     return item as any;
+  }
+
+  async calculateAdvancedAttribution(ctx: TenantContext, model: "FIRST_CLICK" | "LINEAR" | "LAST_CLICK"): Promise<any> {
+    const leads = await this.prisma.marketing_leads.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      include: { marketing_campaigns: true }
+    });
+
+    // In a real scenario, we would fetch touchpoints.
+    // Here we simulate the logic based on lead campaign associations.
+    const results = leads.map(lead => {
+      const revenue = 1000; // Mock revenue per converted lead
+      if (model === "FIRST_CLICK") {
+         return { leadId: lead.id, campaignId: lead.campaign_id, attributedRevenue: revenue };
+      } else if (model === "LINEAR") {
+         // Mocking multiple campaigns for linear simulation
+         return { leadId: lead.id, campaignId: lead.campaign_id, attributedRevenue: revenue / 1 };
+      }
+      return { leadId: lead.id, campaignId: lead.campaign_id, attributedRevenue: revenue };
+    });
+
+    return results;
   }
 }

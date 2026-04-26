@@ -102,6 +102,9 @@ import Customer360Desk from "@/pages/core/marketing/Customer360Desk";
 import AppointmentDesk from "@/pages/core/marketing/AppointmentDesk";
 import FunnelBuilderDesk from "@/pages/core/marketing/FunnelBuilderDesk";
 import OmnichannelInbox from "@/pages/core/marketing/OmnichannelInbox";
+import CreativeLibrary from "@/pages/core/marketing/CreativeLibrary";
+import Customer360 from "@/pages/core/marketing/Customer360";
+import WhiteLabelSettings from "@/pages/core/settings/WhiteLabelSettings";
 import AdminWorkspaceLayout from "@/pages/core/adminWorkspace/AdminWorkspaceLayout";
 import RequestDesk from "@/pages/core/adminWorkspace/RequestDesk";
 import RequestAssign from "@/pages/core/adminWorkspace/RequestAssign";
@@ -732,6 +735,30 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <MarketingAuditLog />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="white-label"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <WhiteLabelSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="creative-library"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <CreativeLibrary />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="customer-360"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <Customer360 />
           </ProtectedRoute>
         }
       />

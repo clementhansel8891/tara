@@ -22,11 +22,13 @@ import {
   Calendar,
   Contact2,
   Database,
+  FolderOpen,
   Layers,
   Megaphone,
   MessageSquare,
   PlaySquare,
   ScrollText,
+  Shield,
   Workflow,
 } from "lucide-react";
 
@@ -60,6 +62,8 @@ const SECTIONS: MenuSection[] = [
     items: [
       { label: "Alerts", to: "/core/marketing/alerts", icon: BellRing },
       { label: "Audit Log", to: "/core/marketing/audit", icon: ScrollText },
+      { label: "Creative Asset Library", to: "/core/marketing/creative-library", icon: FolderOpen },
+      { label: "Agency White-Labeling", to: "/core/marketing/white-label", icon: Shield },
     ],
   },
 ];

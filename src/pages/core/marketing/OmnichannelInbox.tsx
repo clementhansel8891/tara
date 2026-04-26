@@ -305,6 +305,16 @@ export default function OmnichannelInbox() {
                   </div>
                </div>
 
+               <div className="space-y-4">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Behavioral Tags</p>
+                  <div className="flex flex-wrap gap-1.5">
+                     <Badge variant="outline" className="text-[9px] border-primary/20 bg-primary/5 text-primary">Power User</Badge>
+                     <Badge variant="outline" className="text-[9px] border-orange-500/20 bg-orange-500/5 text-orange-500">Cart Abandoner</Badge>
+                     <Badge variant="outline" className="text-[9px] border-blue-500/20 bg-blue-500/5 text-blue-500">Webinar Lead</Badge>
+                     <Badge variant="outline" className="text-[9px]">Decision Maker</Badge>
+                  </div>
+               </div>
+
                <Separator />
 
                <div className="space-y-4">

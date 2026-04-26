@@ -8,5 +8,6 @@ export class MarketingAttribution {
   revenueAttributed: number;
   spend: number;
   roiPercent: number;
+  model: string;
   created_at: Date;
 }

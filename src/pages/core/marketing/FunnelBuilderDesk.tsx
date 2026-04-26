@@ -30,6 +30,7 @@ import {
   Copy,
   ExternalLink,
   ChevronRight,
+  CheckCircle2,
   Zap,
   Layers,
   BarChart3
@@ -43,12 +44,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
 import { cn } from "@/lib/utils";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import FunnelTemplates from "./components/FunnelTemplates";
+import { toast } from "sonner";
 
 interface FunnelStep {
   id: string;
   name: string;
   type: "landing" | "checkout" | "upsell" | "thankyou";
   conversionRate: number;
+  isABTest?: boolean;
+  variants?: { id: string; name: string; conversionRate: number }[];
 }
 
 interface Funnel {
@@ -74,46 +88,75 @@ function SortableStep({ step, index, onRemove }: { step: FunnelStep; index: numb
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} className="relative group">
-       <div className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8 bg-background border rounded-full flex items-center justify-center font-bold text-xs shadow-sm z-10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-          {index + 1}
-       </div>
-       <Card className="ml-2 hover:border-primary/20 transition-all cursor-default">
-          <CardContent className="p-4 flex items-center justify-between">
-             <div className="flex items-center gap-4 flex-1" {...listeners}>
-                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                   {step.type === 'landing' && <Layout className="h-5 w-5 text-blue-500" />}
-                   {step.type === 'checkout' && <MousePointer2 className="h-5 w-5 text-green-500" />}
-                   {step.type === 'upsell' && <Zap className="h-5 w-5 text-orange-500" />}
-                   {step.type === 'thankyou' && <Target className="h-5 w-5 text-purple-500" />}
-                </div>
-                <div>
-                   <p className="font-bold text-sm">{step.name}</p>
-                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{step.type}</p>
-                </div>
-             </div>
-             
-             <div className="flex items-center gap-6">
-                <div className="text-right">
-                   <p className="text-[10px] uppercase font-bold text-muted-foreground">Conversion</p>
-                   <div className="flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3 text-green-500" />
-                      <span className="text-sm font-bold">{step.conversionRate}%</span>
-                   </div>
-                </div>
-                <div className="flex gap-1">
-                   <Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="h-4 w-4" /></Button>
-                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onRemove(step.id)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-             </div>
-          </CardContent>
-       </Card>
-       {index < 3 && ( // Mocking only few steps connector
-          <div className="h-6 flex justify-center py-1">
-             <div className="w-0.5 bg-border h-full relative">
-                <ArrowRight className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 rotate-90 text-muted-foreground" />
-             </div>
-          </div>
-       )}
+        <div className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8 bg-background border rounded-full flex items-center justify-center font-bold text-xs shadow-sm z-10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+           {index + 1}
+        </div>
+        <Card className={cn(
+          "ml-2 hover:border-primary/20 transition-all cursor-default overflow-hidden",
+          step.isABTest && "border-indigo-500/40 bg-indigo-50/5 dark:bg-indigo-900/5"
+        )}>
+           <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-4 flex-1" {...listeners}>
+                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                       {step.type === 'landing' && <Layout className="h-5 w-5 text-blue-500" />}
+                       {step.type === 'checkout' && <MousePointer2 className="h-5 w-5 text-green-500" />}
+                       {step.type === 'upsell' && <Zap className="h-5 w-5 text-orange-500" />}
+                       {step.type === 'thankyou' && <Target className="h-5 w-5 text-purple-500" />}
+                    </div>
+                    <div>
+                       <div className="flex items-center gap-2">
+                          <p className="font-bold text-sm">{step.name}</p>
+                          {step.isABTest && <Badge className="bg-indigo-500 text-[9px] h-4">A/B ACTIVE</Badge>}
+                       </div>
+                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{step.type}</p>
+                    </div>
+                 </div>
+                 
+                 <div className="flex items-center gap-6">
+                    <div className="text-right">
+                       <p className="text-[10px] uppercase font-bold text-muted-foreground">Conversion</p>
+                       <div className="flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3 text-green-500" />
+                          <span className="text-sm font-bold">{step.conversionRate}%</span>
+                       </div>
+                    </div>
+                    <div className="flex gap-1">
+                       <Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="h-4 w-4" /></Button>
+                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onRemove(step.id)}><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                 </div>
+              </div>
+
+              {step.isABTest && (
+                 <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-900/30 grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                       <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-slate-400">VARIANT A</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">52%</span>
+                       </div>
+                       <div className="text-sm font-medium">Control</div>
+                       <div className="text-[10px] text-green-500 font-bold">14.2%</div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20 space-y-1">
+                       <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-indigo-400">VARIANT B</span>
+                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">48%</span>
+                       </div>
+                       <div className="text-sm font-medium">Test</div>
+                       <div className="text-[10px] text-green-500 font-bold">16.8%</div>
+                    </div>
+                 </div>
+              )}
+           </CardContent>
+        </Card>
+        {index < 3 && ( 
+           <div className="h-6 flex justify-center py-1">
+              <div className="w-0.5 bg-border h-full relative">
+                 <ArrowRight className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 rotate-90 text-muted-foreground" />
+              </div>
+           </div>
+        )}
     </div>
   );
 }
@@ -181,6 +224,20 @@ export default function FunnelBuilderDesk() {
           <p className="text-muted-foreground">Design multi-step conversion paths and A/B test variations.</p>
         </div>
         <div className="flex gap-2">
+           <Dialog>
+              <DialogTrigger asChild>
+                 <Button variant="outline"><Layers className="mr-2 h-4 w-4" /> Use Template</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                 <DialogHeader>
+                    <DialogTitle>Funnel Templates</DialogTitle>
+                    <CardDescription>Select a proven structure to jumpstart your conversion path.</CardDescription>
+                 </DialogHeader>
+                 <FunnelTemplates onSelect={(id) => {
+                    toast.success(`Template ${id} applied!`);
+                 }} />
+              </DialogContent>
+           </Dialog>
            <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
            <Button><Plus className="mr-2 h-4 w-4" /> New Funnel</Button>
         </div>
@@ -231,19 +288,32 @@ export default function FunnelBuilderDesk() {
               <div className="flex-1 flex flex-col gap-4">
                  <Card className="shrink-0 border-primary/20 bg-primary/5">
                     <CardContent className="p-4 flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                             <Layout className="h-6 w-6" />
-                          </div>
-                          <div>
-                             <h2 className="text-xl font-bold">{selectedFunnel.name}</h2>
-                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1"><ExternalLink className="h-3 w-3" /> /f/launch-promo-2024</span>
-                                <span className="flex items-center gap-1 text-green-500 font-bold"><CheckCircle2 className="h-3 w-3" /> Published</span>
-                             </div>
-                          </div>
-                       </div>
-                       <Button size="sm">Save Changes</Button>
+                        <div className="flex items-center gap-4">
+                           <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                              <Layout className="h-6 w-6" />
+                           </div>
+                           <div>
+                              <h2 className="text-xl font-bold">{selectedFunnel.name}</h2>
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                 <span className="flex items-center gap-1"><ExternalLink className="h-3 w-3" /> /f/launch-promo-2024</span>
+                                 <span className="flex items-center gap-1 text-green-500 font-bold"><CheckCircle2 className="h-3 w-3" /> Published</span>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           <div className="flex items-center gap-2 border-r pr-4">
+                              <Switch id="ab-global" />
+                              <Label htmlFor="ab-global" className="text-[10px] font-bold uppercase tracking-tight">A/B Mode</Label>
+                           </div>
+                           <Button size="sm" onClick={() => {
+                              if (selectedFunnel && selectedFunnel.steps.length > 0) {
+                                 const newSteps = [...selectedFunnel.steps];
+                                 newSteps[0] = { ...newSteps[0], isABTest: !newSteps[0].isABTest };
+                                 setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
+                                 toast.info(newSteps[0].isABTest ? "A/B testing enabled" : "A/B testing disabled");
+                              }
+                           }}>Save Changes</Button>
+                        </div>
                     </CardContent>
                  </Card>
 
