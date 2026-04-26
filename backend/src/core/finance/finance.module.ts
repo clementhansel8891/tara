@@ -198,6 +198,7 @@ function getRepository(dbClass: any, mockClass: any, fallbackClass?: any) {
   return mode === FinanceExecutionMode.MOCK ? mockClass : (dbClass || fallbackClass);
 }
 
+@Global()
 @Module({
   imports: [
     AuditModule,

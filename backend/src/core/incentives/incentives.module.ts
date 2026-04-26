@@ -8,10 +8,10 @@ import { HRModule } from '../hr/hr.module';
 
 @Module({
   imports: [
-    forwardRef(() => FinanceModule),
-    forwardRef(() => HRModule),
+    FinanceModule,
+    HRModule,
   ],
-  providers: [PrismaService, IncentivesService, IncentivesListener],
+  providers: [IncentivesService, IncentivesListener],
   controllers: [IncentivesController],
   exports: [IncentivesService],
 })

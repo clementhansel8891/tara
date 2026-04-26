@@ -6,11 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Decimal } from '@prisma/client/runtime/library';
 
 import { FiscalPeriodService } from '../finance/services/fiscal-period.service';
-import { IChartOfAccountRepository } from '../finance/repositories/interfaces/coa.repository.interface';
+import { LedgerPostingService } from '../finance/services/ledger-posting.service';
+import { ChartOfAccountService } from '../finance/services/chart-of-account.service';
 import { HRService } from '../hr/hr.service';
 import { UpdateIncentivePlanDto } from './dto/update-plan.dto';
 import { Inject } from '@nestjs/common';
-import { LedgerPostingService } from '../finance/services/ledger-posting.service';
 
 @Injectable()
 export class IncentivesService {
@@ -20,8 +20,7 @@ export class IncentivesService {
     private prisma: PrismaService,
     private ledgerPostingService: LedgerPostingService,
     private fiscalPeriodService: FiscalPeriodService,
-    @Inject('IChartOfAccountRepository')
-    private coaRepo: IChartOfAccountRepository,
+    private coaService: ChartOfAccountService,
     private hrService: HRService,
   ) {}
 
@@ -436,8 +435,8 @@ export class IncentivesService {
           'SYSTEM'
         );
 
-        const expenseAccount = await this.coaRepo.findByCode(tenant_id, company_id, '6100-INC');
-        const liabilityAccount = await this.coaRepo.findByCode(tenant_id, company_id, '2100-INC');
+        const expenseAccount = await this.coaService.findByCode(tenant_id, company_id, '6100-INC');
+        const liabilityAccount = await this.coaService.findByCode(tenant_id, company_id, '2100-INC');
 
         if (!expenseAccount || !liabilityAccount) {
           this.logger.error(`Failed to resolve incentive accounts: EXP=${!!expenseAccount}, LIAB=${!!liabilityAccount}`);

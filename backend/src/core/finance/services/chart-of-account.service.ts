@@ -25,6 +25,10 @@ export class ChartOfAccountService {
     return coa;
   }
 
+  async findByCode(tenant_id: string, company_id: string, code: string): Promise<FinanceChartOfAccount | null> {
+    return this.coaRepo.findByCode(tenant_id, company_id, code);
+  }
+
   async createAccount(tenant_id: string, company_id: string, data: any, user_id: string): Promise<FinanceChartOfAccount> {
     let parent;
     if (data.parentAccountId) {
