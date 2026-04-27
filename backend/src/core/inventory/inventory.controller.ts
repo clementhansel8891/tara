@@ -38,6 +38,7 @@ import { FileProcessingService } from "../../shared/file-processing/file-process
 import { AuditService } from "../../shared/audit/audit.service";
 import { SkuGeneratorService } from "./sku-generator.service";
 import { LabelTemplateService } from "./label-template.service";
+import { ItemImageService } from "./item-image.service";
 import { v4 as uuidv4 } from "uuid";
 import { PrismaService } from "../../persistence/prisma.service";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
@@ -63,6 +64,7 @@ export class InventoryController {
     private readonly fileProcessingService: FileProcessingService,
     private readonly auditService: AuditService,
     private readonly prisma: PrismaService,
+    private readonly itemImageService: ItemImageService,
   ) {}
 
   @Get("dashboard")
@@ -113,6 +115,72 @@ export class InventoryController {
     const { tenant_id: tenant_id } = request.tenantContext;
     const data = await this.inventoryService.getItems(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Post("items/:id/images")
+  @RequireInventoryRole(InventoryRole.MANAGER)
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadImage(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.itemImageService.uploadImage(
+      request.tenantContext.tenant_id,
+      itemId,
+      file,
+      request.tenantContext.user_id || "system",
+    );
+  }
+
+  @Delete("items/:id/images/:imageId")
+  @RequireInventoryRole(InventoryRole.MANAGER)
+  async deleteImage(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+    @Param("imageId") imageId: string,
+  ) {
+    return this.itemImageService.deleteImage(
+      request.tenantContext.tenant_id,
+      itemId,
+      imageId,
+      request.tenantContext.user_id || "system",
+    );
+  }
+
+  @Put("items/:id/images/:imageId/primary")
+  @RequireInventoryRole(InventoryRole.MANAGER)
+  async setPrimaryImage(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+    @Param("imageId") imageId: string,
+  ) {
+    return this.itemImageService.setPrimaryImage(
+      request.tenantContext.tenant_id,
+      itemId,
+      imageId,
+      request.tenantContext.user_id || "system",
+    );
+  }
+
+  @Get("items/:id/images")
+  async listImages(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+  ) {
+    return this.itemImageService.listImages(
+      request.tenantContext.tenant_id,
+      itemId,
+    );
+  }
+
+  @Get("images/:fileName")
+  async serveImage(
+    @Param("fileName") fileName: string,
+    @Res() res: Response,
+  ) {
+    const path = await this.itemImageService.getImagePath(fileName);
+    return res.sendFile(path);
   }
 
   @Post("items")

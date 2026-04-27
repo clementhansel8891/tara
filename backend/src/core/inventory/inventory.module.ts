@@ -7,6 +7,7 @@ import { WarehouseDbRepository } from "./repositories/warehouse.db.repository";
 import { IWarehouseRepository } from "./repositories/interfaces/warehouse.repository.interface";
 import { SkuGeneratorService } from "./sku-generator.service";
 import { LabelTemplateService } from "./label-template.service";
+import { ItemImageService } from "./item-image.service";
 import { WarehouseService } from "./warehouse.service";
 import { WarehouseController } from "./warehouse.controller";
 import { PrismaService } from "../../persistence/prisma.service";
@@ -31,6 +32,7 @@ import { InventoryEdgeController } from "./controllers/inventory-edge.controller
     WarehouseService,
     SkuGeneratorService,
     LabelTemplateService,
+    ItemImageService,
     InventoryCleanupService,
     PrismaService,
     InventoryRolesGuard,
@@ -51,6 +53,7 @@ import { InventoryEdgeController } from "./controllers/inventory-edge.controller
     InventoryService,
     SkuGeneratorService,
     LabelTemplateService,
+    ItemImageService,
     IInventoryRepository,
   ],
 })

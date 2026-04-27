@@ -15,6 +15,8 @@ export class InventoryItem {
   moduleTags: string[];
   active: boolean;
   departmentId?: string;
+  image_url?: string;
+  images?: any[];
   created_at: Date;
   updated_at: Date;
 }

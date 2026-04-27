@@ -267,6 +267,7 @@ model tenants {
   // @@map("tenants") - standardized
   warehouse_bins                         warehouse_bins[]
   bin_assignments                        bin_assignments[]
+  item_images                            item_images[]
 }
 
 model accounting_periods {
@@ -3446,12 +3447,29 @@ model item_masters {
   // @@map("item_masters") - standardized
   tenants                     tenants                       @relation(fields: [tenant_id], references: [id])
   bin_assignments             bin_assignments[]
+  item_images                 item_images[]
 
   @@unique([tenant_id, barcode])
   @@unique([tenant_id, sku])
   @@index([category_id])
   @@index([tenant_id])
   @@index([company_id])
+}
+
+model item_images {
+  id           String       @id
+  tenant_id    String
+  item_id      String
+  url          String
+  is_primary   Boolean      @default(false)
+  order        Int          @default(0)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @default(now())
+  item_masters item_masters @relation(fields: [item_id], references: [id], onDelete: Cascade)
+  tenants      tenants      @relation(fields: [tenant_id], references: [id])
+
+  @@index([item_id])
+  @@index([tenant_id])
 }
 
 model job_requisitions {

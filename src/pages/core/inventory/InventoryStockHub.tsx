@@ -48,6 +48,8 @@ import type {
 import { TransferDialog } from "./components/TransferDialog";
 import { BatchIntakeDialog } from "./components/BatchIntakeDialog";
 import { BatchTransferDialog } from "./components/BatchTransferDialog";
+import { ImageManager } from "./components/ImageManager";
+import { Image as ImageIcon } from "lucide-react";
 import { AdjustmentDialog } from "./components/AdjustmentDialog";
 import { ExportButton } from "@/components/shared/ExportButton";
 import { ImportDialog } from "@/components/shared/ImportDialog";
@@ -113,6 +115,10 @@ export default function InventoryStockHub() {
   const [newItemModuleTag, setNewItemModuleTag] = useState("GENERAL");
   const [newItemStatus, setNewItemStatus] = useState<"pending" | "active">("pending");
   const [isCreating, setIsCreating] = useState(false);
+
+  // Image Manager state
+  const [isImageManagerOpen, setIsImageManagerOpen] = useState(false);
+  const [selectedItemForImages, setSelectedItemForImages] = useState<{ id: string, name: string } | null>(null);
 
   const resetNewItemForm = () => {
     setNewItemName("");
@@ -434,6 +440,7 @@ export default function InventoryStockHub() {
                       onCheckedChange={toggleSelectAll}
                     />
                   </th>
+                  <th className="p-3 text-left w-12"></th>
                   <th className="p-3 text-left">SKU</th>
                   <th className="p-3 text-left">Item</th>
                   <th className="p-3 text-left">Location</th>
@@ -459,6 +466,28 @@ export default function InventoryStockHub() {
                           checked={isSelected}
                           onCheckedChange={() => toggleSelect(balance.id)}
                         />
+                      </td>
+                      <td className="p-3">
+                        <div 
+                          className="w-10 h-10 rounded border bg-muted/50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-primary transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedItemForImages({ id: item.id, name: item.name });
+                            setIsImageManagerOpen(true);
+                          }}
+                        >
+                          {item.image_url ? (
+                            <img 
+                              src={item.image_url.startsWith("/v1") 
+                                ? `http://localhost:3001${item.image_url}` 
+                                : item.image_url} 
+                              alt={item.name} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
                       </td>
                       <td className="p-3 font-medium">{item.sku}</td>
                       <td className="p-3">{item.name}</td>
@@ -641,6 +670,19 @@ export default function InventoryStockHub() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {selectedItemForImages && (
+        <ImageManager
+          itemId={selectedItemForImages.id}
+          itemName={selectedItemForImages.name}
+          isOpen={isImageManagerOpen}
+          onClose={() => {
+            setIsImageManagerOpen(false);
+            setSelectedItemForImages(null);
+          }}
+          onImagesUpdated={refresh}
+        />
+      )}
     </div>
   );
 }

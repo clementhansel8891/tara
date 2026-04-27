@@ -110,7 +110,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     const scope = MultiTenancyUtil.getScope(ctx);
     const products = await this.prisma.item_masters.findMany({
       where: { ...scope, status: { not: "deleted" } },
-      include: { product_categories: true },
+      include: { product_categories: true, item_images: true },
       orderBy: { created_at: "desc" },
     });
 
@@ -126,6 +126,8 @@ export class InventoryDbRepository implements IInventoryRepository {
       moduleTags: p.module_tags || [],
       departmentId: p.department_id || undefined,
       active: p.status === "active",
+      image_url: p.image_url || undefined,
+      images: p.item_images || [],
       created_at: p.created_at,
       updated_at: p.updated_at,
     }));
@@ -182,6 +184,8 @@ export class InventoryDbRepository implements IInventoryRepository {
       moduleTags: product.module_tags || [],
       active: product.status === "active",
       departmentId: product.department_id || undefined,
+      image_url: product.image_url || undefined,
+      images: [],
       created_at: product.created_at,
       updated_at: product.updated_at,
     };

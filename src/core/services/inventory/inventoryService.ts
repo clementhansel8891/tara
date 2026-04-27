@@ -494,5 +494,71 @@ export const inventoryService = {
   ) {
     return apiRequest<any>(`/v1/inventory/stock-transfers/${id}/receive`, "PUT", session, {});
   },
+
+  async uploadItemImage(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+    file: File,
+  ) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Manual fetch because apiRequest might not handle FormData easily if it's JSON-only
+    const baseUrl = (window as any).VITE_API_URL || "http://localhost:3001/v1";
+    const response = await fetch(`${baseUrl}/inventory/items/${itemId}/images`, {
+      method: "POST",
+      headers: {
+        "x-tenant-id": tenantId,
+        Authorization: `Bearer ${session.token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    return response.json();
+  },
+
+  async deleteItemImage(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+    imageId: string,
+  ) {
+    return apiRequest<any>(
+      `/inventory/items/${itemId}/images/${imageId}`,
+      "DELETE",
+      session,
+    );
+  },
+
+  async setPrimaryItemImage(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+    imageId: string,
+  ) {
+    return apiRequest<any>(
+      `/inventory/items/${itemId}/images/${imageId}/primary`,
+      "PUT",
+      session,
+      {},
+    );
+  },
+
+  async listItemImages(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+  ) {
+    return apiRequest<any[]>(
+      `/inventory/items/${itemId}/images`,
+      "GET",
+      session,
+    );
+  },
 };
 
