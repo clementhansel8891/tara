@@ -45,6 +45,14 @@ interface PostekLeftControlsProps {
   marginLeft: number;
   setMarginLeft: (v: number) => void;
 
+  barcodeType: string;
+  setBarcodeType: (v: string) => void;
+  barcodeDensity: number;
+  setBarcodeDensity: (v: number) => void;
+
+  isConnected: boolean;
+  handleConnect: () => void;
+
   totalLabels: number;
   isPrinting: boolean;
   handlePrint: () => void;
@@ -81,6 +89,14 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
   marginLeft,
   setMarginLeft,
 
+  barcodeType,
+  setBarcodeType,
+  barcodeDensity,
+  setBarcodeDensity,
+
+  isConnected,
+  handleConnect,
+
   totalLabels,
   isPrinting,
   handlePrint,
@@ -103,18 +119,30 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
   return (
     <div className="w-1/3 flex flex-col border-r bg-white h-full relative z-10">
       <DialogHeader className="p-6 border-b shrink-0 bg-white">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shrink-0 shadow-orange-500/30">
-            <Printer className="w-5 h-5" />
-          </div>
-          <div>
-            <DialogTitle className="text-xl font-black italic text-slate-900">
-              POSTEK PRINTER
-            </DialogTitle>
-            <div className="text-[10px] font-bold uppercase text-emerald-500 tracking-widest mt-1">
-              Ready
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shrink-0 shadow-orange-500/30">
+              <Printer className="w-5 h-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-black italic text-slate-900">
+                POSTEK PRINTER
+              </DialogTitle>
+              <div
+                className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isConnected ? "text-emerald-500" : "text-amber-500"}`}
+              >
+                {isConnected ? "Connected (USB)" : "Offline"}
+              </div>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleConnect}
+            className={`h-8 text-[10px] font-black uppercase tracking-widest ${isConnected ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-slate-50 text-slate-500"}`}
+          >
+            {isConnected ? "SYNCED" : "CONNECT"}
+          </Button>
         </div>
       </DialogHeader>
 
@@ -181,6 +209,20 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                  Gap (mm)
+                </label>
+                <Input
+                  type="number"
+                  className="h-9 text-xs font-bold"
+                  value={gap}
+                  onChange={(e) => setGap(Number(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200 border-dashed">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
                   Cols
                 </label>
                 <Input
@@ -194,40 +236,21 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
                   }}
                 />
               </div>
-            </div>
-
-            {columns > 1 && (
-              <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200 border-dashed">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                    Sticker W (mm)
-                  </label>
-                  <Input
-                    type="number"
-                    className="h-9 text-xs font-bold"
-                    value={stickerWidth}
-                    onChange={(e) => {
-                      setStickerWidth(Number(e.target.value));
-                      if (paperPreset !== "custom") setPaperPreset("custom");
-                    }}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                    H-Gap (mm)
-                  </label>
-                  <Input
-                    type="number"
-                    className="h-9 text-xs font-bold"
-                    value={horizontalGap}
-                    onChange={(e) => {
-                      setHorizontalGap(Number(e.target.value));
-                      if (paperPreset !== "custom") setPaperPreset("custom");
-                    }}
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                  H-Gap (mm)
+                </label>
+                <Input
+                  type="number"
+                  className="h-9 text-xs font-bold"
+                  value={horizontalGap}
+                  onChange={(e) => {
+                    setHorizontalGap(Number(e.target.value));
+                    if (paperPreset !== "custom") setPaperPreset("custom");
+                  }}
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -239,56 +262,11 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                DPI Base
-              </label>
-              <Select
-                value={dpi.toString()}
-                onValueChange={(val) => setDpi(Number(val) as 203 | 300)}
-              >
-                <SelectTrigger className="h-9 text-xs font-bold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="203" className="text-xs font-bold">
-                    203 DPI (8 dots/mm)
-                  </SelectItem>
-                  <SelectItem value="300" className="text-xs font-bold">
-                    300 DPI (12 dots/mm)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                Gap (mm)
-              </label>
-              <Input
-                type="number"
-                className="h-9 text-xs font-bold"
-                value={gap}
-                onChange={(e) => setGap(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                Density (1-15)
+                Print Speed
               </label>
               <Input
                 type="number"
                 min={1}
-                max={15}
-                className="h-9 text-xs font-bold"
-                value={density}
-                onChange={(e) => setDensity(Number(e.target.value))}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                Speed (2-6)
-              </label>
-              <Input
-                type="number"
-                min={2}
                 max={6}
                 className="h-9 text-xs font-bold"
                 value={speed}
@@ -297,7 +275,20 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                Margin Top (mm)
+                Darkness (0-20)
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={20}
+                className="h-9 text-xs font-bold"
+                value={density}
+                onChange={(e) => setDensity(Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                Margin Top
               </label>
               <Input
                 type="number"
@@ -308,13 +299,56 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                Margin L (mm)
+                Margin Left
               </label>
               <Input
                 type="number"
                 className="h-9 text-xs font-bold"
                 value={marginLeft}
                 onChange={(e) => setMarginLeft(Number(e.target.value))}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Barcode Config */}
+        <div className="p-5 border-b bg-slate-50/30 flex flex-col gap-4">
+          <span className="text-xs font-black uppercase tracking-widest text-slate-600">
+            Precision Barcode
+          </span>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                Symbol Type
+              </label>
+              <Select value={barcodeType} onValueChange={setBarcodeType}>
+                <SelectTrigger className="h-9 text-xs font-bold bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="E" className="text-xs font-bold">
+                    Code 128
+                  </SelectItem>
+                  <SelectItem value="1" className="text-xs font-bold">
+                    Code 39
+                  </SelectItem>
+                  <SelectItem value="2" className="text-xs font-bold">
+                    EAN-13
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
+                Density (Dots)
+              </label>
+              <Input
+                type="number"
+                min={1}
+                max={4}
+                className="h-9 text-xs font-bold"
+                value={barcodeDensity}
+                onChange={(e) => setBarcodeDensity(Number(e.target.value))}
               />
             </div>
           </div>
@@ -373,10 +407,10 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
           disabled={totalLabels === 0 || isPrinting}
         >
           {isPrinting ? (
-            "SPOOLING..."
+            "TRANSMITTING..."
           ) : (
             <>
-              <Printer className="w-4 h-4 mr-2" /> SEND TSPL
+              <Printer className="w-4 h-4 mr-2" /> SEND PPLE
             </>
           )}
         </Button>

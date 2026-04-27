@@ -82,3 +82,14 @@ export const defaultLayout: BlockPosition[] = [
   { id: "barcode", x: 3, y: 8, width: 44, height: 14 },
   { id: "price", x: 3, y: 24, width: 44, height: 5 },
 ];
+
+export const BARCODE_TYPES = [
+  { id: "E", name: "Code 128 (Auto)" },
+  { id: "1", name: "Code 39" },
+  { id: "2", name: "EAN-13" },
+  { id: "3", name: "EAN-8" },
+  { id: "9", name: "Code 128 (Subset A/B/C)" },
+];
+
+export const DEFAULT_BARCODE_TYPE = "E";
+export const DEFAULT_BARCODE_DENSITY = 2; // narrow bar width in dots
