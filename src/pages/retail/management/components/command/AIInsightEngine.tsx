@@ -33,7 +33,11 @@ const InsightMarker = ({
   </div>
 );
 
-export const AIInsightEngine = () => {
+export const AIInsightEngine = ({
+  onExpansionRequest
+}: {
+  onExpansionRequest?: (feature: string) => void;
+}) => {
   return (
     <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-125 transition-transform duration-1000">
@@ -94,7 +98,10 @@ export const AIInsightEngine = () => {
                 </p>
               </div>
             </div>
-            <button className="h-14 px-10 rounded-[1.25rem] bg-white text-indigo-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95">
+            <button 
+              onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
+              className="h-14 px-10 rounded-[1.25rem] bg-white text-indigo-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95 italic"
+            >
               Deploy Resources
             </button>
           </div>
@@ -117,7 +124,8 @@ export const AIInsightEngine = () => {
             ].map((rec, i) => (
               <div
                 key={i}
-                className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group/rec"
+                onClick={() => onExpansionRequest?.(`Recommendation Execution: ${rec}`)}
+                className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group/rec cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center shrink-0 shadow-inner group-hover/rec:bg-indigo-600 transition-colors">
                   <ArrowUpRight className="w-5 h-5 text-indigo-400 group-hover/rec:text-white group-hover/rec:rotate-45 transition-all duration-500" />
@@ -133,3 +141,4 @@ export const AIInsightEngine = () => {
     </Card>
   );
 };
+

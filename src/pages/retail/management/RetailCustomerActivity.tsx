@@ -25,7 +25,11 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-export function RetailCustomerActivity() {
+export function RetailCustomerActivity({ 
+  onExpansionRequest 
+}: { 
+  onExpansionRequest?: (feature: string) => void 
+}) {
   const session = useSession();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +92,11 @@ export function RetailCustomerActivity() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-16 w-16 p-0 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 shadow-2xl">
+            <Button 
+              variant="outline" 
+              className="h-16 w-16 p-0 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 shadow-2xl"
+              onClick={() => onExpansionRequest?.("Identity Registry Filter Matrix")}
+            >
               <Filter className="w-5 h-5 text-slate-400" />
             </Button>
           </div>
@@ -153,12 +161,13 @@ export function RetailCustomerActivity() {
         isOpen={isDetailOpen}
         onOpenChange={setIsDetailOpen}
         customer={selectedCustomer}
+        onExpansionRequest={onExpansionRequest}
       />
     </Card>
   );
 }
 
-function CustomerDetailDialog({ isOpen, onOpenChange, customer }: any) {
+function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionRequest }: any) {
   if (!customer) return null;
 
   return (
@@ -200,7 +209,10 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer }: any) {
               </div>
             </div>
 
-            <Button className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl h-16 text-[11px] font-black uppercase tracking-[0.3em] italic text-white shadow-2xl transition-all hover:scale-105 active:scale-95">
+            <Button 
+              onClick={() => onExpansionRequest?.(`Identity Modification: ${customer.name}`)}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl h-16 text-[11px] font-black uppercase tracking-[0.3em] italic text-white shadow-2xl transition-all hover:scale-105 active:scale-95"
+            >
               Edit Identity Registry
             </Button>
           </div>
@@ -382,7 +394,11 @@ function CustomerWishlistView({ wishlist }: any) {
                  <p className="text-xl font-black italic text-white italic tracking-tight">{item.product_id}</p>
                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Asset Monitoring Active</p>
               </div>
-              <Button variant="outline" className="w-full h-14 rounded-2xl border-white/10 bg-white/5 text-white font-black italic text-[11px] uppercase tracking-[0.3em] hover:bg-indigo-600 hover:border-indigo-600 transition-all shadow-2xl">
+              <Button 
+                variant="outline" 
+                onClick={() => onExpansionRequest?.(`Asset Inspection: ${item.product_id}`)}
+                className="w-full h-14 rounded-2xl border-white/10 bg-white/5 text-white font-black italic text-[11px] uppercase tracking-[0.3em] hover:bg-indigo-600 hover:border-indigo-600 transition-all shadow-2xl"
+              >
                 Inspect Strategic Asset
               </Button>
             </div>

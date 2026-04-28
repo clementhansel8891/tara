@@ -155,7 +155,7 @@ export default function RetailManagement() {
           <div className="xl:col-span-3 space-y-16">
             {/* Split Tier: AI Insights & Node Health */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
-              <AIInsightEngine />
+              <AIInsightEngine onExpansionRequest={triggerExpansion} />
               <NodeConnectivityGrid 
                 stores={stores} 
                 channels={channels} 
@@ -215,7 +215,9 @@ export default function RetailManagement() {
                     channels={channels} 
                   />
                 )}
-                {activeTab === 'customers' && <RetailCustomerActivity />}
+                {activeTab === 'customers' && (
+                  <RetailCustomerActivity onExpansionRequest={triggerExpansion} />
+                )}
                 {activeTab === 'analytics' && <EcommerceAnalytics />}
               </CardContent>
             </Card>
