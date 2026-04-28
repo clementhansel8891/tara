@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Warehouse,
   Radio,
+  Users
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };

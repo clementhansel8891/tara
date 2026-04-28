@@ -42,7 +42,8 @@ import {
   Cpu,
   Bot,
   Search,
-  Settings
+  Settings,
+  Users
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };

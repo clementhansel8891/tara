@@ -29,7 +29,10 @@ import {
   ShieldCheck,
   ChevronRight,
   TrendingUp,
-  Target
+  Target,
+  Search,
+  Settings,
+  Users
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
