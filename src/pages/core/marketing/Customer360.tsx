@@ -14,7 +14,18 @@ import {
   Tag,
   ChevronRight,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  ShieldCheck,
+  Globe,
+  Briefcase,
+  Target,
+  Activity,
+  Layers,
+  Box,
+  Rocket,
+  MoreHorizontal,
+  RefreshCw,
+  Search
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,171 +39,204 @@ import { cn } from "@/lib/utils";
 const TIMELINE_EVENTS = [
   { id: 1, type: 'email', title: 'Opened Summer Promo Email', date: '2 hours ago', icon: Mail, color: 'text-blue-500', bg: 'bg-blue-500/10' },
   { id: 2, type: 'web', title: 'Visited Pricing Page (3 mins)', date: '5 hours ago', icon: MousePointer2, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-  { id: 3, type: 'retail', title: 'Purchased Classic Jacket (Offline)', date: 'Yesterday', icon: ShoppingCart, color: 'text-green-500', bg: 'bg-green-500/10' },
-  { id: 4, type: 'chat', title: 'WhatsApp Inquiry: Size Guide', date: '2 days ago', icon: MessageSquare, color: 'text-green-600', bg: 'bg-green-600/10' },
-  { id: 5, type: 'system', title: 'Scored High Intent (AI)', date: '3 days ago', icon: Zap, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+  { id: 3, type: 'retail', title: 'Purchased Classic Jacket (Offline)', date: 'Yesterday', icon: ShoppingCart, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+  { id: 4, type: 'chat', title: 'WhatsApp Inquiry: Size Guide', date: '2 days ago', icon: MessageSquare, color: 'text-emerald-600', bg: 'bg-emerald-600/10' },
+  { id: 5, type: 'system', title: 'Scored High Intent (AI)', date: '3 days ago', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10' },
 ];
 
 export default function Customer360() {
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header: Identity & Core Stats */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        <Card className="flex-1 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/20">
-          <CardContent className="p-8">
-            <div className="flex items-center gap-6">
-              <Avatar className="h-24 w-24 border-4 border-background shadow-2xl">
-                <AvatarFallback className="bg-indigo-500 text-white text-2xl font-bold">SJ</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Sarah Jenkins</h1>
-                  <Badge className="bg-indigo-500 hover:bg-indigo-600">VIP GOLD</Badge>
-                </div>
-                <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                  <span className="flex items-center gap-1.5"><Mail className="h-4 w-4" /> sarah@enterprise.com</span>
-                  <span className="flex items-center gap-1.5"><Phone className="h-4 w-4" /> +1 (555) 012-3456</span>
-                  <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4" /> San Francisco, USA</span>
+    <div className="p-8 space-y-10 animate-in fade-in duration-1000 max-w-[1600px] mx-auto pb-24">
+      {/* Premium Header: Strategic Identity */}
+      <div className="flex flex-col lg:flex-row gap-10">
+        <Card className="flex-1 rounded-[3rem] border-none shadow-2xl bg-indigo-600 text-white p-10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 h-64 w-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-1000" />
+          <CardContent className="p-0 relative z-10">
+            <div className="flex flex-col md:flex-row gap-10 items-start md:items-center justify-between">
+              <div className="flex items-center gap-8">
+                <Avatar className="h-32 w-32 rounded-[2.5rem] ring-4 ring-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                  <AvatarFallback className="text-4xl font-black bg-white/10 backdrop-blur-md text-white italic">SJ</AvatarFallback>
+                </Avatar>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-5xl font-black tracking-tighter uppercase italic">Sarah Jenkins</h1>
+                    <Badge className="bg-white/20 border-none text-[10px] font-black px-4 py-1 rounded-full text-white uppercase tracking-[0.2em] backdrop-blur-md">
+                       VIP GOLD NODE
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-8 text-[11px] font-black uppercase tracking-widest opacity-60">
+                    <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> sarah@enterprise.com</span>
+                    <span className="flex items-center gap-2"><Phone className="h-4 w-4" /> +1 (555) 012-3456</span>
+                    <span className="flex items-center gap-2"><MapPin className="h-4 w-4" /> San Francisco, USA</span>
+                  </div>
                 </div>
               </div>
-              <div className="hidden md:flex gap-2">
-                <Button variant="outline">Edit Profile</Button>
-                <Button>Create Task</Button>
+              <div className="flex gap-4">
+                <Button variant="outline" className="h-14 px-8 rounded-2xl bg-white/10 border-none shadow-xl hover:scale-110 transition-all text-white font-black text-[10px] uppercase tracking-widest">EDIT IDENTITY</Button>
+                <Button className="h-14 px-8 rounded-2xl bg-white text-indigo-600 shadow-xl hover:scale-110 transition-all font-black text-[10px] uppercase tracking-widest">DEPLOY TASK</Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="w-full lg:w-80 overflow-hidden">
-          <CardHeader className="bg-slate-50 dark:bg-slate-900 pb-4">
-            <CardTitle className="text-xs font-bold uppercase tracking-widest text-slate-500">Behavioral IQ</CardTitle>
+        <Card className="w-full lg:w-96 rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+          <CardHeader className="p-8 pb-4">
+            <div className="flex items-center justify-between">
+               <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Behavioral Intelligence</CardTitle>
+               <Activity className="h-4 w-4 text-indigo-600 animate-pulse" />
+            </div>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div className="text-center">
-              <div className="text-5xl font-black text-indigo-500 mb-1">87</div>
-              <p className="text-[10px] font-bold uppercase text-slate-400">Growth Score</p>
-              <div className="mt-4 space-y-1">
-                <Progress value={87} className="h-2" />
-                <div className="flex justify-between text-[10px] font-bold">
-                  <span className="text-green-500 flex items-center gap-0.5"><TrendingUp className="h-3 w-3" /> +12% MoM</span>
-                  <span className="text-slate-400 text-[9px] uppercase">High Intent</span>
-                </div>
+          <CardContent className="p-8 pt-4 space-y-8">
+            <div className="text-center space-y-2">
+              <div className="text-7xl font-black tracking-tighter text-indigo-600 italic">87</div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Strategic Growth Score</p>
+            </div>
+            <div className="space-y-4">
+              <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                 <div className="h-full bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.5)] transition-all duration-1000" style={{ width: '87%' }} />
+              </div>
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                <span className="text-emerald-500 flex items-center gap-1.5"><TrendingUp className="h-3 w-3" /> +12% MoM YIELD</span>
+                <span className="text-slate-400 italic">HIGH INTENT CLUSTER</span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-10">
         {/* Left: Financials & Attribution */}
-        <div className="col-span-12 lg:col-span-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="col-span-12 lg:col-span-8 space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
              {[
-               { label: 'LTV (Estimated)', val: '$4,280', color: 'text-indigo-600', sub: 'Last 12 months' },
-               { label: 'Purchases', val: '14', color: 'text-slate-900', sub: 'Offline + Online' },
-               { label: 'Email CTR', val: '24.2%', color: 'text-green-500', sub: 'High engagement' },
+               { label: 'Estimated LTV', val: '$4,280', color: 'text-indigo-600', sub: 'Last 12 month cycle' },
+               { label: 'Strategic Purchases', val: '14', color: 'text-slate-900 dark:text-white', sub: 'Unified Offline + Online' },
+               { label: 'Engagement CTR', val: '24.2%', color: 'text-emerald-500', sub: 'High-velocity interaction' },
              ].map((stat, i) => (
-               <Card key={i}>
-                  <CardContent className="p-4">
-                     <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">{stat.label}</p>
-                     <p className={cn("text-2xl font-bold", stat.color)}>{stat.val}</p>
-                     <p className="text-[10px] text-slate-500 mt-1">{stat.sub}</p>
+               <Card key={i} className="rounded-[2.5rem] border-none shadow-xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-md group hover:shadow-2xl transition-all">
+                  <CardContent className="p-8 space-y-2">
+                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic mb-2">{stat.label}</p>
+                     <p className={cn("text-4xl font-black tracking-tighter uppercase italic leading-none", stat.color)}>{stat.val}</p>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-3 opacity-60">{stat.sub}</p>
                   </CardContent>
                </Card>
              ))}
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Unified Activity Timeline</CardTitle>
-              <CardDescription>Omnichannel interactions across Marketing, Sales, and Retail.</CardDescription>
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+            <CardHeader className="p-10 pb-6 border-b border-white/10 dark:border-slate-800/10">
+               <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                     <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3 uppercase italic">
+                        <Clock className="h-6 w-6 text-indigo-600" />
+                        Unified Timeline
+                     </CardTitle>
+                     <CardDescription className="text-xs font-medium italic italic">Omnichannel interactions across Marketing, Sales, and Retail clusters.</CardDescription>
+                  </div>
+                  <Badge variant="outline" className="rounded-full font-black text-[9px] px-3 py-1 border-slate-200 dark:border-slate-800 uppercase tracking-widest text-slate-400">LIVE FEED</Badge>
+               </div>
             </CardHeader>
-            <CardContent>
-              <div className="relative space-y-8 before:absolute before:left-4 before:top-2 before:h-[calc(100%-16px)] before:w-0.5 before:bg-slate-100 dark:before:bg-slate-800">
-                {TIMELINE_EVENTS.map((event) => (
-                  <div key={event.id} className="relative pl-12">
-                    <div className={cn("absolute left-0 top-0 h-9 w-9 rounded-full flex items-center justify-center border-4 border-background shadow-sm z-10", event.bg)}>
+            <CardContent className="p-10">
+              <div className="relative space-y-12 pl-12">
+                 <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-indigo-500/10" />
+                 {TIMELINE_EVENTS.map((event) => (
+                  <div key={event.id} className="relative group">
+                    <div className={cn("absolute -left-12 top-0 h-9 w-9 rounded-xl flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-xl z-10 group-hover:scale-125 transition-all", event.bg)}>
                       <event.icon className={cn("h-4 w-4", event.color)} />
                     </div>
-                    <div>
+                    <div className="space-y-1 group-hover:translate-x-1 transition-transform">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">{event.title}</h4>
-                        <span className="text-[10px] font-medium text-slate-400">{event.date}</span>
+                        <h4 className="text-base font-black uppercase tracking-tight italic text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{event.title}</h4>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{event.date}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">Interaction via {event.type.toUpperCase()} Channel</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter opacity-60 italic">Interaction via {event.type.toUpperCase()} Channel</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button variant="ghost" className="w-full mt-6 text-xs text-slate-400">View All 142 Events</Button>
+              <Button variant="ghost" className="w-full mt-10 h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 gap-2">
+                 VIEW ALL 142 STRATEGIC EVENTS <ArrowUpRight className="h-3 w-3" />
+              </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right: Segmentation & CRM */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider">Segmentation Tags</CardTitle>
+        {/* Right: Segmentation & CRM Intelligence */}
+        <div className="col-span-12 lg:col-span-4 space-y-10">
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+            <CardHeader className="p-8 pb-4">
+               <div className="flex items-center justify-between mb-2">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Segmentation Matrix</CardTitle>
+                  <Tag className="h-4 w-4 text-indigo-600" />
+               </div>
             </CardHeader>
-            <CardContent className="flex flex-wrap gap-2">
-              <Badge variant="secondary" className="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100">Power Buyer</Badge>
-              <Badge variant="secondary" className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-100">Eco-Conscious</Badge>
-              <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-100">Webinar Attendee</Badge>
-              <Badge variant="secondary">Early Adopter</Badge>
-              <Badge variant="secondary">Tech Enthusiast</Badge>
-              <Button variant="outline" size="sm" className="h-6 w-6 rounded-full p-0"><Zap className="h-3 w-3" /></Button>
+            <CardContent className="p-8 pt-4 flex flex-wrap gap-3">
+              <Badge className="bg-indigo-600/10 text-indigo-600 border-none font-black text-[9px] px-4 py-1.5 rounded-full uppercase tracking-widest">POWER BUYER</Badge>
+              <Badge className="bg-emerald-600/10 text-emerald-600 border-none font-black text-[9px] px-4 py-1.5 rounded-full uppercase tracking-widest">ECO-CONSCIOUS</Badge>
+              <Badge className="bg-blue-600/10 text-blue-600 border-none font-black text-[9px] px-4 py-1.5 rounded-full uppercase tracking-widest">WEBINAR ATTENDEE</Badge>
+              <Badge className="bg-amber-600/10 text-amber-600 border-none font-black text-[9px] px-4 py-1.5 rounded-full uppercase tracking-widest">EARLY ADOPTER</Badge>
+              <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-400 border-none font-black text-[9px] px-4 py-1.5 rounded-full uppercase tracking-widest">TECH ENTHUSIAST</Badge>
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-slate-50 dark:bg-slate-800 text-indigo-600 hover:scale-110 transition-all shadow-sm"><Zap className="h-4 w-4" /></Button>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-               <CardTitle className="text-sm font-bold uppercase tracking-wider">CRM Details</CardTitle>
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+            <CardHeader className="p-8 pb-4">
+               <div className="flex items-center justify-between mb-2">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Entity Meta-Data</CardTitle>
+                  <ShieldCheck className="h-4 w-4 text-emerald-500" />
+               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-               <div className="space-y-3">
-                  <div className="flex justify-between text-xs">
-                     <span className="text-slate-400">Industry</span>
-                     <span className="font-semibold">Retail & Apparel</span>
+            <CardContent className="p-8 pt-4 space-y-8">
+               <div className="space-y-6">
+                  <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
+                     <span className="text-slate-400 italic flex items-center gap-2 leading-none"><Globe className="h-3.5 w-3.5" /> Industry</span>
+                     <span className="text-slate-900 dark:text-white leading-none">RETAIL & APPAREL</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                     <span className="text-slate-400">Employee Band</span>
-                     <span className="font-semibold">500-1,000</span>
+                  <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
+                     <span className="text-slate-400 italic flex items-center gap-2 leading-none"><Layers className="h-3.5 w-3.5" /> Scale Band</span>
+                     <span className="text-slate-900 dark:text-white leading-none">500-1,000 NODES</span>
                   </div>
-                  <div className="flex justify-between text-xs">
-                     <span className="text-slate-400">Assigned Owner</span>
-                     <div className="flex items-center gap-1.5">
-                        <div className="h-4 w-4 rounded-full bg-slate-200" />
-                        <span className="font-semibold">Mark Thompson</span>
+                  <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
+                     <span className="text-slate-400 italic flex items-center gap-2 leading-none"><User className="h-3.5 w-3.5" /> Identity Owner</span>
+                     <div className="flex items-center gap-3">
+                        <Avatar className="h-6 w-6 rounded-lg ring-2 ring-indigo-500/10 shadow-sm">
+                           <AvatarFallback className="bg-indigo-600 text-white text-[9px] font-black">MT</AvatarFallback>
+                        </Avatar>
+                        <span className="text-slate-900 dark:text-white leading-none italic">MARK THOMPSON</span>
                      </div>
                   </div>
                </div>
-               <Separator />
-               <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Recent Notes</p>
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg text-[11px] leading-relaxed text-slate-600 italic">
-                     "Sarah mentioned interest in our Q4 enterprise tier. High potential for upsell."
+               <Separator className="bg-slate-100 dark:bg-slate-800" />
+               <div className="space-y-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Operational Note</p>
+                  <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-xs font-medium leading-relaxed text-slate-600 dark:text-slate-400 italic relative overflow-hidden">
+                     <div className="absolute left-0 top-0 h-full w-1 bg-indigo-600" />
+                     "Sarah mentioned interest in our Q4 enterprise tier. High potential for yield upsell."
                   </div>
                </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 text-white overflow-hidden border-0">
-             <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="h-10 w-10 bg-indigo-500 rounded-xl flex items-center justify-center">
-                      <Zap className="h-5 w-5 text-white" />
+          <Card className="rounded-[3rem] border-none shadow-2xl bg-slate-900 text-white p-10 relative overflow-hidden group">
+             <div className="absolute top-0 right-0 h-40 w-40 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000" />
+             <div className="relative z-10 space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="h-14 w-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl group-hover:rotate-12 transition-transform">
+                      <Zap className="h-7 w-7 text-white fill-white" />
                    </div>
                    <div>
-                      <h4 className="font-bold text-sm">Next AI Action</h4>
-                      <p className="text-[10px] text-slate-400">Powered by Zenvix Intelligence</p>
+                      <h4 className="font-black text-lg uppercase tracking-tighter italic">Strategic AI Action</h4>
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Zenvix Intelligence Engine</p>
                    </div>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                   "High probability of churn if no contact in 7 days. Recommend sending <strong>Loyalty Reward</strong> coupon via SMS."
+                <p className="text-sm font-medium italic italic opacity-70 leading-relaxed italic">
+                   "High probability of churn if no contact in 7 days. Recommend authorizing <strong>Loyalty Reward</strong> protocol via SMS."
                 </p>
-                <Button className="w-full bg-indigo-500 hover:bg-indigo-600 text-white border-0 h-9 text-xs font-bold">Deploy Recommendation</Button>
-             </CardContent>
+                <Button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3 group/btn">
+                   DEPLOY RECOMMENDATION <Rocket className="h-4 w-4 group-hover/btn:-translate-y-1 group-hover/btn:translate-x-1 transition-transform" />
+                </Button>
+             </div>
           </Card>
         </div>
       </div>

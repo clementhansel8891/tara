@@ -25,6 +25,11 @@ import {
   ScrollText,
   LayoutDashboard,
   Wallet,
+  Activity,
+  ShieldCheck,
+  ChevronRight,
+  TrendingUp,
+  Target
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -32,25 +37,35 @@ type MenuSection = { title: string; items: MenuItem[] };
 
 const SECTIONS: MenuSection[] = [
   {
-    title: "Operations",
+    title: "Intelligence",
     items: [
       { label: "Sales Overview", to: "/core/sales/overview", icon: LayoutDashboard },
-      { label: "Sales Command Center", to: "/core/sales/dashboard", icon: Gauge },
-      { label: "Leads", to: "/core/sales/leads", icon: Rocket },
-      { label: "Pipeline Board", to: "/core/sales/pipeline", icon: ClipboardList },
-      { label: "Opportunities", to: "/core/sales/opps", icon: BadgeDollarSign },
-      { label: "Quote Desk", to: "/core/sales/quotes", icon: Bot },
-      { label: "Timeline", to: "/core/sales/timeline", icon: ListTodo },
-      { label: "Sales Orders", to: "/core/sales/orders", icon: ShoppingBag },
+      { label: "Executive Forecast", to: "/core/sales/forecast", icon: TrendingUp },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { label: "Command Center", to: "/core/sales/dashboard", icon: Gauge },
+      { label: "Lead Injection", to: "/core/sales/leads", icon: Rocket },
+      { label: "Pipeline Matrix", to: "/core/sales/pipeline", icon: ClipboardList },
+      { label: "Opportunity Desk", to: "/core/sales/opps", icon: BadgeDollarSign },
+    ],
+  },
+  {
+    title: "Fulfillment",
+    items: [
+      { label: "Quote Approval", to: "/core/sales/quotes", icon: Bot },
+      { label: "Order Desk", to: "/core/sales/orders", icon: ShoppingBag },
+      { label: "Neural Timeline", to: "/core/sales/timeline", icon: ListTodo },
     ],
   },
   {
     title: "Leadership",
     items: [
-      { label: "Manager View", to: "/core/sales/manager", icon: Gauge },
-      { label: "Executive Forecast", to: "/core/sales/forecast", icon: BadgeDollarSign },
-      { label: "Incentives Management", to: "/core/sales/incentives", icon: Wallet },
-      { label: "Audit Log", to: "/core/sales/audit", icon: ScrollText },
+      { label: "Manager Control", to: "/core/sales/manager", icon: ShieldCheck },
+      { label: "Yield Engine", to: "/core/sales/incentives", icon: Wallet },
+      { label: "Compliance Log", to: "/core/sales/audit", icon: ScrollText },
     ],
   },
 ];
@@ -72,32 +87,32 @@ export default function SalesWorkspaceLayout() {
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans selection:bg-indigo-500/30">
       <PageShell
         header={
-          <div className="space-y-3">
+          <div className="space-y-4 px-2">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to="/core">Core</Link>
+                    <Link to="/core" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">Core</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator />
+                <BreadcrumbSeparator className="text-slate-300" />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to="/core/sales">Sales</Link>
+                    <Link to="/core/sales" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">Sales Intelligence</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {breadcrumbs.map((item, index) => (
                   <React.Fragment key={item.path}>
-                    <BreadcrumbSeparator />
+                    <BreadcrumbSeparator className="text-slate-300" />
                     <BreadcrumbItem>
                       {index === breadcrumbs.length - 1 ? (
-                        <BreadcrumbPage className="capitalize">{item.label}</BreadcrumbPage>
+                        <BreadcrumbPage className="text-[10px] font-black uppercase tracking-widest text-indigo-600">{item.label}</BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink asChild>
-                          <Link to={item.path} className="capitalize">
+                          <Link to={item.path} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
                             {item.label}
                           </Link>
                         </BreadcrumbLink>
@@ -107,57 +122,84 @@ export default function SalesWorkspaceLayout() {
                 ))}
               </BreadcrumbList>
             </Breadcrumb>
-            <PageHeader
-              title="Sales Workspace"
-              subtitle="Leads -> opportunities -> quote approvals -> orders with full CRM timeline and forecasting."
-            />
+            <div className="flex items-center gap-4">
+               <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
+                  <Activity className="h-6 w-6 text-white" />
+               </div>
+               <div>
+                  <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Sales Workspace</h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">End-to-End Strategic Revenue Orchestration</p>
+               </div>
+            </div>
           </div>
         }
         left={
-          <ScrollArea className="h-full max-h-[calc(100vh-120px)]">
-            <div className="space-y-6 p-4">
-              <WorkspacePanel>
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p className="text-sm font-semibold text-foreground">Tenant: {session.tenant_id}</p>
-                  <p>Role: {session.role}</p>
-                  <p>Department: {session.department_id}</p>
-                </div>
-              </WorkspacePanel>
-              {SECTIONS.map((section) => (
-                <div key={section.title} className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {section.title}
-                  </p>
-                  <div className="space-y-1">
-                    {section.items.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          end={item.to === "/core/sales"}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                              isActive
-                                ? "bg-muted text-foreground"
-                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                            )
-                          }
-                        >
-                          <Icon className="h-4 w-4" />
-                          {item.label}
-                        </NavLink>
-                      );
-                    })}
+          <div className="h-full flex flex-col bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50">
+            <ScrollArea className="flex-1">
+              <div className="p-6 space-y-10">
+                {/* Tactical Status Card */}
+                <div className="p-6 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 h-20 w-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+                  <div className="relative z-10 space-y-3">
+                     <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-60 italic">Node Status</p>
+                     <div className="space-y-1">
+                        <p className="text-sm font-black tracking-tight">{session.tenant_id}</p>
+                        <Badge variant="outline" className="bg-white/20 border-none text-[8px] font-black px-2 py-0 h-4 text-white uppercase tracking-widest">
+                           {session.role}
+                        </Badge>
+                     </div>
                   </div>
                 </div>
-              ))}
+
+                {SECTIONS.map((section) => (
+                  <div key={section.title} className="space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 pl-4">
+                      {section.title}
+                    </p>
+                    <div className="space-y-1">
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.to === "/core/sales"}
+                            className={({ isActive }) =>
+                              cn(
+                                "group flex items-center gap-4 rounded-2xl px-4 py-3 text-[11px] font-black uppercase tracking-widest transition-all duration-300",
+                                isActive
+                                  ? "bg-white dark:bg-slate-800 text-indigo-600 shadow-lg shadow-indigo-500/5 translate-x-1"
+                                  : "text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-indigo-500 hover:translate-x-1",
+                              )
+                            }
+                          >
+                            <Icon className={cn("h-4 w-4 transition-transform group-hover:scale-110")} />
+                            {item.label}
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            
+            {/* Health Pulse Footer */}
+            <div className="p-6 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/20 dark:bg-slate-900/20 backdrop-blur-md">
+               <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                     <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Telemetry Syncing</p>
+                  </div>
+                  <Target className="h-4 w-4 text-slate-300" />
+               </div>
             </div>
-          </ScrollArea>
+          </div>
         }
       >
-        <Outlet />
+        <div className="p-0 lg:p-0">
+           <Outlet />
+        </div>
       </PageShell>
     </div>
   );

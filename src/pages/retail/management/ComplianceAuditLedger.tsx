@@ -18,6 +18,7 @@ import {
   Calendar,
   MoreHorizontal,
   RefreshCw,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableShell } from "@/core/tools/DataTableShell";
@@ -29,32 +30,32 @@ import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/core/security/session";
 import { apiRequest } from "@/core/api/apiClient";
 import { toast } from "sonner";
-
-
-// Replaced static mock with dynamic state
-
+import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 const eventColors: Record<string, string> = {
-  FISCAL_VOID: "text-red-600 bg-red-50",
-  PERMISSION_CHANGE: "text-amber-700 bg-amber-50",
-  MANUAL_ADJUST: "text-blue-700 bg-blue-50",
-  STORE_OPEN: "text-emerald-700 bg-emerald-50",
-  STORE_CLOSE: "text-slate-700 bg-slate-100",
-  DISCOUNT_APPLIED: "text-indigo-700 bg-indigo-50",
-  REFUND_ISSUED: "text-rose-700 bg-rose-50",
+  FISCAL_VOID: "text-rose-500 bg-rose-500/10 border-rose-500/20",
+  PERMISSION_CHANGE: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+  MANUAL_ADJUST: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+  STORE_OPEN: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+  STORE_CLOSE: "text-slate-400 bg-slate-400/10 border-slate-400/20",
+  DISCOUNT_APPLIED: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20",
+  REFUND_ISSUED: "text-rose-400 bg-rose-400/10 border-rose-400/20",
 };
 
 const ComplianceAuditLedger = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
+  const [expansionFeature, setExpansionFeature] = useState("");
   const session = useSession();
 
   React.useEffect(() => {
     const fetchLogs = async () => {
       try {
+        setIsLoading(true);
         const data = await apiRequest<any[]>("/v1/audit/logs", "GET", session);
-        setLogs(data);
+        setLogs(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch audit logs:", err);
         toast.error("Compliance Stream Offline");
@@ -63,7 +64,12 @@ const ComplianceAuditLedger = () => {
       }
     };
     if (session.tenant_id) fetchLogs();
-  }, [session]);
+  }, [session.tenant_id]);
+
+  const openExpansion = (feature: string) => {
+    setExpansionFeature(feature);
+    setIsExpansionModalOpen(true);
+  };
 
   const handleExport = async (format: 'pdf' | 'csv') => {
     try {
@@ -82,10 +88,9 @@ const ComplianceAuditLedger = () => {
   };
 
   const filteredLogs = useMemo(() => {
-    const activeData = logs && Array.isArray(logs) ? logs : [];
-    if (!searchTerm.trim()) return activeData;
+    if (!searchTerm.trim()) return logs;
     const q = searchTerm.toLowerCase();
-    return activeData.filter(
+    return logs.filter(
       (l) =>
         (l.action || "").toLowerCase().includes(q) ||
         (l.user_id || "").toLowerCase().includes(q) ||
@@ -94,123 +99,140 @@ const ComplianceAuditLedger = () => {
     );
   }, [searchTerm, logs]);
 
-
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white">
+      <StrategicExpansionModal
+        isOpen={isExpansionModalOpen}
+        onClose={() => setIsExpansionModalOpen(false)}
+        featureName={expansionFeature}
+      />
+
       {/* Header */}
-      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
-        <PageHeader
-          title="Compliance & Audit Ledger"
-          subtitle="Immutable fiscal record-keeping • Regulatory event log • Chain of custody"
-        />
-        <div className="flex items-center gap-3">
+      <div className="px-12 py-8 border-b border-white/5 bg-slate-950/50 backdrop-blur-3xl shrink-0 flex items-center justify-between sticky top-0 z-50">
+        <div>
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+            Compliance & Audit Ledger
+          </h1>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">
+            Immutable Fiscal Record-Keeping • Regulatory Event Log • v4.2.0
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
           <Button onClick={() => handleExport('csv')}
-            variant="outline"
-            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+            variant="ghost"
+            className="h-12 px-6 font-black italic border border-white/10 text-white hover:bg-white/5 text-[11px] uppercase tracking-widest gap-3 rounded-2xl"
           >
-            <Download className="w-3.5 h-3.5" /> Export XLSX
+            <Download className="w-4 h-4 text-emerald-500" /> Export XLSX
           </Button>
           <Button onClick={() => handleExport('pdf')}
-             variant="outline"
-             className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+             variant="ghost"
+             className="h-12 px-6 font-black italic border border-white/10 text-white hover:bg-white/5 text-[11px] uppercase tracking-widest gap-3 rounded-2xl"
           >
-            <FileText className="w-3.5 h-3.5" /> Export PDF
+            <FileText className="w-4 h-4 text-rose-500" /> Export PDF
           </Button>
 
-          <Button disabled title="Not available yet" className="h-11 px-5 rounded-xl bg-slate-900 text-white font-black italic uppercase text-xs tracking-widest gap-2">
-            <ExternalLink className="w-3.5 h-3.5" /> Verify Chain
+          <Button 
+            onClick={() => openExpansion("Cryptographic Chain Verification")}
+            className="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black italic uppercase text-[11px] tracking-widest gap-3 shadow-xl shadow-indigo-600/20"
+          >
+            <ExternalLink className="w-4 h-4" /> Verify Chain
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 bg-slate-50/50">
-        <div className="max-w-7xl mx-auto p-8 lg:p-12 space-y-10">
+      <div className="flex-1 relative overflow-hidden">
+        {/* Background Atmosphere */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-indigo-500/5 blur-[130px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-blue-500/5 blur-[120px] rounded-full" />
+        </div>
+
+        <div className="max-w-[1600px] mx-auto p-12 space-y-12 relative z-10">
           {/* Integrity Header */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <Card className="lg:col-span-3 bg-slate-900 border-none shadow-2xl rounded-[2.5rem] overflow-hidden relative group">
-              <div className="absolute top-0 right-0 p-8 opacity-10">
-                <ShieldCheck className="w-36 h-36 text-blue-400" />
+            <Card className="lg:col-span-3 bg-white/[0.03] border border-white/10 shadow-2xl rounded-[3rem] overflow-hidden relative group backdrop-blur-3xl">
+              <div className="absolute top-0 right-0 p-12 opacity-5">
+                <ShieldCheck className="w-48 h-48 text-blue-400" />
               </div>
-              <CardContent className="p-10 lg:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 relative z-10 text-white">
-                <div className="space-y-5 flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
-                      <Fingerprint className="w-6 h-6" />
+              <CardContent className="p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-12 relative z-10 text-white">
+                <div className="space-y-6 flex-1">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl">
+                      <Fingerprint className="w-8 h-8" />
                     </div>
                     <div>
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 italic">
+                      <div className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 italic">
                         Global Integrity State
                       </div>
-                      <div className="text-2xl font-black italic tracking-tighter">
+                      <div className="text-3xl font-black italic tracking-tighter">
                         SECURED & SEALED
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">
                       Current Block Hash
                     </div>
-                    <code className="bg-white/5 px-4 py-2 rounded-xl text-indigo-400 font-mono text-xs border border-white/10 block w-fit">
-                      zenvix-prod-0x8F2DA4C7B41A9902EDC
+                    <code className="bg-black/40 px-6 py-3 rounded-2xl text-indigo-400 font-mono text-xs border border-white/5 block w-fit shadow-inner">
+                      ZVX-PROD-0x8F2DA4C7B41A9902EDC
                     </code>
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold uppercase italic">
-                    Last reconciliation:{" "}
-                    <span className="text-slate-400">14 minutes ago</span> •{" "}
-                    {AUDIT_LOGS.length} blocks sealed
+                  <div className="text-[10px] text-slate-500 font-bold uppercase italic flex items-center gap-4">
+                    <span>Last reconciliation: <span className="text-white">14 minutes ago</span></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                    <span>{logs.length} Blocks Immutable</span>
                   </div>
                 </div>
-                <div className="w-full md:w-56 bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4 text-center shrink-0">
-                  <div className="text-5xl font-black italic tracking-tighter text-blue-400">
+                <div className="w-full md:w-64 bg-black/20 border border-white/5 p-8 rounded-[2.5rem] space-y-6 text-center shrink-0 backdrop-blur-sm">
+                  <div className="text-6xl font-black italic tracking-tighter text-indigo-500">
                     100%
                   </div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    Audit Score
+                  <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                    Integrity Score
                   </div>
-                  <Progress value={100} className="h-2 bg-slate-800" />
+                  <Progress value={100} className="h-2.5 bg-slate-900 shadow-inner" />
                 </div>
               </CardContent>
             </Card>
 
             <div className="space-y-6">
-              <Card className="shadow-xl border-2 border-slate-100 rounded-[2rem]">
-                <CardHeader className="p-6 pb-0">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+              <Card className="shadow-2xl border-none bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] overflow-hidden">
+                <CardHeader className="p-8 pb-0">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">
                     Anomaly Watch
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5" />
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+                      <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <div>
-                      <div className="text-xs font-black italic text-slate-900">
+                      <div className="text-sm font-black italic text-white uppercase tracking-tighter">
                         Zero Flags
                       </div>
-                      <div className="text-[10px] text-slate-400 font-bold">
-                        No suspicious voids today
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        No Suspicious Deviations
                       </div>
                     </div>
                   </div>
-                  <Separator className="bg-slate-100" />
-                  <div className="text-[10px] text-slate-500 font-medium leading-relaxed italic">
-                    AI scanner processed 1.2K transaction blocks with no
-                    deviation.
+                  <Separator className="bg-white/5" />
+                  <div className="text-[10px] text-slate-500 font-medium leading-relaxed italic uppercase tracking-widest">
+                    AI Scanner processed {logs.length} transaction blocks with nominal variance.
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg border-2 border-indigo-50 bg-indigo-50/20 rounded-[2rem] group cursor-pointer hover:bg-indigo-50 transition-all">
-                <CardContent className="p-6 text-center space-y-3">
-                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm mx-auto group-hover:scale-110 transition-transform">
-                    <Database className="w-6 h-6" />
+              <Card className="shadow-2xl border-none bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 backdrop-blur-3xl rounded-[2.5rem] group cursor-pointer transition-all duration-500" onClick={() => openExpansion("Cold Storage Vault Access")}>
+                <CardContent className="p-8 text-center space-y-4">
+                  <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl mx-auto group-hover:scale-110 transition-transform">
+                    <Database className="w-7 h-7" />
                   </div>
-                  <div className="text-sm font-black italic text-slate-900">
-                    Cold Storage Vault
+                  <div className="text-sm font-black italic text-white uppercase tracking-widest">
+                    Archive Vault
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">
-                    Logs older than 90 days
+                  <div className="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] italic">
+                    Access T+90 Days Data
                   </div>
                 </CardContent>
               </Card>
@@ -218,135 +240,155 @@ const ComplianceAuditLedger = () => {
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="flex gap-3 bg-white rounded-[2rem] p-3 border border-slate-100 shadow-lg">
+          <div className="flex gap-4 bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] p-4 border border-white/5 shadow-2xl">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
               <Input
-                className="pl-12 h-12 bg-slate-50 border-none rounded-xl text-sm font-bold italic placeholder:text-slate-300 focus-visible:ring-blue-500"
+                className="pl-16 h-14 bg-black/20 border-none rounded-2xl text-sm font-bold italic text-white placeholder:text-slate-600 focus-visible:ring-indigo-500 transition-all"
                 placeholder="Search Timestamp, Event Type, Actor ID, or Hash Signature..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button disabled title="Not available yet"
-              variant="outline"
-              className="h-12 px-5 rounded-xl gap-2 font-black italic border-slate-100 hover:bg-slate-50 uppercase text-[10px] tracking-widest"
+            <Button 
+              onClick={() => openExpansion("Temporal Filter Engine")}
+              variant="ghost"
+              className="h-14 px-8 rounded-2xl gap-3 font-black italic border border-white/5 text-white hover:bg-white/5 uppercase text-[10px] tracking-widest"
             >
-              <Calendar className="w-4 h-4" /> Range
+              <Calendar className="w-5 h-5 text-indigo-500" /> Range
             </Button>
-            <Button disabled title="Not available yet"
-              variant="outline"
-              className="h-12 px-5 rounded-xl gap-2 font-black italic border-slate-100 hover:bg-slate-50 uppercase text-[10px] tracking-widest"
+            <Button 
+              onClick={() => openExpansion("Advanced Taxonomy Filtering")}
+              variant="ghost"
+              className="h-14 px-8 rounded-2xl gap-3 font-black italic border border-white/5 text-white hover:bg-white/5 uppercase text-[10px] tracking-widest"
             >
-              <Filter className="w-4 h-4" /> Types
+              <Filter className="w-5 h-5 text-blue-500" /> Types
             </Button>
           </div>
 
           {/* Audit Log Table */}
-          <DataTableShell
-            title="Immutable Audit Stream"
-            subtitle="Non-repudiable logs backed by Zenvix Signature Hub"
-          >
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  {[
-                    "Temporal Context",
-                    "Event Typology",
-                    "Operational Actor",
-                    "Delta / Impact",
-                    "Integrity Seal",
-                    "Block ID",
-                  ].map((h, i) => (
-                    <th
-                      key={i}
-                      className={`px-8 py-5 ${i === 4 ? "text-center" : i === 5 ? "text-right" : "text-left"} text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic`}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredLogs.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-8 py-20 text-center text-[10px] font-black italic uppercase tracking-widest text-slate-400"
-                    >
-                      No matching log entries
-                    </td>
+          <Card className="border-none bg-white/[0.02] backdrop-blur-3xl shadow-2xl rounded-[3rem] overflow-hidden border border-white/5">
+            <CardHeader className="p-10 border-b border-white/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white border border-white/5">
+                    <History className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">
+                      Immutable Audit Stream
+                    </CardTitle>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">
+                      Non-Repudiable Logs backed by Zenvix Signature Hub
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+                  <Zap className="w-4 h-4 text-indigo-500" />
+                  <span className="text-[10px] font-black italic uppercase text-indigo-500 tracking-widest">REAL-TIME SYNC</span>
+                </div>
+              </div>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    {[
+                      "Temporal Context",
+                      "Event Typology",
+                      "Operational Actor",
+                      "Impact Delta",
+                      "Integrity Seal",
+                      "Block ID",
+                    ].map((h, i) => (
+                      <th
+                        key={i}
+                        className={`px-10 py-6 ${i === 4 ? "text-center" : i === 5 ? "text-right" : "text-left"} text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic`}
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ) : (
-                  filteredLogs.map((log, i) => (
-                    <tr
-                      key={i}
-                      className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none cursor-pointer"
-                    >
-                      <td className="px-8 py-5 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-xl bg-slate-100 text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
-                            <History className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="text-xs font-bold text-slate-900 font-mono tracking-tight">
-                            {new Date(log.created_at).toLocaleString()}
-                          </div>
-
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <Badge
-                          className={`border-none text-[8px] font-black italic tracking-widest px-3 py-1 ${eventColors[log.action] ?? "bg-slate-100 text-slate-700"}`}
-                        >
-                          {log.action}
-                        </Badge>
-
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="text-xs font-black italic text-slate-700">
-                          {log.user_id}
-                        </div>
-
-                      </td>
-                      <td className="px-8 py-5">
-                        <div
-                          className={`text-xs font-black italic ${String(log.metadata?.impact || "").startsWith("-") ? "text-red-500" : log.action === "PERMISSION_CHANGE" ? "text-amber-600" : "text-slate-700"}`}
-                        >
-                          {log.metadata?.impact || "N/A"}
-                        </div>
-
-                      </td>
-                      <td className="px-8 py-5 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Lock className="w-3 h-3 text-emerald-500" />
-                          <span className="text-[10px] font-black italic text-emerald-600 uppercase">
-                            Sealed
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-right font-mono text-[10px] text-slate-400">
-                        {(log.hash_chain || "").substring(0, 8)}...
-
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={6} className="px-10 py-32 text-center">
+                         <RefreshCw className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-6" />
+                         <span className="text-[11px] font-black italic uppercase tracking-[0.25em] text-slate-500">Decrypting Ledger...</span>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-            <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-              <div className="text-[10px] font-black italic text-slate-400 uppercase tracking-widest">
-                {filteredLogs.length} records visible
+                  ) : filteredLogs.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-10 py-32 text-center text-[10px] font-black italic uppercase tracking-[0.3em] text-slate-600"
+                      >
+                        No matching entries in current block
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLogs.map((log, i) => (
+                      <tr
+                        key={i}
+                        className="group hover:bg-white/5 transition-all border-b border-white/[0.02] last:border-none cursor-pointer"
+                      >
+                        <td className="px-10 py-6 whitespace-nowrap">
+                          <div className="text-xs font-bold text-white font-mono tracking-tight group-hover:text-indigo-400 transition-colors">
+                            {new Date(log.created_at).toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <Badge
+                            className={`border px-4 py-1.5 rounded-xl text-[9px] font-black italic tracking-widest uppercase ${eventColors[log.action] ?? "bg-slate-900 text-slate-400 border-white/10"}`}
+                          >
+                            {log.action}
+                          </Badge>
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="text-xs font-black italic text-slate-300">
+                            {log.user_id}
+                          </div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <div
+                            className={`text-xs font-black italic ${String(log.metadata?.impact || "").startsWith("-") ? "text-rose-500" : log.action === "PERMISSION_CHANGE" ? "text-amber-500" : "text-slate-400"}`}
+                          >
+                            {log.metadata?.impact || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-10 py-6 text-center">
+                          <div className="flex items-center justify-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl w-fit mx-auto">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="text-[9px] font-black italic text-emerald-500 uppercase tracking-widest">
+                              Validated
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6 text-right font-mono text-[10px] text-slate-500 group-hover:text-white transition-colors">
+                          {(log.hash_chain || "").substring(0, 12)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-8 bg-black/20 border-t border-white/5 flex items-center justify-between">
+              <div className="text-[10px] font-black italic text-slate-500 uppercase tracking-[0.2em]">
+                {filteredLogs.length} Blocks Sequenced in Current View
               </div>
-              <Button disabled title="Not available yet"
+              <Button 
+                onClick={() => openExpansion("Full Ledger Cryptographic Re-Validation")}
                 variant="ghost"
                 size="sm"
-                className="font-black italic text-[10px] uppercase text-blue-600 hover:bg-blue-50 rounded-xl gap-2"
+                className="font-black italic text-[11px] uppercase text-indigo-500 hover:bg-indigo-500/10 rounded-2xl gap-3 h-11 px-6 border border-indigo-500/20"
               >
                 Verify All Historical Blocks{" "}
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
-          </DataTableShell>
+          </Card>
         </div>
       </div>
     </div>

@@ -127,6 +127,10 @@ export class MarketingService {
     return this.repository.getLeads(ctx);
   }
 
+  async getContacts(ctx: TenantContext) {
+    return this.repository.getContacts(ctx);
+  }
+
   async captureLead(ctx: TenantContext, dto: CaptureLeadDto, actor_id: string) {
     const lead = await this.repository.captureLead(ctx, dto, actor_id);
     await this.auditService.log({ tenant_id: ctx.tenant_id ,
@@ -303,5 +307,65 @@ export class MarketingService {
 
   async getFunnels(ctx: TenantContext) {
     return this.repository.getFunnels(ctx);
+  }
+
+  async createFunnel(ctx: TenantContext, data: any, actor_id: string) {
+    const funnel = await this.repository.createFunnel(ctx, data);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "CREATE",
+      entity_type: "FUNNEL",
+      entity_id: funnel.id,
+      metadata: { name: data.name },
+    });
+    return funnel;
+  }
+
+  async updateFunnel(ctx: TenantContext, id: string, data: any, actor_id: string) {
+    const funnel = await this.repository.updateFunnel(ctx, id, data);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "UPDATE",
+      entity_type: "FUNNEL",
+      entity_id: id,
+      metadata: { name: data.name, status: data.status },
+    });
+    return funnel;
+  }
+
+  async getCreativeAssets(ctx: TenantContext) {
+    return this.repository.getCreativeAssets(ctx);
+  }
+
+  async createCreativeAsset(ctx: TenantContext, data: any, actor_id: string) {
+    const asset = await this.repository.createCreativeAsset(ctx, data);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "CREATE",
+      entity_type: "CREATIVE_ASSET",
+      entity_id: asset.id,
+      metadata: { name: data.name, type: data.type },
+    });
+    return asset;
+  }
+
+  async updateCreativeAsset(ctx: TenantContext, id: string, data: any, actor_id: string) {
+    const asset = await this.repository.updateCreativeAsset(ctx, id, data);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "UPDATE",
+      entity_type: "CREATIVE_ASSET",
+      entity_id: id,
+      metadata: { name: data.name, type: data.type },
+    });
+    return asset;
   }
 }

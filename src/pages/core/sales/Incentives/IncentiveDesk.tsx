@@ -1,12 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { DataTableShell } from "@/core/tools/DataTableShell";
-import { useSession } from "@/core/security/session";
-import { incentivesService } from "@/core/services/sales/incentivesService";
-import type { IncentivePlan, SalesAttribution } from "@/core/types/sales/incentives";
 import { 
   Plus, 
   Settings2, 
@@ -17,8 +9,24 @@ import {
   Calendar,
   User,
   Activity,
-  ArrowRight
+  ArrowRight,
+  RefreshCw,
+  Search,
+  DollarSign,
+  Zap,
+  Target,
+  BarChart3,
+  Layers,
+  ShieldCheck,
+  ChevronRight,
+  ArrowUpRight,
+  PieChart,
+  Users
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Sheet, 
@@ -27,17 +35,18 @@ import {
   SheetTitle, 
   SheetDescription 
 } from "@/components/ui/sheet";
-import { 
-  IncentivePlan, 
-  SalesAttribution, 
-  IncentiveAuditLog 
-} from "@/core/types/sales/incentives";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSession } from "@/core/security/session";
+import { incentivesService } from "@/core/services/sales/incentivesService";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import type { IncentivePlan, SalesAttribution, IncentiveAuditLog } from "@/core/types/sales/incentives";
 
 export default function IncentiveDesk() {
   const session = useSession();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [plans, setPlans] = useState<IncentivePlan[]>([]);
   const [attributions, setAttributions] = useState<SalesAttribution[]>([]);
@@ -48,10 +57,10 @@ export default function IncentiveDesk() {
   const [isRecalcOpen, setIsRecalcOpen] = useState(false);
   const [recalcDates, setRecalcDates] = useState({ start: "", end: "" });
 
-
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isManual = false) => {
     try {
-      setLoading(true);
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
       const [p, a, stats] = await Promise.all([
         incentivesService.listPlans(session),
         incentivesService.listAttributions(session),
@@ -60,11 +69,13 @@ export default function IncentiveDesk() {
       setPlans(p);
       setAttributions(a);
       setAnalytics(stats);
-
+      if (isManual) toast.success("Incentive telemetry synchronized.");
     } catch (err) {
       console.error("Failed to fetch incentive data:", err);
+      toast.error("Telemetry failure in incentive engine.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [session]);
 
@@ -72,21 +83,13 @@ export default function IncentiveDesk() {
     refresh();
   }, [refresh]);
 
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-muted-foreground animate-pulse">Initializing Incentive Engine...</p>
-      </div>
-    );
-  }
-
   const togglePlanStatus = async (plan: IncentivePlan) => {
     try {
       await incentivesService.updateStatus(plan.id, !plan.is_active, session, session.user_id);
-      toast.success(`Plan ${!plan.is_active ? 'activated' : 'deactivated'} successfully`);
-      refresh();
+      toast.success(`Plan ${!plan.is_active ? 'ACTIVATED' : 'DEACTIVATED'} successfully.`);
+      refresh(true);
     } catch (err) {
-      toast.error("Failed to update plan status");
+      toast.error("Status update failure.");
     }
   };
 
@@ -97,20 +100,20 @@ export default function IncentiveDesk() {
       setSelectedPlanId(planId);
       setIsHistoryOpen(true);
     } catch (err) {
-      toast.error("Failed to fetch audit history");
+      toast.error("Audit log retrieval failure.");
     }
   };
 
   const handleProcessPayouts = async () => {
-    if (!confirm("Are you sure you want to process and accrue all pending incentives? This will post entries to the general ledger.")) return;
-    
     try {
       setProcessing(true);
       await incentivesService.processPayouts(session);
-      toast.success("Payouts processed and accrued to ledger");
-      refresh();
+      toast.success("Strategic Accrual Completed", {
+        description: "Pending incentives have been posted to the general ledger."
+      });
+      refresh(true);
     } catch (err) {
-      toast.error("Failed to process payouts");
+      toast.error("Payout processing failure.");
     } finally {
       setProcessing(false);
     }
@@ -118,400 +121,428 @@ export default function IncentiveDesk() {
 
   const handleRecalculate = async () => {
     if (!recalcDates.start || !recalcDates.end) {
-      toast.error("Please select a date range");
+      toast.error("Date horizon required.");
       return;
     }
-
     try {
       setProcessing(true);
       const res = await incentivesService.recalculate(
         { start_date: recalcDates.start, end_date: recalcDates.end },
         session
       );
-      toast.success(`Recalculated ${res.processed} orders successfully`);
+      toast.success(`Recalculation Success: ${res.processed} nodes updated.`);
       setIsRecalcOpen(false);
-      refresh();
+      refresh(true);
     } catch (err) {
-      toast.error("Failed to recalculate period");
+      toast.error("Recalculation failure.");
     } finally {
       setProcessing(false);
     }
   };
-
 
   const activePlans = plans.filter(p => p.is_active);
   const pendingAmount = attributions
     .filter(a => a.status === "PENDING")
     .reduce((sum, a) => sum + Number(a.incentive_amount), 0);
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-6">
+          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+            <DollarSign className="h-10 w-10 text-white" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Initializing Yield Engine...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <PageHeader
-        title="Revenue Incentive Desk"
-        subtitle="Manage dynamic commission structures, staff eligibility, and automated payout accruals."
-        secondaryActions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" className="gap-2">
-              <History className="h-4 w-4" />
-              History
+    <div className="p-8 space-y-10 animate-in fade-in duration-1000 max-w-[1600px] mx-auto pb-24">
+      {/* Premium Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Revenue Acceleration</Badge>
+            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+               <Activity className="h-4 w-4 animate-pulse" />
+               Yield Stream Live
+            </div>
+          </div>
+          <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Incentive Desk</h1>
+          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Reward excellence, and excellence becomes the standard."</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+            <Button
+              variant="secondary"
+              className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              onClick={() => refresh(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={cn("h-6 w-6", refreshing && "animate-spin")} />
             </Button>
-            <Button className="gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700">
-              <Plus className="h-4 w-4" />
-              New Plan
-            </Button>
           </div>
-        }
-      />
-
-      <div className="grid gap-4 md:grid-cols-3">
-        <WorkspacePanel className="border-l-4 border-l-indigo-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active Plans</p>
-              <h3 className="text-2xl font-bold mt-1">{activePlans.length}</h3>
-            </div>
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-              <Settings2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </div>
-        </WorkspacePanel>
-
-        <WorkspacePanel className="border-l-4 border-l-emerald-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Accrued Incentives</p>
-              <h3 className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-                ${pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-          </div>
-        </WorkspacePanel>
-
-        <WorkspacePanel className="border-l-4 border-l-amber-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Revenue Acceleration</p>
-              <h3 className="text-2xl font-bold mt-1">
-                {analytics?.roi?.toFixed(1) || "0.0"}x
-                <span className="text-xs font-normal text-muted-foreground ml-1">ROI</span>
-              </h3>
-            </div>
-            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            </div>
-          </div>
-        </WorkspacePanel>
+          <Button 
+            className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
+            onClick={() => {}}
+          >
+            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
+            NEW INCENTIVE PLAN
+          </Button>
+        </div>
       </div>
 
+      {/* Yield Metrics Grid */}
+      <div className="grid gap-8 md:grid-cols-3">
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-indigo-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <Settings2 className="h-7 w-7 text-indigo-600" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">ACTIVE PROTOCOLS</p>
+               <h4 className="text-3xl font-black">{activePlans.length}</h4>
+               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Strategically Mapped</p>
+            </div>
+         </Card>
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-emerald-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <TrendingUp className="h-7 w-7 text-emerald-600" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">ACCRUED INCENTIVES</p>
+               <h4 className="text-3xl font-black text-emerald-600">${pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Pending Handoff</p>
+            </div>
+         </Card>
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-indigo-600 text-white p-8 space-y-4 group hover:shadow-indigo-500/30 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20">
+               <Zap className="h-7 w-7 text-white" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">REVENUE ACCELERATION</p>
+               <h4 className="text-3xl font-black">{analytics?.roi?.toFixed(1) || "0.0"}x ROI</h4>
+               <p className="text-[10px] font-bold text-white/60 uppercase mt-1 italic">Yield Multiplier Active</p>
+            </div>
+         </Card>
+      </div>
+
+      {/* Analytics Section */}
       {analytics && (
-        <div className="grid gap-6 md:grid-cols-2">
-            <WorkspacePanel title="Top Performance Leaders" description="Highest staff incentive contributions this period.">
-                <div className="space-y-4 mt-2">
-                    {analytics.topEarners?.map((earner: any, i: number) => (
-                        <div key={earner.employee_id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-xs font-bold text-indigo-600">
-                                    #{i+1}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium">Employee {earner.employee_id.slice(0, 8)}</p>
-                                    <p className="text-[10px] text-muted-foreground">ID: {earner.employee_id}</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-sm font-bold text-emerald-600">${earner.amount.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    ))}
-                    {(!analytics.topEarners || analytics.topEarners.length === 0) && (
-                        <p className="text-center py-4 text-xs text-muted-foreground">No data for leaderboard yet.</p>
-                    )}
-                </div>
-            </WorkspacePanel>
-
-            <WorkspacePanel title="Efficiency Metrics" description="Platform-wide incentive utilization.">
-                <div className="space-y-6 mt-4">
-                    <div>
-                        <div className="flex justify-between text-xs mb-2">
-                            <span className="text-muted-foreground font-medium">Incentive vs Revenue</span>
-                            <span className="font-bold">{((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0).toFixed(1)}% Ratio</span>
-                        </div>
-                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-indigo-500 rounded-full" 
-                                style={{ width: `${Math.min((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0, 100)}%` }}
-                            />
-                        </div>
+        <div className="grid gap-10 md:grid-cols-2">
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+               <CardHeader className="p-10 pb-4">
+                  <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
+                     <Target className="h-6 w-6 text-indigo-600" />
+                     Performance Leaders
+                  </CardTitle>
+                  <CardDescription className="text-sm font-medium">Highest strategic incentive contributions for the active period.</CardDescription>
+               </CardHeader>
+               <CardContent className="p-10 pt-0 space-y-6">
+                  {analytics.topEarners?.map((earner: any, i: number) => (
+                    <div key={earner.employee_id} className="flex items-center justify-between p-4 rounded-3xl bg-white/80 dark:bg-slate-800/80 hover:scale-[1.02] transition-transform shadow-sm border border-white/20">
+                       <div className="flex items-center gap-5">
+                          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center font-black text-xs shadow-inner", i === 0 ? "bg-amber-500/20 text-amber-600" : "bg-slate-100 text-slate-400")}>
+                             #{i+1}
+                          </div>
+                          <div>
+                             <p className="font-black text-sm uppercase">Custodian {earner.employee_id.slice(0, 8)}</p>
+                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">ID: {earner.employee_id}</p>
+                          </div>
+                       </div>
+                       <p className="text-lg font-black text-emerald-600">${earner.amount.toFixed(2)}</p>
                     </div>
+                  ))}
+               </CardContent>
+            </Card>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-muted/30 rounded-lg border">
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Total Payouts</p>
-                            <p className="text-lg font-bold">${analytics.totalIncentive?.toLocaleString()}</p>
-                        </div>
-                        <div className="p-3 bg-muted/30 rounded-lg border">
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">Revenue Impact</p>
-                            <p className="text-lg font-bold">${analytics.totalRevenue?.toLocaleString()}</p>
-                        </div>
-                    </div>
-                </div>
-            </WorkspacePanel>
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden p-10 space-y-8">
+               <div className="space-y-2">
+                  <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                     <PieChart className="h-6 w-6 text-indigo-600" />
+                     Efficiency Matrix
+                  </h3>
+                  <p className="text-sm font-medium text-slate-500">Platform-wide incentive utilization vs. revenue yield.</p>
+               </div>
+               
+               <div className="space-y-10 pt-4">
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-end">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Incentive to Revenue Ratio</p>
+                        <p className="text-xl font-black">{((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0).toFixed(1)}%</p>
+                     </div>
+                     <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                           className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full shadow-lg" 
+                           style={{ width: `${Math.min((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0, 100)}%` }}
+                        />
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                     <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-600 opacity-60">Total Accruals</p>
+                        <h4 className="text-2xl font-black">${analytics.totalIncentive?.toLocaleString()}</h4>
+                     </div>
+                     <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 opacity-60">Revenue Impact</p>
+                        <h4 className="text-2xl font-black">${analytics.totalRevenue?.toLocaleString()}</h4>
+                     </div>
+                  </div>
+               </div>
+            </Card>
         </div>
       )}
 
-
-      <div className="grid gap-6">
+      {/* Main Configuration Desk */}
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
         <Tabs defaultValue="plans" className="w-full">
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="plans" className="gap-2">
-                <Settings2 className="h-4 w-4" />
-                Incentive Plans
-              </TabsTrigger>
-              <TabsTrigger value="attributions" className="gap-2">
-                <Activity className="h-4 w-4" />
-                Live Attributions
-              </TabsTrigger>
-            </TabsList>
+          <CardHeader className="p-10 pb-0">
+             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl shadow-inner border-none">
+                  <TabsTrigger value="plans" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Incentive Plans
+                  </TabsTrigger>
+                  <TabsTrigger value="attributions" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">
+                    <Activity className="h-4 w-4 mr-2" />
+                    Live Attributions
+                  </TabsTrigger>
+                </TabsList>
 
-            <div className="flex items-center gap-2">
-                <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="gap-2 text-indigo-600"
-                    onClick={() => setIsRecalcOpen(true)}
-                >
-                    <History className="h-4 w-4" />
-                    Correction Engine
-                </Button>
-                <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="gap-2 text-emerald-600 border-emerald-200 bg-emerald-50 hover:bg-emerald-100"
-                    onClick={handleProcessPayouts}
-                    disabled={processing || pendingAmount === 0}
-                >
-                    <CheckCircle2 className="h-4 w-4" />
-                    {processing ? "Accruing..." : "Process Accruals"}
-                </Button>
-            </div>
+                <div className="flex items-center gap-3">
+                   <Button 
+                      variant="ghost" 
+                      className="rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 gap-2"
+                      onClick={() => setIsRecalcOpen(true)}
+                   >
+                      <History className="h-4 w-4" /> CORRECTION ENGINE
+                   </Button>
+                   <Button 
+                      className="rounded-2xl h-12 px-8 bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 gap-2"
+                      onClick={handleProcessPayouts}
+                      disabled={processing || pendingAmount === 0}
+                   >
+                      <CheckCircle2 className="h-4 w-4" /> {processing ? "EXECUTING ACCRUAL..." : "PROCESS ACCRUALS"}
+                   </Button>
+                </div>
+             </div>
+          </CardHeader>
 
-          </div>
-
-          <TabsContent value="plans">
-            <WorkspacePanel 
-              title="Configuration Desk" 
-              description="Active and scheduled revenue acceleration programs."
-            >
-              <DataTableShell total={plans.length}>
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-                    <tr>
-                      <th className="p-3 text-left">Plan Name</th>
-                      <th className="p-3 text-left">Status</th>
-                      <th className="p-3 text-left">Period</th>
-                      <th className="p-3 text-right">Actions</th>
+          <TabsContent value="plans" className="mt-0 outline-none">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                  <tr>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Plan Designation</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Node Status</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tactical Horizon</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Action Matrix</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
+                  {plans.map((plan) => (
+                    <tr key={plan.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-5">
+                           <div className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center font-black text-sm shadow-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors border border-slate-100 dark:border-slate-800">
+                              <Layers className="h-6 w-6" />
+                           </div>
+                           <div>
+                              <p className="font-black text-base">{plan.name}</p>
+                              <p className="text-[10px] font-medium text-slate-400 italic max-w-md truncate">{plan.description || "Incentive protocol with no supplementary metadata."}</p>
+                           </div>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-4">
+                          <Switch 
+                            checked={plan.is_active} 
+                            onCheckedChange={() => togglePlanStatus(plan)}
+                            className="data-[state=checked]:bg-indigo-600"
+                          />
+                          <Badge variant={plan.is_active ? "default" : "secondary"} className={cn("rounded-full font-black text-[8px] uppercase tracking-widest", plan.is_active ? "bg-indigo-600" : "bg-slate-100 dark:bg-slate-800 text-slate-400")}>
+                            {plan.is_active ? "ACTIVE" : "INACTIVE"}
+                          </Badge>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                           <Calendar className="h-3 w-3 text-indigo-600" />
+                           {new Date(plan.start_date).toLocaleDateString()} — {plan.end_date ? new Date(plan.end_date).toLocaleDateString() : "ONGOING"}
+                        </div>
+                      </td>
+                      <td className="px-10 py-8 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" className="rounded-xl h-10 font-black text-[9px] uppercase tracking-widest gap-2" onClick={() => showHistory(plan.id)}>
+                            <History className="h-3.5 w-3.5" /> LOGS
+                          </Button>
+                          <Button variant="ghost" className="rounded-xl h-10 font-black text-[9px] uppercase tracking-widest">EDIT</Button>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {plans.map((plan) => (
-                      <tr key={plan.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="p-3">
-                          <div className="font-medium">{plan.name}</div>
-                          <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                            {plan.description || "No description"}
-                          </div>
-                        </td>
-                        <td className="p-3">
-                          <div className="flex items-center gap-3">
-                            <Switch 
-                              checked={plan.is_active} 
-                              onCheckedChange={() => togglePlanStatus(plan)}
-                            />
-                            <Badge variant={plan.is_active ? "default" : "secondary"}>
-                              {plan.is_active ? "Active" : "Inactive"}
-                            </Badge>
-                          </div>
-                        </td>
-                        <td className="p-3 text-xs text-muted-foreground">
-                          {new Date(plan.start_date).toLocaleDateString()} - 
-                          {plan.end_date ? new Date(plan.end_date).toLocaleDateString() : "Ongoing"}
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => showHistory(plan.id)}>
-                              <History className="h-4 w-4 mr-1" />
-                              Logs
-                            </Button>
-                            <Button variant="ghost" size="sm">Edit</Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </DataTableShell>
-            </WorkspacePanel>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </TabsContent>
 
-          <TabsContent value="attributions">
-            <WorkspacePanel 
-              title="Transaction Stream" 
-              description="Live stream of attributed sales incentives across all channels."
-            >
-              <DataTableShell total={attributions.length}>
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-                    <tr>
-                      <th className="p-3 text-left">Staff</th>
-                      <th className="p-3 text-left">Order</th>
-                      <th className="p-3 text-right">Amount</th>
-                      <th className="p-3 text-right">Status</th>
+          <TabsContent value="attributions" className="mt-0 outline-none">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                  <tr>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Staff Node</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Entity Link</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Yield Amount</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
+                  {attributions.map((attr) => (
+                    <tr key={attr.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                      <td className="px-10 py-8">
+                        <div className="flex items-center gap-4">
+                           <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                              {attr.employee_id.charAt(0)}
+                           </div>
+                           <div>
+                              <p className="font-black text-sm uppercase">Custodian {attr.employee_id.slice(0, 8)}</p>
+                              {attr.share_percent < 100 && (
+                                <div className="flex items-center gap-1.5 text-[9px] text-indigo-600 font-black uppercase mt-0.5">
+                                  <Split className="h-3 w-3" /> {attr.share_percent}% Split
+                                </div>
+                              )}
+                           </div>
+                        </div>
+                      </td>
+                      <td className="px-10 py-8">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-tighter italic">TXID: {attr.entity_id.slice(-12)}</p>
+                      </td>
+                      <td className="px-10 py-8 text-right font-black text-base text-emerald-600">
+                        ${Number(attr.incentive_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-10 py-8 text-right">
+                        <Badge variant="outline" className={cn(
+                          "rounded-full font-black text-[8px] px-3 py-1 border-none shadow-sm uppercase tracking-widest",
+                          attr.status === "PENDING" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
+                        )}>
+                          {attr.status}
+                        </Badge>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {attributions.map((attr) => (
-                      <tr key={attr.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="p-3">
-                          <div className="font-medium text-xs">Employee ID: {attr.employee_id}</div>
-                          {attr.share_percent < 100 && (
-                            <div className="flex items-center gap-1 text-[10px] text-indigo-500 font-semibold">
-                              <Split className="h-3 w-3" />
-                              {attr.share_percent}% Split
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-3 text-xs text-muted-foreground font-mono">
-                          {attr.entity_id.slice(0, 8)}...
-                        </td>
-                        <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
-                          ${Number(attr.incentive_amount).toFixed(2)}
-                        </td>
-                        <td className="p-3 text-right">
-                          <Badge variant="outline" className="text-[10px] uppercase">
-                            {attr.status}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </DataTableShell>
-            </WorkspacePanel>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </Card>
 
+      {/* Slide-out Sheets */}
       <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-        <SheetContent side="right" className="sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <History className="h-5 w-5 text-indigo-500" />
-              Audit History
-            </SheetTitle>
-            <SheetDescription>
-              Technical change logs and lifecycle events for this incentive plan.
-            </SheetDescription>
-          </SheetHeader>
+        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-slate-950 p-0 shadow-2xl">
+          <div className="h-2 bg-indigo-600" />
+          <div className="p-10 space-y-8">
+             <SheetHeader>
+               <SheetTitle className="text-3xl font-black tracking-tight flex items-center gap-3">
+                 <History className="h-7 w-7 text-indigo-600" />
+                 Audit History
+               </SheetTitle>
+               <SheetDescription className="font-medium">Technical change logs and lifecycle events for the active protocol.</SheetDescription>
+             </SheetHeader>
 
-          <div className="mt-6 space-y-4">
-            {auditLogs.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                No history recorded yet.
-              </div>
-            ) : (
-              auditLogs.map((log) => (
-                <div key={log.id} className="relative pl-6 pb-6 border-l-2 border-muted last:pb-0 last:border-l-0">
-                  <div className="absolute -left-[9px] top-0 p-1 bg-background border-2 border-indigo-500 rounded-full">
-                    <Activity className="h-3 w-3 text-indigo-500" />
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline" className="text-[10px] bg-background">
-                        {log.action}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(log.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <User className="h-3 w-3" />
-                      Actor: {log.actor_id}
-                    </div>
-                    {log.changes?.before?.is_active !== log.changes?.after?.is_active && (
-                      <div className="flex items-center gap-2 mt-1 text-xs font-medium">
-                        <Badge variant={log.changes.before?.is_active ? "default" : "secondary"}>
-                          {log.changes.before?.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                        <Badge variant={log.changes.after?.is_active ? "default" : "secondary"}>
-                          {log.changes.after?.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
+             <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+                <div className="space-y-6">
+                   {auditLogs.length === 0 ? (
+                     <div className="text-center py-20 grayscale opacity-30 space-y-4">
+                        <ShieldCheck className="h-12 w-12 mx-auto" />
+                        <p className="text-[10px] font-black uppercase tracking-widest">No Protocol Mutations</p>
+                     </div>
+                   ) : (
+                     auditLogs.map((log) => (
+                       <div key={log.id} className="relative pl-8 pb-8 border-l-2 border-slate-100 dark:border-slate-800 last:pb-0">
+                         <div className="absolute -left-[9px] top-0 h-4 w-4 bg-white dark:bg-slate-950 border-4 border-indigo-600 rounded-full shadow-lg shadow-indigo-500/30" />
+                         <Card className="rounded-[1.5rem] border-none bg-slate-50 dark:bg-slate-900 p-5 space-y-3">
+                            <div className="flex items-center justify-between">
+                               <Badge className="rounded-full bg-indigo-600 text-white font-black text-[8px] uppercase tracking-widest">{log.action}</Badge>
+                               <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                                 <Calendar className="h-3 w-3" /> {new Date(log.timestamp).toLocaleString()}
+                               </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                               <User className="h-3.5 w-3.5" /> Custodian: {log.actor_id.slice(0, 8)}
+                            </div>
+                            {log.changes?.before?.is_active !== log.changes?.after?.is_active && (
+                              <div className="flex items-center gap-3 mt-1">
+                                <Badge variant={log.changes.before?.is_active ? "default" : "secondary"} className="text-[7px] font-black uppercase tracking-widest">{log.changes.before?.is_active ? "ACTIVE" : "INACTIVE"}</Badge>
+                                <ArrowRight className="h-3 w-3 text-slate-400" />
+                                <Badge variant={log.changes.after?.is_active ? "default" : "secondary"} className="text-[7px] font-black uppercase tracking-widest">{log.changes.after?.is_active ? "ACTIVE" : "INACTIVE"}</Badge>
+                              </div>
+                            )}
+                         </Card>
+                       </div>
+                     ))
+                   )}
                 </div>
-              ))
-            )}
+             </ScrollArea>
           </div>
         </SheetContent>
       </Sheet>
 
       <Sheet open={isRecalcOpen} onOpenChange={setIsRecalcOpen}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2 text-indigo-600">
-              <History className="h-5 w-5" />
-              Correction Engine
-            </SheetTitle>
-            <SheetDescription>
-              Retrospectively recalculate incentives for a specific period. This will re-evaluate all orders and update pending attributions.
-            </SheetDescription>
-          </SheetHeader>
+        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-slate-950 p-0 shadow-2xl">
+          <div className="h-2 bg-orange-500" />
+          <div className="p-10 space-y-10">
+             <SheetHeader>
+               <SheetTitle className="text-3xl font-black tracking-tight flex items-center gap-3 text-orange-600">
+                 <History className="h-7 w-7" />
+                 Correction Engine
+               </SheetTitle>
+               <SheetDescription className="font-medium leading-relaxed italic">"Precision is the bedrock of strategic trust." Retrospectively re-evaluate deal attributions.</SheetDescription>
+             </SheetHeader>
 
-          <div className="mt-8 space-y-6">
-            <div className="space-y-4">
+             <div className="space-y-6">
                 <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Start Date</label>
-                    <input 
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical Start Date</label>
+                    <Input 
                         type="date" 
-                        className="w-full p-2 rounded-md border bg-background"
+                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold"
                         value={recalcDates.start}
                         onChange={(e) => setRecalcDates(prev => ({ ...prev, start: e.target.value }))}
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">End Date</label>
-                    <input 
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical End Date</label>
+                    <Input 
                         type="date" 
-                        className="w-full p-2 rounded-md border bg-background"
+                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold"
                         value={recalcDates.end}
                         onChange={(e) => setRecalcDates(prev => ({ ...prev, end: e.target.value }))}
                     />
                 </div>
-            </div>
+                <div className="p-6 bg-orange-500/5 border border-orange-500/10 rounded-3xl space-y-3">
+                   <p className="text-[10px] font-black uppercase text-orange-600 flex items-center gap-2">
+                      <Zap className="h-3 w-3" /> Idempotent Guard Active
+                   </p>
+                   <p className="text-xs font-medium text-orange-600/70 leading-relaxed italic">
+                      This operation will re-evaluate all orders but will NOT affect attributions already processed into payouts or ledger entries.
+                   </p>
+                </div>
+             </div>
 
-            <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-lg">
-                <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                    <strong>Note:</strong> This operation is idempotent for pending attributions. It will NOT affect attributions that have already been processed into payouts or ledger entries.
-                </p>
-            </div>
-
-            <Button 
-                className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700"
+             <Button 
+                className="w-full h-16 rounded-[1.5rem] bg-orange-500 hover:bg-orange-600 font-black text-sm shadow-2xl shadow-orange-500/20"
                 onClick={handleRecalculate}
                 disabled={processing || !recalcDates.start || !recalcDates.end}
-            >
-                {processing ? "Recalculating..." : "Execute Recalculation"}
-            </Button>
+             >
+                {processing ? "SYNCHRONIZING..." : "EXECUTE RECALCULATION"}
+             </Button>
           </div>
         </SheetContent>
       </Sheet>
     </div>
-
   );
 }

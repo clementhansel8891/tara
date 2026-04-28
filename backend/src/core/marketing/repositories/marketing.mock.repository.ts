@@ -812,6 +812,14 @@ export class MarketingMockRepository extends IMarketingRepository {
     return created;
   }
 
+  async updateFunnel(ctx: TenantContext, id: string, data: Partial<MarketingFunnel>): Promise<MarketingFunnel> {
+    const store = this.getStore(ctx.tenant_id);
+    const idx = store.funnels.findIndex(f => f.id === id);
+    if (idx === -1) throw new NotFoundException("Funnel not found");
+    store.funnels[idx] = { ...store.funnels[idx], ...data, updated_at: this.now() };
+    return store.funnels[idx];
+  }
+
   async getAppointments(ctx: TenantContext): Promise<MarketingAppointment[]> {
     return this.getStore(ctx.tenant_id).appointments;
   }
@@ -899,6 +907,14 @@ export class MarketingMockRepository extends IMarketingRepository {
     };
     store.assets.unshift(created);
     return created;
+  }
+
+  async updateCreativeAsset(ctx: TenantContext, id: string, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset> {
+    const store = this.getStore(ctx.tenant_id);
+    const idx = store.assets.findIndex(a => a.id === id);
+    if (idx === -1) throw new NotFoundException("Creative asset not found");
+    store.assets[idx] = { ...store.assets[idx], ...data, updated_at: this.now() };
+    return store.assets[idx];
   }
 
   async calculateAdvancedAttribution(ctx: TenantContext, model: "FIRST_CLICK" | "LINEAR" | "LAST_CLICK"): Promise<any> {

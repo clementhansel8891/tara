@@ -26,6 +26,7 @@ import { CommandCenterSidebar } from "./components/command/CommandCenterSidebar"
 import { AIInsightEngine } from "./components/command/AIInsightEngine";
 import { ResourceHeatmap } from "./components/command/ResourceHeatmap";
 import { GlobalActivityFeed } from "./components/command/GlobalActivityFeed";
+import { FleetRevenueMatrix } from "./components/command/FleetRevenueMatrix";
 import { RetailCustomerActivity } from "./RetailCustomerActivity";
 import { EcommerceAnalytics } from "./EcommerceAnalytics";
 
@@ -181,19 +182,11 @@ export default function RetailManagement() {
               </CardHeader>
               <CardContent className="p-12">
                 {activeTab === 'fleet' && (
-                  <div className="h-[500px] bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-6 group-hover:bg-slate-50 transition-colors">
-                    <div className="p-8 rounded-[2rem] bg-white border shadow-sm group-hover:scale-110 transition-transform duration-700">
-                      <History className="w-12 h-12 text-blue-600 animate-pulse" />
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
-                        Visualizing Data Stream
-                      </p>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                        [Awaiting high-fidelity telemetry sync...]
-                      </p>
-                    </div>
-                  </div>
+                  <FleetRevenueMatrix 
+                    orders={orders} 
+                    stores={stores} 
+                    channels={channels} 
+                  />
                 )}
                 {activeTab === 'customers' && <RetailCustomerActivity />}
                 {activeTab === 'analytics' && <EcommerceAnalytics />}

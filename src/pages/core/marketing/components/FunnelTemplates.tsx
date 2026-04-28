@@ -7,84 +7,129 @@ import {
   Flame, 
   Users, 
   ShoppingCart,
-  ChevronRight
+  ChevronRight,
+  Rocket,
+  ShieldCheck,
+  Globe,
+  PieChart,
+  BarChart4,
+  Activity,
+  Layers,
+  Box
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const TEMPLATES = [
   {
     id: "lead-magnet",
     name: "Classic Lead Magnet",
-    description: "Free report or guide in exchange for contact info.",
+    description: "Authorize free report or guide in exchange for contact info.",
     steps: ["Landing Page", "Thank You Page"],
     icon: Users,
     color: "text-blue-500",
-    difficulty: "Easy"
+    bg: "bg-blue-500/10",
+    difficulty: "STRATEGIC",
+    intensity: 45
   },
   {
     id: "vsl",
-    name: "Video Sales Letter (VSL)",
-    description: "High-conversion sales path driven by video content.",
+    name: "Video Sales Letter",
+    description: "High-conversion sales path driven by tactical video content.",
     steps: ["VSL Page", "Checkout", "Upsell", "Thank You"],
     icon: Flame,
     color: "text-orange-500",
-    difficulty: "Advanced"
+    bg: "bg-orange-500/10",
+    difficulty: "TACTICAL",
+    intensity: 72
   },
   {
     id: "webinar",
     name: "Automated Webinar",
-    description: "Multi-touch registration and replay funnel.",
-    steps: ["Reg Page", "Waiting Room", "Webinar Room", "Sales Page", "Thank You"],
+    description: "Multi-touch registration and replay funnel orchestration.",
+    steps: ["Reg Page", "Waiting Room", "Webinar", "Sales Page", "Success"],
     icon: Zap,
     color: "text-purple-500",
-    difficulty: "Expert"
+    bg: "bg-purple-500/10",
+    difficulty: "ELITE",
+    intensity: 89
   },
   {
     id: "ecommerce",
-    name: "E-commerce Flash Sale",
-    description: "Optimized for quick physical product sales.",
-    steps: ["Product Page", "Checkout", "Post-Purchase Upsell", "Receipt"],
+    name: "E-commerce Flash",
+    description: "Optimized for high-velocity physical product conversion.",
+    steps: ["Product", "Checkout", "Upsell", "Receipt"],
     icon: ShoppingCart,
     color: "text-green-500",
-    difficulty: "Medium"
+    bg: "bg-green-500/10",
+    difficulty: "CORE",
+    intensity: 64
   }
 ];
 
 export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) => void }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
       {TEMPLATES.map((template) => (
         <Card 
           key={template.id} 
-          className="group hover:border-indigo-500/50 hover:shadow-md transition-all cursor-pointer bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-hidden"
+          className="group relative overflow-hidden rounded-[2.5rem] border-none bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 cursor-pointer"
           onClick={() => onSelect(template.id)}
         >
-          <CardHeader className="flex flex-row items-center gap-4 pb-2">
-            <div className={`h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-              <template.icon className={`h-5 w-5 ${template.color}`} />
+          {/* Status Glow */}
+          <div className={cn(
+            "absolute top-0 right-0 h-32 w-32 rounded-full blur-[60px] -mr-16 -mt-16 opacity-0 group-hover:opacity-40 transition-opacity duration-1000",
+            template.bg.replace('/10', '')
+          )} />
+          
+          <CardHeader className="p-8 pb-4 flex flex-row items-start gap-6 relative z-10">
+            <div className={cn(
+              "h-16 w-16 rounded-2xl flex items-center justify-center shrink-0 shadow-2xl transition-transform group-hover:scale-110 duration-700",
+              template.bg,
+              template.color
+            )}>
+              <template.icon className="h-8 w-8" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-bold">{template.name}</CardTitle>
-                <Badge variant="outline" className="text-[9px] py-0">{template.difficulty}</Badge>
+                <CardTitle className="text-xl font-black uppercase tracking-tighter italic leading-none">{template.name}</CardTitle>
+                <Badge className="bg-indigo-600/10 text-indigo-600 border-none font-black text-[9px] px-3 py-1 rounded-full uppercase tracking-widest leading-none h-6">
+                   {template.difficulty}
+                </Badge>
               </div>
-              <CardDescription className="text-[11px] leading-tight mt-1">{template.description}</CardDescription>
+              <CardDescription className="text-xs font-medium italic italic leading-relaxed opacity-60">"{template.description}"</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="pt-2">
-             <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium overflow-hidden whitespace-nowrap">
-                {template.steps.map((step, i) => (
-                   <React.Fragment key={step}>
-                      <span>{step}</span>
-                      {i < template.steps.length - 1 && <ChevronRight className="h-3 w-3 shrink-0" />}
-                   </React.Fragment>
-                ))}
+          
+          <CardContent className="p-8 pt-4 space-y-6 relative z-10">
+             <div className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Pathway Logic</p>
+                <div className="flex items-center gap-3 overflow-hidden">
+                   {template.steps.map((step, i) => (
+                      <React.Fragment key={step}>
+                         <div className="bg-white/60 dark:bg-slate-800/60 px-4 py-2 rounded-xl border border-white/20 shadow-sm text-[10px] font-black uppercase tracking-tight text-slate-900 dark:text-white italic">
+                            {step}
+                         </div>
+                         {i < template.steps.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-indigo-500 opacity-40" />}
+                      </React.Fragment>
+                   ))}
+                </div>
              </div>
-             <Button variant="ghost" size="sm" className="w-full mt-4 h-8 text-xs group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 transition-colors">
-                Use Template
-             </Button>
+             
+             <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                   <Activity className="h-4 w-4 text-indigo-500 animate-pulse" />
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Simulation IQ: {template.intensity}%</span>
+                </div>
+                <Button 
+                   variant="ghost" 
+                   className="h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 group-hover:scale-105 active:scale-95 transition-all"
+                >
+                   DEPLOY TOPOLOGY
+                </Button>
+             </div>
           </CardContent>
         </Card>
       ))}

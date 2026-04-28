@@ -17,7 +17,17 @@ import {
   Target,
   Zap,
   Globe,
-  ArrowRight
+  ArrowRight,
+  Activity,
+  RefreshCw,
+  PieChart,
+  Target as TargetIcon,
+  ArrowUpRight,
+  Split,
+  Box,
+  CheckCircle2,
+  Clock,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +54,9 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
-import type { MarketingCampaign } from "@/core/types/marketing/marketing";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import type { MarketingCampaign } from "@/core/types/marketing/marketing";
 
 const OBJECTIVES: MarketingCampaign["objective"][] = [
   "LEAD_GENERATION",
@@ -67,7 +78,11 @@ export default function CampaignDesk() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
-  
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
+  const [selectedCampaign, setSelectedCampaign] = useState<MarketingCampaign | null>(null);
+
   // Form State
   const [name, setName] = useState("");
   const [objective, setObjective] = useState<MarketingCampaign["objective"]>("LEAD_GENERATION");
@@ -75,21 +90,22 @@ export default function CampaignDesk() {
   const [startDate, setStartDate] = useState("2026-06-01");
   const [endDate, setEndDate] = useState("2026-06-30");
   const [audience, setAudience] = useState("");
-  
-  const [selectedCampaign, setSelectedCampaign] = useState<MarketingCampaign | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isManual = false) => {
     try {
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
       const c = await marketingService.listCampaigns(session.tenant_id, session);
       setCampaigns(c);
+      if (isManual) toast.success("Campaign telemetry synchronized.");
     } catch (err) {
       console.error("Failed to fetch campaigns:", err);
+      toast.error("Telemetry failure in campaign suite.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [session.tenant_id]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
     refresh();
@@ -108,8 +124,12 @@ export default function CampaignDesk() {
   );
 
   const handleCreateCampaign = async () => {
-    if (!name) return;
+    if (!name) {
+      toast.error("Campaign designation required.");
+      return;
+    }
     try {
+      setRefreshing(true);
       await marketingService.createCampaign(session.tenant_id, session, {
         name,
         objective,
@@ -122,475 +142,577 @@ export default function CampaignDesk() {
       setIsWizardOpen(false);
       setWizardStep(1);
       setName("");
-      refresh();
+      toast.success("Strategic Campaign Injected", {
+        description: `"${name}" has been added to the execution cluster.`
+      });
+      refresh(true);
     } catch (err) {
-      console.error("Failed to create campaign:", err);
+      toast.error("Campaign injection protocol failure.");
+      setRefreshing(false);
     }
   };
 
-  return (
-    <div className="flex h-full flex-col gap-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Campaign Orchestrator</h1>
-          <p className="text-muted-foreground">Strategic governance and channel performance hub.</p>
-        </div>
-        <div className="flex gap-2">
-           <div className="relative mr-4">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Search campaigns..." 
-              className="pl-9 min-w-[250px]"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+  const handleUpdateStatus = async (id: string, status: MarketingCampaign["status"]) => {
+    try {
+      await marketingService.updateCampaignStatus(session.tenant_id, session, id, status);
+      toast.success(`Protocol ${status} successful.`);
+      refresh(true);
+      setSelectedCampaign(null);
+    } catch (err) {
+      toast.error("Status update failure.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-6">
+          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+            <Megaphone className="h-10 w-10 text-white" />
           </div>
-          <Button onClick={() => setIsWizardOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Campaign
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Orchestrating Strategic Nodes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 space-y-10 animate-in fade-in duration-1000 max-w-[1600px] mx-auto pb-24">
+      {/* Premium Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Growth Orchestration</Badge>
+            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+               <Activity className="h-4 w-4 animate-pulse" />
+               Campaign Cluster Active
+            </div>
+          </div>
+          <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Campaign Desk</h1>
+          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Strategic dominance is won through the coordination of elite channel execution."</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                className="pl-11 h-14 w-[300px] rounded-[1.5rem] bg-transparent border-none focus-visible:ring-0 text-base font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search cluster..."
+              />
+            </div>
+            <Button
+              variant="secondary"
+              className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              onClick={() => refresh(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={cn("h-6 w-6", refreshing && "animate-spin")} />
+            </Button>
+          </div>
+          <Button 
+            className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
+            onClick={() => setIsWizardOpen(true)}
+          >
+            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
+            NEW STRATEGIC CAMPAIGN
           </Button>
         </div>
       </div>
 
-      {/* Quick Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-primary/5 border-primary/10">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Megaphone className="h-5 w-5 text-primary" />
+      {/* Strategic Metrics Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-indigo-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <Activity className="h-7 w-7 text-indigo-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Active</p>
-              <p className="text-2xl font-bold">{campaigns.filter(c => c.status === 'ACTIVE').length}</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">ACTIVE PROTOCOLS</p>
+               <h4 className="text-3xl font-black">{campaigns.filter(c => c.status === 'ACTIVE').length}</h4>
+               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Cluster Execution Live</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Avg ROI</p>
-              <p className="text-2xl font-bold">4.2x</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-blue-500" />
+         </Card>
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-emerald-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <TrendingUp className="h-7 w-7 text-emerald-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Budget Utilization</p>
-              <p className="text-2xl font-bold">68%</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">AVERAGE YIELD</p>
+               <h4 className="text-3xl font-black text-emerald-600">4.2x ROI</h4>
+               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Blended ROI Efficiency</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <Users className="h-5 w-5 text-orange-500" />
+         </Card>
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-amber-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <DollarSign className="h-7 w-7 text-amber-600" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Lead Velocity</p>
-              <p className="text-2xl font-bold">+12%</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">BUDGET BURN</p>
+               <h4 className="text-3xl font-black text-amber-600">68%</h4>
+               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Utilization Metric</p>
             </div>
-          </CardContent>
-        </Card>
+         </Card>
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-indigo-600 text-white p-8 space-y-4 group hover:shadow-indigo-500/30 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20">
+               <Zap className="h-7 w-7 text-white" />
+            </div>
+            <div>
+               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">LEAD VELOCITY</p>
+               <h4 className="text-3xl font-black">+12.4%</h4>
+               <p className="text-[10px] font-bold text-white/60 uppercase mt-1 italic">Growth Delta (Weekly)</p>
+            </div>
+         </Card>
       </div>
 
-      {/* Main Registry */}
-      <Tabs defaultValue="all" className="w-full">
-        <div className="flex items-center justify-between mb-4">
-          <TabsList>
-            <TabsTrigger value="all">All Campaigns</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="draft">Drafts</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
-          <div className="flex bg-muted p-1 rounded-lg">
-             <Button 
-               variant={view === "grid" ? "secondary" : "ghost"} 
-               size="icon" 
-               className="h-8 w-8"
-               onClick={() => setView("grid")}
-             >
-               <LayoutGrid className="h-4 w-4" />
-             </Button>
-             <Button 
-               variant={view === "list" ? "secondary" : "ghost"} 
-               size="icon" 
-               className="h-8 w-8"
-               onClick={() => setView("list")}
-             >
-               <ListIcon className="h-4 w-4" />
-             </Button>
-          </div>
-        </div>
+      {/* Main Campaign Registry */}
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+        <Tabs defaultValue="all" className="w-full">
+          <CardHeader className="p-10 pb-0">
+             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl shadow-inner border-none">
+                  <TabsTrigger value="all" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">Global Cluster</TabsTrigger>
+                  <TabsTrigger value="active" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">Execution Live</TabsTrigger>
+                  <TabsTrigger value="draft" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">Strategic Drafts</TabsTrigger>
+                </TabsList>
 
-        <TabsContent value="all" className="mt-0">
-          {view === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((campaign) => (
-                <Card key={campaign.id} className="group hover:shadow-md transition-all border-2 hover:border-primary/20">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <Badge variant="outline" className="mb-2 text-[10px] uppercase font-bold">
-                        {campaign.objective.replace('_', ' ')}
-                      </Badge>
-                      <Badge className={cn(
-                        "text-[10px] font-bold",
-                        campaign.status === 'ACTIVE' ? "bg-green-500/10 text-green-500" : "bg-muted text-muted-foreground"
-                      )}>
-                        {campaign.status}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">{campaign.name}</CardTitle>
-                    <CardDescription className="line-clamp-1">{campaign.audience}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Budget</span>
-                      <span className="font-bold">{campaign.budget.toLocaleString()} {campaign.currency}</span>
-                    </div>
-                    <div className="space-y-1">
-                       <div className="flex justify-between text-[10px] uppercase font-bold text-muted-foreground">
-                          <span>Spend</span>
-                          <span>72%</span>
-                       </div>
-                       <Progress value={72} className="h-1.5" />
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {campaign.channelMix.slice(0, 3).map(ch => (
-                        <Badge key={ch} variant="secondary" className="text-[9px] py-0">{ch}</Badge>
-                      ))}
-                      {campaign.channelMix.length > 3 && (
-                        <Badge variant="secondary" className="text-[9px] py-0">+{campaign.channelMix.length - 3}</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center justify-between pt-4 border-t">
-                       <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
-                              {campaign.ownerName.split(' ').map(n => n[0]).join('')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs text-muted-foreground">{campaign.ownerName}</span>
-                       </div>
-                       <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setSelectedCampaign(campaign)}>
-                         Details <ChevronRight className="ml-1 h-3 w-3" />
-                       </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                <div className="flex items-center gap-3 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl shadow-inner">
+                   <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn("h-10 w-10 rounded-xl transition-all", view === "grid" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400")}
+                      onClick={() => setView("grid")}
+                   >
+                      <LayoutGrid className="h-5 w-5" />
+                   </Button>
+                   <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={cn("h-10 w-10 rounded-xl transition-all", view === "list" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400")}
+                      onClick={() => setView("list")}
+                   >
+                      <ListIcon className="h-5 w-5" />
+                   </Button>
+                </div>
+             </div>
+          </CardHeader>
+
+          <TabsContent value="all" className="mt-0 outline-none">
+            {view === "grid" ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-10 pt-0">
+                {filtered.map((campaign) => (
+                  <Card key={campaign.id} className="group rounded-[2.5rem] border-none bg-white dark:bg-slate-900 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden cursor-default relative">
+                    <div className={cn("absolute top-0 right-0 h-24 w-24 rounded-full blur-3xl -mr-12 -mt-12 transition-all duration-700 opacity-20", campaign.status === 'ACTIVE' ? "bg-emerald-500" : "bg-slate-500")} />
+                    <CardHeader className="p-8 pb-4">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-slate-200 dark:border-slate-800 text-slate-400">
+                          {campaign.objective.replace('_', ' ')}
+                        </Badge>
+                        <Badge className={cn(
+                          "rounded-full font-black text-[8px] px-3 py-0.5 border-none shadow-sm uppercase tracking-widest",
+                          campaign.status === 'ACTIVE' ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                        )}>
+                          {campaign.status}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-xl font-black uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{campaign.name}</CardTitle>
+                      <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter line-clamp-1 italic italic">"{campaign.audience}"</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-8 pt-4 space-y-6">
+                      <div className="flex justify-between items-end">
+                         <div className="space-y-1">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Yield Allocation</p>
+                            <p className="text-xl font-black text-indigo-600">${campaign.budget.toLocaleString()} <span className="text-[10px] uppercase">{campaign.currency}</span></p>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Burn Rate</p>
+                            <p className="text-base font-black">72%</p>
+                         </div>
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                         <div className="h-full bg-indigo-600 rounded-full shadow-lg" style={{ width: '72%' }} />
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {campaign.channelMix.map(ch => (
+                          <Badge key={ch} variant="secondary" className="rounded-full text-[8px] font-black px-2 py-0 h-4 border-none bg-slate-100 dark:bg-slate-800 text-slate-500">{ch}</Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800">
+                         <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8 rounded-xl ring-2 ring-white dark:ring-slate-900">
+                              <AvatarFallback className="text-[10px] font-black bg-indigo-500 text-white">
+                                {campaign.ownerName.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <p className="text-[10px] font-black uppercase tracking-tight text-slate-400">Custodian {campaign.ownerName.split(' ')[0]}</p>
+                         </div>
+                         <Button 
+                            variant="ghost" 
+                            className="rounded-xl h-10 px-4 font-black text-[10px] uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 gap-2"
+                            onClick={() => setSelectedCampaign(campaign)}
+                         >
+                           DETAILS <ChevronRight className="h-3.5 w-3.5" />
+                         </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="px-10 pb-10 overflow-x-auto pt-0">
+                <table className="w-full">
+                  <thead className="bg-slate-50/50 dark:bg-slate-800/50">
                     <tr>
-                      <th className="p-4 text-left font-bold">Campaign</th>
-                      <th className="p-4 text-left font-bold">Objective</th>
-                      <th className="p-4 text-left font-bold">Budget</th>
-                      <th className="p-4 text-left font-bold">Performance</th>
-                      <th className="p-4 text-left font-bold">Status</th>
-                      <th className="p-4 text-right font-bold">Actions</th>
+                      <th className="px-6 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Strategic Node</th>
+                      <th className="px-6 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Objective</th>
+                      <th className="px-6 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Budget Yield</th>
+                      <th className="px-6 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Efficiency</th>
+                      <th className="px-6 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                     {filtered.map((campaign) => (
-                      <tr key={campaign.id} className="border-t hover:bg-muted/30 transition-colors">
-                        <td className="p-4">
-                          <div className="font-semibold">{campaign.name}</div>
-                          <div className="text-xs text-muted-foreground">{campaign.ownerName}</div>
-                        </td>
-                        <td className="p-4">
-                          <Badge variant="outline" className="text-[10px]">{campaign.objective}</Badge>
-                        </td>
-                        <td className="p-4">
-                          <div className="font-bold">{campaign.budget.toLocaleString()} {campaign.currency}</div>
-                        </td>
-                        <td className="p-4 w-[200px]">
-                           <div className="flex items-center gap-2">
-                             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-primary w-[45%]" />
-                             </div>
-                             <span className="text-xs font-bold">45%</span>
+                      <tr key={campaign.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                        <td className="px-6 py-8">
+                           <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                 <Rocket className="h-5 w-5" />
+                              </div>
+                              <div>
+                                 <p className="font-black text-sm uppercase tracking-tight">{campaign.name}</p>
+                                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">OWNER: {campaign.ownerName}</p>
+                              </div>
                            </div>
                         </td>
-                        <td className="p-4">
-                          <Badge variant={campaign.status === 'ACTIVE' ? 'secondary' : 'outline'}>
-                            {campaign.status}
-                          </Badge>
+                        <td className="px-6 py-8">
+                           <Badge variant="outline" className="rounded-full font-black text-[8px] px-3 py-1 border-slate-200 dark:border-slate-800 uppercase tracking-widest text-slate-400">{campaign.objective}</Badge>
                         </td>
-                        <td className="p-4 text-right">
-                          <Button variant="ghost" size="icon" onClick={() => setSelectedCampaign(campaign)}>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
+                        <td className="px-6 py-8">
+                           <p className="text-sm font-black text-indigo-600">${campaign.budget.toLocaleString()} <span className="text-[10px] text-slate-400 uppercase">{campaign.currency}</span></p>
+                        </td>
+                        <td className="px-6 py-8">
+                           <div className="flex items-center gap-3 w-[150px]">
+                              <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                 <div className="h-full bg-indigo-600 w-[45%] transition-all duration-1000" />
+                              </div>
+                              <span className="text-[10px] font-black text-slate-400">45%</span>
+                           </div>
+                        </td>
+                        <td className="px-6 py-8 text-right">
+                           <Badge variant={campaign.status === 'ACTIVE' ? 'default' : 'secondary'} className={cn("rounded-full font-black text-[8px] uppercase tracking-widest", campaign.status === 'ACTIVE' ? "bg-emerald-500" : "bg-slate-100 dark:bg-slate-800 text-slate-400")}>
+                             {campaign.status}
+                           </Badge>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+            )}
+          </TabsContent>
+        </Tabs>
+      </Card>
 
       {/* Creation Wizard */}
       <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Create Growth Campaign</DialogTitle>
-            <DialogDescription>
-              Step {wizardStep} of 3: {wizardStep === 1 ? "Strategic Context" : wizardStep === 2 ? "Audience & Channels" : "Budget & Timeline"}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="flex gap-1 mb-6">
-              {[1, 2, 3].map(s => (
-                <div key={s} className={cn(
-                  "h-1.5 flex-1 rounded-full",
-                  s <= wizardStep ? "bg-primary" : "bg-muted"
-                )} />
-              ))}
-            </div>
-
-            {wizardStep === 1 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Campaign Name</label>
-                  <Input 
-                    placeholder="e.g. Q4 Enterprise Expansion" 
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Primary Objective</label>
-                  <Select value={objective} onValueChange={(v: any) => setObjective(v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {OBJECTIVES.map(obj => (
-                        <SelectItem key={obj} value={obj}>{obj.replace('_', ' ')}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <DialogContent className="sm:max-w-[600px] border-none bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl">
+          <div className="h-2 bg-indigo-600" />
+          <div className="p-10 space-y-10">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                 <Badge className="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest">Step {wizardStep} / 3</Badge>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Campaign Injection Protocol</p>
               </div>
-            )}
-
-            {wizardStep === 2 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Target Audience</label>
-                  <Input 
-                    placeholder="e.g. SaaS Decision Makers, HR Leaders" 
-                    value={audience}
-                    onChange={e => setAudience(e.target.value)}
-                  />
-                </div>
-                <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg">
-                   <p className="text-xs font-bold text-primary flex items-center gap-1.5 mb-2">
-                     <Zap className="h-3 w-3" /> Recommended Channel Mix
-                   </p>
-                   <div className="flex flex-wrap gap-2">
-                      {CHANNEL_PRESETS[objective].map(ch => (
-                        <Badge key={ch} variant="secondary" className="text-[10px]">{ch}</Badge>
-                      ))}
-                   </div>
-                </div>
+              <DialogTitle className="text-4xl font-black tracking-tighter">
+                {wizardStep === 1 ? "Strategic Context" : wizardStep === 2 ? "Audience & Channels" : "Budget & Horizon"}
+              </DialogTitle>
+              <DialogDescription className="text-base font-medium italic italic leading-relaxed italic">
+                 {wizardStep === 1 ? "Define the primary designation and tactical objective for the growth cluster." : 
+                  wizardStep === 2 ? "Coordinate the target audience and strategic channel mix for optimal yield." : 
+                  "Authorize the financial allocation and tactical timeline for execution."}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-8">
+              <div className="flex gap-2 mb-4">
+                {[1, 2, 3].map(s => (
+                  <div key={s} className={cn(
+                    "h-1.5 flex-1 rounded-full transition-all duration-500",
+                    s <= wizardStep ? "bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.5)]" : "bg-slate-100 dark:bg-slate-800"
+                  )} />
+                ))}
               </div>
-            )}
 
-            {wizardStep === 3 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              {wizardStep === 1 && (
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Total Budget</label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                      <Input 
-                        className="pl-8" 
-                        type="number" 
-                        value={budget}
-                        onChange={e => setBudget(e.target.value)}
-                      />
-                    </div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Campaign Designation</label>
+                    <Input 
+                      className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                      placeholder="e.g. Q4 ENTERPRISE EXPANSION" 
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Currency</label>
-                    <Select defaultValue="USD">
-                      <SelectTrigger>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Tactical Objective</label>
+                    <Select value={objective} onValueChange={(v: any) => setObjective(v)}>
+                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                        <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl">
+                        {OBJECTIVES.map(obj => (
+                          <SelectItem key={obj} value={obj} className="font-bold text-sm uppercase">{obj.replace('_', ' ')}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+              )}
+
+              {wizardStep === 2 && (
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Start Date</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Target Audience</label>
                     <Input 
-                      type="date" 
-                      value={startDate}
-                      onChange={e => setStartDate(e.target.value)}
+                      className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                      placeholder="e.g. SAAS DECISION MAKERS, HR LEADERS" 
+                      value={audience}
+                      onChange={e => setAudience(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">End Date</label>
-                    <Input 
-                      type="date" 
-                      value={endDate}
-                      onChange={e => setEndDate(e.target.value)}
-                    />
+                  <div className="p-6 bg-indigo-500/5 border border-indigo-500/10 rounded-3xl space-y-4">
+                     <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                       <Zap className="h-3.5 w-3.5" /> AI Recommended Channel Mix
+                     </p>
+                     <div className="flex flex-wrap gap-2">
+                        {CHANNEL_PRESETS[objective].map(ch => (
+                          <Badge key={ch} variant="secondary" className="rounded-full text-[10px] font-black px-4 py-1 bg-white dark:bg-slate-800 text-indigo-600 shadow-sm border border-indigo-500/10 uppercase tracking-widest">{ch}</Badge>
+                        ))}
+                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
 
-          <DialogFooter>
-            {wizardStep > 1 && (
-              <Button variant="ghost" onClick={() => setWizardStep(s => s - 1)}>Back</Button>
-            )}
-            {wizardStep < 3 ? (
-              <Button onClick={() => setWizardStep(s => s + 1)}>
-                Next <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button onClick={handleCreateCampaign}>Launch Campaign</Button>
-            )}
-          </DialogFooter>
+              {wizardStep === 3 && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Total Yield Allocation</label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-indigo-600" />
+                        <Input 
+                          className="pl-12 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg" 
+                          type="number" 
+                          value={budget}
+                          onChange={e => setBudget(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Currency</label>
+                      <Select defaultValue="USD">
+                        <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                          <SelectItem value="USD" className="font-bold">USD</SelectItem>
+                          <SelectItem value="EUR" className="font-bold">EUR</SelectItem>
+                          <SelectItem value="GBP" className="font-bold">GBP</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Tactical Start</label>
+                      <Input 
+                        type="date" 
+                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                        value={startDate}
+                        onChange={e => setStartDate(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Tactical End</label>
+                      <Input 
+                        type="date" 
+                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                        value={endDate}
+                        onChange={e => setEndDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="gap-4">
+              {wizardStep > 1 && (
+                <Button variant="ghost" className="h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest px-8" onClick={() => setWizardStep(s => s - 1)}>BACK</Button>
+              )}
+              {wizardStep < 3 ? (
+                <Button className="h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-[10px] uppercase tracking-widest px-10 gap-2" onClick={() => setWizardStep(s => s + 1)}>
+                  CONTINUE <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button className="h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-[10px] uppercase tracking-widest px-10 gap-2" onClick={handleCreateCampaign} disabled={refreshing}>
+                   {refreshing ? "INJECTING..." : "LAUNCH CAMPAIGN CLUSTER"}
+                </Button>
+              )}
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
-      {/* Detail Dialog */}
+      {/* Detail Overlay */}
       <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent className="max-w-6xl border-none bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl rounded-[3rem]">
            {selectedCampaign && (
-             <div className="grid grid-cols-12 h-[500px]">
-                <div className="col-span-4 bg-muted p-6 border-r flex flex-col justify-between">
-                   <div>
-                      <Badge className="mb-4">{selectedCampaign.status}</Badge>
-                      <h2 className="text-2xl font-bold mb-2">{selectedCampaign.name}</h2>
-                      <p className="text-sm text-muted-foreground mb-6">{selectedCampaign.audience}</p>
+             <div className="grid grid-cols-12 min-h-[600px]">
+                <div className="col-span-4 bg-slate-50 dark:bg-slate-900/50 p-10 flex flex-col justify-between border-r border-slate-100 dark:border-slate-800">
+                   <div className="space-y-8">
+                      <div className="flex items-center gap-3">
+                         <Badge className="bg-indigo-600 text-white font-black text-[9px] px-3 py-1 uppercase tracking-widest rounded-full">{selectedCampaign.status}</Badge>
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node: {selectedCampaign.id.slice(-8)}</p>
+                      </div>
                       
-                      <div className="space-y-4">
-                         <div className="flex items-center gap-3">
-                            <Target className="h-4 w-4 text-primary" />
-                            <span className="text-xs font-semibold">{selectedCampaign.objective.replace('_', ' ')}</span>
+                      <div className="space-y-2">
+                         <h2 className="text-4xl font-black tracking-tighter uppercase leading-tight italic">{selectedCampaign.name}</h2>
+                         <p className="text-sm font-medium text-slate-500 italic">"{selectedCampaign.audience}"</p>
+                      </div>
+                      
+                      <div className="space-y-6 pt-4">
+                         <div className="flex items-center gap-4 group">
+                            <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                               <TargetIcon className="h-5 w-5 text-indigo-600" />
+                            </div>
+                            <div>
+                               <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Objective</p>
+                               <span className="text-sm font-black uppercase">{selectedCampaign.objective.replace('_', ' ')}</span>
+                            </div>
                          </div>
-                         <div className="flex items-center gap-3">
-                            <Calendar className="h-4 w-4 text-primary" />
-                            <span className="text-xs">{selectedCampaign.startDate} — {selectedCampaign.endDate}</span>
+                         <div className="flex items-center gap-4 group">
+                            <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                               <Calendar className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div>
+                               <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tactical Horizon</p>
+                               <span className="text-sm font-black uppercase tracking-tighter">{selectedCampaign.startDate} — {selectedCampaign.endDate}</span>
+                            </div>
                          </div>
-                         <div className="flex items-center gap-3">
-                            <Layers className="h-4 w-4 text-primary" />
-                            <div className="flex gap-1 flex-wrap">
+                         <div className="space-y-3">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Channel Matrix</p>
+                            <div className="flex gap-2 flex-wrap">
                                {selectedCampaign.channelMix.map(ch => (
-                                 <Badge key={ch} variant="outline" className="text-[8px] px-1">{ch}</Badge>
+                                 <Badge key={ch} variant="outline" className="text-[9px] font-black uppercase px-2 py-0 h-5 border-slate-200 dark:border-slate-800 text-slate-500">{ch}</Badge>
                                ))}
                             </div>
                          </div>
                       </div>
                    </div>
                    
-                   <div className="bg-background/50 p-4 rounded-xl border">
-                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Budget Efficiency</p>
-                      <p className="text-xl font-bold">4.8x ROI</p>
-                      <div className="mt-2 h-1 w-full bg-muted rounded-full">
-                         <div className="h-full bg-green-500 w-[85%]" />
+                   <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-xl space-y-4">
+                      <div className="flex justify-between items-end">
+                         <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Yield Multiple</p>
+                            <p className="text-3xl font-black text-emerald-600">4.8x ROI</p>
+                         </div>
+                         <ArrowUpRight className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden shadow-inner">
+                         <div className="h-full bg-emerald-500 w-[85%] transition-all duration-1000 shadow-lg" />
                       </div>
                    </div>
                 </div>
                 
-                <div className="col-span-8 flex flex-col">
-                   <div className="p-6 border-b flex items-center justify-between">
-                      <div className="flex gap-4">
-                         <div className="text-center">
-                            <p className="text-[10px] uppercase text-muted-foreground font-bold">Total Budget</p>
-                            <p className="text-lg font-bold">${selectedCampaign.budget.toLocaleString()}</p>
+                <div className="col-span-8 flex flex-col bg-white dark:bg-slate-950">
+                   <div className="p-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/50 dark:bg-slate-900/50 backdrop-blur-md relative z-10">
+                      <div className="flex gap-12">
+                         <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Global Budget</p>
+                            <p className="text-2xl font-black text-indigo-600">${selectedCampaign.budget.toLocaleString()}</p>
                          </div>
-                         <Separator orientation="vertical" className="h-8" />
-                         <div className="text-center">
-                            <p className="text-[10px] uppercase text-muted-foreground font-bold">Spend</p>
-                            <p className="text-lg font-bold">$12,450</p>
+                         <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Spend</p>
+                            <p className="text-2xl font-black">$12,450</p>
                          </div>
-                         <Separator orientation="vertical" className="h-8" />
-                         <div className="text-center">
-                            <p className="text-[10px] uppercase text-muted-foreground font-bold">Leads</p>
-                            <p className="text-lg font-bold">428</p>
+                         <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Leads</p>
+                            <p className="text-2xl font-black">428</p>
                          </div>
                       </div>
-                      <div className="flex gap-2">
-                         <Button variant="outline" size="sm" onClick={async () => {
-                            await marketingService.updateCampaignStatus(session.tenant_id, session, selectedCampaign.id, "ACTIVE");
-                            refresh();
-                            setSelectedCampaign(null);
-                         }}>Activate</Button>
-                         <Button size="sm" variant="destructive">Pause</Button>
+                      <div className="flex gap-3">
+                         <Button 
+                            className="rounded-2xl h-12 px-8 bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20" 
+                            onClick={() => handleUpdateStatus(selectedCampaign.id, "ACTIVE")}
+                         >
+                            ACTIVATE NODE
+                         </Button>
+                         <Button 
+                            variant="destructive" 
+                            className="rounded-2xl h-12 px-8 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-500/20"
+                            onClick={() => handleUpdateStatus(selectedCampaign.id, "PAUSED")}
+                         >
+                            PAUSE EXECUTION
+                         </Button>
                       </div>
                    </div>
                    
-                   <ScrollArea className="flex-1 p-6">
-                      <div className="space-y-6">
-                         <div className="grid grid-cols-2 gap-4">
-                            <Card className="shadow-none">
-                               <CardHeader className="p-4">
-                                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                     <Globe className="h-4 w-4 text-blue-500" /> Web Traffic
-                                  </CardTitle>
-                               </CardHeader>
-                               <CardContent className="p-4 pt-0">
-                                  <p className="text-2xl font-bold">12.5k</p>
-                                  <p className="text-xs text-green-500">+8.4% vs last week</p>
-                               </CardContent>
+                   <ScrollArea className="flex-1 p-10">
+                      <div className="space-y-10">
+                         <div className="grid grid-cols-2 gap-8">
+                            <Card className="rounded-[2rem] border-none bg-slate-50 dark:bg-slate-900 p-8 space-y-4 group">
+                               <div className="flex items-center justify-between">
+                                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                     <Globe className="h-4 w-4 text-blue-500" /> Web Velocity
+                                  </h4>
+                                  <Badge className="bg-emerald-500 text-white font-black text-[8px]">+8.4%</Badge>
+                               </div>
+                               <p className="text-4xl font-black tracking-tighter">12.5k <span className="text-sm font-bold text-slate-400 uppercase">Hits</span></p>
                             </Card>
-                            <Card className="shadow-none">
-                               <CardHeader className="p-4">
-                                  <CardTitle className="text-sm font-bold flex items-center gap-2">
-                                     <Zap className="h-4 w-4 text-yellow-500" /> Conversion
-                                  </CardTitle>
-                               </CardHeader>
-                               <CardContent className="p-4 pt-0">
-                                  <p className="text-2xl font-bold">3.2%</p>
-                                  <p className="text-xs text-muted-foreground">Standard for this channel</p>
-                               </CardContent>
+                            <Card className="rounded-[2rem] border-none bg-slate-50 dark:bg-slate-900 p-8 space-y-4 group">
+                               <div className="flex items-center justify-between">
+                                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                     <Zap className="h-4 w-4 text-amber-500" /> Conversion Ratio
+                                  </h4>
+                                  <p className="text-[10px] font-black uppercase text-slate-400 italic">NOMINAL</p>
+                               </div>
+                               <p className="text-4xl font-black tracking-tighter">3.2% <span className="text-sm font-bold text-slate-400 uppercase">Rate</span></p>
                             </Card>
                          </div>
                          
-                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Recent Activity</h3>
-                            {[1, 2, 3].map(i => (
-                              <div key={i} className="flex gap-4 items-start">
-                                 <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                                    <Zap className="h-4 w-4" />
+                         <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                               <h3 className="text-lg font-black uppercase tracking-tight flex items-center gap-3">
+                                  <Clock className="h-5 w-5 text-indigo-600" />
+                                  Real-time Activity Stream
+                               </h3>
+                               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Telemetry</p>
+                            </div>
+                            <div className="space-y-4">
+                               {[1, 2, 3].map(i => (
+                                 <div key={i} className="flex gap-6 items-start p-6 rounded-[1.5rem] hover:bg-slate-50 dark:hover:bg-slate-900 transition-all group">
+                                    <div className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                       <Zap className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                       <div className="flex justify-between items-center">
+                                          <p className="text-sm font-black uppercase tracking-tight">Lead Injection Detected</p>
+                                          <span className="text-[10px] font-bold text-slate-400 uppercase">2H AGO</span>
+                                       </div>
+                                       <p className="text-xs font-medium text-slate-500 italic leading-relaxed">System identified a high-intent conversion event from the Google Ads cluster in the Enterprise Segment.</p>
+                                    </div>
                                  </div>
-                                 <div className="flex-1 pb-4 border-b last:border-0">
-                                    <p className="text-sm font-medium">New lead captured from Google Ads</p>
-                                    <p className="text-xs text-muted-foreground">2 hours ago • Enterprise Segment</p>
-                                 </div>
-                              </div>
-                            ))}
+                               ))}
+                            </div>
                          </div>
                       </div>
                    </ScrollArea>
                    
-                   <div className="p-4 border-t flex justify-end">
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedCampaign(null)}>Close Overlay</Button>
+                   <div className="p-8 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+                      <Button variant="ghost" className="rounded-xl h-10 px-8 font-black text-[10px] uppercase tracking-widest text-slate-400" onClick={() => setSelectedCampaign(null)}>CLOSE PROTOCOL</Button>
                    </div>
                 </div>
              </div>
@@ -598,15 +720,5 @@ export default function CampaignDesk() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function Separator({ orientation = "horizontal", className }: { orientation?: "horizontal" | "vertical", className?: string }) {
-  return (
-    <div className={cn(
-      "bg-border",
-      orientation === "horizontal" ? "h-px w-full" : "w-px h-full",
-      className
-    )} />
   );
 }

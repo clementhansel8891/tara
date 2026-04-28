@@ -124,6 +124,7 @@ export abstract class IMarketingRepository {
   
   abstract getFunnels(ctx: TenantContext): Promise<MarketingFunnel[]>;
   abstract createFunnel(ctx: TenantContext, data: Partial<MarketingFunnel>): Promise<MarketingFunnel>;
+  abstract updateFunnel(ctx: TenantContext, id: string, data: Partial<MarketingFunnel>): Promise<MarketingFunnel>;
   
   abstract getAppointments(ctx: TenantContext): Promise<MarketingAppointment[]>;
   abstract createAppointment(ctx: TenantContext, data: Partial<MarketingAppointment>): Promise<MarketingAppointment>;
@@ -136,6 +137,7 @@ export abstract class IMarketingRepository {
   
   abstract getCreativeAssets(ctx: TenantContext): Promise<MarketingCreativeAsset[]>;
   abstract createCreativeAsset(ctx: TenantContext, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset>;
+  abstract updateCreativeAsset(ctx: TenantContext, id: string, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset>;
   
   abstract calculateAdvancedAttribution(ctx: TenantContext, model: "FIRST_CLICK" | "LINEAR" | "LAST_CLICK"): Promise<any>;
 }

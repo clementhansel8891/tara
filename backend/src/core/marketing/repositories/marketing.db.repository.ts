@@ -611,10 +611,24 @@ export class MarketingDbRepository extends IMarketingRepository {
         id: uuidv4(),
         name: data.name || "Unnamed Funnel",
         description: data.description,
-        status: "DRAFT",
+        status: data.status || "DRAFT",
         created_at: new Date(),
         updated_at: new Date(),
       }),
+      include: { steps: true }
+    });
+    return item as any;
+  }
+
+  async updateFunnel(ctx: TenantContext, id: string, data: Partial<MarketingFunnel>): Promise<MarketingFunnel> {
+    const item = await this.prisma.marketing_funnels.update({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      data: {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+        updated_at: new Date(),
+      },
       include: { steps: true }
     });
     return item as any;
@@ -716,6 +730,21 @@ export class MarketingDbRepository extends IMarketingRepository {
         created_at: new Date(),
         updated_at: new Date(),
       }),
+    });
+    return item as any;
+  }
+
+  async updateCreativeAsset(ctx: TenantContext, id: string, data: Partial<MarketingCreativeAsset>): Promise<MarketingCreativeAsset> {
+    const item = await this.prisma.marketing_creative_assets.update({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      data: {
+        name: data.name,
+        type: data.type,
+        url: data.url,
+        tags: data.tags,
+        metadata: data.metadata,
+        updated_at: new Date(),
+      },
     });
     return item as any;
   }

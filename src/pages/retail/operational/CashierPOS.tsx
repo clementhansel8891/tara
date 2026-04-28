@@ -252,7 +252,8 @@ const CashierPOS = () => {
       }, 0);
   const grandTotal = effectiveSubtotal + tax;
 
-  const performCheckout = async (
+  const finalizeTransaction = async (
+    method: string,
     receivedAmount?: number,
     channel?: string,
     notes?: string,
@@ -337,27 +338,67 @@ const CashierPOS = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-400 font-black italic uppercase tracking-[0.25em]">
-        <RefreshCw className="w-12 h-12 mb-6 animate-spin text-blue-600" />
-        Syncing POS Environment...
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-400 font-black italic uppercase tracking-[0.25em]">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-[50%] h-[50%] bg-indigo-500/20 blur-[150px] rounded-full animate-pulse" />
+        </div>
+        <RefreshCw className="w-16 h-16 mb-8 animate-spin text-indigo-500 relative z-10" />
+        <span className="relative z-10 text-white">Syncing POS Environment...</span>
       </div>
     );
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-50 relative flex">
+    <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-900 relative flex selection:bg-indigo-500 selection:text-white">
       {/* Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-indigo-400/10 blur-[130px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-blue-400/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-indigo-500/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-blue-500/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
       {/* Main Container: Full height, flex row */}
-      <div className="flex flex-1 w-full gap-5 px-6 py-6 overflow-hidden relative z-10">
+      <div className="flex flex-1 w-full gap-5 px-8 py-8 overflow-hidden relative z-10">
         {/* LEFT PLANE: Includes Controls + Inventory */}
-        <div className="flex-[2.8] flex flex-col gap-3 overflow-hidden min-h-0">
+        <div className="flex-[2.8] flex flex-col gap-6 overflow-hidden min-h-0">
+          
+          {/* TACTICAL HEADER */}
+          <div className="flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                <LayoutGrid className="w-7 h-7" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+                  Terminal POS
+                </h1>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] ml-1">
+                  Node: {session.location_id || "LOCAL_VAULT"} • v2.4.0
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {activeShift && (
+                <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black italic uppercase text-emerald-500 tracking-widest">
+                    Shift Active: {activeShift.id.slice(-6).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => fetchProducts(activeCategory?.id)}
+                className="h-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isProductsLoading ? 'animate-spin' : ''}`} /> Sync Catalog
+              </Button>
+            </div>
+          </div>
+
           {/* IN-PLANE COMMAND BAR (Scan, Search, Filter) */}
-          <div className="flex items-center gap-3 bg-white/60 backdrop-blur-xl p-3 rounded-2xl border border-white/60 shadow-sm shrink-0">
+          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-2xl p-4 rounded-[2rem] border border-white/10 shadow-2xl shrink-0">
             <div className="flex-1">
               <ScannerSearchHeader
                 searchTerm={searchTerm}
@@ -367,20 +408,22 @@ const CashierPOS = () => {
               />
             </div>
 
+            <div className="h-10 w-px bg-white/10" />
+
             {/* Touch-Friendly Category Selector */}
-            <div className="flex items-center gap-2.5 px-4 py-3 bg-white border border-slate-200 rounded-xl min-w-[220px] h-12 shadow-sm">
+            <div className="flex items-center gap-3 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl min-w-[240px] h-14 transition-all hover:border-indigo-500/50">
               <Filter className="w-4 h-4 text-indigo-400 shrink-0" />
               <select
-                className="flex-1 bg-transparent text-[11px] font-bold uppercase tracking-wider outline-none text-slate-700 cursor-pointer h-full"
+                className="flex-1 bg-transparent text-[11px] font-black uppercase tracking-widest outline-none text-white cursor-pointer h-full appearance-none"
                 value={activeCategory?.id || ""}
                 onChange={(e) => {
                   const cat = categories.find((c) => c.id === e.target.value);
                   setActiveCategory(cat || null);
                 }}
               >
-                <option value="">All Categories</option>
+                <option value="" className="bg-slate-900">All Categories</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.id} className="bg-slate-900">
                     {cat.name}
                   </option>
                 ))}
@@ -394,22 +437,22 @@ const CashierPOS = () => {
                 setSearchTerm("");
               }}
               title="Show all products"
-              className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all border shrink-0 ${
+              className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border shrink-0 ${
                 !activeCategory && !searchTerm
-                  ? "bg-slate-900 text-white border-slate-900 shadow-md"
-                  : "bg-white text-slate-400 border-slate-200 hover:text-indigo-600 hover:border-indigo-300"
+                  ? "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20"
+                  : "bg-white/5 text-slate-400 border-white/10 hover:text-white hover:border-white/20"
               }`}
             >
-              <LayoutGrid className="w-5 h-5" />
+              <LayoutGrid className="w-6 h-6" />
             </button>
           </div>
 
           {/* Section Label — always visible, never scrolls */}
-          <div className="flex items-center gap-4 shrink-0 px-1">
-            <div className="h-px flex-1 bg-slate-200/60" />
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 italic flex items-center gap-2">
+          <div className="flex items-center gap-4 shrink-0 px-2">
+            <div className="h-px flex-1 bg-white/5" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic flex items-center gap-3">
               {isProductsLoading && (
-                <RefreshCw className="w-3 h-3 animate-spin text-indigo-500" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-500" />
               )}
               {searchTerm
                 ? "SEARCH DATASET"
@@ -417,21 +460,21 @@ const CashierPOS = () => {
                   ? activeCategory.name
                   : "ROOT INVENTORY"}
               {!isProductsLoading && (
-                <span className="text-indigo-400">
-                  ({filteredProducts.length})
+                <span className="text-indigo-500">
+                  [{filteredProducts.length} ASSETS]
                 </span>
               )}
             </span>
-            <div className="h-px flex-1 bg-slate-200/60" />
+            <div className="h-px flex-1 bg-white/5" />
           </div>
 
           {/* Product Grid — this is the only scrollable area */}
-          <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2">
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2 custom-scrollbar">
             {isProductsLoading ? (
-              <div className="flex flex-col items-center justify-center h-48 text-slate-400 gap-3">
-                <RefreshCw className="w-8 h-8 animate-spin text-indigo-400" />
-                <p className="text-[10px] font-black uppercase tracking-widest">
-                  Loading inventory...
+              <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
+                <div className="w-16 h-16 rounded-full border-t-2 border-indigo-500 animate-spin" />
+                <p className="text-[11px] font-black uppercase tracking-[0.3em]">
+                  Hydrating Catalog...
                 </p>
               </div>
             ) : (
@@ -440,105 +483,64 @@ const CashierPOS = () => {
           </div>
 
           {/* Pagination Bar — always visible, pinned to bottom of left pane */}
-          <div className="shrink-0 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/60 shadow-sm px-4 py-3 flex items-center justify-between">
+          <div className="shrink-0 bg-white/5 backdrop-blur-2xl rounded-[1.5rem] border border-white/10 shadow-2xl px-6 py-4 flex items-center justify-between">
             {/* Range Label */}
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] italic">
               {filteredProducts.length === 0
-                ? "No items"
-                : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} of ${filteredProducts.length}`}
+                ? "No entries found"
+                : `Range: ${(currentPage - 1) * PAGE_SIZE + 1} – ${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} / ${filteredProducts.length}`}
             </span>
 
             {/* Page Pills + Prev/Next */}
-            <div className="flex items-center gap-1.5">
-              {/* Prev */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || isProductsLoading}
-                className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-5 h-5" />
               </button>
 
-              {/* Page number pills — show up to 5 around current */}
-              {(() => {
-                const window = 2;
-                const start = Math.max(1, currentPage - window);
-                const end = Math.min(totalPages, currentPage + window);
-                const pages = [];
-                if (start > 1) {
-                  pages.push(
-                    <button
-                      key={1}
-                      onClick={() => setCurrentPage(1)}
-                      className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-[12px] font-bold text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-95"
-                    >
-                      1
-                    </button>,
-                  );
-                  if (start > 2)
+              <div className="flex items-center gap-1.5 px-2">
+                {(() => {
+                  const window = 1;
+                  const start = Math.max(1, currentPage - window);
+                  const end = Math.min(totalPages, currentPage + window);
+                  const pages = [];
+                  for (let i = start; i <= end; i++) {
                     pages.push(
-                      <span
-                        key="start-ellipsis"
-                        className="text-slate-300 text-xs px-0.5"
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i)}
+                        className={`w-10 h-10 rounded-xl text-[11px] font-black transition-all active:scale-95 ${
+                          i === currentPage
+                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                            : "bg-white/5 border border-white/10 text-slate-400 hover:text-white"
+                        }`}
                       >
-                        …
-                      </span>,
+                        {i}
+                      </button>,
                     );
-                }
-                for (let i = start; i <= end; i++) {
-                  pages.push(
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i)}
-                      className={`w-9 h-9 rounded-xl text-[12px] font-black transition-all active:scale-95 ${
-                        i === currentPage
-                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
-                          : "bg-white border border-slate-200 text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
-                      }`}
-                    >
-                      {i}
-                    </button>,
-                  );
-                }
-                if (end < totalPages) {
-                  if (end < totalPages - 1)
-                    pages.push(
-                      <span
-                        key="end-ellipsis"
-                        className="text-slate-300 text-xs px-0.5"
-                      >
-                        …
-                      </span>,
-                    );
-                  pages.push(
-                    <button
-                      key={totalPages}
-                      onClick={() => setCurrentPage(totalPages)}
-                      className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-[12px] font-bold text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-95"
-                    >
-                      {totalPages}
-                    </button>,
-                  );
-                }
-                return pages;
-              })()}
+                  }
+                  return pages;
+                })()}
+              </div>
 
-              {/* Next */}
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages || isProductsLoading}
-                className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-indigo-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* RIGHT PLANE: Cart Panel (Now starts at the same top as the controls) */}
-        <div className="flex-[1.2] min-w-[380px] h-full overflow-hidden">
+        {/* RIGHT PLANE: Cart Panel */}
+        <div className="flex-[1.2] min-w-[420px] h-full overflow-hidden">
           <CartPanel
             cart={cart}
             onUpdateQuantity={updateQuantity}

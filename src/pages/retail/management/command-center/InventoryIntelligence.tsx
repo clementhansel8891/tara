@@ -9,7 +9,7 @@ import {
   Cell,
 } from "recharts";
 import { InventoryIntelligence as IInventoryIntelligence } from "@/core/types/retail/analytics";
-import { AlertTriangle, PackageSearch } from "lucide-react";
+import { AlertTriangle, PackageSearch, Activity } from "lucide-react";
 
 interface InventoryIntelligenceProps {
   data: IInventoryIntelligence;
@@ -19,61 +19,67 @@ export const InventoryIntelligence: React.FC<InventoryIntelligenceProps> = ({
   data,
 }) => {
   return (
-    <div className="bg-white/70 backdrop-blur-xl p-8 rounded-[3rem] border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group h-full flex flex-col relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[100px] -mr-[10%] -mt-[10%] pointer-events-none" />
+    <div className="bg-white/[0.03] backdrop-blur-3xl p-10 rounded-[3rem] border border-white/5 shadow-2xl hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 group h-full flex flex-col relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[130px] -mr-[15%] -mt-[15%] pointer-events-none" />
 
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
-          Stock Intelligence
+      <div className="flex items-center justify-between mb-10 relative z-10">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">
+          Stock Intelligence Matrix
         </h3>
-        <PackageSearch className="w-5 h-5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+        <PackageSearch className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 transition-colors" />
       </div>
 
-      <div className="flex-1 space-y-10 relative z-10">
+      <div className="flex-1 space-y-12 relative z-10">
         {/* Stock Aging */}
         <div className="relative">
-          <div className="flex items-center justify-between mb-5">
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-700">
-              Health Distribution
-            </p>
-            <div className="flex gap-1.5 px-3 py-1 rounded-full bg-slate-100/50 border border-slate-200/50">
-              <div className="w-2 h-2 rounded-full bg-indigo-500" />
-              <div className="w-2 h-2 rounded-full bg-indigo-300" />
-              <div className="w-2 h-2 rounded-full bg-rose-400" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Activity className="w-4 h-4 text-indigo-400" />
+              <p className="text-[11px] font-black uppercase tracking-widest text-white italic">
+                Health Distribution
+              </p>
+            </div>
+            <div className="flex gap-2 px-4 py-1.5 rounded-xl bg-white/5 border border-white/10 shadow-inner">
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-indigo-300 shadow-[0_0_8px_rgba(165,180,252,0.4)]" />
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
             </div>
           </div>
 
-          <div className="h-[160px] w-full">
+          <div className="h-[180px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.stockAging}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#6366f1" stopOpacity={1} />
-                    <stop offset="50%" stopColor="#818cf8" stopOpacity={0.9} />
-                    <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#a5b4fc" stopOpacity={0.6} />
                   </linearGradient>
                 </defs>
                 <XAxis
                   dataKey="bracket"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 9, fontWeight: 900, fill: "#94a3b8" }}
-                  dy={10}
+                  tick={{ fontSize: 10, fontWeight: 900, fill: "#475569", fontStyle: 'italic' }}
+                  dy={15}
                 />
                 <YAxis hide />
                 <Tooltip
-                  cursor={{ fill: "rgba(99, 102, 241, 0.05)", radius: 10 }}
-                  contentStyle={{
-                    backgroundColor: "rgba(255, 255, 255, 0.8)",
-                    backdropFilter: "blur(12px)",
-                    borderRadius: "20px",
-                    border: "1px solid rgba(255, 255, 255, 0.5)",
-                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-                    fontSize: "11px",
-                    fontWeight: 900,
+                  cursor={{ fill: "rgba(255, 255, 255, 0.03)", radius: 15 }}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-slate-900/90 backdrop-blur-3xl border border-white/10 p-5 rounded-[1.5rem] shadow-3xl">
+                          <p className="text-[10px] font-black italic text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+                          <p className="text-xl font-black italic text-white tracking-tighter">
+                            {payload[0].value} Units
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
-                <Bar dataKey="value" radius={[8, 8, 4, 4]} barSize={28}>
+                <Bar dataKey="value" radius={[10, 10, 5, 5]} barSize={32}>
                   {(data.stockAging || []).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -92,47 +98,47 @@ export const InventoryIntelligence: React.FC<InventoryIntelligenceProps> = ({
         </div>
 
         {/* Prediction List */}
-        <div className="space-y-5">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-rose-500/10 rounded-xl">
-                <AlertTriangle className="w-4 h-4 text-rose-500" />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-rose-500/10 rounded-2xl border border-rose-500/20 shadow-lg">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
               </div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-700">
+              <p className="text-[11px] font-black uppercase tracking-widest text-white italic">
                 Critical Depletion (7D)
               </p>
             </div>
-            <span className="text-[9px] font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100 animate-pulse">
-              ACTION REQ
+            <span className="text-[10px] font-black text-rose-400 bg-rose-500/10 px-4 py-1.5 rounded-xl border border-rose-500/20 animate-pulse tracking-widest italic">
+              ACTION REQUIRED
             </span>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-5">
             {(data.lowStockPrediction || []).map((item, idx) => (
               <div
                 key={idx}
-                className="group/item flex items-center gap-5 p-5 rounded-[2.5rem] bg-white border border-slate-100/50 hover:border-rose-200 hover:bg-rose-50/20 transition-all duration-300 cursor-default"
+                className="group/item flex items-center gap-6 p-6 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-rose-500/30 hover:bg-white/[0.04] transition-all duration-500 cursor-default shadow-xl"
               >
-                <div className="min-w-[4.5rem] h-14 rounded-3xl bg-slate-50 flex flex-col items-center justify-center text-slate-400 group-hover/item:bg-white group-hover/item:text-rose-600 group-hover/item:shadow-sm transition-all border border-slate-100/50">
-                  <span className="text-[16px] font-black leading-none mb-1">
+                <div className="min-w-[5.5rem] h-16 rounded-[1.75rem] bg-slate-900/50 flex flex-col items-center justify-center text-slate-500 group-hover/item:bg-rose-600 group-hover/item:text-white transition-all duration-500 border border-white/5 shadow-inner">
+                  <span className="text-xl font-black italic leading-none mb-1 tracking-tighter">
                     {item.currentStock > 999
                       ? `${(item.currentStock / 1000).toFixed(1)}k`
                       : item.currentStock}
                   </span>
-                  <span className="text-[8px] font-black uppercase tracking-[0.1em] opacity-60">
+                  <span className="text-[9px] font-black uppercase tracking-[0.1em] opacity-60">
                     Units
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-[14px] font-black italic text-slate-900 group-hover/item:text-rose-900 transition-colors truncate mb-1">
+                  <h4 className="text-lg font-black italic text-white group-hover/item:text-rose-400 transition-colors truncate mb-2 tracking-tighter">
                     {item.name}
                   </h4>
-                  <div className="flex items-center gap-3">
-                    <p className="text-[10px] font-black uppercase tracking-tight text-slate-400 group-hover/item:text-rose-400 whitespace-nowrap">
-                      OUT IN: {item.predictedOutDate}
+                  <div className="flex items-center gap-4">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover/item:text-rose-300 whitespace-nowrap italic">
+                      EST DEPLETION: {item.predictedOutDate}
                     </p>
-                    <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden p-[1px]">
+                    <div className="h-2 flex-1 bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
                       <div
-                        className="h-full bg-rose-500 rounded-full shadow-[0_0_10px_rgba(244,63,94,0.4)] transition-all duration-1500"
+                        className="h-full bg-rose-500 rounded-full shadow-[0_0_12px_rgba(244,63,94,0.6)] transition-all duration-2000 ease-out"
                         style={{
                           width: `${Math.max(10, Math.min(100, (item.currentStock / 50) * 100))}%`,
                         }}

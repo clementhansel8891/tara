@@ -8,7 +8,14 @@ import {
   Req,
   UseInterceptors,
   UseGuards,
+  UploadedFile,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import { extname, join } from "path";
+import { existsSync, mkdirSync } from "fs";
 import { Request } from "express";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
@@ -188,6 +195,13 @@ export class MarketingController {
   async getLeads(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
     const data = await this.marketingService.getLeads(request.tenantContext);
+    return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Get("contacts")
+  async getContacts(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.getContacts(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
   }
 
@@ -439,6 +453,88 @@ export class MarketingController {
     const { tenant_id } = request.tenantContext;
     const data = await this.marketingService.getFunnels(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Post("funnels")
+  async createFunnel(@Req() request: RequestWithTenant, @Body() body: any) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.createFunnel(request.tenantContext, body, this.actor_id(request));
+    return { success: true, tenant_id, message: "Funnel created", data };
+  }
+
+  @Put("funnels/:id")
+  async updateFunnel(@Req() request: RequestWithTenant, @Param("id") id: string, @Body() body: any) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.updateFunnel(request.tenantContext, id, body, this.actor_id(request));
+    return { success: true, tenant_id, message: "Funnel updated", data };
+  }
+
+  @Get("assets")
+  async getCreativeAssets(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.getCreativeAssets(request.tenantContext);
+    return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Post("assets")
+  async createCreativeAsset(@Req() request: RequestWithTenant, @Body() body: any) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.createCreativeAsset(request.tenantContext, body, this.actor_id(request));
+    return { success: true, tenant_id, message: "Asset created", data };
+  }
+
+  @Put("assets/:id")
+  async updateCreativeAsset(@Req() request: RequestWithTenant, @Param("id") id: string, @Body() body: any) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.marketingService.updateCreativeAsset(request.tenantContext, id, body, this.actor_id(request));
+    return { success: true, tenant_id, message: "Asset updated", data };
+  }
+
+  @Post("assets/upload")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const uploadPath = join(process.cwd(), "storage", "marketing", "assets");
+          if (!existsSync(uploadPath)) {
+            mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
+  )
+  async uploadAsset(
+    @Req() request: RequestWithTenant,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    const assetData = {
+      name: body.name || file.originalname,
+      type: file.mimetype.startsWith("image") ? "IMAGE" : file.mimetype.startsWith("video") ? "VIDEO" : "DOCUMENT",
+      url: `/api/v1/marketing/assets/raw/${file.filename}`,
+      metadata: {
+        filename: file.filename,
+        mimetype: file.mimetype,
+        size: file.size,
+      },
+    };
+    const data = await this.marketingService.createCreativeAsset(request.tenantContext, assetData, this.actor_id(request));
+    return { success: true, tenant_id, message: "Asset uploaded and registered", data };
+  }
+
+  @Get("assets/raw/:filename")
+  async getRawAsset(@Param("filename") filename: string, @Res() res: Response) {
+    const filePath = join(process.cwd(), "storage", "marketing", "assets", filename);
+    if (!existsSync(filePath)) {
+      return res.status(404).send("File not found");
+    }
+    return res.sendFile(filePath);
   }
 
   @Get("conversations")

@@ -33,14 +33,22 @@ import {
   CheckCircle2,
   Zap,
   Layers,
-  BarChart3
+  BarChart3,
+  ChevronDown,
+  Activity,
+  History,
+  Rocket,
+  Search,
+  RefreshCw,
+  Box,
+  Split,
+  MoreHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
 import { cn } from "@/lib/utils";
@@ -49,8 +57,18 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import FunnelTemplates from "./components/FunnelTemplates";
@@ -62,101 +80,85 @@ interface FunnelStep {
   type: "landing" | "checkout" | "upsell" | "thankyou";
   conversionRate: number;
   isABTest?: boolean;
-  variants?: { id: string; name: string; conversionRate: number }[];
 }
 
 interface Funnel {
   id: string;
   name: string;
   steps: FunnelStep[];
-  status: "active" | "draft";
+  status: string;
 }
 
-function SortableStep({ step, index, onRemove }: { step: FunnelStep; index: number; onRemove: (id: string) => void }) {
+function SortableStep({ step, index, onRemove, onEdit }: { step: FunnelStep; index: number; onRemove: (id: string) => void; onEdit: (step: FunnelStep) => void }) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
+    isDragging
   } = useSortable({ id: step.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    zIndex: isDragging ? 100 : 1,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} className="relative group">
-        <div className="absolute -left-3 top-1/2 -translate-y-1/2 h-8 w-8 bg-background border rounded-full flex items-center justify-center font-bold text-xs shadow-sm z-10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+    <div ref={setNodeRef} style={style} className={cn("relative group pb-10", isDragging && "opacity-50")}>
+        <div className="absolute -left-6 top-8 h-12 w-12 bg-white dark:bg-slate-900 border-4 border-indigo-600 rounded-2xl flex items-center justify-center font-black text-xs shadow-2xl z-20 group-hover:scale-110 transition-transform italic">
            {index + 1}
         </div>
         <Card className={cn(
-          "ml-2 hover:border-primary/20 transition-all cursor-default overflow-hidden",
-          step.isABTest && "border-indigo-500/40 bg-indigo-50/5 dark:bg-indigo-900/5"
+          "ml-6 rounded-[2rem] border-none shadow-2xl transition-all duration-500 cursor-default overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl relative",
+          step.isABTest ? "ring-2 ring-indigo-500/40" : "hover:ring-2 hover:ring-indigo-500/20"
         )}>
-           <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                 <div className="flex items-center gap-4 flex-1" {...listeners}>
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                       {step.type === 'landing' && <Layout className="h-5 w-5 text-blue-500" />}
-                       {step.type === 'checkout' && <MousePointer2 className="h-5 w-5 text-green-500" />}
-                       {step.type === 'upsell' && <Zap className="h-5 w-5 text-orange-500" />}
-                       {step.type === 'thankyou' && <Target className="h-5 w-5 text-purple-500" />}
+           {step.isABTest && (
+             <div className="absolute top-0 right-0 h-full w-2 bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 animate-pulse" />
+           )}
+           <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                 <div className="flex items-center gap-6 flex-1" {...listeners} {...attributes}>
+                    <div className={cn(
+                      "h-16 w-16 rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform duration-500",
+                      step.type === 'landing' ? "bg-blue-500/10" :
+                      step.type === 'checkout' ? "bg-emerald-500/10" :
+                      step.type === 'upsell' ? "bg-amber-500/10" : "bg-purple-500/10"
+                    )}>
+                       {step.type === 'landing' && <Layout className="h-8 w-8 text-blue-500" />}
+                       {step.type === 'checkout' && <MousePointer2 className="h-8 w-8 text-emerald-500" />}
+                       {step.type === 'upsell' && <Zap className="h-8 w-8 text-amber-500" />}
+                       {step.type === 'thankyou' && <Target className="h-8 w-8 text-purple-500" />}
                     </div>
-                    <div>
-                       <div className="flex items-center gap-2">
-                          <p className="font-bold text-sm">{step.name}</p>
-                          {step.isABTest && <Badge className="bg-indigo-500 text-[9px] h-4">A/B ACTIVE</Badge>}
+                    <div className="space-y-1">
+                       <div className="flex items-center gap-3">
+                          <p className="font-black text-xl tracking-tighter uppercase italic">{step.name}</p>
+                          {step.isABTest && <Badge className="bg-indigo-600 text-[9px] font-black h-5 px-3 rounded-full animate-pulse tracking-widest border-none">A/B TEST ACTIVE</Badge>}
                        </div>
-                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{step.type}</p>
+                       <p className="text-[10px] text-slate-400 uppercase font-black tracking-[0.3em] leading-none">{step.type} NODE</p>
                     </div>
                  </div>
                  
-                 <div className="flex items-center gap-6">
-                    <div className="text-right">
-                       <p className="text-[10px] uppercase font-bold text-muted-foreground">Conversion</p>
-                       <div className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                          <span className="text-sm font-bold">{step.conversionRate}%</span>
+                 <div className="flex items-center gap-12 w-full md:w-auto border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-800 pt-6 md:pt-0 md:pl-12">
+                    <div className="text-right space-y-1">
+                       <p className="text-[10px] uppercase font-black text-slate-400 tracking-[0.2em] italic">Conversion Yield</p>
+                       <div className="flex items-center justify-end gap-2">
+                          <TrendingUp className="h-5 w-5 text-emerald-500" />
+                          <span className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white">{step.conversionRate}%</span>
                        </div>
                     </div>
-                    <div className="flex gap-1">
-                       <Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="h-4 w-4" /></Button>
-                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onRemove(step.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <div className="flex gap-3">
+                       <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-800 border-none shadow-md hover:scale-110 transition-all" onClick={() => onEdit(step)}><Settings className="h-5 w-5" /></Button>
+                       <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-900/10 text-rose-600 border-none shadow-md hover:scale-110 transition-all" onClick={() => onRemove(step.id)}><Trash2 className="h-5 w-5" /></Button>
                     </div>
                  </div>
               </div>
-
-              {step.isABTest && (
-                 <div className="mt-4 pt-4 border-t border-indigo-100 dark:border-indigo-900/30 grid grid-cols-2 gap-4">
-                    <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
-                       <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-slate-400">VARIANT A</span>
-                          <span className="text-xs font-bold text-slate-900 dark:text-white">52%</span>
-                       </div>
-                       <div className="text-sm font-medium">Control</div>
-                       <div className="text-[10px] text-green-500 font-bold">14.2%</div>
-                    </div>
-                    <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20 space-y-1">
-                       <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-indigo-400">VARIANT B</span>
-                          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">48%</span>
-                       </div>
-                       <div className="text-sm font-medium">Test</div>
-                       <div className="text-[10px] text-green-500 font-bold">16.8%</div>
-                    </div>
-                 </div>
-              )}
            </CardContent>
         </Card>
-        {index < 3 && ( 
-           <div className="h-6 flex justify-center py-1">
-              <div className="w-0.5 bg-border h-full relative">
-                 <ArrowRight className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 rotate-90 text-muted-foreground" />
-              </div>
-           </div>
-        )}
+        
+        {/* Connector Line */}
+        <div className="absolute left-[0.25rem] bottom-0 h-10 w-[2px] bg-indigo-500/10 group-last:hidden" />
     </div>
   );
 }
@@ -166,6 +168,13 @@ export default function FunnelBuilderDesk() {
   const [funnels, setFunnels] = useState<Funnel[]>([]);
   const [selectedFunnel, setSelectedFunnel] = useState<Funnel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [newFunnelOpen, setNewFunnelOpen] = useState(false);
+  const [newFunnelName, setNewFunnelName] = useState("");
+  
+  // Step editing state
+  const [editStepOpen, setEditStepOpen] = useState(false);
+  const [editingStep, setEditingStep] = useState<FunnelStep | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -174,23 +183,108 @@ export default function FunnelBuilderDesk() {
     })
   );
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isManual = false) => {
     try {
+      if (isManual) setRefreshing(true);
+      else setLoading(true);
       const f = await marketingService.listFunnels(session.tenant_id, session);
       setFunnels(f as any);
       if (f.length > 0 && !selectedFunnel) {
          setSelectedFunnel(f[0] as any);
       }
+      if (isManual) toast.success("Orchestration registry synchronized.");
     } catch (err) {
       console.error("Failed to fetch funnels:", err);
+      toast.error("Telemetry failure in funnel suite.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [session.tenant_id, selectedFunnel]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  const handleCreateFunnel = async () => {
+    if (!newFunnelName.trim()) {
+      toast.error("Designation required for initialization.");
+      return;
+    }
+    try {
+      setRefreshing(true);
+      const payload = {
+        name: newFunnelName,
+        status: "DRAFT",
+        steps: [
+          { id: `step-${Date.now()}`, name: "LANDING PROTOCOL", type: "landing", conversionRate: 100 }
+        ]
+      };
+      const created = await marketingService.createFunnel(session.tenant_id, session, payload);
+      setFunnels([...funnels, created]);
+      setSelectedFunnel(created);
+      setNewFunnelOpen(false);
+      setNewFunnelName("");
+      toast.success("Strategic Pathway Initialized", {
+        description: "New conversion topology is ready for orchestration."
+      });
+      refresh(true);
+    } catch (err) {
+      console.error("Failed to create funnel:", err);
+      toast.error("Orchestration initialization failure.");
+      setRefreshing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selectedFunnel) return;
+    try {
+      setRefreshing(true);
+      await marketingService.updateFunnel(session.tenant_id, session, selectedFunnel.id, selectedFunnel);
+      toast.success("Funnel Topology Synchronized", {
+        description: "All tactical nodes and variations are now live in the global matrix."
+      });
+      refresh(true);
+    } catch (err) {
+      console.error("Failed to save funnel:", err);
+      toast.error("Synchronization failure.");
+      setRefreshing(false);
+    }
+  };
+
+  const addStep = (type: FunnelStep["type"]) => {
+    if (!selectedFunnel) return;
+    const typeNames = { landing: "LANDING PROTOCOL", checkout: "TRANSACTION GATEWAY", upsell: "YIELD OPTIMIZER", thankyou: "CONVERSION SUCCESS" };
+    const newStep: FunnelStep = {
+      id: `step-${Date.now()}`,
+      name: typeNames[type],
+      type,
+      conversionRate: 100
+    };
+    setSelectedFunnel({
+      ...selectedFunnel,
+      steps: [...selectedFunnel.steps, newStep]
+    });
+    toast.success(`${type.toUpperCase()} Node Integrated`, {
+      description: "Added to tactical conversion topology."
+    });
+  };
+
+  const removeStep = (id: string) => {
+    if (!selectedFunnel) return;
+    const newSteps = selectedFunnel.steps.filter(s => s.id !== id);
+    setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
+    toast.warning("Strategic Node Decommissioned.");
+  };
+
+  const updateStep = () => {
+    if (!selectedFunnel || !editingStep) return;
+    const newSteps = selectedFunnel.steps.map(s => s.id === editingStep.id ? editingStep : s);
+    setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
+    setEditStepOpen(false);
+    setEditingStep(null);
+    toast.success("Node Parameters Aligned.");
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -202,195 +296,273 @@ export default function FunnelBuilderDesk() {
     }
   };
 
-  const removeStep = (id: string) => {
-    if (!selectedFunnel) return;
-    const newSteps = selectedFunnel.steps.filter(s => s.id !== id);
-    setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
-  };
-
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-muted-foreground">Loading funnel orchestrator...</p>
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-6">
+          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+             <Layers className="h-10 w-10 text-white" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Booting Conversion Orchestrator...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Funnel Orchestrator</h1>
-          <p className="text-muted-foreground">Design multi-step conversion paths and A/B test variations.</p>
+    <div className="p-8 space-y-10 animate-in fade-in duration-1000 max-w-[1600px] mx-auto pb-24 h-screen overflow-hidden flex flex-col">
+      {/* Premium Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-end gap-6 shrink-0">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Flow Automation</Badge>
+            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+               <Activity className="h-4 w-4 animate-pulse" />
+               Orchestrator Online
+            </div>
+          </div>
+          <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent text-left">Funnel Builder</h1>
+          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic text-left">"Architect multi-dimensional conversion pathways with elite precision."</p>
         </div>
-        <div className="flex gap-2">
-           <Dialog>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+            <Dialog>
               <DialogTrigger asChild>
-                 <Button variant="outline"><Layers className="mr-2 h-4 w-4" /> Use Template</Button>
+                <Button variant="ghost" className="h-14 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-3 transition-all hover:bg-white dark:hover:bg-slate-800">
+                  <Layers className="h-5 w-5 text-indigo-600" /> ARCHIVE TEMPLATES
+                </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-4xl">
-                 <DialogHeader>
-                    <DialogTitle>Funnel Templates</DialogTitle>
-                    <CardDescription>Select a proven structure to jumpstart your conversion path.</CardDescription>
-                 </DialogHeader>
-                 <FunnelTemplates onSelect={(id) => {
-                    toast.success(`Template ${id} applied!`);
-                 }} />
+              <DialogContent className="max-w-4xl rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-slate-950">
+                 <div className="h-2 bg-indigo-600" />
+                 <div className="p-12 space-y-10">
+                    <DialogHeader>
+                       <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic">Strategic Topology Archive</DialogTitle>
+                       <DialogDescription className="text-base font-medium italic">Select a proven conversion architecture to initialize your strategic pathway.</DialogDescription>
+                    </DialogHeader>
+                    <FunnelTemplates onSelect={(id) => {
+                       toast.success(`Protocol ${id} Applied`, { description: "Topology has been updated with template nodes." });
+                    }} />
+                 </div>
               </DialogContent>
-           </Dialog>
-           <Button variant="outline"><Copy className="mr-2 h-4 w-4" /> Duplicate</Button>
-           <Button><Plus className="mr-2 h-4 w-4" /> New Funnel</Button>
+            </Dialog>
+            <Button
+              variant="secondary"
+              className="h-14 w-14 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              onClick={() => refresh(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={cn("h-6 w-6", refreshing && "animate-spin")} />
+            </Button>
+          </div>
+          <Button 
+            className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
+            onClick={() => setNewFunnelOpen(true)}
+          >
+            <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
+            INITIALIZE PATHWAY
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
-        {/* Left: Funnel List */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-4">
-           <Card className="flex-1 overflow-hidden flex flex-col">
-              <CardHeader className="pb-3 border-b">
-                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Funnels</CardTitle>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Filter className="h-4 w-4" /></Button>
-                 </div>
-              </CardHeader>
-              <ScrollArea className="flex-1">
-                 <div className="p-0">
-                    {funnels.map(f => (
-                       <button
-                         key={f.id}
-                         onClick={() => setSelectedFunnel(f)}
-                         className={cn(
-                           "w-full flex items-center gap-3 p-4 text-left transition-colors border-b last:border-0",
-                           selectedFunnel?.id === f.id ? "bg-muted" : "hover:bg-muted/50"
-                         )}
-                       >
-                          <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
-                             <Layers className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                             <p className="text-sm font-bold truncate">{f.name}</p>
-                             <div className="flex items-center gap-2 mt-0.5">
-                                <Badge variant="outline" className="text-[9px] py-0">{f.status}</Badge>
-                                <span className="text-[10px] text-muted-foreground font-medium">{f.steps?.length || 0} Steps</span>
-                             </div>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                       </button>
-                    ))}
-                 </div>
-              </ScrollArea>
-           </Card>
+      <div className="grid grid-cols-12 gap-10 flex-1 min-h-0">
+        {/* Left: Registry */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col gap-6 overflow-hidden">
+          <Card className="flex-1 rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden flex flex-col">
+            <CardHeader className="p-8 pb-4 border-b border-white/10 dark:border-slate-800/10">
+               <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">Path Registry</p>
+                  <Badge variant="outline" className="rounded-full font-black text-[9px] px-2 py-0 h-5 border-slate-200 dark:border-slate-800 text-slate-400 uppercase tracking-widest">{funnels.length} FLOWS</Badge>
+               </div>
+            </CardHeader>
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-2">
+                {funnels.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedFunnel(f)}
+                    className={cn(
+                      "w-full flex items-center gap-4 p-5 rounded-[1.5rem] text-left transition-all duration-300 group relative overflow-hidden",
+                      selectedFunnel?.id === f.id 
+                        ? "bg-white dark:bg-slate-800 shadow-xl shadow-indigo-500/10 translate-x-2" 
+                        : "hover:bg-white/50 dark:hover:bg-slate-800/50 hover:translate-x-1"
+                    )}
+                  >
+                    {selectedFunnel?.id === f.id && (
+                      <div className="absolute left-0 top-0 h-full w-1.5 bg-indigo-600" />
+                    )}
+                    <div className={cn(
+                      "h-12 w-12 rounded-xl flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform",
+                      selectedFunnel?.id === f.id ? "bg-indigo-600 text-white shadow-indigo-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                    )}>
+                       <Layers className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-sm font-black uppercase tracking-tight group-hover:text-indigo-600 transition-colors italic truncate">{f.name}</p>
+                      <div className="flex items-center gap-3">
+                         <Badge className="bg-slate-100 dark:bg-slate-800 text-[8px] font-black px-2 py-0 h-4 border-none text-slate-500 uppercase tracking-widest">{f.status}</Badge>
+                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{f.steps?.length || 0} NODES</span>
+                      </div>
+                    </div>
+                    <ChevronRight className={cn("h-4 w-4 transition-transform", selectedFunnel?.id === f.id ? "text-indigo-600 translate-x-1" : "text-slate-200")} />
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </Card>
         </div>
 
         {/* Center: Builder Canvas */}
-        <div className="col-span-12 lg:col-span-6 flex flex-col gap-4">
+        <div className="col-span-12 lg:col-span-6 flex flex-col gap-6 overflow-hidden">
            {selectedFunnel ? (
-              <div className="flex-1 flex flex-col gap-4">
-                 <Card className="shrink-0 border-primary/20 bg-primary/5">
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                           <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                              <Layout className="h-6 w-6" />
+              <div className="h-full flex flex-col gap-6">
+                 <Card className="shrink-0 rounded-[2.5rem] border-none bg-indigo-600 shadow-2xl p-1 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 h-64 w-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:scale-150 transition-transform duration-1000" />
+                    <CardContent className="p-8 flex items-center justify-between text-white relative z-10">
+                        <div className="flex items-center gap-6">
+                           <div className="h-16 w-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center shadow-xl border border-white/20">
+                              <Activity className="h-8 w-8 text-white" />
                            </div>
-                           <div>
-                              <h2 className="text-xl font-bold">{selectedFunnel.name}</h2>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                 <span className="flex items-center gap-1"><ExternalLink className="h-3 w-3" /> /f/launch-promo-2024</span>
-                                 <span className="flex items-center gap-1 text-green-500 font-bold"><CheckCircle2 className="h-3 w-3" /> Published</span>
+                           <div className="space-y-1">
+                              <h2 className="text-3xl font-black tracking-tighter uppercase italic">{selectedFunnel.name}</h2>
+                              <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-60">
+                                 <span className="flex items-center gap-2"><ExternalLink className="h-4 w-4" /> NODE /f/{selectedFunnel.id}</span>
+                                 <span className="flex items-center gap-2 text-emerald-300"><CheckCircle2 className="h-4 w-4" /> TOPOLOGY SECURE</span>
                               </div>
                            </div>
                         </div>
                         <div className="flex items-center gap-4">
-                           <div className="flex items-center gap-2 border-r pr-4">
-                              <Switch id="ab-global" />
-                              <Label htmlFor="ab-global" className="text-[10px] font-bold uppercase tracking-tight">A/B Mode</Label>
-                           </div>
-                           <Button size="sm" onClick={() => {
-                              if (selectedFunnel && selectedFunnel.steps.length > 0) {
-                                 const newSteps = [...selectedFunnel.steps];
-                                 newSteps[0] = { ...newSteps[0], isABTest: !newSteps[0].isABTest };
-                                 setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
-                                 toast.info(newSteps[0].isABTest ? "A/B testing enabled" : "A/B testing disabled");
-                              }
-                           }}>Save Changes</Button>
+                           <Button 
+                             className="bg-white text-indigo-600 hover:bg-slate-50 font-black rounded-2xl h-14 px-8 shadow-2xl text-[10px] uppercase tracking-widest gap-3"
+                             onClick={handleSave}
+                             disabled={refreshing}
+                           >
+                             {refreshing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+                             SYNC MATRIX
+                           </Button>
                         </div>
                     </CardContent>
                  </Card>
 
-                 <ScrollArea className="flex-1 pr-4">
-                    <div className="p-6 bg-muted/20 rounded-2xl border-2 border-dashed min-h-[400px]">
-                       <DndContext 
-                         sensors={sensors}
-                         collisionDetection={closestCenter}
-                         onDragEnd={handleDragEnd}
-                       >
-                         <SortableContext 
-                           items={selectedFunnel.steps.map(s => s.id)}
-                           strategy={verticalListSortingStrategy}
-                         >
-                            <div className="space-y-4">
-                               {selectedFunnel.steps.map((step, idx) => (
-                                 <SortableStep key={step.id} step={step} index={idx} onRemove={removeStep} />
-                               ))}
-                               <Button variant="outline" className="w-full border-dashed border-2 py-8 mt-4 flex flex-col gap-2 hover:bg-primary/5 hover:border-primary/20">
-                                  <Plus className="h-6 w-6 text-primary" />
-                                  <span className="font-bold text-xs uppercase tracking-widest">Add Funnel Step</span>
-                               </Button>
-                            </div>
-                         </SortableContext>
-                       </DndContext>
-                    </div>
-                 </ScrollArea>
+                 <Card className="flex-1 rounded-[4rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden relative">
+                    <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.07] pointer-events-none" 
+                         style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+                    <ScrollArea className="h-full">
+                       <div className="p-16 relative z-10">
+                          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={selectedFunnel.steps.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                               <div className="max-w-2xl mx-auto">
+                                  {selectedFunnel.steps.map((step, idx) => (
+                                    <SortableStep 
+                                     key={step.id} 
+                                     step={step} 
+                                     index={idx} 
+                                     onRemove={removeStep} 
+                                     onEdit={(s) => {
+                                       setEditingStep(s);
+                                       setEditStepOpen(true);
+                                     }}
+                                    />
+                                  ))}
+                                  
+                                  <div className="pt-4 flex justify-center">
+                                    <DropdownMenu>
+                                       <DropdownMenuTrigger asChild>
+                                         <Button variant="outline" className="w-full h-40 rounded-[3rem] border-4 border-dashed border-slate-200 dark:border-slate-800 bg-transparent flex flex-col gap-4 hover:bg-white dark:hover:bg-slate-900 hover:border-indigo-600 hover:text-indigo-600 transition-all group shadow-inner">
+                                            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-md">
+                                              <Plus className="h-8 w-8 group-hover:rotate-90 transition-transform duration-500" />
+                                            </div>
+                                            <span className="font-black text-[10px] uppercase tracking-[0.3em]">Integrate Strategic Node</span>
+                                         </Button>
+                                       </DropdownMenuTrigger>
+                                       <DropdownMenuContent className="w-72 rounded-[2rem] p-3 shadow-2xl border-none" align="center">
+                                          <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest opacity-50 px-3 py-2">Node Selection Protocol</DropdownMenuLabel>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem className="gap-4 py-4 rounded-2xl font-bold" onClick={() => addStep('landing')}><Layout className="h-5 w-5 text-blue-500" /> Landing Protocol</DropdownMenuItem>
+                                          <DropdownMenuItem className="gap-4 py-4 rounded-2xl font-bold" onClick={() => addStep('checkout')}><MousePointer2 className="h-5 w-5 text-emerald-500" /> Transaction Gateway</DropdownMenuItem>
+                                          <DropdownMenuItem className="gap-4 py-4 rounded-2xl font-bold" onClick={() => addStep('upsell')}><Zap className="h-5 w-5 text-amber-500" /> Yield Optimizer</DropdownMenuItem>
+                                          <DropdownMenuItem className="gap-4 py-4 rounded-2xl font-bold" onClick={() => addStep('thankyou')}><Target className="h-5 w-5 text-purple-500" /> Conversion Success</DropdownMenuItem>
+                                       </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                               </div>
+                            </SortableContext>
+                          </DndContext>
+                       </div>
+                    </ScrollArea>
+                 </Card>
               </div>
            ) : (
-              <div className="flex-1 flex items-center justify-center border-2 border-dashed rounded-2xl bg-muted/10">
-                 <div className="text-center">
-                    <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                       <Layers className="h-8 w-8 text-muted-foreground" />
+              <div className="h-full flex flex-col items-center justify-center rounded-[4rem] border-2 border-dashed border-white/20 dark:border-slate-800/20 bg-white/10 dark:bg-slate-900/10 grayscale opacity-30 space-y-10 animate-in zoom-in duration-1000">
+                 <div className="relative">
+                    <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse" />
+                    <div className="relative h-40 w-40 bg-white dark:bg-slate-800 rounded-[2.5rem] flex items-center justify-center shadow-2xl border border-white/10">
+                       <Layers className="h-20 w-20 text-indigo-600" />
                     </div>
-                    <h3 className="text-lg font-bold">Select a Funnel</h3>
-                    <p className="text-sm text-muted-foreground max-w-[300px] mx-auto mt-2">
-                       Pick a conversion funnel from the registry to edit its steps and monitor performance.
-                    </p>
                  </div>
+                 <div className="text-center space-y-4">
+                   <h3 className="text-4xl font-black uppercase tracking-tighter italic">Workspace Inactive</h3>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[350px] mx-auto leading-relaxed italic italic">Select a conversion pathway from the registry to authorize total intelligence synchronization.</p>
+                 </div>
+                 <Button 
+                   className="h-16 px-10 rounded-2xl bg-indigo-600 hover:bg-indigo-700 shadow-2xl font-black text-xs gap-3 group transition-all hover:scale-105 active:scale-95 text-white"
+                   onClick={() => setNewFunnelOpen(true)}
+                 >
+                   <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> INITIALIZE NEW PATHWAY
+                 </Button>
               </div>
            )}
         </div>
 
-        {/* Right: Insights & Stats */}
-        <div className="col-span-12 lg:col-span-3 flex flex-col gap-6">
-           <Card>
-              <CardHeader>
-                 <CardTitle className="text-sm font-bold uppercase tracking-wider">Funnel Performance</CardTitle>
-                 <CardDescription>Aggregate conversion data.</CardDescription>
+        {/* Right: Insights & Analytics */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col gap-10 overflow-hidden">
+           <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden flex flex-col">
+              <CardHeader className="p-8 pb-4 border-b border-white/10 dark:border-slate-800/10">
+                 <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                       <BarChart3 className="h-6 w-6 text-indigo-600" />
+                       Intelligence
+                    </CardTitle>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Live Yield</p>
+                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                 <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                       <span className="text-xs font-medium text-muted-foreground">Total Visitors</span>
-                       <span className="text-sm font-bold">12,482</span>
+              <CardContent className="p-8 space-y-10">
+                 <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2 p-5 rounded-[1.5rem] bg-white/50 dark:bg-slate-800/50 shadow-sm border border-white/10 group hover:shadow-md transition-all">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic leading-none block mb-1">Global Traffic</span>
+                       <p className="text-2xl font-black tracking-tighter group-hover:text-indigo-600 transition-colors">12.4k</p>
                     </div>
-                    <div className="flex justify-between items-center">
-                       <span className="text-xs font-medium text-muted-foreground">Total Conversions</span>
-                       <span className="text-sm font-bold text-green-500">842</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-2 border-t">
-                       <span className="text-xs font-bold uppercase">Net Yield</span>
-                       <span className="text-lg font-bold text-primary">6.74%</span>
+                    <div className="space-y-2 p-5 rounded-[1.5rem] bg-white/50 dark:bg-slate-800/50 shadow-sm border border-white/10 group hover:shadow-md transition-all">
+                       <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic leading-none block mb-1">Conversions</span>
+                       <p className="text-2xl font-black tracking-tighter text-indigo-600">842</p>
                     </div>
                  </div>
 
-                 <div className="space-y-4">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Drop-off Map</p>
-                    <div className="space-y-3">
+                 <div className="p-8 rounded-[2rem] bg-indigo-600 text-white shadow-2xl shadow-indigo-600/30 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 h-32 w-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
+                    <div className="relative z-10 flex justify-between items-center mb-4">
+                       <span className="text-[10px] font-black uppercase tracking-widest opacity-60 italic">Strategic ROI Yield</span>
+                       <TrendingUp className="h-5 w-5 text-emerald-300" />
+                    </div>
+                    <div className="relative z-10 flex items-baseline gap-3">
+                       <span className="text-5xl font-black tracking-tighter">6.74%</span>
+                       <Badge className="bg-emerald-500/20 text-emerald-300 border-none text-[9px] font-black h-5 px-2">+1.2%</Badge>
+                    </div>
+                 </div>
+
+                 <div className="space-y-8">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+                       <History className="h-4 w-4 text-indigo-600" /> Depletion Analysis
+                    </p>
+                    <div className="space-y-8">
                        {selectedFunnel?.steps.slice(0, -1).map((step, i) => (
-                          <div key={step.id} className="space-y-1">
-                             <div className="flex justify-between text-[10px] font-medium">
-                                <span>Step {i+1} → {i+2}</span>
-                                <span className="text-orange-500">-{100 - step.conversionRate}% loss</span>
+                          <div key={step.id} className="space-y-3 group/bar">
+                             <div className="flex justify-between text-[10px] font-black uppercase tracking-tight">
+                                <span className="text-slate-500 italic">NODE {i+1} → {i+2}</span>
+                                <span className="text-rose-500">-{100 - step.conversionRate}% DEPLETION</span>
                              </div>
-                             <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-orange-500/50" style={{ width: `${step.conversionRate}%` }} />
+                             <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner group-hover/bar:shadow-md transition-all">
+                                <div className="h-full bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${step.conversionRate}%` }} />
                              </div>
                           </div>
                        ))}
@@ -399,21 +571,112 @@ export default function FunnelBuilderDesk() {
               </CardContent>
            </Card>
 
-           <Card className="bg-primary/5 border-primary/10">
-              <CardHeader>
-                 <CardTitle className="text-xs font-bold uppercase text-primary flex items-center gap-2">
-                    <BarChart3 className="h-3 w-3" /> A/B Insights
-                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    "Variation B of the <strong>Landing Page</strong> is outperforming Variation A by <strong>+12.4%</strong> in mobile sessions. Consider switching traffic."
+           <Card className="rounded-[2.5rem] border-none shadow-2xl bg-indigo-900 text-white p-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-white/10 rounded-full blur-2xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
+              <div className="relative z-10 space-y-6">
+                 <div className="flex items-center gap-3">
+                    <Rocket className="h-5 w-5 text-amber-400 animate-bounce" />
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Neural Advisory</p>
+                 </div>
+                 <p className="text-xs font-medium italic italic leading-relaxed opacity-80">
+                    "Variation B of the <strong>Transaction Gateway</strong> is outperforming Variation A by <strong>+14.7%</strong> in mobile sessions. Action: Scale B traffic."
                  </p>
-                 <Button variant="link" className="text-[10px] h-auto p-0 mt-2">View Full Experiment Data</Button>
-              </CardContent>
+                 <Button variant="link" className="text-[9px] font-black uppercase tracking-widest h-auto p-0 text-amber-400 hover:text-white transition-colors">EXPAND ARCHIVE DATA</Button>
+              </div>
            </Card>
         </div>
       </div>
+
+      {/* Initialize Pathway Wizard */}
+      <Dialog open={newFunnelOpen} onOpenChange={setNewFunnelOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[3rem] border-none bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl">
+          <div className="h-2 bg-indigo-600" />
+          <div className="p-12 space-y-10">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                 <Badge className="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest">Protocol Delta</Badge>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pathway Initialization</p>
+              </div>
+              <DialogTitle className="text-4xl font-black tracking-tighter uppercase italic">Initialize Pipeline</DialogTitle>
+              <DialogDescription className="text-base font-medium italic italic">Define the strategic designation for your new conversion protocol.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="funnel-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Designation</Label>
+                <Input 
+                  id="funnel-name" 
+                  placeholder="E.G. Q4 ENTERPRISE GROWTH LINK" 
+                  value={newFunnelName}
+                  onChange={(e) => setNewFunnelName(e.target.value)}
+                  className="h-16 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                 className="w-full h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3"
+                 onClick={handleCreateFunnel}
+                 disabled={refreshing}
+              >
+                {refreshing ? <RefreshCw className="h-5 w-5 animate-spin" /> : <Box className="h-5 w-5" />}
+                EXECUTE INITIALIZATION
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Node Config Wizard */}
+      <Dialog open={editStepOpen} onOpenChange={setEditStepOpen}>
+        <DialogContent className="sm:max-w-[450px] rounded-[3rem] border-none bg-white dark:bg-slate-950 p-0 overflow-hidden shadow-2xl">
+          <div className="h-2 bg-indigo-600" />
+          <div className="p-10 space-y-8">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                 <Badge className="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest">Configuration</Badge>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Parameter Alignment</p>
+              </div>
+              <DialogTitle className="text-3xl font-black tracking-tighter">Node Settings</DialogTitle>
+              <DialogDescription className="text-sm font-medium italic italic">Modify the behavioral matrix for this strategic node.</DialogDescription>
+            </DialogHeader>
+            {editingStep && (
+              <div className="space-y-8 py-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Designation</Label>
+                  <Input 
+                    value={editingStep.name} 
+                    onChange={(e) => setEditingStep({...editingStep, name: e.target.value})}
+                    className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg uppercase"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Simulation Yield (%)</Label>
+                  <Input 
+                    type="number"
+                    value={editingStep.conversionRate} 
+                    onChange={(e) => setEditingStep({...editingStep, conversionRate: parseInt(e.target.value)})}
+                    className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg"
+                  />
+                </div>
+                <div className="flex items-center justify-between p-6 bg-indigo-600/5 dark:bg-indigo-900/10 rounded-[1.5rem] border border-indigo-600/10">
+                  <div className="space-y-1">
+                    <Label className="font-black text-xs uppercase tracking-widest">A/B Matrix</Label>
+                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Experimental Validation</p>
+                  </div>
+                  <Switch 
+                    checked={editingStep.isABTest} 
+                    onCheckedChange={(checked) => setEditingStep({...editingStep, isABTest: checked})} 
+                    className="data-[state=checked]:bg-indigo-600"
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-[10px] uppercase tracking-widest shadow-xl" onClick={updateStep}>AUTHORIZE CONFIG</Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
