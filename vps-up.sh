@@ -5,7 +5,12 @@
 
 echo "🚀 Starting Professional Deployment..."
 
-# 1. Start the containers
+# 1. Setup host environment
+echo "📁 Ensuring log directories exist and are writable..."
+mkdir -p logs
+chmod 777 logs
+
+# 2. Start the containers
 echo "📦 Building and starting containers..."
 docker compose up -d --build --remove-orphans
 

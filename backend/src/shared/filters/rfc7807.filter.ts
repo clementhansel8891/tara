@@ -22,7 +22,7 @@ export class Rfc7807ExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const logDir = path.join(process.cwd(), "logs");
+    const logDir = process.env.NODE_ENV === 'production' ? "/data/logs" : path.join(process.cwd(), "logs");
     if (!fs.existsSync(logDir)) {
       try {
         fs.mkdirSync(logDir, { recursive: true });

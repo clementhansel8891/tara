@@ -13,6 +13,8 @@ import {
 import { PageHeader } from "@/core/ui/PageHeader";
 import { PageShell } from "@/core/ui/PageShell";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/core/security/session";
 import { cn } from "@/lib/utils";
 import {

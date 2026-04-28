@@ -149,12 +149,12 @@ export default function Assets() {
     if (!currentSession?.tenantId) return;
 
     const [assetRows, capexRows, documentRows, budgetRows, depEntries, events] = await Promise.all([
-      financeApiClient.listAssets(currentsession.tenant_id, currentSession),
-      financeApiClient.listCapexRequests(currentsession.tenant_id, currentSession),
-      financeApiClient.listDocuments(currentsession.tenant_id, currentSession),
-      financeApiClient.listCapexBudgets(currentsession.tenant_id, currentSession),
-      financeApiClient.listAssetDepreciationEntries(currentsession.tenant_id, currentSession),
-      financeApiClient.listAssetEvents(currentsession.tenant_id, currentSession),
+      financeApiClient.listAssets(currentSession.tenant_id, currentSession),
+      financeApiClient.listCapexRequests(currentSession.tenant_id, currentSession),
+      financeApiClient.listDocuments(currentSession.tenant_id, currentSession),
+      financeApiClient.listCapexBudgets(currentSession.tenant_id, currentSession),
+      financeApiClient.listAssetDepreciationEntries(currentSession.tenant_id, currentSession),
+      financeApiClient.listAssetEvents(currentSession.tenant_id, currentSession),
     ]);
     setAssets(assetRows);
     setCapexRequests(capexRows);

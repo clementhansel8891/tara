@@ -67,7 +67,7 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
     volumes:
       - ./backups:/data/backups
-      - ./logs:/app/logs
+      - ./logs:/data/logs
     depends_on:
       db:
         condition: service_healthy

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
@@ -14,7 +15,7 @@ import type {
   InventoryIntegrationEvent,
   AgenticEvent,
 } from "@/core/types/inventory/inventory";
-import { BrainCircuit, Sparkles, TrendingUp } from "lucide-react";
+import { ActivitySquare, BrainCircuit, Sparkles, TrendingUp } from "lucide-react";
 
 export default function InventoryInsights() {
   const session = useSession();
