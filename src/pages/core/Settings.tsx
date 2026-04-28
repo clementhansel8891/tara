@@ -80,6 +80,14 @@ export default function CoreSettings() {
     currency: "USD"
   });
 
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const clearStatus = () => {
+    setStatusMessage(null);
+    setErrorMessage(null);
+  };
+
   useEffect(() => {
     async function init() {
       try {
@@ -108,8 +116,10 @@ export default function CoreSettings() {
       setChildCompanies([created, ...childCompanies]);
       setIsAddingChild(false);
       setNewChild({ name: "", industry: "retail", country: "US", currency: "USD" });
+      setStatusMessage(`Child company ${created.name} created successfully.`);
       toast({ title: "Success", description: `Child company ${created.name} created.` });
     } catch (err: any) {
+      setErrorMessage(err.message || "Failed to create child company.");
       toast({ title: "Error", description: err.message || "Failed to create child company.", variant: "destructive" });
     } finally {
       setSaving(false);
@@ -121,8 +131,10 @@ export default function CoreSettings() {
     setSaving(true);
     try {
       await orgSettingsService.updateProfile(session, profile);
+      setStatusMessage("Organization profile updated successfully.");
       toast({ title: "Success", description: "Organization profile updated." });
-    } catch (err) {
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to update profile.");
       toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
     } finally {
       setSaving(false);
@@ -134,8 +146,10 @@ export default function CoreSettings() {
     setSaving(true);
     try {
       await orgSettingsService.updatePreferences(session, preferences);
+      setStatusMessage("System preferences updated successfully.");
       toast({ title: "Success", description: "System preferences updated." });
-    } catch (err) {
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to update preferences.");
       toast({ title: "Error", description: "Failed to update preferences.", variant: "destructive" });
     } finally {
       setSaving(false);
@@ -194,6 +208,11 @@ export default function CoreSettings() {
         }
       >
         <div className="space-y-6">
+          <FeedbackAlert 
+            message={statusMessage} 
+            error={errorMessage} 
+            onClear={clearStatus} 
+          />
           <TabsContent value="general" className="space-y-6">
             <WorkspacePanel
               title="Organization profile"
