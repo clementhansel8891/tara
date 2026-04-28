@@ -25,11 +25,12 @@ export class AuthService {
 
   constructor(
     @Inject(IAuthRepository) private readonly authRepo: IAuthRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async register(dto: RegisterDto) {
+    // 1. Check if user exists (globally by email)
     const existing = await this.authRepo.findByEmail(this.systemCtx, dto.email);
-
     if (existing) {
       throw new ConflictException("Email already in use");
     }
@@ -37,16 +38,35 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(dto.password, salt);
 
-    const user = await this.authRepo.create(this.systemCtx, {
-      email: dto.email,
-      password_hash,
-      first_name: dto.first_name,
-      last_name: dto.last_name,
-      phone: dto.phone,
-    });
+    // 2. Auto-Provision Tenant and User in a transaction
+    return await this.prisma.$transaction(async (tx) => {
+      const newTenantId = `tnt-${Math.random().toString(36).substring(2, 8)}`;
+      
+      // Create the Tenant record first
+      await tx.tenants.create({
+        data: {
+          id: newTenantId,
+          name: `${dto.first_name}'s Organization`,
+          code: `ORG-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
+          status: 'active',
+        },
+      });
 
-    const { password_hash: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+      // Create the User record linked to the new Tenant
+      const user = await tx.users.create({
+        data: {
+          email: dto.email,
+          password_hash,
+          first_name: dto.first_name,
+          last_name: dto.last_name,
+          phone: dto.phone,
+          tenant_id: newTenantId,
+        },
+      });
+
+      const { password_hash: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
   }
 
   async login(dto: LoginDto) {

@@ -10,6 +10,20 @@ export class AuthDbRepository implements IAuthRepository {
   constructor(private prisma: PrismaService) {}
 
   async findByEmail(ctx: TenantContext, email: string): Promise<User | null> {
+    // If system context, search globally
+    if (ctx.tenant_id === 'system') {
+      return this.prisma.users.findUnique({
+        where: { email },
+        include: {
+          user_companies: {
+            include: {
+              companies: true,
+            },
+          },
+        },
+      }) as any;
+    }
+
     return this.prisma.users.findUnique({
       where: {
         tenant_id_email: {
