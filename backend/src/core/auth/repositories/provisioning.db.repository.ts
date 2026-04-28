@@ -116,6 +116,21 @@ export class ProvisioningDbRepository implements IProvisioningRepository {
         });
       }
 
+      // 4. Create a Default Store (Retail Branch)
+      await tx.stores.create({
+        data: {
+          id: uuidv4(),
+          tenant_id: data.tenant_id,
+          company_id: company.id,
+          location_id: location.id,
+          name: "Main Store",
+          code: "MAIN",
+          type: "physical",
+          status: "active",
+          updated_at: new Date(),
+        },
+      });
+
       return {
         tenant_id: data.tenant_id,
         company_name: company.name,
