@@ -17,7 +17,19 @@ import { cn } from "@/lib/utils";
 import {
   HandCoins,
   Users,
-  LayoutTemplate
+  LayoutTemplate,
+  LayoutGrid,
+  Banknote,
+  Wallet,
+  FileSpreadsheet,
+  FileText,
+  FileSignature,
+  BookOpen,
+  CreditCard,
+  Receipt,
+  Lock,
+  ShieldCheck,
+  BarChart3
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
