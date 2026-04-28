@@ -6,6 +6,8 @@ export class User {
   last_name: string;
   phone?: string;
   status: string;
+  tenant_id: string;
+  company_id?: string;
   created_at: Date;
   updated_at: Date;
   user_companies?: UserCompany[];

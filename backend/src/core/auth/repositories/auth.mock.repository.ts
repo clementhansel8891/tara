@@ -16,6 +16,7 @@ export class AuthMockRepository implements IAuthRepository {
       first_name: "Superadmin",
       last_name: "Zenvix",
       status: "active",
+      tenant_id: "global",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [
@@ -36,6 +37,7 @@ export class AuthMockRepository implements IAuthRepository {
       first_name: "Admin",
       last_name: "Zenvix",
       status: "active",
+      tenant_id: "global",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [
@@ -56,6 +58,7 @@ export class AuthMockRepository implements IAuthRepository {
       first_name: "Hansel",
       last_name: "Zenvix",
       status: "active",
+      tenant_id: "hansel-demo-tenant",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [
@@ -76,6 +79,7 @@ export class AuthMockRepository implements IAuthRepository {
       first_name: "Demo",
       last_name: "User",
       status: "active",
+      tenant_id: "tenant-a",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [
@@ -96,6 +100,7 @@ export class AuthMockRepository implements IAuthRepository {
       first_name: "Owner",
       last_name: "A",
       status: "active",
+      tenant_id: "tenant-a",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [
@@ -129,6 +134,7 @@ export class AuthMockRepository implements IAuthRepository {
       last_name: data.last_name,
       phone: data.phone,
       status: "active",
+      tenant_id: data.tenant_id || "global",
       created_at: new Date(),
       updated_at: new Date(),
       user_companies: [],
