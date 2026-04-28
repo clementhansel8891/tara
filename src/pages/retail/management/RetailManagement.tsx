@@ -26,6 +26,8 @@ import { CommandCenterSidebar } from "./components/command/CommandCenterSidebar"
 import { AIInsightEngine } from "./components/command/AIInsightEngine";
 import { ResourceHeatmap } from "./components/command/ResourceHeatmap";
 import { GlobalActivityFeed } from "./components/command/GlobalActivityFeed";
+import { RetailCustomerActivity } from "./RetailCustomerActivity";
+import { EcommerceAnalytics } from "./EcommerceAnalytics";
 
 export default function RetailManagement() {
   const session = useSession();
@@ -34,6 +36,7 @@ export default function RetailManagement() {
   const [channels, setChannels] = useState<RetailChannel[]>([]);
   const [inventoryStats, setInventoryStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("fleet");
 
   // RBAC: Only HOD, owner, superadmins and admins
   const isAuthorized = useMemo(() => {
@@ -138,7 +141,7 @@ export default function RetailManagement() {
             {/* Resource Heatmap Section */}
             <ResourceHeatmap stores={stores} />
 
-            {/* Performance Visualizer */}
+            {/* Performance Visualizer & Multi-Module Hub */}
             <Card className="rounded-[4rem] border-none shadow-2xl bg-white overflow-hidden group">
               <CardHeader className="p-12 border-b flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
@@ -147,48 +150,53 @@ export default function RetailManagement() {
                       <TrendingUp className="w-6 h-6" />
                     </div>
                     <CardTitle className="text-3xl font-black italic uppercase tracking-tighter">
-                      Fleet Revenue Matrix
+                      {activeTab === 'fleet' ? 'Fleet Revenue Matrix' : activeTab === 'customers' ? 'Customer Activity Terminal' : 'Ecommerce Intelligence Hub'}
                     </CardTitle>
                   </div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-14">
-                    Global multi-channel performance synchronization
+                    {activeTab === 'fleet' ? 'Global multi-channel performance synchronization' : activeTab === 'customers' ? 'Identity and engagement telemetry' : 'Real-time digital storefront analytics'}
                   </p>
                 </div>
                 <div className="flex gap-2 p-2 bg-slate-50 rounded-[1.5rem] self-start md:self-center">
                   {[
-                    "Intra-Day Telemetry",
-                    "7-Day Velocity",
-                    "Quarterly Consensus",
+                    { id: "fleet", label: "Fleet Matrix" },
+                    { id: "customers", label: "Customer Activity" },
+                    { id: "analytics", label: "Ecommerce Analytics" },
                   ].map((tab) => (
-                    <Button disabled title="Not available yet"
-                      key={tab}
+                    <Button
+                      key={tab.id}
                       variant="ghost"
                       size="sm"
+                      onClick={() => setActiveTab(tab.id)}
                       className={
-                        tab === "Intra-Day Telemetry"
+                        activeTab === tab.id
                           ? "bg-white shadow-md font-black italic text-[11px] uppercase h-11 px-8 rounded-xl ring-1 ring-slate-200"
                           : "font-black italic text-[11px] uppercase h-11 px-8 text-slate-400 hover:text-slate-900"
                       }
                     >
-                      {tab}
+                      {tab.label}
                     </Button>
                   ))}
                 </div>
               </CardHeader>
               <CardContent className="p-12">
-                <div className="h-[500px] bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-6 group-hover:bg-slate-50 transition-colors">
-                  <div className="p-8 rounded-[2rem] bg-white border shadow-sm group-hover:scale-110 transition-transform duration-700">
-                    <History className="w-12 h-12 text-blue-600 animate-pulse" />
+                {activeTab === 'fleet' && (
+                  <div className="h-[500px] bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center space-y-6 group-hover:bg-slate-50 transition-colors">
+                    <div className="p-8 rounded-[2rem] bg-white border shadow-sm group-hover:scale-110 transition-transform duration-700">
+                      <History className="w-12 h-12 text-blue-600 animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
+                        Visualizing Data Stream
+                      </p>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                        [Awaiting high-fidelity telemetry sync...]
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
-                      Visualizing Data Stream
-                    </p>
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                      [Awaiting high-fidelity telemetry sync...]
-                    </p>
-                  </div>
-                </div>
+                )}
+                {activeTab === 'customers' && <RetailCustomerActivity />}
+                {activeTab === 'analytics' && <EcommerceAnalytics />}
               </CardContent>
             </Card>
           </div>

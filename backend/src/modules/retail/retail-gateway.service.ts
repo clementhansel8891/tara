@@ -21,6 +21,8 @@ import {
 import { createHash, randomBytes } from "crypto";
 import * as bcrypt from "bcryptjs";
 import * as jwt from "jsonwebtoken";
+import { ChatService } from "../../shared/comms/chat.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 const AUTH_JWT_SECRET =
   process.env.RETAIL_AUTH_JWT_SECRET ||
@@ -44,6 +46,8 @@ export class RetailGatewayService {
   constructor(
     private readonly retailService: RetailService,
     private readonly prisma: PrismaService,
+    private readonly chatService: ChatService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // --- Products ---
@@ -179,6 +183,9 @@ export class RetailGatewayService {
     });
 
     const tokens = await this.issueTokens(customer, scope);
+    
+    this.eventEmitter.emit('retail.customer.created', { ctx, customer });
+
     return {
       customer: this.mapToPublicCustomer(customer),
       ...tokens,
@@ -501,6 +508,21 @@ export class RetailGatewayService {
     return this.mapToPublicCustomer(customer);
   }
 
+  async getCustomerOrders(
+    ctx: TenantContext,
+    clientId: string | undefined,
+    clientSecret: string | undefined,
+    customer_id: string,
+  ) {
+    const channel = await this.authenticateChannel(ctx, clientId, clientSecret);
+    const orders = await this.retailService.listOrders(ctx, {
+      customer_id,
+      ecommerce_id: channel.id,
+    });
+
+    return orders.map((o) => this.mapOrderResponse(o));
+  }
+
   // --- Events ---
 
   async logEvent(
@@ -685,6 +707,79 @@ export class RetailGatewayService {
         product_id: item.product_id,
         sku: item.product?.sku,
         name: item.product?.name,
+      })),
+    };
+  }
+
+  async processExternalChat(
+    ctx: TenantContext,
+    clientId: string,
+    clientSecret: string,
+    payload: {
+      from_phone: string;
+      body: string;
+      external_id?: string;
+      customer_id?: string;
+    },
+  ) {
+    await this.authenticateChannel(ctx, clientId, clientSecret);
+
+    // 1. Identify or register customer by phone
+    let customer = await this.retailService.getCustomerByPhone(ctx, payload.from_phone);
+    if (!customer && payload.customer_id) {
+      customer = await this.retailService.getCustomerById(ctx, payload.customer_id);
+    }
+
+    if (!customer) {
+      console.warn(`[Chat Bridge] Unknown sender ${payload.from_phone}. Ignoring...`);
+      return { success: false, error: "Customer not found" };
+    }
+
+    // 2. Resolve or create chat room for this customer
+    // We assume a system user "RETAIL_ADMIN" exists or we map to a specific bot
+    const room = await this.chatService.createRoom({
+      tenant_id: ctx.tenant_id,
+      createdBy: "SYSTEM_GATEWAY",
+      type: "DIRECT",
+      memberUserIds: [customer.id, "RETAIL_ADMIN"],
+    });
+
+    // 3. Forward message to internal chat service
+    const result = await this.chatService.sendMessage({
+      tenant_id: ctx.tenant_id,
+      roomId: room.id,
+      senderId: customer.id,
+      body: payload.body,
+      type: "whatsapp",
+      refModule: "retail",
+      refEntityId: customer.id,
+    });
+
+    this.eventEmitter.emit('retail.chat.initiated', { 
+      ctx, 
+      customerId: customer.id, 
+      context: { source: 'whatsapp_bridge', external_id: payload.external_id } 
+    });
+
+    return result;
+  }
+
+  private mapOrderResponse(order: any) {
+    return {
+      id: order.id,
+      status: order.status,
+      total: Number(order.grand_total),
+      subtotal: Number(order.subtotal),
+      tax: Number(order.tax_total || 0),
+      payment_method: order.payment_method,
+      created_at: order.created_at,
+      items: order.items.map((item: any) => ({
+        product_id: item.product_id,
+        sku: item.sku,
+        name: item.name,
+        quantity: Number(item.quantity),
+        unit_price: Number(item.unit_price),
+        total_price: Number(item.total_price),
       })),
     };
   }

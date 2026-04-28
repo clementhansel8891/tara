@@ -66,6 +66,8 @@ export interface FinanceMoneySourceRow {
   pendingSettlement?: Prisma.Decimal;
   provider?: string | null;
   lastUpdated?: string;
+  minLimit?: Prisma.Decimal;
+  maxLimit?: Prisma.Decimal;
 }
 
 export interface TreasuryTransfer {

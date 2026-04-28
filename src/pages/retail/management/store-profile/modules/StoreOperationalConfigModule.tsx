@@ -215,6 +215,57 @@ export const StoreOperationalConfigModule: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Taxation & Fiscal Policy */}
+        <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm md:col-span-2">
+          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+            <ShieldAlert className="w-4 h-4 text-rose-500" /> Taxation & Fiscal Policy
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Default POS Sales Tax Rate (%)
+              </Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={config.tax_rate ?? 11}
+                  disabled={!canEditStore}
+                  onChange={(e) =>
+                    handleUpdate({
+                      tax_rate: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="font-mono border-slate-200 pr-10"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+              </div>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+                Standard rate applied to all POS transactions unless overridden
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold text-slate-700">
+                  Tax Inclusive Pricing
+                </Label>
+                <p className="text-xs text-slate-500">
+                  Shelf prices already include VAT/Sales Tax
+                </p>
+              </div>
+              <Switch
+                checked={config.tax_inclusive ?? false}
+                disabled={!canEditStore}
+                onCheckedChange={(checked) =>
+                  handleUpdate({ tax_inclusive: checked })
+                }
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

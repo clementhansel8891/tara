@@ -10,8 +10,12 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // POS Components
 import { ScannerSearchHeader } from "./pos/ScannerSearchHeader";
@@ -24,9 +28,10 @@ import { paymentService } from "@/core/services/payment/paymentService";
 interface CartItem {
   id: string;
   name: string;
-  sku: string;
   price: number;
   quantity: number;
+  taxRate?: number;
+  discount?: number;
 }
 
 const CashierPOS = () => {
@@ -58,6 +63,14 @@ const CashierPOS = () => {
   const [activePaymentModal, setActivePaymentModal] = useState<
     "none" | "cash" | "electronic"
   >("none");
+  const [isModifierModalOpen, setIsModifierModalOpen] = useState(false);
+  const [cartTaxRate, setCartTaxRate] = useState(0);
+  const [cartDiscount, setCartDiscount] = useState(0);
+  const [modifierTax, setModifierTax] = useState("0");
+  const [modifierDiscount, setModifierDiscount] = useState("0");
+  const [modifierReason, setModifierReason] = useState("");
+  const [cartNotes, setCartNotes] = useState("");
+
   const PAGE_SIZE = 20;
 
   const toastRef = React.useRef(toast);
@@ -138,6 +151,12 @@ const CashierPOS = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCategory]);
 
+  useEffect(() => {
+    if (activeStore?.operationalConfig?.tax_rate !== undefined) {
+      setCartTaxRate(activeStore.operationalConfig.tax_rate / 100);
+    }
+  }, [activeStore]);
+
   const addToCart = React.useCallback((product: RetailProduct) => {
     setSelectedItemId(product.id);
     setCart((prev) => {
@@ -157,6 +176,8 @@ const CashierPOS = () => {
           sku: product.sku,
           price: product.price,
           quantity: 1,
+          taxRate: product.taxRate || 0,
+          discount: 0,
         },
       ];
     });
@@ -219,10 +240,23 @@ const CashierPOS = () => {
     setActivePaymentModal(method === "card" ? "electronic" : "cash");
   };
 
-  const finalizeTransaction = async (
-    method: "CASH" | "CARD" | "QRIS" | "WALLET",
+  // Calculate Totals dynamically
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalItemDiscount = cart.reduce((sum, item) => sum + (item.discount || 0) * item.quantity, 0);
+  const effectiveSubtotal = Math.max(0, subtotal - totalItemDiscount - cartDiscount);
+  const tax = cartTaxRate > 0 
+    ? effectiveSubtotal * (cartTaxRate / 100) 
+    : cart.reduce((sum, item) => {
+        const itemSub = (item.price - (item.discount || 0)) * item.quantity;
+        return sum + (itemSub * (item.taxRate || 0));
+      }, 0);
+  const grandTotal = effectiveSubtotal + tax;
+
+  const performCheckout = async (
     receivedAmount?: number,
     channel?: string,
+    notes?: string,
+    overrideReason?: string,
   ) => {
     if (cart.length === 0 || !session.tenant_id) return;
 
@@ -237,12 +271,6 @@ const CashierPOS = () => {
 
     setIsProcessing(true);
     try {
-      const subtotal = cart.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      );
-      const totalAmount = subtotal * 1.11; // subtotal + 11% tax
-
       const paymentMethodMap: Record<
         string,
         "cash" | "card" | "qr" | "wallet"
@@ -252,6 +280,10 @@ const CashierPOS = () => {
         QRIS: "qr",
         WALLET: "wallet",
       };
+
+      const finalNotes = overrideReason 
+        ? `${notes || ""}\n[COMPLIANCE OVERRIDE REASON]: ${overrideReason}`
+        : notes;
 
       // Atomic Backend Checkout with Idempotency
       const order = await retailService.checkout(
@@ -265,17 +297,22 @@ const CashierPOS = () => {
             name: item.name,
             quantity: item.quantity,
             unit_price: item.price,
+            discount: item.discount,
+            taxRate: item.taxRate,
           })),
           payment_method: paymentMethodMap[method] || "cash",
-          payment_received: receivedAmount || totalAmount,
-          grand_total: totalAmount,
+          payment_received: receivedAmount || grandTotal,
+          grand_total: grandTotal,
           shift_id: activeShift?.id || undefined,
           payment_channel: channel,
+          notes: finalNotes,
         },
         idempotencyKey,
       );
 
       setCart([]);
+      setCartNotes("");
+      setModifierReason("");
       setActivePaymentModal("none");
       // Generate new key for the next unique transaction
       setIdempotencyKey(
@@ -511,27 +548,84 @@ const CashierPOS = () => {
             activeStoreName={activeStore?.name}
             selectedItemId={selectedItemId}
             onSelectItem={setSelectedItemId}
+            cartTaxRate={cartTaxRate}
+            cartDiscount={cartDiscount}
+            onOpenModifiers={() => {
+              setModifierTax(cartTaxRate.toString());
+              setModifierDiscount(cartDiscount.toString());
+              setModifierReason("");
+              setIsModifierModalOpen(true);
+            }}
+            totals={{ subtotal, totalItemDiscount, cartDiscount, tax, grandTotal }}
           />
         </div>
       </div>
 
-      {/* Payment Modals */}
       <CashPaymentModal
         isOpen={activePaymentModal === "cash"}
         onClose={() => setActivePaymentModal("none")}
-        total={cart.reduce((s, i) => s + i.price * i.quantity, 0) * 1.11}
-        onConfirm={(received) => finalizeTransaction("CASH", received)}
+        total={grandTotal}
+        onConfirm={(received, notes) => finalizeTransaction("CASH", received, undefined, notes, modifierReason)}
       />
 
       <ElectronicPaymentModal
         isOpen={activePaymentModal === "electronic"}
         onClose={() => setActivePaymentModal("none")}
-        total={cart.reduce((s, i) => s + i.price * i.quantity, 0) * 1.11}
+        total={grandTotal}
         isProcessing={isProcessing}
-        onConfirm={(method, channel) =>
-          finalizeTransaction(method, undefined, channel)
+        onConfirm={(method, channel, notes) =>
+          finalizeTransaction(method, undefined, channel, notes, modifierReason)
         }
       />
+
+      <Dialog open={isModifierModalOpen} onOpenChange={setIsModifierModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border-none shadow-2xl bg-slate-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-black italic tracking-tighter uppercase text-rose-600">
+              <AlertTriangle className="w-6 h-6" /> Adjust Tax & Discount
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl text-rose-600 text-[10px] font-black uppercase tracking-widest shadow-sm">
+              Warning: Modifying the cart tax or discount requires compliance logging and will notify the manager.
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Cart Tax Override (%)</label>
+                <Input type="number" value={modifierTax} onChange={e => setModifierTax(e.target.value)} className="h-12 rounded-xl border-slate-200 font-black italic bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Cart Discount (Rp)</label>
+                <Input type="number" value={modifierDiscount} onChange={e => setModifierDiscount(e.target.value)} className="h-12 rounded-xl border-slate-200 font-black italic bg-white" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Reason for Override (Mandatory)</label>
+                <textarea 
+                  value={modifierReason} 
+                  onChange={e => setModifierReason(e.target.value)} 
+                  className="w-full h-24 p-3 rounded-xl border border-slate-200 font-medium text-sm bg-white focus:ring-2 focus:ring-rose-500 outline-none"
+                  placeholder="Explain why these adjustments are being made..."
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" className="flex-1 h-12 rounded-xl font-bold uppercase tracking-wider text-xs border-slate-200" onClick={() => setIsModifierModalOpen(false)}>Cancel</Button>
+            <Button 
+              className="flex-1 h-12 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black italic uppercase tracking-wider text-xs shadow-lg shadow-rose-600/20 disabled:opacity-50" 
+              disabled={!modifierReason.trim()}
+              onClick={() => {
+                setCartTaxRate(Number(modifierTax));
+                setCartDiscount(Number(modifierDiscount));
+                setIsModifierModalOpen(false);
+                toast({ title: "Modifiers Updated", description: "Tax and discount applied. Logged to compliance." });
+              }}
+            >
+              Confirm Override
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

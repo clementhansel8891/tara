@@ -134,6 +134,7 @@ export class RetailMockRepository implements IRetailRepository {
   }
 
   async listInventoryPools(ctx: TenantContext): Promise<any[]> { return []; }
+  async listCustomers(ctx: TenantContext, options?: { ecommerce_id?: string; q?: string }): Promise<any[]> { return []; }
   async createInventoryPool(ctx: TenantContext, data: CreateInventoryPoolDto): Promise<any> { return {}; }
   async getInventoryPool(ctx: TenantContext, poolId: string): Promise<any | null> { return null; }
   async deleteInventoryPool(ctx: TenantContext, poolId: string): Promise<void> {}
@@ -166,7 +167,7 @@ export class RetailMockRepository implements IRetailRepository {
     return { sku: "SKU-" + uuidv4().slice(0, 8), barcode: "BC-" + uuidv4().slice(0, 8) };
   }
 
-  async listOrders(ctx: TenantContext, store_id?: string): Promise<RetailOrder[]> {
+  async listOrders(ctx: TenantContext, options?: { store_id?: string; customer_id?: string; status?: string }): Promise<RetailOrder[]> {
     return this.orders.filter(o => o.tenant_id === ctx.tenant_id);
   }
 
@@ -283,7 +284,8 @@ export class RetailMockRepository implements IRetailRepository {
   async receiveGoods(ctx: TenantContext, data: any): Promise<any> { return { success: true }; }
 
   async findCustomerByEmail(ctx: TenantContext, email: string): Promise<any | null> { return null; }
-  async findCustomerById(ctx: TenantContext, customer_id: string): Promise<any | null> { return null; }
+  async getCustomerById(ctx: TenantContext, customer_id: string): Promise<any | null> { return null; }
+  async getCustomerByPhone(ctx: TenantContext, phone: string): Promise<any | null> { return null; }
   async createCustomer(ctx: TenantContext, data: any): Promise<any> { return {}; }
   async updateCustomer(ctx: TenantContext, customer_id: string, data: any): Promise<any> { return {}; }
   async createCustomerSession(ctx: TenantContext, data: any): Promise<any> { return {}; }

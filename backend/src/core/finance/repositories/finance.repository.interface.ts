@@ -62,6 +62,12 @@ export abstract class IFinanceRepository {
 
   // Money Sources
   abstract listMoneySources(ctx: TenantContext): Promise<FinanceMoneySourceRow[]>;
+  abstract updateMoneySource(
+    ctx: TenantContext,
+    id: string,
+    updates: Partial<FinanceMoneySourceRow>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<FinanceMoneySourceRow>;
 
   // Treasury
   abstract listTransfers(ctx: TenantContext): Promise<TreasuryTransfer[]>;

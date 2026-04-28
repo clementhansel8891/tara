@@ -69,7 +69,7 @@ const RefundReturnDesk = () => {
       const orders = await retailService.listOrders(
         session.tenant_id!,
         session,
-        session.location_id,
+        { store_id: session.location_id },
       );
       const order = orders.find(
         (o) => o.id === ticketId || o.id.includes(ticketId),

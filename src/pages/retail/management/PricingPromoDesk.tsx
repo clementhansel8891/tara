@@ -31,6 +31,7 @@ import { ApprovalMatrix } from "./pricing-promo-desk/components/ApprovalMatrix";
 import { AuditTrailModal } from "./pricing-promo-desk/components/AuditTrailModal";
 import { BufferCollisionSensor } from "./pricing-promo-desk/components/BufferCollisionSensor";
 import { useGovernance } from "./pricing-promo-desk/hooks/useGovernance";
+import { CreatePromoModal } from "./pricing-promo-desk/components/CreatePromoModal";
 
 const PricingPromoDesk = () => {
   const session = useSession();
@@ -42,6 +43,7 @@ const PricingPromoDesk = () => {
 
   // Modals state
   const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Initialize the Governance Engine
   const {
@@ -134,7 +136,10 @@ const PricingPromoDesk = () => {
           >
             <FileText className="w-4 h-4 text-blue-600" /> View Immutable Ledger
           </Button>
-          <Button disabled title="Not available yet" className="h-11 px-6 rounded-xl bg-slate-900 font-black italic uppercase text-xs tracking-widest gap-2">
+          <Button 
+            className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg transition-all active:scale-95"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
             <Plus className="w-4 h-4" /> Issue Proposal
           </Button>
         </div>
@@ -411,6 +416,15 @@ const PricingPromoDesk = () => {
         onClose={() => setIsAuditModalOpen(false)}
         auditLog={auditLog}
         promoTitle={focusedPromo?.title || "Unknown Campaign"}
+      />
+
+      <CreatePromoModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={(newPromo) => {
+          setPromotions(prev => [newPromo, ...prev]);
+          setFocusedPromoId(newPromo.id);
+        }}
       />
     </div>
   );

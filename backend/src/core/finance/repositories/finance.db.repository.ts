@@ -389,9 +389,11 @@ export class FinanceDbRepository extends IFinanceRepository {
       type: s.type,
       currency: s.currency,
       balance: s.balance,
-      pendingSettlement: s.pendingSettlement || new Prisma.Decimal(0),
+      pendingSettlement: s.pending_settlement || new Prisma.Decimal(0),
       provider: s.provider,
-      lastUpdated: s.lastUpdated.toISOString(),
+      lastUpdated: s.last_updated.toISOString(),
+      minLimit: s.min_limit ?? undefined,
+      maxLimit: s.max_limit ?? undefined,
     }));
 
     // Industry Module Integration: Aggregate cash from open Retail shifts
@@ -416,6 +418,8 @@ export class FinanceDbRepository extends IFinanceRepository {
           pendingSettlement: new Prisma.Decimal(0),
           provider: "Retail Module",
           lastUpdated: new Date().toISOString(),
+          minLimit: undefined,
+          maxLimit: undefined,
         });
       }
     } catch {
@@ -423,6 +427,38 @@ export class FinanceDbRepository extends IFinanceRepository {
     }
 
     return rows;
+  }
+
+  async updateMoneySource(
+    ctx: TenantContext,
+    id: string,
+    updates: Partial<FinanceMoneySourceRow>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<FinanceMoneySourceRow> {
+    const db = tx ?? this.prisma;
+    const data: any = {};
+    if (updates.name !== undefined) data.name = updates.name;
+    if (updates.balance !== undefined) data.balance = updates.balance;
+    if (updates.minLimit !== undefined) data.min_limit = updates.minLimit;
+    if (updates.maxLimit !== undefined) data.max_limit = updates.maxLimit;
+    
+    const updated = await db.money_sources.update({
+      where: { id, tenant_id: ctx.tenant_id },
+      data,
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      type: updated.type,
+      currency: updated.currency,
+      balance: updated.balance,
+      pendingSettlement: updated.pending_settlement || new Prisma.Decimal(0),
+      provider: updated.provider,
+      lastUpdated: updated.last_updated.toISOString(),
+      minLimit: updated.min_limit ?? undefined,
+      maxLimit: updated.max_limit ?? undefined,
+    };
   }
 
   // Treasury Transfers

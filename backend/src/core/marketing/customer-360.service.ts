@@ -20,7 +20,9 @@ export class Customer360Service {
         messages: { orderBy: { sent_at: "desc" }, take: 20 },
         appointments: { orderBy: { scheduled_at: "desc" }, take: 10 },
         marketing_leads: true,
-        retail_customers: true,
+        retail_customers: {
+          include: { retail_orders: { orderBy: { created_at: "desc" }, take: 5 } }
+        },
         sales_leads: true,
       },
     });
@@ -71,6 +73,19 @@ export class Customer360Service {
         source: l.source,
         timestamp: l.created_at,
         detail: `Captured from ${l.source}`,
+      });
+    });
+
+    // Add retail orders
+    (contact.retail_customers || []).forEach((rc: any) => {
+      (rc.retail_orders || []).forEach((o: any) => {
+        events.push({
+          id: o.id,
+          type: "PURCHASE",
+          timestamp: o.created_at,
+          detail: `Retail Order ${o.id.slice(0, 8)} - ${o.grand_total} ${o.currency}`,
+          status: o.status,
+        });
       });
     });
 

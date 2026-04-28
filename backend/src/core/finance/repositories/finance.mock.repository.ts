@@ -721,5 +721,15 @@ export class FinanceMockRepository extends IFinanceRepository {
       children: [],
     };
   }
+  async updateMoneySource(
+    ctx: TenantContext,
+    id: string,
+    updates: Partial<FinanceMoneySourceRow>,
+    tx?: Prisma.TransactionClient,
+  ): Promise<FinanceMoneySourceRow> {
+    const idx = this.moneySources.findIndex((s) => s.id === id);
+    if (idx === -1) throw new Error("Money source not found");
+    this.moneySources[idx] = { ...this.moneySources[idx], ...updates };
+    return this.moneySources[idx];
+  }
 }
-

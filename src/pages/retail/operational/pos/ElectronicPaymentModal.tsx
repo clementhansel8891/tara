@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CreditCard,
   QrCode,
@@ -20,7 +21,7 @@ interface ElectronicPaymentModalProps {
   onClose: () => void;
   total: number;
   isProcessing: boolean;
-  onConfirm: (method: "CARD" | "QRIS" | "WALLET", channel?: string) => void;
+  onConfirm: (method: "CARD" | "QRIS" | "WALLET", channel?: string, notes?: string) => void;
 }
 
 export const ElectronicPaymentModal: React.FC<ElectronicPaymentModalProps> = ({
@@ -33,6 +34,7 @@ export const ElectronicPaymentModal: React.FC<ElectronicPaymentModalProps> = ({
   const [selectedMain, setSelectedMain] = useState<
     "CARD" | "QRIS" | "WALLET" | null
   >(null);
+  const [notes, setNotes] = useState("");
 
   const channels = {
     CARD: [
@@ -156,7 +158,7 @@ export const ElectronicPaymentModal: React.FC<ElectronicPaymentModalProps> = ({
                     <Button
                       key={ch.id}
                       variant="outline"
-                      onClick={() => onConfirm(selectedMain, ch.id)}
+                      onClick={() => onConfirm(selectedMain, ch.id, notes)}
                       disabled={isProcessing}
                       className="h-16 bg-white/5 border-white/10 hover:bg-white/10 hover:border-indigo-500/50 text-white rounded-2xl flex items-center justify-start px-6 gap-4"
                     >
@@ -174,6 +176,19 @@ export const ElectronicPaymentModal: React.FC<ElectronicPaymentModalProps> = ({
                   Please Select Payment Type
                 </div>
               )}
+            </div>
+
+            {/* TRANSACTION NOTES */}
+            <div className="flex flex-col gap-2 mt-4">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+                Transaction Notes
+              </span>
+              <Textarea 
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add optional notes for this order..."
+                className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl resize-none h-16 font-bold italic text-sm focus-visible:ring-indigo-500/50"
+              />
             </div>
           </div>
 

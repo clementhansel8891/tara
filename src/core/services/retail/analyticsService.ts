@@ -23,7 +23,7 @@ export class AnalyticsService {
   ): Promise<CommandCenterAnalytics> {
     const [invStats, orders, stores, channels] = await Promise.all([
       retailService.getInventoryStats(tenantId, context),
-      retailService.listOrders(tenantId, context, options.locationId),
+      retailService.listOrders(tenantId, context, { store_id: options.locationId }),
       retailService.listStores(tenantId, context),
       ecommerceHubService.listChannels(context),
     ]);

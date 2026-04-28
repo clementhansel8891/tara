@@ -410,6 +410,9 @@ export class RetailController {
   async listOrders(
     @Req() request: RequestWithTenant,
     @Query("store_id") store_id?: string,
+    @Query("customer_id") customer_id?: string,
+    @Query("ecommerce_id") ecommerce_id?: string,
+    @Query("status") status?: string,
   ) {
     const { tenant_id, role, location_id } = request.tenantContext;
 
@@ -418,11 +421,38 @@ export class RetailController {
         ? store_id
         : location_id;
 
-    const orders = await this.retailService.listOrders(
-      request.tenantContext,
-      effectivestore_id,
-    );
+    const orders = await this.retailService.listOrders(request.tenantContext, {
+      store_id: effectivestore_id,
+      customer_id,
+      ecommerce_id,
+      status,
+    });
     return this.respond(request.tenantContext, orders);
+  }
+
+  @Get("customers")
+  async listCustomers(
+    @Req() request: RequestWithTenant,
+    @Query("ecommerce_id") ecommerce_id?: string,
+    @Query("q") q?: string,
+  ) {
+    const customers = await this.retailService.listCustomers(request.tenantContext, {
+      ecommerce_id,
+      q,
+    });
+    return this.respond(request.tenantContext, customers);
+  }
+
+  @Get("analytics/ecommerce")
+  async getEcommerceAnalytics(
+    @Req() request: RequestWithTenant,
+    @Query("ecommerce_id") ecommerce_id?: string,
+  ) {
+    const analytics = await this.retailService.getEcommerceAnalytics(
+      request.tenantContext,
+      ecommerce_id,
+    );
+    return this.respond(request.tenantContext, analytics);
   }
 
   @Post("orders")

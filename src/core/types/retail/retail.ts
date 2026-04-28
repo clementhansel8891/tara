@@ -335,6 +335,7 @@ export interface RetailOrderItem {
   unitPrice: number;
   totalPrice: number;
   discount?: number;
+  taxRate?: number;
 }
 
 export interface RetailOrder extends HRAuditFields {
@@ -351,6 +352,7 @@ export interface RetailOrder extends HRAuditFields {
   totalAmount: number;
   paymentMethod?: "card" | "cash" | "qr" | "store_credit";
   paymentReference?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -427,6 +429,7 @@ export interface RetailShift extends HRAuditFields {
   expectedCash?: number;
   status: "open" | "closed";
   notes?: string;
+  closingNote?: string;
 }
 
 // ============================================================

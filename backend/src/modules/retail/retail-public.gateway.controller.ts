@@ -239,6 +239,21 @@ export class RetailPublicGatewayController {
 
   // --- Checkout ---
 
+  @Get("orders")
+  async getOrders(
+    @Req() request: RequestWithTenant,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
+  ) {
+    const auth = this.getCustomerAuth(request);
+    return this.gatewayService.getCustomerOrders(
+      request.tenantContext,
+      clientId,
+      clientSecret,
+      auth.sub,
+    );
+  }
+
   @Post("orders")
   async createOrder(
     @Req() request: RequestWithTenant,
@@ -252,6 +267,21 @@ export class RetailPublicGatewayController {
       clientId,
       clientSecret,
       payload,
+    );
+  }
+
+  @Post("chat/webhook")
+  async handleExternalChatWebhook(
+    @Req() request: RequestWithTenant,
+    @Headers("x-client-id") clientId: string,
+    @Headers("x-client-secret") clientSecret: string,
+    @Body() body: any,
+  ) {
+    return this.gatewayService.processExternalChat(
+      request.tenantContext,
+      clientId,
+      clientSecret,
+      body,
     );
   }
 

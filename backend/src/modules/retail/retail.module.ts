@@ -30,10 +30,12 @@ import { CustomerAuthGuard } from "./guards/customer-auth.guard";
 import { EcommerceConnectorGuard } from "./guards/ecommerce-connector.guard";
 import { AuditModule } from "../../shared/audit/audit.module";
 import { RetailSeeder } from "./seeders/retail.seeder";
+import { RetailCoreListener } from "./listeners/retail-core.listener";
 
 import { PersistenceModule } from "../../persistence/persistence.module";
 import { FinanceModule } from "../../core/finance/finance.module";
 import { PaymentModule } from "../../core/payment/payment.module";
+import { CommsModule } from "../../shared/comms/comms.module";
 
 @Module({
   imports: [
@@ -44,6 +46,7 @@ import { PaymentModule } from "../../core/payment/payment.module";
     PaymentModule,
     EventsModule,
     AuditModule,
+    CommsModule,
   ],
   controllers: [
     RetailController,
@@ -68,6 +71,7 @@ import { PaymentModule } from "../../core/payment/payment.module";
     RetailPrintService,
     RetailExportService,
     RetailSeeder,
+    RetailCoreListener,
     {
       provide: IRetailRepository,
       useClass: RetailDbRepository,

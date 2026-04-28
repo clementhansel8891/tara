@@ -323,4 +323,8 @@ export class SalesService {
   async getAuditEvents(ctx: TenantContext) {
     return this.repository.getAuditEvents(ctx);
   }
+
+  async recordConsolidatedSale(ctx: TenantContext, data: any) {
+    return this.repository.recordConsolidatedSale(ctx, data);
+  }
 }

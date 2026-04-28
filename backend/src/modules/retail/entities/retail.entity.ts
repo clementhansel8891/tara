@@ -9,6 +9,8 @@ export interface Storeoperational_config {
   payment_methods_allowed?: string[];
   refund_policy_mode?: "strict" | "flexible" | "manager_only";
   auto_close_shift_setting?: boolean;
+  tax_rate?: number;
+  tax_inclusive?: boolean;
 }
 
 export interface Storesupply_config {
@@ -212,6 +214,8 @@ export class RetailShift {
   reconciliation_reason?: string;
   status: "open" | "closed" | "reconciled";
   notes?: string;
+  closing_note?: string;
+  compliance_note?: string;
 }
 
 

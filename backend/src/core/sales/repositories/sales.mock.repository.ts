@@ -849,4 +849,9 @@ export class SalesMockRepository extends ISalesRepository {
       (this.now().getTime() - date.getTime()) / (1000 * 60 * 60),
     );
   }
+
+  async recordConsolidatedSale(ctx: TenantContext, data: any): Promise<void> {
+    // Mock implementation
+    console.log("Mock consolidated sale recorded", data);
+  }
 }

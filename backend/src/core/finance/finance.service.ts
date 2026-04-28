@@ -52,7 +52,27 @@ export class FinanceService {
     private readonly apiBankProvider: ModularApiBankProvider,
   ) {}
 
-  // ... (existing methods remain unchanged)
+  // Money Sources
+  async getMoneySources(ctx: TenantContext) {
+    return this.financeRepository.listMoneySources(ctx);
+  }
+
+  async updateMoneySource(ctx: TenantContext, id: string, updates: any) {
+    this.logger.log(`[FinanceService] Updating money source ${id} for tenant ${ctx.tenant_id}`);
+    const updated = await this.financeRepository.updateMoneySource(ctx, id, updates);
+    
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: 'SYSTEM', // Should be from context if available
+      module: 'FINANCE',
+      action: 'MONEY_SOURCE_UPDATED',
+      entity_type: 'MONEY_SOURCE',
+      entity_id: id,
+      metadata: updates
+    });
+
+    return updated;
+  }
 
   // Phase 5: Bank Reconciliation Orchestration
   async processBankStatement(

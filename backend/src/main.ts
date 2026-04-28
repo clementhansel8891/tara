@@ -70,7 +70,9 @@ async function bootstrap() {
       `[REQUEST] ${req.method} ${req.url} | Origin: ${req.headers.origin}`,
     );
 
-    res.header("Access-Control-Allow-Origin", "*");
+    const origin = req.headers.origin || "*";
+    res.header("Access-Control-Allow-Origin", origin);
+
     res.header(
       "Access-Control-Allow-Methods",
       "GET,POST,PUT,PATCH,DELETE,OPTIONS",

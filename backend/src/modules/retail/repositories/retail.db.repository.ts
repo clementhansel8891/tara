@@ -615,9 +615,12 @@ export class RetailDbRepository implements IRetailRepository {
     };
   }
 
-  async listOrders(ctx: TenantContext, store_id?: string): Promise<RetailOrder[]> {
+  async listOrders(ctx: TenantContext, options?: { store_id?: string; customer_id?: string; ecommerce_id?: string; status?: string }): Promise<RetailOrder[]> {
     const where: any = { tenant_id: ctx.tenant_id };
-    if (store_id) where.store_id = store_id;
+    if (options?.store_id) where.store_id = options.store_id;
+    if (options?.customer_id) where.customer_id = options.customer_id;
+    if (options?.ecommerce_id) where.ecommerce_id = options.ecommerce_id;
+    if (options?.status) where.status = options.status;
 
     const orders = await this.prisma.retail_orders.findMany({
       where,
@@ -630,6 +633,27 @@ export class RetailDbRepository implements IRetailRepository {
     });
 
     return (orders as any).map((o: any) => this.mapOrder(o));
+  }
+
+  async listCustomers(ctx: TenantContext, options?: { ecommerce_id?: string; q?: string }): Promise<any[]> {
+    const where: any = { tenant_id: ctx.tenant_id };
+    if (options?.ecommerce_id) where.ecommerce_id = options.ecommerce_id;
+    if (options?.q) {
+      where.OR = [
+        { name: { contains: options.q, mode: 'insensitive' } },
+        { email: { contains: options.q, mode: 'insensitive' } },
+        { phone: { contains: options.q, mode: 'insensitive' } },
+      ];
+    }
+
+    return this.prisma.retail_customers.findMany({
+      where,
+      include: {
+        retail_carts: { include: { retail_cart_items: true } },
+        retail_wishlists: { include: { retail_wishlist_items: true } },
+      },
+      orderBy: { created_at: 'desc' },
+    });
   }
 
   async getOrder(ctx: TenantContext,
@@ -674,6 +698,7 @@ export class RetailDbRepository implements IRetailRepository {
           unit_price:  decimalPrice,
           total_price: itemSubtotal,
           discount: 0,
+          tax_rate: item.tax_rate ? new Prisma.Decimal(item.tax_rate) : undefined,
         };
       }),
     );
@@ -694,6 +719,7 @@ export class RetailDbRepository implements IRetailRepository {
         tax,
         total_amount: grand_total,
         payment_method: data.payment_method,
+        notes: data.notes,
         retail_order_items: { create: itemsData },
       } as any,
       include: {
@@ -974,6 +1000,8 @@ export class RetailDbRepository implements IRetailRepository {
         closing_cash: data.closing_cash,
         status: "closed",
         notes: data.notes,
+        closing_note: data.closing_note,
+        compliance_note: data.compliance_note,
       },
     });
     return this.mapShift(shift);
@@ -1714,6 +1742,7 @@ export class RetailDbRepository implements IRetailRepository {
           total_price: new Prisma.Decimal(itemSubtotal),
           unit_cost: new Prisma.Decimal(unitCost),
           discount: new Prisma.Decimal(0),
+          tax_rate: item.tax_rate ? new Prisma.Decimal(item.tax_rate) : undefined,
         });
 
         // 5. ATOMIC STOCK DEDUCTION (Race Condition Prevention)
@@ -1773,6 +1802,7 @@ export class RetailDbRepository implements IRetailRepository {
           tax: new Prisma.Decimal(Number(data.grand_total) - subtotal),
           total_amount: new Prisma.Decimal(Number(data.grand_total)),
           payment_method: data.payment_method,
+          notes: data.notes,
           retail_order_items: { create: itemsData },
         },
         include: {
@@ -2400,6 +2430,18 @@ export class RetailDbRepository implements IRetailRepository {
       created_at: p.created_at,
       updated_at: p.updated_at,
     };
+  }
+
+  async getCustomerById(ctx: TenantContext, id: string) {
+    return this.prisma.retail_customers.findUnique({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+    });
+  }
+
+  async getCustomerByPhone(ctx: TenantContext, phone: string) {
+    return this.prisma.retail_customers.findFirst({
+      where: { phone, ...MultiTenancyUtil.getScope(ctx) },
+    });
   }
 
   private mapOrder(o: any): RetailOrder {

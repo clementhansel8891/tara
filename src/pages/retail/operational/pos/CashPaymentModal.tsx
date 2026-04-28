@@ -7,13 +7,14 @@ import {
   DialogOverlay,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Banknote, Delete, CheckCircle2 } from "lucide-react";
 
 interface CashPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  onConfirm: (received: number) => void;
+  onConfirm: (received: number, notes: string) => void;
 }
 
 export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
@@ -23,6 +24,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   onConfirm,
 }) => {
   const [received, setReceived] = useState<string>("0");
+  const [notes, setNotes] = useState("");
 
   const receivedAmount = parseFloat(received) || 0;
   const change = Math.max(0, receivedAmount - total);
@@ -180,9 +182,22 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             </div>
           </div>
 
+          {/* TRANSACTION NOTES */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+              Transaction Notes
+            </span>
+            <Textarea 
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add optional notes for this order..."
+              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl resize-none h-16 font-bold italic text-sm focus-visible:ring-emerald-500/50"
+            />
+          </div>
+
           {/* CONFIRM BUTTON */}
           <Button
-            onClick={() => onConfirm(receivedAmount)}
+            onClick={() => onConfirm(receivedAmount, notes)}
             disabled={isInsufficient}
             className={`h-16 rounded-[1.25rem] flex items-center justify-center gap-3 transition-all active:scale-95 ${
               isInsufficient

@@ -251,6 +251,15 @@ export const financeService = {
     >("/finance/money-sources", "GET", session);
   },
 
+  async updateMoneySource(
+    tenantId: string,
+    id: string,
+    updates: any,
+    session: SessionContext,
+  ): Promise<any> {
+    return apiRequest<any>(`/finance/money-sources/${id}`, "PATCH", session, updates);
+  },
+
   async getAlerts(
     tenantId: string,
     session: SessionContext,

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { IRetailRepository } from "./repositories/retail.repository.interface";
 import { SkuGeneratorService } from "../../core/inventory/sku-generator.service";
 import { RetailPrintService } from "./retail-print.service";
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { TransactionType } from "../../core/finance/dto/create-transaction.dto";
 import {
   RetailStore,
@@ -49,6 +50,7 @@ export class RetailService {
     private readonly prisma: PrismaService,
     private readonly eventBus: EventBusService,
     private readonly retailPrint: RetailPrintService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Stores (Physical Branches)
@@ -343,8 +345,63 @@ export class RetailService {
     return { sku, barcode };
   }
 
-  async listOrders(ctx: TenantContext, store_id?: string): Promise<RetailOrder[]> {
-    return this.retailRepository.listOrders(ctx, store_id);
+  async listOrders(
+    ctx: TenantContext,
+    options?: {
+      store_id?: string;
+      customer_id?: string;
+      ecommerce_id?: string;
+      status?: string;
+    },
+  ): Promise<RetailOrder[]> {
+    return this.retailRepository.listOrders(ctx, options);
+  }
+
+  async listCustomers(
+    ctx: TenantContext,
+    options?: { ecommerce_id?: string; q?: string },
+  ) {
+    return this.retailRepository.listCustomers(ctx, options);
+  }
+
+  async getEcommerceAnalytics(ctx: TenantContext, ecommerce_id?: string) {
+    // Basic analytics implementation
+    const orders = await this.retailRepository.listOrders(ctx, {
+      ecommerce_id,
+      status: "paid",
+    });
+
+    const revenue = orders.reduce(
+      (sum, o) => sum + Number(o.grand_total),
+      0,
+    );
+    const orderCount = orders.length;
+
+    // Get top products
+    const productMap = new Map<string, { name: string; count: number }>();
+    orders.forEach((o) => {
+      o.items.forEach((item) => {
+        const existing = productMap.get(item.product_id);
+        if (existing) {
+          existing.count += Number(item.quantity);
+        } else {
+          productMap.set(item.product_id, {
+            name: (item as any).item_masters?.name || "Unknown",
+            count: Number(item.quantity),
+          });
+        }
+      });
+    });
+
+    const topProducts = Array.from(productMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return {
+      revenue,
+      orderCount,
+      topProducts,
+    };
   }
 
   async createOrder(ctx: TenantContext,
@@ -390,6 +447,7 @@ export class RetailService {
       }
 
       // 2. Initial creation (PENDING)
+      // 3. Finalize Order
       const order = await this.retailRepository.createOrder(
         ctx,
         location_id,
@@ -397,6 +455,14 @@ export class RetailService {
         user_id,
         tx,
       );
+
+      // Emit events for core system synchronization
+      this.eventEmitter.emit('retail.order.placed', { ctx, order });
+      
+      // If it's a paid order (common for ecommerce), signal completion
+      if (order.status === 'paid' || order.payment_status === 'paid') {
+        this.eventEmitter.emit('retail.order.completed', { ctx, order });
+      }
 
       // 3. Update reservation with order_id
       await tx.stock_reservations.updateMany({
@@ -1509,7 +1575,7 @@ export class RetailService {
   }
 
   async findCustomerById(ctx: TenantContext, customer_id: string) {
-    return this.retailRepository.findCustomerById(ctx, customer_id);
+    return this.retailRepository.getCustomerById(ctx, customer_id);
   }
 
   async createCustomer(ctx: TenantContext, data: any, user_id?: string) {
@@ -1620,6 +1686,14 @@ export class RetailService {
       wishlistId,
       item_id,
     );
+  }
+
+  async getCustomerById(ctx: TenantContext, id: string) {
+    return this.retailRepository.getCustomerById(ctx, id);
+  }
+
+  async getCustomerByPhone(ctx: TenantContext, phone: string) {
+    return this.retailRepository.getCustomerByPhone(ctx, phone);
   }
 
   async logEvent(ctx: TenantContext, data: any) {

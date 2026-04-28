@@ -9,6 +9,7 @@ import {
   Banknote,
   RefreshCw,
   Zap,
+  Settings2,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,16 @@ interface CartPanelProps {
   activeStoreName?: string;
   selectedItemId?: string | null;
   onSelectItem?: (id: string) => void;
+  cartTaxRate: number;
+  cartDiscount: number;
+  onOpenModifiers: () => void;
+  totals: {
+    subtotal: number;
+    totalItemDiscount: number;
+    cartDiscount: number;
+    tax: number;
+    grandTotal: number;
+  };
 }
 
 export const CartPanel: React.FC<CartPanelProps> = ({
@@ -43,14 +54,11 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   activeStoreName,
   selectedItemId,
   onSelectItem,
+  cartTaxRate,
+  cartDiscount,
+  onOpenModifiers,
+  totals,
 }) => {
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-  const tax = subtotal * 0.11;
-  const total = subtotal + tax;
-
   const selectedItem = cart.find((item) => item.id === selectedItemId);
 
   return (
@@ -224,12 +232,24 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           <div className="space-y-2 mb-4 relative z-10">
             <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
               <span>Subtotal</span>
-              <span>Rp {subtotal.toLocaleString()}</span>
+              <span>Rp {totals.subtotal.toLocaleString()}</span>
             </div>
 
+            {(totals.totalItemDiscount > 0 || totals.cartDiscount > 0) && (
+              <div className="flex justify-between text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+                <span>Discount</span>
+                <span>- Rp {(totals.totalItemDiscount + totals.cartDiscount).toLocaleString()}</span>
+              </div>
+            )}
+
             <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              <span>Tax (11%)</span>
-              <span>Rp {tax.toLocaleString()}</span>
+              <span className="flex items-center gap-2">
+                Tax {cartTaxRate > 0 ? `(${cartTaxRate}%)` : "(Item)"}
+                <button onClick={onOpenModifiers} className="text-indigo-400 hover:text-white transition-colors">
+                  <Settings2 className="w-3 h-3" />
+                </button>
+              </span>
+              <span>Rp {totals.tax.toLocaleString()}</span>
             </div>
 
             <Separator className="bg-white/10 my-1" />
@@ -242,7 +262,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
 
               <div className="text-right">
                 <div className="text-3xl font-black tracking-tight text-white leading-none">
-                  Rp {total.toLocaleString()}
+                  Rp {totals.grandTotal.toLocaleString()}
                 </div>
               </div>
             </div>

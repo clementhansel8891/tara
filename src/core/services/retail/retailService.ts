@@ -111,6 +111,8 @@ export const retailService = {
           "payment_methods_allowed",
           "refund_policy_mode",
           "auto_close_shift_setting",
+          "tax_rate",
+          "tax_inclusive",
         ]),
 
         supply_config: pickAndClean(store.supplyConfig, [
@@ -194,12 +196,49 @@ export const retailService = {
   async listOrders(
     tenantId: string,
     session: SessionContext,
-    storeId?: string,
+    options?: {
+      store_id?: string;
+      customer_id?: string;
+      ecommerce_id?: string;
+      status?: string;
+    },
   ) {
-    const path = storeId
-      ? `/v1/retail/orders?store_id=${storeId}`
+    const qs = new URLSearchParams();
+    if (options?.store_id) qs.set("store_id", options.store_id);
+    if (options?.customer_id) qs.set("customer_id", options.customer_id);
+    if (options?.ecommerce_id) qs.set("ecommerce_id", options.ecommerce_id);
+    if (options?.status) qs.set("status", options.status);
+
+    const path = qs.toString()
+      ? `/v1/retail/orders?${qs.toString()}`
       : "/v1/retail/orders";
     return apiRequest<RetailOrder[]>(path, "GET", session);
+  },
+
+  async listCustomers(
+    tenantId: string,
+    session: SessionContext,
+    options?: { ecommerce_id?: string; q?: string },
+  ) {
+    const qs = new URLSearchParams();
+    if (options?.ecommerce_id) qs.set("ecommerce_id", options.ecommerce_id);
+    if (options?.q) qs.set("q", options.q);
+
+    const path = qs.toString()
+      ? `/v1/retail/customers?${qs.toString()}`
+      : "/v1/retail/customers";
+    return apiRequest<any[]>(path, "GET", session);
+  },
+
+  async getEcommerceAnalytics(
+    tenantId: string,
+    session: SessionContext,
+    ecommerce_id?: string,
+  ) {
+    const path = ecommerce_id
+      ? `/v1/retail/analytics/ecommerce?ecommerce_id=${ecommerce_id}`
+      : "/v1/retail/analytics/ecommerce";
+    return apiRequest<any>(path, "GET", session);
   },
 
   async updateOrderStatus(
@@ -411,10 +450,13 @@ export const retailService = {
       quantity: number;
       unitPrice: number;
       name?: string;
+      discount?: number;
+      taxRate?: number;
     }[],
     paymentMethod: "cash" | "card" | "qr" | "wallet",
     grandTotal: number,
     shiftId?: string,
+    notes?: string,
   ) {
     return apiRequest<RetailOrder>("/v1/retail/orders", "POST", session, {
       storeId,
@@ -423,6 +465,7 @@ export const retailService = {
       paymentMethod,
       grandTotal,
       shiftId,
+      notes,
     });
   },
 
@@ -477,6 +520,19 @@ export const retailService = {
     session: SessionContext,
   ): Promise<RetailPromotion[]> {
     return apiRequest<RetailPromotion[]>("/v1/retail/promotions", "GET", session);
+  },
+
+  async createPromotion(
+    tenantId: string,
+    session: SessionContext,
+    promotion: Omit<RetailPromotion, "id" | "tenantId" | "createdAt" | "updatedAt">,
+  ) {
+    return apiRequest<RetailPromotion>(
+      "/v1/retail/promotions",
+      "POST",
+      session,
+      promotion,
+    );
   },
 
   async updatePromotion(
@@ -655,6 +711,8 @@ export const retailService = {
     shiftId: string,
     closingCash: number,
     notes?: string,
+    closingNote?: string,
+    complianceNote?: string,
   ) {
     return apiRequest<RetailShift>(
       `/v1/retail/shifts/${shiftId}/close`,
@@ -663,6 +721,8 @@ export const retailService = {
       {
         closingCash,
         notes,
+        closingNote,
+        complianceNote,
       },
     );
   },

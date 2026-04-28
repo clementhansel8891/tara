@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Inject } from '@nestjs/common';
 import { getFinanceExecutionMode } from './utils/finance-safety.utils';
+import { FinanceService } from './finance.service';
 import { ChartOfAccountService } from './services/chart-of-account.service';
 import { FiscalPeriodService } from './services/fiscal-period.service';
 import { PostingRuleService } from './services/posting-rule.service';
@@ -24,6 +25,7 @@ export class FinanceController {
     private readonly ruleService: PostingRuleService,
     private readonly ledgerService: LedgerPostingService,
     private readonly reversalService: JournalReversalService,
+    private readonly financeService: FinanceService,
     @Inject('IAccountBalanceRepository') private readonly balanceRepo: any,
     @Inject('IUnitOfWork') private readonly uow: any,
   ) {}
@@ -116,5 +118,21 @@ export class FinanceController {
       body.reason || 'Manual reversal',
       ctx.user_id || 'SYSTEM'
     );
+  }
+
+  // --- Money Sources & Petty Cash ---
+  @Get('money-sources')
+  async getMoneySources(@TenantCtx() ctx: TenantContext) {
+    return this.financeService.getMoneySources(ctx);
+  }
+
+  @Patch('money-sources/:id')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER)
+  async updateMoneySource(
+    @TenantCtx() ctx: TenantContext,
+    @Param('id') id: string,
+    @Body() dto: any
+  ) {
+    return this.financeService.updateMoneySource(ctx, id, dto);
   }
 }

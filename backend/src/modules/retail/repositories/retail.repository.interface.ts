@@ -116,8 +116,20 @@ export abstract class IRetailRepository {
   // ORDERS
   // ============================================================
   abstract listOrders( ctx: TenantContext,
-    store_id?: string,
+    options?: {
+      store_id?: string;
+      customer_id?: string;
+      ecommerce_id?: string;
+      status?: string;
+    },
   ): Promise<RetailOrder[]>;
+
+  abstract listCustomers( ctx: TenantContext,
+    options?: {
+      ecommerce_id?: string;
+      q?: string;
+    },
+  ): Promise<any[]>;
   abstract getOrder( ctx: TenantContext,
     order_id: string,
   ): Promise<RetailOrder | null>;
@@ -371,8 +383,11 @@ export abstract class IRetailRepository {
   abstract findCustomerByEmail( ctx: TenantContext,
     email: string,
   ): Promise<any | null>;
-  abstract findCustomerById( ctx: TenantContext,
+  abstract getCustomerById( ctx: TenantContext,
     customer_id: string,
+  ): Promise<any | null>;
+  abstract getCustomerByPhone( ctx: TenantContext,
+    phone: string,
   ): Promise<any | null>;
   abstract createCustomer( ctx: TenantContext, data: any): Promise<any>;
   abstract updateCustomer( ctx: TenantContext,

@@ -18,11 +18,36 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - zenvix_net
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+  db_backup:
+    container_name: bfs-db-backup
+    image: postgres:16-alpine
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-zenvix_dev_password}
+      POSTGRES_USER: ${POSTGRES_USER:-zenvix}
+      POSTGRES_DB: ${POSTGRES_DB:-zenvix_dev}
+    entrypoint: >
+      sh -c "while true; do
+        echo \"[$(date)] Starting daily backup...\"
+        pg_dump -h db -U $POSTGRES_USER $POSTGRES_DB > /backups/backup_$(date +%F_%H%M%S).sql;
+        echo \"[$(date)] Backup completed successfully.\"
+        sleep 86400;
+      done"
+    networks:
+      - zenvix_net
 
   backend:
     container_name: bfs-backend
@@ -45,6 +70,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - zenvix_net
     logging:
       driver: "json-file"
       options:
@@ -64,11 +91,17 @@ services:
       - PORT=80
     depends_on:
       - backend
+    networks:
+      - zenvix_net
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  zenvix_net:
+    driver: bridge
 
 volumes:
   postgres_data:

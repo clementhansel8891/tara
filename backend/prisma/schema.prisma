@@ -1140,6 +1140,7 @@ model departments {
   // @@map("departments") - standardized
   tenants                                                         tenants                    @relation(fields: [tenant_id], references: [id])
   capex_budgets                                                   capex_budgets[]
+  money_sources                                                   money_sources[]
 
   @@unique([tenant_id, code])
   @@index([status])
@@ -1216,6 +1217,7 @@ model ecommerce_connectors {
   marketing_automation_rules     marketing_automation_rules[]
   marketing_appointments         marketing_appointments[]
   marketing_creative_assets      marketing_creative_assets[]
+  money_sources                  money_sources[]
 
   @@index([api_key])
   @@index([status])
@@ -4122,11 +4124,19 @@ model money_sources {
   type               String
   currency           String     @default("IDR")
   balance            Decimal    @db.Decimal(15, 2)
-  pending_settlement Decimal    @default(0) @db.Decimal(15, 2)
+  pending_settlement Decimal               @default(0) @db.Decimal(15, 2)
   provider           String?
-  last_updated       DateTime   @default(now())
-  companies          companies? @relation(fields: [company_id], references: [id])
-  updated_at         DateTime   @default(now())
+  min_limit          Decimal?              @db.Decimal(15, 2)
+  max_limit          Decimal?              @db.Decimal(15, 2)
+  store_id           String?
+  ecommerce_id       String?
+  department_id      String?
+  last_updated       DateTime              @default(now())
+  companies          companies?            @relation(fields: [company_id], references: [id])
+  stores             stores?               @relation(fields: [store_id], references: [id])
+  ecommerces         ecommerce_connectors? @relation(fields: [ecommerce_id], references: [id])
+  departments        departments?          @relation(fields: [department_id], references: [id])
+  updated_at         DateTime              @default(now())
   // @@map("money_sources") - standardized
   tenants            tenants    @relation(fields: [tenant_id], references: [id])
 
@@ -5315,6 +5325,7 @@ model retail_order_items {
   tenant_id     String
   ecommerce_id  String?
   company_id    String?
+  tax_rate      Decimal       @default(0.11) @db.Decimal(5, 2)
   retail_orders retail_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
   item_masters  item_masters  @relation(fields: [product_id], references: [id])
   companies     companies?    @relation(fields: [company_id], references: [id])
@@ -5343,6 +5354,7 @@ model retail_orders {
   total_amount       Decimal              @db.Decimal(15, 2)
   payment_method     String?
   payment_reference  String?
+  notes              String?
   created_at         DateTime             @default(now())
   updated_at         DateTime             @default(now())
   retail_order_items retail_order_items[]
@@ -5401,6 +5413,8 @@ model retail_shifts {
   variance              Decimal?   @db.Decimal(15, 2)
   status                String     @default("open")
   notes                 String?
+  closing_note          String?
+  compliance_note       String?
   reconciliation_reason String?
   created_at            DateTime   @default(now())
   updated_at            DateTime   @default(now())
@@ -5902,6 +5916,7 @@ model stores {
   marketing_automation_rules     marketing_automation_rules[]
   marketing_appointments         marketing_appointments[]
   marketing_creative_assets      marketing_creative_assets[]
+  money_sources                  money_sources[]
 
   @@unique([tenant_id, code])
   @@index([location_id])

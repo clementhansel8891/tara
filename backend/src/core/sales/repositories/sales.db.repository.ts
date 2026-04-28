@@ -477,4 +477,27 @@ export class SalesDbRepository implements ISalesRepository {
   async getAuditEvents(ctx: TenantContext): Promise<SalesAuditEvent[]> {
     return this.prisma.sales_audit_events.findMany({ where: MultiTenancyUtil.getScope(ctx) }) as any;
   }
+
+  async recordConsolidatedSale(ctx: TenantContext, data: any): Promise<void> {
+    await this.prisma.sales_orders.create({
+      data: {
+        id: `SALES-${data.external_id || Date.now()}`,
+        updated_at: new Date(),
+        ...MultiTenancyUtil.getScope(ctx),
+        company_id: data.company_id || null,
+        ecommerce_id: data.ecommerce_id || null,
+        opportunity_id: data.opportunity_id || "EXTERNAL_SYNC",
+        customer_name: data.customer_name || 'Retail Customer',
+        amount: data.amount,
+        currency: data.currency || 'IDR',
+        created_by: 'RETAIL_MODULE_SYNC',
+        metadata: {
+          source: data.source,
+          store_id: data.store_id, // Branch level isolation in metadata
+          location_id: data.location_id,
+          items_count: data.items?.length || 0,
+        },
+      },
+    });
+  }
 }

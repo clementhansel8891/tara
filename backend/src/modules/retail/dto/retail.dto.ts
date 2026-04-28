@@ -466,6 +466,11 @@ export class OrderItemDto {
   @IsOptional()
   @IsString()
   name?: string;
+
+  @IsOptional()
+  @Transform(toDecimalString)
+  @Matches(DECIMAL_19_4_RE)
+  tax_rate?: string;
 }
 
 export class CreateOrderDto {
@@ -514,6 +519,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   shift_id?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 // ============================================================
@@ -560,6 +569,14 @@ export class CloseShiftDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  closing_note?: string;
+
+  @IsOptional()
+  @IsString()
+  compliance_note?: string;
 }
 
 export class ReconcileShiftDto {
@@ -853,4 +870,8 @@ export class CheckoutDto {
   @IsOptional()
   @IsString()
   payment_channel?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

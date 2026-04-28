@@ -49,7 +49,7 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 export default function MoneyDesk() {
   const session = useSession();
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState<"approvals" | "alerts" | "tasks" | "payments">(
+  const [tab, setTab] = useState<"approvals" | "alerts" | "tasks" | "payments" | "sources">(
     "approvals",
   );
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -74,6 +74,10 @@ export default function MoneyDesk() {
   const [selectedWorkflow, setSelectedWorkflow] =
     useState<WorkflowRequest | null>(null);
   const [selectedAlert, setSelectedAlert] = useState<FinanceAlert | null>(null);
+  const [editingSource, setEditingSource] = useState<any>(null);
+  const [limitMin, setLimitMin] = useState("");
+  const [limitMax, setLimitMax] = useState("");
+  const [isUpdatingLimit, setIsUpdatingLimit] = useState(false);
 
   const refreshDesk = useCallback(() => {
     financeService
@@ -226,6 +230,25 @@ export default function MoneyDesk() {
       });
   };
 
+  const handleUpdateLimits = async () => {
+    if (!editingSource) return;
+    setIsUpdatingLimit(true);
+    try {
+      await financeService.updateMoneySource(session.tenant_id, editingSource.id, {
+        minLimit: limitMin ? Number(limitMin) : null,
+        maxLimit: limitMax ? Number(limitMax) : null,
+      }, session);
+      
+      setStatusMessage(`Thresholds updated for ${editingSource.name}`);
+      setEditingSource(null);
+      refreshDesk();
+    } catch (error) {
+      setErrorMessage("Failed to update thresholds");
+    } finally {
+      setIsUpdatingLimit(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -283,6 +306,7 @@ export default function MoneyDesk() {
             <TabsTrigger value="alerts">Alerts</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="sources">Money Sources</TabsTrigger>
           </TabsList>
 
           <TabsContent value="approvals" className="mt-4">
@@ -409,6 +433,53 @@ export default function MoneyDesk() {
                 No payment transactions found.
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="sources" className="mt-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {moneySources.map((source: any) => (
+                <div key={source.id} className="bg-white p-4 rounded-xl border border-primary/10 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{source.name}</p>
+                      <p className="text-lg font-black text-primary">{source.currency} {source.balance?.toLocaleString() || "0"}</p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-primary"
+                      onClick={() => {
+                        setEditingSource(source);
+                        setLimitMin(source.minLimit?.toString() || "");
+                        setLimitMax(source.maxLimit?.toString() || "");
+                      }}
+                    >
+                      <ArrowRightLeft className="w-4 h-4 rotate-90" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-50">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 mb-0.5">Min Limit</p>
+                      <p className={`text-xs font-bold ${source.balance < (source.minLimit || 0) ? "text-rose-600" : "text-slate-600"}`}>
+                        {source.minLimit ? `${source.currency} ${source.minLimit.toLocaleString()}` : "Not Set"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 mb-0.5">Max Limit</p>
+                      <p className={`text-xs font-bold ${source.balance > (source.maxLimit || 999999999) ? "text-rose-600" : "text-slate-600"}`}>
+                        {source.maxLimit ? `${source.currency} ${source.maxLimit.toLocaleString()}` : "Not Set"}
+                      </p>
+                    </div>
+                  </div>
+                  {(source.balance < (source.minLimit || 0) || source.balance > (source.maxLimit || 999999999)) && (
+                    <div className="mt-3 flex items-center gap-2 text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 animate-pulse">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-black uppercase tracking-tighter">THRESHOLD VIOLATION</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </WorkspacePanel>
@@ -724,6 +795,56 @@ export default function MoneyDesk() {
                 Triggered by automated treasury monitoring. System suggests
                 immediate review of linked accounts.
               </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!editingSource}
+        onOpenChange={() => setEditingSource(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configure Thresholds</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="bg-primary/5 p-3 rounded-lg border border-primary/10 mb-4">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Target Account</p>
+              <p className="font-black text-sm">{editingSource?.name}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Min Balance Limit</label>
+                <Input 
+                  type="number" 
+                  value={limitMin} 
+                  onChange={e => setLimitMin(e.target.value)} 
+                  placeholder="No limit"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Max Balance Limit</label>
+                <Input 
+                  type="number" 
+                  value={limitMax} 
+                  onChange={e => setLimitMax(e.target.value)} 
+                  placeholder="No limit"
+                />
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-100 p-3 rounded-lg text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">
+              <Info className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+              Violations will trigger real-time alerts in the Money Desk and notify the treasury team.
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setEditingSource(null)}>Cancel</Button>
+              <Button className="flex-1" disabled={isUpdatingLimit} onClick={handleUpdateLimits}>
+                {isUpdatingLimit ? "Saving..." : "Save Configuration"}
+              </Button>
             </div>
           </div>
         </DialogContent>

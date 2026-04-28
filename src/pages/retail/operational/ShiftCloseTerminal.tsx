@@ -33,6 +33,8 @@ const ShiftCloseTerminal = () => {
   const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
   const [actualCash, setActualCash] = useState<string>("");
   const [explanation, setExplanation] = useState("");
+  const [closingNote, setClosingNote] = useState("");
+  const [complianceNote, setComplianceNote] = useState("");
   const [isClosing, setIsClosing] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +82,22 @@ const ShiftCloseTerminal = () => {
       });
       return;
     }
+    if (!closingNote.trim()) {
+      toast({
+        title: "Shift Report Required",
+        description: "Please provide a general closing shift report.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!complianceNote.trim()) {
+      toast({
+        title: "Fiscal Compliance Required",
+        description: "Please provide a mandatory fiscal compliance note.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (needsExplanation && !explanation) {
       toast({
         title: "Policy Violation",
@@ -98,6 +116,8 @@ const ShiftCloseTerminal = () => {
         activeShift.id,
         parseInt(actualCash),
         explanation,
+        closingNote,
+        complianceNote,
       );
 
       toast({
@@ -271,6 +291,30 @@ const ShiftCloseTerminal = () => {
                 />
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 rounded-full shadow-lg" />
               </div>
+            </div>
+
+            <div className="space-y-4 max-w-2xl mx-auto w-full animate-in fade-in duration-500">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center justify-center gap-3 italic">
+                <FileCheck className="w-5 h-5 text-indigo-500" /> Mandatory Shift Report
+              </label>
+              <Textarea
+                placeholder="Provide a general summary of the shift, handover notes, or any operational remarks..."
+                className="min-h-[100px] border-2 border-slate-200 focus:border-indigo-400 p-6 rounded-3xl text-sm font-bold italic bg-white"
+                value={closingNote}
+                onChange={(e) => setClosingNote(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-4 max-w-2xl mx-auto w-full animate-in fade-in duration-500 delay-75">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-600 flex items-center justify-center gap-3 italic">
+                <ShieldCheck className="w-5 h-5 text-rose-500" /> Mandatory Fiscal Compliance Note
+              </label>
+              <Textarea
+                placeholder="Declare fiscal compliance, confirm tax accuracy, and report any manual overrides made during this shift..."
+                className="min-h-[100px] border-2 border-rose-100 focus:border-rose-400 p-6 rounded-3xl text-sm font-bold italic bg-white shadow-sm"
+                value={complianceNote}
+                onChange={(e) => setComplianceNote(e.target.value)}
+              />
             </div>
 
             {actualCash && (
