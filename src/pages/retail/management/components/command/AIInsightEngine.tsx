@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,8 +8,12 @@ import {
   Lightbulb,
   ArrowUpRight,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/core/security/session";
+import { retailService } from "@/core/services/retail/retailService";
+import { retailInfrastructureService } from "@/core/services/retail/retailInfrastructureService";
 
 const InsightMarker = ({
   label,
@@ -38,6 +42,59 @@ export const AIInsightEngine = ({
 }: {
   onExpansionRequest?: (feature: string) => void;
 }) => {
+  const session = useSession();
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    revenue: "Rp 0",
+    staff: 0,
+    health: 100,
+    anomalies: [] as string[]
+  });
+
+  const analyzeNexus = async () => {
+    if (!session.tenantId) return;
+    setLoading(true);
+    try {
+      // 1. Get Revenue
+      const orders = await retailService.listOrders(session.tenantId, session);
+      const totalRev = orders.reduce((acc, o) => acc + (o.total_amount || o.totalAmount || 0), 0);
+      
+      // 2. Get Active Staff
+      const shifts = await retailService.listShifts(session.tenantId, session);
+      const activeStaff = shifts.filter(s => s.status === "open").length;
+
+      // 3. Get Infra Health & Anomalies
+      const { nodes } = await retailInfrastructureService.getTelemetry(session.tenantId, session);
+      const avgHealth = nodes.length > 0 ? nodes.reduce((acc, n) => acc + n.health_score, 0) / nodes.length : 100;
+      const deadNodes = nodes.filter(n => n.status === "OFFLINE");
+      
+      const newAnomalies = [];
+      if (deadNodes.length > 0) {
+        newAnomalies.push(`Critical: ${deadNodes.length} nodes currently OFFLINE in Infrastructure Grid.`);
+      }
+      if (activeStaff < 5 && orders.length > 10) {
+        newAnomalies.push("High Alert: Staffing density below threshold for current order velocity.");
+      }
+
+      setStats({
+        revenue: `Rp ${(totalRev / 1000000).toFixed(1)}M`,
+        staff: activeStaff,
+        health: Math.round(avgHealth),
+        anomalies: newAnomalies
+      });
+    } catch (error) {
+      console.error("[AIInsightEngine] Analysis failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    analyzeNexus();
+    const interval = setInterval(analyzeNexus, 60000);
+    return () => clearInterval(interval);
+  }, [session.tenantId]);
+
   return (
     <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden relative group">
       <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:scale-125 transition-transform duration-1000">
@@ -55,9 +112,18 @@ export const AIInsightEngine = ({
               Predictive Telemetry & Anomaly Analysis
             </p>
           </div>
-          <Badge className="bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 font-black italic text-[10px] px-4 py-2 tracking-[0.2em] uppercase rounded-xl">
-            v4.2-NEURAL-READY
-          </Badge>
+          <div className="flex items-center gap-4">
+             <button 
+              onClick={analyzeNexus}
+              disabled={loading}
+              className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all"
+            >
+              <RefreshCw className={cn("w-4 h-4 text-slate-400", loading && "animate-spin")} />
+            </button>
+            <Badge className="bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 font-black italic text-[10px] px-4 py-2 tracking-[0.2em] uppercase rounded-xl">
+              v4.2-NEURAL-READY
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
@@ -66,49 +132,73 @@ export const AIInsightEngine = ({
         <div className="flex flex-wrap gap-14">
           <InsightMarker
             label="EOD Revenue Forecast"
-            value="Rp 842.5M"
+            value={stats.revenue}
             color="bg-indigo-600"
           />
           <InsightMarker
-            label="Customer Pulse"
-            value="98.2%"
-            color="bg-emerald-500"
+            label="Infrastructure Pulse"
+            value={`${stats.health}%`}
+            color={stats.health > 80 ? "bg-emerald-500" : "bg-rose-500"}
           />
           <InsightMarker
-            label="Inventory Run-rate"
-            value="14 Days"
+            label="Personnel Density"
+            value={`${stats.staff} Active`}
             color="bg-amber-500"
           />
         </div>
 
         {/* Anomaly Detection */}
-        <div className="p-8 rounded-[3rem] bg-indigo-600 text-white relative overflow-hidden shadow-2xl group/anomaly transition-all duration-500 hover:scale-[1.02]">
-          <div className="absolute top-0 right-0 h-48 w-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24 group-hover/anomaly:scale-150 transition-transform duration-1000" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-white/15 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-2xl group-hover/anomaly:rotate-12 transition-transform">
-                <AlertTriangle className="w-8 h-8 text-amber-300" />
+        {stats.anomalies.length > 0 ? (
+          <div className="p-8 rounded-[3rem] bg-rose-600 text-white relative overflow-hidden shadow-2xl group/anomaly transition-all duration-500 hover:scale-[1.02]">
+            <div className="absolute top-0 right-0 h-48 w-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24 group-hover/anomaly:scale-150 transition-transform duration-1000" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-white/15 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-2xl group-hover/anomaly:rotate-12 transition-transform">
+                  <AlertTriangle className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-black italic uppercase tracking-tight">
+                    Anomaly Detected: Nexus Pulse
+                  </h4>
+                  <p className="text-[11px] font-bold opacity-70 uppercase tracking-[0.2em] mt-1">
+                    {stats.anomalies[0]}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-lg font-black italic uppercase tracking-tight italic">
-                  Anomaly Detected: Branch_Node_04
-                </h4>
-                <p className="text-[11px] font-bold opacity-70 uppercase tracking-[0.2em] mt-1">
-                  Unexpected Load Surge (+42%) vs. Baseline
-                </p>
-              </div>
+              <button 
+                onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
+                className="h-14 px-10 rounded-[1.25rem] bg-white text-rose-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95"
+              >
+                Deploy Assets
+              </button>
             </div>
-            <button 
-              onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
-              className="h-14 px-10 rounded-[1.25rem] bg-white text-indigo-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95 italic"
-            >
-              Deploy Resources
-            </button>
           </div>
-          <div className="absolute -right-8 -bottom-8 opacity-10">
-            <TrendingUp className="w-40 h-40" />
+        ) : (
+          <div className="p-8 rounded-[3rem] bg-indigo-600 text-white relative overflow-hidden shadow-2xl group/anomaly transition-all duration-500 hover:scale-[1.02]">
+            <div className="absolute top-0 right-0 h-48 w-48 bg-white/10 rounded-full blur-3xl -mr-24 -mt-24 group-hover/anomaly:scale-150 transition-transform duration-1000" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-white/15 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-2xl group-hover/anomaly:rotate-12 transition-transform">
+                  <UserCheck className="w-8 h-8 text-emerald-300" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-black italic uppercase tracking-tight">
+                    Baseline Synchronized
+                  </h4>
+                  <p className="text-[11px] font-bold opacity-70 uppercase tracking-[0.2em] mt-1">
+                    No critical deviations detected across global nodes.
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
+                className="h-14 px-10 rounded-[1.25rem] bg-white text-indigo-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95"
+              >
+                Nexus Control
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recommendations */}
         <div className="space-y-6">
@@ -117,11 +207,15 @@ export const AIInsightEngine = ({
             Strategic Recommendations
           </div>
           <div className="grid gap-4">
-            {[
-              "Reallocate 3 staff from Zone B to Branch_04 for peak mitigation.",
-              "Trigger auto-replenishment for SKU-991; high velocity detected.",
+            {(stats.anomalies.length > 0 ? [
+              ...stats.anomalies.map(a => `Resolve ${a.split(':')[0]} alert immediately.`),
+              "Reallocate staff to affected nodes for peak mitigation.",
+              "Trigger auto-replenishment; high velocity detected."
+            ] : [
+              "Maintain current force disposition; load is nominal.",
+              "Schedule routine node maintenance for Branch_09.",
               "Optimize E-commerce fulfillment queue; latency creeping up.",
-            ].map((rec, i) => (
+            ]).map((rec, i) => (
               <div
                 key={i}
                 onClick={() => onExpansionRequest?.(`Recommendation Execution: ${rec}`)}

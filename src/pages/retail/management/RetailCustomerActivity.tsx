@@ -8,6 +8,11 @@ import {
   Search,
   ChevronRight,
   Filter,
+  ShieldCheck,
+  Download,
+  Trash2,
+  Lock,
+  UserCheck,
 } from "lucide-react";
 import { useSession } from "@/core/security/session";
 import { retailService } from "@/core/services/retail/retailService";
@@ -37,14 +42,11 @@ export function RetailCustomerActivity({
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
   const fetchCustomers = async () => {
+    if (!session.tenantId) return;
     try {
       setLoading(true);
-      const data = await retailService.listCustomers(session.tenant_id, session);
+      const data = await retailService.listCustomers(session.tenantId, session);
       setCustomers(data);
     } catch (err) {
       console.error("Failed to fetch customers", err);
@@ -52,6 +54,10 @@ export function RetailCustomerActivity({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [session.tenantId]);
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(
@@ -79,7 +85,7 @@ export function RetailCustomerActivity({
               Customer Registry
             </CardTitle>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] ml-[88px] italic">
-              Unified activity tracking for registered ecommerce users
+              Unified activity tracking for registered ecommerce users • {customers.length} Identities
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -133,17 +139,17 @@ export function RetailCustomerActivity({
                     <div className="space-y-2">
                       <p>Tier</p>
                       <Badge variant="outline" className="bg-white/5 rounded-lg px-3 h-6 border-white/10 text-white italic">
-                        {customer.tier}
+                        {customer.tier || "REGULAR"}
                       </Badge>
                     </div>
                     <div className="space-y-2">
                       <p>Points</p>
-                      <p className="text-white italic">{customer.points}</p>
+                      <p className="text-white italic">{customer.points || 0}</p>
                     </div>
                     <div className="space-y-2">
-                      <p>Status</p>
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg px-3 h-6">
-                        {customer.status}
+                      <p>Compliance</p>
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg px-3 h-6 gap-2">
+                        <ShieldCheck className="w-3 h-3" /> VERIFIED
                       </Badge>
                     </div>
                   </div>
@@ -178,19 +184,19 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
         </DialogHeader>
         <div className="flex h-full">
           {/* Sidebar Info */}
-          <div className="w-[350px] bg-white/[0.02] border-r border-white/5 p-12 space-y-12">
+          <div className="w-[350px] bg-white/[0.02] border-r border-white/5 p-12 space-y-12 overflow-y-auto custom-scrollbar">
             <div className="space-y-6 text-center">
               <div className="w-32 h-32 rounded-[2.5rem] bg-indigo-600 mx-auto flex items-center justify-center text-5xl font-black italic shadow-[0_20px_50px_rgba(79,70,229,0.4)] text-white">
                 {customer.name[0]}
               </div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white italic">{customer.name}</h2>
-                <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-[0.4em] italic">{customer.tier} Member</p>
+                <h2 className="text-3xl font-black italic uppercase tracking-tighter text-white">{customer.name}</h2>
+                <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-[0.4em] italic">{customer.tier || "REGULAR"} Member</p>
               </div>
             </div>
 
             <div className="space-y-8">
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] italic">Identity Payload</p>
                 <div className="space-y-4">
                   <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
@@ -203,9 +209,34 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                   </div>
                 </div>
               </div>
+
+              {/* Compliance Vault */}
+              <div className="p-8 rounded-[2.5rem] bg-rose-500/5 border border-rose-500/10 space-y-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.3em] italic">Compliance Vault</p>
+                  <Lock className="w-4 h-4 text-rose-500" />
+                </div>
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline"
+                    className="w-full h-12 rounded-xl bg-white/5 border-white/10 text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/10 gap-3"
+                    onClick={() => onExpansionRequest?.(`GDPR Data Export: ${customer.name}`)}
+                  >
+                    <Download className="w-3.5 h-3.5" /> Export Data PII
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="w-full h-12 rounded-xl bg-rose-500/10 border-rose-500/20 text-[9px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/20 gap-3"
+                    onClick={() => onExpansionRequest?.(`Identity Anonymization: ${customer.name}`)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Anonymize Identity
+                  </Button>
+                </div>
+              </div>
+
               <div className="p-8 rounded-[2rem] bg-indigo-600/10 border border-indigo-600/20 text-center shadow-inner">
                 <p className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2 italic">Loyalty Ledger</p>
-                <p className="text-5xl font-black italic text-white tracking-tighter italic">{customer.points}</p>
+                <p className="text-5xl font-black italic text-white tracking-tighter italic">{customer.points || 0}</p>
               </div>
             </div>
 
@@ -243,7 +274,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                   <CustomerCartView cart={customer.retail_carts} />
                 </TabsContent>
                 <TabsContent value="wishlist" className="h-full mt-0 focus-visible:ring-0">
-                  <CustomerWishlistView wishlist={customer.retail_wishlists} />
+                  <CustomerWishlistView wishlist={customer.retail_wishlists} onExpansionRequest={onExpansionRequest} />
                 </TabsContent>
                 <TabsContent value="chat" className="h-full mt-0 focus-visible:ring-0">
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-10 bg-white/[0.02] rounded-[3.5rem] border-2 border-dashed border-white/5 group/chat overflow-hidden relative">
@@ -253,7 +284,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                     </div>
                     <div className="space-y-6 relative z-10 max-w-md">
                       <div className="space-y-3">
-                        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white italic">WhatsApp Bridge</h3>
+                        <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white">WhatsApp Bridge</h3>
                         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">Establish secure real-time channel with {customer.name}</p>
                       </div>
                       <Button 
@@ -287,14 +318,11 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
   const [loading, setLoading] = useState(true);
   const session = useSession();
 
-  useEffect(() => {
-    fetchOrders();
-  }, [customerId]);
-
   const fetchOrders = async () => {
+    if (!session.tenantId) return;
     try {
       setLoading(true);
-      const data = await retailService.listOrders(session.tenant_id, session, {
+      const data = await retailService.listOrders(session.tenantId, session, {
         customer_id: customerId
       });
       setOrders(data);
@@ -304,6 +332,10 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [customerId, session.tenantId]);
 
   if (loading) return (
     <div className="p-24 text-center space-y-6">
@@ -333,7 +365,7 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
               </div>
               <div className="flex items-center justify-between pt-6 border-t border-white/5">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">{new Date(order.created_at).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                <p className="text-3xl font-black italic text-white italic tracking-tighter">Rp {order.totalAmount.toLocaleString()}</p>
+                <p className="text-3xl font-black italic text-white tracking-tighter">Rp {(order.total_amount || order.totalAmount || 0).toLocaleString()}</p>
               </div>
             </div>
           ))
@@ -361,11 +393,11 @@ function CustomerCartView({ cart }: any) {
                   <ShoppingCart className="w-7 h-7 text-indigo-400" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-lg font-black italic text-white italic tracking-tight">{item.product_id}</p>
+                  <p className="text-lg font-black italic text-white tracking-tight">{item.product_id}</p>
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Quantity Payload: {item.quantity}</p>
                 </div>
               </div>
-              <p className="text-2xl font-black italic text-white italic tracking-tighter">Rp {(item.unit_price * item.quantity).toLocaleString()}</p>
+              <p className="text-2xl font-black italic text-white tracking-tighter">Rp {(item.unit_price * item.quantity).toLocaleString()}</p>
             </div>
           ))
         )}
@@ -374,7 +406,7 @@ function CustomerCartView({ cart }: any) {
   );
 }
 
-function CustomerWishlistView({ wishlist }: any) {
+function CustomerWishlistView({ wishlist, onExpansionRequest }: any) {
   const items = wishlist?.retail_wishlist_items || [];
 
   return (
@@ -391,7 +423,7 @@ function CustomerWishlistView({ wishlist }: any) {
                 <Heart className="w-10 h-10 text-rose-400 fill-rose-400/10" />
               </div>
               <div className="space-y-2">
-                 <p className="text-xl font-black italic text-white italic tracking-tight">{item.product_id}</p>
+                 <p className="text-xl font-black italic text-white tracking-tight">{item.product_id}</p>
                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">Asset Monitoring Active</p>
               </div>
               <Button 

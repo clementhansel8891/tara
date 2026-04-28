@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, Activity, Map, ArrowUpRight, Monitor } from "lucide-react";
+import { Users, Activity, Map, ArrowUpRight, Monitor, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { retailService } from "@/core/services/retail/retailService";
+import { useSession } from "@/core/security/session";
+import type { RetailStore, RetailShift } from "@/core/types/retail/retail";
 
 const HeatmapItem = ({
   name,
@@ -33,7 +36,7 @@ const HeatmapItem = ({
           <Monitor className="w-6 h-6" />
         </div>
         <div>
-          <h4 className="text-sm font-black italic uppercase tracking-tight text-white italic">
+          <h4 className="text-sm font-black italic uppercase tracking-tight text-white">
             {name}
           </h4>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1 italic">
@@ -97,6 +100,43 @@ export const ResourceHeatmap = ({
   stores: any[];
   onExpansionRequest: (feature: string) => void;
 }) => {
+  const session = useSession();
+  const [shifts, setShifts] = useState<RetailShift[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchShifts = async () => {
+    if (!session.tenantId) return;
+    setLoading(true);
+    try {
+      // Fetch all shifts for the tenant
+      const allShifts = await retailService.listShifts(session.tenantId, session);
+      // Filter only open shifts
+      const activeOnes = allShifts.filter(s => s.status === "open");
+      setShifts(activeOnes);
+    } catch (error) {
+      console.error("[ResourceHeatmap] Failed to fetch shifts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchShifts();
+    const interval = setInterval(fetchShifts, 60000); // Check every min
+    return () => clearInterval(interval);
+  }, [session.tenantId]);
+
+  const getStoreSaturation = (storeId: string) => {
+    const activeAtStore = shifts.filter(s => s.storeId === storeId).length;
+    const target = 10; // Default threshold
+    const load = Math.min(Math.round((activeAtStore / target) * 100), 100);
+    return {
+      count: activeAtStore,
+      target,
+      load
+    };
+  };
+
   return (
     <Card className="rounded-[4rem] border border-white/5 shadow-2xl bg-white/[0.03] backdrop-blur-3xl overflow-hidden group/heatmap">
       <CardHeader className="p-14 border-b border-white/5 flex flex-row items-center justify-between group/header">
@@ -108,25 +148,37 @@ export const ResourceHeatmap = ({
             Human-Asset Saturation
           </CardTitle>
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-4 ml-[88px] italic">
-            Staffing Efficiency vs. Real-time Node Load
+            Staffing Efficiency vs. Real-time Node Load • {shifts.length} Active Personnel
           </p>
         </div>
-        <div className="p-4 rounded-full bg-white/5 border border-white/10 shadow-2xl group-hover/heatmap:scale-110 transition-transform duration-500">
-          <Activity className="w-7 h-7 text-indigo-400 animate-pulse" />
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={fetchShifts}
+            disabled={loading}
+            className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all disabled:opacity-50"
+          >
+            <RefreshCw className={cn("w-5 h-5 text-slate-400", loading && "animate-spin")} />
+          </button>
+          <div className="p-4 rounded-full bg-white/5 border border-white/10 shadow-2xl group-hover/heatmap:scale-110 transition-transform duration-500">
+            <Activity className="w-7 h-7 text-indigo-400 animate-pulse" />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {stores.slice(0, 3).map((store, i) => (
-            <HeatmapItem
-              key={store.id}
-              name={store.name}
-              load={i === 0 ? 92 : i === 1 ? 45 : 78}
-              staff={i === 0 ? "12/12" : i === 1 ? "8/10" : "15/15"}
-              online={true}
-              onExpansionRequest={onExpansionRequest}
-            />
-          ))}
+          {stores.slice(0, 6).map((store) => {
+            const stats = getStoreSaturation(store.id);
+            return (
+              <HeatmapItem
+                key={store.id}
+                name={store.name}
+                load={stats.load}
+                staff={`${stats.count}/${stats.target}`}
+                online={true}
+                onExpansionRequest={onExpansionRequest}
+              />
+            );
+          })}
         </div>
 
         <div className="mt-14 p-12 rounded-[3.5rem] bg-slate-900/50 border border-white/5 text-white flex flex-col xl:flex-row items-center justify-between gap-12 relative overflow-hidden group/force backdrop-blur-3xl">
@@ -134,16 +186,16 @@ export const ResourceHeatmap = ({
             <Map className="w-full h-full scale-110" />
           </div>
           <div className="relative z-10 space-y-3 text-center xl:text-left">
-            <h4 className="text-3xl font-black italic uppercase tracking-tighter italic">
+            <h4 className="text-3xl font-black italic uppercase tracking-tighter">
               Global Force Disposition
             </h4>
             <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-[0.4em] italic">
-              Cross-Branch Resource Balance: OPTIMAL
+              Cross-Branch Resource Balance: {shifts.length > 0 ? "OPTIMAL" : "AWAITING DATA"}
             </p>
           </div>
           <button 
             onClick={() => onExpansionRequest("Automated Personnel Balancing Engine")}
-            className="relative z-10 w-full xl:w-auto h-16 px-12 rounded-2xl bg-indigo-600 text-white font-black italic text-[12px] uppercase tracking-[0.3em] hover:bg-indigo-700 transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 italic"
+            className="relative z-10 w-full xl:w-auto h-16 px-12 rounded-2xl bg-indigo-600 text-white font-black italic text-[12px] uppercase tracking-[0.3em] hover:bg-indigo-700 transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95"
           >
             Auto-Balance Personnel
           </button>

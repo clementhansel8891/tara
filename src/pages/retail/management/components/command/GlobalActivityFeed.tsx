@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,14 +8,21 @@ import {
   Server,
   ShoppingBag,
   ArrowRight,
+  ShieldCheck,
+  RefreshCw,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { auditService, type AuditLog, type VerificationResult } from "@/core/services/auditService";
+import { useSession } from "@/core/security/session";
+import { format } from "date-fns";
 
 interface FeedItemProps {
   type: "FINANCE" | "INFRA" | "SECURITY" | "RETAIL";
   message: string;
   timestamp: string;
   priority: "HIGH" | "MEDIUM" | "LOW";
+  isVerified?: boolean;
 }
 
 const FeedItem: React.FC<FeedItemProps> = ({
@@ -23,6 +30,7 @@ const FeedItem: React.FC<FeedItemProps> = ({
   message,
   timestamp,
   priority,
+  isVerified = true,
 }) => (
   <div className="flex items-start gap-5 p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg relative overflow-hidden">
     <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -51,23 +59,31 @@ const FeedItem: React.FC<FeedItemProps> = ({
 
     <div className="flex-1 min-w-0 relative z-10">
       <div className="flex items-center justify-between mb-2">
-        <Badge
-          className={cn(
-            "text-[9px] font-black italic tracking-[0.2em] border-none px-2.5 h-5 rounded-lg uppercase",
-            priority === "HIGH"
-              ? "bg-rose-500/20 text-rose-400"
-              : priority === "MEDIUM"
-                ? "bg-amber-500/20 text-amber-400"
-                : "bg-slate-500/20 text-slate-400",
+        <div className="flex items-center gap-3">
+          <Badge
+            className={cn(
+              "text-[9px] font-black italic tracking-[0.2em] border-none px-2.5 h-5 rounded-lg uppercase",
+              priority === "HIGH"
+                ? "bg-rose-500/20 text-rose-400"
+                : priority === "MEDIUM"
+                  ? "bg-amber-500/20 text-amber-400"
+                  : "bg-slate-500/20 text-slate-400",
+            )}
+          >
+            {priority}
+          </Badge>
+          {isVerified && (
+            <div className="flex items-center gap-1.5 px-2 h-5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+              <Lock className="w-2.5 h-2.5 text-indigo-400" />
+              <span className="text-[8px] font-black italic text-indigo-400 uppercase tracking-tighter">IMMU</span>
+            </div>
           )}
-        >
-          {priority}
-        </Badge>
+        </div>
         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">
           {timestamp}
         </span>
       </div>
-      <p className="text-[12px] font-medium text-slate-400 leading-tight italic truncate group-hover:text-clip group-hover:whitespace-normal group-hover:text-white transition-colors">
+      <p className="text-[12px] font-medium text-slate-400 leading-tight truncate group-hover:text-clip group-hover:whitespace-normal group-hover:text-white transition-colors">
         {message}
       </p>
     </div>
@@ -83,89 +99,127 @@ export const GlobalActivityFeed = ({
 }: {
   onExpansionRequest: (feature: string) => void;
 }) => {
+  const session = useSession();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<VerificationResult | null>(null);
+
+  const fetchLogs = async () => {
+    if (!session.tenantId) return;
+    setLoading(true);
+    try {
+      const response = await auditService.getLogs(session, { limit: 12 });
+      setLogs(response.data);
+    } catch (error) {
+      console.error("[GlobalActivityFeed] Failed to fetch logs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    setVerifying(true);
+    try {
+      const result = await auditService.verifyChain(session);
+      setVerifyResult(result);
+      setTimeout(() => setVerifyResult(null), 5000); // Clear after 5s
+    } catch (error) {
+      console.error("[GlobalActivityFeed] Verification failed:", error);
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [session.tenantId]);
+
+  const mapSeverityToPriority = (severity: string): "HIGH" | "MEDIUM" | "LOW" => {
+    switch (severity) {
+      case "CRITICAL": return "HIGH";
+      case "WARN": return "MEDIUM";
+      default: return "LOW";
+    }
+  };
+
+  const mapModuleToType = (module: string): "FINANCE" | "INFRA" | "SECURITY" | "RETAIL" => {
+    switch (module) {
+      case "FINANCE": return "FINANCE";
+      case "INFRA": return "INFRA";
+      case "SECURITY": return "SECURITY";
+      default: return "RETAIL";
+    }
+  };
+
   return (
     <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden flex flex-col h-full group/feed">
       <CardHeader className="p-14 border-b border-white/5 bg-white/[0.01]">
         <div className="flex items-center justify-between">
           <div className="space-y-3">
-            <CardTitle className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-white italic">
+            <CardTitle className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-white">
               <Activity className="w-8 h-8 text-indigo-400 shadow-2xl animate-pulse" />
               Telemetry Feed
             </CardTitle>
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">
-              Global Synchronization Log
+              Global Synchronization Log • {logs.length} Recent Events
             </p>
           </div>
-          <div className="flex items-center gap-3 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-xl">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-            <span className="text-[10px] font-black italic uppercase text-emerald-400 tracking-[0.2em] italic">
-              Synchronized
-            </span>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleVerify}
+              disabled={verifying}
+              className={cn(
+                "flex items-center gap-3 px-6 h-14 border rounded-2xl shadow-xl transition-all",
+                verifyResult 
+                  ? verifyResult.valid ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                  : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+              )}
+            >
+              {verifying ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <ShieldCheck className="w-5 h-5" />
+              )}
+              <span className="text-[10px] font-black italic uppercase tracking-widest">
+                {verifyResult ? (verifyResult.valid ? "Chain Verified" : "Drift Detected") : "Verify Chain"}
+              </span>
+            </button>
+            <div className="flex items-center gap-3 px-5 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-xl">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black italic uppercase text-emerald-400 tracking-[0.2em]">
+                Live
+              </span>
+            </div>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-10 flex-1 overflow-y-auto space-y-4 custom-scrollbar bg-transparent">
-        {[
-          {
-            type: "SECURITY",
-            priority: "HIGH",
-            message:
-              "Unauthorized hardware node connection attempt blocked at Branch_03.",
-            timestamp: "14:52:10",
-          },
-          {
-            type: "FINANCE",
-            priority: "MEDIUM",
-            message:
-              "Settlement Batch #291 reconciled with central bank ledger.",
-            timestamp: "14:50:05",
-          },
-          {
-            type: "RETAIL",
-            priority: "LOW",
-            message:
-              "New seasonal promotion 'Ramadan Glow' deployed to 42 terminals.",
-            timestamp: "14:48:22",
-          },
-          {
-            type: "INFRA",
-            priority: "HIGH",
-            message:
-              "Edge Gateway latency at Branch_12 exceeded threshold (450ms).",
-            timestamp: "14:45:12",
-          },
-          {
-            type: "FINANCE",
-            priority: "HIGH",
-            message:
-              "Anomalous transaction value detected (Rp 150M) - Awaiting HOD approval.",
-            timestamp: "14:42:00",
-          },
-          {
-            type: "RETAIL",
-            priority: "MEDIUM",
-            message:
-              "Stock replenishment triggered for Node_04 (Electronics Category).",
-            timestamp: "14:40:15",
-          },
-          {
-            type: "SECURITY",
-            priority: "MEDIUM",
-            message:
-              "Policy update: Biometric auth enforced for high-value returns.",
-            timestamp: "14:38:10",
-          },
-          {
-            type: "INFRA",
-            priority: "LOW",
-            message:
-              "Scheduled maintenance: Branch_09 Edge Node update at 22:00.",
-            timestamp: "14:35:05",
-          },
-        ].map((item, i) => (
-          <FeedItem key={i} {...(item as any)} />
-        ))}
+        {loading && logs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-6 opacity-40">
+            <RefreshCw className="w-12 h-12 text-indigo-400 animate-spin" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Synchronizing Vault...</span>
+          </div>
+        ) : logs.length > 0 ? (
+          logs.map((log) => (
+            <FeedItem 
+              key={log.id} 
+              type={mapModuleToType(log.module)}
+              priority={mapSeverityToPriority(log.severity)}
+              message={`${log.action}: ${log.entity_type} [${log.entity_id}]`}
+              timestamp={format(new Date(log.created_at), "HH:mm:ss")}
+              isVerified={!!log.hash_chain}
+            />
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-6 opacity-40">
+            <Lock className="w-12 h-12 text-slate-500" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Vault is Empty</span>
+          </div>
+        )}
       </CardContent>
 
       <div className="p-12 border-t border-white/5 bg-white/[0.01]">
