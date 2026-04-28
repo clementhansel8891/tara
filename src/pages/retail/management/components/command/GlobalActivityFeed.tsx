@@ -24,81 +24,88 @@ const FeedItem: React.FC<FeedItemProps> = ({
   timestamp,
   priority,
 }) => (
-  <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/40 hover:bg-white backdrop-blur-sm border border-slate-100 hover:border-blue-200 transition-all group cursor-pointer">
+  <div className="flex items-start gap-5 p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
     <div
       className={cn(
-        "w-10 h-10 rounded-xl flex items-center justify-center border shrink-0",
+        "w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 transition-all duration-500 group-hover:scale-110 shadow-2xl",
         type === "FINANCE"
-          ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
           : type === "INFRA"
-            ? "bg-blue-50 border-blue-100 text-blue-600"
+            ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
             : type === "SECURITY"
-              ? "bg-red-50 border-red-100 text-red-600"
-              : "bg-amber-50 border-amber-100 text-amber-600",
+              ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
+              : "bg-amber-500/10 border-amber-500/20 text-amber-400",
       )}
     >
       {type === "FINANCE" ? (
-        <DollarSign className="w-5 h-5" />
+        <DollarSign className="w-6 h-6" />
       ) : type === "INFRA" ? (
-        <Server className="w-5 h-5" />
+        <Server className="w-6 h-6" />
       ) : type === "SECURITY" ? (
-        <ShieldAlert className="w-5 h-5" />
+        <ShieldAlert className="w-6 h-6" />
       ) : (
-        <ShoppingBag className="w-5 h-5" />
+        <ShoppingBag className="w-6 h-6" />
       )}
     </div>
 
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center justify-between mb-1">
+    <div className="flex-1 min-w-0 relative z-10">
+      <div className="flex items-center justify-between mb-2">
         <Badge
           className={cn(
-            "text-[8px] font-black italic tracking-widest border-none px-1.5 h-4",
+            "text-[9px] font-black italic tracking-[0.2em] border-none px-2.5 h-5 rounded-lg uppercase",
             priority === "HIGH"
-              ? "bg-red-500 text-white"
+              ? "bg-rose-500/20 text-rose-400"
               : priority === "MEDIUM"
-                ? "bg-amber-500 text-white"
-                : "bg-slate-500 text-white",
+                ? "bg-amber-500/20 text-amber-400"
+                : "bg-slate-500/20 text-slate-400",
           )}
         >
           {priority}
         </Badge>
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">
           {timestamp}
         </span>
       </div>
-      <p className="text-[11px] font-bold text-slate-700 leading-tight italic truncate group-hover:text-clip group-hover:whitespace-normal">
+      <p className="text-[12px] font-medium text-slate-400 leading-tight italic truncate group-hover:text-clip group-hover:whitespace-normal group-hover:text-white transition-colors">
         {message}
       </p>
     </div>
 
-    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all self-center" />
+    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-indigo-600 transition-colors self-center">
+      <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+    </div>
   </div>
 );
 
-export const GlobalActivityFeed = () => {
+export const GlobalActivityFeed = ({
+  onExpansionRequest
+}: {
+  onExpansionRequest: (feature: string) => void;
+}) => {
   return (
-    <Card className="rounded-[3rem] border-none shadow-2xl bg-slate-50/50 backdrop-blur-xl overflow-hidden flex flex-col h-full">
-      <CardHeader className="p-10 border-b bg-white/80">
+    <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden flex flex-col h-full group/feed">
+      <CardHeader className="p-14 border-b border-white/5 bg-white/[0.01]">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
-              <Activity className="w-6 h-6 text-blue-600" />
-              Live Telemetry Feed
+          <div className="space-y-3">
+            <CardTitle className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-white italic">
+              <Activity className="w-8 h-8 text-indigo-400 shadow-2xl animate-pulse" />
+              Telemetry Feed
             </CardTitle>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Global Synchronization Log (All Nodes)
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">
+              Global Synchronization Log
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black italic uppercase text-slate-900">
+          <div className="flex items-center gap-3 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-xl">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+            <span className="text-[10px] font-black italic uppercase text-emerald-400 tracking-[0.2em] italic">
               Synchronized
             </span>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-8 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+      <CardContent className="p-10 flex-1 overflow-y-auto space-y-4 custom-scrollbar bg-transparent">
         {[
           {
             type: "SECURITY",
@@ -161,11 +168,15 @@ export const GlobalActivityFeed = () => {
         ))}
       </CardContent>
 
-      <div className="p-8 border-t bg-white/50 backdrop-blur-sm">
-        <button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black italic text-[11px] uppercase tracking-widest transition-colors flex items-center justify-center gap-3">
-          Access Deep Audit Vault <ArrowRight className="w-4 h-4" />
+      <div className="p-12 border-t border-white/5 bg-white/[0.01]">
+        <button 
+          onClick={() => onExpansionRequest("Deep Audit Virtual Vault")}
+          className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black italic text-[12px] uppercase tracking-[0.3em] transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-4 italic"
+        >
+          Access Deep Audit Vault <ArrowRight className="w-5 h-5" />
         </button>
       </div>
     </Card>
   );
 };
+

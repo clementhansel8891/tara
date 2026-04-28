@@ -13,7 +13,6 @@ import {
   Store,
   Globe,
   Zap,
-  AlertTriangle,
   ChevronRight,
   ShieldCheck,
   RefreshCw,
@@ -35,75 +34,81 @@ const NodeRow: React.FC<NodeStatusProps> = ({
   metric,
   health,
 }) => (
-  <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-blue-200 hover:bg-white transition-all group cursor-pointer">
-    <div className="flex items-center gap-4">
+  <div className="flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg">
+    <div className="flex items-center gap-6">
       <div
         className={cn(
-          "p-2.5 rounded-xl border",
+          "w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-500 group-hover:scale-110",
           status === "ONLINE"
-            ? "bg-emerald-50 border-emerald-100 text-emerald-600"
+            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
             : status === "LOAD"
-              ? "bg-amber-50 border-amber-100 text-amber-600"
+              ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
               : status === "SYNCING"
-                ? "bg-blue-50 border-blue-100 text-blue-600"
-                : "bg-red-50 border-red-100 text-red-600",
+                ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+                : "bg-rose-500/10 border-rose-500/20 text-rose-400",
         )}
       >
         {type === "BRANCH" ? (
-          <Store className="w-5 h-5" />
+          <Store className="w-7 h-7" />
         ) : type === "CHANNEL" ? (
-          <Globe className="w-5 h-5" />
+          <Globe className="w-7 h-7" />
         ) : (
-          <Zap className="w-5 h-5" />
+          <Zap className="w-7 h-7" />
         )}
       </div>
       <div>
-        <div className="flex items-center gap-2">
-          <h4 className="text-sm font-black italic uppercase tracking-tight text-slate-900">
+        <div className="flex items-center gap-3">
+          <h4 className="text-lg font-black italic uppercase tracking-tight text-white italic">
             {name}
           </h4>
           <Badge
             className={cn(
-              "text-[8px] font-black italic tracking-widest px-1.5 h-4 border-none uppercase",
+              "text-[9px] font-black italic tracking-[0.2em] px-2.5 h-5 border-none uppercase rounded-lg",
               status === "ONLINE"
-                ? "bg-emerald-500"
+                ? "bg-emerald-500/20 text-emerald-400"
                 : status === "LOAD"
-                  ? "bg-amber-500"
+                  ? "bg-amber-500/20 text-amber-400"
                   : status === "SYNCING"
-                    ? "bg-blue-500 animate-pulse"
-                    : "bg-red-500",
+                    ? "bg-indigo-500/20 text-indigo-400 animate-pulse"
+                    : "bg-rose-500/20 text-rose-400",
             )}
           >
             {status}
           </Badge>
         </div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1.5 italic">
           {type}
         </p>
       </div>
     </div>
 
-    <div className="flex items-center gap-8">
-      <div className="hidden md:block w-32">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[9px] font-black italic text-slate-400 uppercase">
+    <div className="flex items-center gap-12">
+      <div className="hidden xl:block w-40">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-black italic text-slate-500 uppercase tracking-widest">
             Load Facet
           </span>
-          <span className="text-[9px] font-black italic text-slate-900">
+          <span className="text-[10px] font-black italic text-white italic">
             {health}%
           </span>
         </div>
-        <Progress value={health} className="h-1 bg-slate-100" />
+        <Progress 
+          value={health} 
+          className="h-1.5 bg-white/5" 
+          style={{ '--progress-foreground': status === 'ONLINE' ? '#10b981' : status === 'LOAD' ? '#f59e0b' : '#6366f1' } as any}
+        />
       </div>
-      <div className="text-right">
-        <div className="text-[10px] font-black italic text-slate-900 uppercase">
+      <div className="text-right min-w-[80px]">
+        <div className="text-[12px] font-black italic text-white uppercase italic">
           {metric}
         </div>
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mt-1 italic">
           Efficiency
         </div>
       </div>
-      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+        <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+      </div>
     </div>
   </div>
 );
@@ -111,67 +116,74 @@ const NodeRow: React.FC<NodeStatusProps> = ({
 export const NodeConnectivityGrid = ({
   stores,
   channels,
+  onExpansionRequest,
 }: {
   stores: any[];
   channels: any[];
+  onExpansionRequest: (feature: string) => void;
 }) => {
-  const navigate = useNavigate();
-
   return (
     <div className="grid grid-cols-1 gap-10">
-      <Card className="rounded-[3.5rem] border-none shadow-2xl overflow-hidden bg-white/80 backdrop-blur-xl">
-        <CardHeader className="p-10 border-b bg-slate-50/20 flex flex-row items-center justify-between space-y-0">
+      <Card className="rounded-[4rem] border border-white/5 shadow-2xl overflow-hidden bg-white/[0.03] backdrop-blur-3xl group/grid">
+        <CardHeader className="p-14 border-b border-white/5 bg-white/[0.01] flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-              <div className="p-3 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30">
-                <ShieldCheck className="w-6 h-6" />
+            <CardTitle className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-white">
+              <div className="p-4 rounded-2xl bg-indigo-600 text-white shadow-2xl shadow-indigo-600/20 group-hover/grid:rotate-6 transition-transform duration-500">
+                <ShieldCheck className="w-8 h-8" />
               </div>
-              Fleet Consensus Engine
+              Fleet Consensus
             </CardTitle>
-            <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2 ml-[64px]">
+            <CardDescription className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-4 ml-[88px] italic">
               Active Multi-Branch Supervision: {stores.length} Nodes •{" "}
               {channels.length} Digital Hubs
             </CardDescription>
           </div>
-          <button className="w-12 h-12 flex items-center justify-center hover:bg-slate-100 rounded-2xl transition-all group">
-            <RefreshCw className="w-5 h-5 text-slate-400 group-hover:rotate-180 transition-transform duration-700" />
+          <button className="w-16 h-16 flex items-center justify-center bg-white/5 border border-white/5 rounded-[1.5rem] hover:bg-white/10 transition-all group/refresh shadow-xl">
+            <RefreshCw className="w-6 h-6 text-slate-400 group-hover/refresh:rotate-180 transition-transform duration-700" />
           </button>
         </CardHeader>
-        <CardContent className="p-10 space-y-4">
-          {stores.slice(0, 4).map((store, i) => (
-            <NodeRow
-              key={store.id}
-              name={store.name}
-              type="BRANCH"
-              status={i === 0 ? "ONLINE" : i === 1 ? "LOAD" : "ONLINE"}
-              metric={`${(92 + i).toFixed(1)}%`}
-              health={80 + i * 5}
-            />
-          ))}
-          <div className="py-2 flex items-center gap-4 opacity-50">
-            <div className="h-px flex-1 bg-slate-100" />
-            <span className="text-[9px] font-black italic uppercase tracking-widest text-slate-400">
+        <CardContent className="p-14 space-y-6">
+          <div className="grid gap-6">
+            {stores.slice(0, 4).map((store, i) => (
+              <NodeRow
+                key={store.id}
+                name={store.name}
+                type="BRANCH"
+                status={i === 0 ? "ONLINE" : i === 1 ? "LOAD" : "ONLINE"}
+                metric={`${(92 + i).toFixed(1)}%`}
+                health={80 + i * 5}
+              />
+            ))}
+          </div>
+          
+          <div className="py-8 flex items-center gap-8 opacity-40">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-[10px] font-black italic uppercase tracking-[0.4em] text-slate-500 italic">
               Digital Channel Matrix
             </span>
-            <div className="h-px flex-1 bg-slate-100" />
+            <div className="h-px flex-1 bg-white/10" />
           </div>
-          {channels.slice(0, 3).map((channel, i) => (
-            <NodeRow
-              key={channel.id}
-              name={channel.name}
-              type="CHANNEL"
-              status={channel.status === "active" ? "ONLINE" : "SYNCING"}
-              metric="99.9%"
-              health={99}
-            />
-          ))}
-          <div className="pt-8 flex justify-center">
+
+          <div className="grid gap-6">
+            {channels.slice(0, 3).map((channel, i) => (
+              <NodeRow
+                key={channel.id}
+                name={channel.name}
+                type="CHANNEL"
+                status={channel.status === "active" ? "ONLINE" : "SYNCING"}
+                metric="99.9%"
+                health={99}
+              />
+            ))}
+          </div>
+
+          <div className="pt-12 flex justify-center">
             <button
-              onClick={() => navigate("/m/retail/management/infrastructure")}
-              className="h-14 px-10 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black italic uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl flex items-center gap-3"
+              onClick={() => onExpansionRequest("Global Infrastructure Manifest")}
+              className="h-16 px-12 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white text-[12px] font-black italic uppercase tracking-[0.3em] transition-all hover:scale-[1.05] active:scale-[0.98] shadow-[0_20px_40px_rgba(79,70,229,0.3)] flex items-center gap-4"
             >
               Access Global Infrastructure Manifest{" "}
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </CardContent>
@@ -179,3 +191,4 @@ export const NodeConnectivityGrid = ({
     </div>
   );
 };
+

@@ -8,13 +8,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  LineChart,
-  Line,
   AreaChart,
   Area,
 } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Target, Zap } from "lucide-react";
+import { TrendingUp, Target, Zap } from "lucide-react";
 import type { RetailOrder, RetailStore, RetailChannel } from "@/core/types/retail/retail";
 
 interface FleetRevenueMatrixProps {
@@ -80,39 +78,40 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
   const avgOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0;
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="space-y-10 animate-in fade-in duration-1000">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* REVENUE DISTRIBUTION */}
-        <Card className="lg:col-span-2 border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden">
-          <CardContent className="p-10">
-            <div className="flex items-center justify-between mb-8">
-              <div className="space-y-1">
-                <h3 className="text-xl font-black italic uppercase tracking-tighter text-white">
+        <Card className="lg:col-span-2 border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[3rem] overflow-hidden border border-white/5 group relative">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/10 rounded-full blur-[120px] -mr-40 -mt-40 group-hover:bg-indigo-600/20 transition-all duration-1000" />
+          <CardContent className="p-12 relative z-10">
+            <div className="flex items-center justify-between mb-12">
+              <div className="space-y-2">
+                <h3 className="text-[10px] font-black italic uppercase tracking-[0.4em] text-slate-500">
                   Multi-Node Performance
                 </h3>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  Revenue aggregation per operational entity
+                <p className="text-4xl font-black italic text-white tracking-tighter uppercase">
+                  Revenue Matrix
                 </p>
               </div>
-              <div className="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center gap-2">
-                <Target className="w-4 h-4 text-indigo-400" />
-                <span className="text-[10px] font-black italic uppercase text-indigo-400 tracking-widest">
+              <div className="px-6 py-3 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl flex items-center gap-3 shadow-xl backdrop-blur-xl">
+                <Target className="w-5 h-5 text-indigo-400" />
+                <span className="text-[10px] font-black italic uppercase text-indigo-400 tracking-[0.2em]">
                   LIVE TELEMETRY
                 </span>
               </div>
             </div>
 
-            <div className="h-[350px] w-full">
+            <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={nodeSales} layout="vertical" margin={{ left: 40, right: 40 }}>
-                  <CartesianGrid horizontal={false} vertical={true} stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid horizontal={false} vertical={true} stroke="rgba(255,255,255,0.03)" strokeDasharray="12 12" />
                   <XAxis type="number" hide />
                   <YAxis 
                     dataKey="name" 
                     type="category" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900, fontStyle: 'italic' }}
+                    tick={{ fill: '#475569', fontSize: 10, fontWeight: 900, fontStyle: 'italic' }}
                     width={100}
                   />
                   <Tooltip 
@@ -120,20 +119,21 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-slate-950 border border-white/10 p-4 rounded-2xl shadow-3xl">
-                            <p className="text-[10px] font-black italic text-slate-500 uppercase mb-1">{payload[0].payload.name}</p>
-                            <p className="text-xl font-black italic text-white tracking-tighter">Rp {payload[0].value?.toLocaleString()}</p>
+                          <div className="bg-slate-950/90 backdrop-blur-3xl border border-white/10 p-6 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                            <p className="text-[10px] font-black italic text-slate-500 uppercase tracking-widest mb-2">{payload[0].payload.name}</p>
+                            <p className="text-2xl font-black italic text-white tracking-tighter italic">Rp {payload[0].value?.toLocaleString()}</p>
                           </div>
                         );
                       }
                       return null;
                     }}
                   />
-                  <Bar dataKey="amount" radius={[0, 8, 8, 0]} barSize={24}>
+                  <Bar dataKey="amount" radius={[0, 12, 12, 0]} barSize={32}>
                     {nodeSales.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={entry.type === 'store' ? '#4f46e5' : '#10b981'} 
+                        className="transition-all duration-500 hover:opacity-80"
                       />
                     ))}
                   </Bar>
@@ -144,54 +144,71 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
         </Card>
 
         {/* GROWTH TERMINAL */}
-        <div className="space-y-8">
-          <Card className="border-none bg-white shadow-2xl rounded-[2.5rem] p-8 flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                <Zap className="w-6 h-6" />
+        <div className="flex flex-col gap-10">
+          <Card className="border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[3rem] p-12 flex flex-col justify-between group border border-white/5 relative overflow-hidden flex-1">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[60px] -ml-16 -mb-16 group-hover:bg-emerald-500/10 transition-all duration-1000" />
+            <div className="space-y-6 relative z-10">
+              <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-600/10 text-indigo-400 border border-indigo-600/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
+                <Zap className="w-8 h-8" />
               </div>
               <div>
-                <p className="text-[10px] font-black italic uppercase tracking-[0.2em] text-slate-400">Avg Transaction Value</p>
-                <h4 className="text-3xl font-black italic tracking-tighter text-slate-900 mt-1">
+                <p className="text-[10px] font-black italic uppercase tracking-[0.3em] text-slate-500 italic">Avg Transaction Value</p>
+                <h4 className="text-4xl font-black italic tracking-tighter text-white mt-2 italic">
                   Rp {Math.round(avgOrderValue).toLocaleString()}
                 </h4>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-emerald-600">
-              <TrendingUp className="w-4 h-4" />
-              <span className="text-[10px] font-black italic uppercase tracking-widest">+12.4% vs prev shift</span>
+            <div className="flex items-center gap-3 text-emerald-400 font-black italic mt-6 relative z-10">
+              <TrendingUp className="w-5 h-5" />
+              <span className="text-[10px] font-black italic uppercase tracking-[0.2em]">+12.4% vs prev shift</span>
             </div>
           </Card>
 
-          <Card className="border-none bg-indigo-600 shadow-2xl rounded-[2.5rem] p-8 text-white">
-            <h4 className="text-[10px] font-black italic uppercase tracking-[0.2em] opacity-60 mb-6">Velocity Stream (Last 7 Days)</h4>
-            <div className="h-[150px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={timeSeries}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#fff" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#fff" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Tooltip 
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-white p-3 rounded-xl shadow-2xl">
-                             <p className="text-sm font-black italic text-slate-900">Rp {payload[0].value?.toLocaleString()}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#fff" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
+          <Card className="border-none bg-indigo-600 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.5)] rounded-[3.5rem] p-12 text-white relative overflow-hidden group/velocity flex-1">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-32 -mt-32 group-hover/velocity:scale-150 transition-transform duration-1000" />
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <h4 className="text-[10px] font-black italic uppercase tracking-[0.3em] opacity-60 mb-8 italic">Velocity Stream (7D)</h4>
+                <div className="h-[180px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={timeSeries}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#fff" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#fff" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white/95 backdrop-blur-xl p-5 rounded-[1.5rem] shadow-3xl border-none">
+                                 <p className="text-xl font-black italic text-slate-900 tracking-tighter italic">Rp {payload[0].value?.toLocaleString()}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#fff" 
+                        strokeWidth={5} 
+                        fillOpacity={1} 
+                        fill="url(#colorValue)" 
+                        animationDuration={2000}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="pt-8 border-t border-white/10 flex items-center justify-between">
+                 <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 italic italic">Strategic Peak Yield</p>
+                 <TrendingUp className="w-5 h-5 text-white/40" />
+              </div>
             </div>
           </Card>
-        </div>
       </div>
     </div>
   );
