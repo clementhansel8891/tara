@@ -1,3 +1,5 @@
+import { Request } from "express";
+
 /**
  * Tenant Context Interface
  * Represents the multi-tenant context extracted from request headers.
@@ -43,4 +45,11 @@ export interface TenantContext {
    * JV Mirror Mode flag
    */
   is_jv_read_only?: boolean;
+}
+
+/**
+ * Extended Express Request with Tenant Context
+ */
+export interface RequestWithTenant extends Request {
+  tenantContext: TenantContext;
 }

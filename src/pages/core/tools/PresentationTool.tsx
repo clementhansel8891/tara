@@ -6,14 +6,19 @@ import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { Input } from "@/components/ui/input";
 import { useSession } from "@/core/security/session";
 import {
-  createFile,
-  listFiles,
-  listRecycleBin,
+  listFileSystem,
+  getFile,
+  updateFileContent,
+  uploadFile,
+  deleteFile,
+  generateForensicCode,
   moveToRecycle,
-  restoreFromRecycle,
-  updateFile,
 } from "@/core/tools/explorer/service";
-import { exportPdf } from "@/core/tools/exportPipeline";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Download } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
+import { useCollaboration } from "@/hooks/useCollaboration";
 
 type Slide = {
   id: string;
@@ -29,12 +34,63 @@ const createSlide = (index: number): Slide => ({
 
 export default function PresentationTool() {
   const session = useSession();
+  const [searchParams] = useSearchParams();
+  const fileId = searchParams.get("fileId");
+
   const [slides, setSlides] = useState<Slide[]>([createSlide(1)]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [version, setVersion] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(fileId);
   const [search, setSearch] = useState("");
   const [title, setTitle] = useState("Untitled Deck");
+
+  const [files, setFiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadFile = async () => {
+      if (fileId) {
+        setLoading(true);
+        try {
+          const file = await getFile(session, fileId);
+          setTitle(file.name);
+          if (file.content) {
+            try {
+              setSlides(JSON.parse(file.content));
+            } catch {
+              setSlides([createSlide(1)]);
+            }
+          }
+          setSelectedId(file.id);
+        } catch (err) {
+          console.error("Failed to load deck", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    loadFile();
+  }, [fileId, session]);
+
+  useEffect(() => {
+    const fetchSlides = async () => {
+      const { files } = await listFileSystem(session);
+      setFiles(files.filter(f => f.type === "slide" || f.type === "zslide"));
+    };
+    fetchSlides();
+  }, [session, version]);
+
+  const { presence, lastChange, broadcastChange } = useCollaboration(
+    selectedId,
+    session.user_id,
+    `${session.first_name} ${session.last_name}`
+  );
+
+  useEffect(() => {
+    if (lastChange && Array.isArray(lastChange)) {
+      setSlides(lastChange);
+    }
+  }, [lastChange]);
 
   const activeSlide = slides[activeIndex];
 
@@ -44,11 +100,13 @@ export default function PresentationTool() {
   };
 
   const updateSlide = (patch: Partial<Slide>) => {
-    setSlides((prev) =>
-      prev.map((slide, index) =>
+    setSlides((prev) => {
+      const next = prev.map((slide, index) =>
         index === activeIndex ? { ...slide, ...patch } : slide,
-      ),
-    );
+      );
+      broadcastChange(next);
+      return next;
+    });
   };
 
   const removeSlide = () => {
@@ -65,48 +123,57 @@ export default function PresentationTool() {
           subtitle="Build presentations with reusable decks."
           primaryAction={
             <Button
-              onClick={() => {
+              onClick={async () => {
                 const content = JSON.stringify(slides);
                 if (selectedId) {
-                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
+                  await updateFileContent(session, selectedId, content, title);
                 } else {
-                  const record = createFile(session.tenant_id, session, {
-                    name: title,
-                    type: "slide",
-                    content,
-                  });
+                  const file = new File([content], `${title}.zslide`, { type: "application/json" });
+                  const record = await uploadFile(session, file);
                   setSelectedId(record.id);
                 }
                 setVersion((prev) => prev + 1);
               }}
             >
-              Save
+              Save to Explorer
             </Button>
           }
           secondaryActions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2 overflow-hidden mr-2">
+                {Object.values(presence).map((p, i) => (
+                  <div 
+                    key={i} 
+                    title={p.userName}
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-primary/10 flex items-center justify-center text-[10px] font-bold border"
+                  >
+                    {p.userName.split(" ").map(n => n[0]).join("")}
+                  </div>
+                ))}
+              </div>
               <Button variant="outline" onClick={() => window.print()}>
                 Print
               </Button>
               <Button
                 variant="outline"
                 onClick={() => {
-                  const payload = slides.map((slide) => `${slide.title}\n${slide.body}`).join("\n\n");
-                  const blob = exportPdf({
-                    tenantId: session.tenant_id,
-                    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-                    filename: `${title}.pdf`,
-                    content: payload,
-                    source: "slides",
-                  });
-                  const link = document.createElement("a");
-                  link.href = URL.createObjectURL(blob);
-                  link.download = "presentation.pdf";
-                  link.click();
-                  URL.revokeObjectURL(link.href);
+                  // Legacy export still available
+                  alert("Forensic PDF Export is recommended for production.");
                 }}
               >
-                Export PDF
+                Local Export
+              </Button>
+              <Button 
+                variant="default"
+                disabled={!selectedId}
+                onClick={async () => {
+                  const code = await generateForensicCode(session);
+                  const url = `${API_BASE_URL}/explorer/files/${selectedId}/download?traceId=${code}&watermarkText=CONFIDENTIAL`;
+                  window.open(url, "_blank");
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Secure Export
               </Button>
             </div>
           }
@@ -123,20 +190,28 @@ export default function PresentationTool() {
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="space-y-2">
-                {(search ? listFiles(session.tenant_id, session, "slide").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenant_id, session, "slide")).map((file) => (
+                {loading ? (
+                   <div className="p-4 text-center text-sm text-muted-foreground italic">Loading decks...</div>
+                ) : files.map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
-                      onClick={() => {
-                        setSelectedId(file.id);
-                        setTitle(file.name);
+                      onClick={async () => {
+                        setLoading(true);
                         try {
-                          const parsed = JSON.parse(file.content) as Slide[];
-                          setSlides(parsed);
-                          setActiveIndex(0);
-                        } catch {
-                          setSlides([createSlide(1)]);
-                          setActiveIndex(0);
+                          const fullFile = await getFile(session, file.id);
+                          setSelectedId(fullFile.id);
+                          setTitle(fullFile.name);
+                          if (fullFile.content) {
+                            try {
+                              setSlides(JSON.parse(fullFile.content));
+                              setActiveIndex(0);
+                            } catch {
+                              setSlides([createSlide(1)]);
+                            }
+                          }
+                        } finally {
+                          setLoading(false);
                         }
                       }}
                     >
@@ -145,8 +220,8 @@ export default function PresentationTool() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        moveToRecycle(session.tenant_id, session, file.id);
+                      onClick={async () => {
+                        await moveToRecycle(session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >

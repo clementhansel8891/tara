@@ -11,7 +11,8 @@ import { SalesModule } from "./core/sales/sales.module";
 import { MarketingModule } from "./core/marketing/marketing.module";
 import { PaymentModule } from "./core/payment/payment.module";
 import { RetailModule } from "./modules/retail/retail.module";
-import { ExplorerModule } from "./support/explorer/explorer.module";
+import { IntelligenceModule } from "./support/intelligence/intelligence.module";
+import { ExplorerModule } from "./core/explorer/explorer.module";
 import { PersistenceModule } from "./persistence/persistence.module";
 import { AuditModule } from "./shared/audit/audit.module";
 import { AuthModule } from "./core/auth/auth.module";
@@ -83,6 +84,7 @@ import { JVReadOnlyGuard } from "./gateway/jv-read-only.guard";
     MarketingModule,
     PaymentModule,
     RetailModule,
+    IntelligenceModule,
     ExplorerModule,
     AuthModule,
     PricingModule,

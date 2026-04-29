@@ -3,7 +3,7 @@ import { PrismaService } from "../../persistence/prisma.service";
 import { HRService } from "../../core/hr/hr.service";
 
 @Injectable()
-export class ExplorerService {
+export class IntelligenceService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hrService: HRService,

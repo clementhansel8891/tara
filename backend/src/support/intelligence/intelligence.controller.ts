@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Req, UseGuards, UseInterceptors, ForbiddenException } from "@nestjs/common";
 import { Request } from "express";
-import { ExplorerService } from "./explorer.service";
+import { IntelligenceService } from "./intelligence.service";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { TenantGuard } from "../../shared/guards/tenant.guard";
 import { TenantContext } from "../../gateway/tenant-context.interface";
@@ -14,11 +14,11 @@ interface RequestWithTenant extends Request {
  * Explorer Controller
  * Platform-wide intelligence and search
  */
-@Controller('explorer')
+@Controller('intelligence')
 @UseInterceptors(TenantInterceptor)
 @UseGuards(TenantGuard)
-export class ExplorerController {
-  constructor(private readonly explorerService: ExplorerService) {}
+export class IntelligenceController {
+  constructor(private readonly intelligenceService: IntelligenceService) {}
 
   private ensureSuperAdmin(role: string) {
     if (role !== UserRole.SUPERADMIN) {
@@ -29,14 +29,14 @@ export class ExplorerController {
   @Get("workforce/headcount")
   async getGlobalHeadcount(@Req() request: RequestWithTenant) {
     this.ensureSuperAdmin(request.tenantContext.role || "");
-    const data = await this.explorerService.getGlobalHeadcount();
+    const data = await this.intelligenceService.getGlobalHeadcount();
     return { success: true, data };
   }
 
   @Get("workforce/compensation")
   async getGlobalCompensation(@Req() request: RequestWithTenant) {
     this.ensureSuperAdmin(request.tenantContext.role || "");
-    const data = await this.explorerService.getGlobalCompensationStats();
+    const data = await this.intelligenceService.getGlobalCompensationStats();
     return { success: true, data };
   }
 
@@ -46,14 +46,14 @@ export class ExplorerController {
     @Query("q") query: string
   ) {
     this.ensureSuperAdmin(request.tenantContext.role || "");
-    const results = await this.explorerService.globalSearch(query);
+    const results = await this.intelligenceService.globalSearch(query);
     return { success: true, data: results };
   }
 
   @Get("workforce/readiness")
   async getRegionalReadiness(@Req() request: RequestWithTenant) {
     this.ensureSuperAdmin(request.tenantContext.role || "");
-    const data = await this.explorerService.getRegionalReadiness();
+    const data = await this.intelligenceService.getRegionalReadiness();
     return { success: true, data };
   }
 }

@@ -98,6 +98,10 @@ model tenants {
   finance_general_ledger_projections     finance_general_ledger_projections[]
   finance_account_statement_projections  finance_account_statement_projections[]
   fixed_assets                           fixed_assets[]
+  explorer_folders                       explorer_folders[]
+  explorer_files                         explorer_files[]
+  explorer_notes                         explorer_notes[]
+  export_audit_trail                     export_audit_trail[]
   fnb_ingredients                        fnb_ingredients[]
   fnb_recipes                            fnb_recipes[]
   hr_attendance_records                  hr_attendance_records[]
@@ -782,6 +786,9 @@ model companies {
   currency                              String                                  @default("USD")
   industry                              String                                  @default("retail")
   primary_location_id                   String?
+  parent_id                             String?
+  parent                                companies?                              @relation("CompanyHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children                              companies[]                             @relation("CompanyHierarchy")
   agentic_events                        agentic_events[]
   audit_hash_anchors                    audit_hash_anchors[]
   audit_logs                            audit_logs[]
@@ -844,6 +851,9 @@ model companies {
   hr_employee_benefits                  hr_employee_benefits[]
   hr_employee_skills                    hr_employee_skills[]
   hr_exchange_rates                     hr_exchange_rates[]
+  explorer_folders                      explorer_folders[]
+  explorer_files                        explorer_files[]
+  explorer_notes                        explorer_notes[]
   hr_headcount_plans                    hr_headcount_plans[]
   hr_holidays                           hr_holidays[]
   hr_insights                           hr_insights[]
@@ -1115,6 +1125,8 @@ model departments {
   head_id                                                         String?
   description                                                     String?
   status                                                          String                     @default("active")
+  branch_id                                                       String?
+  ecommerce_id                                                    String?
   created_at                                                      DateTime                   @default(now())
   updated_at                                                      DateTime                   @default(now())
   deleted_at                                                      DateTime?
@@ -1141,6 +1153,9 @@ model departments {
   // @@map("departments") - standardized
   tenants                                                         tenants                    @relation(fields: [tenant_id], references: [id])
   capex_budgets                                                   capex_budgets[]
+  explorer_folders                                                explorer_folders[]
+  explorer_files                                                  explorer_files[]
+  explorer_notes                                                  explorer_notes[]
   money_sources                                                   money_sources[]
 
   @@unique([tenant_id, code])
@@ -6267,6 +6282,10 @@ model users {
   companies                     companies?                      @relation(fields: [company_id], references: [id])
   // @@map("users") - standardized
   tenants                       tenants                         @relation(fields: [tenant_id], references: [id])
+  explorer_files                explorer_files[]
+  edited_files                  explorer_files[]                @relation("FileEditor")
+  explorer_notes                explorer_notes[]
+  export_audit_trail            export_audit_trail[]
 
   @@unique([tenant_id, email])
 }
@@ -7098,4 +7117,107 @@ model inventory_transfers {
   from_location locations    @relation("from_location", fields: [from_location_id], references: [id])
   to_location   locations    @relation("to_location", fields: [to_location_id], references: [id])
   tenants       tenants      @relation(fields: [tenant_id], references: [id])
+}
+
+model explorer_folders {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  branch_id     String?
+  ecommerce_id  String?
+  access_level  String   @default("private")
+  name          String
+  parent_id     String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  parent        explorer_folders? @relation("FolderHierarchy", fields: [parent_id], references: [id])
+  children      explorer_folders[] @relation("FolderHierarchy")
+  files         explorer_files[]
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+}
+
+model explorer_files {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  branch_id     String?
+  ecommerce_id  String?
+  access_level  String   @default("private")
+  owner_id      String
+  folder_id     String?
+  name          String
+  type          String
+  size          Int
+  mime_type     String
+  storage_path  String
+  last_edited_by String?
+  history        Json?    @default("[]")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  owner         users        @relation(fields: [owner_id], references: [id])
+  folder        explorer_folders? @relation(fields: [folder_id], references: [id])
+  last_editor   users?       @relation("FileEditor", fields: [last_edited_by], references: [id])
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+  @@index([branch_id])
+  @@index([ecommerce_id])
+  @@index([owner_id])
+  @@index([folder_id])
+}
+
+model explorer_notes {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  owner_id      String
+  title         String
+  content       String   @db.Text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  owner         users        @relation(fields: [owner_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+}
+
+model export_audit_trail {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  user_id       String
+  forensic_code String   @unique
+  ip_address    String
+  timestamp     DateTime @default(now())
+  metadata      Json?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  users         users        @relation(fields: [user_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([user_id])
+  @@index([forensic_code])
 }

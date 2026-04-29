@@ -6,13 +6,19 @@ import { PageShell } from "@/core/ui/PageShell";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import {
-  createFile,
-  listFiles,
-  listRecycleBin,
+  listFileSystem,
+  getFile,
+  updateFileContent,
+  uploadFile,
+  deleteFile,
+  generateForensicCode,
   moveToRecycle,
-  restoreFromRecycle,
-  updateFile,
 } from "@/core/tools/explorer/service";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Download } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
+import { useCollaboration } from "@/hooks/useCollaboration";
 
 const COLS = 8;
 const ROWS = 20;
@@ -24,13 +30,65 @@ const toColumnLabel = (index: number) => String.fromCharCode(65 + index);
 
 export default function SpreadsheetTool() {
   const session = useSession();
+  const [searchParams] = useSearchParams();
+  const fileId = searchParams.get("fileId");
+
   const [grid, setGrid] = useState<string[][]>(buildGrid);
   const [selected, setSelected] = useState<{ row: number; col: number } | null>(null);
   const [formula, setFormula] = useState("");
   const [version, setVersion] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(fileId);
   const [search, setSearch] = useState("");
   const [title, setTitle] = useState("Untitled Sheet");
+
+  const [files, setFiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadFile = async () => {
+      if (fileId) {
+        setLoading(true);
+        try {
+          const file = await getFile(session, fileId);
+          setTitle(file.name);
+          if (file.content) {
+            try {
+              setGrid(JSON.parse(file.content));
+            } catch {
+              // Handle CSV or text content
+              setGrid(buildGrid());
+            }
+          }
+          setSelectedId(file.id);
+        } catch (err) {
+          console.error("Failed to load sheet", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    loadFile();
+  }, [fileId, session]);
+
+  useEffect(() => {
+    const fetchSheets = async () => {
+      const { files } = await listFileSystem(session);
+      setFiles(files.filter(f => f.type === "sheet" || f.type === "zsheet" || f.type === "csv"));
+    };
+    fetchSheets();
+  }, [session, version]);
+
+  const { presence, lastChange, broadcastChange } = useCollaboration(
+    selectedId,
+    session.user_id,
+    `${session.first_name} ${session.last_name}`
+  );
+
+  useEffect(() => {
+    if (lastChange && Array.isArray(lastChange)) {
+      setGrid(lastChange);
+    }
+  }, [lastChange]);
 
   const total = useMemo(() => {
     if (selected === null) return 0;
@@ -42,6 +100,7 @@ export default function SpreadsheetTool() {
     setGrid((prev) => {
       const next = prev.map((r) => [...r]);
       next[row][col] = value;
+      broadcastChange(next);
       return next;
     });
   };
@@ -64,31 +123,51 @@ export default function SpreadsheetTool() {
           subtitle="Grid-based calculations and exports."
           primaryAction={
             <Button
-              onClick={() => {
+              onClick={async () => {
                 const content = JSON.stringify(grid);
                 if (selectedId) {
-                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
+                  await updateFileContent(session, selectedId, content, title);
                 } else {
-                  const record = createFile(session.tenant_id, session, {
-                    name: title,
-                    type: "sheet",
-                    content,
-                  });
+                  const file = new File([content], `${title}.zsheet`, { type: "application/json" });
+                  const record = await uploadFile(session, file);
                   setSelectedId(record.id);
                 }
                 setVersion((prev) => prev + 1);
               }}
             >
-              Save
+              Save to Explorer
             </Button>
           }
           secondaryActions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2 overflow-hidden mr-2">
+                {Object.values(presence).map((p, i) => (
+                  <div 
+                    key={i} 
+                    title={p.userName}
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-primary/10 flex items-center justify-center text-[10px] font-bold border"
+                  >
+                    {p.userName.split(" ").map(n => n[0]).join("")}
+                  </div>
+                ))}
+              </div>
               <Button variant="outline" onClick={() => window.print()}>
                 Print
               </Button>
               <Button variant="outline" onClick={exportCsv}>
                 Export CSV
+              </Button>
+              <Button 
+                variant="default"
+                disabled={!selectedId}
+                onClick={async () => {
+                  const code = await generateForensicCode(session);
+                  const url = `${API_BASE_URL}/explorer/files/${selectedId}/download?traceId=${code}&watermarkText=CONFIDENTIAL`;
+                  window.open(url, "_blank");
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Secure Export
               </Button>
             </div>
           }
@@ -105,18 +184,27 @@ export default function SpreadsheetTool() {
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="space-y-2">
-                {(search ? listFiles(session.tenant_id, session, "sheet").filter((file) => file.name.toLowerCase().includes(search.toLowerCase())) : listFiles(session.tenant_id, session, "sheet")).map((file) => (
+                {loading ? (
+                   <div className="p-4 text-center text-sm text-muted-foreground italic">Loading sheets...</div>
+                ) : files.map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
-                      onClick={() => {
-                        setSelectedId(file.id);
-                        setTitle(file.name);
+                      onClick={async () => {
+                        setLoading(true);
                         try {
-                          const parsed = JSON.parse(file.content) as string[][];
-                          setGrid(parsed);
-                        } catch {
-                          setGrid(buildGrid());
+                          const fullFile = await getFile(session, file.id);
+                          setSelectedId(fullFile.id);
+                          setTitle(fullFile.name);
+                          if (fullFile.content) {
+                            try {
+                              setGrid(JSON.parse(fullFile.content));
+                            } catch {
+                              setGrid(buildGrid());
+                            }
+                          }
+                        } finally {
+                          setLoading(false);
                         }
                       }}
                     >
@@ -125,8 +213,8 @@ export default function SpreadsheetTool() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        moveToRecycle(session.tenant_id, session, file.id);
+                      onClick={async () => {
+                        await moveToRecycle(session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >

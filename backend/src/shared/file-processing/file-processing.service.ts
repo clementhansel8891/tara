@@ -107,7 +107,8 @@ export class FileProcessingService {
       watermark?: {
         text: string;
         opacity?: number;
-        position?: { x: number; y: number }; // cell location etc
+        size?: number;
+        position?: { x: number; y: number }; 
       };
     },
   ): Promise<Buffer> {
@@ -134,22 +135,28 @@ export class FileProcessingService {
       forensicCell.protection = { locked: true };
     }
 
-    // 2. Visible Watermark
+    // 2. Visible Watermark (Adjustable)
     if (options?.watermark?.text) {
       const wmText = options.watermark.text;
       const posX = options.watermark.position?.x || 1;
       const posY = options.watermark.position?.y || 1;
+      const size = options.watermark.size || 72;
+      const opacity = options.watermark.opacity || 0.2;
+      const argbOpacity = Math.round(opacity * 255).toString(16).padStart(2, '0');
 
-      // ExcelJS doesn't support floating text boxes easily, we use a formatted cell or background
-      // For drag & drop flexibility in Excel, we can use a "Note" or a specific cell styling
       const wmCell = worksheet.getCell(posY, posX);
       wmCell.value = wmText;
       wmCell.font = {
-        size: 72,
+        size: size,
         bold: true,
-        color: { argb: "20808080" }, // Low opacity gray
+        color: { argb: `${argbOpacity}808080` }, 
       };
       wmCell.alignment = { vertical: "middle", horizontal: "center" };
+    }
+
+    // 3. Micro-Footer Forensic Hash (Printed Edge)
+    if (options?.traceId) {
+      worksheet.headerFooter.oddFooter = `&L&2Forensic ID: ${options.traceId} &R&2Zenvix Secured Document`;
     }
 
     worksheet.columns = columns;

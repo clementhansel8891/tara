@@ -6,48 +6,97 @@ import { PageShell } from "@/core/ui/PageShell";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { exportPdf } from "@/core/tools/exportPipeline";
+import { Download } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 import {
-  createFile,
-  listFiles,
-  listRecycleBin,
+  listFileSystem,
+  getFile,
+  updateFileContent,
+  uploadFile,
+  deleteFile,
+  generateForensicCode,
   moveToRecycle,
   restoreFromRecycle,
-  updateFile,
 } from "@/core/tools/explorer/service";
+import { useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useCollaboration } from "@/hooks/useCollaboration";
 
 const createFilename = (title: string, ext: string) =>
   `${title.trim().replace(/\s+/g, "-").toLowerCase() || "document"}.${ext}`;
 
 export default function DocumentTool() {
   const session = useSession();
+  const [searchParams] = useSearchParams();
+  const fileId = searchParams.get("fileId");
+  
   const [title, setTitle] = useState("Untitled Document");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(fileId);
   const [search, setSearch] = useState("");
+
+  const [files, setFiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadFile = async () => {
+      if (fileId) {
+        setLoading(true);
+        try {
+          const file = await getFile(session, fileId);
+          setTitle(file.name);
+          setContent(file.content || "");
+          setSelectedId(file.id);
+        } catch (err) {
+          console.error("Failed to load file", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    loadFile();
+  }, [fileId, session]);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      const { files } = await listFileSystem(session);
+      setFiles(files.filter(f => f.type === "doc" || f.type === "zdoc" || f.type === "txt"));
+    };
+    fetchDocs();
+  }, [session, version]);
+
+  const { presence, lastChange, broadcastChange } = useCollaboration(
+    selectedId,
+    session.user_id,
+    `${session.first_name} ${session.last_name}`
+  );
+
+  useEffect(() => {
+    if (lastChange && typeof lastChange === "string") {
+      setContent(lastChange);
+    }
+  }, [lastChange]);
+
+  const handleContentChange = (val: string) => {
+    setContent(val);
+    broadcastChange(val);
+  };
 
   const wordCount = useMemo(
     () => (content.trim() ? content.trim().split(/\s+/).length : 0),
     [content],
   );
 
-  const files = useMemo(
-    () => (search ? [] : listFiles(session.tenant_id, session, "doc")),
-    [session, version, search],
-  );
-  const searchResults = useMemo(
-    () =>
-      search
-        ? listFiles(session.tenant_id, session, "doc").filter((file) =>
-            file.name.toLowerCase().includes(search.toLowerCase()),
-          )
-        : [],
-    [session, search, version],
-  );
-  const recycleBin = useMemo(
-    () => listRecycleBin(session.tenant_id, session, "doc"),
-    [session, version],
+  const filteredFiles = useMemo(
+    () => {
+      if (!search) return files;
+      return files.filter((file) =>
+        file.name.toLowerCase().includes(search.toLowerCase())
+      );
+    },
+    [files, search]
   );
 
   const download = (ext: string) => {
@@ -76,26 +125,34 @@ export default function DocumentTool() {
           subtitle="Compose, edit, and export documents."
           primaryAction={
             <Button
-              onClick={() => {
+              onClick={async () => {
                 if (selectedId) {
-                  updateFile(session.tenant_id, session, selectedId, { name: title, content });
+                  await updateFileContent(session, selectedId, content, title);
                 } else {
-                  const record = createFile(session.tenant_id, session, {
-                    name: title,
-                    type: "doc",
-                    content,
-                  });
+                  const file = new File([content], createFilename(title, "zdoc"), { type: "text/plain" });
+                  const record = await uploadFile(session, file);
                   setSelectedId(record.id);
                 }
-                setStatus("Saved locally");
+                setStatus("Changes saved to library");
                 setVersion((prev) => prev + 1);
               }}
             >
-              Save
+              Save to Explorer
             </Button>
           }
           secondaryActions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2 overflow-hidden mr-2">
+                {Object.values(presence).map((p, i) => (
+                  <div 
+                    key={i} 
+                    title={p.userName}
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-background bg-primary/10 flex items-center justify-center text-[10px] font-bold border"
+                  >
+                    {p.userName.split(" ").map(n => n[0]).join("")}
+                  </div>
+                ))}
+              </div>
               <Button variant="outline" onClick={() => window.print()}>
                 Print
               </Button>
@@ -107,6 +164,19 @@ export default function DocumentTool() {
               </Button>
               <Button variant="outline" onClick={() => download("pdf")}>
                 Export PDF
+              </Button>
+              <Button 
+                variant="default" 
+                className="bg-primary/90"
+                disabled={!selectedId}
+                onClick={async () => {
+                  const code = await generateForensicCode(session);
+                  const url = `${API_BASE_URL}/explorer/files/${selectedId}/download?traceId=${code}&watermarkText=CONFIDENTIAL`;
+                  window.open(url, "_blank");
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Secure Export
               </Button>
             </div>
           }
@@ -123,14 +193,22 @@ export default function DocumentTool() {
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="space-y-2">
-                {(search ? searchResults : files).map((file) => (
+                {loading ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground italic">Loading documents...</div>
+                ) : filteredFiles.map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
-                      onClick={() => {
-                        setSelectedId(file.id);
-                        setTitle(file.name);
-                        setContent(file.content);
+                      onClick={async () => {
+                        setLoading(true);
+                        try {
+                          const fullFile = await getFile(session, file.id);
+                          setSelectedId(fullFile.id);
+                          setTitle(fullFile.name);
+                          setContent(fullFile.content || "");
+                        } finally {
+                          setLoading(false);
+                        }
                       }}
                     >
                       {file.name}
@@ -138,8 +216,8 @@ export default function DocumentTool() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => {
-                        moveToRecycle(session.tenant_id, session, file.id);
+                      onClick={async () => {
+                        await moveToRecycle(session, file.id);
                         setVersion((prev) => prev + 1);
                       }}
                     >
@@ -183,35 +261,21 @@ export default function DocumentTool() {
             <textarea
               className="min-h-[320px] w-full rounded-lg border bg-background p-4 text-sm text-foreground outline-none"
               value={content}
-              onChange={(event) => setContent(event.target.value)}
+              onChange={(event) => handleContentChange(event.target.value)}
               placeholder="Start typing here..."
             />
           </div>
         </WorkspacePanel>
-        <WorkspacePanel title="Recycle bin" description="Only owners/admins can restore.">
-          {recycleBin.length === 0 ? (
-            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-              Recycle bin is empty.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recycleBin.map((file) => (
-                <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
-                  <div className="text-sm">{file.name}</div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      restoreFromRecycle(session.tenant_id, session, file.id);
-                      setVersion((prev) => prev + 1);
-                    }}
-                  >
-                    Restore
-                  </Button>
+        <WorkspacePanel title="Audit Tracking" description="Forensic history of this document.">
+          <div className="space-y-2">
+             {selectedId ? (
+                <div className="text-sm text-muted-foreground">
+                  View edit history and forensic logs in the File Explorer.
                 </div>
-              ))}
-            </div>
-          )}
+             ) : (
+               <p className="text-sm italic text-muted-foreground">Select a file to see its audit status.</p>
+             )}
+          </div>
         </WorkspacePanel>
       </div>
     </PageShell>

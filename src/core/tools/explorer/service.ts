@@ -1,290 +1,175 @@
-import type { ToolFileRecord, ToolFileType, ToolFolder } from "./types";
-import { toolFileRepo, toolFolderRepo } from "./repository";
+import { apiRequest } from "@/core/api/apiClient";
 import type { SessionContext } from "@/core/security/session";
-import { Roles } from "@/core/security/roles";
-import { logAction } from "@/core/logging/audit";
+import type { ToolFileRecord, ToolFileType, ToolFolder } from "./types";
 
-const createId = () =>
-  typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `file-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+export type ZenvixTool = "docs" | "sheets" | "slides" | "none";
 
-const canSeeFile = (session: SessionContext, file: ToolFileRecord) => {
-  if (session.role === Roles.SUPERADMIN) return true;
-  if (file.tenantId !== session.tenant_id) return false;
-  if (([Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) return true;
-  if (session.role === Roles.DEPT_HEAD || session.role === Roles.HR_ADMIN || session.role === Roles.FINANCE_ADMIN) {
-    return file.departmentId === session.department_id;
-  }
-  return file.departmentId === session.department_id && file.ownerId === session.user_id;
-};
-
-const canManageFile = (session: SessionContext, file: ToolFileRecord) => {
-  if (session.role === Roles.SUPERADMIN) return true;
-  if (file.tenantId !== session.tenant_id) return false;
-  if (([Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) return true;
-  if (([Roles.DEPT_HEAD, Roles.HR_ADMIN, Roles.FINANCE_ADMIN] as readonly string[]).includes(session.role)) {
-    return file.departmentId === session.department_id;
-  }
-  return file.departmentId === session.department_id && file.ownerId === session.user_id;
-};
-
-const canManageFolders = (session: SessionContext) => {
-  return ([
-    Roles.SUPERADMIN,
-    Roles.OWNER,
-    Roles.COMPANY_ADMIN,
-    Roles.DEPT_HEAD,
-    Roles.HR_ADMIN,
-    Roles.FINANCE_ADMIN,
-  ] as readonly string[]).includes(session.role);
-};
-
-export function listFiles(tenantId: string, session: SessionContext, type?: ToolFileType) {
-  return toolFileRepo
-    .list()
-    .filter((file) => file.tenantId === tenantId)
-    .filter((file) => !file.deletedAt)
-    .filter((file) => (type ? file.type === type : true))
-    .filter((file) => canSeeFile(session, file));
+export function getToolForFile(file: ToolFileRecord): ZenvixTool {
+  const type = file.type.toLowerCase();
+  if (["doc", "docx", "txt", "md", "zdoc"].includes(type)) return "docs";
+  if (["xls", "xlsx", "csv", "zsheet"].includes(type)) return "sheets";
+  if (["ppt", "pptx", "zslide"].includes(type)) return "slides";
+  return "none";
 }
 
-export function searchFiles(
-  tenantId: string,
+/**
+ * Zenvix DMS Service (Frontend)
+ * Migrated from localStorage to Backend DMS
+ */
+
+export async function listFileSystem(
   session: SessionContext,
-  query: string,
-  type?: ToolFileType,
-) {
-  const lower = query.toLowerCase();
-  return listFiles(tenantId, session, type).filter((file) =>
-    file.name.toLowerCase().includes(lower),
+  folderId?: string,
+): Promise<{ folders: ToolFolder[]; files: ToolFileRecord[] }> {
+  const query = folderId ? `?folder_id=${folderId}` : "";
+  const result = await apiRequest<{ folders: any[]; files: any[] }>(
+    `/explorer/system${query}`,
+    "GET",
+    session,
   );
+
+  return {
+    folders: result.folders.map(f => ({
+      id: f.id,
+      name: f.name,
+      tenantId: f.tenant_id,
+      departmentId: f.department_id,
+      parentId: f.parent_id,
+      createdAt: f.created_at,
+      updatedAt: f.updated_at,
+    })),
+    files: result.files.map(f => ({
+      id: f.id,
+      name: f.name,
+      tenantId: f.tenant_id,
+      departmentId: f.department_id,
+      ownerId: f.owner_id,
+      folderId: f.folder_id,
+      type: f.type as ToolFileType,
+      size: f.size,
+      mimeType: f.mime_type,
+      createdAt: f.created_at,
+      updatedAt: f.updated_at,
+    })),
+  };
 }
 
-export function listRecycleBin(tenantId: string, session: SessionContext, type?: ToolFileType) {
-  if (!([Roles.SUPERADMIN, Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) {
-    return [];
-  }
-  return toolFileRepo
-    .list()
-    .filter((file) => file.tenantId === tenantId)
-    .filter((file) => Boolean(file.deletedAt))
-    .filter((file) => (type ? file.type === type : true));
-}
-
-export function listFolders(tenantId: string, session: SessionContext): ToolFolder[] {
-  if (!canManageFolders(session)) return [];
-  return toolFolderRepo
-    .list()
-    .filter((folder) => folder.tenantId === tenantId)
-    .filter((folder) => folder.departmentId === session.department_id);
-}
-
-export function createFolder(
-  tenantId: string,
+export async function createFolder(
   session: SessionContext,
   name: string,
   parentId?: string,
-): ToolFolder | undefined {
-  if (!canManageFolders(session)) return undefined;
-  const now = new Date().toISOString();
-  const folder: ToolFolder = {
-    id: createId(),
-    tenantId,
-    departmentId: session.department_id,
+  departmentId?: string,
+): Promise<ToolFolder> {
+  const result = await apiRequest<any>("/explorer/folders", "POST", session, {
     name,
-    parentId,
-    createdAt: now,
-    updatedAt: now,
+    parent_id: parentId,
+    department_id: departmentId,
+  });
+
+  return {
+    id: result.id,
+    name: result.name,
+    tenantId: result.tenant_id,
+    departmentId: result.department_id,
+    parentId: result.parent_id,
+    createdAt: result.created_at,
+    updatedAt: result.updated_at,
   };
-  toolFolderRepo.create(folder);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_folder",
-    actionType: "create",
-    metadata: { folderId: folder.id },
-  });
-  return folder;
 }
 
-export function renameFolder(
-  tenantId: string,
+export async function uploadFile(
   session: SessionContext,
-  folderId: string,
-  name: string,
-): ToolFolder | undefined {
-  if (!canManageFolders(session)) return undefined;
-  const current = toolFolderRepo.list().find((folder) => folder.id === folderId && folder.tenantId === tenantId);
-  if (!current) return undefined;
-  const updated = { ...current, name, updatedAt: new Date().toISOString() };
-  toolFolderRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_folder",
-    actionType: "rename",
-    metadata: { folderId: updated.id },
-  });
-  return updated;
-}
+  file: File,
+  folderId?: string,
+  departmentId?: string,
+): Promise<ToolFileRecord> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (folderId) formData.append("folder_id", folderId);
+  if (departmentId) formData.append("department_id", departmentId);
 
-export function moveFolder(
-  tenantId: string,
-  session: SessionContext,
-  folderId: string,
-  parentId?: string,
-): ToolFolder | undefined {
-  if (!canManageFolders(session)) return undefined;
-  const current = toolFolderRepo.list().find((folder) => folder.id === folderId && folder.tenantId === tenantId);
-  if (!current) return undefined;
-  const updated: ToolFolder = {
-    ...current,
-    parentId,
-    updatedAt: new Date().toISOString(),
+  const result = await apiRequest<any>("/explorer/files/upload", "POST", session, formData);
+
+  return {
+    id: result.id,
+    name: result.name,
+    tenantId: result.tenant_id,
+    departmentId: result.department_id,
+    ownerId: result.owner_id,
+    folderId: result.folder_id,
+    type: result.type as ToolFileType,
+    size: result.size,
+    mimeType: result.mime_type,
+    createdAt: result.created_at,
+    updatedAt: result.updated_at,
   };
-  toolFolderRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_folder",
-    actionType: "move",
-    metadata: { folderId: updated.id, parentId: parentId ?? "root" },
-  });
-  return updated;
 }
 
-export function createFile(
-  tenantId: string,
-  session: SessionContext,
-  payload: { name: string; type: ToolFileType; content: string; folderId?: string },
-): ToolFileRecord {
-  const now = new Date().toISOString();
-  const record: ToolFileRecord = {
-    id: createId(),
-    tenantId,
-    departmentId: session.department_id,
-    ownerId: session.user_id,
-    folderId: payload.folderId ?? "root",
-    name: payload.name,
-    type: payload.type,
-    content: payload.content,
-    createdAt: now,
-    updatedAt: now,
-  };
-  toolFileRepo.create(record);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_file",
-    actionType: "create",
-    metadata: { fileId: record.id, type: record.type },
-  });
-  return record;
-}
-
-export function updateFile(
-  tenantId: string,
+export async function deleteFile(
   session: SessionContext,
   fileId: string,
-  patch: Partial<Pick<ToolFileRecord, "name" | "content">>,
-) {
-  const current = toolFileRepo.list().find((file) => file.id === fileId && file.tenantId === tenantId);
-  if (!current || !canManageFile(session, current)) return undefined;
-  const updated: ToolFileRecord = {
-    ...current,
-    ...patch,
-    updatedAt: new Date().toISOString(),
-  };
-  toolFileRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_file",
-    actionType: "update",
-    metadata: { fileId: updated.id },
-  });
-  return updated;
+): Promise<void> {
+  await apiRequest(`/explorer/files/${fileId}`, "DELETE", session);
 }
 
-export function moveToRecycle(
-  tenantId: string,
+export async function generateForensicCode(
+  session: SessionContext,
+  companyId?: string,
+  branchId?: string,
+): Promise<string> {
+  const result = await apiRequest<{ forensic_code: string }>(
+    "/explorer/forensic-code",
+    "POST",
+    session,
+    { company_id: companyId, branch_id: branchId }
+  );
+  return result.forensic_code;
+}
+
+export async function moveFile(
   session: SessionContext,
   fileId: string,
-) {
-  const current = toolFileRepo.list().find((file) => file.id === fileId && file.tenantId === tenantId);
-  if (!current || !canManageFile(session, current)) return undefined;
-  const updated: ToolFileRecord = {
-    ...current,
-    deletedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  toolFileRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_file",
-    actionType: "delete",
-    metadata: { fileId: updated.id },
+  targetFolderId: string,
+): Promise<void> {
+  await apiRequest(`/explorer/files/${fileId}/move`, "PATCH", session, {
+    folder_id: targetFolderId === "root" ? null : targetFolderId,
   });
-  return updated;
 }
 
-export function restoreFromRecycle(
-  tenantId: string,
-  session: SessionContext,
-  fileId: string,
-) {
-  if (!([Roles.SUPERADMIN, Roles.OWNER, Roles.COMPANY_ADMIN] as readonly string[]).includes(session.role)) {
-    return undefined;
-  }
-  const current = toolFileRepo.list().find((file) => file.id === fileId && file.tenantId === tenantId);
-  if (!current) return undefined;
-  const updated: ToolFileRecord = {
-    ...current,
-    deletedAt: undefined,
-    updatedAt: new Date().toISOString(),
-  };
-  toolFileRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_file",
-    actionType: "restore",
-    metadata: { fileId: updated.id },
-  });
-  return updated;
-}
-
-export function moveFile(
-  tenantId: string,
-  session: SessionContext,
-  fileId: string,
-  folderId: string,
-) {
-  const current = toolFileRepo.list().find((file) => file.id === fileId && file.tenantId === tenantId);
-  if (!current || !canManageFile(session, current)) return undefined;
-  const updated: ToolFileRecord = {
-    ...current,
-    folderId,
-    updatedAt: new Date().toISOString(),
-  };
-  toolFileRepo.update(updated);
-  logAction({
-    actor: { userId: session.user_id, role: session.role, departmentId: session.department_id },
-    tenantId,
-    entityType: "tool_file",
-    actionType: "move",
-    metadata: { fileId: updated.id, folderId },
-  });
-  return updated;
-}
-
-export function renameFile(
-  tenantId: string,
+export async function renameFile(
   session: SessionContext,
   fileId: string,
   name: string,
-) {
-  return updateFile(tenantId, session, fileId, { name });
+): Promise<void> {
+  await apiRequest(`/explorer/files/${fileId}`, "PATCH", session, { name });
+}
+
+export async function renameFolder(
+  session: SessionContext,
+  folderId: string,
+  name: string,
+): Promise<void> {
+  await apiRequest(`/explorer/folders/${folderId}`, "PATCH", session, { name });
+}
+
+export async function getFile(
+  session: SessionContext,
+  fileId: string,
+): Promise<ToolFileRecord & { content?: string }> {
+  return apiRequest<any>(`/explorer/files/${fileId}`, "GET", session);
+}
+
+export async function updateFileContent(
+  session: SessionContext,
+  fileId: string,
+  content: string,
+  name?: string,
+): Promise<void> {
+  await apiRequest(`/explorer/files/${fileId}`, "PATCH", session, { content, name });
+}
+
+// Recycle bin logic (Backend needs to support these routes)
+export async function moveToRecycle(session: SessionContext, fileId: string) { return deleteFile(session, fileId); }
+export async function restoreFromRecycle(session: SessionContext, fileId: string) {
+  await apiRequest(`/explorer/files/${fileId}/restore`, "POST", session);
 }

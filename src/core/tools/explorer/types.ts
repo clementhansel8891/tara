@@ -1,11 +1,20 @@
 import type { Role } from "@/core/security/roles";
 
-export type ToolFileType = "doc" | "sheet" | "slide" | "pdf";
+export type ToolFileType = 
+  | "doc" 
+  | "sheet" 
+  | "slide" 
+  | "pdf" 
+  | "image" 
+  | "audio" 
+  | "video" 
+  | "text" 
+  | "json";
 
 export type ToolFolder = {
   id: string;
   tenantId: string;
-  departmentId: string;
+  departmentId?: string;
   name: string;
   parentId?: string;
   createdAt: string;
@@ -15,12 +24,13 @@ export type ToolFolder = {
 export type ToolFileRecord = {
   id: string;
   tenantId: string;
-  departmentId: string;
+  departmentId?: string;
   ownerId: string;
   folderId?: string;
   name: string;
   type: ToolFileType;
-  content: string;
+  mimeType: string;
+  size: number;
   allowedRoles?: Role[];
   createdAt: string;
   updatedAt: string;

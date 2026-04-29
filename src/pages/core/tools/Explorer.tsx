@@ -22,30 +22,55 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { PageShell } from "@/core/ui/PageShell";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
+import { API_BASE_URL } from "@/lib/api-config";
 import {
   createFolder,
-  listFiles,
-  listFolders,
-  listRecycleBin,
-  moveFolder,
+  listFileSystem,
+  uploadFile,
+  deleteFile,
+  generateForensicCode,
   moveFile,
-  moveToRecycle,
   renameFile,
   renameFolder,
+  moveToRecycle,
   restoreFromRecycle,
-  searchFiles,
+  getToolForFile,
 } from "@/core/tools/explorer/service";
-import { Folder, FileText, FileSpreadsheet, Presentation, File, ChevronRight, ChevronDown, Trash2 } from "lucide-react";
+import { ExportSettingsDialog, type ExportSettings } from "@/components/shared/ExportSettingsDialog";
+import { 
+  Folder, 
+  FileText, 
+  FileSpreadsheet, 
+  Presentation, 
+  File, 
+  ChevronRight, 
+  ChevronDown, 
+  Trash2,
+  Upload,
+  Download,
+  Settings,
+  MoreVertical,
+  Plus,
+  History
+} from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 const typeLabel = {
   doc: "Doc",
   sheet: "Sheet",
   slide: "Slide",
   pdf: "PDF",
+  image: "Image",
+  audio: "Audio",
+  video: "Video",
+  text: "Text",
+  json: "JSON",
 } as const;
 
 export default function Explorer() {
   const session = useSession();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [version, setVersion] = useState(0);
   const [activeFolder, setActiveFolder] = useState("root");
@@ -75,23 +100,32 @@ export default function Explorer() {
   const fileAreaRef = useRef<HTMLDivElement | null>(null);
   const detailsAreaRef = useRef<HTMLDivElement | null>(null);
 
-  const files = useMemo(() => {
-    if (activeFolder === "recycle") {
-      const scoped = listRecycleBin(session.tenant_id, session);
-      if (!search) return scoped;
-      const lower = search.toLowerCase();
-      return scoped.filter((file) => file.name.toLowerCase().includes(lower));
-    }
-    const scoped = search
-      ? searchFiles(session.tenant_id, session, search)
-      : listFiles(session.tenant_id, session);
-    return scoped.filter((file) => file.folderId === activeFolder);
-  }, [session, search, version, activeFolder]);
+  const [files, setFiles] = useState<any[]>([]);
+  const [folders, setFolders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [groupBy, setGroupBy] = useState<"none" | "company" | "department">("none");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const folders = useMemo(
-    () => listFolders(session.tenant_id, session),
-    [session, version],
-  );
+  const fetchFileSystem = async () => {
+    setLoading(true);
+    try {
+      const { folders, files } = await listFileSystem(
+        session,
+        activeFolder === "root" ? undefined : activeFolder
+      );
+      setFiles(files);
+      setFolders(folders);
+    } catch (err) {
+      console.error("Failed to fetch file system", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useMemo(() => {
+    fetchFileSystem();
+  }, [activeFolder, version, session]);
 
   const selectedFile = useMemo(
     () => files.find((file) => file.id === selectedFileId) ?? null,
@@ -117,21 +151,36 @@ export default function Explorer() {
   }, [folders]);
 
   const orderedFiles = useMemo(() => {
-    const sorted = [...files].sort((a, b) => {
+    const filtered = search 
+      ? files.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
+      : files;
+
+    const sorted = [...filtered].sort((a, b) => {
       const nameA = a.name.toLowerCase();
       const nameB = b.name.toLowerCase();
       if (sortKey === "name") return nameA.localeCompare(nameB);
       if (sortKey === "type") return a.type.localeCompare(b.type);
-      const folderA = (folderMap.get(a.folderId ?? "root") ?? "Root").toLowerCase();
-      const folderB = (folderMap.get(b.folderId ?? "root") ?? "Root").toLowerCase();
-      return folderA.localeCompare(folderB);
+      return 0;
     });
     return sortDir === "asc" ? sorted : sorted.reverse();
-  }, [files, folderMap, sortKey, sortDir]);
+  }, [files, search, sortKey, sortDir]);
+
+  const groupedFiles = useMemo(() => {
+    if (groupBy === "none") return { "Files": orderedFiles };
+    const groups: Record<string, any[]> = {};
+    orderedFiles.forEach(file => {
+      const key = groupBy === "company" 
+        ? (file.company_id || "Global") 
+        : (file.department_id || "Unassigned");
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(file);
+    });
+    return groups;
+  }, [orderedFiles, groupBy]);
 
   const orderedFolders = useMemo(
-    () => [...subfolders].sort((a, b) => a.name.localeCompare(b.name)),
-    [subfolders],
+    () => [...folders].sort((a, b) => a.name.localeCompare(b.name)),
+    [folders],
   );
 
   const canGoBack = historyIndex > 0;
@@ -176,14 +225,68 @@ export default function Explorer() {
     return <File className={className} />;
   };
 
-  const handleDrop = (data: string, folderId: string) => {
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     try {
-      const ids = JSON.parse(data) as string[];
-      ids.forEach((id) => moveFile(session.tenant_id, session, id, folderId));
-    } catch {
-      if (data) moveFile(session.tenant_id, session, data, folderId);
+      await uploadFile(
+        session,
+        file,
+        activeFolder === "root" ? undefined : activeFolder
+      );
+      setVersion(v => v + 1);
+    } catch (err) {
+      console.error("Upload failed", err);
     }
-    setVersion((prev) => prev + 1);
+  };
+
+  const handleCreateFolder = async () => {
+    const name = prompt("Folder Name:") || "New Folder";
+    try {
+      await createFolder(
+        session,
+        name,
+        activeFolder === "root" ? undefined : activeFolder
+      );
+      setVersion(v => v + 1);
+    } catch (err) {
+      console.error("Folder creation failed", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this file?")) return;
+    try {
+      await deleteFile(session, id);
+      setVersion(v => v + 1);
+    } catch (err) {
+      console.error("Deletion failed", err);
+    }
+  };
+
+  const handleExport = async (settings: ExportSettings) => {
+    if (!selectedFile) return;
+    try {
+      // 1. Generate Forensic Code
+      const code = await generateForensicCode(session);
+      
+      // 2. Trigger Export with settings
+      const query = new URLSearchParams({
+        watermarkText: settings.watermarkText,
+        opacity: settings.opacity.toString(),
+        size: settings.size.toString(),
+        x: settings.position.x.toString(),
+        y: settings.position.y.toString(),
+        traceId: code
+      }).toString();
+
+      const url = `${API_BASE_URL}/explorer/files/${selectedFile.id}/download?${query}`;
+      window.open(url, '_blank');
+      setExportDialogOpen(false);
+    } catch (err) {
+      console.error("Export failed", err);
+    }
   };
 
   const toggleSelect = (fileId: string) => {
@@ -323,27 +426,40 @@ export default function Explorer() {
     <PageShell
       header={
         <PageHeader
-          title="Explorer"
-          subtitle="Department-scoped file explorer with audit and recycle bin."
+          title="File Explorer"
+          subtitle="Secure departmental file management with forensic audit scanning."
         />
       }
     >
       <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
         <WorkspacePanel title="Folders" description="Department hierarchy.">
           <div className="space-y-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const name = `New Folder ${folders.length + 1}`;
-                const parent =
-                  activeFolder === "root" || activeFolder === "recycle" ? undefined : activeFolder;
-                createFolder(session.tenant_id, session, name, parent);
-                setVersion((prev) => prev + 1);
-              }}
-            >
-              New folder
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleCreateFolder}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Folder
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </Button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleUpload}
+              />
+            </div>
             <div className="space-y-2">
               <div
                 className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm ${
@@ -464,6 +580,19 @@ export default function Explorer() {
                   Large Icons
                 </Button>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Group by:</span>
+                <Select value={groupBy} onValueChange={(val: any) => setGroupBy(val)}>
+                  <SelectTrigger className="w-[120px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="company">Company</SelectItem>
+                    <SelectItem value="department">Department</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {activeFolder !== "recycle" ? (
                 <>
                   <Select value={bulkMoveTarget} onValueChange={setBulkMoveTarget}>
@@ -518,7 +647,24 @@ export default function Explorer() {
                   Restore selected
                 </Button>
               )}
+              <div className="ml-auto flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!selectedFile}
+                  onClick={() => setExportDialogOpen(true)}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Secure Export
+                </Button>
+              </div>
             </div>
+            
+            <ExportSettingsDialog
+              open={exportDialogOpen}
+              onOpenChange={setExportDialogOpen}
+              onConfirm={handleExport}
+            />
             {orderedFiles.length === 0 && orderedFolders.length === 0 ? (
               <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
                 No files found.
@@ -693,7 +839,10 @@ export default function Explorer() {
                             onClick={(event) => {
                               const now = Date.now();
                               if (lastClick?.id === file.id && now - lastClick.time < 600) {
-                                if (!isRecycleView) {
+                                const tool = getToolForFile(file);
+                                if (tool !== "none") {
+                                  navigate(`/tools/${tool}?fileId=${file.id}`);
+                                } else if (!isRecycleView) {
                                   setEditingId(file.id);
                                   setEditingValue(file.name);
                                 }
@@ -902,108 +1051,129 @@ export default function Explorer() {
                     </div>
                   </div>
                 ))}
-                {orderedFiles.map((file, index) => (
-                  <ContextMenu key={file.id}>
-                    <ContextMenuTrigger asChild>
-                      <div
-                        data-file-id={file.id}
-                        draggable
-                        onDragStart={(event) => {
-                          const payload = selectedIds.includes(file.id)
-                            ? JSON.stringify(selectedIds)
-                            : JSON.stringify([file.id]);
-                          event.dataTransfer.setData("text/plain", payload);
-                        }}
-                        onClick={(event) => {
-                          const now = Date.now();
-                          if (lastClick?.id === file.id && now - lastClick.time < 600) {
-                            if (!isRecycleView) {
-                              setEditingId(file.id);
-                              setEditingValue(file.name);
-                            }
-                          } else {
-                            handleSelection(file.id, index, event);
-                          }
-                          setLastClick({ id: file.id, time: now });
-                        }}
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 ${
-                          selectedIds.includes(file.id) ? "border-primary" : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.includes(file.id)}
-                            onChange={() => toggleSelect(file.id)}
-                            onClick={(event) => event.stopPropagation()}
-                          />
-                          {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
-                          <div>
-                            {editingId === file.id ? (
-                              <Input
-                                value={editingValue}
-                                onChange={(event) => setEditingValue(event.target.value)}
-                                onBlur={() => {
-                                  renameFile(session.tenant_id, session, file.id, editingValue);
-                                  setEditingId(null);
-                                  setVersion((prev) => prev + 1);
-                                }}
-                              />
-                            ) : (
-                              <p className="text-sm font-medium text-foreground">{file.name}</p>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              Folder: {folderMap.get(file.folderId ?? "root") ?? "Root"}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">{typeLabel[file.type]}</Badge>
-                        </div>
+                {Object.entries(groupedFiles).map(([groupName, groupFiles]) => (
+                  <div key={groupName} className="space-y-4">
+                    {groupBy !== "none" && (
+                      <div className="flex items-center gap-2 border-b pb-1">
+                        <Badge variant="outline" className="font-bold">{groupName}</Badge>
+                        <span className="text-[10px] text-muted-foreground uppercase">{groupFiles.length} items</span>
                       </div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() => {
-                          setSelectedFileId(file.id);
-                          setPreviewOpen(true);
-                        }}
-                      >
-                        Preview
-                      </ContextMenuItem>
-                      {isRecycleView ? (
-                        <>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            onClick={() => {
-                              restoreFromRecycle(session.tenant_id, session, file.id);
-                              setVersion((prev) => prev + 1);
-                            }}
-                          >
-                            Restore
-                          </ContextMenuItem>
-                        </>
-                      ) : (
-                        <>
-                          <ContextMenuItem onClick={() => {
-                            setEditingId(file.id);
-                            setEditingValue(file.name);
-                          }}>
-                            Rename
-                          </ContextMenuItem>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            onClick={() => {
-                              moveToRecycle(session.tenant_id, session, file.id);
-                              setVersion((prev) => prev + 1);
-                            }}
-                          >
-                            Delete
-                          </ContextMenuItem>
-                        </>
-                      )}
-                    </ContextMenuContent>
-                  </ContextMenu>
+                    )}
+                    <div className={`grid gap-2 ${
+                      viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
+                    }`}>
+                      {groupFiles.map((file, index) => (
+                        <ContextMenu key={file.id}>
+                          <ContextMenuTrigger asChild>
+                            <div
+                              data-file-id={file.id}
+                              draggable
+                              onDragStart={(event) => {
+                                const payload = selectedIds.includes(file.id)
+                                  ? JSON.stringify(selectedIds)
+                                  : JSON.stringify([file.id]);
+                                event.dataTransfer.setData("text/plain", payload);
+                              }}
+                              onClick={(event) => {
+                                const now = Date.now();
+                                if (lastClick?.id === file.id && now - lastClick.time < 600) {
+                                  if (!isRecycleView) {
+                                    setEditingId(file.id);
+                                    setEditingValue(file.name);
+                                  }
+                                } else {
+                                  handleSelection(file.id, index, event);
+                                }
+                                setLastClick({ id: file.id, time: now });
+                              }}
+                              className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 ${
+                                selectedIds.includes(file.id) ? "border-primary" : ""
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedIds.includes(file.id)}
+                                  onChange={() => toggleSelect(file.id)}
+                                  onClick={(event) => event.stopPropagation()}
+                                />
+                                {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
+                                <div>
+                                  {editingId === file.id ? (
+                                    <Input
+                                      value={editingValue}
+                                      onChange={(event) => setEditingValue(event.target.value)}
+                                      onBlur={() => {
+                                        renameFile(session.tenant_id, session, file.id, editingValue);
+                                        setEditingId(null);
+                                        setVersion((prev) => prev + 1);
+                                      }}
+                                    />
+                                  ) : (
+                                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                                  )}
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-xs text-muted-foreground">
+                                      Folder: {folderMap.get(file.folderId ?? "root") ?? "Root"}
+                                    </p>
+                                    {file.access_level && (
+                                      <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4 px-1 text-[9px] uppercase">
+                                        {file.access_level}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{typeLabel[file.type]}</Badge>
+                              </div>
+                            </div>
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem
+                              onClick={() => {
+                                setSelectedFileId(file.id);
+                                setPreviewOpen(true);
+                              }}
+                            >
+                              Preview
+                            </ContextMenuItem>
+                            {isRecycleView ? (
+                              <>
+                                <ContextMenuSeparator />
+                                <ContextMenuItem
+                                  onClick={() => {
+                                    restoreFromRecycle(session.tenant_id, session, file.id);
+                                    setVersion((prev) => prev + 1);
+                                  }}
+                                >
+                                  Restore
+                                </ContextMenuItem>
+                              </>
+                            ) : (
+                              <>
+                                <ContextMenuItem onClick={() => {
+                                  setEditingId(file.id);
+                                  setEditingValue(file.name);
+                                }}>
+                                  Rename
+                                </ContextMenuItem>
+                                <ContextMenuSeparator />
+                                <ContextMenuItem
+                                  onClick={() => {
+                                    moveToRecycle(session.tenant_id, session, file.id);
+                                    setVersion((prev) => prev + 1);
+                                  }}
+                                >
+                                  Delete
+                                </ContextMenuItem>
+                              </>
+                            )}
+                          </ContextMenuContent>
+                        </ContextMenu>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
@@ -1068,14 +1238,44 @@ export default function Explorer() {
                   <div className="mt-2 space-y-1">
                     <div>ID: {selectedFile.id}</div>
                     <div>Type: {typeLabel[selectedFile.type]}</div>
+                    <div className="flex items-center gap-2">
+                      Access: 
+                      <Badge variant={selectedFile.access_level === "private" ? "destructive" : "secondary"}>
+                        {selectedFile.access_level || "private"}
+                      </Badge>
+                    </div>
                     <div>Owner: {selectedFile.ownerId}</div>
-                    <div>Tenant: {selectedFile.tenantId}</div>
-                    <div>Department: {selectedFile.departmentId}</div>
+                    <div>Company: {selectedFile.company_id || "N/A"}</div>
+                    <div>Department: {selectedFile.department_id || "N/A"}</div>
+                    {selectedFile.branch_id && <div>Branch: {selectedFile.branch_id}</div>}
                     <div>Folder: {folderMap.get(selectedFile.folderId ?? "root")}</div>
                     <div>Created: {selectedFile.createdAt.slice(0, 10)}</div>
                     <div>Updated: {selectedFile.updatedAt.slice(0, 10)}</div>
+                    {selectedFile.last_edited_by && (
+                      <div className="mt-2 pt-2 border-t font-medium text-primary">
+                        Last Editor ID: {selectedFile.last_edited_by}
+                      </div>
+                    )}
                   </div>
                 </div>
+                
+                {selectedFile.history && Array.isArray(selectedFile.history) && selectedFile.history.length > 0 && (
+                   <div className="rounded-lg border p-4 bg-muted/5">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold flex items-center gap-1 mb-3">
+                        <History className="h-3 w-3" />
+                        Forensic History Tape
+                      </div>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                        {selectedFile.history.map((log: any, i: number) => (
+                          <div key={i} className="text-[11px] border-l-2 border-primary/20 pl-2 py-1">
+                            <div className="font-bold text-foreground">{log.action}</div>
+                            <div className="text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</div>
+                            {log.userName && <div className="italic">by {log.userName}</div>}
+                          </div>
+                        ))}
+                      </div>
+                   </div>
+                )}
                 {!isRecycleView ? (
                   <div className="rounded-lg border p-4">
                     <div className="text-xs text-muted-foreground">Move to folder</div>
