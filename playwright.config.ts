@@ -34,14 +34,29 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Setup project
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Use prepared auth state.
+        storageState: 'tests/playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
 
     // {
     //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
+    //   use: { 
+    //     ...devices['Desktop Firefox'],
+    //     storageState: 'tests/playwright/.auth/user.json',
+    //   },
+    //   dependencies: ['setup'],
     // },
 
     // {
