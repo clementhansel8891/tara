@@ -38,9 +38,9 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
 # Create professional directory structure for persistent data
-RUN mkdir -p /data/backups /data/logs /app/storage/reports && \
+RUN mkdir -p /data/backups /data/logs /app/storage/reports /app/uploads && \
     addgroup -S zenvix && adduser -S zenvix -G zenvix && \
-    chown -R zenvix:zenvix /data /app/storage /app/prisma
+    chown -R zenvix:zenvix /data /app/storage /app/prisma /app/uploads
 
 # Use non-root user
 USER zenvix
