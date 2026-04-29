@@ -38,6 +38,7 @@ import StockOpnameScanner from "@/pages/retail/operational/StockOpnameScanner";
 import ReceivingTerminal from "@/pages/retail/operational/ReceivingTerminal";
 import SelfServiceKiosk from "@/pages/retail/operational/SelfServiceKiosk";
 import ShiftCloseTerminal from "@/pages/retail/operational/ShiftCloseTerminal";
+import ShiftOpenTerminal from "@/pages/retail/operational/ShiftOpenTerminal";
 import RetailOperationalGateway from "@/pages/retail/operational/OperationalGateway";
 import DepartmentScheduleStudio from "@/pages/core/HR/DepartmentScheduleStudio";
 
@@ -288,6 +289,17 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     supportedDeviceTypes: ["desktop", "kiosk"],
   },
   {
+    id: "ops-shift-open",
+    moduleId: MODULE_ID,
+    title: "Shift Open",
+    route: "/m/retail/operational/shift-open",
+    icon: "Power",
+    menuGroup: "operational",
+    requiredPermissions: [PERMISSIONS.OPERATIONAL_POS],
+    component: ShiftOpenTerminal,
+    isOperational: true,
+  },
+  {
     id: "ops-shift-close",
     moduleId: MODULE_ID,
     title: "Shift Close",
@@ -296,6 +308,7 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     menuGroup: "operational",
     requiredPermissions: [PERMISSIONS.OPERATIONAL_POS],
     component: ShiftCloseTerminal,
+    isOperational: true,
   },
 ];
 

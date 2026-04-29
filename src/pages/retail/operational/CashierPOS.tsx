@@ -14,8 +14,13 @@ import {
   AlertTriangle,
   CheckCircle2,
   Printer as PrinterIcon,
-  QrCode
+  QrCode,
+  Home,
+  LogOut,
+  Power,
+  Store
 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils/currency";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -34,6 +39,7 @@ interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  sku: string;
   taxRate?: number;
   discount?: number;
 }
@@ -149,11 +155,28 @@ const CashierPOS = () => {
         setIsLoading(false);
       }
     };
-    init();
+
+    if (session.tenant_id) {
+      init();
+    } else {
+      // If no tenant, we still need to stop loading but maybe show an error later
+      setIsLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.tenant_id, session.user_id, session.location_id]);
 
   // When the user changes category, re-fetch from the server with the correct filter
+  useEffect(() => {
+    if (!isLoading && !activeShift) {
+      toast({
+        title: "Fiscal Gate Active",
+        description: "Please initialize a shift before accessing the terminal.",
+        variant: "destructive",
+      });
+      navigate("/m/retail/operational/gateway");
+    }
+  }, [activeShift, isLoading, navigate]);
+
   useEffect(() => {
     fetchProducts(activeCategory?.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,7 +189,6 @@ const CashierPOS = () => {
   }, [activeStore]);
 
   const addToCart = React.useCallback((product: RetailProduct) => {
-    setSelectedItemId(product.id);
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -181,14 +203,15 @@ const CashierPOS = () => {
         {
           id: product.id,
           name: product.name,
-          sku: product.sku,
           price: product.price,
+          sku: product.sku,
           quantity: 1,
-          taxRate: product.taxRate || 0,
+          taxRate: product.taxRate,
           discount: 0,
         },
       ];
     });
+    setSelectedItemId(product.id);
   }, []);
 
   useEffect(() => {
@@ -356,12 +379,11 @@ const CashierPOS = () => {
       );
 
       try {
-        await printerService.printReceipt(session.tenant_id, session, receiptPayload);
+        await printerService.printReceipt(session.tenant_id!, session, receiptPayload);
       } catch (printErr) {
         console.warn("Printing failed but transaction was saved:", printErr);
       }
-
-      setCart([]);
+    } catch (error: any) {
       console.error("Checkout Error:", error);
       toast({
         title: "Transaction Failed",
@@ -399,38 +421,57 @@ const CashierPOS = () => {
         <div className="flex-[2.8] flex flex-col gap-6 overflow-hidden min-h-0">
           
           {/* TACTICAL HEADER */}
-          <div className="flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-                <LayoutGrid className="w-7 h-7" />
+          <div className="flex items-center justify-between bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group shrink-0">
+            <div className="flex items-center gap-6 relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-slate-950 flex items-center justify-center text-indigo-500 shadow-2xl ring-4 ring-white/10 group-hover:scale-105 transition-transform duration-500">
+                <Store className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">
-                  Terminal POS
+                <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase leading-none mb-2">
+                  {activeStore?.name || "RETAIL_TERMINAL"}
                 </h1>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] ml-1">
-                  Node: {session.location_id || "LOCAL_VAULT"} • v2.4.0
-                </p>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                    <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">
+                      Session Active
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] italic">
+                    Node: {session.user_id.slice(0, 8)}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 relative z-10">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchProducts(activeCategory?.id)}
+                className="h-12 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isProductsLoading ? 'animate-spin' : ''}`} /> Sync Catalog
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/20 text-white transition-all"
+                onClick={() => window.location.href = "/"}
+                title="Return to Core"
+              >
+                <Home className="w-5 h-5" />
+              </Button>
+
               {activeShift && (
-                <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
+                <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 h-12">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[10px] font-black italic uppercase text-emerald-500 tracking-widest">
                     Shift Active: {activeShift.id.slice(-6).toUpperCase()}
                   </span>
                 </div>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => fetchProducts(activeCategory?.id)}
-                className="h-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isProductsLoading ? 'animate-spin' : ''}`} /> Sync Catalog
-              </Button>
             </div>
           </div>
 

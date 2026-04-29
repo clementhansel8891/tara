@@ -202,23 +202,23 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                       Company
                     </span>
                     <span className="text-[10px] font-black truncate max-w-[100px] text-indigo-300 uppercase">
-                      Zenvix Enterprise
+                      {activeStore?.name ? "Enterprise Hub" : "Zenvix Corp"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                      Branch
+                    </span>
+                    <span className="text-[10px] font-black text-sky-300 uppercase truncate max-w-[100px]">
+                      {activeStore?.name || "Global Scope"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
                       Operator
                     </span>
-                    <span className="text-[10px] font-black text-sky-300 uppercase truncate max-w-[100px]">
-                      {session?.userName || "System Admin"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                      ID
-                    </span>
-                    <span className="text-[10px] font-mono font-bold text-white/50 tracking-tighter">
-                      {session?.tenantId?.substring(0, 12)}...
+                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px]">
+                      {session?.user_id?.slice(0, 8)}
                     </span>
                   </div>
                 </div>
@@ -278,7 +278,7 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
             <div className="flex flex-col gap-1">
               <p>© 2026 ZENVIX RETAIL SYSTEM • V1.0.X_PATCH_EST</p>
               <div className="flex items-center gap-4 text-slate-300">
-                <span>TENANT_UID: {session?.tenantId}</span>
+                <span>IDENTITY: {activeStore?.name || "GLOBAL"}</span>
                 <span>OS: WINDOWS_X64</span>
               </div>
             </div>

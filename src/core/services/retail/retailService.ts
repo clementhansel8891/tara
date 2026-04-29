@@ -492,7 +492,7 @@ export const retailService = {
 
   async checkout(
     tenantId: string,
-    session: any,
+    session: SessionContext,
     checkoutData: any,
     idempotencyKey?: string,
   ) {
@@ -501,16 +501,12 @@ export const retailService = {
       headers["x-idempotency-key"] = idempotencyKey;
     }
 
-    return apiClient.post(
+    return apiRequest<RetailOrder>(
       "/v1/retail/checkout",
+      "POST",
+      session,
       checkoutData,
-      {
-        headers: {
-          ...this.getHeaders(tenantId, session),
-          ...headers,
-        },
-      },
-      true,
+      headers
     );
   },
 

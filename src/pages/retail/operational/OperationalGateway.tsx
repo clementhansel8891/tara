@@ -1,12 +1,13 @@
 import React from 'react';
 import { 
   ShoppingCart, RotateCcw, ScanLine, Truck, Monitor, Lock, Layout,
-  Minimize2, Maximize2, Power
+  Minimize2, Maximize2, Power, Home, Store, UserCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useRetail } from '../context/RetailContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AppItem {
   id: string;
@@ -16,21 +17,26 @@ interface AppItem {
   route: string;
   color: string;
   bg: string;
+  requireShift?: boolean;
 }
 
 const APPS: AppItem[] = [
-  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-blue-600", bg: "bg-blue-600/10" },
-  { id: "ops-refund", title: "Refund Desk", desc: "Post-Sale Disputes", icon: RotateCcw, route: "/m/retail/operational/refund", color: "text-red-600", bg: "bg-red-600/10" },
-  { id: "ops-opname", title: "Stock Opname", desc: "Inventory Audit", icon: ScanLine, route: "/m/retail/operational/opname", color: "text-indigo-600", bg: "bg-indigo-600/10" },
-  { id: "ops-receiving", title: "Stock Intake", desc: "Good Receiving", icon: Truck, route: "/m/retail/operational/receiving", color: "text-orange-600", bg: "bg-orange-600/10" },
-  { id: "ops-kiosk", title: "Self-Service", desc: "Guest Checkout", icon: Monitor, route: "/m/retail/operational/kiosk", color: "text-purple-600", bg: "bg-purple-600/10" },
-  { id: "ops-shift-close", title: "Shift Close", desc: "EndOfDay Reconciliation", icon: Lock, route: "/m/retail/operational/shift-close", color: "text-slate-900", bg: "bg-slate-200" },
+  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-blue-600", bg: "bg-blue-600/10", requireShift: true },
+  { id: "ops-refund", title: "Refund Desk", desc: "Post-Sale Disputes", icon: RotateCcw, route: "/m/retail/operational/refund", color: "text-red-600", bg: "bg-red-600/10", requireShift: true },
+  { id: "ops-opname", title: "Stock Opname", desc: "Inventory Audit", icon: ScanLine, route: "/m/retail/operational/opname", color: "text-indigo-600", bg: "bg-indigo-600/10", requireShift: true },
+  { id: "ops-receiving", title: "Stock Intake", desc: "Good Receiving", icon: Truck, route: "/m/retail/operational/receiving", color: "text-orange-600", bg: "bg-orange-600/10", requireShift: true },
+  { id: "ops-kiosk", title: "Self-Service", desc: "Guest Checkout", icon: Monitor, route: "/m/retail/operational/kiosk", color: "text-purple-600", bg: "bg-purple-600/10", requireShift: true },
+  { id: "ops-shift-open", title: "Shift Open", desc: "Start Session", icon: Power, route: "/m/retail/operational/shift-open", color: "text-emerald-600", bg: "bg-emerald-600/10" },
+  { id: "ops-shift-close", title: "Shift Close", desc: "End Reconciliation", icon: Lock, route: "/m/retail/operational/shift-close", color: "text-slate-900", bg: "bg-slate-200" },
 ];
 
 const RetailOperationalGateway = () => {
   const navigate = useNavigate();
   const { activeStore, activeShift, setMode } = useRetail();
+  const { user, session } = useAuth();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  const companyName = user?.user_companies?.find(c => c.tenant_id === session?.tenant_id)?.company.name || "Zenvix Corp";
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -49,6 +55,15 @@ const RetailOperationalGateway = () => {
     navigate('/m/retail/workspace');
   };
 
+  // Filter apps based on shift status
+  const visibleApps = APPS.filter(app => {
+    if (app.id === "ops-shift-open") return !activeShift;
+    if (app.id === "ops-shift-close") return !!activeShift;
+    // For other apps, if they require a shift, only show if shift is open
+    if (app.requireShift) return !!activeShift;
+    return true;
+  });
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col p-4 md:p-8 relative overflow-hidden selection:bg-indigo-500/30">
       {/* Background Decor */}
@@ -58,27 +73,58 @@ const RetailOperationalGateway = () => {
 
       <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col relative z-10">
         {/* Header Area */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/40">
-                <Monitor className="w-7 h-7 text-white" />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-xl">
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-600/40">
+                <Store className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-5xl font-black text-white italic tracking-tighter uppercase">Operational Plane</h1>
+              <div>
+                <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">
+                  {companyName}
+                </h1>
+                <p className="text-indigo-400 font-bold uppercase tracking-[0.3em] text-[10px]">
+                  {activeStore?.name || "Global Operations Hub"}
+                </p>
+              </div>
             </div>
-            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-sm">
-              Terminal Selection • {activeStore?.name || "GLOBAL_SCOPE"} • Shift: {activeShift?.id || "NO_ACTIVE_SHIFT"}
-            </p>
+
+            <div className="flex items-center gap-6">
+               <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/50 rounded-xl border border-white/5">
+                 <UserCircle className="w-4 h-4 text-slate-500" />
+                 <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{user?.first_name} {user?.last_name}</span>
+               </div>
+               
+               {activeShift ? (
+                 <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                   <span className="text-[10px] font-black uppercase text-emerald-500 tracking-widest italic">Shift Active: {activeShift.id.slice(-8).toUpperCase()}</span>
+                 </div>
+               ) : (
+                 <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 rounded-xl border border-rose-500/20">
+                   <div className="w-2 h-2 rounded-full bg-rose-500" />
+                   <span className="text-[10px] font-black uppercase text-rose-500 tracking-widest italic">Terminal Locked</span>
+                 </div>
+               )}
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              className="bg-white/5 border-white/10 text-white hover:bg-white/10 h-14 w-14 rounded-2xl shadow-lg"
+              onClick={() => window.location.href = "/"}
+              title="Return to Core Home"
+            >
+              <Home className="w-5 h-5 text-indigo-400" />
+            </Button>
+
             <Button 
               variant="outline" 
               className="bg-white/5 border-white/10 text-white hover:bg-white/10 h-14 px-6 rounded-2xl font-black italic gap-3 tracking-widest text-[10px] uppercase"
               onClick={toggleFullscreen}
             >
               {isFullscreen ? <Minimize2 className="w-5 h-5 text-indigo-400" /> : <Maximize2 className="w-5 h-5 text-indigo-400" />}
-              {isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             </Button>
             
             <Button 
@@ -87,21 +133,21 @@ const RetailOperationalGateway = () => {
               onClick={handleExit}
             >
               <Power className="w-5 h-5" />
-              Exit to Management
+              Exit Plane
             </Button>
           </div>
         </div>
 
         {/* App Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 flex-1 items-center">
-          {APPS.map((app) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 flex-1 items-center py-12">
+          {visibleApps.map((app) => (
             <Card 
               key={app.id} 
-              className="group hover:scale-[1.03] active:scale-95 transition-all cursor-pointer bg-slate-900/50 border-slate-800 hover:border-indigo-500/50 hover:shadow-[0_0_60px_rgba(99,102,241,0.1)] overflow-hidden h-48 flex items-center backdrop-blur-sm"
+              className="group hover:scale-[1.03] active:scale-95 transition-all cursor-pointer bg-white/5 border-white/10 hover:border-indigo-500/50 hover:shadow-[0_40px_100px_-20px_rgba(99,102,241,0.15)] overflow-hidden h-48 flex items-center backdrop-blur-xl rounded-[2.5rem]"
               onClick={() => navigate(app.route)}
             >
               <CardContent className="p-10 flex items-center gap-8 w-full">
-                <div className={`w-24 h-24 ${app.bg} rounded-[2rem] flex items-center justify-center ${app.color} group-hover:rotate-6 transition-transform shadow-inner`}>
+                <div className={`w-24 h-24 ${app.bg} rounded-[2rem] flex items-center justify-center ${app.color} group-hover:rotate-6 transition-transform shadow-inner border border-white/5`}>
                   <app.icon className="w-12 h-12" />
                 </div>
                 <div className="space-y-2">
@@ -119,9 +165,9 @@ const RetailOperationalGateway = () => {
 
         <div className="mt-16 text-center border-t border-white/5 pt-8">
           <p className="text-slate-700 font-black italic tracking-[0.3em] text-[10px] uppercase flex items-center justify-center gap-4">
-             <span className="w-12 h-[1px] bg-slate-800" />
-             Zenvix Retail Authority • Secure Operational Shell v2.1
-             <span className="w-12 h-[1px] bg-slate-800" />
+             <span className="w-12 h-[1px] bg-slate-900" />
+             Zenvix_Retail_Authority • Operational Plane 2.5
+             <span className="w-12 h-[1px] bg-slate-900" />
           </p>
         </div>
       </div>

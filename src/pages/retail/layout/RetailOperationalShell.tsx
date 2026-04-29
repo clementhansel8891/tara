@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Maximize2, Minimize2 } from 'lucide-react';
+import { Menu, Maximize2, Minimize2, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OperationalLauncherOverlay } from '../components/OperationalLauncherOverlay';
 import { useLocation } from 'react-router-dom';
@@ -36,6 +36,16 @@ export const RetailOperationalShell: React.FC<{ children: React.ReactNode }> = (
           >
             <Menu className="w-4 h-4 text-blue-600 group-hover:rotate-90 transition-transform" />
             Apps
+          </Button>
+
+          <Button 
+            variant="secondary" 
+            size="icon" 
+            className="h-10 w-10 rounded-xl shadow-lg border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-900 flex items-center justify-center transition-all"
+            onClick={() => window.location.href = "/"}
+            title="Return to Core Home"
+          >
+            <Home className="w-4 h-4 text-indigo-600" />
           </Button>
 
           <Button 
