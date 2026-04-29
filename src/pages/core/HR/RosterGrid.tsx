@@ -31,7 +31,6 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { FilterBar } from "@/core/tools/FilterBar";
-import { EmployeeDetailModal } from "./components/EmployeeDetailModal";
 import { useSession } from "@/core/security/session";
 import { peopleService } from "@/core/services/hr/peopleService";
 import { staffService } from "@/core/services/hr/staffService";
@@ -136,14 +135,7 @@ export default function RosterGrid() {
   }, [session.tenant_id, search, department, status, roleTitle, page, version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOpenDetail = async (employee: Employee) => {
-    setFocusedEmployee(employee);
-    setIsDetailOpen(true);
-    try {
-      const data = await peopleService.getEmployee360(session.tenant_id, employee.id, session);
-      setFocusedRecord(data);
-    } catch (err) {
-      flash("Failed to load employee 360 data.", true);
-    }
+    navigate(`/core/hr/people/${employee.id}`);
   };
 
   const selectedEmployee = useMemo(
@@ -282,8 +274,8 @@ export default function RosterGrid() {
         </div>
       )}
       <PageHeader
-        title="RosterGrid"
-        subtitle="Enterprise workforce directory with instant search and bulk actions."
+        title="People Core"
+        subtitle="Workforce directory and lifecycle management center."
         primaryAction={
           <ZenTooltip content="Register a new individual into the organizational roster.">
              <Button onClick={() => {
@@ -587,16 +579,6 @@ export default function RosterGrid() {
         </WorkspacePanel>
       </div>
 
-      <EmployeeDetailModal 
-        isOpen={isDetailOpen}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setFocusedRecord(null);
-          setFocusedEmployee(null);
-        }}
-        employee={focusedEmployee}
-        record={focusedRecord}
-      />
 
       {/* Create Employee Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

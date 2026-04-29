@@ -28,7 +28,9 @@ import {
   Database,
   Lock,
   Globe,
-  Radio
+  Radio,
+  Link2,
+  ShoppingBag
 } from "lucide-react";
 import { SidebarIdentityCard } from "@/core/ui/SidebarIdentityCard";
 import { Button } from "@/components/ui/button";
@@ -41,15 +43,18 @@ const SECTIONS: MenuSection[] = [
     title: "Intelligence",
     items: [
       { label: "IT Command", to: "/core/it/dashboard", icon: LayoutGrid },
+      { label: "Topology Map", to: "/core/it/topology", icon: Link2 },
       { label: "System Health", to: "/core/it/health", icon: Activity },
     ],
   },
   {
     title: "Operations",
     items: [
+      { label: "Tech Shop", to: "/core/it/shop", icon: ShoppingBag },
       { label: "Account Desk", to: "/core/it/accounts", icon: Users },
+      { label: "Role Governance", to: "/core/it/roles", icon: ShieldCheck },
       { label: "Device Matrix", to: "/core/it/devices", icon: Monitor },
-      { label: "IoT Controller", to: "/core/inventory/iot-feed", icon: Radio }, // Cross-module link for IT context
+      { label: "IoT Controller", to: "/core/inventory/iot-feed", icon: Radio },
     ],
   },
   {

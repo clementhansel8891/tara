@@ -61,7 +61,6 @@ const SECTIONS: MenuSection[] = [
     title: "Operations",
     items: [
       { label: "Pay Cycle Studio", to: "/core/hr/payroll", icon: FileSpreadsheet },
-      { label: "Roster Grid", to: "/core/hr/roster", icon: CalendarDays },
       { label: "Case Vault", to: "/core/hr/cases", icon: Briefcase },
     ],
   },
@@ -75,11 +74,15 @@ const SECTIONS: MenuSection[] = [
   },
 ];
 
-const ROUTE_LABELS: Record<string, string> = Object.fromEntries(
-  SECTIONS.flatMap((section) =>
-    section.items.map((item) => [item.to.replace("/core/hr/", ""), item.label]),
+const ROUTE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(
+    SECTIONS.flatMap((section) =>
+      section.items.map((item) => [item.to.replace("/core/hr/", ""), item.label]),
+    ),
   ),
-);
+  roster: "People Core",
+  people: "People Core",
+};
 
 export default function HRWorkspaceLayout() {
   const session = useSession();

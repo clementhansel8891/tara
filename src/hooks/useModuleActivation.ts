@@ -42,7 +42,7 @@ export function useModuleActivation() {
 
   const isModuleActive = (moduleCode: string) => {
     // Core modules are always active
-    const coreModules = ["finance", "hr", "it", "procurement", "inventory", "sales", "marketing"];
+    const coreModules = ["finance", "hr", "it", "procurement", "inventory", "sales", "marketing", "audit", "staff", "settings", "security"];
     if (coreModules.includes(moduleCode.toLowerCase())) return true;
     
     return activeModules.has(moduleCode.toLowerCase());

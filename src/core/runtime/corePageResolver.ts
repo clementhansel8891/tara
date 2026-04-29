@@ -25,7 +25,7 @@ import Finance from "@/pages/core/Finance";
 import ProcurementEntry from "@/pages/core/ProcurementEntry";
 import InventoryModule from "@/pages/core/InventoryModule";
 import Staff from "@/pages/core/Staff";
-import Modules from "@/pages/core/Modules";
+import ModuleHub from "@/pages/core/license/ModuleHub";
 import Reports from "@/pages/core/Reports";
 import Settings from "@/pages/core/Settings";
 import Admin from "@/pages/core/Admin";
@@ -126,24 +126,15 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
     component: Admin,
   },
 
-  {
-    id: "staff",
-    title: "Staff",
-    route: "/core/staff",
-    icon: "users",
-    section: "administration",
-    visible: true,
-    component: Staff,
-  },
 
   {
     id: "modules",
-    title: "Modules",
-    route: "/core/modules",
+    title: "Module Hub",
+    route: "/core/license",
     icon: "puzzle",
     section: "administration",
     visible: true,
-    component: Modules,
+    component: ModuleHub,
   },
 
   {

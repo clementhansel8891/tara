@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { useSession } from "@/core/security/session";
 import { retailInfrastructureService } from "@/core/services/retail/retailInfrastructureService";
+import { itSettingsService, type ITProvisioningRequest } from "@/core/services/it/itSettingsService";
 import type { RetailGatewayNode, RetailLoadBalancer } from "@/core/types/retail/retail";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,16 +41,19 @@ const InfrastructureControl = () => {
   const { toast } = useToast();
   const [nodes, setNodes] = useState<RetailGatewayNode[]>([]);
   const [lbs, setLbs] = useState<RetailLoadBalancer[]>([]);
+  const [requests, setRequests] = useState<ITProvisioningRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const [nodeData, lbData] = await Promise.all([
+      const [nodeData, lbData, reqData] = await Promise.all([
         retailInfrastructureService.listGatewayNodes(session.tenant_id, session),
-        retailInfrastructureService.listLoadBalancers(session.tenant_id, session)
+        retailInfrastructureService.listLoadBalancers(session.tenant_id, session),
+        itSettingsService.listRequests(session.tenant_id, session)
       ]);
       setNodes(nodeData);
       setLbs(lbData);
+      setRequests(reqData);
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to load infrastructure data", variant: "destructive" });
@@ -272,6 +276,59 @@ const InfrastructureControl = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </section>
+
+          {/* Provisioning Tracker Section */}
+          <section>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <ArrowUpRight className="w-6 h-6 text-blue-600" />
+                <h2 className="text-xl font-black italic uppercase tracking-tighter text-slate-900">IT Provisioning Tracker</h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {requests.map(req => (
+                <Card key={req.id} className="border-2 border-slate-100 rounded-3xl overflow-hidden hover:border-blue-300 transition-all shadow-sm">
+                  <CardContent className="p-5">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <Badge className={`text-[9px] font-black tracking-widest uppercase ${
+                        req.status === 'FULFILLED' ? 'bg-emerald-500' : 
+                        req.status === 'PROCUREMENT_TRIGGERED' ? 'bg-indigo-500' : 'bg-amber-500'
+                      }`}>
+                        {req.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 mb-4">
+                      <div className="text-sm font-black italic text-slate-900 leading-tight">{req.name}</div>
+                      <div className="text-[10px] text-slate-400 font-bold uppercase">SKU: {req.sku}</div>
+                    </div>
+                    <Separator className="my-3 opacity-50" />
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      <span>Requested</span>
+                      <span>{format(new Date(req.createdAt), 'MMM dd, HH:mm')}</span>
+                    </div>
+                    {req.requisitionId && (
+                      <div className="mt-2 p-2 bg-slate-50 rounded-lg text-[9px] font-mono text-indigo-600 break-all">
+                        REQ: {req.requisitionId}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              {requests.length === 0 && (
+                <div className="col-span-full border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                    <Network className="w-6 h-6 text-slate-300" />
+                  </div>
+                  <div className="text-sm font-black italic text-slate-400 uppercase tracking-widest">No Active Provisioning Requests</div>
+                  <p className="text-[10px] text-slate-400 mt-2 font-medium">Use the IT Tech Shop to request new hardware nodes.</p>
+                </div>
+              )}
             </div>
           </section>
 

@@ -1,10 +1,29 @@
 import { apiRequest } from "@/core/api/apiClient";
 import type { SessionContext } from "@/core/security/session";
 
+export type ProvisioningStatus = "PENDING" | "FULFILLED" | "PROCUREMENT_TRIGGERED" | "CANCELLED";
+
+export interface ITProvisioningRequest {
+  id: string;
+  tenantId: string;
+  requesterId: string;
+  catalogItemId: string;
+  sku: string;
+  name: string;
+  locationId: string;
+  notes: string;
+  status: ProvisioningStatus;
+  requisitionId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ITDevice {
   id: string;
   tenantId: string;
   locationId: string;
+  parentId?: string; // For topology mapping
+  connections?: string[]; // IDs of connected devices
   deviceType: string;
   deviceName: string;
   ipAddress?: string;
@@ -59,6 +78,48 @@ export const itSettingsService = {
     );
   },
 
+  async updateDevice(
+    tenantId: string,
+    session: SessionContext,
+    deviceId: string,
+    data: Partial<ITDevice>,
+  ): Promise<ITDevice> {
+    return apiRequest<ITDevice>(
+      `/it-settings/devices/${deviceId}`,
+      "PUT",
+      session,
+      data,
+    );
+  },
+
+  async deleteDevice(
+    tenantId: string,
+    session: SessionContext,
+    deviceId: string,
+  ): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(
+      `/it-settings/devices/${deviceId}`,
+      "DELETE",
+      session,
+    );
+  },
+
+  async getTopology(
+    tenantId: string,
+    session: SessionContext,
+    locationId?: string,
+  ): Promise<{ nodes: ITDevice[]; edges: { source: string; target: string }[] }> {
+    const searchParams = new URLSearchParams();
+    if (locationId) searchParams.append("locationId", locationId);
+    const queryString = searchParams.toString();
+    const url = `/it-settings/topology${queryString ? `?${queryString}` : ""}`;
+    return apiRequest<{ nodes: ITDevice[]; edges: { source: string; target: string }[] }>(
+      url,
+      "GET",
+      session,
+    );
+  },
+
   async getSettings(
     tenantId: string,
     session: SessionContext,
@@ -83,6 +144,24 @@ export const itSettingsService = {
       session,
       data,
     );
+  },
+
+  // --- Provisioning Requests ---
+  async createRequest(
+    tenantId: string,
+    session: SessionContext,
+    data: Partial<ITProvisioningRequest>
+  ): Promise<ITProvisioningRequest> {
+    return apiRequest<ITProvisioningRequest>("/it-settings/provisioning/requests", "POST", session, data);
+  },
+
+  async listRequests(
+    tenantId: string,
+    session: SessionContext,
+    locationId?: string
+  ): Promise<ITProvisioningRequest[]> {
+    const url = locationId ? `/it-settings/provisioning/requests?locationId=${locationId}` : "/it-settings/provisioning/requests";
+    return apiRequest<ITProvisioningRequest[]>(url, "GET", session);
   },
 };
 

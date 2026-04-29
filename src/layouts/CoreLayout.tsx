@@ -59,6 +59,7 @@ const baseNavSections: NavSection[] = [
       { path: "/core/bulletin", icon: Megaphone, label: "Bulletin" },
       { path: "/core/mail", icon: Mail, label: "Mail", badgeKey: 'mail' },
       { path: "/core/chat", icon: MessageSquare, label: "Chat", badgeKey: 'chat' },
+      { path: "/core/portal", icon: LayoutDashboard, label: "Staff Portal" },
     ],
   },
   {
@@ -81,7 +82,6 @@ const baseNavSections: NavSection[] = [
   {
     title: "Backbone",
     items: [
-      { path: "/core/staff", icon: Users, label: "Staff" },
       { path: "/core/license", icon: Puzzle, label: "Module Hub" },
       { path: "/core/reports", icon: BarChart3, label: "Reports" },
       { path: "/core/audit", icon: ShieldCheck, label: "Audit Logs" },
@@ -94,13 +94,12 @@ const baseNavSections: NavSection[] = [
 
 export function CoreLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { state, toggleTheme } = useApp();
+  // Dynamic Industry Modules
+  const { state: appState, toggleTheme } = useApp();
   const { logout } = useAuth();
   const { unreadCounts } = useNotifications();
   const location = useLocation();
-
-  // Dynamic Industry Modules
-  const settings = getSettings();
+  const { settings } = appState;
   const activatedIds = settings.activatedModuleIds || [];
   const allContracts = getAllModuleContracts();
   const activatedModules = allContracts
@@ -147,7 +146,7 @@ export function CoreLayout() {
                   className="text-sidebar-primary-foreground"
                 />
               </div>
-              <span className="font-bold text-lg">{state.settings?.businessName || "OpsCore"}</span>
+              <span className="font-bold text-lg">{settings?.businessName || "OpsCore"}</span>
             </div>
             <Button
               variant="ghost"
@@ -207,7 +206,7 @@ export function CoreLayout() {
                 className="text-sidebar-foreground/70 hover:bg-sidebar-accent"
                 onClick={toggleTheme}
               >
-                {state.theme === "dark" ? (
+                {settings.theme === "dark" ? (
                   <Sun size={18} />
                 ) : (
                   <Moon size={18} />
@@ -223,13 +222,13 @@ export function CoreLayout() {
               </Button>
             </div>
 
-            {state.currentUser && (
+            {appState.currentUser && (
               <div className="pt-2">
                 <p className="text-sm font-medium text-sidebar-foreground">
-                  {state.currentUser.name}
+                  {appState.currentUser.name}
                 </p>
                 <p className="text-xs text-sidebar-foreground/60 capitalize">
-                  {state.currentUser.role}
+                  {appState.currentUser.role}
                 </p>
               </div>
             )}

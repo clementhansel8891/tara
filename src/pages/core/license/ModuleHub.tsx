@@ -1,14 +1,19 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { useSession } from "@/core/security/session";
+import { PageShell } from "@/core/ui/PageShell";
+import { useApp } from "@/contexts/AppContext";
 import { apiRequest } from "@/core/api/apiClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { getAllModuleContracts } from "@/core/runtime/moduleRegistry";
+import { cn } from "@/lib/utils";
 import { 
   Shield, 
   Settings, 
@@ -17,186 +22,324 @@ import {
   AlertCircle, 
   Clock, 
   Layout,
-  ExternalLink
+  ExternalLink,
+  Puzzle,
+  Wallet,
+  Users2,
+  ShieldCheck,
+  ShoppingCart,
+  Package,
+  BarChart3,
+  Link2,
+  Users,
+  FileText,
+  Lock,
+  Zap,
+  Globe,
+  Loader2
 } from "lucide-react";
 
+// Platform Core Modules Definition (Static for display)
+const CORE_MODULES = [
+  { id: "finance", name: "Finance & Treasury", icon: Wallet, description: "General ledger, receivables, payables, and global treasury mapping.", category: "core" },
+  { id: "procurement", name: "Procurement", icon: ShoppingCart, description: "Supplier management, purchase requests, and automated PO release.", category: "core" },
+  { id: "inventory", name: "Inventory", icon: Package, description: "Global stock visibility, receiving, and IoT-enabled tracking.", category: "core" },
+  { id: "hr", name: "Human Resources", icon: Users2, description: "Staff directory, scheduling, payroll, and compliance vault.", category: "core" },
+  { id: "it", name: "IT & Systems", icon: ShieldCheck, description: "Device management, system health, and infrastructure security.", category: "core" },
+  { id: "sales", name: "Sales & Revenue", icon: BarChart3, description: "CRM, pipeline management, and incentive engines.", category: "core" },
+  { id: "marketing", name: "Marketing", icon: Link2, description: "Campaign automation, customer 360, and omnichannel growth.", category: "core" },
+  { id: "audit", name: "Audit & Compliance", icon: Shield, description: "Immutable logs, forensic auditing, and fiscal telemetry.", category: "core" },
+];
+
 export default function ModuleHub() {
-  const session = useSession();
+  const { state: appState, updateSettings } = useApp();
+  const { toast } = useToast();
   const [licenses, setLicenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
   const fetchLicenses = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiRequest<any[]>("/license/my-modules", "GET", session);
+      // In a real production environment, we'd call the API
+      // For this demo/suite, we'll also ensure it's synced with our local state
+      const data = await apiRequest<any[]>("/license/my-modules", "GET", appState.currentUser);
       setLicenses(data || []);
     } catch (error: any) {
       console.error("Failed to fetch licenses:", error);
-      toast({
-        title: "Connection Error",
-        description: error.message || "Failed to load module licenses.",
-        variant: "destructive",
-      });
+      // Fallback to local state if API fails
+      setLicenses([]);
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [appState.currentUser]);
 
   useEffect(() => {
     fetchLicenses();
   }, [fetchLicenses]);
 
   const handleToggle = async (moduleCode: string, currentEnabled: boolean) => {
+    setSavingId(moduleCode);
     try {
-      await apiRequest(`/license/toggle/${moduleCode}`, "POST", session, { 
+      // 1. Update Backend
+      await apiRequest(`/license/toggle/${moduleCode}`, "POST", appState.currentUser, { 
         enabled: !currentEnabled 
       });
       
-      toast({
-        title: "Module Updated",
-        description: `${moduleCode} has been ${!currentEnabled ? "enabled" : "disabled"}.`,
+      // 2. Update Local App State (Sidebar reacts to this)
+      const currentIds = appState.settings.activatedModuleIds || [];
+      let newIds: string[];
+      if (!currentEnabled) {
+        newIds = [...currentIds, moduleCode];
+      } else {
+        newIds = currentIds.filter(id => id !== moduleCode);
+      }
+      
+      updateSettings({
+        ...appState.settings,
+        activatedModuleIds: newIds
       });
+
+      toast({
+        title: !currentEnabled ? "Module Initialized" : "Module Deactivated",
+        description: `${moduleCode.toUpperCase()} protocol has been ${!currentEnabled ? "linked" : "severed"}.`,
+      });
+      
       fetchLicenses();
     } catch (error: any) {
       toast({
-        title: "Update Failed",
-        description: error.message || "Could not change module status.",
+        title: "Link Failure",
+        description: error.message || "Could not reconfigure module state.",
         variant: "destructive",
       });
+    } finally {
+      setSavingId(null);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Active</Badge>;
-      case "expired":
-        return <Badge variant="destructive">Expired</Badge>;
-      case "pending":
-        return <Badge variant="secondary">Pending</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const industryContracts = getAllModuleContracts();
+  
+  const allModules = useMemo(() => {
+    const industry = industryContracts.map(c => {
+      const license = licenses.find(l => l.moduleCode.toLowerCase() === c.id.toLowerCase());
+      return {
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        icon: c.id === 'retail' ? ShoppingCart : Puzzle,
+        category: "industry",
+        isCore: false,
+        isEnabled: appState.settings.activatedModuleIds.includes(c.id),
+        status: license?.status || "available"
+      };
+    });
+
+    const core = CORE_MODULES.map(m => ({
+      ...m,
+      isCore: true,
+      isEnabled: true,
+      status: "active"
+    }));
+
+    return [...core, ...industry];
+  }, [licenses, industryContracts, appState.settings.activatedModuleIds]);
+
+  const filteredModules = allModules.filter(m => {
+    const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         m.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeTab === "all" || m.category === activeTab;
+    return matchesSearch && matchesTab;
+  });
+
+  if (loading && licenses.length === 0) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400 italic">Accessing Module Registry...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Modules Activation Center"
-        subtitle="Manage platform extensions and industry verticals. Core modules are always active."
-      />
-
-      {(() => {
-        const coreCodes = ["finance", "hr", "it", "procurement", "inventory", "sales", "marketing"];
-        const coreModules = licenses.filter(l => coreCodes.includes(l.moduleCode.toLowerCase()));
-        const industryModules = licenses.filter(l => !coreCodes.includes(l.moduleCode.toLowerCase()));
-
-        return (
-          <div className="space-y-12">
-            {/* Industry Verticals Segment */}
-            <section className="space-y-6">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <Layout className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-bold">Industry Verticals</h2>
-                <Badge variant="secondary" className="ml-2">Dynamic Activation</Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {industryModules.map((license) => (
-                  <Card key={license.id} className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
-                    <CardHeader className="pb-4">
-                      <div className="flex justify-between items-start">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <Layout className="h-5 w-5 text-primary" />
-                        </div>
-                        {getStatusBadge(license.status)}
-                      </div>
-                      <CardTitle className="mt-4">{license.module.name}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {license.module.description || "Industry-specific business flow."}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardFooter className="bg-muted/30 pt-4 flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          id={`toggle-${license.moduleCode}`} 
-                          checked={license.isEnabled}
-                          onCheckedChange={() => handleToggle(license.moduleCode, license.isEnabled)}
-                        />
-                        <Label htmlFor={`toggle-${license.moduleCode}`} className="text-xs uppercase font-bold tracking-wider">
-                          {license.isEnabled ? "Enabled" : "Disabled"}
-                        </Label>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-                {industryModules.length === 0 && !loading && (
-                    <div className="col-span-full py-8 text-center text-muted-foreground border-2 border-dashed rounded-xl">
-                        <p>No industry modules available for activation.</p>
-                    </div>
-                )}
-              </div>
-            </section>
-
-            {/* Platform Core Segment */}
-            <section className="space-y-6 opacity-80">
-              <div className="flex items-center gap-2 border-b pb-2">
-                <Shield className="h-5 w-5 text-muted-foreground" />
-                <h2 className="text-xl font-bold text-muted-foreground">Platform Core</h2>
-                <Badge variant="outline" className="ml-2">Always Active</Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {coreModules.map((license) => (
-                  <Card key={license.id} className="overflow-hidden border bg-muted/20 grayscale-[0.5]">
-                    <CardHeader className="pb-4">
-                      <div className="flex justify-between items-start">
-                        <div className="p-2 rounded-lg bg-muted">
-                          <Shield className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <Badge variant="outline" className="bg-background">Core System</Badge>
-                      </div>
-                      <CardTitle className="mt-4 text-muted-foreground">{license.module.name}</CardTitle>
-                      <CardDescription>
-                        Standard departmental service.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardFooter className="bg-muted/10 pt-4 flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-black uppercase">
-                          Permanent
-                        </Badge>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            </section>
-          </div>
-        );
-      })()}
-
-      <WorkspacePanel title="Subscription Intelligence" className="bg-slate-900 text-slate-50 border-none shadow-2xl">
-        <div className="flex flex-col md:flex-row gap-8 items-center">
-          <div className="flex-1 space-y-4">
-            <div className="p-3 bg-primary/20 rounded-full w-fit">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
+    <PageShell
+      header={
+        <PageHeader
+          title="Module Hub"
+          subtitle="Manage platform extensions, industry verticals, and core administrative capabilities."
+          primaryAction={
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input 
+                placeholder="Search modules..." 
+                className="pl-10 h-10 rounded-xl bg-white border-slate-200 shadow-sm"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <h3 className="text-xl font-bold">Your Compliance Score is 100%</h3>
-            <p className="text-slate-400">
-              All active modules have valid cryptographic keys. Automated auditing is enabled and healthy.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
-            <div className="p-4 bg-slate-800 rounded-lg border border-slate-700">
-              <div className="text-2xl font-bold">{licenses.length}</div>
-              <div className="text-xs text-slate-400">Total Modules</div>
+          }
+        />
+      }
+      left={
+        <div className="p-6 space-y-8">
+           <div className="space-y-1">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Categories</div>
+              <p className="text-xs font-bold text-slate-500">Filter your workspace</p>
             </div>
-            <div className="p-4 bg-slate-800 rounded-lg border border-slate-700">
-              <div className="text-2xl font-bold">{licenses.filter(l => l.isEnabled).length}</div>
-              <div className="text-xs text-slate-400">Active Extensions</div>
+            <TabsList className="flex flex-col items-stretch bg-transparent p-0 gap-2">
+              {[
+                { value: "all", label: "All Modules", icon: Globe },
+                { value: "core", label: "Platform Core", icon: Shield },
+                { value: "industry", label: "Industry Verticals", icon: Layout },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
+                  className="justify-start rounded-2xl px-5 py-4 text-sm font-bold transition-all data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-indigo-600 border-none group"
+                >
+                  <tab.icon className="mr-3 h-5 w-5 opacity-60 group-data-[state=active]:opacity-100 transition-opacity" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            <Separator className="bg-slate-100" />
+            
+            <div className="p-6 rounded-3xl bg-indigo-50/50 border border-indigo-100 space-y-4">
+               <div className="flex items-center gap-3">
+                  <Zap className="h-5 w-5 text-indigo-600" />
+                  <span className="font-black text-[10px] uppercase tracking-widest text-indigo-900">System Health</span>
+               </div>
+               <p className="text-[11px] text-indigo-600/70 font-medium leading-relaxed">
+                 All active modules are currently synchronized with the central registry.
+               </p>
             </div>
-          </div>
         </div>
-      </WorkspacePanel>
-    </div>
+      }
+    >
+      <Tabs value={activeTab} className="h-full">
+        <div className="space-y-8 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <WorkspacePanel
+            title={activeTab === 'all' ? 'All Platform Modules' : activeTab === 'core' ? 'Core Infrastructure' : 'Industry Solutions'}
+            description="Activate or deactivate functional clusters across your enterprise environment."
+          >
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 pt-6">
+              {filteredModules.map((module) => (
+                <div 
+                  key={module.id} 
+                  className={cn(
+                    "p-8 rounded-[2.5rem] border transition-all duration-500 group flex flex-col justify-between h-full",
+                    module.isCore 
+                      ? "bg-slate-50/50 border-slate-100 grayscale-[0.5] hover:grayscale-0" 
+                      : "bg-white border-slate-100 hover:shadow-2xl hover:-translate-y-1"
+                  )}
+                >
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div className={cn(
+                        "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner",
+                        module.isCore ? "bg-slate-200 text-slate-500" : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white"
+                      )}>
+                        <module.icon className="h-7 w-7" />
+                      </div>
+                      <Badge variant="outline" className={cn(
+                        "rounded-full px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.2em]",
+                        module.isCore ? "bg-slate-100 text-slate-500 border-slate-200" :
+                        module.isEnabled ? "bg-emerald-50 text-emerald-500 border-emerald-100" :
+                        "bg-slate-50 text-slate-400 border-slate-100"
+                      )}>
+                        {module.isCore ? "Core System" : module.isEnabled ? "Active" : "Disabled"}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="text-xl font-black uppercase tracking-tighter italic">{module.name}</h4>
+                      <p className="text-xs font-medium text-slate-500 leading-relaxed min-h-[40px]">
+                        {module.description}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-8 flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        {module.isCore ? (
+                           <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+                              <CheckCircle2 className="h-3 w-3" /> Permanent
+                           </div>
+                        ) : (
+                          <>
+                            <Switch 
+                              id={`toggle-${module.id}`} 
+                              checked={module.isEnabled}
+                              disabled={savingId === module.id}
+                              onCheckedChange={() => handleToggle(module.id, module.isEnabled)}
+                              className="data-[state=checked]:bg-indigo-600"
+                            />
+                            <Label htmlFor={`toggle-${module.id}`} className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                               {savingId === module.id ? "SYNCING..." : module.isEnabled ? "ENABLED" : "DISABLED"}
+                            </Label>
+                          </>
+                        )}
+                     </div>
+                     
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       className="rounded-xl h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                       onClick={() => toast({ title: "Module Details", description: `Fetching manifest for ${module.name}...` })}
+                     >
+                        <ExternalLink className="h-4 w-4 text-slate-400" />
+                     </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {filteredModules.length === 0 && (
+                 <div className="col-span-full py-20 flex flex-col items-center justify-center rounded-[3rem] border border-dashed border-slate-200 bg-slate-50/30">
+                    <Search className="h-12 w-12 text-slate-200 mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">No matching modules detected</p>
+                 </div>
+              )}
+            </div>
+          </WorkspacePanel>
+          
+          <WorkspacePanel title="Subscription Intelligence" className="bg-slate-900 text-slate-50 border-none shadow-2xl rounded-[3rem]">
+            <div className="flex flex-col md:flex-row gap-12 items-center p-4">
+              <div className="flex-1 space-y-6">
+                <div className="h-16 w-16 bg-indigo-600/20 rounded-2xl flex items-center justify-center">
+                  <Shield className="h-8 w-8 text-indigo-400" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-black italic tracking-tighter uppercase">Compliance Verified</h3>
+                  <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-md">
+                    All active modules have been cryptographically signed. Your enterprise environment is currently operating within licensing parameters.
+                  </p>
+                </div>
+                <Button className="rounded-2xl h-12 px-8 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700">
+                  DOWNLOAD AUDIT REPORT
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-6 w-full md:w-auto">
+                {[
+                  { label: "Total Clusters", value: allModules.length },
+                  { label: "Active Nodes", value: allModules.filter(m => m.isEnabled).length },
+                  { label: "Uptime Sync", value: "99.9%" },
+                  { label: "License Type", value: "Enterprise" },
+                ].map((stat, i) => (
+                  <div key={i} className="p-8 bg-slate-800/50 rounded-[2rem] border border-slate-700/50 min-w-[160px] space-y-1">
+                    <div className="text-3xl font-black italic text-white tracking-tighter">{stat.value}</div>
+                    <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </WorkspacePanel>
+        </div>
+      </Tabs>
+    </PageShell>
   );
 }

@@ -76,6 +76,8 @@ import WarehouseManagement from "@/pages/core/inventory/WarehouseManagement";
 import IotEventFeed from "@/pages/core/inventory/IotEventFeed";
 import ITDashboard from "@/pages/core/it/ITDashboard";
 import SystemHealth from "@/pages/core/it/SystemHealth";
+import AccountDesk from "@/pages/core/it/AccountDesk";
+import DeviceDesk from "@/pages/core/it/DeviceDesk";
 import SalesWorkspaceLayout from "@/pages/core/sales/SalesWorkspaceLayout";
 import SalesOverview from "@/pages/core/sales/SalesOverview";
 import SalesDashboard from "@/pages/core/sales/SalesDashboard";
@@ -106,6 +108,9 @@ import OmnichannelInbox from "@/pages/core/marketing/OmnichannelInbox";
 import CreativeLibrary from "@/pages/core/marketing/CreativeLibrary";
 import Customer360 from "@/pages/core/marketing/Customer360";
 import WhiteLabelSettings from "@/pages/core/settings/WhiteLabelSettings";
+import TopologyMap from "@/pages/core/it/TopologyMap";
+import RoleGovernance from "@/pages/core/it/RoleGovernance";
+import TechShop from "@/pages/core/it/TechShop";
 import AdminWorkspaceLayout from "@/pages/core/adminWorkspace/AdminWorkspaceLayout";
 import RequestDesk from "@/pages/core/adminWorkspace/RequestDesk";
 import RequestAssign from "@/pages/core/adminWorkspace/RequestAssign";
@@ -121,7 +126,6 @@ import Explorer from "@/pages/core/tools/Explorer";
 import CoreSettings from "@/pages/core/Settings";
 import AuditHub from "@/pages/core/audit/AuditHub";
 import LogHub from "@/pages/core/logs/LogHub";
-import ModuleHub from "@/pages/core/license/ModuleHub";
 import BulletinHub from "@/pages/core/comms/BulletinHub";
 import MailHub from "@/pages/core/comms/MailHub";
 import ChatHub from "@/pages/core/comms/ChatHub";
@@ -200,6 +204,30 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.it.access" scope="COMPANY">
             <SystemHealth />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="topology"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <TopologyMap />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="role-governance"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <RoleGovernance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="shop"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <TechShop />
           </ProtectedRoute>
         }
       />
@@ -594,6 +622,30 @@ export function buildCoreRoutes(): JSX.Element[] {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="topology"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <TopologyMap />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="role-governance"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <RoleGovernance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="shop"
+        element={
+          <ProtectedRoute permission="core.it.access" scope="COMPANY">
+            <TechShop />
+          </ProtectedRoute>
+        }
+      />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="IT" title="IT & Tech" />} />
       <Route path="admin" element={<DeptAdmin departmentId="IT" departmentName="IT & Infrastructure" />} />
     </Route>,
@@ -893,7 +945,7 @@ export function buildCoreRoutes(): JSX.Element[] {
     >
       <Route index element={<PulseDesk />} />
       <Route
-        path="roster"
+        path="people"
         element={
           <ProtectedRoute permission="hr.directory.view" scope="DEPARTMENT">
             <RosterGrid />
@@ -1104,15 +1156,6 @@ export function buildCoreRoutes(): JSX.Element[] {
       element={
         <ProtectedRoute permission="core.it.access" scope="COMPANY">
           <LogHub />
-        </ProtectedRoute>
-      }
-    />,
-    <Route
-      key="core-license"
-      path="license"
-      element={
-        <ProtectedRoute permission="core.it.access" scope="COMPANY">
-          <ModuleHub />
         </ProtectedRoute>
       }
     />,

@@ -40,7 +40,16 @@ export default function DeviceDesk() {
       setLoading(true);
       try {
         const data = await itSettingsService.getDevices(session.tenant_id, session);
-        setDevices(data);
+        // Hierarchical filtering: 
+        // - Super Admin sees all
+        // - Owner sees all in tenant
+        // - Branch IT sees only their location
+        const filteredData = data.filter(d => {
+          if (session.role === 'SUPERADMIN') return true;
+          if (session.role === 'OWNER') return d.tenantId === session.tenant_id;
+          return d.locationId === session.location_id;
+        });
+        setDevices(filteredData);
       } catch (err) {
         setErrorMessage("Failed to fetch devices.");
       } finally {
@@ -48,7 +57,7 @@ export default function DeviceDesk() {
       }
     };
     fetchDevices();
-  }, [session.tenant_id, session, version]);
+  }, [session, version]);
 
   const clearStatus = () => {
     setStatusMessage(null);
@@ -63,12 +72,12 @@ export default function DeviceDesk() {
     <div className="space-y-6">
       <FeedbackAlert message={statusMessage} error={errorMessage} onClear={clearStatus} />
       <PageHeader
-        title="Devices"
-        subtitle="Assign devices to locations, keep LAN-first inventory in sync."
+        title="Device Matrix"
+        subtitle="Hierarchical asset mapping and connectivity orchestration."
         primaryAction={<Button onClick={() => setCreateOpen(true)}>Assign Device</Button>}
         secondaryActions={
           <Input
-            placeholder="Search devices"
+            placeholder="Search matrix..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="min-w-[220px]"
@@ -76,13 +85,13 @@ export default function DeviceDesk() {
         }
       />
 
-      <WorkspacePanel title="Device map" description="Physical/logical asset mapping with owners.">
+      <WorkspacePanel title="Infrastructure Inventory" description="Physical/logical asset mapping with hierarchical scope.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <DataTableShell total={filtered.length} page={1} pageSize={10}>
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="p-3 text-left">Device Name</th>
+                <th className="p-3 text-left">Device Identity</th>
                 <th className="p-3 text-left">Type</th>
                 <th className="p-3 text-left">Location</th>
                 <th className="p-3 text-left">Status</th>
@@ -91,9 +100,9 @@ export default function DeviceDesk() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="p-3 text-center">Loading...</td></tr>
+                <tr><td colSpan={5} className="p-12 text-center text-slate-400">Scanning frequency...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No devices found.</td></tr>
+                <tr><td colSpan={5} className="p-12 text-center text-muted-foreground italic">No assets mapped in this scope.</td></tr>
               ) : (
                 filtered.map((dev) => (
                    <tr
@@ -101,13 +110,23 @@ export default function DeviceDesk() {
                     className="border-t cursor-pointer hover:bg-muted/50"
                     onClick={() => setSelectedDevice(dev)}
                   >
-                    <td className="p-3 font-medium">{dev.deviceName}</td>
-                    <td className="p-3 text-muted-foreground">{dev.deviceType}</td>
-                    <td className="p-3 text-muted-foreground">{dev.locationId || "Unassigned"}</td>
-                    <td className="p-3">
-                      <Badge variant={dev.status === "active" ? "default" : "secondary"}>{dev.status}</Badge>
+                    <td className="p-3 font-medium">
+                       <div className="flex flex-col">
+                          <span>{dev.deviceName}</span>
+                          <span className="text-[10px] font-mono text-slate-400">{dev.id}</span>
+                       </div>
                     </td>
-                    <td className="p-3 text-muted-foreground text-xs">{new Date(dev.lastSeen).toLocaleDateString()}</td>
+                    <td className="p-3">
+                       <Badge variant="outline" className="text-[9px] uppercase tracking-widest">{dev.deviceType}</Badge>
+                    </td>
+                    <td className="p-3 text-muted-foreground text-xs">{dev.locationId || "UNASSIGNED"}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                         <span className={cn("h-1.5 w-1.5 rounded-full", dev.status === 'active' || dev.status === 'online' ? "bg-emerald-500" : "bg-rose-500")} />
+                         <span className="text-xs uppercase font-bold">{dev.status}</span>
+                      </div>
+                    </td>
+                    <td className="p-3 text-muted-foreground text-[10px] italic">{new Date(dev.lastSeen).toLocaleString()}</td>
                   </tr>
                 ))
               )}
@@ -125,23 +144,23 @@ export default function DeviceDesk() {
           <div className="grid md:grid-cols-[1fr_2fr]">
             <div className="bg-muted p-6 flex flex-col justify-between">
               <div>
-                <Laptop className="w-8 h-8 text-primary mb-4" />
-                <DialogTitle className="text-xl mb-2">Assign New Device</DialogTitle>
+                <Laptop className="w-8 h-8 text-indigo-600 mb-4" />
+                <DialogTitle className="text-xl mb-2">Assign Node</DialogTitle>
                 <p className="text-sm text-muted-foreground">
-                  Register a physical or logical IT asset to the centralized inventory map.
+                  Register a physical or logical IT asset to the centralized inventory matrix.
                 </p>
                 <div className="mt-8 space-y-4">
                   <div className="flex items-start gap-3 text-sm">
                     <div className="mt-0.5"><Network className="w-4 h-4 text-muted-foreground" /></div>
                     <div>
-                      <p className="font-medium">LAN-First Sync</p>
-                      <p className="text-muted-foreground text-xs">Device state syncs via LAN.</p>
+                      <p className="font-medium">Topological Mapping</p>
+                      <p className="text-muted-foreground text-xs">Define parent connections for visual graph.</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="bg-primary/5 p-4 rounded-lg mt-8 border border-primary/10">
-                <p className="text-xs text-primary font-medium flex items-center gap-1.5">
+              <div className="bg-indigo-600/5 p-4 rounded-lg mt-8 border border-indigo-600/10">
+                <p className="text-xs text-indigo-600 font-medium flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4" /> Policy Enforcement
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -151,44 +170,77 @@ export default function DeviceDesk() {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                <Input placeholder="Device Name" id="reg-device-name" />
-                <Select onValueChange={(val) => ((window as any)._regDeviceType = val)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Device Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="laptop">Laptop</SelectItem>
-                    <SelectItem value="mobile">Mobile</SelectItem>
-                    <SelectItem value="iot">IoT / Edge</SelectItem>
-                    <SelectItem value="network">Network Gear</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Target Location ID" id="reg-location-id" />
-                <div className="flex justify-end gap-3 pt-4 mt-6 border-t">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Identity</label>
+                      <Input placeholder="Device Name" id="reg-device-name" />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Class</label>
+                      <Select onValueChange={(val) => ((window as any)._regDeviceType = val)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="laptop">Workstation</SelectItem>
+                          <SelectItem value="mobile">Mobile Node</SelectItem>
+                          <SelectItem value="iot">IoT / Edge</SelectItem>
+                          <SelectItem value="server">Core Server</SelectItem>
+                          <SelectItem value="database">Database Host</SelectItem>
+                        </SelectContent>
+                      </Select>
+                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location Context</label>
+                      <Input placeholder="Location ID" id="reg-location-id" defaultValue={session.location_id} />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Topological Parent</label>
+                      <Select onValueChange={(val) => ((window as any)._regParentId = val)}>
+                         <SelectTrigger>
+                            <SelectValue placeholder="Core Connection" />
+                         </SelectTrigger>
+                         <SelectContent>
+                            <SelectItem value="ROOT">ROOT / Gateway</SelectItem>
+                            {devices.filter(d => d.deviceType === 'server').map(d => (
+                               <SelectItem key={d.id} value={d.id}>{d.deviceName}</SelectItem>
+                            ))}
+                         </SelectContent>
+                      </Select>
+                   </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                  <Button variant="outline" onClick={() => setCreateOpen(false)} className="rounded-xl px-6">Cancel</Button>
                   <Button
+                    className="rounded-xl bg-indigo-600 text-white px-8"
                     onClick={async () => {
                       try {
                         const deviceName = (document.getElementById("reg-device-name") as HTMLInputElement).value;
                         const locationId = (document.getElementById("reg-location-id") as HTMLInputElement).value;
                         const deviceType = (window as any)._regDeviceType || "iot";
+                        const parentId = (window as any)._regParentId;
 
                         await itSettingsService.registerDevice(session.tenant_id, session, {
                           deviceName,
                           deviceType,
                           locationId,
+                          parentId,
                           status: "active",
                         });
                         
                         setCreateOpen(false);
-                        setStatusMessage("Device registered successfully.");
+                        setStatusMessage("Infrastructure node registered successfully.");
                         setVersion((prev) => prev + 1);
                       } catch (err) {
-                        setErrorMessage("Failed to register device.");
+                        setErrorMessage("Failed to register node.");
                       }
                     }}
                   >
-                    Register Device
+                    Provision Node
                   </Button>
                 </div>
               </div>
@@ -198,31 +250,42 @@ export default function DeviceDesk() {
       </Dialog>
 
       <Dialog open={!!selectedDevice} onOpenChange={() => setSelectedDevice(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Device Lifecycle Detail</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 text-sm gap-y-2">
-              <span className="text-muted-foreground">Device ID:</span>
-              <span className="font-mono text-xs">{selectedDevice?.id}</span>
-              <span className="text-muted-foreground">Name:</span>
-              <span className="font-semibold">{selectedDevice?.deviceName}</span>
-              <span className="text-muted-foreground">Type:</span>
-              <span>{selectedDevice?.deviceType}</span>
-              <span className="text-muted-foreground">Location:</span>
-              <span>{selectedDevice?.locationId || "N/A"}</span>
-              <span className="text-muted-foreground">Status:</span>
-              <span><Badge variant="outline">{selectedDevice?.status}</Badge></span>
+        <DialogContent className="max-w-md bg-slate-50 dark:bg-slate-950 p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-indigo-600 p-8 text-white relative">
+             <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Laptop className="h-24 w-24" />
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mb-2">Device Management</p>
+             <h3 className="text-3xl font-black tracking-tighter uppercase italic">{selectedDevice?.deviceName}</h3>
+          </div>
+          <div className="p-8 space-y-6">
+            <div className="grid grid-cols-2 text-[10px] font-black uppercase tracking-widest gap-y-4">
+              <div className="space-y-1">
+                 <span className="text-slate-400">Node Identity</span>
+                 <p className="text-xs font-mono font-bold">{selectedDevice?.id}</p>
+              </div>
+              <div className="space-y-1">
+                 <span className="text-slate-400">Classification</span>
+                 <p className="text-xs font-bold">{selectedDevice?.deviceType}</p>
+              </div>
+              <div className="space-y-1">
+                 <span className="text-slate-400">Assigned Domain</span>
+                 <p className="text-xs font-bold text-indigo-600">{selectedDevice?.locationId || "UNASSIGNED"}</p>
+              </div>
+              <div className="space-y-1">
+                 <span className="text-slate-400">Current Vector</span>
+                 <p className="text-xs font-bold">{selectedDevice?.status}</p>
+              </div>
             </div>
-            <div className="border-t pt-2 text-xs text-muted-foreground italic">
-              Zenvix IT-AM: Managed via LAN-first physical mapping. Last seen: {selectedDevice ? new Date(selectedDevice.lastSeen).toLocaleString() : "N/A"}.
+            
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[9px] text-slate-400 italic leading-relaxed">
+              Managed via LAN-first physical mapping. Last seen: {selectedDevice ? new Date(selectedDevice.lastSeen).toLocaleString() : "N/A"}. Security policies active.
             </div>
-            <div className="flex gap-2 pt-2">
+
+            <div className="flex flex-col gap-2 pt-2">
               <Button
                 variant="outline"
-                size="sm"
-                className="flex-1"
+                className="w-full rounded-xl font-black text-[10px] uppercase tracking-widest py-6 border-slate-200 dark:border-slate-800"
                 onClick={async () => {
                   try {
                     if (selectedDevice) {
@@ -236,12 +299,11 @@ export default function DeviceDesk() {
                   }
                 }}
               >
-                Trigger Audit
+                Trigger Deep Audit
               </Button>
               <Button
                 variant="destructive"
-                size="sm"
-                className="flex-1"
+                className="w-full rounded-xl font-black text-[10px] uppercase tracking-widest py-6 shadow-xl shadow-rose-500/20"
                 onClick={async () => {
                   try {
                     if (selectedDevice) {
@@ -255,7 +317,7 @@ export default function DeviceDesk() {
                   }
                 }}
               >
-                Remote Wipe
+                Execute Remote Wipe
               </Button>
             </div>
           </div>
