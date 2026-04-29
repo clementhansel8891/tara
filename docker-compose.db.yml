@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: zenvix_db
     restart: always
     environment:
@@ -14,11 +14,12 @@ services:
     # Port 5432 is intentionally NOT exposed for security
 
   db_backup:
-    image: postgres:15
+    image: postgres:16-alpine
     container_name: zenvix_db_backup
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./backups:/backups
     entrypoint: >

@@ -24,6 +24,9 @@ COPY nginx.conf /etc/nginx/templates/default.conf.template
 LABEL maintainer="Zenvix Team"
 LABEL version="1.0.0"
 
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
+
 EXPOSE 80
 
 # Defaults for local docker-compose (will be overridden in VPS)

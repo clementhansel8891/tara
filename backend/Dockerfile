@@ -7,14 +7,14 @@ WORKDIR /app
 RUN apk add --no-cache openssl shadow python3 make g++
 
 # Copy package files and install dependencies
-COPY backend/package*.json ./
-COPY backend/prisma ./prisma/
+COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies (including devDependencies for build)
 RUN npm install --legacy-peer-deps
 
 # Copy source code
-COPY backend/ .
+COPY . .
 
 # Generate Prisma Client and Build NestJS
 RUN npx prisma generate
@@ -47,7 +47,9 @@ USER zenvix
 
 EXPOSE 3001
 
+# Healthcheck to ensure API is responsive
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
+
 # Entrypoint: Apply migrations and start the server + worker
-# Note: In production, you might want to run worker in a separate container, 
-# but start:all is fine for a unified VPS deployment.
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:all"]

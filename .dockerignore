@@ -7,7 +7,7 @@ dist
 backups
 logs
 .db
-backend/node_modules
-backend/dist
-backend/backups
-backend/logs
+backend/
+src/modules/retail/docs
+docs/
+PLATFORM_DOCS/
