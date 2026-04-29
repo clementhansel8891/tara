@@ -142,7 +142,7 @@ export default function CoreAdmin() {
                   Active Physical Stores
                 </p>
                 <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
-                  {moduleContributions.retail.activeStores}
+                    {moduleContributions?.retail?.activeStores || 0}
                 </p>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function CoreAdmin() {
                     {log.detail || log.detail}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {log.time || new Date(log.createdAt).toLocaleString()}
+                    {log.time || (log.createdAt ? new Date(log.createdAt).toLocaleString() : "Unknown Time")}
                   </p>
                 </div>
               ))}

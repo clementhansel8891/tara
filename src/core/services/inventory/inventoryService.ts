@@ -320,7 +320,7 @@ export const inventoryService = {
   },
 
   async deleteItem(tenantId: string, session: SessionContext, itemId: string) {
-    return apiRequest<any>(`/inventory/items/${itemId}`, "DELETE", session);
+    return apiRequest<any>(`/v1/inventory/items/${itemId}`, "DELETE", session);
   },
 
   async batchDeleteItems(
@@ -505,7 +505,7 @@ export const inventoryService = {
     formData.append("file", file);
 
     // Manual fetch because apiRequest might not handle FormData easily if it's JSON-only
-    const baseUrl = (window as any).VITE_API_URL || "http://localhost:3001/v1";
+    const baseUrl = (window as any).VITE_API_URL || "http://localhost:3001/api";
     const response = await fetch(`${baseUrl}/v1/inventory/items/${itemId}/images`, {
       method: "POST",
       headers: {

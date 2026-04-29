@@ -14,7 +14,7 @@ export const loanService = {
       approvals: {}
     };
 
-    const record = await apiRequest<LoanRequest>(`/finance/loans`, "POST", actor, payload);
+    const record = await apiRequest<LoanRequest>(`/v1/finance/loans`, "POST", actor, payload);
     
     audit.log({
       tenantId,
@@ -46,18 +46,18 @@ export const loanService = {
       else approvalPatch = { "approvals.hod": true }; // Default to HOD for other depts
     }
 
-    return apiRequest<LoanRequest>(`/finance/loans/${loanId}/approve`, "PATCH", actor, approvalPatch);
+    return apiRequest<LoanRequest>(`/v1/finance/loans/${loanId}/approve`, "PATCH", actor, approvalPatch);
   },
 
   async getMyLoans(tenantId: string, actor: SessionContext) {
-    return apiRequest<LoanRequest[]>(`/finance/loans/my`, "GET", actor);
+    return apiRequest<LoanRequest[]>(`/v1/finance/loans/my`, "GET", actor);
   },
 
   async getLoanDetails(tenantId: string, actor: SessionContext, loanId: string) {
-    return apiRequest<LoanRequest>(`/finance/loans/${loanId}`, "GET", actor);
+    return apiRequest<LoanRequest>(`/v1/finance/loans/${loanId}`, "GET", actor);
   },
 
   async getInstallments(tenantId: string, actor: SessionContext, loanId: string) {
-    return apiRequest<InstallmentRecord[]>(`/finance/loans/${loanId}/installments`, "GET", actor);
+    return apiRequest<InstallmentRecord[]>(`/v1/finance/loans/${loanId}/installments`, "GET", actor);
   }
 };

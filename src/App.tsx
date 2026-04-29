@@ -26,6 +26,7 @@ import { CoreLayout } from "@/layouts/CoreLayout";
 import { ModuleLayout } from "@/layouts/ModuleLayout";
 import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
 import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
+import { IdentityProvider } from "@/core/identity/context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient({
@@ -139,13 +140,15 @@ export default function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <AppProvider>
-          <NotificationProvider>
-            <BarcodeScannerProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </BarcodeScannerProvider>
-          </NotificationProvider>
+          <IdentityProvider>
+            <NotificationProvider>
+              <BarcodeScannerProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </BarcodeScannerProvider>
+            </NotificationProvider>
+          </IdentityProvider>
         </AppProvider>
       </QueryClientProvider>
     </AuthProvider>

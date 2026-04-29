@@ -7,7 +7,7 @@ export const hrService = {
    * Get HR workspace overview, enriched with retail module contributions
    */
   async getHrOverview(tenantId: string, session: SessionContext): Promise<any> {
-    return apiRequest<any>(`/hr/overview`, "GET", session);
+    return apiRequest<any>(`/v1/hr/overview`, "GET", session);
   },
 
   /**
@@ -19,7 +19,7 @@ export const hrService = {
     locationId?: string,
   ): Promise<Employee[]> {
     const query = locationId ? `?locationId=${locationId}` : "";
-    return apiRequest<Employee[]>(`/hr/employees${query}`, "GET", session);
+    return apiRequest<Employee[]>(`/v1/hr/employees${query}`, "GET", session);
   },
 
   /**
@@ -31,7 +31,7 @@ export const hrService = {
     employeeId: string,
   ): Promise<Employee | null> {
     return apiRequest<Employee | null>(
-      `/hr/employees/${employeeId}`,
+      `/v1/hr/employees/${employeeId}`,
       "GET",
       session,
     );
@@ -45,7 +45,7 @@ export const hrService = {
     session: SessionContext,
     employeeId: string,
   ): Promise<{ success: boolean }> {
-    await apiRequest(`/hr/employees/${employeeId}`, "DELETE", session);
+    await apiRequest(`/v1/hr/employees/${employeeId}`, "DELETE", session);
     return { success: true };
   },
 
@@ -70,7 +70,7 @@ export const hrService = {
     updates: Partial<Employee>,
   ): Promise<Employee> {
     return apiRequest<Employee>(
-      `/hr/employees/${employeeId}`,
+      `/v1/hr/employees/${employeeId}`,
       "PUT",
       session,
       updates,
@@ -88,7 +88,7 @@ export const hrService = {
   > {
     return apiRequest<
       Array<{ id: string; name: string; code: string; address: string; type: string }>
-    >(`/hr/locations`, "GET", session);
+    >(`/v1/hr/locations`, "GET", session);
   },
 
   /**
@@ -101,7 +101,7 @@ export const hrService = {
     data: { newRoleTitle: string; newBaseSalary?: number; notes?: string },
   ): Promise<Employee> {
     return apiRequest<Employee>(
-      `/hr/employees/${employeeId}/promote`,
+      `/v1/hr/employees/${employeeId}/promote`,
       "PATCH",
       session,
       data,
@@ -118,7 +118,7 @@ export const hrService = {
     data: { newLocationId?: string; newDepartmentId?: string; notes?: string },
   ): Promise<Employee> {
     return apiRequest<Employee>(
-      `/hr/employees/${employeeId}/transfer`,
+      `/v1/hr/employees/${employeeId}/transfer`,
       "PATCH",
       session,
       data,
@@ -135,7 +135,7 @@ export const hrService = {
     reason: string,
   ): Promise<Employee> {
     return apiRequest<Employee>(
-      `/hr/employees/${employeeId}/suspend`,
+      `/v1/hr/employees/${employeeId}/suspend`,
       "PATCH",
       session,
       { reason },
@@ -151,7 +151,7 @@ export const hrService = {
     candidateId: string,
   ): Promise<Employee> {
     return apiRequest<Employee>(
-      `/hr/candidates/${candidateId}/hire`,
+      `/v1/hr/candidates/${candidateId}/hire`,
       "POST",
       session,
     );

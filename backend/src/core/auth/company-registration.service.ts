@@ -48,6 +48,11 @@ export class CompanyRegistrationService {
       currency: getCurrencyForCountry(dto.country),
       industry: dto.industry,
       address: dto.address,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      google_place_id: dto.google_place_id,
+      formatted_address: dto.formatted_address,
+      geofence_radius: dto.geofence_radius,
       user: {
         first_name: user.first_name,
         last_name: user.last_name,

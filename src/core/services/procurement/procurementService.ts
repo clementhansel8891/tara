@@ -107,7 +107,7 @@ export const procurementService = {
 
   listFinalPurchaseOrders: async (tenantId: string, session: SessionContext) =>
     apiRequest<FinalPurchaseOrder[]>(
-      "/procurement/purchase-orders",
+      "/v1/procurement/purchase-orders",
       "GET",
       session,
     ),
@@ -124,7 +124,7 @@ export const procurementService = {
 
   listAuditEvents: async (tenantId: string, session: SessionContext) =>
     apiRequest<ProcurementAuditEvent[]>(
-      "/procurement/audit-events",
+      "/v1/procurement/audit-events",
       "GET",
       session,
     ),
@@ -139,7 +139,7 @@ export const procurementService = {
   ) => apiRequest<any>("/v1/procurement/categories/upsert", "POST", session, payload),
 
   deleteCategory: async (tenantId: string, session: SessionContext, id: string) =>
-    apiRequest<any>(`/procurement/categories/${id}`, "DELETE", session),
+    apiRequest<any>(`/v1/procurement/categories/${id}`, "DELETE", session),
 
   getOverview: async (tenantId: string, session: SessionContext) =>
     apiRequest<any>("/v1/procurement/overview", "GET", session),
@@ -206,7 +206,7 @@ export const procurementService = {
   ): Promise<SupplierMaster> {
     ensureTenant(tenantId, session);
     const created = await apiRequest<SupplierMaster>(
-      "/procurement/suppliers",
+      "/v1/procurement/suppliers",
       "POST",
       session,
       {
@@ -250,7 +250,7 @@ export const procurementService = {
   ): Promise<SupplierBranch> {
     ensureTenant(tenantId, session);
     const created = await apiRequest<SupplierBranch>(
-      "/procurement/branches",
+      "/v1/procurement/branches",
       "POST",
       session,
       payload,
@@ -273,7 +273,7 @@ export const procurementService = {
   ): Promise<SupplierProduct> {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<SupplierProduct>(
-      "/procurement/products",
+      "/v1/procurement/products",
       "POST",
       session,
       payload,
@@ -304,7 +304,7 @@ export const procurementService = {
   ): Promise<Requisition> {
     ensureTenant(tenantId, session);
     const created = await apiRequest<Requisition>(
-      "/procurement/requisitions",
+      "/v1/procurement/requisitions",
       "POST",
       session,
       {
@@ -350,7 +350,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<Requisition>(
-      `/procurement/requisitions/${requisitionId}/approve-requester-hod`,
+      `/v1/procurement/requisitions/${requisitionId}/approve-requester-hod`,
       "PUT",
       session,
     );
@@ -386,7 +386,7 @@ export const procurementService = {
 
     // Instead of local find, we send to backend which should handle validation
     const draft = await apiRequest<DraftPurchaseOrder>(
-      "/procurement/draft-pos",
+      "/v1/procurement/draft-pos",
       "POST",
       session,
       payload,
@@ -410,7 +410,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<Requisition>(
-      `/procurement/draft-pos/${draftPoId}/approve`,
+      `/v1/procurement/draft-pos/${draftPoId}/approve`,
       "PUT",
       session,
     );
@@ -438,7 +438,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<DraftPurchaseOrder>(
-      `/procurement/draft-pos/${payload.draftPoId}/confirm-quote`,
+      `/v1/procurement/draft-pos/${payload.draftPoId}/confirm-quote`,
       "PUT",
       session,
       payload,
@@ -458,7 +458,7 @@ export const procurementService = {
   ): Promise<ContractRecord> {
     ensureTenant(tenantId, session);
     const contract = await apiRequest<ContractRecord>(
-      "/procurement/contracts",
+      "/v1/procurement/contracts",
       "POST",
       session,
       payload,
@@ -507,7 +507,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<ContractRecord>(
-      `/procurement/contracts/${contractId}/approve-legal`,
+      `/v1/procurement/contracts/${contractId}/approve-legal`,
       "PUT",
       session,
     );
@@ -522,7 +522,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<ContractRecord>(
-      `/procurement/contracts/${contractId}/sign`,
+      `/v1/procurement/contracts/${contractId}/sign`,
       "PUT",
       session,
       { party },
@@ -538,7 +538,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<Requisition>(
-      `/procurement/requisitions/${requisitionId}/approve-final`,
+      `/v1/procurement/requisitions/${requisitionId}/approve-final`,
       "PUT",
       session,
       { approver },
@@ -553,7 +553,7 @@ export const procurementService = {
   ): Promise<FinalPurchaseOrder> {
     ensureTenant(tenantId, session);
     const finalPo = await apiRequest<FinalPurchaseOrder>(
-      "/procurement/purchase-orders/release",
+      "/v1/procurement/purchase-orders/release",
       "POST",
       session,
       { requisitionId },
@@ -627,7 +627,7 @@ export const procurementService = {
     ensureTenant(tenantId, session);
     const queryString = new URLSearchParams(params as any).toString();
     return apiRequest<SupplierRecommendation[]>(
-      `/procurement/recommendations?${queryString}`,
+      `/v1/procurement/recommendations?${queryString}`,
       "GET",
       session,
     );
@@ -639,7 +639,7 @@ export const procurementService = {
   ): Promise<ProcurementSpendInsight[]> {
     ensureTenant(tenantId, session);
     return apiRequest<ProcurementSpendInsight[]>(
-      "/procurement/spend-insights",
+      "/v1/procurement/spend-insights",
       "GET",
       session,
     );
@@ -653,7 +653,7 @@ export const procurementService = {
   ) {
     ensureTenant(tenantId, session);
     const updated = await apiRequest<RiskSignal>(
-      `/procurement/risk-signals/${riskSignalId}/status`,
+      `/v1/procurement/risk-signals/${riskSignalId}/status`,
       "PUT",
       session,
       { status },
@@ -675,7 +675,7 @@ export const procurementService = {
   ): Promise<SupplierPortalMessage> {
     ensureTenant(tenantId, session);
     const created = await apiRequest<SupplierPortalMessage>(
-      "/procurement/portal-messages",
+      "/v1/procurement/portal-messages",
       "POST",
       session,
       payload,

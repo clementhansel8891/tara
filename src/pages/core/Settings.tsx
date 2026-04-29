@@ -307,7 +307,7 @@ export default function CoreSettings() {
                       <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Base Currency</Label>
                       <Select 
                         value={profile?.currency?.toLowerCase() || 'usd'}
-                        onValueChange={(val) => setProfile(p => p ? { ...p, currency: val.toUpperCase() } : null)}
+                        onValueChange={(val) => setProfile(p => p ? { ...p, currency: val?.toUpperCase() } : null)}
                       >
                         <SelectTrigger className="h-12 rounded-xl border-slate-100 bg-slate-50 font-bold">
                           <SelectValue />
@@ -634,11 +634,11 @@ export default function CoreSettings() {
                <div className="grid grid-cols-2 gap-10">
                   <div className="space-y-2">
                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sector</p>
-                     <p className="text-lg font-black italic">{selectedChild.industry.toUpperCase()}</p>
+                     <p className="text-lg font-black italic">{selectedChild.industry?.toUpperCase() || "RETAIL"}</p>
                   </div>
                   <div className="space-y-2 text-right">
                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Jurisdiction</p>
-                     <p className="text-lg font-black italic">{selectedChild.country.toUpperCase()}</p>
+                     <p className="text-lg font-black italic">{selectedChild.country?.toUpperCase() || "US"}</p>
                   </div>
                </div>
 

@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => ({
         target: "http://localhost:3001",
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
       "/socket.io": {
         target: "http://localhost:3001",

@@ -38,7 +38,7 @@ export const workflowService = {
     session: SessionContext,
     deptCode: string,
   ): Promise<WorkflowRequest[]> {
-    return apiRequest<WorkflowRequest[]>(`/workflow/inbox?dept=${deptCode}`, "GET", session);
+    return apiRequest<WorkflowRequest[]>(`/v1/workflow/inbox?dept=${deptCode}`, "GET", session);
   },
 
   async listRequests(
@@ -54,7 +54,7 @@ export const workflowService = {
     session: SessionContext,
     notes?: string
   ): Promise<WorkflowRequest> {
-    return apiRequest<WorkflowRequest>(`/workflow/${workflowId}/approve`, "POST", session, { notes });
+    return apiRequest<WorkflowRequest>(`/v1/workflow/${workflowId}/approve`, "POST", session, { notes });
   },
 
   async rejectRequest(
@@ -63,7 +63,7 @@ export const workflowService = {
     session: SessionContext,
     notes?: string
   ): Promise<WorkflowRequest> {
-    return apiRequest<WorkflowRequest>(`/workflow/${workflowId}/reject`, "POST", session, { notes });
+    return apiRequest<WorkflowRequest>(`/v1/workflow/${workflowId}/reject`, "POST", session, { notes });
   },
 };
 

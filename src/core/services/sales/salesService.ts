@@ -107,7 +107,7 @@ export const salesService = {
     leadId: string,
     status: LeadStatus,
   ) {
-    return apiRequest<SalesLead>(`/sales/leads/${leadId}/status`, "PUT", session, { status });
+    return apiRequest<SalesLead>(`/v1/sales/leads/${leadId}/status`, "PUT", session, { status });
   },
 
   async convertLeadToOpportunity(
@@ -115,7 +115,7 @@ export const salesService = {
     session: SessionContext,
     leadId: string,
   ): Promise<SalesOpportunity> {
-    return apiRequest<SalesOpportunity>(`/sales/leads/${leadId}/convert`, "POST", session);
+    return apiRequest<SalesOpportunity>(`/v1/sales/leads/${leadId}/convert`, "POST", session);
   },
 
   async moveOpportunityStage(
@@ -124,7 +124,7 @@ export const salesService = {
     opportunityId: string,
     stage: OpportunityStage,
   ): Promise<SalesOpportunity> {
-    return apiRequest<SalesOpportunity>(`/sales/opportunities/${opportunityId}/stage`, "PUT", session, { stage });
+    return apiRequest<SalesOpportunity>(`/v1/sales/opportunities/${opportunityId}/stage`, "PUT", session, { stage });
   },
 
   async createQuote(
@@ -146,7 +146,7 @@ export const salesService = {
     session: SessionContext,
     quoteId: string,
   ) {
-    return apiRequest<SalesQuote>(`/sales/quotes/${quoteId}/submit`, "PUT", session);
+    return apiRequest<SalesQuote>(`/v1/sales/quotes/${quoteId}/submit`, "PUT", session);
   },
 
   async decideQuoteApproval(
@@ -155,11 +155,11 @@ export const salesService = {
     quoteId: string,
     approved: boolean,
   ) {
-    return apiRequest<SalesQuote>(`/sales/quotes/${quoteId}/decision`, "PUT", session, { approved });
+    return apiRequest<SalesQuote>(`/v1/sales/quotes/${quoteId}/decision`, "PUT", session, { approved });
   },
 
   async sendQuoteToCustomer(tenantId: string, session: SessionContext, quoteId: string) {
-    return apiRequest<SalesQuote>(`/sales/quotes/${quoteId}/send`, "PUT", session);
+    return apiRequest<SalesQuote>(`/v1/sales/quotes/${quoteId}/send`, "PUT", session);
   },
 
   async closeWonOpportunity(
@@ -168,7 +168,7 @@ export const salesService = {
     opportunityId: string,
     quoteId?: string,
   ): Promise<SalesOrder> {
-    return apiRequest<SalesOrder>(`/sales/opportunities/${opportunityId}/close`, "PUT", session, { 
+    return apiRequest<SalesOrder>(`/v1/sales/opportunities/${opportunityId}/close`, "PUT", session, { 
       status: 'WON',
       quoteId 
     });
@@ -180,7 +180,7 @@ export const salesService = {
     opportunityId: string,
     reason: string,
   ) {
-    return apiRequest<SalesOpportunity>(`/sales/opportunities/${opportunityId}/close`, "PUT", session, { 
+    return apiRequest<SalesOpportunity>(`/v1/sales/opportunities/${opportunityId}/close`, "PUT", session, { 
       status: 'LOST',
       reason 
     });
@@ -217,7 +217,7 @@ export const salesService = {
   },
 
   async markTaskDone(tenantId: string, session: SessionContext, taskId: string) {
-    return apiRequest<SalesTask>(`/sales/tasks/${taskId}/done`, "PUT", session);
+    return apiRequest<SalesTask>(`/v1/sales/tasks/${taskId}/done`, "PUT", session);
   },
 
   async runSlaSweep(tenantId: string, session: SessionContext) {
@@ -225,6 +225,6 @@ export const salesService = {
   },
 
   async acknowledgeAlert(tenantId: string, session: SessionContext, alertId: string) {
-    return apiRequest<SalesAlert>(`/sales/alerts/${alertId}/ack`, "PUT", session);
+    return apiRequest<SalesAlert>(`/v1/sales/alerts/${alertId}/ack`, "PUT", session);
   },
 };

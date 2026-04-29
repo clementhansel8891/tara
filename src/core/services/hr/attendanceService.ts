@@ -60,7 +60,7 @@ export const attendanceService = {
     // Note: Backend endpoint /hr/attendance currently returns records for the tenant
     // It might need employeeId filter if the UI expects it
     // The previous implementation used attendanceRepo.list(tenantId)
-    return apiRequest<AttendanceRecord[]>(`/hr/attendance${query}`, "GET", actor);
+    return apiRequest<AttendanceRecord[]>(`/v1/hr/attendance${query}`, "GET", actor);
   }
 };
 

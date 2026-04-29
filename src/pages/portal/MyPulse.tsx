@@ -17,7 +17,8 @@ import {
   Download,
   DollarSign,
   HandCoins,
-  Receipt
+  Receipt,
+  Briefcase
 } from 'lucide-react';
 import { useSession } from '@/core/security/session';
 import { useApp } from '@/contexts/AppContext';

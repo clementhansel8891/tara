@@ -248,7 +248,7 @@ export const financeService = {
         balance: number;
         provider?: string | null;
       }>
-    >("/finance/money-sources", "GET", session);
+    >("/v1/finance/money-sources", "GET", session);
   },
 
   async updateMoneySource(
@@ -257,7 +257,7 @@ export const financeService = {
     updates: any,
     session: SessionContext,
   ): Promise<any> {
-    return apiRequest<any>(`/finance/money-sources/${id}`, "PATCH", session, updates);
+    return apiRequest<any>(`/v1/finance/money-sources/${id}`, "PATCH", session, updates);
   },
 
   async getAlerts(
@@ -282,7 +282,7 @@ export const financeService = {
     },
   ): Promise<PaymentRequest> {
     return apiRequest<PaymentRequest>(
-      "/finance/payment-requests",
+      "/v1/finance/payment-requests",
       "POST",
       session,
       payload,
@@ -295,7 +295,7 @@ export const financeService = {
     status: string,
     session: SessionContext,
   ): Promise<void> {
-    return apiRequest<void>(`/finance/payments/${id}/status`, "PUT", session, {
+    return apiRequest<void>(`/v1/finance/payments/${id}/status`, "PUT", session, {
       status,
     });
   },
@@ -319,7 +319,7 @@ export const financeService = {
     session: SessionContext,
   ): Promise<CapexRequest[]> {
     return apiRequest<CapexRequest[]>(
-      "/finance/capex/requests",
+      "/v1/finance/capex/requests",
       "GET",
       session,
     );
@@ -330,7 +330,7 @@ export const financeService = {
     session: SessionContext,
   ): Promise<FinanceCapexBudgetRow[]> {
     return apiRequest<FinanceCapexBudgetRow[]>(
-      "/finance/capex/budgets",
+      "/v1/finance/capex/budgets",
       "GET",
       session,
     );
@@ -342,7 +342,7 @@ export const financeService = {
     payload: CapexBudgetPayload,
   ): Promise<FinanceCapexBudgetRow> {
     return apiRequest<FinanceCapexBudgetRow>(
-      "/finance/capex/budgets",
+      "/v1/finance/capex/budgets",
       "POST",
       session,
       payload,
@@ -355,7 +355,7 @@ export const financeService = {
     input: AssetCapexInput,
   ): Promise<{ asset: Asset; capex: CapexRequest }> {
     return apiRequest<{ asset: Asset; capex: CapexRequest }>(
-      "/finance/capex/requests",
+      "/v1/finance/capex/requests",
       "POST",
       session,
       input,
@@ -382,7 +382,7 @@ export const financeService = {
     requestId: string,
   ): Promise<CapexRequest | null> {
     return apiRequest<CapexRequest>(
-      `/finance/capex/requests/${requestId}/approve`,
+      `/v1/finance/capex/requests/${requestId}/approve`,
       "POST",
       session,
     );
@@ -395,7 +395,7 @@ export const financeService = {
     notes?: string,
   ): Promise<CapexRequest | null> {
     return apiRequest<CapexRequest>(
-      `/finance/capex/requests/${requestId}/reject`,
+      `/v1/finance/capex/requests/${requestId}/reject`,
       "POST",
       session,
       { notes },
@@ -409,7 +409,7 @@ export const financeService = {
     capitalizationDate: string,
   ): Promise<Asset | null> {
     return apiRequest<Asset>(
-      `/finance/assets/${assetId}/capitalize`,
+      `/v1/finance/assets/${assetId}/capitalize`,
       "POST",
       session,
       { capitalizationDate },
@@ -423,7 +423,7 @@ export const financeService = {
   ): Promise<AssetDepreciationEntry[]> {
     const query = assetId ? `?assetId=${assetId}` : "";
     return apiRequest<AssetDepreciationEntry[]>(
-      `/finance/assets/depreciation${query}`,
+      `/v1/finance/assets/depreciation${query}`,
       "GET",
       session,
     );
@@ -435,7 +435,7 @@ export const financeService = {
     params: PostDepreciationPayload,
   ): Promise<AssetDepreciationEntry & { journalEntryId: string }> {
     return apiRequest<AssetDepreciationEntry & { journalEntryId: string }>(
-      `/finance/assets/${params.assetId}/depreciation`,
+      `/v1/finance/assets/${params.assetId}/depreciation`,
       "POST",
       session,
       params,
@@ -448,7 +448,7 @@ export const financeService = {
     params: DepreciationRunPayload,
   ): Promise<ScheduledDepreciationRunResult> {
     return apiRequest<ScheduledDepreciationRunResult>(
-      "/finance/assets/depreciation/schedule-run",
+      "/v1/finance/assets/depreciation/schedule-run",
       "POST",
       session,
       params,
@@ -461,7 +461,7 @@ export const financeService = {
     params: AssetImpairmentPayload,
   ): Promise<AssetEvent> {
     return apiRequest<AssetEvent>(
-      `/finance/assets/${params.assetId}/impairment`,
+      `/v1/finance/assets/${params.assetId}/impairment`,
       "POST",
       session,
       params,
@@ -474,7 +474,7 @@ export const financeService = {
     params: AssetRevaluationPayload,
   ): Promise<AssetEvent> {
     return apiRequest<AssetEvent>(
-      `/finance/assets/${params.assetId}/revaluation`,
+      `/v1/finance/assets/${params.assetId}/revaluation`,
       "POST",
       session,
       params,
@@ -487,7 +487,7 @@ export const financeService = {
     params: AssetDisposalPayload,
   ): Promise<AssetEvent> {
     return apiRequest<AssetEvent>(
-      `/finance/assets/${params.assetId}/disposal`,
+      `/v1/finance/assets/${params.assetId}/disposal`,
       "POST",
       session,
       params,
@@ -501,7 +501,7 @@ export const financeService = {
   ): Promise<AssetEvent[]> {
     const query = assetId ? `?assetId=${assetId}` : "";
     return apiRequest<AssetEvent[]>(
-      `/finance/assets/events${query}`,
+      `/v1/finance/assets/events${query}`,
       "GET",
       session,
     );
@@ -513,7 +513,7 @@ export const financeService = {
     assetId: string,
   ): Promise<AssetAuditPack> {
     return apiRequest<AssetAuditPack>(
-      `/finance/assets/${assetId}/audit-pack`,
+      `/v1/finance/assets/${assetId}/audit-pack`,
       "GET",
       session,
     );
@@ -526,7 +526,7 @@ export const financeService = {
     format: "JSON" | "PDF",
   ): Promise<AssetAuditPackArtifact> {
     return apiRequest<AssetAuditPackArtifact>(
-      `/finance/assets/${assetId}/audit-pack/download?format=${format}`,
+      `/v1/finance/assets/${assetId}/audit-pack/download?format=${format}`,
       "GET",
       session,
     );
@@ -538,7 +538,7 @@ export const financeService = {
     pack: AssetAuditPack,
   ): Promise<boolean> {
     return apiRequest<boolean>(
-      "/finance/assets/audit-pack/verify",
+      "/v1/finance/assets/audit-pack/verify",
       "POST",
       session,
       { pack },
@@ -551,7 +551,7 @@ export const financeService = {
     id: string,
     status: Asset["status"],
   ): Promise<Asset | null> {
-    return apiRequest<Asset>(`/finance/assets/${id}/status`, "POST", session, {
+    return apiRequest<Asset>(`/v1/finance/assets/${id}/status`, "POST", session, {
       status,
     });
   },
@@ -561,7 +561,7 @@ export const financeService = {
     session: SessionContext,
   ): Promise<FinanceReceivableRow[]> {
     return apiRequest<FinanceReceivableRow[]>(
-      "/finance/receivables",
+      "/v1/finance/receivables",
       "GET",
       session,
     );
@@ -573,7 +573,7 @@ export const financeService = {
     payload: ReceivablePayload,
   ): Promise<ReceivableInvoice> {
     return apiRequest<ReceivableInvoice>(
-      "/finance/receivables",
+      "/v1/finance/receivables",
       "POST",
       session,
       payload,
@@ -586,7 +586,7 @@ export const financeService = {
     id: string,
   ): Promise<void> {
     return apiRequest<void>(
-      `/finance/receivables/${id}/remind`,
+      `/v1/finance/receivables/${id}/remind`,
       "POST",
       session,
     );
@@ -598,7 +598,7 @@ export const financeService = {
     id: string,
   ): Promise<void> {
     return apiRequest<void>(
-      `/finance/receivables/${id}/mark-received`,
+      `/v1/finance/receivables/${id}/mark-received`,
       "POST",
       session,
     );
@@ -618,7 +618,7 @@ export const financeService = {
     payload: InvoiceCapturePayload,
   ): Promise<FinanceInvoiceRow> {
     return apiRequest<FinanceInvoiceRow>(
-      "/finance/payables",
+      "/v1/finance/payables",
       "POST",
       session,
       payload,
@@ -653,7 +653,7 @@ export const financeService = {
     session: SessionContext,
     id: string,
   ): Promise<void> {
-    return apiRequest<void>(`/finance/periods/${id}/lock`, "POST", session);
+    return apiRequest<void>(`/v1/finance/periods/${id}/lock`, "POST", session);
   },
 
   async approvePeriodClose(
@@ -662,7 +662,7 @@ export const financeService = {
     id: string,
   ): Promise<void> {
     return apiRequest<void>(
-      `/finance/periods/${id}/approve-close`,
+      `/v1/finance/periods/${id}/approve-close`,
       "POST",
       session,
     );
@@ -673,7 +673,7 @@ export const financeService = {
     session: SessionContext,
     id: string,
   ): Promise<void> {
-    return apiRequest<void>(`/finance/periods/${id}/fail`, "POST", session);
+    return apiRequest<void>(`/v1/finance/periods/${id}/fail`, "POST", session);
   },
 
   async reopenPeriod(
@@ -681,7 +681,7 @@ export const financeService = {
     session: SessionContext,
     id: string,
   ): Promise<void> {
-    return apiRequest<void>(`/finance/periods/${id}/reopen`, "POST", session);
+    return apiRequest<void>(`/v1/finance/periods/${id}/reopen`, "POST", session);
   },
 
   async forceClosePeriod(
@@ -690,7 +690,7 @@ export const financeService = {
     id: string,
   ): Promise<void> {
     return apiRequest<void>(
-      `/finance/periods/${id}/force-close`,
+      `/v1/finance/periods/${id}/force-close`,
       "POST",
       session,
     );
@@ -722,7 +722,7 @@ export const financeService = {
     periodIds: string[],
   ): Promise<any> {
     const query = periodIds.map(p => `periodIds[]=${p}`).join('&');
-    return apiRequest<any>(`/finance/reporting/trends?companyId=${companyId}&${query}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/reporting/trends?companyId=${companyId}&${query}`, "GET", session);
   },
 
   async getConsolidatedReport(
@@ -731,7 +731,7 @@ export const financeService = {
     fiscalPeriodId: string,
   ): Promise<any> {
     const query = companyIds.map(c => `companyIds[]=${c}`).join('&');
-    return apiRequest<any>(`/finance/reporting/consolidated?fiscalPeriodId=${fiscalPeriodId}&${query}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/reporting/consolidated?fiscalPeriodId=${fiscalPeriodId}&${query}`, "GET", session);
   },
 
   async getBudgetVariance(
@@ -739,7 +739,7 @@ export const financeService = {
     companyId: string,
     fiscalPeriodId: string,
   ): Promise<any> {
-    return apiRequest<any>(`/finance/operations/budget/variance?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/operations/budget/variance?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
   },
 
   async submitWorkflow(
@@ -761,14 +761,14 @@ export const financeService = {
     companyId: string,
     fiscalPeriodId: string,
   ): Promise<any> {
-    return apiRequest<any>(`/finance/compliance/tax/report?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/compliance/tax/report?companyId=${companyId}&fiscalPeriodId=${fiscalPeriodId}`, "GET", session);
   },
 
   async verifyLedgerIntegrity(
     session: SessionContext,
     companyId: string,
   ): Promise<any> {
-    return apiRequest<any>(`/finance/compliance/audit/integrity?companyId=${companyId}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/compliance/audit/integrity?companyId=${companyId}`, "GET", session);
   },
 
   async proveReport(
@@ -776,7 +776,7 @@ export const financeService = {
     reportId: string,
     reportHash: string,
   ): Promise<any> {
-    return apiRequest<any>(`/finance/compliance/audit/prove/${reportId}?reportHash=${reportHash}`, "GET", session);
+    return apiRequest<any>(`/v1/finance/compliance/audit/prove/${reportId}?reportHash=${reportHash}`, "GET", session);
   },
 
   // Reconciliation

@@ -29,7 +29,7 @@ export const payrollService = {
    */
   async runVarianceCheck(tenantId: string, actor: SessionContext, runId: string) {
     return apiRequest<{ runId: string; varianceScore: number }>(
-      `/hr/payroll-runs/${runId}/variance-check`,
+      `/v1/hr/payroll-runs/${runId}/variance-check`,
       "POST",
       actor,
     );
@@ -51,14 +51,14 @@ export const payrollService = {
    * Get payroll records for a specific employee
    */
   async getEmployeePayroll(tenantId: string, actor: SessionContext, employeeId: string) {
-    return apiRequest<any[]>(`/hr/payroll/${employeeId}`, "GET", actor);
+    return apiRequest<any[]>(`/v1/hr/payroll/${employeeId}`, "GET", actor);
   },
 
   /**
    * Submit a payroll run for approval
    */
   async submitForApproval(tenantId: string, actor: SessionContext, runId: string) {
-    return apiRequest<PayrollRun>(`/hr/payroll-runs/${runId}/submit`, "PATCH", actor);
+    return apiRequest<PayrollRun>(`/v1/hr/payroll-runs/${runId}/submit`, "PATCH", actor);
   },
 
   /**
@@ -98,7 +98,7 @@ export const payrollService = {
       accruedBonus: number;
       estimatedTax: number;
       grossEarnings: number;
-    }>(`/hr/payroll/performance-snapshot/${employeeId}`, "GET", actor);
+    }>(`/v1/hr/payroll/performance-snapshot/${employeeId}`, "GET", actor);
   },
 };
 

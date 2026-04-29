@@ -23,7 +23,7 @@ export const retailService = {
     session: SessionContext,
   ) {
     return apiRequest<{ valid: boolean }>(
-      "/retail/validate-access",
+      "/v1/retail/validate-access",
       "POST",
       session,
       { storeId },
@@ -39,7 +39,7 @@ export const retailService = {
     // This is essentially a client-side guard that might call a validation endpoint
     // or simply rely on the fact that subsequent API calls will fail if scope is invalid.
     return apiRequest<{ valid: boolean }>(
-      "/retail/enforce-scope",
+      "/v1/retail/enforce-scope",
       "POST",
       session,
       { storeId, shiftId },
@@ -174,7 +174,7 @@ export const retailService = {
     console.log("[retailService] updateStore payload:", payload);
 
     return apiRequest<RetailStore>(
-      `/retail/stores/${store.id}`,
+      `/v1/retail/stores/${store.id}`,
       "PUT",
       session,
       payload,
@@ -187,7 +187,7 @@ export const retailService = {
     storeId: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      `/retail/stores/${storeId}`,
+      `/v1/retail/stores/${storeId}`,
       "DELETE",
       session,
     );
@@ -287,8 +287,8 @@ export const retailService = {
     storeId?: string,
   ) {
     const path = storeId
-      ? `/retail/devices?store_id=${storeId}`
-      : "/retail/devices";
+      ? `/v1/retail/devices?store_id=${storeId}`
+      : "/v1/retail/devices";
     return apiRequest<BranchDevice[]>(path, "GET", session);
   },
 
@@ -302,8 +302,8 @@ export const retailService = {
 
   async listCCTVs(tenantId: string, session: SessionContext, storeId?: string) {
     const path = storeId
-      ? `/retail/cctvs?store_id=${storeId}`
-      : "/retail/cctvs";
+      ? `/v1/retail/cctvs?store_id=${storeId}`
+      : "/v1/retail/cctvs";
     return apiRequest<CCTVCamera[]>(path, "GET", session);
   },
 
@@ -313,7 +313,7 @@ export const retailService = {
     camera: Partial<CCTVCamera>,
   ) {
     return apiRequest<{ success: boolean; message?: string }>(
-      "/retail/cctvs/validate",
+      "/v1/retail/cctvs/validate",
       "POST",
       session,
       camera,
@@ -334,8 +334,8 @@ export const retailService = {
     storeId?: string,
   ) {
     const path = storeId
-      ? `/retail/sensors?store_id=${storeId}`
-      : "/retail/sensors";
+      ? `/v1/retail/sensors?store_id=${storeId}`
+      : "/v1/retail/sensors";
     return apiRequest<BranchSensor[]>(path, "GET", session);
   },
 
@@ -385,8 +385,8 @@ export const retailService = {
     if (options?.sortDir) qs.set("sortDir", options.sortDir);
     if (options?.locationId) qs.set("location_id", options.locationId);
     const path = qs.toString()
-      ? `/retail/products?${qs.toString()}`
-      : "/retail/products";
+      ? `/v1/retail/products?${qs.toString()}`
+      : "/v1/retail/products";
 
     const response = await apiRequest<{
       items: unknown[]; // replaced any with unknown
@@ -478,7 +478,7 @@ export const retailService = {
     shiftId?: string,
   ) {
     return apiRequest<RetailOrder>(
-      `/retail/orders/${orderId}/payment`,
+      `/v1/retail/orders/${orderId}/payment`,
       "POST",
       session,
       {
@@ -537,7 +537,7 @@ export const retailService = {
     promotion: RetailPromotion,
   ) {
     return apiRequest<RetailPromotion>(
-      `/retail/promotions/${promotion.id}`,
+      `/v1/retail/promotions/${promotion.id}`,
       "PUT",
       session,
       promotion,
@@ -558,7 +558,7 @@ export const retailService = {
     channelId: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      `/retail/channels/${channelId}/sync`,
+      `/v1/retail/channels/${channelId}/sync`,
       "POST",
       session,
     );
@@ -583,7 +583,7 @@ export const retailService = {
     },
   ) {
     return apiRequest<RetailChannel>(
-      "/retail/channels",
+      "/v1/retail/channels",
       "POST",
       session,
       channel,
@@ -596,7 +596,7 @@ export const retailService = {
     channelId: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      `/retail/channels/${channelId}`,
+      `/v1/retail/channels/${channelId}`,
       "DELETE",
       session,
     );
@@ -614,7 +614,7 @@ export const retailService = {
     },
   ) {
     return apiRequest<RetailChannel>(
-      `/retail/channels/${channelId}`,
+      `/v1/retail/channels/${channelId}`,
       "PUT",
       session,
       updates,
@@ -627,7 +627,7 @@ export const retailService = {
     channelId: string,
   ) {
     return apiRequest<{ clientId: string; clientSecret: string }>(
-      `/retail/channels/${channelId}/rotate-credentials`,
+      `/v1/retail/channels/${channelId}/rotate-credentials`,
       "POST",
       session,
     );
@@ -639,7 +639,7 @@ export const retailService = {
     channelId: string,
   ) {
     return apiRequest<{ clientId: string }>(
-      `/retail/channels/${channelId}/revoke-credentials`,
+      `/v1/retail/channels/${channelId}/revoke-credentials`,
       "POST",
       session,
     );
@@ -652,7 +652,7 @@ export const retailService = {
     deviceId: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      `/retail/devices/${deviceId}/ping`,
+      `/v1/retail/devices/${deviceId}/ping`,
       "POST",
       session,
     );
@@ -668,7 +668,7 @@ export const retailService = {
       type: string;
       issuedAt: string;
       balance: string;
-    }>(`/retail/verify/${ticketId}`, "GET", session);
+    }>(`/v1/retail/verify/${ticketId}`, "GET", session);
   },
 
 
@@ -682,7 +682,7 @@ export const retailService = {
     discoveryId: string,
   ) {
     return apiRequest<BranchDevice>(
-      `/retail/devices/commit-scan/${discoveryId}`,
+      `/v1/retail/devices/commit-scan/${discoveryId}`,
       "POST",
       session,
     );
@@ -746,7 +746,7 @@ export const retailService = {
       offset?: number;
     },
   ) {
-    let path = "/retail/shifts";
+    let path = "/v1/retail/shifts";
     if (params) {
       const query = new URLSearchParams();
       if (params.store_id) query.append("store_id", params.store_id);
@@ -787,7 +787,7 @@ export const retailService = {
     shiftId?: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      "/retail/inventory/opname",
+      "/v1/retail/inventory/opname",
       "POST",
       session,
       {
@@ -807,7 +807,7 @@ export const retailService = {
     shiftId?: string,
   ) {
     return apiRequest<{ success: boolean }>(
-      "/retail/inventory/receive",
+      "/v1/retail/inventory/receive",
       "POST",
       session,
       {
@@ -821,7 +821,7 @@ export const retailService = {
 
   async listInventoryPools(tenantId: string, session: SessionContext) {
     return apiRequest<Record<string, unknown>[]>(
-      "/retail/inventory-pools",
+      "/v1/retail/inventory-pools",
       "GET",
       session,
     );
@@ -847,8 +847,8 @@ export const retailService = {
       qs.set("maxPrice", String(options.maxPrice));
     if (options?.q) qs.set("q", options.q);
     const path = qs.toString()
-      ? `/retail/inventory/stats?${qs.toString()}`
-      : "/retail/inventory/stats";
+      ? `/v1/retail/inventory/stats?${qs.toString()}`
+      : "/v1/retail/inventory/stats";
 
     const response = await apiRequest<{
       total: number;
@@ -887,7 +887,7 @@ export const retailService = {
 
   async listPendingItems(tenantId: string, session: SessionContext) {
     return apiRequest<RetailProduct[]>(
-      "/inventory/items/pending",
+      "/v1/inventory/items/pending",
       "GET",
       session,
     );
@@ -895,7 +895,7 @@ export const retailService = {
 
   async approveItem(tenantId: string, session: SessionContext, itemId: string) {
     return apiRequest<RetailProduct>(
-      `/inventory/items/${itemId}/approve`,
+      `/v1/inventory/items/${itemId}/approve`,
       "PUT",
       session,
     );
@@ -903,7 +903,7 @@ export const retailService = {
 
   async rejectItem(tenantId: string, session: SessionContext, itemId: string) {
     return apiRequest<RetailProduct>(
-      `/inventory/items/${itemId}/reject`,
+      `/v1/inventory/items/${itemId}/reject`,
       "PUT",
       session,
     );
@@ -916,7 +916,7 @@ export const retailService = {
     category: string,
   ) {
     return apiRequest<{ sku: string }>(
-      `/inventory/generate-sku?category=${encodeURIComponent(category)}`,
+      `/v1/inventory/generate-sku?category=${encodeURIComponent(category)}`,
       "GET",
       session,
     );
@@ -928,7 +928,7 @@ export const retailService = {
     sku: string,
   ) {
     return apiRequest<{ barcode: string }>(
-      `/inventory/generate-barcode?sku=${encodeURIComponent(sku)}`,
+      `/v1/inventory/generate-barcode?sku=${encodeURIComponent(sku)}`,
       "GET",
       session,
     );
@@ -940,7 +940,7 @@ export const retailService = {
     items: unknown[],
   ) {
     return apiRequest<{ success: boolean; data: unknown[] }>(
-      "/inventory/items/batch-json",
+      "/v1/inventory/items/batch-json",
       "POST",
       session,
       { items },
@@ -954,7 +954,7 @@ export const retailService = {
     entry: unknown,
   ) {
     return apiRequest<{ success: boolean }>(
-      "/retail/governance/log",
+      "/v1/retail/governance/log",
       "POST",
       session,
       entry,
