@@ -31,7 +31,7 @@ export const itService = {
     session: SessionContext,
   ): Promise<ProvisioningRequest[]> {
     return apiRequest<ProvisioningRequest[]>(
-      "/it/provisioning",
+      "/v1/it/provisioning",
       "GET",
       session,
     );
@@ -43,7 +43,7 @@ export const itService = {
     data: any,
   ): Promise<ProvisioningRequest> {
     return apiRequest<ProvisioningRequest>(
-      "/it/provisioning",
+      "/v1/it/provisioning",
       "POST",
       session,
       data,
@@ -57,7 +57,7 @@ export const itService = {
     provisionedBy: string,
   ): Promise<ProvisioningRequest> {
     return apiRequest<ProvisioningRequest>(
-      `/it/provisioning/${requestId}/provision`,
+      `/v1/it/provisioning/${requestId}/provision`,
       "PUT",
       session,
       { provisionedBy },
@@ -71,7 +71,7 @@ export const itService = {
     data: any,
   ): Promise<ProvisioningRequest> {
     return apiRequest<ProvisioningRequest>(
-      `/it/provisioning/${requestId}`,
+      `/v1/it/provisioning/${requestId}`,
       "PUT",
       session,
       data,
@@ -84,7 +84,7 @@ export const itService = {
     requestId: string,
   ): Promise<{ success: boolean }> {
     return apiRequest<{ success: boolean }>(
-      `/it/provisioning/${requestId}`,
+      `/v1/it/provisioning/${requestId}`,
       "DELETE",
       session,
     );

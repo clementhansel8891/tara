@@ -24,6 +24,8 @@ import {
   Wallet,
   Inbox,
   ShieldCheck,
+  GitBranch,
+  Settings2,
   Building2,
   LineChart,
 } from "lucide-react";
@@ -41,6 +43,23 @@ type MenuSection = {
 };
 
 const BASE_SECTIONS: MenuSection[] = [
+  {
+    title: "Governance",
+    items: [
+      {
+        label: "Workflow",
+        to: "/core/workflow?scope=HR",
+        icon: GitBranch,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "DEPT_HEAD", "OWNER", "SUPERADMIN"],
+      },
+      {
+        label: "Administration",
+        to: "/core/hr/admin",
+        icon: Settings2,
+        roles: ["HR_ADMIN", "COMPANY_ADMIN", "OWNER", "SUPERADMIN"],
+      },
+    ],
+  },
   {
     title: "Dashboard",
     items: [

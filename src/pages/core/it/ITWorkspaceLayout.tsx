@@ -14,7 +14,7 @@ import { PageShell } from "@/core/ui/PageShell";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { cn } from "@/lib/utils";
-import { ActivitySquare, Laptop, Network } from "lucide-react";
+import { ActivitySquare, Laptop, Network, GitBranch, Settings2 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
 type MenuSection = { title: string; items: MenuItem[] };
@@ -32,8 +32,11 @@ const SECTIONS: MenuSection[] = [
     items: [{ label: "Devices", to: "/core/it/devices", icon: Laptop }],
   },
   {
-    title: "Health",
-    items: [{ label: "System Health", to: "/core/it/health", icon: Network }],
+    title: "Governance",
+    items: [
+      { label: "Workflow", to: "/core/workflow?scope=IT", icon: GitBranch },
+      { label: "Administration", to: "/core/it/admin", icon: Settings2 },
+    ],
   },
 ];
 

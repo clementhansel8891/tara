@@ -21,14 +21,12 @@ import type React from "react";
 /* ============================================================================ */
 
 import Dashboard from "@/pages/core/Dashboard";
-import Operations from "@/pages/core/Operations";
 import Finance from "@/pages/core/Finance";
 import ProcurementEntry from "@/pages/core/ProcurementEntry";
 import InventoryModule from "@/pages/core/InventoryModule";
 import Staff from "@/pages/core/Staff";
 import Modules from "@/pages/core/Modules";
 import Reports from "@/pages/core/Reports";
-import Integrations from "@/pages/core/Integrations";
 import Settings from "@/pages/core/Settings";
 import Admin from "@/pages/core/Admin";
 import Security from "@/pages/core/Security";
@@ -86,15 +84,7 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
     component: Dashboard,
   },
 
-  {
-    id: "operations",
-    title: "Operations",
-    route: "/core/operations",
-    icon: "clipboard",
-    section: "office",
-    visible: true,
-    component: Operations,
-  },
+
 
   {
     id: "finance",
@@ -166,15 +156,7 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
     component: Reports,
   },
 
-  {
-    id: "integrations",
-    title: "Integrations",
-    route: "/core/integrations",
-    icon: "link",
-    section: "system",
-    visible: true,
-    component: Integrations,
-  },
+
 
   {
     id: "security",

@@ -707,9 +707,9 @@ export const financeService = {
   async getFinanceOverview(
     tenantId: string,
     session: SessionContext,
-  ): Promise<Record<string, unknown>> {
-    return apiRequest<Record<string, unknown>>(
-      "/finance/overview",
+  ): Promise<any> {
+    return apiRequest<any>(
+      "/v1/finance/dashboard/summary",
       "GET",
       session,
     );

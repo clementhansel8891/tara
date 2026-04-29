@@ -45,6 +45,7 @@ export interface AppSettings {
   offlineMode: boolean;
   currency: string;
   branches: Branch[];
+  activatedModuleIds: string[];
 }
 
 export interface Branch {
@@ -145,6 +146,7 @@ export const getSettings = (): AppSettings => getItem<AppSettings>(STORAGE_KEYS.
   branches: [
     { id: '1', name: 'Main Branch', address: '123 Main St', phone: '555-0100', isMain: true },
   ],
+  activatedModuleIds: [],
 });
 export const setSettings = (settings: AppSettings) => setItem(STORAGE_KEYS.SETTINGS, settings);
 

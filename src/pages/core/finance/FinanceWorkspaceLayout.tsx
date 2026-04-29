@@ -29,7 +29,12 @@ import {
   Receipt,
   Lock,
   ShieldCheck,
-  BarChart3
+  BarChart3,
+  GitBranch,
+  Settings2,
+  Cpu,
+  RefreshCcw,
+  Scale
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -57,17 +62,23 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Payments",
+    title: "Payments Hub",
     items: [
       { label: "Pay Flow", to: "/core/finance/payflow", icon: CreditCard },
       { label: "Receivable Desk", to: "/core/finance/receivables", icon: Receipt },
       { label: "Payable Desk", to: "/core/finance/payables", icon: Banknote },
       { label: "JV Settlement", to: "/core/finance/jv", icon: HandCoins },
+      { label: "Device Routing", to: "/core/payment/devices", icon: Cpu },
+      { label: "Refund Desk", to: "/core/payment/refunds", icon: RefreshCcw },
+      { label: "Dispute Center", to: "/core/payment/disputes", icon: Scale },
+      { label: "Payment Audit", to: "/core/payment/audit", icon: ShieldCheck },
     ],
   },
   {
     title: "Governance",
     items: [
+      { label: "Workflow", to: "/core/workflow?scope=Finance", icon: GitBranch },
+      { label: "Administration", to: "/core/finance/admin", icon: Settings2 },
       { label: "Close Period Studio", to: "/core/finance/close", icon: Lock },
       { label: "Audit Vault", to: "/core/finance/audit", icon: ShieldCheck },
       { label: "Policy Manager", to: "/core/finance/policy", icon: ShieldCheck },

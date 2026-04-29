@@ -78,7 +78,7 @@ export default function LogHub() {
         ...(filters.endDate && { endDate: filters.endDate }),
       });
 
-      const result = await apiRequest<any>(`/logs?${params.toString()}`, "GET", session);
+      const result = await apiRequest<any>(`/v1/logs?${params.toString()}`, "GET", session);
       
       if (Array.isArray(result)) {
         setLogs(result);

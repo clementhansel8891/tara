@@ -19,20 +19,20 @@ export class AuditController {
 
   @Get('logs')
   query(@Req() req: any, @Query() filters: AuditQueryDto) {
-    return this.auditService.query(req.tenant_id, filters);
+    return this.auditService.query(req.tenantContext.tenant_id, filters);
   }
 
   @Get('logs/:id')
   async getOne(@Req() req: any, @Param('id') id: string) {
     // Note: accessing prisma directly from service for this specific bypass
     return (this.auditService as any).prisma.auditLog.findFirst({
-      where: { id, tenant_id: req.tenant_id },
+      where: { id, tenant_id: req.tenantContext.tenant_id },
     });
   }
 
   @Get('verify-chain')
   async verifyChain(@Req() req: any, @Query('fromTimestamp') fromTimestamp?: string) {
-    const tenant_id = req.tenant_id; // Shared tenant middleware
+    const tenant_id = req.tenantContext.tenant_id; // Shared tenant middleware
     return this.auditService.verifyChain(
       tenant_id, 
       fromTimestamp ? new Date(fromTimestamp) : undefined
@@ -76,9 +76,9 @@ export class AuditController {
     @Query('format') format: 'pdf' | 'csv' = 'csv',
     @Res() res: Response,
   ) {
-    const { data } = await this.auditService.query(req.tenant_id, { ...filters, limit: 1000 });
+    const { data } = await this.auditService.query(req.tenantContext.tenant_id, { ...filters, limit: 1000 });
     const headers = ['Action', 'Module', 'Entity Type', 'User ID', 'Created At', 'Severity'];
-    const title = `Audit Trail Report - ${req.tenant_id}`;
+    const title = `Audit Trail Report - ${req.tenantContext.tenant_id}`;
 
     if (format === 'pdf') {
       const buffer = await this.reportingService.generatePdf(title, headers, data);

@@ -1,16 +1,17 @@
 import { useState } from "react";
 import type { ElementType } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AppSwitcher } from "@/components/shared/AppSwitcher";
-import { JVWorkspaceSwitcher } from "@/core/ui/JVWorkspaceSwitcher";
+import { NotificationCenter } from "@/components/shared/NotificationCenter";
+import { getSettings } from "@/lib/local-storage";
+import { getAllModuleContracts } from "@/core/runtime/moduleRegistry";
 import { OfflineIndicator } from "@/components/shared/OfflineIndicator";
+import { JVWorkspaceSwitcher } from "@/core/ui/JVWorkspaceSwitcher";
 import { useApp } from "@/contexts/AppContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { NotificationCenter } from "@/components/shared/NotificationCenter";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -49,13 +50,11 @@ type NavItem = {
 };
 type NavSection = { title: string; items: NavItem[] };
 
-const navSections: NavSection[] = [
+const baseNavSections: NavSection[] = [
   {
     title: "WorkSuite",
     items: [
       { path: "/core", icon: LayoutDashboard, label: "Dashboard", end: true },
-      { path: "/core/operations", icon: ClipboardList, label: "Operations" },
-      { path: "/core/workflow", icon: Inbox, label: "Workflow" },
       { path: "/core/tools", icon: Wrench, label: "WorkTools" },
       { path: "/core/bulletin", icon: Megaphone, label: "Bulletin" },
       { path: "/core/mail", icon: Mail, label: "Mail", badgeKey: 'mail' },
@@ -66,7 +65,6 @@ const navSections: NavSection[] = [
     title: "Management",
     items: [
       { path: "/core/finance", icon: Wallet, label: "Finance" },
-      { path: "/core/payment", icon: CreditCard, label: "Payment" },
       { path: "/core/procurement", icon: ShoppingCart, label: "Procurement" },
       { path: "/core/inventory", icon: Package, label: "Inventory" },
       { path: "/core/hr", icon: Users2, label: "HR" },
@@ -83,13 +81,11 @@ const navSections: NavSection[] = [
   {
     title: "Backbone",
     items: [
-      { path: "/core/admin", icon: Shield, label: "Administration" },
       { path: "/core/staff", icon: Users, label: "Staff" },
       { path: "/core/license", icon: Puzzle, label: "Module Hub" },
       { path: "/core/reports", icon: BarChart3, label: "Reports" },
       { path: "/core/audit", icon: ShieldCheck, label: "Audit Logs" },
       { path: "/core/logs", icon: FileText, label: "System Logs" },
-      { path: "/core/integrations", icon: Link2, label: "Integrations" },
       { path: "/core/security", icon: ShieldCheck, label: "Security" },
       { path: "/core/settings", icon: Settings, label: "Settings" },
     ],
@@ -101,6 +97,28 @@ export function CoreLayout() {
   const { state, toggleTheme } = useApp();
   const { logout } = useAuth();
   const { unreadCounts } = useNotifications();
+  const location = useLocation();
+
+  // Dynamic Industry Modules
+  const settings = getSettings();
+  const activatedIds = settings.activatedModuleIds || [];
+  const allContracts = getAllModuleContracts();
+  const activatedModules = allContracts
+    .filter(c => activatedIds.includes(c.id))
+    .map(c => ({
+      path: `/m/${c.id}/${c.getPages(c.getDefaultConfig())[0]?.id || ''}`,
+      icon: c.id === 'retail' ? ShoppingCart : Puzzle,
+      label: c.name
+    }));
+
+  const navSections = [
+    ...baseNavSections.slice(0, 3), // WorkSuite, Management, Commerce
+    ...(activatedModules.length > 0 ? [{
+      title: "Activated Modules",
+      items: activatedModules
+    }] : []),
+    baseNavSections[3] // Backbone
+  ];
 
   return (
     <div className="flex h-screen bg-background">
@@ -129,7 +147,7 @@ export function CoreLayout() {
                   className="text-sidebar-primary-foreground"
                 />
               </div>
-              <span className="font-bold text-lg">OpsCore</span>
+              <span className="font-bold text-lg">{state.settings?.businessName || "OpsCore"}</span>
             </div>
             <Button
               variant="ghost"
@@ -157,7 +175,7 @@ export function CoreLayout() {
                       className={({ isActive }) =>
                         cn(
                           "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                          isActive
+                          isActive || (path !== '/core' && location.pathname.startsWith(path))
                             ? "bg-sidebar-accent text-sidebar-accent-foreground"
                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
                         )
@@ -232,7 +250,6 @@ export function CoreLayout() {
             >
               <Menu size={20} />
             </Button>
-            <AppSwitcher />
             <JVWorkspaceSwitcher />
           </div>
 

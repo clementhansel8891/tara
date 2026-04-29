@@ -55,7 +55,7 @@ export const salesService = {
   },
 
   async getPipelineByStage(tenantId: string, session: SessionContext) {
-    return apiRequest<Record<string, SalesOpportunity[]>>("/sales/pipeline", "GET", session);
+    return apiRequest<Record<string, SalesOpportunity[]>>("/v1/sales/pipeline", "GET", session);
   },
 
   async getNextBestActions(tenantId: string, session: SessionContext): Promise<SalesNextAction[]> {

@@ -45,7 +45,9 @@ import {
   Bot,
   Search,
   Settings,
-  Users
+  Users,
+  GitBranch,
+  Settings2
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -81,6 +83,8 @@ const SECTIONS: MenuSection[] = [
   {
     title: "Governance",
     items: [
+      { label: "Workflow", to: "/core/workflow?scope=Marketing", icon: GitBranch },
+      { label: "Administration", to: "/core/marketing/admin", icon: Settings2 },
       { label: "Connected Clouds", to: "/core/marketing/connected-accounts", icon: Cable },
       { label: "Tactical Alerts", to: "/core/marketing/alerts", icon: BellRing },
       { label: "Asset Vault", to: "/core/marketing/creative-library", icon: FolderOpen },

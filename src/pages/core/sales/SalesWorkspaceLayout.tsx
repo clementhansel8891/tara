@@ -33,13 +33,22 @@ import {
   Target,
   Search,
   Settings,
-  Users
+  Users,
+  GitBranch,
+  Settings2
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
 type MenuSection = { title: string; items: MenuItem[] };
 
 const SECTIONS: MenuSection[] = [
+  {
+    title: "Governance",
+    items: [
+      { label: "Workflow", to: "/core/workflow?scope=Sales", icon: GitBranch },
+      { label: "Administration", to: "/core/sales/admin", icon: Settings2 },
+    ],
+  },
   {
     title: "Intelligence",
     items: [

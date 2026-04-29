@@ -3,7 +3,7 @@ import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { useSession } from "@/core/security/session";
 import { canAccessWorkspace } from "@/core/security/policy";
-import ApprovalInbox from "@/core/tools/workflows/approvalInbox";
+import { ApprovalInbox } from "@/core/tools/workflows/approvalInbox";
 
 export default function WorkflowInbox() {
   const session = useSession();

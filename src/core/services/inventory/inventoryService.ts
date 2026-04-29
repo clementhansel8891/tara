@@ -22,7 +22,7 @@ export const inventoryService = {
     session: SessionContext,
   ): Promise<InventoryItemMaster[]> {
     return apiRequest<InventoryItemMaster[]>(
-      "/inventory/items",
+      "/v1/inventory/items",
       "GET",
       session,
     );
@@ -39,7 +39,7 @@ export const inventoryService = {
     if (departmentId) params.append("departmentId", departmentId);
     const query = params.toString() ? `?${params.toString()}` : "";
     return apiRequest<InventoryStockBalance[]>(
-      `/inventory/balances${query}`,
+      `/v1/inventory/balances${query}`,
       "GET",
       session,
     );
@@ -52,7 +52,7 @@ export const inventoryService = {
   ): Promise<InventoryMovement[]> {
     const query = itemId ? `?itemId=${itemId}` : "";
     return apiRequest<InventoryMovement[]>(
-      `/inventory/movements${query}`,
+      `/v1/inventory/movements${query}`,
       "GET",
       session,
     );
@@ -63,7 +63,7 @@ export const inventoryService = {
     session: SessionContext,
   ): Promise<InventoryAdjustmentRequest[]> {
     return apiRequest<InventoryAdjustmentRequest[]>(
-      "/inventory/adjustments",
+      "/v1/inventory/adjustments",
       "GET",
       session,
     );
@@ -74,7 +74,7 @@ export const inventoryService = {
     session: SessionContext,
   ): Promise<InventoryAuditCycle[]> {
     return apiRequest<InventoryAuditCycle[]>(
-      "/inventory/audit-cycles",
+      "/v1/inventory/audit-cycles",
       "GET",
       session,
     );
@@ -92,7 +92,7 @@ export const inventoryService = {
     session: SessionContext,
   ): Promise<InventoryIntegrationEvent[]> {
     return apiRequest<InventoryIntegrationEvent[]>(
-      "/inventory/integration-events",
+      "/v1/inventory/integration-events",
       "GET",
       session,
     );
@@ -115,7 +115,7 @@ export const inventoryService = {
     },
   ): Promise<InventoryItemMaster> {
     return apiRequest<InventoryItemMaster>(
-      "/inventory/items",
+      "/v1/inventory/items",
       "POST",
       session,
       payload,
@@ -219,7 +219,7 @@ export const inventoryService = {
     adjustmentId: string,
   ) {
     return apiRequest<any>(
-      `/inventory/adjustments/${adjustmentId}/approve`,
+      `/v1/inventory/adjustments/${adjustmentId}/approve`,
       "PUT",
       session,
       { approvedBy: session.user_id },
@@ -233,7 +233,7 @@ export const inventoryService = {
     status: InventoryAlertStatus,
   ) {
     return apiRequest<any>(
-      `/inventory/alerts/${alertId}/status`,
+      `/v1/inventory/alerts/${alertId}/status`,
       "PUT",
       session,
       { status },
@@ -245,7 +245,7 @@ export const inventoryService = {
     session: SessionContext,
   ): Promise<InventoryDashboardMetrics> {
     return apiRequest<InventoryDashboardMetrics>(
-      "/inventory/dashboard",
+      "/v1/inventory/dashboard",
       "GET",
       session,
     );
@@ -278,7 +278,7 @@ export const inventoryService = {
     results: { countedValue: number; varianceValue: number },
   ) {
     return apiRequest<any>(
-      `/inventory/audit-cycles/${cycleId}`,
+      `/v1/inventory/audit-cycles/${cycleId}`,
       "PUT",
       session,
       {
@@ -312,7 +312,7 @@ export const inventoryService = {
     },
   ) {
     return apiRequest<any>(
-      `/inventory/procurement-receipts/${payload.finalPoId}/process`,
+      `/v1/inventory/procurement-receipts/${payload.finalPoId}/process`,
       "POST",
       session,
       { locationId: payload.locationId, items: payload.items },
@@ -349,7 +349,7 @@ export const inventoryService = {
     payload: any,
   ) {
     return apiRequest<any>(
-      "/inventory/procurement-request",
+      "/v1/inventory/procurement-request",
       "POST",
       session,
       payload,
@@ -363,7 +363,7 @@ export const inventoryService = {
     locationId: string,
   ): Promise<WarehouseBin[]> {
     return apiRequest<WarehouseBin[]>(
-      `/warehouse/bins?locationId=${locationId}`,
+      `/v1/warehouse/bins?locationId=${locationId}`,
       "GET",
       session,
     );
@@ -391,7 +391,7 @@ export const inventoryService = {
     binId: string,
   ): Promise<BinAssignment[]> {
     return apiRequest<BinAssignment[]>(
-      `/warehouse/bins/${binId}/stock`,
+      `/v1/warehouse/bins/${binId}/stock`,
       "GET",
       session,
     );
@@ -404,7 +404,7 @@ export const inventoryService = {
     payload: { productId: string; qty: number },
   ) {
     return apiRequest<any>(
-      `/warehouse/bins/${binId}/assign`,
+      `/v1/warehouse/bins/${binId}/assign`,
       "POST",
       session,
       payload,
@@ -433,8 +433,8 @@ export const inventoryService = {
   ) {
     const endpoint =
       payload.eventType === "RFID_SCAN"
-        ? "/inventory/iot/rfid-scan"
-        : "/inventory/iot/barcode-scan";
+        ? "/v1/inventory/iot/rfid-scan"
+        : "/v1/inventory/iot/barcode-scan";
     return apiRequest<any>(endpoint, "POST", session, payload);
   },
 
@@ -506,7 +506,7 @@ export const inventoryService = {
 
     // Manual fetch because apiRequest might not handle FormData easily if it's JSON-only
     const baseUrl = (window as any).VITE_API_URL || "http://localhost:3001/v1";
-    const response = await fetch(`${baseUrl}/inventory/items/${itemId}/images`, {
+    const response = await fetch(`${baseUrl}/v1/inventory/items/${itemId}/images`, {
       method: "POST",
       headers: {
         "x-tenant-id": tenantId,
@@ -529,7 +529,7 @@ export const inventoryService = {
     imageId: string,
   ) {
     return apiRequest<any>(
-      `/inventory/items/${itemId}/images/${imageId}`,
+      `/v1/inventory/items/${itemId}/images/${imageId}`,
       "DELETE",
       session,
     );
@@ -542,7 +542,7 @@ export const inventoryService = {
     imageId: string,
   ) {
     return apiRequest<any>(
-      `/inventory/items/${itemId}/images/${imageId}/primary`,
+      `/v1/inventory/items/${itemId}/images/${imageId}/primary`,
       "PUT",
       session,
       {},
@@ -555,7 +555,7 @@ export const inventoryService = {
     itemId: string,
   ) {
     return apiRequest<any[]>(
-      `/inventory/items/${itemId}/images`,
+      `/v1/inventory/items/${itemId}/images`,
       "GET",
       session,
     );

@@ -11,12 +11,16 @@ import {
   ShieldCheck,
   Warehouse,
   Radio,
-  Users
+  Users,
+  GitBranch,
+  Settings2
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
 
 const TABS: MenuItem[] = [
+  { label: "Workflow", to: "/core/workflow?scope=Inventory", icon: GitBranch },
+  { label: "Administration", to: "/core/inventory/admin", icon: Settings2 },
   { label: "Dashboard", to: "/core/inventory/dashboard", icon: Boxes },
   { label: "Stock Hub", to: "/core/inventory/stock", icon: ScanLine },
   { label: "Warehouse", to: "/core/inventory/warehouse", icon: Warehouse },

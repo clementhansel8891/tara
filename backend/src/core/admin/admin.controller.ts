@@ -154,6 +154,15 @@ export class AdminController {
           uptime: "99.9%",
           lastBackup: new Date().toISOString(),
         },
+        kpis,
+        activities: formattedActivities.length > 0 ? formattedActivities : [
+          {
+            title: "System Ready",
+            detail: "Awaiting incoming events",
+            time: new Date().toISOString(),
+            status: "Online",
+          }
+        ],
         recentActivity:
           formattedActivities.length > 0
             ? formattedActivities

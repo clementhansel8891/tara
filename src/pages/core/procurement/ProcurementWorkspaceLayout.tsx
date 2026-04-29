@@ -23,6 +23,8 @@ import {
   LineChart,
   SendToBack,
   ShoppingCart,
+  GitBranch,
+  Settings2
 } from "lucide-react";
 
 type MenuItem = { label: string; to: string; icon: React.ElementType };
@@ -47,6 +49,8 @@ const SECTIONS: MenuSection[] = [
   {
     title: "Governance",
     items: [
+      { label: "Workflow", to: "/core/workflow?scope=Procurement", icon: GitBranch },
+      { label: "Administration", to: "/core/procurement/admin", icon: Settings2 },
       { label: "Contract Desk", to: "/core/procurement/contracts", icon: FileSignature },
       { label: "Risk and Compliance", to: "/core/procurement/risk", icon: AlertTriangle },
     ],

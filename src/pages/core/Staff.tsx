@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -26,6 +26,8 @@ import { useSession } from "@/core/security/session";
 import { hrService } from "@/core/services/hrService";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { cn } from "@/lib/utils";
 
 type StaffStatus = "Active" | "Inactive" | "On Leave" | "Suspended";
 
@@ -68,28 +70,41 @@ const staffRows: StaffRow[] = [
   },
 ];
 
-const statusTone = (status: StaffStatus) => {
-  switch (status) {
-    case "Active":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "On Leave":
-      return "bg-amber-50 text-amber-700 border-amber-200";
-    case "Suspended":
-      return "bg-rose-50 text-rose-700 border-rose-200";
-    case "Inactive":
-    default:
-      return "bg-slate-50 text-slate-600 border-slate-200";
-  }
+const statusTone = (status: string) => {
+  const s = status.toLowerCase();
+  if (s === "active") return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (s === "on leave") return "bg-amber-50 text-amber-700 border-amber-200";
+  if (s === "suspended" || s === "inactive") return "bg-rose-50 text-rose-700 border-rose-200";
+  return "bg-slate-50 text-slate-600 border-slate-200";
 };
 
 export default function CoreStaff() {
   const session = useSession();
   const { toast } = useToast();
+  const [staffRows, setStaffRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedStaff, setSelectedStaff] = useState<StaffRow | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<any | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await hrService.getEmployees(session);
+      setStaffRows(res || []);
+    } catch (err) {
+      console.error("Failed to load staff:", err);
+      toast({ title: "Sync Failure", description: "HR mainframe synchronization failed.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleToggleStatus = async () => {
     if (!selectedStaff) return;
@@ -118,9 +133,9 @@ export default function CoreStaff() {
 
   const filtered = staffRows.filter((row) => {
     const matchesSearch =
-      row.name.toLowerCase().includes(search.toLowerCase()) ||
-      row.role.toLowerCase().includes(search.toLowerCase()) ||
-      row.location.toLowerCase().includes(search.toLowerCase());
+      (row.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (row.role || "").toLowerCase().includes(search.toLowerCase()) ||
+      (row.location || "").toLowerCase().includes(search.toLowerCase());
     const matchesRole = roleFilter === "all" || row.role === roleFilter;
     const matchesStatus = statusFilter === "all" || row.status === statusFilter;
     return matchesSearch && matchesRole && matchesStatus;
@@ -243,14 +258,18 @@ export default function CoreStaff() {
             }
           />
 
-          {filtered.length === 0 ? (
-            <div className="mt-6 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-center text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">No staff members found</p>
-              <p>Try adjusting filters or add a new team member.</p>
-              <Button onClick={() => toast({ title: "Staff Onboarding", description: "Redirecting to hiring module..." })} variant="outline" className="mt-2">
-                Add Staff
-              </Button>
-            </div>
+          {loading ? (
+             <div className="mt-6 flex flex-col items-center justify-center py-20 rounded-[3rem] border border-dashed border-slate-200 bg-slate-50/30">
+                <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400">Scanning Staff Directory</p>
+             </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState 
+              variant="no-data"
+              title="No Team Members Found"
+              description="The current cluster has no registered employees matching your criteria."
+              onRetry={load}
+            />
           ) : (
             <div className="mt-6">
               <DataTableShell>
