@@ -26,6 +26,16 @@ import { CoreLayout } from "@/layouts/CoreLayout";
 import { ModuleLayout } from "@/layouts/ModuleLayout";
 import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
 import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, user, session } = useAuth();
@@ -127,15 +137,17 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppProvider>
-        <NotificationProvider>
-          <BarcodeScannerProvider>
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          </BarcodeScannerProvider>
-        </NotificationProvider>
-      </AppProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppProvider>
+          <NotificationProvider>
+            <BarcodeScannerProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </BarcodeScannerProvider>
+          </NotificationProvider>
+        </AppProvider>
+      </QueryClientProvider>
     </AuthProvider>
   );
 }

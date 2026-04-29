@@ -52,7 +52,7 @@ export const itSettingsService = {
     const searchParams = new URLSearchParams();
     if (locationId) searchParams.append("locationId", locationId);
     const queryString = searchParams.toString();
-    const url = `/it-settings/devices${queryString ? `?${queryString}` : ""}`;
+    const url = `/v1/it-settings/devices${queryString ? `?${queryString}` : ""}`;
     return apiRequest<ITDevice[]>(url, "GET", session);
   },
 
@@ -71,7 +71,7 @@ export const itSettingsService = {
     status: string,
   ): Promise<ITDevice> {
     return apiRequest<ITDevice>(
-      `/it-settings/devices/${deviceId}/status`,
+      `/v1/it-settings/devices/${deviceId}/status`,
       "PUT",
       session,
       { status },
@@ -85,7 +85,7 @@ export const itSettingsService = {
     data: Partial<ITDevice>,
   ): Promise<ITDevice> {
     return apiRequest<ITDevice>(
-      `/it-settings/devices/${deviceId}`,
+      `/v1/it-settings/devices/${deviceId}`,
       "PUT",
       session,
       data,
@@ -98,7 +98,7 @@ export const itSettingsService = {
     deviceId: string,
   ): Promise<{ success: boolean }> {
     return apiRequest<{ success: boolean }>(
-      `/it-settings/devices/${deviceId}`,
+      `/v1/it-settings/devices/${deviceId}`,
       "DELETE",
       session,
     );
@@ -112,7 +112,7 @@ export const itSettingsService = {
     const searchParams = new URLSearchParams();
     if (locationId) searchParams.append("locationId", locationId);
     const queryString = searchParams.toString();
-    const url = `/it-settings/topology${queryString ? `?${queryString}` : ""}`;
+    const url = `/v1/it-settings/topology${queryString ? `?${queryString}` : ""}`;
     return apiRequest<{ nodes: ITDevice[]; edges: { source: string; target: string }[] }>(
       url,
       "GET",
@@ -128,7 +128,7 @@ export const itSettingsService = {
     const searchParams = new URLSearchParams();
     if (category) searchParams.append("category", category);
     const queryString = searchParams.toString();
-    const url = `/it-settings/settings${queryString ? `?${queryString}` : ""}`;
+    const url = `/v1/it-settings/settings${queryString ? `?${queryString}` : ""}`;
     return apiRequest<ITSetting[]>(url, "GET", session);
   },
 
@@ -139,7 +139,7 @@ export const itSettingsService = {
     data: any,
   ): Promise<ITSetting> {
     return apiRequest<ITSetting>(
-      `/it-settings/settings/${key}`,
+      `/v1/it-settings/settings/${key}`,
       "PUT",
       session,
       data,
@@ -152,7 +152,7 @@ export const itSettingsService = {
     session: SessionContext,
     data: Partial<ITProvisioningRequest>
   ): Promise<ITProvisioningRequest> {
-    return apiRequest<ITProvisioningRequest>("/it-settings/provisioning/requests", "POST", session, data);
+    return apiRequest<ITProvisioningRequest>("/v1/it-settings/provisioning/requests", "POST", session, data);
   },
 
   async listRequests(
@@ -160,7 +160,7 @@ export const itSettingsService = {
     session: SessionContext,
     locationId?: string
   ): Promise<ITProvisioningRequest[]> {
-    const url = locationId ? `/it-settings/provisioning/requests?locationId=${locationId}` : "/it-settings/provisioning/requests";
+    const url = locationId ? `/v1/it-settings/provisioning/requests?locationId=${locationId}` : "/v1/it-settings/provisioning/requests";
     return apiRequest<ITProvisioningRequest[]>(url, "GET", session);
   },
 };

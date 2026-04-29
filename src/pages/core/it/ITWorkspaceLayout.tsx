@@ -52,7 +52,7 @@ const SECTIONS: MenuSection[] = [
     items: [
       { label: "Tech Shop", to: "/core/it/shop", icon: ShoppingBag },
       { label: "Account Desk", to: "/core/it/accounts", icon: Users },
-      { label: "Role Governance", to: "/core/it/roles", icon: ShieldCheck },
+      { label: "Role Governance", to: "/core/it/role-governance", icon: ShieldCheck },
       { label: "Device Matrix", to: "/core/it/devices", icon: Monitor },
       { label: "IoT Controller", to: "/core/inventory/iot-feed", icon: Radio },
     ],

@@ -24,7 +24,6 @@ import Dashboard from "@/pages/core/Dashboard";
 import Finance from "@/pages/core/Finance";
 import ProcurementEntry from "@/pages/core/ProcurementEntry";
 import InventoryModule from "@/pages/core/InventoryModule";
-import Staff from "@/pages/core/Staff";
 import ModuleHub from "@/pages/core/license/ModuleHub";
 import Reports from "@/pages/core/Reports";
 import Settings from "@/pages/core/Settings";
