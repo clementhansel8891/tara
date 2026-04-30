@@ -28,17 +28,17 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 interface DeptAdminProps {
-  dept: string;
-  title: string;
+  departmentId: string;
+  departmentName: string;
 }
 
-export function DeptAdmin({ dept, title }: DeptAdminProps) {
+export function DeptAdmin({ departmentId, departmentName }: DeptAdminProps) {
   const { toast } = useToast();
 
   const handleSave = () => {
     toast({
       title: "Settings Saved",
-      description: `Administrative policies for ${dept} have been synchronized.`,
+      description: `Administrative policies for ${departmentId} have been synchronized.`,
     });
   };
 
@@ -46,8 +46,8 @@ export function DeptAdmin({ dept, title }: DeptAdminProps) {
     <PageShell
       header={
         <PageHeader
-          title={`${title} Administration`}
-          subtitle={`Scoped governance, policy management, and audit trails for the ${dept} department.`}
+          title={`${departmentName} Administration`}
+          subtitle={`Scoped governance, policy management, and audit trails for the ${departmentId} department.`}
           primaryAction={<Button onClick={handleSave}>Save Changes</Button>}
         />
       }
@@ -71,11 +71,11 @@ export function DeptAdmin({ dept, title }: DeptAdminProps) {
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label>Department Name</Label>
-                  <Input defaultValue={title} />
+                  <Input defaultValue={departmentName} />
                 </div>
                 <div className="space-y-2">
                   <Label>Internal Routing Code</Label>
-                  <Input defaultValue={`DEP-${dept.toUpperCase()}-01`} />
+                  <Input defaultValue={`DEP-${(departmentId || "").toUpperCase()}-01`} />
                 </div>
               </div>
             </WorkspacePanel>
