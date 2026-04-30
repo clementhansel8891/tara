@@ -140,7 +140,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
       toast({
         title: "Order Shipped",
-        description: `AWB ${awb} synced for Order ${orderId.split("-")[0]}`
+        description: `AWB ${awb} synced for Order ${(orderId || "").split("-")[0]}`
       });
 
       onRefresh?.();
@@ -286,7 +286,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                               </div>
                               <div>
                                 <div className="text-xs font-black tracking-tight text-slate-900">
-                                  {order.id.split("-")[0].toUpperCase()}
+                                  {(order.id || "").split("-")[0].toUpperCase()}
                                 </div>
                                 <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
                                   {order.customerName || "Walk-in"}

@@ -414,7 +414,7 @@ export default function LedgerCore() {
                       </td>
                       <td className="p-3">
                         <ApprovalStatusBadge
-                          status={entryRow.status.toUpperCase()}
+                          status={(entryRow.status || "PENDING").toUpperCase()}
                         />
                       </td>
                       <td className="p-3 text-muted-foreground">

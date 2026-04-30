@@ -71,7 +71,7 @@ const ReceivingTerminal = () => {
 
         // Map pending orders to shipments as a production bridge
         const mappedShipments: Shipment[] = orders.map(o => ({
-          id: `SHIP-${o.id.slice(-8).toUpperCase()}`,
+          id: `SHIP-${(o.id || "").slice(-8).toUpperCase()}`,
           vendor: o.customerName || "Central Distribution",
           priority: o.totalAmount > 1000000 ? "HIGH" : "NORMAL",
           status: "pending",

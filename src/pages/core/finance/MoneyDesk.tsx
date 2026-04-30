@@ -363,7 +363,7 @@ export default function MoneyDesk() {
                   </div>
                   <div className="flex items-center gap-2">
                     <ApprovalStatusBadge
-                      status={alert.severity.toUpperCase()}
+                      status={(alert.severity || "info").toUpperCase()}
                     />
                     {alert.action ? (
                       <Badge variant="outline">{alert.action}</Badge>

@@ -25,6 +25,13 @@ export async function apiRequest<T>(
   body?: unknown,
   options: ApiRequestOptions = {}
 ): Promise<T> {
+  // 🛡️ API ROUTING NORMALIZER
+  // NestJS backend uses /v1 prefix. Ensure all internal requests include it.
+  let normalizedPath = path;
+  if (!normalizedPath.startsWith("/v1") && !normalizedPath.startsWith("v1/")) {
+    normalizedPath = `/v1${normalizedPath.startsWith("/") ? "" : "/"}${normalizedPath}`;
+  }
+
   const { responseType = "json", correlationId, tenantId } = options;
   
   const headers: Record<string, string> = {};
@@ -67,7 +74,7 @@ export async function apiRequest<T>(
     }
   }
 
-  console.log(`[apiClient] Request: ${method} ${API_BASE_URL}${path}`, {
+  console.log(`[apiClient] Request: ${method} ${API_BASE_URL}${normalizedPath}`, {
     tenantHeader: headers["x-tenant-id"],
     hasAuth: !!headers["Authorization"],
     responseType
@@ -75,7 +82,7 @@ export async function apiRequest<T>(
 
   const fetchBody = body instanceof FormData ? body : (body ? JSON.stringify(body) : undefined);
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     method,
     headers,
     body: fetchBody,

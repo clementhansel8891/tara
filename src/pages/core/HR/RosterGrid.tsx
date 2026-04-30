@@ -97,7 +97,7 @@ export default function RosterGrid() {
       try {
         const [depts, locs, progs] = await Promise.all([
           staffService.listDepartments(session.tenant_id, session),
-          apiRequest<any[]>("/hr/locations", "GET", session),
+          apiRequest<any[]>("/v1/hr/locations", "GET", session),
           trainingService.listPrograms(session.tenant_id, session),
         ]);
         setDepartments(depts);

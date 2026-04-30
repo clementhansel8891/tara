@@ -107,7 +107,7 @@ const ShiftCloseTerminal = () => {
         complianceNote,
       );
 
-      toast({ title: "Shift Reconciled", description: `Node session ${activeShift.id.slice(-6).toUpperCase()} locked in Zenvix Vault.` });
+      toast({ title: "Shift Reconciled", description: `Node session ${(activeShift?.id || "").slice(-6).toUpperCase()} locked in Zenvix Vault.` });
       setIsClosed(true);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Sync failed";
@@ -158,7 +158,7 @@ const ShiftCloseTerminal = () => {
                 Reconciled & Sealed
               </h2>
               <p className="text-emerald-500 font-black mt-3 tracking-[0.3em] text-[10px] uppercase italic">
-                Compliance ID: <span className="text-white">ZVX-RECON-{activeShift?.id.slice(-8).toUpperCase()}</span>
+                Compliance ID: <span className="text-white">ZVX-RECON-{(activeShift?.id || "").slice(-8).toUpperCase()}</span>
               </p>
             </div>
             <Separator className="bg-emerald-500/20" />
