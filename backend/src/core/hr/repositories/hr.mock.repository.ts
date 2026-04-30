@@ -240,7 +240,7 @@ export class HRMockRepository extends IHRRepository {
   }
 
   // Employee Management
-  async getEmployees(tenant_id: string, location_id?: string, company_id?: string, page: number = 1, limit: number = 20): Promise<{ data: Employee[]; total: number }> {
+  async getEmployees(tenant_id: string, location_id?: string, company_id?: string, department_id?: string, page: number = 1, limit: number = 20): Promise<{ data: Employee[]; total: number }> {
     const filtered = this.employees.filter((e) => 
       e.tenant_id === tenant_id && 
       (!location_id || e.location_id === location_id) &&
