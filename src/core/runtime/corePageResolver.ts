@@ -128,7 +128,7 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
 
   {
     id: "modules",
-    title: "Module Retail",
+    title: "Module Hub",
     route: "/core/license",
     icon: "puzzle",
     section: "administration",
