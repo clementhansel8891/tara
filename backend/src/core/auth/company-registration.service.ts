@@ -61,21 +61,7 @@ export class CompanyRegistrationService {
       },
     });
 
-    // 3. Associate Tenant with User (Crucial for Mock/Demo logic)
-    // We add the user as OWNER of the new tenant
-    await this.authRepo.update(this.systemCtx, user_id, {
-      user_companies: [
-        ...(user.user_companies || []),
-        {
-          id: uuidv4(),
-          user_id,
-          tenant_id: result.tenant_id,
-          role: "OWNER",
-          is_default: true,
-        },
-      ],
-    });
-
+    // 3. Association is already handled by the repository within the transaction.
     return result;
   }
 }
