@@ -1,7 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { COUNTRIES, getCountry } from "@/lib/countries";
+
+interface NominatimResult {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    country?: string;
+    state?: string;
+  };
+}
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -21,6 +36,68 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const { provisionCompany } = useAuth();
   const navigate = useNavigate();
+
+  // Nominatim geocoder state
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationResults, setLocationResults] = useState<NominatimResult[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationSelected, setLocationSelected] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Search Nominatim (free, no API key needed)
+  const searchLocation = async (query: string) => {
+    if (query.length < 3) { setLocationResults([]); setShowDropdown(false); return; }
+    setLocationLoading(true);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&addressdetails=1`,
+        { headers: { "Accept-Language": "en" } }
+      );
+      const data: NominatimResult[] = await res.json();
+      setLocationResults(data);
+      setShowDropdown(data.length > 0);
+    } catch {
+      setLocationResults([]);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (locationSelected) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => searchLocation(locationQuery), 500);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [locationQuery]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelectLocation = (result: NominatimResult) => {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+    setFormData(prev => ({
+      ...prev,
+      latitude: lat,
+      longitude: lon,
+      formatted_address: result.display_name,
+      address: prev.address || result.display_name,
+    }));
+    setLocationQuery(result.display_name);
+    setLocationSelected(true);
+    setShowDropdown(false);
+    setLocationResults([]);
+  };
 
   const handleProvision = async () => {
     setError("");
@@ -144,34 +221,104 @@ export default function Onboarding() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">
-                      Latitude
-                    </label>
+                {/* Location Search — powered by Nominatim (OpenStreetMap, free) */}
+                <div ref={searchRef} className="relative">
+                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">
+                    Search Location
+                  </label>
+                  <div className="relative">
                     <input
-                      type="number"
-                      step="any"
-                      className="block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                      type="text"
+                      className="block w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
+                      placeholder="Search area, city, address…"
+                      value={locationQuery}
+                      onChange={(e) => {
+                        setLocationSelected(false);
+                        setLocationQuery(e.target.value);
+                      }}
+                      autoComplete="off"
+                    />
+                    {/* Search icon */}
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {/* Loading spinner / clear */}
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {locationLoading ? (
+                        <svg className="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : locationQuery ? (
+                        <button type="button" onClick={() => { setLocationQuery(""); setFormData(p => ({ ...p, latitude: 0, longitude: 0 })); setLocationSelected(false); }}>
+                          <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Dropdown results */}
+                  {showDropdown && locationResults.length > 0 && (
+                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+                      {locationResults.map((r) => (
+                        <button
+                          key={r.place_id}
+                          type="button"
+                          className="w-full px-4 py-2.5 text-left hover:bg-indigo-50 transition-colors border-b border-gray-100 last:border-0"
+                          onClick={() => handleSelectLocation(r)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            </svg>
+                            <span className="text-xs text-gray-700 leading-snug line-clamp-2">{r.display_name}</span>
+                          </div>
+                        </button>
+                      ))}
+                      <div className="px-4 py-1.5 bg-gray-50 border-t border-gray-100">
+                        <span className="text-[10px] text-gray-400">Powered by OpenStreetMap · Free</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Coordinates display (read-only after selection, editable fallback) */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">Latitude</label>
+                    <input
+                      type="number" step="any"
+                      className={`block w-full px-3 py-2 border rounded-lg text-sm transition-colors ${locationSelected ? "bg-indigo-50 border-indigo-200 text-indigo-800 font-medium" : "border-gray-200"}`}
                       placeholder="0.0000"
                       value={formData.latitude || ""}
                       onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">
-                      Longitude
-                    </label>
+                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">Longitude</label>
                     <input
-                      type="number"
-                      step="any"
-                      className="block w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                      type="number" step="any"
+                      className={`block w-full px-3 py-2 border rounded-lg text-sm transition-colors ${locationSelected ? "bg-indigo-50 border-indigo-200 text-indigo-800 font-medium" : "border-gray-200"}`}
                       placeholder="0.0000"
                       value={formData.longitude || ""}
                       onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
                     />
                   </div>
                 </div>
+
+                {/* Confirmation badge after selection */}
+                {locationSelected && formData.latitude !== 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
+                    <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-xs text-green-700 font-medium">
+                      Pinned: {formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)}
+                    </span>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1 flex justify-between">
