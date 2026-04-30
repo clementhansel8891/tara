@@ -19,21 +19,24 @@ export function PageShell({
   const gridClass = cn(
     "grid gap-6",
     left && right
-      ? "lg:grid-cols-[260px_minmax(0,1fr)_320px]"
+      ? "xl:grid-cols-[260px_minmax(0,1fr)_320px] lg:grid-cols-[240px_1fr]"
       : left
         ? "lg:grid-cols-[260px_minmax(0,1fr)]"
         : right
           ? "lg:grid-cols-[minmax(0,1fr)_320px]"
-          : "grid-cols-[minmax(0,1fr)]",
+          : "grid-cols-1",
   );
 
   return (
     <div className="min-h-screen w-full bg-muted/30">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-6 py-6 font-sans">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 md:gap-6 px-4 md:px-6 py-4 md:py-6 font-sans">
         {header}
         <div className={gridClass}>
           {left ? (
-            <aside className="rounded-xl border bg-card/60 shadow-sm relative z-10">
+            <aside className={cn(
+              "rounded-xl border bg-card/60 shadow-sm relative z-10",
+              right && "lg:hidden xl:block" // Hide left sidebar on lg if both exist to save space
+            )}>
               {left}
             </aside>
           ) : null}
