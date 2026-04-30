@@ -4,14 +4,14 @@ const conn = new Client();
 conn.on('ready', () => {
   console.log('Client :: ready');
   
-  const cmd = 'cd ~/projects/business-flow-suite && git status && git pull origin main';
+  const cmd = 'cd ~/projects/business-flow-suite && git diff';
   
-  console.log('Checking git status and pulling manually...');
+  console.log('Checking git diff on VPS...');
   
   conn.exec(cmd, (err, stream) => {
     if (err) throw err;
     stream.on('close', (code, signal) => {
-      console.log('--- Git Check Finished ---');
+      console.log('--- Git Diff Finished ---');
       conn.end();
     }).on('data', (data) => {
       process.stdout.write(data);

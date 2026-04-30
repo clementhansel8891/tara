@@ -3,22 +3,20 @@ const { Client } = require('ssh2');
 const conn = new Client();
 conn.on('ready', () => {
   console.log('Client :: ready');
-  // Build and start frontend only
-  const cmd = 'cd projects/business-flow-suite && git pull origin main && docker compose up -d --build frontend';
-  console.log('Running:', cmd);
+  
+  const cmd = 'cd ~/projects/business-flow-suite && git fetch origin && git reset --hard origin/main && chmod +x vps-up.sh && ./vps-up.sh';
+  
+  console.log('Forcing VPS update and running vps-up.sh...');
   
   conn.exec(cmd, (err, stream) => {
     if (err) throw err;
-    let result = '';
     stream.on('close', (code, signal) => {
-      console.log('--- Forced Deployment Finished ---');
+      console.log('--- Force Deploy Finished ---');
       conn.end();
     }).on('data', (data) => {
       process.stdout.write(data);
-      result += data;
     }).stderr.on('data', (data) => {
       process.stderr.write(data);
-      result += 'ERR: ' + data;
     });
   });
 }).connect({

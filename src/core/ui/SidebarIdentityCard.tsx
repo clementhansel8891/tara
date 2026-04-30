@@ -11,7 +11,7 @@ export const SidebarIdentityCard: React.FC = () => {
   const currentCompany = user.user_companies?.find(uc => uc.tenant_id === session.tenant_id)?.company?.name || session.tenant_id;
 
   return (
-    <div className="p-8 rounded-[2.5rem] bg-indigo-900 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden group mb-8">
+    <div className="p-6 rounded-3xl bg-indigo-900 text-white shadow-2xl shadow-indigo-900/20 relative overflow-hidden group mb-6">
       {/* Dynamic Background Pattern */}
       <div className="absolute top-0 right-0 h-32 w-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-1000" />
       <div className="absolute bottom-0 left-0 h-24 w-24 bg-indigo-400/10 rounded-full -ml-12 -mb-12 blur-xl" />

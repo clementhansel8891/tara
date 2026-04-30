@@ -78,7 +78,7 @@ export default function DepartmentWorkspaceLayout({
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden flex flex-col">
       <PageShell
         header={
-          <div className="space-y-6 px-4 py-4">
+          <div className="space-y-6 px-6 py-6">
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -143,7 +143,7 @@ export default function DepartmentWorkspaceLayout({
             <div className={cn("absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b pointer-events-none", fromC5)} />
             
             <ScrollArea className="flex-1 relative z-10">
-              <div className="p-8 space-y-12">
+              <div className="p-6 space-y-10">
                 <SidebarIdentityCard />
 
                 {sections.map((section) => (
@@ -160,7 +160,7 @@ export default function DepartmentWorkspaceLayout({
                             key={item.to}
                             to={item.to}
                             className={cn(
-                                "group flex items-center gap-4 rounded-2xl px-5 py-4 text-[11px] font-black uppercase tracking-widest transition-all duration-500 relative overflow-hidden",
+                                "group flex items-center gap-4 rounded-2xl px-4 py-3.5 text-[11px] font-black uppercase tracking-widest transition-all duration-500 relative overflow-hidden",
                                 isActive
                                   ? cn("bg-white dark:bg-slate-800 shadow-xl translate-x-3 border-l-4", textC, shadowC, borderLC)
                                   : cn("text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:translate-x-2", hoverTextC),
@@ -179,7 +179,7 @@ export default function DepartmentWorkspaceLayout({
               </div>
             </ScrollArea>
             
-            <div className="p-8 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/20 dark:bg-slate-900/20 backdrop-blur-2xl relative z-10">
+            <div className="p-6 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/20 dark:bg-slate-900/20 backdrop-blur-2xl relative z-10">
                <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 group hover:shadow-xl transition-all duration-500">
                   <div className="flex items-center gap-4">
                      <div className="relative">
