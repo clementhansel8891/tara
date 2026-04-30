@@ -85,6 +85,7 @@ const baseNavSections: NavSection[] = [
     title: "Backbone",
     items: [
       { path: "/retail", icon: ShoppingCart, label: "Retail" },
+      { path: "/core/license", icon: Puzzle, label: "Module Retail" },
       { path: "/core/reports", icon: BarChart3, label: "Reports" },
       { path: "/core/audit", icon: ShieldCheck, label: "Audit Logs" },
       { path: "/core/logs", icon: FileText, label: "System Logs" },

@@ -168,7 +168,7 @@ export default function ModuleHub() {
     <PageShell
       header={
         <PageHeader
-          title="Module Hub"
+          title="Module Retail"
           subtitle="Manage platform extensions, industry verticals, and core administrative capabilities."
           primaryAction={
             <div className="relative w-64">
