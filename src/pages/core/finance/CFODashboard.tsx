@@ -139,8 +139,8 @@ const CFODashboardContent: React.FC = () => {
     <div className="space-y-6 pb-12">
       <GlobalFinancialFilterBar />
 
-      {!state.companyId || !state.periodId ? (
-        <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center">
+      {(!state.companyId || !state.periodId) && !loadingSummary ? (
+        <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center animate-in fade-in zoom-in duration-500">
           {loadingSummary ? (
             <Activity className="h-16 w-16 text-primary animate-pulse" />
           ) : (

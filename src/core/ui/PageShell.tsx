@@ -16,38 +16,35 @@ export function PageShell({
   footer,
   children,
 }: PageShellProps) {
-  const gridClass = cn(
-    "grid gap-6",
-    left && right
-      ? "xl:grid-cols-[300px_minmax(0,1fr)_320px] lg:grid-cols-[280px_1fr]"
-      : left
-        ? "lg:grid-cols-[300px_minmax(0,1fr)]"
-        : right
-          ? "lg:grid-cols-[minmax(0,1fr)_320px]"
-          : "grid-cols-1",
-  );
-
   return (
-    <div className="min-h-screen w-full bg-muted/30">
-      <div className="mx-auto flex w-full flex-col gap-4 md:gap-6 px-4 md:px-6 py-4 md:py-6 font-sans">
-        {header}
-        <div className={gridClass}>
-          {left ? (
-            <aside className={cn(
-              "rounded-xl border bg-card/60 shadow-sm relative z-10",
-              right && "lg:hidden xl:block" // Hide left sidebar on lg if both exist to save space
-            )}>
+    <div className="min-h-screen w-full bg-slate-50/50 dark:bg-slate-950/50">
+      <div className="flex flex-col w-full h-screen font-sans">
+        {header && (
+          <header className="shrink-0 border-b bg-background/80 backdrop-blur-md z-20">
+            {header}
+          </header>
+        )}
+        
+        <div className="flex-1 flex overflow-hidden">
+          {left && (
+            <aside className="w-80 shrink-0 border-r bg-card/40 backdrop-blur-xl hidden lg:block overflow-y-auto">
               {left}
             </aside>
-          ) : null}
-          <main className="min-w-0 relative z-10">{children}</main>
-          {right ? (
-            <aside className="rounded-xl border bg-card/60 shadow-sm relative z-10">
+          )}
+          
+          <main className="flex-1 overflow-y-auto relative bg-background/20">
+            <div className="container mx-auto p-6">
+              {children}
+            </div>
+            {footer && <div className="p-6 border-t mt-auto">{footer}</div>}
+          </main>
+
+          {right && (
+            <aside className="w-80 shrink-0 border-l bg-card/40 backdrop-blur-xl hidden xl:block overflow-y-auto">
               {right}
             </aside>
-          ) : null}
+          )}
         </div>
-        {footer && <div className="mt-6">{footer}</div>}
       </div>
     </div>
   );
