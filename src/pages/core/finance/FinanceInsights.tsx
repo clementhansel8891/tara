@@ -8,9 +8,12 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { useSession } from "@/core/security/session";
 import { financeService, type FinanceInsight } from "@/core/services/finance/financeService";
+import { useCFO } from "@/core/finance/CFOContext";
+import { GlobalFinancialFilterBar } from "./components/GlobalFinancialFilterBar";
 
 export default function FinanceInsights() {
   const session = useSession();
+  const { state } = useCFO();
   const [search, setSearch] = useState("");
   const [timeFrame, setTimeFrame] = useState("30");
   const [category, setCategory] = useState("ALL");
@@ -18,15 +21,28 @@ export default function FinanceInsights() {
   const [insights, setInsights] = useState<FinanceInsight[]>([]);
   const [auditIntegrity, setAuditIntegrity] = useState<any>(null);
   const [budgetVariance, setBudgetVariance] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const companyId = "C1"; // Mock company for demo context
-    const fiscalPeriodId = "P1";
+    if (!state.companyId) return;
 
-    financeService.getFinanceInsights(session.tenant_id, session).then(setInsights).catch(console.error);
-    financeService.verifyLedgerIntegrity(session, companyId).then(setAuditIntegrity).catch(console.error);
-    financeService.getBudgetVariance(session, companyId, fiscalPeriodId).then(setBudgetVariance).catch(console.error);
-  }, [session.tenant_id, session]);
+    setIsLoading(true);
+    const companyId = state.companyId;
+    const fiscalPeriodId = state.periodId;
+
+    Promise.all([
+      financeService.getFinanceInsights(session.tenant_id, session),
+      financeService.verifyLedgerIntegrity(session, companyId),
+      fiscalPeriodId 
+        ? financeService.getBudgetVariance(session, companyId, fiscalPeriodId)
+        : Promise.resolve(null)
+    ]).then(([insightsData, integrityData, varianceData]) => {
+      setInsights(insightsData);
+      setAuditIntegrity(integrityData);
+      setBudgetVariance(varianceData);
+    ]).catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [session.tenant_id, session, state.companyId, state.periodId]);
 
   const filteredInsights = useMemo(
     () =>
@@ -60,6 +76,8 @@ export default function FinanceInsights() {
 
   return (
     <div className="space-y-6">
+      <GlobalFinancialFilterBar />
+      
       <PageHeader
         title="Finance Insights"
         subtitle="Operational dashboards, KPIs, and predictive signals."

@@ -95,18 +95,6 @@ const CFODashboardContent: React.FC = () => {
     }
   }, [summary?.period?.status]);
 
-  if (!state.companyId || !state.periodId) {
-    return (
-      <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center">
-        <Filter className="h-16 w-16 text-muted-foreground/20" />
-        <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Financial Perspective Needed</h3>
-          <p className="text-sm text-muted-foreground">Select a Company and Fiscal Period to view the CFO Dashboard.</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleSendReport = async () => {
     const payload = {
       companyId: state.companyId,
@@ -151,79 +139,99 @@ const CFODashboardContent: React.FC = () => {
     <div className="space-y-6 pb-12">
       <GlobalFinancialFilterBar />
 
-      <div className="container mx-auto space-y-8 mt-4">
-        <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-primary/10 shadow-sm">
-          <div className="flex gap-4 items-center">
-            <h1 className="text-xl font-black uppercase tracking-widest text-primary">Intelligence Hub</h1>
-            <Badge 
-              variant={healthStatus === 'HEALTHY' ? 'outline' : healthStatus === 'DEGRADED' ? 'secondary' : 'destructive'} 
-              className="font-bold border-2"
-              title={`Health Score: ${health.score} | Dominant Issue: ${health.dominantIssueType}`}
-            >
-              SYSTEM_{healthStatus}
-            </Badge>
-            <span className="text-[10px] font-bold text-muted-foreground flex items-center bg-muted/50 px-3 rounded-full h-6">
-              CORE_CID: {state.correlationId.slice(0, 8)}...
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleSendReport()} className="rounded-xl border-primary/20 hover:bg-primary/5">
-              <Share2 size={16} className="mr-2" /> Send Report
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleDiscussReport()} className="rounded-xl border-indigo-200 hover:bg-indigo-50">
-              <MessageSquare size={16} className="mr-2" /> Discuss
-            </Button>
+      {!state.companyId || !state.periodId ? (
+        <div className="flex flex-col h-[60vh] items-center justify-center gap-4 text-center">
+          {loadingSummary ? (
+            <Activity className="h-16 w-16 text-primary animate-pulse" />
+          ) : (
+            <Filter className="h-16 w-16 text-muted-foreground/20" />
+          )}
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold">
+              {loadingSummary ? "Synchronizing Financial Intelligence..." : "Financial Perspective Needed"}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {loadingSummary 
+                ? "Calibrating ledger snapshots and hierarchical reports." 
+                : "Select a Company and Fiscal Period to view the CFO Dashboard."}
+            </p>
           </div>
         </div>
-        {!isBalanced && (
-          <Alert variant="destructive" className="border-2">
-            <ShieldAlert size={18} />
-            <AlertTitle>Audit Integrity Failure</AlertTitle>
-            <AlertDescription>
-              The General Ledger is currently out of balance for this snapshot (Sequence: {state.snapshotSequence}). 
-              A balance sheet check (A = L + E) failed. Please contact the ledger engineering team.
-            </AlertDescription>
-          </Alert>
-        )}
+      ) : (
+        <div className="container mx-auto space-y-8 mt-4">
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-primary/10 shadow-sm">
+            <div className="flex gap-4 items-center">
+              <h1 className="text-xl font-black uppercase tracking-widest text-primary">Intelligence Hub</h1>
+              <Badge 
+                variant={healthStatus === 'HEALTHY' ? 'outline' : healthStatus === 'DEGRADED' ? 'secondary' : 'destructive'} 
+                className="font-bold border-2"
+                title={`Health Score: ${health.score} | Dominant Issue: ${health.dominantIssueType}`}
+              >
+                SYSTEM_{healthStatus}
+              </Badge>
+              <span className="text-[10px] font-bold text-muted-foreground flex items-center bg-muted/50 px-3 rounded-full h-6">
+                CORE_CID: {state.correlationId.slice(0, 8)}...
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleSendReport()} className="rounded-xl border-primary/20 hover:bg-primary/5">
+                <Share2 size={16} className="mr-2" /> Send Report
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleDiscussReport()} className="rounded-xl border-indigo-200 hover:bg-indigo-50">
+                <MessageSquare size={16} className="mr-2" /> Discuss
+              </Button>
+            </div>
+          </div>
+          {!isBalanced && (
+            <Alert variant="destructive" className="border-2">
+              <ShieldAlert size={18} />
+              <AlertTitle>Audit Integrity Failure</AlertTitle>
+              <AlertDescription>
+                The General Ledger is currently out of balance for this snapshot (Sequence: {state.snapshotSequence}). 
+                A balance sheet check (A = L + E) failed. Please contact the ledger engineering team.
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard title="Total Revenue" value={summary?.kpis?.totalRevenue || 0} trend="UP" />
-          <KPICard title="Total Expense" value={summary?.kpis?.totalExpense || 0} trend="DOWN" inverseColor />
-          <KPICard title="Net Profit" value={summary?.kpis?.netProfit || 0} trend="UP" />
-          <KPICard title="Total Assets" value={summary?.kpis?.totalAssets || 0} trend="NEUTRAL" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KPICard title="Total Revenue" value={summary?.kpis?.totalRevenue || 0} trend="UP" />
+            <KPICard title="Total Expense" value={summary?.kpis?.totalExpense || 0} trend="DOWN" inverseColor />
+            <KPICard title="Net Profit" value={summary?.kpis?.netProfit || 0} trend="UP" />
+            <KPICard title="Total Assets" value={summary?.kpis?.totalAssets || 0} trend="NEUTRAL" />
+          </div>
+
+          <CfoChartsSection summaryData={summary?.kpis} />
+
+          <Tabs defaultValue="tb" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="tb">Trial Balance</TabsTrigger>
+              <TabsTrigger value="pl">Profit & Loss</TabsTrigger>
+              <TabsTrigger value="bs">Balance Sheet</TabsTrigger>
+              <TabsTrigger value="cashflow" className="text-secondary-foreground font-bold">
+                <Activity size={14} className="mr-2" />
+                Cashflow Analysis
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="tb">
+              <HierarchicalReportTable title="Detailed Trial Balance" data={reports?.tb || []} />
+            </TabsContent>
+            <TabsContent value="pl">
+              <HierarchicalReportTable title="Profit & Loss Statement" data={reports?.pl || []} />
+            </TabsContent>
+            <TabsContent value="bs">
+              <HierarchicalReportTable title="Consolidated Balance Sheet" data={reports?.bs || []} />
+            </TabsContent>
+            <TabsContent value="cashflow">
+              <CashflowIntelligenceTab 
+                companyId={state.companyId} 
+                snapshotId={summary?.id} // Maps to AccountBalanceSnapshot.id
+                correlationId={state.correlationId}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
-
-        <CfoChartsSection summaryData={summary?.kpis} />
-
-        <Tabs defaultValue="tb" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="tb">Trial Balance</TabsTrigger>
-            <TabsTrigger value="pl">Profit & Loss</TabsTrigger>
-            <TabsTrigger value="bs">Balance Sheet</TabsTrigger>
-            <TabsTrigger value="cashflow" className="text-secondary-foreground font-bold">
-              <Activity size={14} className="mr-2" />
-              Cashflow Analysis
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="tb">
-            <HierarchicalReportTable title="Detailed Trial Balance" data={reports?.tb || []} />
-          </TabsContent>
-          <TabsContent value="pl">
-            <HierarchicalReportTable title="Profit & Loss Statement" data={reports?.pl || []} />
-          </TabsContent>
-          <TabsContent value="bs">
-            <HierarchicalReportTable title="Consolidated Balance Sheet" data={reports?.bs || []} />
-          </TabsContent>
-          <TabsContent value="cashflow">
-            <CashflowIntelligenceTab 
-              companyId={state.companyId} 
-              snapshotId={summary?.id} // Maps to AccountBalanceSnapshot.id
-              correlationId={state.correlationId}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+      )}
 
       {drillDown && (
         <DrillDownModal

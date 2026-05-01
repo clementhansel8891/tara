@@ -49,6 +49,7 @@ import PolicyManager from "@/pages/core/finance/PolicyManager";
 import JVDesk from "@/pages/core/finance/JVDesk";
 import PayslipStudio from "@/pages/core/finance/PayslipStudio";
 import { CFODashboard } from "@/pages/core/finance/CFODashboard";
+import { CFOProvider } from "@/core/finance/CFOContext";
 import PaymentWorkspaceLayout from "@/pages/core/payment/PaymentWorkspaceLayout";
 import PaymentDashboard from "@/pages/core/payment/PaymentDashboard";
 import PaymentExecutionHub from "@/pages/core/payment/PaymentExecutionHub";
@@ -171,7 +172,9 @@ export function buildCoreRoutes(): JSX.Element[] {
       path="finance/*"
       element={
         <ProtectedRoute permission="finance.workspace.access" scope="COMPANY">
-          <FinanceWorkspaceLayout />
+          <CFOProvider>
+            <FinanceWorkspaceLayout />
+          </CFOProvider>
         </ProtectedRoute>
       }
     >

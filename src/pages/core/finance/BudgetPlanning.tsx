@@ -27,17 +27,35 @@ import { Progress } from "@/components/ui/progress";
 import { useSession } from "@/core/security/session";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useModuleActivation } from "@/hooks/useModuleActivation";
+import { useCFO } from "@/core/finance/CFOContext";
+import { GlobalFinancialFilterBar } from "./components/GlobalFinancialFilterBar";
+import { financeService } from "@/core/services/finance/financeService";
 
 type PlanningPerspective = "DEPARTMENTAL" | "CONSOLIDATED";
 
 export default function BudgetPlanning() {
   const session = useSession();
+  const { state } = useCFO();
   const [perspective, setPerspective] = useState<PlanningPerspective>("DEPARTMENTAL");
   const [activeTab, setActiveTab] = useState("overview");
   const { isModuleActive } = useModuleActivation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [budgets, setBudgets] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!state.companyId) return;
+
+    setIsLoading(true);
+    financeService.listCapexBudgets(session.tenant_id, session)
+      .then(setBudgets)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [session.tenant_id, session, state.companyId]);
 
   return (
     <div className="space-y-6">
+      <GlobalFinancialFilterBar />
+      
       <PageHeader
         title={perspective === "CONSOLIDATED" ? "Enterprise Budget Control" : "Department Planning Studio"}
         subtitle={perspective === "CONSOLIDATED" 

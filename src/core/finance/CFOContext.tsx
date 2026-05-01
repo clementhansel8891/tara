@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useSession } from "@/core/security/session";
 
 export interface CFOState {
   companyId: string;
@@ -27,14 +28,21 @@ const CFOContext = createContext<CFOContextValue | undefined>(undefined);
 export const CFOProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [state, setState] = useState<CFOState>(() => ({
-    companyId: searchParams.get("companyId") || "",
-    periodId: searchParams.get("periodId") || "",
-    snapshotSequence: searchParams.get("sequence") ? parseInt(searchParams.get("sequence")!) : null,
-    filters: {},
-    isLocked: !!searchParams.get("sequence"),
-    correlationId: generateCorrelationId(),
-  }));
+  const session = useSession();
+
+  const [state, setState] = useState<CFOState>(() => {
+    const urlCompanyId = searchParams.get("companyId");
+    const urlPeriodId = searchParams.get("periodId");
+    
+    return {
+      companyId: urlCompanyId || session.tenant_id || "",
+      periodId: urlPeriodId || "",
+      snapshotSequence: searchParams.get("sequence") ? parseInt(searchParams.get("sequence")!) : null,
+      filters: {},
+      isLocked: !!searchParams.get("sequence"),
+      correlationId: generateCorrelationId(),
+    };
+  });
 
   const lockSequence = useCallback((sequence: number) => {
     setState((prev) => {

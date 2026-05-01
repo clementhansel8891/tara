@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { financeService, type AccountingPeriod } from "@/core/services/finance/financeService";
 import { useSession } from "@/core/security/session";
+import { useAuth } from "@/contexts/AuthContext";
 import { Filter, Lock, Unlock } from "lucide-react";
 import { audit } from "@/core/logging/audit";
 import { systemLogger } from "@/core/logging/systemLogger";
@@ -12,11 +13,20 @@ import { systemLogger } from "@/core/logging/systemLogger";
 export const GlobalFinancialFilterBar: React.FC = () => {
   const { state, updateFilters } = useCFO();
   const session = useSession();
+  const { user } = useAuth();
   
   const [localState, setLocalState] = useState({
     companyId: state.companyId,
     periodId: state.periodId,
   });
+
+  // Sync localState when global state changes (e.g. from auto-selection)
+  useEffect(() => {
+    setLocalState({
+      companyId: state.companyId,
+      periodId: state.periodId,
+    });
+  }, [state.companyId, state.periodId]);
   
   const [periods, setPeriods] = useState<AccountingPeriod[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,12 +34,28 @@ export const GlobalFinancialFilterBar: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     financeService.listPeriods(session.tenant_id, session)
-      .then(setPeriods)
+      .then((data) => {
+        setPeriods(data);
+        
+        // Auto-select latest open period if none selected
+        if (!state.periodId && data.length > 0) {
+          const latestOpen = data.find(p => p.status === 'OPEN') || data[0];
+          setLocalState(prev => ({ ...prev, periodId: latestOpen.id }));
+          
+          // If companyId is also set, auto-apply
+          if (state.companyId) {
+            updateFilters({
+              companyId: state.companyId,
+              periodId: latestOpen.id,
+            });
+          }
+        }
+      })
       .catch((err) => {
         systemLogger.failure("Failed to list accounting periods", { error: err }, state.correlationId);
       })
       .finally(() => setLoading(false));
-  }, [session]);
+  }, [session, state.companyId, state.periodId, updateFilters]);
 
   const handleApply = () => {
     audit.log({
@@ -48,6 +74,8 @@ export const GlobalFinancialFilterBar: React.FC = () => {
 
   const hasChanges = localState.companyId !== state.companyId || localState.periodId !== state.periodId;
 
+  const userCompanies = user?.user_companies || [];
+
   return (
     <div className="sticky top-0 z-10 w-full border-b bg-background/95 p-4 backdrop-blur shadow-sm">
       <div className="flex flex-wrap items-end gap-6 container mx-auto">
@@ -61,9 +89,19 @@ export const GlobalFinancialFilterBar: React.FC = () => {
               <SelectValue placeholder="Select Company" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="zenvix-corp">Zenvix Corporation (HQ)</SelectItem>
-              <SelectItem value="zenvix-global">Zenvix Global Logistics</SelectItem>
-              <SelectItem value="zenvix-indonesia">PT Zenvix Indonesia</SelectItem>
+              {userCompanies.length > 0 ? (
+                userCompanies.map((uc) => (
+                  <SelectItem key={uc.tenant_id} value={uc.tenant_id}>
+                    {uc.company.name} {uc.is_default ? "(Default)" : ""}
+                  </SelectItem>
+                ))
+              ) : (
+                <>
+                  <SelectItem value="zenvix-corp">Zenvix Corporation (HQ)</SelectItem>
+                  <SelectItem value="zenvix-global">Zenvix Global Logistics</SelectItem>
+                  <SelectItem value="zenvix-indonesia">PT Zenvix Indonesia</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
