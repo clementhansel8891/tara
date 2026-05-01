@@ -248,9 +248,5 @@ const CFODashboardContent: React.FC = () => {
   );
 };
 
-export const CFODashboard: React.FC = () => (
-  <CFOProvider>
-    <CFODashboardContent />
-  </CFOProvider>
-);
+export const CFODashboard = CFODashboardContent;
 
