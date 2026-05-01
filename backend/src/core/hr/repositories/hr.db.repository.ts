@@ -989,7 +989,8 @@ export class HRDbRepository implements IHRRepository {
     location_id?: string,
     employee_id?: string,
   ): Promise<Contract[]> {
-    const where: any = { tenant_id: tenant_id, deleted_at: null };
+    // NOTE: contracts table has no deleted_at column — filter only by tenant_id and optional fields
+    const where: any = { tenant_id: tenant_id };
     if (location_id) where.employee = { location_id: location_id };
     if (employee_id) where.employee_id = employee_id;
 

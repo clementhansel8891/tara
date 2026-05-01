@@ -38,7 +38,7 @@ export const legalService = {
     workflowService.createRequest(tenantId, actor, {
       entityType: "CONTRACT",
       entityId: record.id,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "LEGAL",
       metadata: { title: record.title },
     });
@@ -78,7 +78,7 @@ export const legalService = {
       workflowService.createRequest(tenantId, actor, {
         entityType: "CONTRACT",
         entityId: contractId,
-        makerDept: actor.departmentId,
+        makerDept: actor.department_id,
         destinationDept: "LEGAL",
         metadata: { contractId },
       });

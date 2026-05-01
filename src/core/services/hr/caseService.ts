@@ -32,7 +32,7 @@ export const caseService = {
     return workflowService.createRequest(tenantId, actor, {
       entityType: "CASE",
       entityId: caseId,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { caseId, reason: reason ?? "Case escalation" },
     });

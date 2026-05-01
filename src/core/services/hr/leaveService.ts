@@ -16,7 +16,7 @@ export const leaveService = {
     // Construct payload for API
     const requestPayload = {
       employeeId: actor.user_id,
-      departmentId: actor.departmentId || "dept-default", 
+      departmentId: actor.department_id || "dept-default", 
       leaveType: payload.type, // Note: Backend DTO expects "leaveType" but interface says "type"
       // Wait, backend createLeaveRequestDto has "leaveType" mapped to "type" in DB?
       // Backend DTO: CreateLeaveRequestDto (I didn't check it but backend service uses data.leaveType)

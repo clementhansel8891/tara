@@ -51,7 +51,7 @@ export const recruitmentService = {
     return workflowService.createRequest(tenantId, actor, {
       entityType: "RECRUITMENT",
       entityId: candidateId,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { candidateId },
     });

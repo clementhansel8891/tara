@@ -33,7 +33,7 @@ export const performanceService = {
     workflowService.createRequest(tenantId, actor, {
       entityType: "PERFORMANCE",
       entityId: cycle.id,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { title: cycle.name },
     });
@@ -70,7 +70,7 @@ export const performanceService = {
     return workflowService.createRequest(tenantId, actor, {
       entityType: "PERFORMANCE",
       entityId: reviewId,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { employeeId, reviewId },
     });

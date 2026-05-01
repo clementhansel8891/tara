@@ -35,7 +35,7 @@ export default function PayCycleStudio() {
         const runItems = await payrollService.listRuns(session.tenant_id, session);
         setRuns(runItems);
         
-        const workflowItems = await workflowService.listRequests(session.tenant_id, { entityType: "PAYROLL" });
+        const workflowItems = await workflowService.listRequests(session.tenant_id, session);
         setWorkflows(workflowItems);
       } catch (err) {
         console.error("Failed to load pay cycle data", err);

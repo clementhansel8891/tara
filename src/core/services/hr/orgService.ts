@@ -39,7 +39,7 @@ export const orgService = {
     return workflowService.createRequest(tenantId, actor, {
       entityType: "PERFORMANCE",
       entityId: departmentId,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { departmentId, reason: reason ?? "Staffing risk escalation" },
     });
@@ -67,7 +67,7 @@ export const orgService = {
     return workflowService.createRequest(tenantId, actor, {
       entityType: "RECRUITMENT",
       entityId: departmentId,
-      makerDept: actor.departmentId,
+      makerDept: actor.department_id,
       destinationDept: "HR",
       metadata: { departmentId, notes: notes ?? "Department routing" },
     });
