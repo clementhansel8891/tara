@@ -6,7 +6,7 @@ import { audit } from "@/core/logging/audit";
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
-  if (actor.tenantId !== tenantId) throw new Error("Tenant access denied");
+  if (actor.tenant_id !== tenantId) throw new Error("Tenant access denied");
 };
 
 export const documentService = {
@@ -17,10 +17,10 @@ export const documentService = {
 
   createVaultItem(tenantId: string, actor: SessionContext, input: { title: string; type: DocumentRecord["type"] }) {
     ensureTenantAccess(tenantId, actor);
-    const record = createDocument({ tenantId, title: input.title, type: input.type, ownerId: actor.userId });
+    const record = createDocument({ tenantId, title: input.title, type: input.type, ownerId: actor.user_id });
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "document.create",
       entityType: "document",
       entityId: record.id,
@@ -33,7 +33,7 @@ export const documentService = {
     const items = listDocuments(tenantId);
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "document.export",
       entityType: "document",
       entityId: "export",
@@ -52,12 +52,12 @@ export const documentService = {
       tenantId,
       title: input.title,
       type: input.type,
-      ownerId: actor.userId,
+      ownerId: actor.user_id,
       metadata: input.metadata,
     });
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "document.attach",
       entityType: "document",
       entityId: record.id,

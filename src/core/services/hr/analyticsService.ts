@@ -7,7 +7,7 @@ import { audit } from "@/core/logging/audit";
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
-  if (actor.tenantId !== tenantId) throw new Error("Tenant access denied");
+  if (actor.tenant_id !== tenantId) throw new Error("Tenant access denied");
 };
 
 export const analyticsService = {
@@ -52,7 +52,7 @@ export const analyticsService = {
     const reportId = `${tenantId}-report-${Date.now()}`;
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "insight.report.generate",
       entityType: "insight_report",
       entityId: reportId,
@@ -64,7 +64,7 @@ export const analyticsService = {
     ensureTenantAccess(tenantId, actor);
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "insight.report.share",
       entityType: "insight_report",
       entityId: reportId,

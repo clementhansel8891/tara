@@ -22,7 +22,7 @@ export type StaffListResult = {
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
-  if (actor.tenantId !== tenantId) {
+  if (actor.tenant_id !== tenantId) {
     throw new Error("Tenant access denied");
   }
 };
@@ -93,7 +93,7 @@ export const staffService = {
     const record = await hrService.createEmployee(tenantId, actor, payload);
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "staff.create",
       entityType: "employee",
       entityId: record.id,

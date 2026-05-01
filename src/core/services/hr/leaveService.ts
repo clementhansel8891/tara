@@ -15,7 +15,7 @@ export const leaveService = {
   }) {
     // Construct payload for API
     const requestPayload = {
-      employeeId: actor.userId,
+      employeeId: actor.user_id,
       departmentId: actor.departmentId || "dept-default", 
       leaveType: payload.type, // Note: Backend DTO expects "leaveType" but interface says "type"
       // Wait, backend createLeaveRequestDto has "leaveType" mapped to "type" in DB?
@@ -31,13 +31,13 @@ export const leaveService = {
 
   async approveLeaveRequest(tenantId: string, actor: SessionContext, requestId: string) {
     return apiRequest<LeaveRequest>(`/hr/leave-requests/${requestId}/approve`, "PUT", actor, {
-      reviewerId: actor.userId,
+      reviewerId: actor.user_id,
     });
   },
 
   async rejectLeaveRequest(tenantId: string, actor: SessionContext, requestId: string) {
     return apiRequest<LeaveRequest>(`/hr/leave-requests/${requestId}/reject`, "PUT", actor, {
-      reviewerId: actor.userId,
+      reviewerId: actor.user_id,
       notes: "Rejected via UI"
     });
   }

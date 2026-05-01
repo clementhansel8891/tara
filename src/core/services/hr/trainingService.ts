@@ -5,7 +5,7 @@ import { apiRequest } from "@/core/api/apiClient";
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
-  if (actor.tenantId !== tenantId) throw new Error("Tenant access denied");
+  if (actor.tenant_id !== tenantId) throw new Error("Tenant access denied");
 };
 
 export const trainingService = {

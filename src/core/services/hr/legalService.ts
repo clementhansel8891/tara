@@ -7,7 +7,7 @@ import { workflowService } from "./workflowService";
 
 const ensureTenantAccess = (tenantId: string, actor: SessionContext) => {
   if (actor.role === Roles.SUPERADMIN) return;
-  if (actor.tenantId !== tenantId) throw new Error("Tenant access denied");
+  if (actor.tenant_id !== tenantId) throw new Error("Tenant access denied");
 };
 
 export const legalService = {
@@ -45,7 +45,7 @@ export const legalService = {
     
     audit.log({
       tenantId,
-      actorId: actor.userId,
+      actorId: actor.user_id,
       action: "legal.contract.create",
       entityType: "contract",
       entityId: record.id,
@@ -61,7 +61,7 @@ export const legalService = {
     if (record) {
       audit.log({
         tenantId,
-        actorId: actor.userId,
+        actorId: actor.user_id,
         action: "legal.contract.sign",
         entityType: "contract",
         entityId: record.id,
@@ -84,7 +84,7 @@ export const legalService = {
       });
       audit.log({
         tenantId,
-        actorId: actor.userId,
+        actorId: actor.user_id,
         action: "legal.contract.renew",
         entityType: "contract",
         entityId: contractId,

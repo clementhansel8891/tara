@@ -32,7 +32,7 @@ export const attendanceService = {
   }) {
     return apiRequest<AttendanceRecord>("/v1/hr/attendance/clock-in", "POST", actor, {
       locationId: input.locationId,
-      employeeId: actor.userId,
+      employeeId: actor.user_id,
       reason: input.reason
     });
   },
@@ -44,7 +44,7 @@ export const attendanceService = {
       verificationMethod: AttendanceEvent["verificationMethod"];
   }) {
     return apiRequest<AttendanceRecord>("/v1/hr/attendance/clock-out", "POST", actor, {
-      employeeId: actor.userId
+      employeeId: actor.user_id
     });
   },
 
