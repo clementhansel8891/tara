@@ -326,14 +326,14 @@ export class ProcurementDbRepository extends IProcurementRepository {
     return products.map((p) => ({
       supplierId: p.supplier_id,
       branch_id: p.branch_id,
-      supplierName: (p as any).supplierMaster.name,
-      branchName: (p as any).supplierBranch.branchName,
-      branchCode: (p as any).supplierBranch.branchCode,
+      supplierName: p.supplier_masters?.name || "Unknown Supplier",
+      branchName: p.supplier_branches?.branch_name || "Unknown Branch",
+      branchCode: p.supplier_branches?.branch_code || "N/A",
       category: p.category,
       score: p.quality_score,
-      riskTier: (p as any).supplierBranch.riskTier,
+      riskTier: p.supplier_branches?.risk_tier || "LOW",
       unit_price: Number(p.unit_price),
-      leadTimeDays: (p as any).supplierBranch.leadTimeDays,
+      leadTimeDays: p.supplier_branches?.lead_time_days || 0,
     }));
   }
 
