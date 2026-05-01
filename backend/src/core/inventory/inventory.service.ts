@@ -12,6 +12,8 @@ import { AuditService } from "../../shared/audit/audit.service";
 import { PrismaService } from "../../persistence/prisma.service";
 import { EventBusService } from "../../shared/events/event-bus.service";
 import { v4 as uuidv4 } from "uuid";
+import { ProcurementService } from "../procurement/procurement.service";
+import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 
 @Injectable()
 export class InventoryService {
@@ -21,6 +23,7 @@ export class InventoryService {
     private readonly auditService: AuditService,
     private readonly prisma: PrismaService,
     private readonly eventBus: EventBusService,
+    private readonly procurementService: ProcurementService,
   ) {}
 
   private readonly logger = new Logger(InventoryService.name);
@@ -1005,6 +1008,60 @@ export class InventoryService {
 
   async createAgenticEvent(ctx: TenantContext, data: CreateAgenticEventDto) {
     return this.repository.createAgenticEvent(ctx, data);
+  }
+
+  // --- IoT & Edge Layer ---
+
+  async listIotEvents(ctx: TenantContext) {
+    // Mapping Inventory IoT Feed to IT device events as a generic operational stream
+    return this.prisma.it_device_events.findMany({
+      where: {
+        ...MultiTenancyUtil.getScope(ctx),
+      },
+      include: {
+        it_devices: true,
+      },
+      orderBy: { created_at: "desc" },
+      take: 50,
+    });
+  }
+
+  // --- Procurement Receipt Integration ---
+
+  async listProcurementReceipts(ctx: TenantContext) {
+    // Receipts are pending final POs that need to be intake into inventory
+    return this.prisma.procurement_final_pos.findMany({
+      where: {
+        ...MultiTenancyUtil.getScope(ctx),
+        status: { in: ["APPROVED", "PARTIALLY_RECEIVED", "RELEASED"] },
+      },
+      include: {
+        supplier_masters: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+  }
+
+  async processProcurementReceipt(
+    ctx: TenantContext,
+    finalPoId: string,
+    data: {
+      locationId: string;
+      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
+    },
+    user_id?: string,
+  ) {
+    // 1. Delegate to procurement service to update PO status and emit intake events
+    return this.procurementService.processReceipt(
+      ctx,
+      finalPoId,
+      {
+        location_id: data.locationId,
+        items: data.items,
+        receiptType: "FULL", // Defaulting to full for this bridge
+      },
+      user_id,
+    );
   }
 
   async processScan(ctx: TenantContext,

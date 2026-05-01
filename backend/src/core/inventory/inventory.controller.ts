@@ -977,5 +977,42 @@ export class InventoryController {
     const data = await this.inventoryService.createAgenticEvent(request.tenantContext, dto);
     return { success: true, tenant_id, data };
   }
+
+  // --- IoT & Edge Layer ---
+
+  @Get("iot/events")
+  async getIotEvents(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.listIotEvents(request.tenantContext);
+    return { success: true, tenant_id, count: data.length, data };
+  }
+
+  // --- Procurement Receipt Integration ---
+
+  @Get("procurement-receipts")
+  async getProcurementReceipts(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.listProcurementReceipts(request.tenantContext);
+    return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Post("procurement-receipts/:id/process")
+  async processProcurementReceipt(
+    @Req() request: RequestWithTenant,
+    @Param("id") finalPoId: string,
+    @Body() body: {
+      locationId: string;
+      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
+    },
+  ) {
+    const { tenant_id, user_id } = request.tenantContext;
+    const data = await this.inventoryService.processProcurementReceipt(
+      request.tenantContext,
+      finalPoId,
+      body,
+      user_id,
+    );
+    return { success: true, tenant_id, message: "Receipt processed and inventory intake triggered", data };
+  }
 }
 

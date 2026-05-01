@@ -23,9 +23,10 @@ import { InventoryAgentModule } from "../../agentic/inventory/inventory-agent.mo
 
 import { InventoryCleanupService } from "./inventory-cleanup.service";
 import { InventoryEdgeController } from "./controllers/inventory-edge.controller";
+import { ProcurementModule } from "../procurement/procurement.module";
 
 @Module({
-  imports: [PersistenceModule, FileProcessingModule, AuditModule, InventoryAgentModule],
+  imports: [PersistenceModule, FileProcessingModule, AuditModule, InventoryAgentModule, ProcurementModule],
   controllers: [InventoryController, WarehouseController, InventoryEdgeController],
   providers: [
     InventoryService,
