@@ -317,7 +317,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
         active: true,
         supplier_branches: {
           active: true,
-          ...(params.branchCode ? { branchCode: params.branchCode } : {}),
+          ...(params.branchCode ? { branch_code: params.branchCode } : {}),
         },
       },
       include: { supplier_masters: true, supplier_branches: true },
