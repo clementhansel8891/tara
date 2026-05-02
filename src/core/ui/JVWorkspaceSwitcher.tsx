@@ -44,7 +44,7 @@ export function JVWorkspaceSwitcher() {
     window.location.reload();
   };
 
-  if (!participations.length && !currentJV) return null;
+  if (!(Array.isArray(participations) && participations.length) && !currentJV) return null;
 
   return (
     <DropdownMenu>

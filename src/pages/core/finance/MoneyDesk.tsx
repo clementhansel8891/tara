@@ -286,7 +286,7 @@ export default function MoneyDesk() {
       />
 
       <div className="grid gap-4 md:grid-cols-3">
-        {moneySources.slice(0, 3).map((source) => (
+        {(Array.isArray(moneySources) ? moneySources : []).slice(0, 3).map((source) => (
           <div key={source.id} className="bg-white p-4 rounded-xl border border-primary/10 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{source.name}</p>
