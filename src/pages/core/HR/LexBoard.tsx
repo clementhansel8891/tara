@@ -47,7 +47,7 @@ export default function LexBoard() {
     loadData();
   }, [session.tenant_id, session, version]);
 
-  const filteredContracts = compliance.contracts.filter((contract) =>
+  const filteredContracts = (Array.isArray(compliance.contracts) ? compliance.contracts : []).filter((contract) =>
     search ? contract.title.toLowerCase().includes(search.toLowerCase()) : true,
   );
 

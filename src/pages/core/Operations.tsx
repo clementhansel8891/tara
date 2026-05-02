@@ -136,7 +136,7 @@ export default function CoreOperations() {
   const handleInspect = async (component: string) => {
     try {
       const health = await itService.getSystemHealth(session.tenant_id, session);
-      const filtered = health.filter(h => h.component.toLowerCase().includes(component.toLowerCase()));
+      const filtered = (Array.isArray(health) ? health : []).filter(h => h.component.toLowerCase().includes(component.toLowerCase()));
       
       if (filtered.length > 0) {
         toast({
@@ -230,15 +230,15 @@ export default function CoreOperations() {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-center p-2 rounded bg-muted/30 border">
                     <p className="text-xs text-muted-foreground uppercase">Online</p>
-                    <p className="text-lg font-bold text-emerald-500">{iotDevices.filter(d => d.status === 'ONLINE' || d.status === 'ACTIVE').length}</p>
+                    <p className="text-lg font-bold text-emerald-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'ONLINE' || d.status === 'ACTIVE').length}</p>
                   </div>
                   <div className="text-center p-2 rounded bg-muted/30 border">
                     <p className="text-xs text-muted-foreground uppercase">Offline</p>
-                    <p className="text-lg font-bold text-rose-500">{iotDevices.filter(d => d.status === 'OFFLINE' || d.status === 'DISCONNECTED').length}</p>
+                    <p className="text-lg font-bold text-rose-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'OFFLINE' || d.status === 'DISCONNECTED').length}</p>
                   </div>
                   <div className="text-center p-2 rounded bg-muted/30 border">
                     <p className="text-xs text-muted-foreground uppercase">Alerts</p>
-                    <p className="text-lg font-bold text-amber-500">{iotDevices.filter(d => d.status === 'ALERT' || d.status === 'WARNING').length}</p>
+                    <p className="text-lg font-bold text-amber-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'ALERT' || d.status === 'WARNING').length}</p>
                   </div>
                 </div>
                 <div className="text-right">

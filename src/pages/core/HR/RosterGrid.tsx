@@ -564,7 +564,7 @@ export default function RosterGrid() {
             <div className="flex items-center justify-between rounded-lg border p-3">
               <span>Active</span>
               <span className="font-semibold text-foreground">
-                {staff.(Array.isArray(items) ? items : []).filter((item) => item.status === "active").length}
+                {(Array.isArray(staff.items) ? staff.items : []).filter((item) => item.status === "active").length}
               </span>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">

@@ -75,7 +75,7 @@ export default function PresentationTool() {
   useEffect(() => {
     const fetchSlides = async () => {
       const { files } = await listFileSystem(session);
-      setFiles(files.filter(f => f.type === "slide" || f.type === "zslide"));
+      setFiles((Array.isArray(files) ? files : []).filter(f => f.type === "slide" || f.type === "zslide"));
     };
     fetchSlides();
   }, [session, version]);
@@ -111,7 +111,7 @@ export default function PresentationTool() {
 
   const removeSlide = () => {
     if (slides.length <= 1) return;
-    setSlides((prev) => prev.filter((_, index) => index !== activeIndex));
+    setSlides((prev) => (Array.isArray(prev) ? prev : []).filter((_, index) => index !== activeIndex));
     setActiveIndex((prev) => Math.max(0, prev - 1));
   };
 

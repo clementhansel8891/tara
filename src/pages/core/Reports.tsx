@@ -106,7 +106,7 @@ export default function CoreReports() {
 
   // Poll for job status
   useEffect(() => {
-    const processingJobs = activeJobs.filter(j => j.status === 'PENDING' || j.status === 'PROCESSING');
+    const processingJobs = (Array.isArray(activeJobs) ? activeJobs : []).filter(j => j.status === 'PENDING' || j.status === 'PROCESSING');
     if (processingJobs.length === 0) return;
 
     const interval = setInterval(async () => {

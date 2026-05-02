@@ -58,7 +58,7 @@ export default function RetailCashier() {
   }, []);
 
   // Filter products
-  const filteredProducts = mockRetailProducts.filter((product) => {
+  const filteredProducts = (Array.isArray(mockRetailProducts) ? mockRetailProducts : []).filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.barcode?.includes(searchTerm);
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
@@ -114,7 +114,7 @@ export default function RetailCashier() {
   };
 
   const removeFromCartLocal = (productId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.product.id !== productId));
+    setCartItems((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.product.id !== productId));
   };
 
   const clearCartLocal = () => {

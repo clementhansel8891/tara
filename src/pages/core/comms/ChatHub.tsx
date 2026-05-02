@@ -219,7 +219,7 @@ export default function ChatHub() {
     }
   };
 
-  const filteredEmployees = employees.filter(emp => {
+  const filteredEmployees = (Array.isArray(employees) ? employees : []).filter(emp => {
     if (!emp.userId || emp.userId === session.user_id) return false;
     const matchesSearch = emp.fullName?.toLowerCase().includes(empFilter.search.toLowerCase());
     const matchesDept = empFilter.dept === 'all' || emp.departmentId === empFilter.dept;
@@ -450,7 +450,7 @@ export default function ChatHub() {
                               if (activeCreationMode === 'DIRECT') {
                                 setSelectedEmps([emp.userId]);
                               } else {
-                                setSelectedEmps(prev => prev.includes(emp.userId!) ? prev.filter(x => x !== emp.userId) : [...prev, emp.userId!]);
+                                setSelectedEmps(prev => prev.includes(emp.userId!) ? (Array.isArray(prev) ? prev : []).filter(x => x !== emp.userId) : [...prev, emp.userId!]);
                               }
                             }}
                             className={`p-4 flex items-center justify-between rounded-2xl cursor-pointer transition-all ${selectedEmps.includes(emp.userId!) ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" : "bg-white dark:bg-slate-900 hover:bg-muted/50"}`}

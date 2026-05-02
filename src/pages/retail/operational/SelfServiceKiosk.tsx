@@ -115,7 +115,7 @@ const SelfServiceKiosk = () => {
   };
 
   const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+    setCart((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.id !== id));
   };
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

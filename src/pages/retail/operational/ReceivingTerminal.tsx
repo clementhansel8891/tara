@@ -150,7 +150,7 @@ const ReceivingTerminal = () => {
         activeShift?.id,
       );
 
-      const variances = activeShipment.items.filter(
+      const variances = (Array.isArray(activeShipment.items) ? activeShipment.items : []).filter(
         (i) => i.received !== i.expected,
       );
       
@@ -316,7 +316,7 @@ const ReceivingTerminal = () => {
                         ))
                     )}
 
-                    {!isLoading && shipments.filter((s) => s.status !== "completed").length === 0 && (
+                    {!isLoading && (Array.isArray(shipments) ? shipments : []).filter((s) => s.status !== "completed").length === 0 && (
                       <div className="flex flex-col items-center justify-center h-64 text-slate-600 gap-4">
                         <CheckCircle2 className="w-16 h-16 text-emerald-500 opacity-20" />
                         <p className="font-black italic uppercase tracking-[0.3em] text-[10px]">

@@ -131,7 +131,7 @@ export default function PayFlow() {
 
   const filteredPayments = useMemo(
     () =>
-      groupedPayments[tab].filter((p) =>
+      (Array.isArray(groupedPayments[tab]) ? groupedPayments[tab] : []).filter((p) =>
         !search ? true : p.destination.toLowerCase().includes(search.toLowerCase()),
       ),
     [groupedPayments, search, tab],

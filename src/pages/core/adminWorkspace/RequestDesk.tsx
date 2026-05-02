@@ -45,7 +45,7 @@ export default function RequestDesk() {
     setErrorMessage(null);
   };
 
-  const filtered = requests.filter((req) =>
+  const filtered = (Array.isArray(requests) ? requests : []).filter((req) =>
     search ? req.title.toLowerCase().includes(search.toLowerCase()) : true,
   );
 

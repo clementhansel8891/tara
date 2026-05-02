@@ -140,7 +140,7 @@ export default function IncentiveDesk() {
     }
   };
 
-  const activePlans = plans.filter(p => p.is_active);
+  const activePlans = (Array.isArray(plans) ? plans : []).filter(p => p.is_active);
   const pendingAmount = attributions
     .filter(a => a.status === "PENDING")
     .reduce((sum, a) => sum + Number(a.incentive_amount), 0);

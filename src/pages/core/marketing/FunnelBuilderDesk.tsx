@@ -272,7 +272,7 @@ export default function FunnelBuilderDesk() {
 
   const removeStep = (id: string) => {
     if (!selectedFunnel) return;
-    const newSteps = selectedFunnel.steps.filter(s => s.id !== id);
+    const newSteps = (Array.isArray(selectedFunnel.steps) ? selectedFunnel.steps : []).filter(s => s.id !== id);
     setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
     toast.warning("Strategic Node Decommissioned.");
   };

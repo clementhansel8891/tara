@@ -146,9 +146,9 @@ const InfrastructureControl = () => {
           <CardContent className="p-6">
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Active Nodes</div>
             <div className="text-3xl font-black italic tracking-tighter text-slate-900">
-              {nodes.filter(n => n.status === "ACTIVE").length} <span className="text-sm text-slate-400">/ {nodes.length}</span>
+              {(Array.isArray(nodes) ? nodes : []).filter(n => n.status === "ACTIVE").length} <span className="text-sm text-slate-400">/ {nodes.length}</span>
             </div>
-            <Progress value={(nodes.filter(n => n.status === "ACTIVE").length / (nodes.length || 1)) * 100} className="h-1.5 mt-4" />
+            <Progress value={((Array.isArray(nodes) ? nodes : []).filter(n => n.status === "ACTIVE").length / (nodes.length || 1)) * 100} className="h-1.5 mt-4" />
           </CardContent>
         </Card>
 

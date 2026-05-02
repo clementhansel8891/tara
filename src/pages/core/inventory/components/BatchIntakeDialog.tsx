@@ -40,7 +40,7 @@ export function BatchIntakeDialog({
   const addItem = () => setItems((prev) => [...prev, emptyRow()]);
 
   const removeItem = (idx: number) =>
-    setItems((prev) => prev.filter((_, i) => i !== idx));
+    setItems((prev) => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== idx));
 
   const updateItem = (idx: number, field: string, value: any) =>
     setItems((prev) =>
@@ -53,7 +53,7 @@ export function BatchIntakeDialog({
   };
 
   const handleBatchIntake = async () => {
-    const valid = items.filter((i) => i.itemId.trim() && i.quantity > 0);
+    const valid = (Array.isArray(items) ? items : []).filter((i) => i.itemId.trim() && i.quantity > 0);
     if (valid.length === 0) {
       setError("Add at least one row with a Product ID and quantity > 0.");
       return;

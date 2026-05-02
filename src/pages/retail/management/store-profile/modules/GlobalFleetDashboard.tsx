@@ -13,9 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const GlobalFleetDashboard: React.FC = () => {
   const { stores, setSelectedStoreId } = useStore();
 
-  const activeStores = stores.filter((s) => s.status === "active").length;
+  const activeStores = (Array.isArray(stores) ? stores : []).filter((s) => s.status === "active").length;
   const regions = new Set(stores.map((s) => s.timezone)).size;
-  const flagships = stores.filter((s) => s.type === "flagship").length;
+  const flagships = (Array.isArray(stores) ? stores : []).filter((s) => s.type === "flagship").length;
 
   // Aggregate operational insights
   const totalPosTerminals = stores.reduce((acc, store) => {

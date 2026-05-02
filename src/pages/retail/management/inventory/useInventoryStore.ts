@@ -75,8 +75,8 @@ export function useInventoryStore() {
       totalSKUs: inventory.length,
       totalSOH: inventory.reduce((s, i) => s + i.onHand, 0),
       totalATS: inventory.reduce((s, i) => s + i.available, 0),
-      critical: inventory.filter((i) => i.status === "critical").length,
-      low: inventory.filter((i) => i.status === "low").length,
+      critical: (Array.isArray(inventory) ? inventory : []).filter((i) => i.status === "critical").length,
+      low: (Array.isArray(inventory) ? inventory : []).filter((i) => i.status === "low").length,
     }),
     [inventory],
   );

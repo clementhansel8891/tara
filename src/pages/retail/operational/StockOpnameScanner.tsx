@@ -113,7 +113,7 @@ const StockOpnameScanner = () => {
     inputRef.current?.focus();
   };
 
-  const totalVarianceCount = history.filter(
+  const totalVarianceCount = (Array.isArray(history) ? history : []).filter(
     (item) => item.actualCount !== item.systemCount,
   ).length;
 
@@ -295,7 +295,7 @@ const StockOpnameScanner = () => {
                       </div>
                       <div className="text-4xl font-black italic tracking-tighter text-emerald-600">
                         {
-                          history.filter((h) => h.actualCount === h.systemCount)
+                          (Array.isArray(history) ? history : []).filter((h) => h.actualCount === h.systemCount)
                             .length
                         }
                       </div>

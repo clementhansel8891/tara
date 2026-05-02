@@ -49,7 +49,7 @@ export default function SystemHealth() {
     fetchHealth();
   }, [session.tenant_id, session, version]);
 
-  const filtered = healthData.filter((evt) =>
+  const filtered = (Array.isArray(healthData) ? healthData : []).filter((evt) =>
     search ? evt.component.toLowerCase().includes(search.toLowerCase()) : true,
   );
 

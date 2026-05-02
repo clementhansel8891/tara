@@ -17,7 +17,7 @@ export default function RequestAssign() {
   const [search, setSearch] = useState("");
   const [routeTo, setRouteTo] = useState("HOD");
 
-  const filtered = assignments.filter((item) =>
+  const filtered = (Array.isArray(assignments) ? assignments : []).filter((item) =>
     search ? item.id.toLowerCase().includes(search.toLowerCase()) : true,
   );
 

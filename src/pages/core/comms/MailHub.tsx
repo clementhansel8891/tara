@@ -192,7 +192,7 @@ export default function MailHub() {
     }
   };
 
-  const filteredMessages = messages.filter(m => 
+  const filteredMessages = (Array.isArray(messages) ? messages : []).filter(m => 
     m.subject?.toLowerCase().includes(filter.toLowerCase()) || 
     m.fromAddress?.toLowerCase().includes(filter.toLowerCase()) ||
     m.bodyText?.toLowerCase().includes(filter.toLowerCase())

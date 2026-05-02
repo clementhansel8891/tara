@@ -88,7 +88,7 @@ export default function LedgerCore() {
   };
 
   const removeLine = (index: number) => {
-    const newLines = entry.(Array.isArray(lines) ? lines : []).filter((_, i) => i !== index);
+    const newLines = (Array.isArray(entry.lines) ? entry.lines : []).filter((_, i) => i !== index);
     setEntry({ ...entry, lines: newLines });
   };
 

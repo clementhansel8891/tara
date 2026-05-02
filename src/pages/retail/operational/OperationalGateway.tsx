@@ -56,7 +56,7 @@ const RetailOperationalGateway = () => {
   };
 
   // Filter apps based on shift status
-  const visibleApps = APPS.filter(app => {
+  const visibleApps = (Array.isArray(APPS) ? APPS : []).filter(app => {
     if (app.id === "ops-shift-open") return !activeShift;
     if (app.id === "ops-shift-close") return !!activeShift;
     // For other apps, if they require a shift, only show if shift is open

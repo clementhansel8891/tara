@@ -92,7 +92,7 @@ export const useGovernance = (
     setState((prev) => {
       const newSignatures = [...prev.signatures, newSignature];
       const uniqueDepts = new Set(
-        newSignatures.filter((s) => !s.isBypass).map((s) => s.department),
+        (Array.isArray(newSignatures) ? newSignatures : []).filter((s) => !s.isBypass).map((s) => s.department),
       ).size;
       const quorumReached = uniqueDepts >= prev.requiredSignatures || isBypass;
 

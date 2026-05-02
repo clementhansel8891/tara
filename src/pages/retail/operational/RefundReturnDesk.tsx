@@ -105,7 +105,7 @@ const RefundReturnDesk = () => {
   const toggleItem = (itemId: string) => {
     setSelectedItems((prev) =>
       prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
+        ? (Array.isArray(prev) ? prev : []).filter((id) => id !== itemId)
         : [...prev, itemId],
     );
   };

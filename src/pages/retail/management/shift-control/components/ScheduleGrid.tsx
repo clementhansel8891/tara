@@ -175,7 +175,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     const end = timeToDecimal(shift.endTime);
 
     // Find all shifts that overlap with this shift
-    const overlappingShifts = dayShifts.filter((s) => {
+    const overlappingShifts = (Array.isArray(dayShifts) ? dayShifts : []).filter((s) => {
       const sStart = timeToDecimal(s.startTime);
       const sEnd = timeToDecimal(s.endTime);
       return Math.max(start, sStart) < Math.min(end, sEnd);
@@ -255,7 +255,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
               </div>
             ))}
             {days.map((d, i) => {
-              const dayShifts = shifts.filter(
+              const dayShifts = (Array.isArray(shifts) ? shifts : []).filter(
                 (s) => s.date && isSameDay(new Date(s.date), d),
               );
               const isCurrentMonth = d.getMonth() === currentDate.getMonth();

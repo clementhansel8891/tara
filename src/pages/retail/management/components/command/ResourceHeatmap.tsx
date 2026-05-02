@@ -111,7 +111,7 @@ export const ResourceHeatmap = ({
       // Fetch all shifts for the tenant
       const allShifts = await retailService.listShifts(session.tenantId, session);
       // Filter only open shifts
-      const activeOnes = allShifts.filter(s => s.status === "open");
+      const activeOnes = (Array.isArray(allShifts) ? allShifts : []).filter(s => s.status === "open");
       setShifts(activeOnes);
     } catch (error) {
       console.error("[ResourceHeatmap] Failed to fetch shifts:", error);
@@ -127,7 +127,7 @@ export const ResourceHeatmap = ({
   }, [session.tenantId]);
 
   const getStoreSaturation = (storeId: string) => {
-    const activeAtStore = shifts.filter(s => s.storeId === storeId).length;
+    const activeAtStore = (Array.isArray(shifts) ? shifts : []).filter(s => s.storeId === storeId).length;
     const target = 10; // Default threshold
     const load = Math.min(Math.round((activeAtStore / target) * 100), 100);
     return {

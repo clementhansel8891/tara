@@ -44,7 +44,7 @@ export default function GrowthCycle() {
     loadData();
   }, [session.tenant_id, session, version]);
 
-  const filteredCycles = overview.(Array.isArray(cycles) ? cycles : []).filter((cycle) =>
+  const filteredCycles = (Array.isArray(overview.cycles) ? overview.cycles : []).filter((cycle) =>
     search ? cycle.name.toLowerCase().includes(search.toLowerCase()) : true,
   );
 

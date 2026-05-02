@@ -17,7 +17,7 @@ export default function ExportTool() {
 
   const toggle = (id: string) => {
     setSelected((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+      prev.includes(id) ? (Array.isArray(prev) ? prev : []).filter((item) => item !== id) : [...prev, id],
     );
   };
 

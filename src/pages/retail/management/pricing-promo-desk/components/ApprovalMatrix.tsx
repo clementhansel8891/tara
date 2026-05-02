@@ -35,7 +35,7 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
 }) => {
   const signatures = governanceState.signatures;
   const uniqueSigners = new Set(
-    signatures.filter((s) => !s.isBypass).map((s) => s.department),
+    (Array.isArray(signatures) ? signatures : []).filter((s) => !s.isBypass).map((s) => s.department),
   ).size;
   const progress = Math.min(
     (uniqueSigners / governanceState.requiredSignatures) * 100,

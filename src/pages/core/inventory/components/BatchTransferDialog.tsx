@@ -24,7 +24,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedBalances = balances.filter(b => selectedIds.includes(b.id));
+  const selectedBalances = (Array.isArray(balances) ? balances : []).filter(b => selectedIds.includes(b.id));
 
   const handleBatchTransfer = async () => {
     if (!toLocation.trim()) {

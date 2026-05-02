@@ -146,10 +146,10 @@ export default function RetailHistory() {
     .filter((t) => t.status === 'completed')
     .reduce((sum, t) => sum + t.total, 0);
   const transactionCount = mockTransactions.length;
-  const refundCount = mockTransactions.filter((t) => t.status === 'refunded').length;
+  const refundCount = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => t.status === 'refunded').length;
 
   // Filter transactions
-  const filteredTransactions = mockTransactions.filter((t) => {
+  const filteredTransactions = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => {
     const matchesSearch = t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.items.some((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || t.status === statusFilter;

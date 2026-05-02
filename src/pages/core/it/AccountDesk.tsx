@@ -74,7 +74,7 @@ export default function AccountDesk() {
     setErrorMessage(null);
   };
 
-  const filtered = provisioningQueue.filter((acc) =>
+  const filtered = (Array.isArray(provisioningQueue) ? provisioningQueue : []).filter((acc) =>
     search
       ? (acc.employeeId || "").toLowerCase().includes(search.toLowerCase())
       : true,

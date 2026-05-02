@@ -82,7 +82,7 @@ const StaffAssignments = () => {
           retailService.listShifts(session.tenant_id, session)
         ]);
         setStaff(staffData);
-        setActiveShifts(shiftsData.filter(s => s.status === "active"));
+        setActiveShifts((Array.isArray(shiftsData) ? shiftsData : []).filter(s => s.status === "active"));
       } catch (error) {
         console.error("Failed to fetch staff", error);
         toast({
@@ -104,7 +104,7 @@ const StaffAssignments = () => {
       return;
     try {
       await hrService.deleteEmployee(session.tenant_id!, session, id);
-      setStaff((prev) => prev.filter((s) => s.id !== id));
+      setStaff((prev) => (Array.isArray(prev) ? prev : []).filter((s) => s.id !== id));
 
       // Log governance action
       await addSignature(
@@ -175,11 +175,11 @@ const StaffAssignments = () => {
   };
 
 
-  const activeCount = staff.filter((s) => s.status === "active").length;
+  const activeCount = (Array.isArray(staff) ? staff : []).filter((s) => s.status === "active").length;
   const onShiftCount = activeShifts.length;
   const adherenceRate = staff.length > 0 ? ((onShiftCount / staff.length) * 100).toFixed(1) : "0.0";
 
-  const filteredStaff = staff.filter(
+  const filteredStaff = (Array.isArray(staff) ? staff : []).filter(
     (s) =>
       s.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.roleTitle.toLowerCase().includes(searchQuery.toLowerCase()),

@@ -21,13 +21,9 @@ import type React from "react";
 /* ============================================================================ */
 
 import Dashboard from "@/pages/core/Dashboard";
-import Finance from "@/pages/core/Finance";
-import ProcurementEntry from "@/pages/core/ProcurementEntry";
-import InventoryModule from "@/pages/core/InventoryModule";
 import ModuleHub from "@/pages/core/license/ModuleHub";
 import Reports from "@/pages/core/Reports";
 import Settings from "@/pages/core/Settings";
-import Admin from "@/pages/core/Admin";
 import Security from "@/pages/core/Security";
 import ReceiptStudio from "@/pages/core/retail/ReceiptStudio";
 
@@ -83,47 +79,6 @@ const CORE_PAGES: readonly CorePageDefinition[] = Object.freeze([
     component: Dashboard,
   },
 
-
-
-  {
-    id: "finance",
-    title: "Finance",
-    route: "/core/finance",
-    icon: "wallet",
-    section: "office",
-    visible: true,
-    component: Finance,
-  },
-
-  {
-    id: "procurement",
-    title: "Procurement",
-    route: "/core/procurement",
-    icon: "clipboard-check",
-    section: "office",
-    visible: true,
-    component: ProcurementEntry,
-  },
-
-  {
-    id: "inventory",
-    title: "Inventory",
-    route: "/core/inventory",
-    icon: "package",
-    section: "office",
-    visible: true,
-    component: InventoryModule,
-  },
-
-  {
-    id: "admin",
-    title: "Administration",
-    route: "/core/admin",
-    icon: "shield",
-    section: "administration",
-    visible: true,
-    component: Admin,
-  },
 
 
   {

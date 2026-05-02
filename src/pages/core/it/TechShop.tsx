@@ -44,7 +44,7 @@ export default function TechShop() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<ITCatalogItem | null>(null);
 
-  const filteredItems = ZENVIX_HARDWARE.filter(item => {
+  const filteredItems = (Array.isArray(ZENVIX_HARDWARE) ? ZENVIX_HARDWARE : []).filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.notes.toLowerCase().includes(searchQuery.toLowerCase());

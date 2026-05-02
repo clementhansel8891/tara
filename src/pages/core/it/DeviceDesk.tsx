@@ -44,7 +44,7 @@ export default function DeviceDesk() {
         // - Super Admin sees all
         // - Owner sees all in tenant
         // - Branch IT sees only their location
-        const filteredData = data.filter(d => {
+        const filteredData = (Array.isArray(data) ? data : []).filter(d => {
           if (session.role === 'SUPERADMIN') return true;
           if (session.role === 'OWNER') return d.tenantId === session.tenant_id;
           return d.locationId === session.location_id;
@@ -64,7 +64,7 @@ export default function DeviceDesk() {
     setErrorMessage(null);
   };
 
-  const filtered = devices.filter((dev) =>
+  const filtered = (Array.isArray(devices) ? devices : []).filter((dev) =>
     search ? dev.id.toLowerCase().includes(search.toLowerCase()) || dev.deviceName.toLowerCase().includes(search.toLowerCase()) : true,
   );
 
@@ -205,7 +205,7 @@ export default function DeviceDesk() {
                          </SelectTrigger>
                          <SelectContent>
                             <SelectItem value="ROOT">ROOT / Gateway</SelectItem>
-                            {devices.filter(d => d.deviceType === 'server').map(d => (
+                            {(Array.isArray(devices) ? devices : []).filter(d => d.deviceType === 'server').map(d => (
                                <SelectItem key={d.id} value={d.id}>{d.deviceName}</SelectItem>
                             ))}
                          </SelectContent>

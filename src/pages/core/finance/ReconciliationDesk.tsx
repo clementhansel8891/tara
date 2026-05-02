@@ -225,16 +225,16 @@ export const ReconciliationDesk: React.FC = () => {
                     <div className="flex justify-between items-baseline">
                       <div className="text-2xl font-black text-indigo-900">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                          unmatchedLedger.filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
+                          (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
                         )}
                       </div>
                       <div className={`text-sm font-bold ${
-                        Math.abs(selectedBankTx.amount - unmatchedLedger.filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)) < 0.01
+                        Math.abs(selectedBankTx.amount - (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)) < 0.01
                           ? 'text-emerald-600'
                           : 'text-rose-500'
                       }`}>
                         Δ {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                          selectedBankTx.amount - unmatchedLedger.filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
+                          selectedBankTx.amount - (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
                         )}
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export const ReconciliationDesk: React.FC = () => {
                     key={entry.id}
                     onClick={() => {
                       if (selectedLedgerIds.includes(entry.id)) {
-                        setSelectedLedgerIds(prev => prev.filter(id => id !== entry.id));
+                        setSelectedLedgerIds(prev => (Array.isArray(prev) ? prev : []).filter(id => id !== entry.id));
                       } else {
                         setSelectedLedgerIds(prev => [...prev, entry.id]);
                       }

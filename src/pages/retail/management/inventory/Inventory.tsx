@@ -145,15 +145,15 @@ export default function RetailInventory() {
   const [reorderQuantity, setReorderQuantity] = useState(20);
 
   // Calculate stats
-  const lowStockItems = inventory.filter(
+  const lowStockItems = (Array.isArray(inventory) ? inventory : []).filter(
     (i) => i.stock !== undefined && i.stock <= i.reorderPoint,
   );
-  const outOfStockItems = inventory.filter((i) => i.stock === 0);
+  const outOfStockItems = (Array.isArray(inventory) ? inventory : []).filter((i) => i.stock === 0);
   const totalValue = inventory.reduce(
     (sum, i) => sum + (i.stock || 0) * i.price,
     0,
   );
-  const pendingOrders = reorderRequests.filter(
+  const pendingOrders = (Array.isArray(reorderRequests) ? reorderRequests : []).filter(
     (r) => r.status !== "received",
   ).length;
 
@@ -335,7 +335,7 @@ export default function RetailInventory() {
     if (!selectedProduct) return;
 
     setInventory((prev) =>
-      prev.filter((item) => item.id !== selectedProduct.id),
+      (Array.isArray(prev) ? prev : []).filter((item) => item.id !== selectedProduct.id),
     );
     toast({
       title: "Item deleted",

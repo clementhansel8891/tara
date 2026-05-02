@@ -262,7 +262,7 @@ export default function BulletinHub() {
     }
   };
 
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = (Array.isArray(posts) ? posts : []).filter((post) => {
     const matchesSearch =
       post.title?.toLowerCase().includes(filter.toLowerCase()) ||
       post.body?.toLowerCase().includes(filter.toLowerCase());
@@ -591,7 +591,7 @@ export default function BulletinHub() {
                           variant="outline"
                           className={`text-[10px] font-black border-none px-2 h-5 rounded-md ${activeCategory === cat.code ? "bg-primary text-white" : "bg-muted/30"}`}
                         >
-                          {posts.filter((p) => p.category?.toLowerCase() === cat.code?.toLowerCase()).length}
+                          {(Array.isArray(posts) ? posts : []).filter((p) => p.category?.toLowerCase() === cat.code?.toLowerCase()).length}
                         </Badge>
                       </div>
                     ))

@@ -61,12 +61,12 @@ export const AIInsightEngine = ({
       
       // 2. Get Active Staff
       const shifts = await retailService.listShifts(session.tenantId, session);
-      const activeStaff = shifts.filter(s => s.status === "open").length;
+      const activeStaff = (Array.isArray(shifts) ? shifts : []).filter(s => s.status === "open").length;
 
       // 3. Get Infra Health & Anomalies
       const { nodes } = await retailInfrastructureService.getTelemetry(session.tenantId, session);
       const avgHealth = nodes.length > 0 ? nodes.reduce((acc, n) => acc + n.health_score, 0) / nodes.length : 100;
-      const deadNodes = nodes.filter(n => n.status === "OFFLINE");
+      const deadNodes = (Array.isArray(nodes) ? nodes : []).filter(n => n.status === "OFFLINE");
       
       const newAnomalies = [];
       if (deadNodes.length > 0) {
