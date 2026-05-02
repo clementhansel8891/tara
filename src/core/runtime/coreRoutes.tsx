@@ -547,7 +547,7 @@ export function buildCoreRoutes(): JSX.Element[] {
       element={
         <ProtectedRoute permission="core.it.access" scope="COMPANY">
           <ITWorkspaceLayout>
-            <TestComponent />
+            <RoleGovernance />
           </ITWorkspaceLayout>
         </ProtectedRoute>
       }

@@ -179,33 +179,11 @@ export default function LeadCaptureDesk() {
       toast.error("Authorization protocol failure.");
       setRefreshing(false);
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-             <Fingerprint className="h-10 w-10 text-white" />
-          </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Booting Intelligence Ingestion...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div id="lead-capture-root" className="p-20 text-center bg-slate-50 dark:bg-slate-950 min-h-full">
-        <h2 className="text-2xl font-black uppercase italic text-slate-400">Telemetry Ingestion Failure</h2>
-        <p className="text-sm text-slate-500 mt-4">The lead capture matrix is currently offline. Verification pending.</p>
-      </div>
-    );
-  }
+  const [leads] = useState<Lead[]>(INITIAL_LEADS);
+  const [loading] = useState(false);
 
   return (
-    <div id="lead-capture-root" className="p-8 space-y-10 max-w-[1600px] mx-auto pb-24">
-      {/* Premium Header */}
+    <div id="lead-capture-root" className="p-8 space-y-10 max-w-[1600px] mx-auto pb-24 animate-in fade-in duration-700">
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
