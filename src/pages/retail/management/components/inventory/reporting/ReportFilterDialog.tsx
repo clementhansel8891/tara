@@ -149,7 +149,7 @@ export const ReportFilterDialog: React.FC<ReportFilterDialogProps> = ({
                       Global HQ (All Branches)
                     </SelectItem>
                     <Separator className="my-3 opacity-50" />
-                    {stores.map((s) => (
+                    {(Array.isArray(stores) ? stores : []).map((s) => (
                       <SelectItem
                         key={s.id}
                         value={s.id}

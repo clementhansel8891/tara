@@ -65,7 +65,7 @@ export const OpnameFilters: React.FC<OpnameFiltersProps> = ({
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            {categoryOptions.map((c) => (
+            {(Array.isArray(categoryOptions) ? categoryOptions : []).map((c) => (
               <SelectItem key={c.id} value={c.id} className="font-bold italic">
                 {c.name}
               </SelectItem>

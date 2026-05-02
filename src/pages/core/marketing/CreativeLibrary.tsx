@@ -323,7 +323,7 @@ export default function CreativeLibrary() {
           "grid gap-10",
           view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "grid-cols-1"
         )}>
-          {filteredAssets.map((asset) => (
+          {(Array.isArray(filteredAssets) ? filteredAssets : []).map((asset) => (
             <Card key={asset.id} className="group relative overflow-hidden rounded-[2.5rem] border-none bg-white dark:bg-slate-900 shadow-xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-default">
               <CardContent className="p-0">
                 <div className="aspect-[4/3] relative bg-slate-50 dark:bg-slate-950 flex items-center justify-center overflow-hidden group/thumb">
@@ -400,7 +400,7 @@ export default function CreativeLibrary() {
                 
                 <div className="flex flex-wrap gap-2">
                   {asset.tags?.length > 0 ? (
-                    asset.tags.map((tag: string) => (
+                    (Array.isArray(asset.tags) ? asset.tags : []).map((tag: string) => (
                       <Badge key={tag} variant="secondary" className="text-[9px] font-black py-0.5 h-6 bg-slate-50 dark:bg-slate-800 text-slate-500 border-none uppercase tracking-widest px-3 rounded-full">
                         {tag}
                       </Badge>

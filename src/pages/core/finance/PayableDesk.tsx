@@ -133,7 +133,7 @@ export default function PayableDesk() {
           </tr>
         </thead>
         <tbody>
-          {items.map((payable) => (
+          {(Array.isArray(items) ? items : []).map((payable) => (
             <tr
               key={payable.id}
               className="cursor-pointer border-t hover:bg-muted/50"
@@ -209,13 +209,13 @@ export default function PayableDesk() {
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <Tabs value={tab} onValueChange={(value) => setTab(value as PayableTab)}>
           <TabsList>
-            {TABS.map((status) => (
+            {(Array.isArray(TABS) ? TABS : []).map((status) => (
               <TabsTrigger key={status} value={status}>
                 {status.charAt(0) + status.slice(1).toLowerCase()}
               </TabsTrigger>
             ))}
           </TabsList>
-          {TABS.map((status) => (
+          {(Array.isArray(TABS) ? TABS : []).map((status) => (
             <TabsContent key={status} value={status} className="mt-4">
               {renderTable(grouped[status])}
             </TabsContent>

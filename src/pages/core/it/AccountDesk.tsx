@@ -135,7 +135,7 @@ export default function AccountDesk() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((acc) => (
+                (Array.isArray(filtered) ? filtered : []).map((acc) => (
                   <tr
                     key={acc.id}
                     className="border-t cursor-pointer hover:bg-muted/50"

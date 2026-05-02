@@ -41,7 +41,7 @@ export const hrWorkstreamService = {
     const contracts: any[] = []; 
 
     const employeeMap = new Map(
-      employees.map((employee) => [employee.id, employee.departmentId]),
+      (Array.isArray(employees) ? employees : []).map((employee) => [employee.id, employee.departmentId]),
     );
 
     const workflowItems: PulseItem[] = workflows.slice(0, 6).map((flow) => ({
@@ -66,8 +66,7 @@ export const hrWorkstreamService = {
       entityId: contract.id,
     }));
 
-    const payrollItems: PulseItem[] = payrollRuns
-      .filter((run) => run.status !== "approved")
+    const payrollItems: PulseItem[] = (Array.isArray(payrollRuns) ? payrollRuns : []).filter((run) => run.status !== "approved")
       .slice(0, 4)
       .map((run) => ({
         id: run.id,
@@ -80,8 +79,7 @@ export const hrWorkstreamService = {
         entityId: run.id,
       }));
 
-    const attendanceItems: PulseItem[] = attendance
-      .filter((record) => record.status !== "on_time")
+    const attendanceItems: PulseItem[] = (Array.isArray(attendance) ? attendance : []).filter((record) => record.status !== "on_time")
       .slice(0, 4)
       .map((record) => ({
         id: record.id,
@@ -94,8 +92,7 @@ export const hrWorkstreamService = {
         entityId: record.employeeId,
       }));
 
-    const trainingItems: PulseItem[] = trainings
-      .filter((item) => item.status !== "completed")
+    const trainingItems: PulseItem[] = (Array.isArray(trainings) ? trainings : []).filter((item) => item.status !== "completed")
       .slice(0, 4)
       .map((assignment) => ({
         id: assignment.id,

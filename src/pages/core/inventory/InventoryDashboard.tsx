@@ -157,7 +157,7 @@ export default function InventoryDashboard() {
                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Stock Posture Stable. No Open Incidents.</p>
               </div>
             ) : (
-              openAlerts.map((alert) => (
+              (Array.isArray(openAlerts) ? openAlerts : []).map((alert) => (
                 <div key={alert.id} className="group flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-rose-500/30 hover:shadow-xl transition-all duration-500">
                   <div className="flex items-center gap-6">
                     <div className={cn(

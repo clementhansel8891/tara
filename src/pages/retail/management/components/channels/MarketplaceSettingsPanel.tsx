@@ -244,7 +244,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
 
       {/* Fields */}
       <div className="space-y-4">
-        {config.fields.map((f) => (
+        {(Array.isArray(config.fields) ? config.fields : []).map((f) => (
           <div key={f.key} className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
               {f.label}

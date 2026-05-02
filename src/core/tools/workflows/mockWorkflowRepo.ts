@@ -44,7 +44,7 @@ export const mockWorkflowRepo: WorkflowRepository = {
   },
   updateWorkflow(tenantId, payload) {
     const items = readWorkflows();
-    const next = items.map((item) =>
+    const next = (Array.isArray(items) ? items : []).map((item) =>
       item.tenantId === tenantId && item.id === payload.id ? payload : item,
     );
     writeWorkflows(next);

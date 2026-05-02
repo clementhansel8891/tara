@@ -74,7 +74,7 @@ export default function ITDashboard() {
         >
           <div className="grid gap-4 md:grid-cols-2">
             {health.length > 0 ? (
-              health.map((h) => (
+              (Array.isArray(health) ? health : []).map((h) => (
                 <ServiceStatus 
                   key={h.id}
                   name={h.component} 

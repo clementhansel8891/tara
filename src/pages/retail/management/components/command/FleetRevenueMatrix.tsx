@@ -161,7 +161,7 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                     }}
                   />
                   <Bar dataKey="amount" radius={[0, 12, 12, 0]} barSize={32}>
-                    {nodeSales.map((entry, index) => (
+                    {(Array.isArray(nodeSales) ? nodeSales : []).map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
                         fill={entry.type === 'store' ? '#4f46e5' : '#10b981'} 

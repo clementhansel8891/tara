@@ -168,7 +168,7 @@ export default function CoreDashboard() {
             <TabsContent value="overview" className="space-y-10 m-0">
               {/* Core KPI Matrix */}
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {kpis.map((kpi, i) => (
+                {(Array.isArray(kpis) ? kpis : []).map((kpi, i) => (
                   <Card key={i} className="rounded-[2rem] border-none shadow-2xl shadow-slate-200/30 dark:shadow-none bg-white dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden group border border-white/20">
                     <CardContent className="p-8">
                       <div className="flex justify-between items-start mb-6">
@@ -305,7 +305,7 @@ export default function CoreDashboard() {
             </div>
 
             <div className="space-y-6">
-              {executiveBriefs.map((brief) => (
+              {(Array.isArray(executiveBriefs) ? executiveBriefs : []).map((brief) => (
                 <div key={brief.id} className="relative pl-6 pb-6 border-l border-slate-100 last:pb-0">
                   <div className={cn(
                     "absolute left-[-5px] top-0 h-2.5 w-2.5 rounded-full ring-4 ring-white dark:ring-slate-900",

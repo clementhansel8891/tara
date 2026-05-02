@@ -258,7 +258,7 @@ export default function OpportunityDesk() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((op) => (
+                {(Array.isArray(filtered) ? filtered : []).map((op) => (
                   <tr 
                     key={op.id} 
                     className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all cursor-pointer"
@@ -296,7 +296,7 @@ export default function OpportunityDesk() {
                               <SelectValue placeholder="Stage" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-none shadow-2xl p-2">
-                              {STAGES.map((stage) => (
+                              {(Array.isArray(STAGES) ? STAGES : []).map((stage) => (
                                 <SelectItem key={stage} value={stage} className="rounded-lg text-xs font-bold py-2">
                                   {stage.replace('_', ' ')}
                                 </SelectItem>

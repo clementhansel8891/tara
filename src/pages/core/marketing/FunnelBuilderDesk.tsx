@@ -279,7 +279,7 @@ export default function FunnelBuilderDesk() {
 
   const updateStep = () => {
     if (!selectedFunnel || !editingStep) return;
-    const newSteps = selectedFunnel.steps.map(s => s.id === editingStep.id ? editingStep : s);
+    const newSteps = (Array.isArray(selectedFunnel.steps) ? selectedFunnel.steps : []).map(s => s.id === editingStep.id ? editingStep : s);
     setSelectedFunnel({ ...selectedFunnel, steps: newSteps });
     setEditStepOpen(false);
     setEditingStep(null);
@@ -377,7 +377,7 @@ export default function FunnelBuilderDesk() {
             </CardHeader>
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-2">
-                {funnels.map(f => (
+                {(Array.isArray(funnels) ? funnels : []).map(f => (
                   <button
                     key={f.id}
                     onClick={() => setSelectedFunnel(f)}
@@ -450,9 +450,9 @@ export default function FunnelBuilderDesk() {
                     <ScrollArea className="h-full">
                        <div className="p-16 relative z-10">
                           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                            <SortableContext items={selectedFunnel.steps.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                            <SortableContext items={(Array.isArray(selectedFunnel.steps) ? selectedFunnel.steps : []).map(s => s.id)} strategy={verticalListSortingStrategy}>
                                <div className="max-w-2xl mx-auto">
-                                  {selectedFunnel.steps.map((step, idx) => (
+                                  {(Array.isArray(selectedFunnel.steps) ? selectedFunnel.steps : []).map((step, idx) => (
                                     <SortableStep 
                                      key={step.id} 
                                      step={step} 

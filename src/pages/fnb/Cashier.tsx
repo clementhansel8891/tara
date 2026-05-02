@@ -64,7 +64,7 @@ export default function CafeCashier() {
   const [selectedModifiers, setSelectedModifiers] = useState<string[]>([]);
 
   // Filter products
-  const filteredProducts = mockCafeProducts.filter((product) => {
+  const filteredProducts = (Array.isArray(mockCafeProducts) ? mockCafeProducts : []).filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -111,8 +111,7 @@ export default function CafeCashier() {
 
   const updateQuantity = (index: number, delta: number) => {
     setCartItems((prev) =>
-      prev
-        .map((item, i) =>
+      (Array.isArray(prev) ? prev : []).map((item, i) =>
           i === index ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
         .filter((item) => item.quantity > 0)
@@ -120,7 +119,7 @@ export default function CafeCashier() {
   };
 
   const removeFromCart = (index: number) => {
-    setCartItems((prev) => prev.filter((_, i) => i !== index));
+    setCartItems((prev) => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
   };
 
   const clearCart = () => {
@@ -184,7 +183,7 @@ export default function CafeCashier() {
         {/* Category Tabs */}
         <ScrollArea className="w-full">
           <div className="flex gap-2 pb-2">
-            {cafeCategories.map((category) => (
+            {(Array.isArray(cafeCategories) ? cafeCategories : []).map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
@@ -201,7 +200,7 @@ export default function CafeCashier() {
         {/* Product Grid */}
         <ScrollArea className="flex-1">
           <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {filteredProducts.map((product) => (
+            {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
               <Card
                 key={product.id}
                 className={cn(
@@ -267,7 +266,7 @@ export default function CafeCashier() {
                 <p className="text-sm">Tap menu items to add</p>
               </div>
             ) : (
-              cartItems.map((item, index) => (
+              (Array.isArray(cartItems) ? cartItems : []).map((item, index) => (
                 <div
                   key={`${item.product.id}-${index}`}
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
@@ -363,7 +362,7 @@ export default function CafeCashier() {
             <div className="space-y-4">
               <p className="text-muted-foreground">Select modifiers (optional)</p>
               <div className="flex flex-wrap gap-2">
-                {MODIFIERS[modifierProduct.category]?.map((mod) => (
+                {(Array.isArray(MODIFIERS[modifierProduct.category]) ? MODIFIERS[modifierProduct.category] : []).map((mod) => (
                   <Button
                     key={mod}
                     variant={selectedModifiers.includes(mod) ? 'default' : 'outline'}
@@ -371,7 +370,7 @@ export default function CafeCashier() {
                     onClick={() => {
                       setSelectedModifiers((prev) =>
                         prev.includes(mod)
-                          ? prev.filter((m) => m !== mod)
+                          ? (Array.isArray(prev) ? prev : []).filter((m) => m !== mod)
                           : [...prev, mod]
                       );
                     }}
@@ -468,7 +467,7 @@ export default function CafeCashier() {
                   className="text-2xl h-14 text-center font-bold"
                 />
                 <div className="grid grid-cols-4 gap-2">
-                  {quickCashAmounts.map((amount) => (
+                  {(Array.isArray(quickCashAmounts) ? quickCashAmounts : []).map((amount) => (
                     <Button
                       key={amount}
                       variant="outline"

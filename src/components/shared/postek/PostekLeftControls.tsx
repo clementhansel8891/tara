@@ -165,7 +165,7 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
                   <SelectValue placeholder="Select paper size" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PAPER_PRESETS.map((p) => (
+                  {(Array.isArray(PAPER_PRESETS) ? PAPER_PRESETS : []).map((p) => (
                     <SelectItem
                       key={p.id}
                       value={p.id}
@@ -364,7 +364,7 @@ export const PostekLeftControls: React.FC<PostekLeftControlsProps> = ({
           </Badge>
         </div>
         <div className="p-3 space-y-2 bg-slate-50/30">
-          {items.map((item) => (
+          {(Array.isArray(items) ? items : []).map((item) => (
             <div
               key={item.id}
               className="flex items-center justify-between p-3 rounded-xl border border-slate-200/60 bg-white"

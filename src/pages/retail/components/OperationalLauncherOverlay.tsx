@@ -112,7 +112,7 @@ export const OperationalLauncherOverlay: React.FC<{
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto w-full flex-1 items-center overflow-auto">
-        {APPS.map((app) => (
+        {(Array.isArray(APPS) ? APPS : []).map((app) => (
           <Card
             key={app.id}
             className="group hover:scale-105 active:scale-95 transition-all cursor-pointer bg-slate-900 border-slate-800 hover:border-blue-500/50 hover:shadow-[0_0_40px_rgba(59,130,246,0.2)] overflow-hidden h-40 flex items-center"

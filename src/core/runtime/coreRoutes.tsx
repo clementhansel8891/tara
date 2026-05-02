@@ -148,7 +148,7 @@ export function buildCoreRoutes(): JSX.Element[] {
   const defaultPage = pages.find((page) => page.id === "dashboard") ?? pages[0];
   const defaultPath = defaultPage?.route.replace("/core/", "") ?? "";
 
-  const routes = pages.map((page) => {
+  const routes = (Array.isArray(pages) ? pages : []).map((page) => {
     const Component = page.component;
     return (
       <Route

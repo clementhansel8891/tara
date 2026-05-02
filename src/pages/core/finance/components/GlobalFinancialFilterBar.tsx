@@ -90,7 +90,7 @@ export const GlobalFinancialFilterBar: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               {userCompanies.length > 0 ? (
-                userCompanies.map((uc) => (
+                (Array.isArray(userCompanies) ? userCompanies : []).map((uc) => (
                   <SelectItem key={uc.tenant_id} value={uc.tenant_id}>
                     {uc.company?.name || "Unknown Company"} {uc.is_default ? "(Default)" : ""}
                   </SelectItem>
@@ -121,7 +121,7 @@ export const GlobalFinancialFilterBar: React.FC = () => {
               <SelectValue placeholder="Select Period" />
             </SelectTrigger>
             <SelectContent>
-              {periods.map(p => (
+              {(Array.isArray(periods) ? periods : []).map(p => (
                 <SelectItem key={p.id} value={p.id}>
                   {p.startDate} - {p.endDate} ({p.status})
                 </SelectItem>

@@ -186,7 +186,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
         {/* Header row: tabs + search */}
         <div className="flex items-center justify-between border-b pb-4 overflow-x-auto scrollbar-hide">
           <TabsList className="bg-transparent h-auto p-0 gap-4 flex-shrink-0">
-            {TABS.map((tab) => (
+            {(Array.isArray(TABS) ? TABS : []).map((tab) => (
               <TabsTrigger
                 key={tab.key}
                 value={tab.key}
@@ -246,7 +246,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 italic">
-                    {filteredOrders.map((order) => {
+                    {(Array.isArray(filteredOrders) ? filteredOrders : []).map((order) => {
                       const channel = getChannelInfo(order.paymentMethod);
                       const ChannelIcon = channel.icon;
                       const existingAwb = awbInputs[order.id];
@@ -399,7 +399,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                                     }))
                                   }
                                 >
-                                  {carriers.map((c) => (
+                                  {(Array.isArray(carriers) ? carriers : []).map((c) => (
                                     <option key={c.code} value={c.code}>
                                       {c.label}
                                     </option>

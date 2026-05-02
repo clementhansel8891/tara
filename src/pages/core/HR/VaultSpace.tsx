@@ -112,7 +112,7 @@ export default function VaultSpace() {
               </tr>
             </thead>
             <tbody>
-              {documents.map((doc) => (
+              {(Array.isArray(documents) ? documents : []).map((doc) => (
                 <tr key={doc.id} className="border-t">
                   <td className="p-3 font-medium text-foreground">{doc.title}</td>
                   <td className="p-3 text-muted-foreground">{doc.type}</td>

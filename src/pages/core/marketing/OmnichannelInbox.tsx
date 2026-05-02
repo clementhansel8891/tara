@@ -260,7 +260,7 @@ export default function OmnichannelInbox() {
                              <div className="p-12 flex flex-col items-center gap-4 grayscale opacity-30"><Loader2 className="h-8 w-8 animate-spin" /><p className="text-[10px] font-black uppercase tracking-widest">Scanning...</p></div>
                            ) : (
                              <div className="space-y-1">
-                               {contacts.map(contact => (
+                               {(Array.isArray(contacts) ? contacts : []).map(contact => (
                                  <button 
                                    key={contact.id}
                                    className="w-full p-4 flex items-center gap-4 hover:bg-white dark:hover:bg-slate-800 rounded-2xl text-left transition-all group"
@@ -339,7 +339,7 @@ export default function OmnichannelInbox() {
                     <p className="text-[10px] font-black uppercase tracking-widest">Zero Links Detected</p>
                   </div>
                 ) : (
-                  filteredConversations.map(conv => (
+                  (Array.isArray(filteredConversations) ? filteredConversations : []).map(conv => (
                      <button
                        key={conv.id}
                        onClick={() => setSelectedConv(conv)}
@@ -464,7 +464,7 @@ export default function OmnichannelInbox() {
                       </Badge>
                     </div>
                     
-                    {messages.map((msg, idx) => {
+                    {(Array.isArray(messages) ? messages : []).map((msg, idx) => {
                       const isNewDay = idx === 0 || new Date(msg.sent_at).toDateString() !== new Date(messages[idx-1].sent_at).toDateString();
                       
                       return (

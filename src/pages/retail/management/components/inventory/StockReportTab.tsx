@@ -131,7 +131,7 @@ export const StockReportTab: React.FC<Props> = ({
 
       {/* -- Centered Report Selection Grid -- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-        {REPORT_TEMPLATES.map((template) => (
+        {(Array.isArray(REPORT_TEMPLATES) ? REPORT_TEMPLATES : []).map((template) => (
           <ReportTemplateCard
             key={template.id}
             template={template}

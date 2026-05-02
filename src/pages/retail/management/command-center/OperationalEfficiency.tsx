@@ -121,7 +121,7 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
         </div>
 
         <div className="space-y-5 flex-1">
-          {data.slowestSkus.map((sku, idx) => (
+          {(Array.isArray(data.slowestSkus) ? data.slowestSkus : []).map((sku, idx) => (
             <div
               key={idx}
               className="group/item flex items-start gap-6 p-6 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-white/[0.04] transition-all duration-500 cursor-default shadow-lg"

@@ -13,8 +13,8 @@ export const performanceService = {
     return {
       cycles,
       reviews,
-      activeCycles: cycles.filter(c => c.status === "active").length,
-      pendingReviews: reviews.filter(r => r.status === "pending").length,
+      activeCycles: (Array.isArray(cycles) ? cycles : []).filter(c => c.status === "active").length,
+      pendingReviews: (Array.isArray(reviews) ? reviews : []).filter(r => r.status === "pending").length,
     };
   },
 

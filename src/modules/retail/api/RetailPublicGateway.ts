@@ -250,7 +250,7 @@ export class RetailPublicGateway {
 
       // We need to resolve SKU to Item ID
       const inventory = await retailService.listInventory(tenantId, session);
-      const orderItems = body.items.map((pubItem) => {
+      const orderItems = (Array.isArray(body.items) ? body.items : []).map((pubItem) => {
         const internalItem = inventory.find((i) => i.sku === pubItem.sku);
         if (!internalItem) {
           throw {

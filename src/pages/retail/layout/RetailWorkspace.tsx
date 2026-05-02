@@ -172,7 +172,7 @@ const RetailWorkspace = () => {
             Governance Applications
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {managementApps.map((app) => (
+            {(Array.isArray(managementApps) ? managementApps : []).map((app) => (
               <Card
                 key={app.id}
                 className="group hover:border-blue-400 hover:shadow-2xl transition-all cursor-pointer bg-white border-2 border-slate-100 rounded-3xl overflow-hidden"

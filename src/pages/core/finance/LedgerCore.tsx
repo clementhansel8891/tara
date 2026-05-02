@@ -304,7 +304,7 @@ export default function LedgerCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredJournals.map((journal) => (
+                  {(Array.isArray(filteredJournals) ? filteredJournals : []).map((journal) => (
                     <tr
                       key={journal.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -348,7 +348,7 @@ export default function LedgerCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInvoices.map((invoice) => (
+                  {(Array.isArray(filteredInvoices) ? filteredInvoices : []).map((invoice) => (
                     <tr
                       key={invoice.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -398,7 +398,7 @@ export default function LedgerCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayroll.map((entryRow) => (
+                  {(Array.isArray(filteredPayroll) ? filteredPayroll : []).map((entryRow) => (
                     <tr
                       key={entryRow.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -503,7 +503,7 @@ export default function LedgerCore() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {entry.lines.map((line, idx) => (
+                      {(Array.isArray(entry.lines) ? entry.lines : []).map((line, idx) => (
                         <tr key={idx} className="hover:bg-muted/20">
                           <td className="p-2">
                             <Input
@@ -634,7 +634,7 @@ export default function LedgerCore() {
                     </tr>
                   </thead>
                   <tbody className="divide-y text-right">
-                    {payrollEstimates.map((est, i) => (
+                    {(Array.isArray(payrollEstimates) ? payrollEstimates : []).map((est, i) => (
                       <tr key={i} className="hover:bg-muted/50 transition-colors">
                         <td className="p-3 text-left font-medium">{est.department}</td>
                         <td className="p-3">{est.employeeCount}</td>

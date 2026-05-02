@@ -185,7 +185,7 @@ export default function InventoryReceiving() {
                   </td>
                 </tr>
               ) : (
-                filteredQueue.map((po) => (
+                (Array.isArray(filteredQueue) ? filteredQueue : []).map((po) => (
                   <tr key={po.id} className="border-t hover:bg-muted/50 transition-colors">
                     <td className="p-3 font-medium">{po.title}</td>
                     <td className="p-3 text-muted-foreground">
@@ -266,14 +266,14 @@ export default function InventoryReceiving() {
                   + Add Line
                 </Button>
               </div>
-              {receiveItems.map((item, idx) => (
+              {(Array.isArray(receiveItems) ? receiveItems : []).map((item, idx) => (
                 <div key={idx} className="grid grid-cols-3 gap-2">
                   <Input
                     placeholder="SKU"
                     value={item.sku}
                     onChange={(e) =>
                       setReceiveItems((prev) =>
-                        prev.map((p, i) => (i === idx ? { ...p, sku: e.target.value } : p)),
+                        (Array.isArray(prev) ? prev : []).map((p, i) => (i === idx ? { ...p, sku: e.target.value } : p)),
                       )
                     }
                   />
@@ -284,7 +284,7 @@ export default function InventoryReceiving() {
                     min={1}
                     onChange={(e) =>
                       setReceiveItems((prev) =>
-                        prev.map((p, i) =>
+                        (Array.isArray(prev) ? prev : []).map((p, i) =>
                           i === idx ? { ...p, quantity: Number(e.target.value) } : p,
                         ),
                       )
@@ -297,7 +297,7 @@ export default function InventoryReceiving() {
                     min={0}
                     onChange={(e) =>
                       setReceiveItems((prev) =>
-                        prev.map((p, i) =>
+                        (Array.isArray(prev) ? prev : []).map((p, i) =>
                           i === idx ? { ...p, unitCost: Number(e.target.value) } : p,
                         ),
                       )

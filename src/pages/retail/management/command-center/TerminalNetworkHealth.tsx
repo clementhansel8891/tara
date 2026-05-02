@@ -26,7 +26,7 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
       <CardContent className="p-8 pt-0 space-y-6">
         <div className="grid grid-cols-4 gap-3">
           {devices.length > 0 ? (
-            devices.map((d, i) => (
+            (Array.isArray(devices) ? devices : []).map((d, i) => (
               <div
                 key={i}
                 className={cn(

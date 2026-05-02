@@ -273,7 +273,7 @@ export default function LogHub() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  logs.map((log) => (
+                  (Array.isArray(logs) ? logs : []).map((log) => (
                     <TableRow 
                       key={log.id} 
                       className="cursor-pointer hover:bg-muted/30"

@@ -147,7 +147,7 @@ export function TransferDesk() {
                   </td>
                 </tr>
               )}
-              {transfers.map((t) => (
+              {(Array.isArray(transfers) ? transfers : []).map((t) => (
                 <tr key={t.id} className="border-b hover:bg-muted/30 transition-colors">
                   <td className="p-4">
                     <div className="flex flex-col">

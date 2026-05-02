@@ -141,8 +141,7 @@ export default function IncentiveDesk() {
   };
 
   const activePlans = (Array.isArray(plans) ? plans : []).filter(p => p.is_active);
-  const pendingAmount = attributions
-    .filter(a => a.status === "PENDING")
+  const pendingAmount = (Array.isArray(attributions) ? attributions : []).filter(a => a.status === "PENDING")
     .reduce((sum, a) => sum + Number(a.incentive_amount), 0);
 
   if (loading) {
@@ -241,7 +240,7 @@ export default function IncentiveDesk() {
                   <CardDescription className="text-sm font-medium">Highest strategic incentive contributions for the active period.</CardDescription>
                </CardHeader>
                <CardContent className="p-10 pt-0 space-y-6">
-                  {analytics.topEarners?.map((earner: any, i: number) => (
+                  {(Array.isArray(analytics.topEarners) ? analytics.topEarners : []).map((earner: any, i: number) => (
                     <div key={earner.employee_id} className="flex items-center justify-between p-4 rounded-3xl bg-white/80 dark:bg-slate-800/80 hover:scale-[1.02] transition-transform shadow-sm border border-white/20">
                        <div className="flex items-center gap-5">
                           <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center font-black text-xs shadow-inner", i === 0 ? "bg-amber-500/20 text-amber-600" : "bg-slate-100 text-slate-400")}>
@@ -343,7 +342,7 @@ export default function IncentiveDesk() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                  {plans.map((plan) => (
+                  {(Array.isArray(plans) ? plans : []).map((plan) => (
                     <tr key={plan.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-5">
@@ -401,7 +400,7 @@ export default function IncentiveDesk() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                  {attributions.map((attr) => (
+                  {(Array.isArray(attributions) ? attributions : []).map((attr) => (
                     <tr key={attr.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-4">
@@ -462,7 +461,7 @@ export default function IncentiveDesk() {
                         <p className="text-[10px] font-black uppercase tracking-widest">No Protocol Mutations</p>
                      </div>
                    ) : (
-                     auditLogs.map((log) => (
+                     (Array.isArray(auditLogs) ? auditLogs : []).map((log) => (
                        <div key={log.id} className="relative pl-8 pb-8 border-l-2 border-slate-100 dark:border-slate-800 last:pb-0">
                          <div className="absolute -left-[9px] top-0 h-4 w-4 bg-white dark:bg-slate-950 border-4 border-indigo-600 rounded-full shadow-lg shadow-indigo-500/30" />
                          <Card className="rounded-[1.5rem] border-none bg-slate-50 dark:bg-slate-900 p-5 space-y-3">

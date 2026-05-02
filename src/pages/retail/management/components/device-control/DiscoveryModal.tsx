@@ -53,7 +53,7 @@ const DiscoveryModal = ({
             </div>
           </div>
         ) : (
-          results.map((r, i) => (
+          (Array.isArray(results) ? results : []).map((r, i) => (
             <div
               key={i}
               className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all group"

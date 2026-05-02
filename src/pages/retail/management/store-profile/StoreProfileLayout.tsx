@@ -254,7 +254,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                     <Separator className="my-2" />
                   </>
                 )}
-                {stores.map((s) => (
+                {(Array.isArray(stores) ? stores : []).map((s) => (
                   <SelectItem
                     key={s.id}
                     value={s.id}
@@ -321,7 +321,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
           <div className="px-8 bg-white border-b shrink-0">
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="bg-transparent h-auto p-0 gap-12 rounded-none justify-start">
-                {tabs.map((tab) => (
+                {(Array.isArray(tabs) ? tabs : []).map((tab) => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}

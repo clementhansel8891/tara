@@ -184,7 +184,7 @@ export default function TopologyMap() {
           <rect width="100%" height="100%" fill="url(#grid)" />
 
           {/* Edges */}
-          {edges.map((edge, i) => {
+          {(Array.isArray(edges) ? edges : []).map((edge, i) => {
             const start = nodes.find(n => n.id === edge.source);
             const end = nodes.find(n => n.id === edge.target);
             if (!start || !end) return null;
@@ -214,7 +214,7 @@ export default function TopologyMap() {
           })}
 
           {/* Nodes */}
-          {nodes.map((node) => {
+          {(Array.isArray(nodes) ? nodes : []).map((node) => {
             const Icon = getIcon(node.device.deviceType);
             const isOnline = node.device.status === 'online';
 

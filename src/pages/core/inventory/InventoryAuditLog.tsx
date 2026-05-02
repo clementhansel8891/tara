@@ -114,7 +114,7 @@ export default function InventoryAuditLog() {
               </tr>
             </thead>
             <tbody>
-              {filteredMovements.map((item) => (
+              {(Array.isArray(filteredMovements) ? filteredMovements : []).map((item) => (
                 <tr key={item.id} className="border-t">
                   <td className="p-3 text-muted-foreground">
                     {item.createdAt.slice(0, 16).replace("T", " ")}
@@ -150,7 +150,7 @@ export default function InventoryAuditLog() {
                 </tr>
               </thead>
               <tbody>
-                {cycles.map((cycle) => (
+                {(Array.isArray(cycles) ? cycles : []).map((cycle) => (
                   <tr key={cycle.id} className="border-t">
                     <td className="p-3 font-medium">{cycle.id}</td>
                     <td className="p-3 text-muted-foreground">{cycle.scope}</td>
@@ -202,7 +202,7 @@ export default function InventoryAuditLog() {
                 </tr>
               </thead>
               <tbody>
-                {integrations.map((event) => (
+                {(Array.isArray(integrations) ? integrations : []).map((event) => (
                   <tr key={event.id} className="border-t">
                     <td className="p-3 text-muted-foreground">
                       {event.createdAt.slice(0, 16).replace("T", " ")}

@@ -211,7 +211,7 @@ export default function ManagerDesk() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                    {filteredOpportunities.map((item) => (
+                    {(Array.isArray(filteredOpportunities) ? filteredOpportunities : []).map((item) => (
                       <tr key={item.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
                         <td className="px-10 py-8">
                            <div className="flex items-center gap-4">
@@ -274,7 +274,7 @@ export default function ManagerDesk() {
                             <p className="text-[10px] font-black uppercase tracking-widest">Protocol Compliant</p>
                          </div>
                        ) : (
-                         alerts.map((alert) => (
+                         (Array.isArray(alerts) ? alerts : []).map((alert) => (
                            <div key={alert.id} className="p-5 rounded-3xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 space-y-3 group hover:shadow-lg transition-all">
                               <div className="flex justify-between items-start">
                                  <Badge className={cn(

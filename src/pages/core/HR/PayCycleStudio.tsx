@@ -104,7 +104,7 @@ export default function PayCycleStudio() {
               </tr>
             </thead>
             <tbody>
-              {filteredRuns.map((run) => {
+              {(Array.isArray(filteredRuns) ? filteredRuns : []).map((run) => {
                 const canSubmit = run.status === "DRAFT" || run.status === "draft";
                 const canApprove = (run.status === "DRAFT" || run.status === "draft" || run.status === "calculated") && financeAllowed;
                 const canExport = run.status === "APPROVED";
@@ -182,7 +182,7 @@ export default function PayCycleStudio() {
       <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
         <WorkspacePanel title="Pending Approvals" description="Finance approvals for payroll runs.">
           <div className="space-y-3">
-            {workflows.map((flow) => (
+            {(Array.isArray(workflows) ? workflows : []).map((flow) => (
               <div key={flow.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">{flow.entityId}</p>

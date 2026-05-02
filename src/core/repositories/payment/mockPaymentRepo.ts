@@ -196,7 +196,7 @@ const updateById = <T extends { id: string }>(
   patch: Partial<T>,
 ): { updated: T | null; next: T[] } => {
   let updated: T | null = null;
-  const next = items.map((item) => {
+  const next = (Array.isArray(items) ? items : []).map((item) => {
     if (item.id !== id) return item;
     updated = { ...item, ...patch };
     return updated;

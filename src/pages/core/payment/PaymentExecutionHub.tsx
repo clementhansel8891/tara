@@ -108,13 +108,13 @@ export default function PaymentExecutionHub() {
         <div className="grid gap-3 md:grid-cols-5">
           <Select value={type} onValueChange={(value: PaymentTransaction["type"]) => setType(value)}>
             <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
-            <SelectContent>{TYPES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+            <SelectContent>{(Array.isArray(TYPES) ? TYPES : []).map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
           </Select>
           <Input placeholder="Destination" value={destination} onChange={(event) => setDestination(event.target.value)} />
           <Input placeholder="Amount" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} />
           <Select value={channel} onValueChange={(value: PaymentTransaction["channel"]) => setChannel(value)}>
             <SelectTrigger><SelectValue placeholder="Channel" /></SelectTrigger>
-            <SelectContent>{CHANNELS.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+            <SelectContent>{(Array.isArray(CHANNELS) ? CHANNELS : []).map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
           </Select>
           <Button
             onClick={() => {
@@ -155,7 +155,7 @@ export default function PaymentExecutionHub() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
+            {(Array.isArray(filtered) ? filtered : []).map((item) => (
               <tr
                 key={item.id}
                 className="cursor-pointer border-t hover:bg-muted/50"
@@ -170,7 +170,7 @@ export default function PaymentExecutionHub() {
                     <Select value={providerId} onValueChange={(value) => setProviderId(value as typeof providerId)}>
                       <SelectTrigger className="h-8"><SelectValue placeholder="Provider" /></SelectTrigger>
                       <SelectContent>
-                        {providers.map((provider) => (
+                        {(Array.isArray(providers) ? providers : []).map((provider) => (
                           <SelectItem key={provider.id} value={provider.id}>
                             {provider.id}
                           </SelectItem>

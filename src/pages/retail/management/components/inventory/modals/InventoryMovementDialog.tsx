@@ -177,7 +177,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
       .listInventory(tenantId, session, { pageSize: 9999 })
       .then((data) => {
         setAllItems(
-          data.map((p: RetailProduct) => ({
+          (Array.isArray(data) ? data : []).map((p: RetailProduct) => ({
             id: p.id,
             sku: p.sku,
             name: p.name,
@@ -238,7 +238,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
 
   const updateLine = (id: string, changes: Partial<MovementLine>) => {
     setSelectedLines((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, ...changes } : l)),
+      (Array.isArray(prev) ? prev : []).map((l) => (l.id === id ? { ...l, ...changes } : l)),
     );
   };
 
@@ -284,7 +284,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     changes: Partial<NewProductLine>,
   ) => {
     setNewProductLines((prev) =>
-      prev.map((l) => (l.tempId === id ? { ...l, ...changes } : l)),
+      (Array.isArray(prev) ? prev : []).map((l) => (l.tempId === id ? { ...l, ...changes } : l)),
     );
   };
 
@@ -387,8 +387,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
           </SelectTrigger>
           <SelectContent className="rounded-xl font-bold italic">
             <SelectItem value="all">All Category</SelectItem>
-            {categoryOptions
-              .filter((c) => c.id !== "all")
+            {(Array.isArray(categoryOptions) ? categoryOptions : []).filter((c) => c.id !== "all")
               .map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
@@ -413,7 +412,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             </div>
           )}
           {!isFetchingItems &&
-            paginatedItems.map((item) => (
+            (Array.isArray(paginatedItems) ? paginatedItems : []).map((item) => (
               <div
                 key={item.id}
                 className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-slate-50/50 transition-colors group"
@@ -523,7 +522,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         </div>
       ) : (
         <div className="space-y-6 max-h-[520px] overflow-y-auto pr-2 pb-4">
-          {newProductLines.map((line) => (
+          {(Array.isArray(newProductLines) ? newProductLines : []).map((line) => (
             <NewItemFormRow
               key={line.tempId}
               line={line}
@@ -575,7 +574,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               1. Purchase Type
             </h3>
             <div className="grid grid-cols-3 gap-3">
-              {modes.map((m) => (
+              {(Array.isArray(modes) ? modes : []).map((m) => (
                 <button
                   key={m.key}
                   onClick={() => setPurchaseMode(m.key)}
@@ -670,7 +669,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 <SelectValue placeholder="Select destination location..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
-                {otherStores.map((s) => (
+                {(Array.isArray(otherStores) ? otherStores : []).map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     <span className="font-black">{s.name}</span>
                     {s.address && (
@@ -708,7 +707,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 <SelectValue placeholder="Select supplier..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
-                {suppliers.map((s) => (
+                {(Array.isArray(suppliers) ? suppliers : []).map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}
                   </SelectItem>
@@ -741,7 +740,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 <SelectValue placeholder="Select source location..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
-                {otherStores.map((s) => (
+                {(Array.isArray(otherStores) ? otherStores : []).map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     <span className="font-black">{s.name}</span>
                     {s.address && (
@@ -799,7 +798,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
           <div className="flex-1 divide-y divide-slate-50 overflow-y-auto bg-white">
             {/* Restock lines */}
             {showRestockLines &&
-              selectedLines.map((line) => (
+              (Array.isArray(selectedLines) ? selectedLines : []).map((line) => (
                 <div
                   key={line.id}
                   className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-slate-50/50 transition-colors"
@@ -837,7 +836,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               ))}
             {/* New product summary lines */}
             {showNewProductSummary &&
-              newProductLines.map((line) => (
+              (Array.isArray(newProductLines) ? newProductLines : []).map((line) => (
                 <div
                   key={line.tempId}
                   className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-emerald-50/50 transition-colors"

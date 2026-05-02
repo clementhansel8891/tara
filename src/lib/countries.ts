@@ -428,7 +428,7 @@ export const COUNTRIES: Country[] = [
 
 /** Fast O(1) lookup by ISO code */
 export const COUNTRY_MAP: Record<string, Country> = Object.fromEntries(
-  COUNTRIES.map((c) => [c.code, c]),
+  (Array.isArray(COUNTRIES) ? COUNTRIES : []).map((c) => [c.code, c]),
 );
 
 /** Get currency derived from a country code */

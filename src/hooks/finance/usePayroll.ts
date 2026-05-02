@@ -44,7 +44,7 @@ export function usePayroll(tenantId: string, session: SessionContext) {
     setLoading(true);
     try {
       const updated = await payrollService.updatePayrollEntry(entryId, updates);
-      setEntries((prev) => prev.map((e) => (e.id === entryId ? updated : e)));
+      setEntries((prev) => (Array.isArray(prev) ? prev : []).map((e) => (e.id === entryId ? updated : e)));
     } catch (err: unknown) {
       setError(toErrorMessage(err, "Failed to update payroll entry"));
     } finally {

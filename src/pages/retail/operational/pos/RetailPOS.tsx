@@ -66,7 +66,7 @@ export default function RetailPOS() {
 
   const categories = [
     "All",
-    ...Array.from(new Set(INVENTORY.map((i) => i.category))),
+    ...Array.from(new Set((Array.isArray(INVENTORY) ? INVENTORY : []).map((i) => i.category))),
   ];
 
   const filteredInventory = useMemo(() => {
@@ -164,7 +164,7 @@ export default function RetailPOS() {
         {
           store_id: activeStore.id,
           terminal_id: activeDeviceId || "terminal-pos",
-          items: cart.map((i) => ({
+          items: (Array.isArray(cart) ? cart : []).map((i) => ({
             product_id: i.itemId,
             name: i.name,
             quantity: i.quantity,
@@ -226,7 +226,7 @@ export default function RetailPOS() {
                 <SelectValue placeholder="Store" />
               </SelectTrigger>
               <SelectContent>
-                {stores.map((s) => (
+                {(Array.isArray(stores) ? stores : []).map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}
                   </SelectItem>
@@ -240,7 +240,7 @@ export default function RetailPOS() {
               <SelectValue placeholder="Device" />
             </SelectTrigger>
             <SelectContent>
-              {devices.map((d) => (
+              {(Array.isArray(devices) ? devices : []).map((d) => (
                 <SelectItem key={d.id} value={d.id}>
                   {d.name}
                 </SelectItem>
@@ -264,7 +264,7 @@ export default function RetailPOS() {
             </div>
             <Tabs value={activeCategory} onValueChange={setActiveCategory}>
               <TabsList className="h-11">
-                {categories.map((cat) => (
+                {(Array.isArray(categories) ? categories : []).map((cat) => (
                   <TabsTrigger key={cat} value={cat}>
                     {cat}
                   </TabsTrigger>
@@ -278,7 +278,7 @@ export default function RetailPOS() {
             description={`Showing ${filteredInventory.length} items`}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
-              {filteredInventory.map((item) => (
+              {(Array.isArray(filteredInventory) ? filteredInventory : []).map((item) => (
                 <Card
                   key={item.id}
                   className="cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group overflow-hidden"
@@ -318,7 +318,7 @@ export default function RetailPOS() {
                     Empty Cart
                   </p>
                 ) : (
-                  cart.map((item, idx) => (
+                  (Array.isArray(cart) ? cart : []).map((item, idx) => (
                     <div
                       key={idx}
                       className="flex justify-between items-center"

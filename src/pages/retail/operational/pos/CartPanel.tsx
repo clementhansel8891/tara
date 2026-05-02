@@ -103,7 +103,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
           </div>
         ) : (
           <div className="p-3 space-y-2">
-            {cart.map((item) => {
+            {(Array.isArray(cart) ? cart : []).map((item) => {
               const isActive = selectedItemId === item.id;
               return (
                 <div

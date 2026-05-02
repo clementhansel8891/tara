@@ -92,7 +92,7 @@ const RegisterModal = ({ open, tab, onClose, onSave }: RegisterModalProps) => {
                   <SelectValue placeholder={`Select…`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {opts.map((o) => (
+                  {(Array.isArray(opts) ? opts : []).map((o) => (
                     <SelectItem key={o.v} value={o.v}>
                       {o.l}
                     </SelectItem>
@@ -136,7 +136,7 @@ const RegisterModal = ({ open, tab, onClose, onSave }: RegisterModalProps) => {
                       <SelectValue placeholder="Select…" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CONN_TYPES.map((o) => (
+                      {(Array.isArray(CONN_TYPES) ? CONN_TYPES : []).map((o) => (
                         <SelectItem key={o.v} value={o.v}>
                           {o.l}
                         </SelectItem>

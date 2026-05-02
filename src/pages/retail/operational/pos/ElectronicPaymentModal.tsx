@@ -154,7 +154,7 @@ export const ElectronicPaymentModal: React.FC<ElectronicPaymentModalProps> = ({
             <div className="min-h-[160px]">
               {selectedMain ? (
                 <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {channels[selectedMain].map((ch) => (
+                  {(Array.isArray(channels[selectedMain]) ? channels[selectedMain] : []).map((ch) => (
                     <Button
                       key={ch.id}
                       variant="outline"

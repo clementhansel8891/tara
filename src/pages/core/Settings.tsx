@@ -258,7 +258,7 @@ export default function CoreSettings() {
               <p className="text-xs font-bold text-slate-500">Telemetry Cluster 01</p>
             </div>
             <TabsList className="flex flex-col items-stretch bg-transparent p-0 gap-2">
-              {SETTINGS_TABS.map((tab) => (
+              {(Array.isArray(SETTINGS_TABS) ? SETTINGS_TABS : []).map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
@@ -373,7 +373,7 @@ export default function CoreSettings() {
                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">No Satellite Nodes Detected</p>
                   </div>
                 ) : (
-                  childCompanies.map((child: any) => (
+                  (Array.isArray(childCompanies) ? childCompanies : []).map((child: any) => (
                     <Card 
                       key={child.id} 
                       className="rounded-[2.5rem] border-none shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-pointer group bg-white dark:bg-slate-900"
@@ -412,14 +412,14 @@ export default function CoreSettings() {
 
           <TabsContent value="integrations" className="space-y-10 m-0">
              <div className="grid gap-10">
-                {integrationGroups.map((group, i) => (
+                {(Array.isArray(integrationGroups) ? integrationGroups : []).map((group, i) => (
                   <WorkspacePanel
                     key={i}
                     title={group.title}
                     description={group.description}
                   >
                     <div className="grid gap-6 md:grid-cols-2 pt-4">
-                       {group.items.map((item) => (
+                       {(Array.isArray(group.items) ? group.items : []).map((item) => (
                          <div key={item.id} className="p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:shadow-2xl transition-all duration-500 group flex flex-col justify-between h-full">
                             <div className="space-y-6">
                               <div className="flex justify-between items-start">

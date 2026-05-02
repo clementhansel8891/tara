@@ -145,7 +145,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               </div>
 
               <div className="space-y-3">
-                {order.items.map((item, idx) => {
+                {(Array.isArray(order.items) ? order.items : []).map((item, idx) => {
                   const soh = Math.floor(Math.random() * 50) + 5;
                   const safetyBuffer = 10;
                   const ats = soh - safetyBuffer;
@@ -294,7 +294,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "complete" && onRefund && (
                 <Button
                   variant="ghost"
-                  onClick={() => onRefund(order.id, order.items.map(i => i.product_id))}
+                  onClick={() => onRefund(order.id, (Array.isArray(order.items) ? order.items : []).map(i => i.product_id))}
                   className="h-14 w-14 rounded-2xl border border-orange-100 text-orange-600 hover:bg-orange-50"
                   title="Initiate Refund"
                 >

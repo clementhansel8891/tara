@@ -107,7 +107,7 @@ export function CreatePaymentDialog({
                   <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
                     <SelectTrigger className="w-full h-12 rounded-2xl font-bold border-slate-200"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl">
-                      {PAYMENT_METHODS.map((m) => (
+                      {(Array.isArray(PAYMENT_METHODS) ? PAYMENT_METHODS : []).map((m) => (
                         <SelectItem key={m} value={m} className="font-bold">{m.replace("_", " ")}</SelectItem>
                       ))}
                     </SelectContent>
@@ -120,7 +120,7 @@ export function CreatePaymentDialog({
                       <SelectValue placeholder="Select source" />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl">
-                      {moneySources.map((ms) => (
+                      {(Array.isArray(moneySources) ? moneySources : []).map((ms) => (
                         <SelectItem key={ms.id} value={ms.id} className="font-bold">
                           {ms.name} ({ms.currency})
                         </SelectItem>

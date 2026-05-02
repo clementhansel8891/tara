@@ -46,7 +46,7 @@ export default function PaymentAuditVault() {
             </tr>
           </thead>
           <tbody>
-            {evidence.map((item) => (
+            {(Array.isArray(evidence) ? evidence : []).map((item) => (
               <tr key={item.id} className="border-t">
                 <td className="p-3 font-medium">{item.id}</td>
                 <td className="p-3 text-muted-foreground">{item.paymentId}</td>
@@ -71,7 +71,7 @@ export default function PaymentAuditVault() {
             </tr>
           </thead>
           <tbody>
-            {events.map((event) => (
+            {(Array.isArray(events) ? events : []).map((event) => (
               <tr key={event.id} className="border-t">
                 <td className="p-3 text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</td>
                 <td className="p-3"><Badge variant="outline">{event.action}</Badge></td>

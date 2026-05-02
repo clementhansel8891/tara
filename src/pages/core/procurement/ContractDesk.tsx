@@ -148,7 +148,7 @@ export default function ContractDesk() {
               ) : filteredContracts.length === 0 ? (
                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No contracts found.</td></tr>
               ) : (
-                filteredContracts.map((contract) => (
+                (Array.isArray(filteredContracts) ? filteredContracts : []).map((contract) => (
                   <tr key={contract.id} className="border-t">
                     <td className="p-3 font-medium">{contract.id}</td>
                     <td className="p-3 text-muted-foreground">{contract.requisitionId}</td>
@@ -270,7 +270,7 @@ export default function ContractDesk() {
                         <SelectValue placeholder="Select REQ ID" />
                       </SelectTrigger>
                       <SelectContent>
-                        {requisitions.map(r => (
+                        {(Array.isArray(requisitions) ? requisitions : []).map(r => (
                           <SelectItem key={r.id} value={r.id}>{r.id} - {r.title}</SelectItem>
                         ))}
                       </SelectContent>
@@ -283,7 +283,7 @@ export default function ContractDesk() {
                         <SelectValue placeholder="Select Supplier" />
                       </SelectTrigger>
                       <SelectContent>
-                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        {(Array.isArray(suppliers) ? suppliers : []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

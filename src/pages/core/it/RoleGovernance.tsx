@@ -86,11 +86,11 @@ export default function RoleGovernance() {
   const selectedRole = roles.find(r => r.id === selectedRoleId) || roles[0];
 
   const toggleCapability = (roleId: string, capId: string) => {
-    setRoles(prev => prev.map(r => {
+    setRoles(prev => (Array.isArray(prev) ? prev : []).map(r => {
       if (r.id === roleId) {
         return {
           ...r,
-          capabilities: r.capabilities.map(c => 
+          capabilities: (Array.isArray(r.capabilities) ? r.capabilities : []).map(c => 
             c.id === capId ? { ...c, enabled: !c.enabled } : c
           )
         };
@@ -127,7 +127,7 @@ export default function RoleGovernance() {
         <div className="space-y-4">
            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">Inheritance Matrix</p>
            <div className="space-y-2">
-              {roles.map((role) => (
+              {(Array.isArray(roles) ? roles : []).map((role) => (
                 <button
                   key={role.id}
                   onClick={() => setSelectedRoleId(role.id)}
@@ -216,7 +216,7 @@ export default function RoleGovernance() {
               <div className="space-y-4">
                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Granular Capabilities</p>
                  <div className="space-y-2">
-                    {selectedRole.capabilities.map((cap) => (
+                    {(Array.isArray(selectedRole.capabilities) ? selectedRole.capabilities : []).map((cap) => (
                       <div key={cap.id} className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-indigo-500/30 transition-all duration-300">
                          <div className="space-y-1">
                             <h4 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white">{cap.label}</h4>

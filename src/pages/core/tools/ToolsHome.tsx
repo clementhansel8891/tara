@@ -31,7 +31,7 @@ export default function ToolsHome() {
                 </Button>
               </div>
             </div>
-            {tools.map((tool) => {
+            {(Array.isArray(tools) ? tools : []).map((tool) => {
               const route =
                 tool.category === "documents"
                   ? "docs"

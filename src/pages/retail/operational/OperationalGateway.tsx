@@ -140,7 +140,7 @@ const RetailOperationalGateway = () => {
 
         {/* App Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 flex-1 items-center py-12">
-          {visibleApps.map((app) => (
+          {(Array.isArray(visibleApps) ? visibleApps : []).map((app) => (
             <Card 
               key={app.id} 
               className="group hover:scale-[1.03] active:scale-95 transition-all cursor-pointer bg-white/5 border-white/10 hover:border-indigo-500/50 hover:shadow-[0_40px_100px_-20px_rgba(99,102,241,0.15)] overflow-hidden h-48 flex items-center backdrop-blur-xl rounded-[2.5rem]"

@@ -51,7 +51,7 @@ export const InventoryKpiBar: React.FC<Props> = ({ stats, isAggregating }) => {
 
   return (
     <div className="grid grid-cols-5 gap-4">
-      {kpis.map((k) => (
+      {(Array.isArray(kpis) ? kpis : []).map((k) => (
         <Card
           key={k.label}
           className="rounded-2xl border-none shadow-md bg-white p-4"

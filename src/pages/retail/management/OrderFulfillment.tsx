@@ -69,7 +69,7 @@ const OrderFulfillment = () => {
         newStatus,
       );
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+        (Array.isArray(prev) ? prev : []).map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
       );
       toast({
         title: "Signal Synchronized",

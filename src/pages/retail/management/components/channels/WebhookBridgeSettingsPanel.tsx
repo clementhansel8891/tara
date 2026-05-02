@@ -123,7 +123,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
   const [customHeader, setCustomHeader] = useState("");
   const [retryPolicy, setRetryPolicy] = useState("3x");
   const [enabledEvents, setEnabledEvents] = useState<Set<string>>(
-    new Set(BRIDGE_EVENTS.map((e) => e.key)),
+    new Set((Array.isArray(BRIDGE_EVENTS) ? BRIDGE_EVENTS : []).map((e) => e.key)),
   );
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
     setRetryPolicy(s.retryPolicy ?? "3x");
     const events = s.enabledEvents
       ? (JSON.parse(s.enabledEvents) as string[])
-      : BRIDGE_EVENTS.map((e) => e.key);
+      : (Array.isArray(BRIDGE_EVENTS) ? BRIDGE_EVENTS : []).map((e) => e.key);
     setEnabledEvents(new Set(events));
     setTestResult(null);
   }, [channel.id, channel.settings]);
@@ -378,7 +378,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
           </p>
         </div>
         <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
-          {BRIDGE_EVENTS.map((ev) => (
+          {(Array.isArray(BRIDGE_EVENTS) ? BRIDGE_EVENTS : []).map((ev) => (
             <div
               key={ev.key}
               className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
@@ -430,7 +430,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
           </span>
         </div>
         <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
-          {MOCK_LOGS.map((log) => (
+          {(Array.isArray(MOCK_LOGS) ? MOCK_LOGS : []).map((log) => (
             <div
               key={log.id}
               className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"

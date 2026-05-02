@@ -145,7 +145,7 @@ const SelfServiceKiosk = () => {
         {
           store_id: activeStore.id,
           terminal_id: "kiosk-self-terminal-01",
-          items: cart.map((item) => ({
+          items: (Array.isArray(cart) ? cart : []).map((item) => ({
             product_id: item.id,
             name: item.name,
             quantity: item.quantity,
@@ -309,7 +309,7 @@ const SelfServiceKiosk = () => {
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-50">
-                      {cart.map((item) => (
+                      {(Array.isArray(cart) ? cart : []).map((item) => (
                         <div
                           key={item.id}
                           className="p-8 flex items-center justify-between group hover:bg-slate-50 transition-colors"
@@ -334,7 +334,7 @@ const SelfServiceKiosk = () => {
                                 className="h-10 w-10 p-0 rounded-xl hover:bg-slate-100 font-black"
                                 onClick={() =>
                                   setCart((prev) =>
-                                    prev.map((i) =>
+                                    (Array.isArray(prev) ? prev : []).map((i) =>
                                       i.id === item.id
                                         ? {
                                             ...i,
@@ -358,7 +358,7 @@ const SelfServiceKiosk = () => {
                                 className="h-10 w-10 p-0 rounded-xl hover:bg-slate-100 font-black"
                                 onClick={() =>
                                   setCart((prev) =>
-                                    prev.map((i) =>
+                                    (Array.isArray(prev) ? prev : []).map((i) =>
                                       i.id === item.id
                                         ? { ...i, quantity: i.quantity + 1 }
                                         : i,

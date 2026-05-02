@@ -55,7 +55,7 @@ const SECTIONS: MenuSection[] = [
 
 const ROUTE_LABELS: Record<string, string> = Object.fromEntries(
   SECTIONS.flatMap((section) =>
-    section.items.map((item) => [item.to.replace("/core/payment/", ""), item.label]),
+    (Array.isArray(section.items) ? section.items : []).map((item) => [item.to.replace("/core/payment/", ""), item.label]),
   ),
 );
 
@@ -64,7 +64,7 @@ export default function PaymentWorkspaceLayout() {
   const location = useLocation();
 
   const segments = location.pathname.replace("/core/payment", "").split("/").filter(Boolean);
-  const breadcrumbs = segments.map((segment, index) => ({
+  const breadcrumbs = (Array.isArray(segments) ? segments : []).map((segment, index) => ({
     label: ROUTE_LABELS[segment] ?? segment.replace(/-/g, " "),
     path: `/core/payment/${segments.slice(0, index + 1).join("/")}`,
   }));
@@ -87,7 +87,7 @@ export default function PaymentWorkspaceLayout() {
                     <Link to="/core/payment">Payment</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                {breadcrumbs.map((item, index) => (
+                {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
                   <React.Fragment key={item.path}>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
@@ -121,13 +121,13 @@ export default function PaymentWorkspaceLayout() {
                   <p>Payment engine: Locked</p>
                 </div>
               </WorkspacePanel>
-              {SECTIONS.map((section) => (
+              {(Array.isArray(SECTIONS) ? SECTIONS : []).map((section) => (
                 <div key={section.title} className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {section.title}
                   </p>
                   <div className="space-y-1">
-                    {section.items.map((item) => {
+                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
                       const Icon = item.icon;
                       return (
                         <NavLink

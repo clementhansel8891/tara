@@ -130,7 +130,7 @@ export default function SupplierPortalDesk() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="p-3 text-center text-muted-foreground">No portal messages found.</td></tr>
               ) : (
-                filtered.map((message) => (
+                (Array.isArray(filtered) ? filtered : []).map((message) => (
                   <tr key={message.id} className="border-t">
                     <td className="p-3 text-muted-foreground">{message.createdAt.slice(0, 16).replace("T", " ")}</td>
                     <td className="p-3 text-muted-foreground">{message.supplierId}</td>
@@ -202,7 +202,7 @@ export default function SupplierPortalDesk() {
                         <SelectValue placeholder="Select Master" />
                       </SelectTrigger>
                       <SelectContent>
-                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        {(Array.isArray(suppliers) ? suppliers : []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

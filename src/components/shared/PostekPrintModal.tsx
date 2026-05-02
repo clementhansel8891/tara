@@ -113,7 +113,7 @@ export const PostekPrintModal: React.FC<DialogProps> = ({
     if (!active) return;
 
     setLayout((prevLayout) =>
-      prevLayout.map((block) => {
+      (Array.isArray(prevLayout) ? prevLayout : []).map((block) => {
         if (block.id === active.id) {
           const deltaXmm = delta.x / PREVIEW_SCALE;
           const deltaYmm = delta.y / PREVIEW_SCALE;
@@ -147,8 +147,7 @@ export const PostekPrintModal: React.FC<DialogProps> = ({
 
     try {
       // Prepare items with their specific quantities
-      const ppleItems: pple_print_item[] = items
-        .map((item) => ({
+      const ppleItems: pple_print_item[] = (Array.isArray(items) ? items : []).map((item) => ({
           name: item.name,
           barcode: item.barcode,
           price: item.price,
@@ -168,7 +167,7 @@ export const PostekPrintModal: React.FC<DialogProps> = ({
         margin_left: marginLeft,
       };
 
-      const ppleLayout = layout.map((l) => ({
+      const ppleLayout = (Array.isArray(layout) ? layout : []).map((l) => ({
         id: l.id,
         x: l.x,
         y: l.y,

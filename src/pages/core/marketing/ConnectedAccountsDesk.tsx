@@ -200,7 +200,7 @@ export default function ConnectedAccountsDesk() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {accounts.map((item) => (
+        {(Array.isArray(accounts) ? accounts : []).map((item) => (
           <Card key={item.id} className="rounded-[3rem] border-none shadow-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl group relative overflow-hidden flex flex-col hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500">
             {/* Status Indicator */}
             <div className={cn(
@@ -324,7 +324,7 @@ export default function ConnectedAccountsDesk() {
                     <SelectValue placeholder="Protocol Matrix" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                    {PROVIDERS.map((item) => (
+                    {(Array.isArray(PROVIDERS) ? PROVIDERS : []).map((item) => (
                       <SelectItem key={item} value={item} className="rounded-xl py-3 font-bold uppercase tracking-widest text-xs">
                         {item} CLOUD ENGINE
                       </SelectItem>

@@ -97,7 +97,7 @@ const DeviceControlCenter = () => {
     try {
       const list = await retailService.listStores(session.tenant_id, session);
       if (list && list.length > 0) {
-        setStores(list.map((s) => ({ id: s.id, name: s.name })));
+        setStores((Array.isArray(list) ? list : []).map((s) => ({ id: s.id, name: s.name })));
         setBranch(list[0].id);
       }
     } catch (e) {
@@ -289,7 +289,7 @@ const DeviceControlCenter = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {stores.map((b) => (
+                  {(Array.isArray(stores) ? stores : []).map((b) => (
                     <SelectItem
                       key={b.id}
                       value={b.id}
@@ -395,7 +395,7 @@ const DeviceControlCenter = () => {
 
         {/* Tab bar */}
         <div className="flex items-center gap-1 bg-white border border-slate-100 rounded-2xl p-1.5 shadow-sm w-fit">
-          {TABS.map((t) => (
+          {(Array.isArray(TABS) ? TABS : []).map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
@@ -422,7 +422,7 @@ const DeviceControlCenter = () => {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-              {devices.map((dev) => (
+              {(Array.isArray(devices) ? devices : []).map((dev) => (
                 <button
                   key={dev.id}
                   onClick={() => setSelDevice(dev)}
@@ -516,7 +516,7 @@ const DeviceControlCenter = () => {
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {cameras.map((cam) => (
+              {(Array.isArray(cameras) ? cameras : []).map((cam) => (
                 <button
                   key={cam.id}
                   onClick={() => setSelCamForView(cam)}
@@ -639,7 +639,7 @@ const DeviceControlCenter = () => {
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {sensors.map((sensor) => (
+                {(Array.isArray(sensors) ? sensors : []).map((sensor) => (
                   <button
                     key={sensor.id}
                     onClick={() => setSelSensor(sensor)}

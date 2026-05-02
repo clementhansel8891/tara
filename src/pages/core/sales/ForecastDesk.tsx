@@ -295,7 +295,7 @@ export default function ForecastDesk() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((item) => (
+                {(Array.isArray(filtered) ? filtered : []).map((item) => (
                   <tr key={item.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
                     <td className="px-10 py-8">
                        <div className="flex items-center gap-4">

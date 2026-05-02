@@ -144,7 +144,7 @@ export default function JVDesk() {
                 </thead>
                 <tbody>
                   {settlement.length > 0 ? (
-                    settlement.map((s, idx) => (
+                    (Array.isArray(settlement) ? settlement : []).map((s, idx) => (
                       <tr key={idx} className="border-t hover:bg-muted/50 transition-colors">
                         <td className="p-3 font-medium text-primary">{s.participant_name}</td>
                         <td className="p-3 text-emerald-600 font-medium">Rp {s.gross_revenue?.toLocaleString()}</td>
@@ -188,7 +188,7 @@ export default function JVDesk() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ledger.map((l, idx) => (
+                  {(Array.isArray(ledger) ? ledger : []).map((l, idx) => (
                     <tr key={idx} className="border-t hover:bg-muted/50">
                       <td className="p-3 text-xs text-muted-foreground">{new Date(l.created_at).toLocaleDateString()}</td>
                       <td className="p-3 font-medium">{l.participant_name}</td>
@@ -209,7 +209,7 @@ export default function JVDesk() {
 
           <TabsContent value="profiles" className="pt-4">
             <div className="grid gap-4 md:grid-cols-2">
-              {profiles.map((p) => (
+              {(Array.isArray(profiles) ? profiles : []).map((p) => (
                 <div key={p.id} className="border rounded-xl p-4 flex items-start justify-between hover:border-primary/30 transition-all cursor-pointer bg-white shadow-sm">
                   <div>
                     <div className="flex items-center gap-2 mb-1">

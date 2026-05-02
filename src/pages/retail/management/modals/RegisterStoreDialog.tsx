@@ -270,7 +270,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                     + Create New Physical Location
                   </option>
                   <hr className="my-1" />
-                  {locations.map((loc) => (
+                  {(Array.isArray(locations) ? locations : []).map((loc) => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} ({loc.code})
                     </option>
@@ -324,7 +324,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                   className="w-full h-12 rounded-xl border border-slate-200 px-3 font-bold italic text-sm bg-white"
                 >
                   <option value="">Inherit from Head Office</option>
-                  {COUNTRIES.map((c) => (
+                  {(Array.isArray(COUNTRIES) ? COUNTRIES : []).map((c) => (
                     <option key={c.code} value={c.code}>
                       {c.flag} {c.name}
                     </option>
@@ -355,7 +355,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                   className="w-full h-12 rounded-xl border border-slate-200 px-3 font-bold italic text-sm bg-white"
                 >
                   <option value="">(None assigned)</option>
-                  {managers.map((m) => (
+                  {(Array.isArray(managers) ? managers : []).map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.fullName}
                     </option>
@@ -372,7 +372,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                   className="w-full h-12 rounded-xl border border-slate-200 px-3 font-bold italic text-sm bg-white"
                 >
                   <option value="">Private (Self-managed)</option>
-                  {pools.map((p) => (
+                  {(Array.isArray(pools) ? pools : []).map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
                     </option>

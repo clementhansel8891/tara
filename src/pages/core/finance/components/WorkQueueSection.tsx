@@ -87,7 +87,7 @@ export function WorkQueueSection({
           <TabsContent value="approvals" className="mt-0">
             {approvals.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {approvals.map((flow) => (
+                {(Array.isArray(approvals) ? approvals : []).map((flow) => (
                   <WorkflowRequestCard
                     key={flow.id}
                     title={`${flow.entityType} | ${flow.entityId}`}
@@ -124,7 +124,7 @@ export function WorkQueueSection({
           <TabsContent value="alerts" className="mt-0">
             {alerts.length ? (
               <div className="grid gap-3">
-                {alerts.map((alert) => (
+                {(Array.isArray(alerts) ? alerts : []).map((alert) => (
                   <button key={alert.id}
                     className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 text-left"
                     onClick={() => onSelectAlert(alert)}>
@@ -156,7 +156,7 @@ export function WorkQueueSection({
           <TabsContent value="tasks" className="mt-0">
             {tasks.length ? (
               <div className="grid gap-3">
-                {tasks.map((task) => (
+                {(Array.isArray(tasks) ? tasks : []).map((task) => (
                   <button key={task.id}
                     className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 text-left"
                     onClick={() => onSelectWorkflow(task)}>
@@ -183,7 +183,7 @@ export function WorkQueueSection({
           <TabsContent value="payments" className="mt-0">
             {payments.length ? (
               <div className="grid gap-3">
-                {payments.map((p) => (
+                {(Array.isArray(payments) ? payments : []).map((p) => (
                   <div key={p.id}
                     className="flex items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md cursor-pointer">
                     <div className="flex items-center gap-4">
@@ -236,7 +236,7 @@ export function WorkQueueSection({
               </thead>
               <tbody className="bg-white divide-y divide-slate-50">
                 {payments.length > 0 ? (
-                  payments.map((p) => (
+                  (Array.isArray(payments) ? payments : []).map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/60 transition-colors cursor-pointer">
                       <td className="p-4 font-bold text-slate-900">{p.beneficiary}</td>
                       <td className="p-4 font-bold text-slate-700">

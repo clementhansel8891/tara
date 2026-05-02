@@ -89,7 +89,7 @@ export default function SystemHealth() {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi) => (
+        {(Array.isArray(kpis) ? kpis : []).map((kpi) => (
           <div key={kpi.label} className="p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group">
              <div className="flex justify-between items-start">
                 <div className={cn("p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 group-hover:scale-110 transition-transform duration-500", kpi.color)}>
@@ -146,7 +146,7 @@ export default function SystemHealth() {
                  ) : filtered.length === 0 ? (
                    <tr><td colSpan={4} className="p-12 text-center text-slate-400 italic">No health events in current sequence.</td></tr>
                  ) : (
-                   filtered.map((evt) => (
+                   (Array.isArray(filtered) ? filtered : []).map((evt) => (
                      <tr key={evt.id} className="border-t border-slate-100 dark:border-slate-800 group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                        <td className="p-4">
                           <div className="flex items-center gap-3">

@@ -193,7 +193,7 @@ export default function MarketingAuditLog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((item) => (
+                {(Array.isArray(filtered) ? filtered : []).map((item) => (
                   <tr key={item.id} className="group hover:bg-indigo-600/5 transition-all cursor-default">
                     <td className="px-12 py-10">
                        <div className="space-y-1">

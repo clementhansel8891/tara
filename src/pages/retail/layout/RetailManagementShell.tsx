@@ -104,7 +104,7 @@ const SECTIONS: MenuSection[] = [
 
 const ROUTE_LABELS: Record<string, string> = Object.fromEntries(
   SECTIONS.flatMap((section) =>
-    section.items.map((item) => [
+    (Array.isArray(section.items) ? section.items : []).map((item) => [
       item.to.replace("/m/retail/", ""),
       item.label,
     ]),
@@ -123,7 +123,7 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
     .replace("/m/retail", "")
     .split("/")
     .filter(Boolean);
-  const breadcrumbs = segments.map((segment, index) => ({
+  const breadcrumbs = (Array.isArray(segments) ? segments : []).map((segment, index) => ({
     label: ROUTE_LABELS[segment] ?? segment.replace(/-/g, " "),
     path: `/m/retail/${segments.slice(0, index + 1).join("/")}`,
   }));
@@ -146,7 +146,7 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                   <Link to="/m/retail/workspace" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-all">RETAIL HUB</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-                {breadcrumbs.map((item, index) => (
+                {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
                   <React.Fragment key={item.path}>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
@@ -234,13 +234,13 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
             </WorkspacePanel>
 
             <div className="space-y-8">
-              {SECTIONS.map((section) => (
+              {(Array.isArray(SECTIONS) ? SECTIONS : []).map((section) => (
                 <div key={section.title} className="space-y-3">
                   <p className="px-3 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
                     {section.title}
                   </p>
                   <div className="space-y-1">
-                    {section.items.map((item) => {
+                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
                       const Icon = item.icon;
                       const isDisabled =
                         !isConfigured && item.to !== "/m/retail/workspace";

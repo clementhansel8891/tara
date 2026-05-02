@@ -258,7 +258,7 @@ export default function Index() {
                         Quick access (Demo accounts)
                       </p>
                       <div className="grid grid-cols-3 gap-2">
-                        {demoAccounts.map((account) => (
+                        {(Array.isArray(demoAccounts) ? demoAccounts : []).map((account) => (
                           <Button
                             key={account.email}
                             variant="outline"

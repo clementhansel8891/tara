@@ -46,7 +46,7 @@ export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
               </div>
             ) : (
               <div className="relative border-l-2 border-slate-800 pl-8 ml-4 space-y-10 pb-4">
-                {auditLog.map((entry) => (
+                {(Array.isArray(auditLog) ? auditLog : []).map((entry) => (
                   <div key={entry.id} className="relative group">
                     <div className="absolute -left-[41px] top-1.5 w-4 h-4 rounded-full bg-slate-800 border-[3px] border-slate-900 group-hover:bg-blue-500 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all z-10" />
 

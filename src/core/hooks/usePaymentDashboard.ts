@@ -84,11 +84,11 @@ export function usePaymentDashboard(): PaymentDashboardState {
 
 /** Active providers count (status === HEALTHY) */
 export const activeProviderCount = (providers: PaymentProvider[]) =>
-  providers.filter((p) => p.status === "HEALTHY").length;
+  (Array.isArray(providers) ? providers : []).filter((p) => p.status === "HEALTHY").length;
 
 /** Online POS device count */
 export const onlineDeviceCount = (devices: PosDevice[]) =>
-  devices.filter((d) => d.status === "ONLINE").length;
+  (Array.isArray(devices) ? devices : []).filter((d) => d.status === "ONLINE").length;
 
 /** Total settled volume today from transaction list */
 export const settledVolumeToday = (transactions: PaymentTransaction[]) => {

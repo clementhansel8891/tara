@@ -44,7 +44,7 @@ export function useLedger(tenantId: string, session: SessionContext) {
     setLoading(true);
     try {
       await ledgerService.deleteEntry(entryId);
-      setEntries((prev) => prev.filter((e) => e.id !== entryId));
+      setEntries((prev) => (Array.isArray(prev) ? prev : []).filter((e) => e.id !== entryId));
     } catch (err: unknown) {
       setError(toErrorMessage(err, "Failed to delete ledger entry"));
     } finally {

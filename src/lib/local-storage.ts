@@ -117,7 +117,7 @@ export const addOfflineTransaction = (transaction: OfflineTransaction) => {
 };
 export const markTransactionSynced = (id: string) => {
   const transactions = getOfflineTransactions();
-  const updated = transactions.map(t => t.id === id ? { ...t, synced: true } : t);
+  const updated = (Array.isArray(transactions) ? transactions : []).map(t => t.id === id ? { ...t, synced: true } : t);
   setItem(STORAGE_KEYS.OFFLINE_TRANSACTIONS, updated);
 };
 export const getUnsyncedTransactions = () => getOfflineTransactions().filter(t => !t.synced);

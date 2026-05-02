@@ -160,7 +160,7 @@ export const ProductDetailEditDialog: React.FC<Props> = ({
                   <SelectValue placeholder="Select Category" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                  {categories.map((cat) => (
+                  {(Array.isArray(categories) ? categories : []).map((cat) => (
                     <SelectItem
                       key={cat.id}
                       value={cat.id}

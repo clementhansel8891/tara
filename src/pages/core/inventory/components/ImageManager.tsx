@@ -128,7 +128,7 @@ export function ImageManager({
               <p className="text-sm text-muted-foreground">No images found for this item.</p>
             </div>
           ) : (
-            images.map((img) => (
+            (Array.isArray(images) ? images : []).map((img) => (
               <div key={img.id} className="relative group aspect-square rounded-lg overflow-hidden border bg-black/5">
                 <img
                   src={getFullUrl(img.url)}

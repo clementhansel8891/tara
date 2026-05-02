@@ -166,7 +166,7 @@ export default function PoReleaseDesk() {
               ) : filteredDrafts.length === 0 ? (
                 <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No draft POs found.</td></tr>
               ) : (
-                filteredDrafts.map((draft) => (
+                (Array.isArray(filteredDrafts) ? filteredDrafts : []).map((draft) => (
                   <tr key={draft.id} className="border-t">
                     <td className="p-3 font-medium">{draft.id}</td>
                     <td className="p-3 text-muted-foreground">{draft.requisitionId}</td>
@@ -214,7 +214,7 @@ export default function PoReleaseDesk() {
               ) : filteredRequisitions.length === 0 ? (
                 <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No requisitions found.</td></tr>
               ) : (
-                filteredRequisitions.map((request) => (
+                (Array.isArray(filteredRequisitions) ? filteredRequisitions : []).map((request) => (
                   <tr key={request.id} className="border-t">
                     <td className="p-3 font-medium">{request.id}</td>
                     <td className="p-3 text-muted-foreground">{request.branchCode}</td>
@@ -255,7 +255,7 @@ export default function PoReleaseDesk() {
               ) : filteredFinalPos.length === 0 ? (
                 <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No final POs found.</td></tr>
               ) : (
-                filteredFinalPos.map((po) => (
+                (Array.isArray(filteredFinalPos) ? filteredFinalPos : []).map((po) => (
                   <tr key={po.id} className="border-t">
                     <td className="p-3 font-medium">{po.id}</td>
                     <td className="p-3 text-muted-foreground">{po.requisitionId}</td>

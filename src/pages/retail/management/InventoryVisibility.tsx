@@ -170,7 +170,7 @@ const InventoryVisibility = () => {
       const items = data;
       const totalCount = data.meta?.total ?? items.length;
 
-      const mapped: InventoryItemView[] = items.map((p) => ({
+      const mapped: InventoryItemView[] = (Array.isArray(items) ? items : []).map((p) => ({
         id: p.id,
         sku: p.sku,
         name: p.name,
@@ -226,7 +226,7 @@ const InventoryVisibility = () => {
     if (!tenantId || !session) return;
     try {
       const items = await retailService.listPendingItems(tenantId, session);
-      const mapped: InventoryItemView[] = items.map((p) => ({
+      const mapped: InventoryItemView[] = (Array.isArray(items) ? items : []).map((p) => ({
         id: p.id,
         sku: p.sku,
         name: p.name,
@@ -531,7 +531,7 @@ const InventoryVisibility = () => {
 
     try {
       setIsUpdating(true);
-      const adjustments = opnameEntries.map((e) => ({
+      const adjustments = (Array.isArray(opnameEntries) ? opnameEntries : []).map((e) => ({
         sku: e.sku,
         actualCount: Number(e.counted),
       }));
@@ -577,7 +577,7 @@ const InventoryVisibility = () => {
 
   const handleCountChange = useCallback((index: number, value: string) => {
     setOpnameEntries((prev) =>
-      prev.map((entry, i) =>
+      (Array.isArray(prev) ? prev : []).map((entry, i) =>
         i === index
           ? { ...entry, counted: value === "" ? "" : Number(value) }
           : entry,
@@ -764,7 +764,7 @@ const InventoryVisibility = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pendingItems.map((item) => (
+                  {(Array.isArray(pendingItems) ? pendingItems : []).map((item) => (
                     <Card
                       key={item.id}
                       className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white p-6 border-l-4 border-l-indigo-600"

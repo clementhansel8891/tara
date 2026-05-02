@@ -287,7 +287,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                     + PROVISION NEW PHYSICAL LOCATION
                   </option>
                   <hr className="my-2" />
-                  {locations.map((loc) => (
+                  {(Array.isArray(locations) ? locations : []).map((loc) => (
                     <option key={loc.id} value={loc.id}>
                       {loc.name} [{loc.code}]
                     </option>
@@ -339,7 +339,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                     className="w-full h-11 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 font-bold italic text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                   >
                     <option value="">Unassigned</option>
-                    {managers.map((m) => (
+                    {(Array.isArray(managers) ? managers : []).map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.fullName}
                       </option>
@@ -355,7 +355,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                     className="w-full h-11 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 font-bold italic text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
                   >
                     <option value="">Private Local Pool</option>
-                    {pools.map((p) => (
+                    {(Array.isArray(pools) ? pools : []).map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>

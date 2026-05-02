@@ -79,7 +79,7 @@ export default function IotEventFeed() {
                     </td>
                   </tr>
                 ) : (
-                  events.map((event) => (
+                  (Array.isArray(events) ? events : []).map((event) => (
                     <tr key={event.id} className="hover:bg-muted/30 transition-colors">
                       <td className="p-3">
                         <div className="flex items-center gap-2">

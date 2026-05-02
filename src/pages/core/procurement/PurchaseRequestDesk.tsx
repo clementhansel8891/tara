@@ -292,7 +292,7 @@ export default function PurchaseRequestDesk() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((item) => (
+                (Array.isArray(filtered) ? filtered : []).map((item) => (
                   <tr
                     key={item.id}
                     className="cursor-pointer border-t hover:bg-muted/50"
@@ -420,7 +420,7 @@ export default function PurchaseRequestDesk() {
                   </td>
                 </tr>
               ) : (
-                draftPos.map((draft) => (
+                (Array.isArray(draftPos) ? draftPos : []).map((draft) => (
                   <tr key={draft.id} className="border-t">
                     <td className="p-3 font-medium">{draft.id}</td>
                     <td className="p-3 text-muted-foreground">
@@ -535,7 +535,7 @@ export default function PurchaseRequestDesk() {
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categoryList.map(cat => (
+                        {(Array.isArray(categoryList) ? categoryList : []).map(cat => (
                           <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -650,7 +650,7 @@ export default function PurchaseRequestDesk() {
                         <SelectValue placeholder="Select Validated Supplier" />
                       </SelectTrigger>
                       <SelectContent>
-                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        {(Array.isArray(suppliers) ? suppliers : []).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

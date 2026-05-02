@@ -81,7 +81,7 @@ export function CtoChartsSection({ pendingApprovals, processedPayments }: CtoPro
                 <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", fontWeight: 700, paddingTop: "8px" }} />
                 <Bar dataKey="budget" name="Budget" fill="#e2e8f0" barSize={18} />
                 <Bar dataKey="actual" name="Actual" barSize={18} radius={[0,4,4,0]}>
-                  {BUDGET_VS_ACTUAL.map((e, i) => (
+                  {(Array.isArray(BUDGET_VS_ACTUAL) ? BUDGET_VS_ACTUAL : []).map((e, i) => (
                     <Cell key={i} fill={e.actual > e.budget ? "#f43f5e" : "#10b981"} />
                   ))}
                 </Bar>

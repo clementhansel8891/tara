@@ -45,7 +45,7 @@ export function updateContract(
 ): ContractRecord | undefined {
   const items = read();
   let updated: ContractRecord | undefined;
-  const next = items.map((item) => {
+  const next = (Array.isArray(items) ? items : []).map((item) => {
     if (item.tenantId !== tenantId || item.id !== contractId) return item;
     updated = { ...item, ...patch, updatedAt: new Date().toISOString() };
     return updated;

@@ -79,7 +79,7 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
                   tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }} />
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={fmt} />
                 <Bar dataKey="amount" name="Amount" radius={[0, 6, 6, 0]} barSize={22}>
-                  {CFO_AR_AGING_DATA.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  {(Array.isArray(CFO_AR_AGING_DATA) ? CFO_AR_AGING_DATA : []).map((e, i) => <Cell key={i} fill={e.fill} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -120,7 +120,7 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
               <PieChart>
                 <Pie data={CFO_ASSET_ALLOCATION} cx="50%" cy="44%" innerRadius={70}
                   outerRadius={100} paddingAngle={4} dataKey="value" stroke="none">
-                  {CFO_ASSET_ALLOCATION.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  {(Array.isArray(CFO_ASSET_ALLOCATION) ? CFO_ASSET_ALLOCATION : []).map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={(v) => [`${v}%`]} />
                 <Legend verticalAlign="bottom" iconType="circle"
@@ -148,7 +148,7 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
         >
           {/* Score pills */}
           <div className="flex flex-wrap gap-1.5 mt-3 mb-3">
-            {COMPLIANCE_RADAR_DATA.map((d) => (
+            {(Array.isArray(COMPLIANCE_RADAR_DATA) ? COMPLIANCE_RADAR_DATA : []).map((d) => (
               <span
                 key={d.subject}
                 className={cn(

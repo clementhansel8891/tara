@@ -25,9 +25,9 @@ export const trainingService = {
     const assignments = await this.listAssignments(tenantId, actor);
     return {
       assigned: assignments.length,
-      completed: assignments.filter(a => a.status === 'completed').length,
+      completed: (Array.isArray(assignments) ? assignments : []).filter(a => a.status === 'completed').length,
       overdue: 0,
-      completionRate: assignments.length ? (assignments.filter(a => a.status === 'completed').length / assignments.length) * 100 : 0,
+      completionRate: assignments.length ? ((Array.isArray(assignments) ? assignments : []).filter(a => a.status === 'completed').length / assignments.length) * 100 : 0,
     };
   },
 
@@ -55,7 +55,7 @@ export const trainingService = {
     payload: { employeeIds: string[]; programId: string },
   ) {
     ensureTenantAccess(tenantId, actor);
-    const promises = payload.employeeIds.map(empId =>
+    const promises = (Array.isArray(payload.employeeIds) ? payload.employeeIds : []).map(empId =>
       this.assignTraining(tenantId, actor, { employeeId: empId, programId: payload.programId })
     );
     return Promise.all(promises);

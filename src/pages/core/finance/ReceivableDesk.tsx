@@ -131,7 +131,7 @@ export default function ReceivableDesk() {
           </tr>
         </thead>
         <tbody>
-          {items.map((receivable) => (
+          {(Array.isArray(items) ? items : []).map((receivable) => (
             <tr
               key={receivable.id}
               className="cursor-pointer border-t hover:bg-muted/50"
@@ -207,13 +207,13 @@ export default function ReceivableDesk() {
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <Tabs value={tab} onValueChange={(value) => setTab(value as ReceivableTab)}>
           <TabsList>
-            {TABS.map((status) => (
+            {(Array.isArray(TABS) ? TABS : []).map((status) => (
               <TabsTrigger key={status} value={status}>
                 {status.charAt(0) + status.slice(1).toLowerCase()}
               </TabsTrigger>
             ))}
           </TabsList>
-          {TABS.map((status) => (
+          {(Array.isArray(TABS) ? TABS : []).map((status) => (
             <TabsContent key={status} value={status} className="mt-4">
               {renderTable(grouped[status])}
             </TabsContent>

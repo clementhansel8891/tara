@@ -102,7 +102,7 @@ export function InvitePartnerDialog({ open, onOpenChange, profiles }: InvitePart
                 <SelectValue placeholder="Select a profile" />
               </SelectTrigger>
               <SelectContent>
-                {profiles.map(p => (
+                {(Array.isArray(profiles) ? profiles : []).map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                 ))}
               </SelectContent>

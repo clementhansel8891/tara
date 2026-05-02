@@ -70,7 +70,7 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
 
       {!governanceState.isBypassMode ? (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          {DEPARTMENTS.map((dept) => {
+          {(Array.isArray(DEPARTMENTS) ? DEPARTMENTS : []).map((dept) => {
             const signature = signatures.find((s) => s.department === dept);
             return (
               <div

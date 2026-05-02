@@ -134,7 +134,7 @@ const ShiftControl = () => {
 
   const handleShiftUpdate = (updatedShift: ScheduledShift) => {
     setScheduledShifts((prev) =>
-      prev.map((s) => (s.id === updatedShift.id ? updatedShift : s)),
+      (Array.isArray(prev) ? prev : []).map((s) => (s.id === updatedShift.id ? updatedShift : s)),
     );
   };
 
@@ -177,7 +177,7 @@ const ShiftControl = () => {
       );
 
       setScheduledShifts((prev) =>
-        prev.map((s) => ({ ...s, status: "published" })),
+        (Array.isArray(prev) ? prev : []).map((s) => ({ ...s, status: "published" })),
       );
 
       toast({

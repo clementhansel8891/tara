@@ -54,7 +54,7 @@ export default function ExportTool() {
     >
       <WorkspacePanel title="Select datasets" description="Choose data to include.">
         <div className="space-y-3">
-          {exportTargets.map((target) => (
+          {(Array.isArray(exportTargets) ? exportTargets : []).map((target) => (
             <div key={target.id} className="flex items-center gap-3">
               <Checkbox
                 checked={selected.includes(target.id)}

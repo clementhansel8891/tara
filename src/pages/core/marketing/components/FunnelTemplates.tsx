@@ -72,7 +72,7 @@ const TEMPLATES = [
 export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) => void }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-      {TEMPLATES.map((template) => (
+      {(Array.isArray(TEMPLATES) ? TEMPLATES : []).map((template) => (
         <Card 
           key={template.id} 
           className="group relative overflow-hidden rounded-[2.5rem] border-none bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 cursor-pointer"
@@ -107,7 +107,7 @@ export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) =
              <div className="space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Pathway Logic</p>
                 <div className="flex items-center gap-3 overflow-hidden">
-                   {template.steps.map((step, i) => (
+                   {(Array.isArray(template.steps) ? template.steps : []).map((step, i) => (
                       <React.Fragment key={step}>
                          <div className="bg-white/60 dark:bg-slate-800/60 px-4 py-2 rounded-xl border border-white/20 shadow-sm text-[10px] font-black uppercase tracking-tight text-slate-900 dark:text-white italic">
                             {step}

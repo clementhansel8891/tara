@@ -197,12 +197,12 @@ export default function InventoryStockHub() {
   }, [refresh]);
 
   const itemById = useMemo(
-    () => Object.fromEntries(items.map((item) => [item.id, item])),
+    () => Object.fromEntries((Array.isArray(items) ? items : []).map((item) => [item.id, item])),
     [items],
   );
 
   const locationByCode = useMemo(
-    () => Object.fromEntries(locations.map((loc) => [loc.code, loc])),
+    () => Object.fromEntries((Array.isArray(locations) ? locations : []).map((loc) => [loc.code, loc])),
     [locations],
   );
 
@@ -277,7 +277,7 @@ export default function InventoryStockHub() {
 
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredBalances.length) setSelectedIds([]);
-    else setSelectedIds(filteredBalances.map((b) => b.id));
+    else setSelectedIds((Array.isArray(filteredBalances) ? filteredBalances : []).map((b) => b.id));
   };
 
   const handleBatchDelete = async () => {
@@ -368,7 +368,7 @@ export default function InventoryStockHub() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Departments</SelectItem>
-                {departments.map(dept => (
+                {(Array.isArray(departments) ? departments : []).map(dept => (
                   <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
                 ))}
               </SelectContent>
@@ -451,7 +451,7 @@ export default function InventoryStockHub() {
                 </tr>
               </thead>
               <tbody>
-                {filteredBalances.map((balance) => {
+                {(Array.isArray(filteredBalances) ? filteredBalances : []).map((balance) => {
                   const item = itemById[balance.itemId];
                   if (!item) return null;
                   const isSelected = selectedIds.includes(balance.id);

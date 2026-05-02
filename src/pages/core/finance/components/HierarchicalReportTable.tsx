@@ -64,7 +64,7 @@ const RecursiveRows: React.FC<{ node: ReportNode }> = ({ node }) => {
         isExpanded={isExpanded}
         onToggle={() => setIsExpanded(!isExpanded)}
       />
-      {isExpanded && node.children?.map((child) => (
+      {isExpanded && (Array.isArray(node.children) ? node.children : []).map((child) => (
         <RecursiveRows key={child.accountCode} node={child} />
       ))}
     </>
@@ -83,7 +83,7 @@ export const HierarchicalReportTable: React.FC<HierarchicalReportTableProps> = (
           </tr>
         </thead>
         <tbody>
-          {data.map((root) => (
+          {(Array.isArray(data) ? data : []).map((root) => (
             <RecursiveRows key={root.accountCode} node={root} />
           ))}
           {data.length === 0 && (

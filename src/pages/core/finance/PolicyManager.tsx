@@ -175,7 +175,7 @@ export default function PolicyManager() {
               </tr>
             </thead>
             <tbody>
-              {capexBudgets.map((budget) => (
+              {(Array.isArray(capexBudgets) ? capexBudgets : []).map((budget) => (
                 <tr key={budget.department} className="border-t">
                   <td className="p-3 font-medium">{budget.department}</td>
                   <td className="p-3 text-muted-foreground">{budget.accountCode}</td>
@@ -204,7 +204,7 @@ export default function PolicyManager() {
               </tr>
             </thead>
             <tbody>
-              {filteredPolicies.map((policy) => (
+              {(Array.isArray(filteredPolicies) ? filteredPolicies : []).map((policy) => (
                 <tr
                   key={policy.id}
                   className="cursor-pointer border-t hover:bg-muted/50"

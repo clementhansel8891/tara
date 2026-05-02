@@ -68,7 +68,7 @@ interface ReorderRequest {
 }
 
 // Enhanced inventory data
-const initialInventory: InventoryItem[] = mockRetailProducts.map((p) => ({
+const initialInventory: InventoryItem[] = (Array.isArray(mockRetailProducts) ? mockRetailProducts : []).map((p) => ({
   ...p,
   minStock: 5,
   maxStock: 100,
@@ -158,8 +158,7 @@ export default function RetailInventory() {
   ).length;
 
   // Filter and sort inventory
-  const filteredInventory = inventory
-    .filter((item) => {
+  const filteredInventory = (Array.isArray(inventory) ? inventory : []).filter((item) => {
       const matchesSearch =
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.barcode?.includes(searchTerm);
@@ -245,7 +244,7 @@ export default function RetailInventory() {
         .then((data) => {
           if (data.sku) {
             setInventory((prev) =>
-              prev.map((item) =>
+              (Array.isArray(prev) ? prev : []).map((item) =>
                 item.id === newItem.id ? { ...item, barcode: data.sku } : item,
               ),
             );
@@ -304,7 +303,7 @@ export default function RetailInventory() {
     };
 
     setInventory((prev) =>
-      prev.map((item) => (item.id === selectedProduct.id ? updatedItem : item)),
+      (Array.isArray(prev) ? prev : []).map((item) => (item.id === selectedProduct.id ? updatedItem : item)),
     );
 
     toast({
@@ -364,7 +363,7 @@ export default function RetailInventory() {
     const previousStock = selectedProduct.stock || 0;
     const newStock = Math.max(0, previousStock + adjustQuantity);
     setInventory((prev) =>
-      prev.map((item) =>
+      (Array.isArray(prev) ? prev : []).map((item) =>
         item.id === selectedProduct.id ? { ...item, stock: newStock } : item,
       ),
     );
@@ -425,14 +424,14 @@ export default function RetailInventory() {
     status: ReorderRequest["status"],
   ) => {
     setReorderRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r)),
+      (Array.isArray(prev) ? prev : []).map((r) => (r.id === id ? { ...r, status } : r)),
     );
 
     if (status === "received") {
       const request = reorderRequests.find((r) => r.id === id);
       if (request) {
         setInventory((prev) => {
-          const next = prev.map((item) =>
+          const next = (Array.isArray(prev) ? prev : []).map((item) =>
             item.id === request.productId
               ? {
                   ...item,
@@ -607,7 +606,7 @@ export default function RetailInventory() {
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-[calc(100vh-22rem)]">
               <div className="divide-y">
-                {filteredInventory.map((item) => {
+                {(Array.isArray(filteredInventory) ? filteredInventory : []).map((item) => {
                   const status = getStockStatus(item);
                   const stockPercent = getStockPercent(item);
 
@@ -719,7 +718,7 @@ export default function RetailInventory() {
           <CardContent className="p-0">
             <ScrollArea className="h-[calc(100vh-18rem)]">
               <div className="divide-y">
-                {reorderRequests.map((request) => (
+                {(Array.isArray(reorderRequests) ? reorderRequests : []).map((request) => (
                   <div key={request.id} className="p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">{request.id}</span>
@@ -797,7 +796,7 @@ export default function RetailInventory() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {productCategories.map((cat) => (
+                    {(Array.isArray(productCategories) ? productCategories : []).map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
@@ -845,7 +844,7 @@ export default function RetailInventory() {
                     <SelectValue placeholder="Select supplier" />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((s) => (
+                    {(Array.isArray(suppliers) ? suppliers : []).map((s) => (
                       <SelectItem key={s} value={s}>
                         {s}
                       </SelectItem>
@@ -945,7 +944,7 @@ export default function RetailInventory() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {productCategories.map((cat) => (
+                    {(Array.isArray(productCategories) ? productCategories : []).map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
@@ -987,7 +986,7 @@ export default function RetailInventory() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {suppliers.map((s) => (
+                    {(Array.isArray(suppliers) ? suppliers : []).map((s) => (
                       <SelectItem key={s} value={s}>
                         {s}
                       </SelectItem>

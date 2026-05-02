@@ -188,7 +188,7 @@ export default function SalesOrderDesk() {
                   ) : (
                     <ScrollArea className="h-[400px] pr-4">
                       <div className="space-y-4">
-                        {opps.map((opp) => (
+                        {(Array.isArray(opps) ? opps : []).map((opp) => (
                           <div 
                             key={opp.id} 
                             className="group flex items-center justify-between p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-emerald-500/50 hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer shadow-sm hover:shadow-xl"
@@ -254,7 +254,7 @@ export default function SalesOrderDesk() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((order) => (
+                {(Array.isArray(filtered) ? filtered : []).map((order) => (
                   <tr key={order.id} className="group hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 transition-all cursor-default">
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-5">

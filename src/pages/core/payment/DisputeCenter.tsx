@@ -91,7 +91,7 @@ export default function DisputeCenter() {
             </tr>
           </thead>
           <tbody>
-            {disputes.map((item) => (
+            {(Array.isArray(disputes) ? disputes : []).map((item) => (
               <tr key={item.id} className="border-t">
                 <td className="p-3 font-medium">{item.id}</td>
                 <td className="p-3 text-muted-foreground">{item.paymentId}</td>
@@ -135,7 +135,7 @@ export default function DisputeCenter() {
             </tr>
           </thead>
           <tbody>
-            {chargebacks.map((item) => (
+            {(Array.isArray(chargebacks) ? chargebacks : []).map((item) => (
               <tr key={item.id} className="border-t">
                 <td className="p-3 font-medium">{item.id}</td>
                 <td className="p-3 text-muted-foreground">{item.disputeId}</td>

@@ -191,8 +191,8 @@ export default function PipelineBoard() {
       <div className="relative">
         <ScrollArea className="w-full pb-8">
           <div className="flex gap-6 min-h-[750px] pb-8">
-            {STAGES.map((stage) => {
-              const filteredOpps = pipeline[stage]?.filter(o => 
+            {(Array.isArray(STAGES) ? STAGES : []).map((stage) => {
+              const filteredOpps = (Array.isArray(pipeline[stage]) ? pipeline[stage] : []).filter(o => 
                 o.accountName.toLowerCase().includes(search.toLowerCase())
               ) || [];
               
@@ -217,7 +217,7 @@ export default function PipelineBoard() {
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Empty Strategic Node</p>
                       </div>
                     ) : (
-                      filteredOpps.map((item) => (
+                      (Array.isArray(filteredOpps) ? filteredOpps : []).map((item) => (
                         <Card 
                           key={item.id} 
                           className="group/card relative overflow-hidden rounded-[2rem] border-none shadow-xl bg-white dark:bg-slate-900 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 cursor-default"
@@ -304,7 +304,7 @@ export default function PipelineBoard() {
                                    <SelectContent className="rounded-2xl border-none shadow-2xl p-2 w-64">
                                      <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50 px-3 py-2">Transition Matrix</DropdownMenuLabel>
                                      <DropdownMenuSeparator />
-                                     {STAGES.map((candidate) => (
+                                     {(Array.isArray(STAGES) ? STAGES : []).map((candidate) => (
                                        <SelectItem key={candidate} value={candidate} className="rounded-xl text-xs font-bold py-3">
                                          {candidate.replace('_', ' ')}
                                        </SelectItem>

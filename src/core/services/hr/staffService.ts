@@ -34,7 +34,7 @@ export const staffService = {
 
   async listRoleTitles(tenantId: string, actor: SessionContext) {
     const employees = await hrService.listEmployees(tenantId, actor);
-    const roles = new Set(employees.map((emp) => emp.roleTitle));
+    const roles = new Set((Array.isArray(employees) ? employees : []).map((emp) => emp.roleTitle));
     return Array.from(roles);
   },
 
@@ -54,7 +54,7 @@ export const staffService = {
 
     if (filters.search) {
       const query = filters.search.toLowerCase();
-      employees = employees.filter(
+      employees = (Array.isArray(employees) ? employees : []).filter(
         (emp) =>
           emp.fullName.toLowerCase().includes(query) ||
           emp.roleTitle.toLowerCase().includes(query) ||
@@ -63,15 +63,15 @@ export const staffService = {
     }
 
     if (filters.departmentId && filters.departmentId !== "all") {
-      employees = employees.filter((emp) => emp.departmentId === filters.departmentId);
+      employees = (Array.isArray(employees) ? employees : []).filter((emp) => emp.departmentId === filters.departmentId);
     }
 
     if (filters.status && filters.status !== "all") {
-      employees = employees.filter((emp) => emp.status === filters.status);
+      employees = (Array.isArray(employees) ? employees : []).filter((emp) => emp.status === filters.status);
     }
 
     if (filters.roleTitle && filters.roleTitle !== "all") {
-      employees = employees.filter((emp) => emp.roleTitle === filters.roleTitle);
+      employees = (Array.isArray(employees) ? employees : []).filter((emp) => emp.roleTitle === filters.roleTitle);
     }
 
     const total = employees.length;

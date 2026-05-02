@@ -28,7 +28,7 @@ import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { useSession } from "@/core/security/session";
 import { financeService } from "@/core/services/finance/financeService";
 import { logService } from "@/core/services/finance/logService";
-import { Landmark, TrendingUp, TrendingDown, ArrowRightLeft } from "lucide-react";
+import { Landmark, TrendingUp, TrendingDown, ArrowRightLeft, AlertTriangle } from "lucide-react";
 import type { FinanceAlert } from "@/core/types/finance/assets";
 import type {
   PaymentMethod,
@@ -87,7 +87,7 @@ export default function MoneyDesk() {
           setAlerts(inbox.alerts);
         }
         if (inbox.pendingPayments) {
-          const mappedTasks: WorkflowRequest[] = inbox.pendingPayments.map((p) => ({
+          const mappedTasks: WorkflowRequest[] = (Array.isArray(inbox.pendingPayments) ? inbox.pendingPayments : []).map((p) => ({
             id: p.id,
             tenantId: session.tenant_id,
             entityType: "PAYMENT",
@@ -327,7 +327,7 @@ export default function MoneyDesk() {
 
           <TabsContent value="approvals" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {filteredApprovals.map((flow) => (
+              {(Array.isArray(filteredApprovals) ? filteredApprovals : []).map((flow) => (
                 <WorkflowRequestCard
                   key={flow.id}
                   title={`${flow.entityType} | ${flow.entityId}`}
@@ -365,7 +365,7 @@ export default function MoneyDesk() {
 
           <TabsContent value="alerts" className="mt-4">
             {filteredAlerts.length ? (
-              filteredAlerts.map((alert) => (
+              (Array.isArray(filteredAlerts) ? filteredAlerts : []).map((alert) => (
                 <div
                   key={alert.id}
                   className="mb-2 flex cursor-pointer items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
@@ -396,7 +396,7 @@ export default function MoneyDesk() {
 
           <TabsContent value="tasks" className="mt-4">
             {filteredTasks.length ? (
-              filteredTasks.map((task) => (
+              (Array.isArray(filteredTasks) ? filteredTasks : []).map((task) => (
                 <div
                   key={task.id}
                   className="mb-2 flex cursor-pointer items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
@@ -423,7 +423,7 @@ export default function MoneyDesk() {
           <TabsContent value="payments" className="mt-4">
             {filteredPayments.length ? (
               <div className="space-y-2">
-                {filteredPayments.map((p) => (
+                {(Array.isArray(filteredPayments) ? filteredPayments : []).map((p) => (
                   <div
                     key={p.id}
                     className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
@@ -453,7 +453,7 @@ export default function MoneyDesk() {
 
           <TabsContent value="sources" className="mt-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {moneySources.map((source: any) => (
+              {(Array.isArray(moneySources) ? moneySources : []).map((source: any) => (
                 <div key={source.id} className="bg-white p-4 rounded-xl border border-primary/10 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -518,7 +518,7 @@ export default function MoneyDesk() {
             </thead>
             <tbody>
               {filteredPayments.length > 0 ? (
-                filteredPayments.map((p) => (
+                (Array.isArray(filteredPayments) ? filteredPayments : []).map((p) => (
                   <tr key={p.id} className="border-t hover:bg-muted/50">
                     <td className="p-3 font-medium">{p.beneficiary}</td>
                     <td className="p-3 text-muted-foreground">
@@ -627,7 +627,7 @@ export default function MoneyDesk() {
                         <SelectValue placeholder="Payment Method" />
                       </SelectTrigger>
                       <SelectContent>
-                        {PAYMENT_METHODS.map((paymentMethod) => (
+                        {(Array.isArray(PAYMENT_METHODS) ? PAYMENT_METHODS : []).map((paymentMethod) => (
                           <SelectItem key={paymentMethod} value={paymentMethod}>
                             {paymentMethod.replace("_", " ")}
                           </SelectItem>
@@ -643,7 +643,7 @@ export default function MoneyDesk() {
                         <SelectValue placeholder="Source Account" />
                       </SelectTrigger>
                       <SelectContent>
-                        {moneySources.map((ms) => (
+                        {(Array.isArray(moneySources) ? moneySources : []).map((ms) => (
                           <SelectItem key={ms.id} value={ms.id}>
                             {ms.name} ({ms.currency})
                           </SelectItem>

@@ -115,7 +115,7 @@ export default function TechShop() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {filteredItems.map((item) => (
+        {(Array.isArray(filteredItems) ? filteredItems : []).map((item) => (
           <div 
             key={item.id} 
             className="group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 p-8"

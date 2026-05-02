@@ -205,7 +205,7 @@ export const financeRepo: FinanceRepository = {
       status: d.status as any,
       createdAt: d.createdAt.toISOString(),
       updatedAt: d.updatedAt.toISOString(),
-      lines: d.lines.map(l => ({
+      lines: (Array.isArray(d.lines) ? d.lines : []).map(l => ({
         accountCode: l.accountCode,
         description: l.description,
         debit: l.debit.toNumber(),
@@ -221,7 +221,7 @@ export const financeRepo: FinanceRepository = {
         description: payload.description,
         status: payload.status,
         lines: {
-          create: payload.lines.map(l => ({
+          create: (Array.isArray(payload.lines) ? payload.lines : []).map(l => ({
             accountCode: l.accountCode,
             description: l.description,
             debit: l.debit,
@@ -258,7 +258,7 @@ export const financeRepo: FinanceRepository = {
         tenantId: updated.tenantId,
         description: updated.description,
         status: updated.status as any,
-        lines: updated.lines.map(l => ({
+        lines: (Array.isArray(updated.lines) ? updated.lines : []).map(l => ({
             accountCode: l.accountCode,
             description: l.description,
             debit: l.debit.toNumber(),

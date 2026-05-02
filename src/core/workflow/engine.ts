@@ -76,7 +76,7 @@ export function updateStatus(
     updatedAt: new Date().toISOString(),
     notes: notes ?? current.notes,
   };
-  writeRequests(items.map((item) => (item.id === workflowId ? next : item)));
+  writeRequests((Array.isArray(items) ? items : []).map((item) => (item.id === workflowId ? next : item)));
   appendAudit({ workflowId, tenantId, action, actorId, actorDept, metadata: notes ? { notes } : undefined });
   return next;
 }

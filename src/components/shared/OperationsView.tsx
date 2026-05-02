@@ -84,7 +84,7 @@ export function OperationsView() {
   const handleInspect = async (component: string) => {
     try {
       const health = await itService.getSystemHealth(session.tenant_id, session);
-      const filtered = health.filter(h => h.component.toLowerCase().includes(component.toLowerCase()));
+      const filtered = (Array.isArray(health) ? health : []).filter(h => h.component.toLowerCase().includes(component.toLowerCase()));
       
       if (filtered.length > 0) {
         toast({
@@ -144,15 +144,15 @@ export function OperationsView() {
           <div className="grid grid-cols-3 gap-2">
             <div className="text-center p-2 rounded bg-muted/30 border">
               <p className="text-xs text-muted-foreground uppercase">Online</p>
-              <p className="text-lg font-bold text-emerald-500">{iotDevices.filter(d => d.status === 'ONLINE').length}</p>
+              <p className="text-lg font-bold text-emerald-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'ONLINE').length}</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30 border">
               <p className="text-xs text-muted-foreground uppercase">Offline</p>
-              <p className="text-lg font-bold text-rose-500">{iotDevices.filter(d => d.status === 'OFFLINE').length}</p>
+              <p className="text-lg font-bold text-rose-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'OFFLINE').length}</p>
             </div>
             <div className="text-center p-2 rounded bg-muted/30 border">
               <p className="text-xs text-muted-foreground uppercase">Alerts</p>
-              <p className="text-lg font-bold text-amber-500">{iotDevices.filter(d => d.status === 'ALERT').length}</p>
+              <p className="text-lg font-bold text-amber-500">{(Array.isArray(iotDevices) ? iotDevices : []).filter(d => d.status === 'ALERT').length}</p>
             </div>
           </div>
         </WorkspacePanel>
@@ -175,7 +175,7 @@ export function OperationsView() {
 
       <WorkspacePanel title="Live Module Activity" description="Operational throughput.">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {moduleActivity.map((module) => (
+          {(Array.isArray(moduleActivity) ? moduleActivity : []).map((module) => (
             <div key={module.id} className="rounded-lg border p-4">
               <div className="flex items-start justify-between">
                 <div>
@@ -192,7 +192,7 @@ export function OperationsView() {
       <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <WorkspacePanel title="Alerts & Issues" description="Escalations requiring review.">
           <div className="space-y-4">
-            {alertsQueue.map((alertItem) => (
+            {(Array.isArray(alertsQueue) ? alertsQueue : []).map((alertItem) => (
               <div key={alertItem.id} className="rounded-lg border p-4">
                 <p className="text-sm font-medium">{alertItem.title}</p>
                 <p className="text-xs text-muted-foreground">{alertItem.detail}</p>
@@ -204,7 +204,7 @@ export function OperationsView() {
 
         <WorkspacePanel title="Operational Checklist" description="Daily control points.">
           <div className="space-y-3">
-            {checklistItems.map((item) => (
+            {(Array.isArray(checklistItems) ? checklistItems : []).map((item) => (
               <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className={`h-4 w-4 ${item.status === 'Complete' ? 'text-emerald-500' : 'text-muted-foreground'}`} />

@@ -365,7 +365,7 @@ export default function Explorer() {
     if (children.length === 0) return null;
     return (
       <div>
-        {children.map((folder) => {
+        {(Array.isArray(children) ? children : []).map((folder) => {
           const isExpanded = expanded[folder.id];
           return (
             <div key={folder.id}>
@@ -541,7 +541,7 @@ export default function Explorer() {
                 Forward
               </Button>
               <div className="flex flex-wrap items-center gap-2 rounded-md border bg-background px-3 py-2">
-                {currentBreadcrumb.map((crumb, index) => (
+                {(Array.isArray(currentBreadcrumb) ? currentBreadcrumb : []).map((crumb, index) => (
                   <button
                     key={`${crumb.id}-${index}`}
                     className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -601,7 +601,7 @@ export default function Explorer() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="root">Root</SelectItem>
-                      {folders.map((folder) => (
+                      {(Array.isArray(folders) ? folders : []).map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           {folder.name}
                         </SelectItem>
@@ -793,7 +793,7 @@ export default function Explorer() {
                         <td className="p-2">Root</td>
                       </tr>
                     ) : null}
-                    {orderedFolders.map((folder) => (
+                    {(Array.isArray(orderedFolders) ? orderedFolders : []).map((folder) => (
                       <tr
                         key={folder.id}
                         className="cursor-pointer border-t hover:bg-muted/20"
@@ -824,7 +824,7 @@ export default function Explorer() {
                         <td className="p-2">{folderMap.get(folder.parentId ?? "root") ?? "Root"}</td>
                       </tr>
                     ))}
-                    {orderedFiles.map((file, index) => (
+                    {(Array.isArray(orderedFiles) ? orderedFiles : []).map((file, index) => (
                       <ContextMenu key={file.id}>
                         <ContextMenuTrigger asChild>
                           <tr
@@ -1021,7 +1021,7 @@ export default function Explorer() {
                     </div>
                   </div>
                 ) : null}
-                {orderedFolders.map((folder) => (
+                {(Array.isArray(orderedFolders) ? orderedFolders : []).map((folder) => (
                   <div
                     key={folder.id}
                     className="flex cursor-pointer items-center justify-between rounded-lg border bg-muted/20 p-3 hover:bg-muted/30"
@@ -1062,7 +1062,7 @@ export default function Explorer() {
                     <div className={`grid gap-2 ${
                       viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
                     }`}>
-                      {groupFiles.map((file, index) => (
+                      {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
                         <ContextMenu key={file.id}>
                           <ContextMenuTrigger asChild>
                             <div
@@ -1266,7 +1266,7 @@ export default function Explorer() {
                         Forensic History Tape
                       </div>
                       <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                        {selectedFile.history.map((log: any, i: number) => (
+                        {(Array.isArray(selectedFile.history) ? selectedFile.history : []).map((log: any, i: number) => (
                           <div key={i} className="text-[11px] border-l-2 border-primary/20 pl-2 py-1">
                             <div className="font-bold text-foreground">{log.action}</div>
                             <div className="text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</div>
@@ -1280,7 +1280,7 @@ export default function Explorer() {
                   <div className="rounded-lg border p-4">
                     <div className="text-xs text-muted-foreground">Move to folder</div>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {folders.map((folder) => (
+                      {(Array.isArray(folders) ? folders : []).map((folder) => (
                         <Button
                           key={folder.id}
                           size="sm"

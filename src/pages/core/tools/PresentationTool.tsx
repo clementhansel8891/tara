@@ -101,7 +101,7 @@ export default function PresentationTool() {
 
   const updateSlide = (patch: Partial<Slide>) => {
     setSlides((prev) => {
-      const next = prev.map((slide, index) =>
+      const next = (Array.isArray(prev) ? prev : []).map((slide, index) =>
         index === activeIndex ? { ...slide, ...patch } : slide,
       );
       broadcastChange(next);
@@ -192,7 +192,7 @@ export default function PresentationTool() {
               <div className="space-y-2">
                 {loading ? (
                    <div className="p-4 text-center text-sm text-muted-foreground italic">Loading decks...</div>
-                ) : files.map((file) => (
+                ) : (Array.isArray(files) ? files : []).map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
@@ -242,7 +242,7 @@ export default function PresentationTool() {
 
         <WorkspacePanel title="Slides" description="Organize your slide deck.">
           <div className="flex flex-wrap items-center gap-2">
-            {slides.map((slide, index) => (
+            {(Array.isArray(slides) ? slides : []).map((slide, index) => (
               <Button
                 key={slide.id}
                 variant={index === activeIndex ? "default" : "outline"}

@@ -87,7 +87,7 @@ export function POSLayout({ variant }: POSLayoutProps) {
 
       {/* Bottom Navigation - Tablet/Mobile Friendly */}
       <nav className="flex items-center justify-around bg-card border-t h-16 shrink-0">
-        {navItems.map(({ path, icon: Icon, label, end }) => (
+        {(Array.isArray(navItems) ? navItems : []).map(({ path, icon: Icon, label, end }) => (
           <NavLink
             key={path}
             to={path}

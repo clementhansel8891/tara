@@ -169,7 +169,7 @@ const EcommerceConnector = () => {
         <div className="w-80 shrink-0 flex flex-col border-r bg-slate-50/60 overflow-hidden">
           {/* KPI strip */}
           <div className="grid grid-cols-3 gap-2 p-4 shrink-0">
-            {kpis.map((k) => (
+            {(Array.isArray(kpis) ? kpis : []).map((k) => (
               <div
                 key={k.label}
                 className={cn(
@@ -210,7 +210,7 @@ const EcommerceConnector = () => {
                 </p>
               </div>
             ) : (
-              channels.map((ch) => {
+              (Array.isArray(channels) ? channels : []).map((ch) => {
                 const Icon =
                   PLATFORM_ICON[ch.integrationCategory] ?? ShoppingBag;
                 const iconColor =

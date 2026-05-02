@@ -52,7 +52,7 @@ export default function DeviceRoutingDesk() {
 
       <WorkspacePanel title="Device Pools" description="Location pools with primary and fallback hardware order.">
         <div className="grid gap-3 md:grid-cols-2">
-          {pools.map((pool) => {
+          {(Array.isArray(pools) ? pools : []).map((pool) => {
             const selected = selectedDevices.get(pool.location);
             return (
               <div key={pool.id} className="rounded-lg border p-3">
@@ -83,7 +83,7 @@ export default function DeviceRoutingDesk() {
             </tr>
           </thead>
           <tbody>
-            {devices.map((device) => (
+            {(Array.isArray(devices) ? devices : []).map((device) => (
               <tr key={device.id} className="border-t">
                 <td className="p-3 font-medium">{device.deviceCode}</td>
                 <td className="p-3 text-muted-foreground">{device.location}</td>

@@ -44,7 +44,7 @@ export function BatchIntakeDialog({
 
   const updateItem = (idx: number, field: string, value: any) =>
     setItems((prev) =>
-      prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
+      (Array.isArray(prev) ? prev : []).map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
     );
 
   const reset = () => {
@@ -103,7 +103,7 @@ export function BatchIntakeDialog({
               </tr>
             </thead>
             <tbody>
-              {items.map((item, idx) => (
+              {(Array.isArray(items) ? items : []).map((item, idx) => (
                 <tr key={idx} className="border-b">
                   <td className="p-2">
                     <Input

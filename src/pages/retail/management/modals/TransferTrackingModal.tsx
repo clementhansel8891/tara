@@ -100,7 +100,7 @@ export const TransferTrackingModal: React.FC<TransferTrackingModalProps> = ({
           <div>
             <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Shipment Timeline</div>
             <div className="space-y-4">
-              {timeline.map((event, idx) => (
+              {(Array.isArray(timeline) ? timeline : []).map((event, idx) => (
                 <div key={idx} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${

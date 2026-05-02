@@ -125,7 +125,7 @@ const StockOpnameScanner = () => {
         session.tenant_id!,
         session,
         session.location_id || "unassigned",
-        history.map((h) => ({ sku: h.sku, actualCount: h.actualCount })),
+        (Array.isArray(history) ? history : []).map((h) => ({ sku: h.sku, actualCount: h.actualCount })),
         activeShift?.id,
       );
       toast({
@@ -223,7 +223,7 @@ const StockOpnameScanner = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {history.map((scan, i) => {
+                        {(Array.isArray(history) ? history : []).map((scan, i) => {
                           const hasVariance =
                             scan.actualCount !== scan.systemCount;
                           return (

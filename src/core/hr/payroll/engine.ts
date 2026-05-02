@@ -45,7 +45,7 @@ export function updatePayrollRun(
 ): PayrollRun | undefined {
   const runs = readRuns();
   let updated: PayrollRun | undefined;
-  const next = runs.map((run) => {
+  const next = (Array.isArray(runs) ? runs : []).map((run) => {
     if (run.tenantId !== tenantId || run.id !== runId) return run;
     updated = { ...run, ...patch, updatedAt: new Date().toISOString() };
     return updated;
@@ -62,8 +62,7 @@ export function generatePayslip(
   periodEnd: string,
   components: PayrollComponent[],
 ): Payslip {
-  const grossPay = components
-    .filter((component) => component.type !== "deduction" && component.type !== "tax")
+  const grossPay = (Array.isArray(components) ? components : []).filter((component) => component.type !== "deduction" && component.type !== "tax")
     .reduce((sum, component) => sum + component.amount, 0);
   const netPay = calculateNetPay(components);
 

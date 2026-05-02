@@ -74,7 +74,7 @@ export const corePages: PageDefinition[] = [
 function normalizePermissions(perms?: Permission[]): string[] {
   if (!perms) return [];
   return perms.flatMap((p) =>
-    p.actions.map((action) => `${p.resource}:${action}`),
+    (Array.isArray(p.actions) ? p.actions : []).map((action) => `${p.resource}:${action}`),
   );
 }
 

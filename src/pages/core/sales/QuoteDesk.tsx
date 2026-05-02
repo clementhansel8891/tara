@@ -210,7 +210,7 @@ export default function QuoteDesk() {
                         <SelectValue placeholder="Select deal context" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                        {opportunities.map(o => (
+                        {(Array.isArray(opportunities) ? opportunities : []).map(o => (
                           <SelectItem key={o.id} value={o.id} className="rounded-xl py-3 font-bold">{o.accountName} (${o.amount.toLocaleString()})</SelectItem>
                         ))}
                       </SelectContent>
@@ -288,7 +288,7 @@ export default function QuoteDesk() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((item) => (
+                {(Array.isArray(filtered) ? filtered : []).map((item) => (
                   <tr key={item.id} className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all cursor-default">
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-5">

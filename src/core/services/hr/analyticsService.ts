@@ -23,11 +23,11 @@ export const analyticsService = {
     // Contracts not yet available in new architecture (stubbed)
     const contracts: any[] = [];
 
-    const absent = attendance.filter((item) => item.status === "absent").length;
-    const late = attendance.filter((item) => item.status === "late").length;
+    const absent = (Array.isArray(attendance) ? attendance : []).filter((item) => item.status === "absent").length;
+    const late = (Array.isArray(attendance) ? attendance : []).filter((item) => item.status === "late").length;
     const riskIndex = employees.length ? Math.round(((absent + late) / employees.length) * 100) : 0;
-    const payrollDrafts = payrollRuns.filter((run) => run.status !== "approved").length;
-    const expiringContracts = contracts.filter((contract) => contract.status !== "active").length;
+    const payrollDrafts = (Array.isArray(payrollRuns) ? payrollRuns : []).filter((run) => run.status !== "approved").length;
+    const expiringContracts = (Array.isArray(contracts) ? contracts : []).filter((contract) => contract.status !== "active").length;
 
     return {
       absenteeismRisk: riskIndex,

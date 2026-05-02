@@ -721,7 +721,7 @@ export const financeService = {
     companyId: string,
     periodIds: string[],
   ): Promise<any> {
-    const query = periodIds.map(p => `periodIds[]=${p}`).join('&');
+    const query = (Array.isArray(periodIds) ? periodIds : []).map(p => `periodIds[]=${p}`).join('&');
     return apiRequest<any>(`/v1/finance/reporting/trends?companyId=${companyId}&${query}`, "GET", session);
   },
 
@@ -730,7 +730,7 @@ export const financeService = {
     companyIds: string[],
     fiscalPeriodId: string,
   ): Promise<any> {
-    const query = companyIds.map(c => `companyIds[]=${c}`).join('&');
+    const query = (Array.isArray(companyIds) ? companyIds : []).map(c => `companyIds[]=${c}`).join('&');
     return apiRequest<any>(`/v1/finance/reporting/consolidated?fiscalPeriodId=${fiscalPeriodId}&${query}`, "GET", session);
   },
 

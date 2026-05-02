@@ -182,7 +182,7 @@ export default function SalesAuditLog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((item) => (
+                {(Array.isArray(filtered) ? filtered : []).map((item) => (
                   <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-all cursor-default">
                     <td className="px-10 py-8">
                        <div className="space-y-1">

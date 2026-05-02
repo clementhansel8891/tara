@@ -132,7 +132,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
           <div className="flex flex-1 gap-4">
             {/* QUICK AMOUNTS */}
             <div className="flex flex-col gap-3 w-[90px]">
-              {quickAmounts.map((amt) => (
+              {(Array.isArray(quickAmounts) ? quickAmounts : []).map((amt) => (
                 <Button
                   key={amt}
                   variant="outline"

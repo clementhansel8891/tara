@@ -143,7 +143,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "REMOVE_FROM_CART":
       return {
         ...state,
-        cart: state.cart.filter((_, i) => i !== action.payload),
+        cart: (Array.isArray(state.cart) ? state.cart : []).filter((_, i) => i !== action.payload),
       };
 
     case "CLEAR_CART":

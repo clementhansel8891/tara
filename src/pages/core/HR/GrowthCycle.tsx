@@ -103,7 +103,7 @@ export default function GrowthCycle() {
               </tr>
             </thead>
             <tbody>
-              {filteredCycles.map((cycle) => (
+              {(Array.isArray(filteredCycles) ? filteredCycles : []).map((cycle) => (
                 <tr key={cycle.id} className="border-t">
                   <td className="p-3">{cycle.name}</td>
                   <td className="p-3 text-muted-foreground">{cycle.status}</td>
@@ -190,7 +190,7 @@ export default function GrowthCycle() {
                 <SelectValue placeholder="Select cycle" />
               </SelectTrigger>
               <SelectContent>
-                {overview.cycles.map((cycle) => (
+                {(Array.isArray(overview.cycles) ? overview.cycles : []).map((cycle) => (
                   <SelectItem key={cycle.id} value={cycle.id}>
                     {cycle.name}
                   </SelectItem>

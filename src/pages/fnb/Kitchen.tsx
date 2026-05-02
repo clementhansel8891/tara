@@ -80,7 +80,7 @@ export default function Kitchen() {
   };
 
   const handleItemStatusChange = (orderId: string, itemIndex: number) => {
-    setOrders(prev => prev.map(order => {
+    setOrders(prev => (Array.isArray(prev) ? prev : []).map(order => {
       if (order.id !== orderId) return order;
       
       const newItems = [...order.items];
@@ -101,8 +101,8 @@ export default function Kitchen() {
     
     // Remove after animation
     setTimeout(() => {
-      setOrders(prev => prev.filter(o => o.id !== orderId));
-      setCompletedOrders(prev => prev.filter(id => id !== orderId));
+      setOrders(prev => (Array.isArray(prev) ? prev : []).filter(o => o.id !== orderId));
+      setCompletedOrders(prev => (Array.isArray(prev) ? prev : []).filter(id => id !== orderId));
     }, 500);
   };
 
@@ -140,14 +140,14 @@ export default function Kitchen() {
           </Badge>
           <Badge variant="destructive" className="gap-1">
             <AlertTriangle size={14} />
-            {orders.filter(o => getElapsedMinutes(o.createdAt) >= 10).length} Delayed
+            {(Array.isArray(orders) ? orders : []).filter(o => getElapsedMinutes(o.createdAt) >= 10).length} Delayed
           </Badge>
         </div>
       </div>
 
       {/* Order Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sortedOrders.map((order) => {
+        {(Array.isArray(sortedOrders) ? sortedOrders : []).map((order) => {
           const elapsed = getElapsedMinutes(order.createdAt);
           const isReady = isOrderReady(order);
           const isCompleting = completedOrders.includes(order.id);
@@ -183,7 +183,7 @@ export default function Kitchen() {
               </CardHeader>
               
               <CardContent className="space-y-2">
-                {order.items.map((item, index) => (
+                {(Array.isArray(order.items) ? order.items : []).map((item, index) => (
                   <button
                     key={index}
                     onClick={() => handleItemStatusChange(order.id, index)}

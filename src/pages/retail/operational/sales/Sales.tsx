@@ -202,7 +202,7 @@ export default function RetailSales() {
 
         {/* Category Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {retailCategories.map((category) => (
+          {(Array.isArray(retailCategories) ? retailCategories : []).map((category) => (
             <Button
               key={category}
               variant={selectedCategory === category ? 'default' : 'outline'}
@@ -218,7 +218,7 @@ export default function RetailSales() {
         {/* Product Grid */}
         <ScrollArea className="flex-1">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {filteredProducts.map((product) => (
+            {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
               <Card
                 key={product.id}
                 className="p-3 cursor-pointer hover:border-primary transition-colors touch-target"
@@ -284,7 +284,7 @@ export default function RetailSales() {
                 <p className="text-sm">Scan or tap products to add</p>
               </div>
             ) : (
-              cart.map((item) => (
+              (Array.isArray(cart) ? cart : []).map((item) => (
                 <Card key={item.product.id} className="p-3">
                   <div className="flex gap-3">
                     <div className="w-12 h-12 bg-muted rounded flex items-center justify-center shrink-0">

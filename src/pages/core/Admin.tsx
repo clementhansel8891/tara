@@ -181,7 +181,7 @@ export default function CoreAdmin() {
             description="Privileged actions and system activity."
           >
             <div className="space-y-4">
-              {recentActivity?.map((log: any) => (
+              {(Array.isArray(recentActivity) ? recentActivity : []).map((log: any) => (
                 <div
                   key={log.id || log.title}
                   className="rounded-lg border p-4"

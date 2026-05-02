@@ -281,7 +281,7 @@ export default function ExecutionDesk() {
                           </tr>
                        </thead>
                        <tbody>
-                          {filtered.map((run) => (
+                          {(Array.isArray(filtered) ? filtered : []).map((run) => (
                             <tr key={run.id} className="border-t border-white/10 dark:border-slate-800/10 group hover:bg-indigo-600/5 transition-all">
                                <td className="p-8">
                                   <div className="flex items-center gap-4">
@@ -438,7 +438,7 @@ export default function ExecutionDesk() {
                     <SelectValue placeholder="Target Protocol" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                    {campaigns.map(c => (
+                    {(Array.isArray(campaigns) ? campaigns : []).map(c => (
                       <SelectItem key={c.id} value={c.id} className="rounded-xl py-3 font-bold uppercase tracking-widest text-xs">
                         {c.name}
                       </SelectItem>
@@ -453,7 +453,7 @@ export default function ExecutionDesk() {
                     <SelectValue placeholder="Channel Gate" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                    {CHANNELS.map(ch => (
+                    {(Array.isArray(CHANNELS) ? CHANNELS : []).map(ch => (
                       <SelectItem key={ch} value={ch} className="rounded-xl py-3 font-bold uppercase tracking-widest text-xs">
                         {ch.replace('_', ' ')}
                       </SelectItem>

@@ -141,7 +141,7 @@ export default function PaymentDashboard() {
         description="Multi-bank/provider routing health and heartbeat state."
       >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {providers.map((provider) => (
+          {(Array.isArray(providers) ? providers : []).map((provider) => (
             <div key={provider.id} className="rounded-lg border p-3">
               <p className="text-sm font-medium">{provider.name}</p>
               <p className="text-xs text-muted-foreground">
@@ -181,7 +181,7 @@ export default function PaymentDashboard() {
             </tr>
           </thead>
           <tbody>
-            {transactions.map((item) => (
+            {(Array.isArray(transactions) ? transactions : []).map((item) => (
               <tr key={item.id} className="border-t">
                 <td className="p-3 font-medium">{item.id}</td>
                 <td className="p-3 text-muted-foreground">{item.type}</td>

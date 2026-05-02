@@ -116,7 +116,7 @@ export function RetailCustomerActivity({
           </div>
         ) : (
           <div className="divide-y divide-white/5">
-            {filteredCustomers.map((customer) => (
+            {(Array.isArray(filteredCustomers) ? filteredCustomers : []).map((customer) => (
               <div
                 key={customer.id}
                 className="group flex items-center justify-between p-10 hover:bg-white/[0.04] transition-all duration-500 cursor-pointer relative overflow-hidden"
@@ -352,7 +352,7 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
             <p className="text-[11px] font-black italic text-slate-500 uppercase tracking-[0.4em]">No documented transactions</p>
           </div>
         ) : (
-          orders.map((order) => (
+          (Array.isArray(orders) ? orders : []).map((order) => (
             <div key={order.id} className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-500 space-y-6 group/order shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -386,7 +386,7 @@ function CustomerCartView({ cart }: any) {
             <p className="text-[11px] font-black italic text-slate-500 uppercase tracking-[0.4em]">Asset Staging Area Empty</p>
           </div>
         ) : (
-          items.map((item: any) => (
+          (Array.isArray(items) ? items : []).map((item: any) => (
             <div key={item.id} className="flex items-center justify-between p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] hover:bg-white/[0.04] hover:border-indigo-500/20 transition-all duration-500 group/cart shadow-xl">
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-2xl group-hover/cart:scale-110 transition-transform">
@@ -417,7 +417,7 @@ function CustomerWishlistView({ wishlist, onExpansionRequest }: any) {
             <p className="text-[11px] font-black italic text-slate-500 uppercase tracking-[0.4em]">No Strategic Assets Identified</p>
           </div>
         ) : (
-          items.map((item: any) => (
+          (Array.isArray(items) ? items : []).map((item: any) => (
             <div key={item.id} className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem] flex flex-col items-center text-center space-y-6 hover:bg-white/[0.04] hover:border-rose-500/20 transition-all duration-500 group/wish shadow-xl">
               <div className="w-24 h-24 rounded-[2rem] bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shadow-3xl group-hover/wish:scale-110 group-hover/wish:rotate-6 transition-all duration-500">
                 <Heart className="w-10 h-10 text-rose-400 fill-rose-400/10" />

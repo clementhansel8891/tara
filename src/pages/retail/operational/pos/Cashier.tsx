@@ -103,8 +103,7 @@ export default function RetailCashier() {
 
   const updateQuantity = (productId: string, delta: number) => {
     setCartItems((prev) =>
-      prev
-        .map((item) =>
+      (Array.isArray(prev) ? prev : []).map((item) =>
           item.product.id === productId
             ? { ...item, quantity: Math.max(0, item.quantity + delta) }
             : item
@@ -192,7 +191,7 @@ export default function RetailCashier() {
         {/* Category Tabs */}
         <ScrollArea className="w-full">
           <div className="flex gap-2 pb-2">
-            {retailCategories.map((category) => (
+            {(Array.isArray(retailCategories) ? retailCategories : []).map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
@@ -209,7 +208,7 @@ export default function RetailCashier() {
         {/* Product Grid */}
         <ScrollArea className="flex-1">
           <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {filteredProducts.map((product) => (
+            {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
               <Card
                 key={product.id}
                 className={cn(
@@ -271,7 +270,7 @@ export default function RetailCashier() {
                 <p className="text-sm">Scan a barcode or tap products to add</p>
               </div>
             ) : (
-              cartItems.map((item) => (
+              (Array.isArray(cartItems) ? cartItems : []).map((item) => (
                 <div
                   key={item.product.id}
                   className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg"
@@ -427,7 +426,7 @@ export default function RetailCashier() {
                   className="text-2xl h-14 text-center font-bold"
                 />
                 <div className="grid grid-cols-4 gap-2">
-                  {quickCashAmounts.map((amount) => (
+                  {(Array.isArray(quickCashAmounts) ? quickCashAmounts : []).map((amount) => (
                     <Button
                       key={amount}
                       variant="outline"

@@ -147,7 +147,7 @@ export default function CoreFinance() {
           description="High-level metrics across all business units."
         >
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {financialSummary.map((item) => (
+            {(Array.isArray(financialSummary) ? financialSummary : []).map((item) => (
               <div
                 key={item.id}
                 className="rounded-xl border bg-card p-5 shadow-sm"
@@ -248,7 +248,7 @@ export default function CoreFinance() {
             description="Pending receivables and payables requiring action."
           >
             <div className="space-y-4">
-              {billingQueue.map((item) => (
+              {(Array.isArray(billingQueue) ? billingQueue : []).map((item) => (
                 <div key={item.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -282,7 +282,7 @@ export default function CoreFinance() {
             description="Compliance submissions and filing deadlines."
           >
             <div className="space-y-4">
-              {taxReports.map((report) => (
+              {(Array.isArray(taxReports) ? taxReports : []).map((report) => (
                 <div key={report.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -324,7 +324,7 @@ export default function CoreFinance() {
           description="Evidence and controls for upcoming audits."
         >
           <div className="grid gap-4 md:grid-cols-3">
-            {auditReadiness.map((item) => (
+            {(Array.isArray(auditReadiness) ? auditReadiness : []).map((item) => (
               <div key={item.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>

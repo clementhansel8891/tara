@@ -61,8 +61,7 @@ export default function InventoryInsights() {
   }, [refresh]);
 
   const turnoverProxy = useMemo(() => {
-    const deductions = movements
-      .filter((item) => item.type === "DEDUCTION")
+    const deductions = (Array.isArray(movements) ? movements : []).filter((item) => item.type === "DEDUCTION")
       .reduce((sum, item) => sum + item.quantity, 0);
     const averageOnHand = balances.length
       ? balances.reduce((sum, item) => sum + item.quantity, 0) / balances.length
@@ -182,7 +181,7 @@ export default function InventoryInsights() {
         description="Inventory performance and governance indicators."
       >
         <div className="grid gap-3 md:grid-cols-4">
-          {insightRows.map((item) => (
+          {(Array.isArray(insightRows) ? insightRows : []).map((item) => (
             <div key={item.id} className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">{item.label}</p>
               <p className="text-2xl font-semibold">{item.value}</p>
@@ -207,7 +206,7 @@ export default function InventoryInsights() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((row) => (
+              {(Array.isArray(filteredRows) ? filteredRows : []).map((row) => (
                 <tr key={row.id} className="border-t">
                   <td className="p-3 font-medium">{row.label}</td>
                   <td className="p-3 text-muted-foreground">{row.category}</td>
@@ -231,7 +230,7 @@ export default function InventoryInsights() {
                   <p className="text-sm text-muted-foreground italic">No active agentic insights detected.</p>
                </div>
             ) : (
-              agenticEvents.map(event => (
+              (Array.isArray(agenticEvents) ? agenticEvents : []).map(event => (
                 <div key={event.id} className="p-4 rounded-lg bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
                    <div className="mt-1 h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
                       <Sparkles className="h-4 w-4 text-indigo-500" />

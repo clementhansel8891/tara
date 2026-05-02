@@ -139,7 +139,7 @@ export default function Customer360() {
             <CardContent className="p-10">
               <div className="relative space-y-12 pl-12">
                  <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-indigo-500/10" />
-                 {TIMELINE_EVENTS.map((event) => (
+                 {(Array.isArray(TIMELINE_EVENTS) ? TIMELINE_EVENTS : []).map((event) => (
                   <div key={event.id} className="relative group">
                     <div className={cn("absolute -left-12 top-0 h-9 w-9 rounded-xl flex items-center justify-center border-4 border-white dark:border-slate-900 shadow-xl z-10 group-hover:scale-125 transition-all", event.bg)}>
                       <event.icon className={cn("h-4 w-4", event.color)} />

@@ -111,7 +111,7 @@ export default function CoreReports() {
 
     const interval = setInterval(async () => {
       const updates = await Promise.all(
-        processingJobs.map(async (job) => {
+        (Array.isArray(processingJobs) ? processingJobs : []).map(async (job) => {
           try {
             const status = await reportingService.getJobStatus(session, job.id);
             return { ...job, status: status.status, progress: status.progress, error: status.error };
@@ -181,7 +181,7 @@ export default function CoreReports() {
             description="Real-time progress of your requested reports."
           >
             <div className="space-y-3">
-              {activeJobs.map((job) => (
+              {(Array.isArray(activeJobs) ? activeJobs : []).map((job) => (
                 <div key={job.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/20">
                   <div className="flex items-center gap-3">
                     {job.status === 'PENDING' || job.status === 'PROCESSING' ? (
@@ -225,7 +225,7 @@ export default function CoreReports() {
           description="Click a format to queue generation."
         >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {categories.map((category) => {
+            {(Array.isArray(categories) ? categories : []).map((category) => {
               const Icon = category.icon;
               return (
                 <div
@@ -273,7 +273,7 @@ export default function CoreReports() {
             description="Latest generated reports across teams."
           >
             <div className="space-y-4">
-              {reports.map((report) => (
+              {(Array.isArray(reports) ? reports : []).map((report) => (
                 <div
                   key={report.id}
                   className="flex items-center justify-between rounded-lg border p-4"
@@ -306,7 +306,7 @@ export default function CoreReports() {
             description="Automated delivery for recurring stakeholders."
           >
             <div className="space-y-4">
-              {scheduledReports.map((schedule) => (
+              {(Array.isArray(scheduledReports) ? scheduledReports : []).map((schedule) => (
                 <div key={schedule.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>

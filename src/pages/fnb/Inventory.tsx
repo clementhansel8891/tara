@@ -47,7 +47,7 @@ interface InventoryItem extends Product {
 }
 
 // Cafe inventory with additional properties
-const initialInventory: InventoryItem[] = mockCafeProducts.map((p) => ({
+const initialInventory: InventoryItem[] = (Array.isArray(mockCafeProducts) ? mockCafeProducts : []).map((p) => ({
   ...p,
   stock: Math.floor(Math.random() * 50) + 10,
   minStock: 5,
@@ -87,13 +87,12 @@ export default function CafeInventory() {
   const [adjustReason, setAdjustReason] = useState('');
 
   // Calculate stats
-  const lowStockItems = inventory.filter((i) => i.stock !== undefined && i.stock <= i.reorderPoint);
-  const outOfStockItems = inventory.filter((i) => i.stock === 0);
+  const lowStockItems = (Array.isArray(inventory) ? inventory : []).filter((i) => i.stock !== undefined && i.stock <= i.reorderPoint);
+  const outOfStockItems = (Array.isArray(inventory) ? inventory : []).filter((i) => i.stock === 0);
   const totalValue = inventory.reduce((sum, i) => sum + (i.stock || 0) * i.price, 0);
 
   // Filter and sort
-  const filteredInventory = inventory
-    .filter((item) => {
+  const filteredInventory = (Array.isArray(inventory) ? inventory : []).filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = filterCategory === 'All' || item.category === filterCategory;
       
@@ -154,7 +153,7 @@ export default function CafeInventory() {
     }
 
     setInventory((prev) =>
-      prev.map((item) =>
+      (Array.isArray(prev) ? prev : []).map((item) =>
         item.id === selectedProduct.id
           ? {
               ...item,
@@ -181,7 +180,7 @@ export default function CafeInventory() {
   const handleDeleteItem = () => {
     if (!selectedProduct) return;
 
-    setInventory((prev) => prev.filter((item) => item.id !== selectedProduct.id));
+    setInventory((prev) => (Array.isArray(prev) ? prev : []).filter((item) => item.id !== selectedProduct.id));
     toast({ title: 'Item deleted', description: `${selectedProduct.name} has been removed` });
     setIsDeleteOpen(false);
     setSelectedProduct(null);
@@ -192,7 +191,7 @@ export default function CafeInventory() {
     if (!selectedProduct || adjustQuantity === 0) return;
 
     setInventory((prev) =>
-      prev.map((item) =>
+      (Array.isArray(prev) ? prev : []).map((item) =>
         item.id === selectedProduct.id
           ? { ...item, stock: Math.max(0, (item.stock || 0) + adjustQuantity) }
           : item
@@ -312,7 +311,7 @@ export default function CafeInventory() {
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            {cafeCategories.map((cat) => (
+            {(Array.isArray(cafeCategories) ? cafeCategories : []).map((cat) => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
           </SelectContent>
@@ -350,7 +349,7 @@ export default function CafeInventory() {
       <Card className="flex-1">
         <ScrollArea className="h-[calc(100vh-20rem)]">
           <div className="divide-y">
-            {filteredInventory.map((item) => {
+            {(Array.isArray(filteredInventory) ? filteredInventory : []).map((item) => {
               const status = getStockStatus(item);
               const stockPercent = getStockPercent(item);
 
@@ -438,7 +437,7 @@ export default function CafeInventory() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cafeCategories.filter((c) => c !== 'All').map((cat) => (
+                    {(Array.isArray(cafeCategories) ? cafeCategories : []).filter((c) => c !== 'All').map((cat) => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>
@@ -538,7 +537,7 @@ export default function CafeInventory() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {cafeCategories.filter((c) => c !== 'All').map((cat) => (
+                    {(Array.isArray(cafeCategories) ? cafeCategories : []).filter((c) => c !== 'All').map((cat) => (
                       <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                     ))}
                   </SelectContent>

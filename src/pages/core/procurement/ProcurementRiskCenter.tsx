@@ -92,8 +92,7 @@ export default function ProcurementRiskCenter() {
   );
 
   const handoffRows = useMemo(() => {
-    const legalRows = legalHandoffs
-      .filter((item) => item.status !== "CONTRACT_ACCEPTED")
+    const legalRows = (Array.isArray(legalHandoffs) ? legalHandoffs : []).filter((item) => item.status !== "CONTRACT_ACCEPTED")
       .map((item) => {
         const ageHours = hoursSince(item.createdAt);
         return {
@@ -106,8 +105,7 @@ export default function ProcurementRiskCenter() {
           ageHours,
         };
       });
-    const inventoryRows = goodsReceiptSyncs
-      .filter((item) => item.status === "PENDING_RECEIPT")
+    const inventoryRows = (Array.isArray(goodsReceiptSyncs) ? goodsReceiptSyncs : []).filter((item) => item.status === "PENDING_RECEIPT")
       .map((item) => {
         const ageHours = hoursSince(item.createdAt);
         return {
@@ -120,8 +118,7 @@ export default function ProcurementRiskCenter() {
           ageHours,
         };
       });
-    const provisioningRows = supplierAccess
-      .filter((item) => item.status === "REQUESTED")
+    const provisioningRows = (Array.isArray(supplierAccess) ? supplierAccess : []).filter((item) => item.status === "REQUESTED")
       .map((item) => {
         const ageHours = hoursSince(item.createdAt);
         return {
@@ -205,7 +202,7 @@ export default function ProcurementRiskCenter() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No risk signals found.</td></tr>
               ) : (
-                filtered.map((signal) => (
+                (Array.isArray(filtered) ? filtered : []).map((signal) => (
                   <tr key={signal.id} className="border-t">
                     <td className="p-3 font-medium">{signal.code}</td>
                     <td className="p-3 text-muted-foreground">{signal.severity}</td>
@@ -276,7 +273,7 @@ export default function ProcurementRiskCenter() {
                   </td>
                 </tr>
               ) : (
-                handoffRows.map((row) => (
+                (Array.isArray(handoffRows) ? handoffRows : []).map((row) => (
                   <tr key={row.id} className="border-t">
                     <td className="p-3 font-medium">{row.workspace}</td>
                     <td className="p-3 text-muted-foreground">{row.reference}</td>
@@ -312,7 +309,7 @@ export default function ProcurementRiskCenter() {
               ) : auditEvents.length === 0 ? (
                 <tr><td colSpan={4} className="p-3 text-center text-muted-foreground">No audit events found.</td></tr>
               ) : (
-                auditEvents.map((event) => (
+                (Array.isArray(auditEvents) ? auditEvents : []).map((event) => (
                   <tr key={event.id} className="border-t">
                     <td className="p-3 text-muted-foreground">{event.createdAt.slice(0, 16).replace("T", " ")}</td>
                     <td className="p-3 font-medium">{event.action}</td>

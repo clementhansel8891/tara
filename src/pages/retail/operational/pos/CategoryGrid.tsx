@@ -58,7 +58,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
         </span>
       </button>
 
-      {categories.map((cat, i) => {
+      {(Array.isArray(categories) ? categories : []).map((cat, i) => {
         const Icon = iconMap[cat.name] || Package;
         const isActive = activeCategoryId === cat.id;
 

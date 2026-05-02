@@ -58,7 +58,7 @@ export function DataTableShell({
                 value={sortValue}
                 onChange={(event) => onSortChange?.(event.target.value)}
               >
-                {sortOptions.map((option) => (
+                {(Array.isArray(sortOptions) ? sortOptions : []).map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

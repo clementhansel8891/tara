@@ -122,7 +122,7 @@ export default function ModuleHub() {
   const industryContracts = getAllModuleContracts();
   
   const allModules = useMemo(() => {
-    const industry = industryContracts.map(c => {
+    const industry = (Array.isArray(industryContracts) ? industryContracts : []).map(c => {
       const license = licenses.find(l => l.moduleCode.toLowerCase() === c.id.toLowerCase());
       return {
         id: c.id,
@@ -136,7 +136,7 @@ export default function ModuleHub() {
       };
     });
 
-    const core = CORE_MODULES.map(m => ({
+    const core = (Array.isArray(CORE_MODULES) ? CORE_MODULES : []).map(m => ({
       ...m,
       isCore: true,
       isEnabled: true,
@@ -228,7 +228,7 @@ export default function ModuleHub() {
             description="Activate or deactivate functional clusters across your enterprise environment."
           >
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 pt-6">
-              {filteredModules.map((module) => (
+              {(Array.isArray(filteredModules) ? filteredModules : []).map((module) => (
                 <div 
                   key={module.id} 
                   className={cn(

@@ -23,8 +23,7 @@ export function useModuleActivation() {
       const data = await apiRequest<any[]>("/license/my-modules", "GET", session);
       
       if (data) {
-        const enabledCodes = data
-          .filter((m) => m.isEnabled && m.status === "active")
+        const enabledCodes = (Array.isArray(data) ? data : []).filter((m) => m.isEnabled && m.status === "active")
           .map((m) => m.moduleCode.toLowerCase());
         
         setActiveModules(new Set(enabledCodes));

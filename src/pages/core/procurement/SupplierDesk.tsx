@@ -253,7 +253,7 @@ export default function SupplierDesk() {
               ) : filteredMasters.length === 0 ? (
                 <tr><td colSpan={5} className="p-3 text-center text-muted-foreground">No suppliers found.</td></tr>
               ) : (
-                filteredMasters.map((supplier) => (
+                (Array.isArray(filteredMasters) ? filteredMasters : []).map((supplier) => (
                   <tr
                     key={supplier.id}
                     className="cursor-pointer border-t hover:bg-muted/50"
@@ -293,7 +293,7 @@ export default function SupplierDesk() {
               ) : branches.length === 0 ? (
                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No branches found.</td></tr>
               ) : (
-                branches.map((branch) => (
+                (Array.isArray(branches) ? branches : []).map((branch) => (
                   <tr
                     key={branch.id}
                     className="cursor-pointer border-t hover:bg-muted/50"
@@ -347,7 +347,7 @@ export default function SupplierDesk() {
               ) : recommendations.length === 0 ? (
                 <tr><td colSpan={6} className="p-3 text-center text-muted-foreground">No recommendations for this criteria.</td></tr>
               ) : (
-                recommendations.map((item) => (
+                (Array.isArray(recommendations) ? recommendations : []).map((item) => (
                   <tr key={`${item.supplierId}-${item.supplierBranchId}`} className="border-t">
                     <td className="p-3 font-medium">{item.supplierName}</td>
                     <td className="p-3 text-muted-foreground">{item.branchName}</td>
@@ -536,7 +536,7 @@ export default function SupplierDesk() {
                       <SelectValue placeholder="Identify Supplier Master" />
                     </SelectTrigger>
                     <SelectContent>
-                      {masters.map((m) => (
+                      {(Array.isArray(masters) ? masters : []).map((m) => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -614,7 +614,7 @@ export default function SupplierDesk() {
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Active Categories</label>
               <div className="grid gap-2 overflow-y-auto max-h-[300px] pr-2">
-                {categoryList.map(cat => (
+                {(Array.isArray(categoryList) ? categoryList : []).map(cat => (
                   <div key={cat.id} className="flex items-center justify-between p-3 rounded-lg border bg-background hover:border-primary/50 transition-colors group">
                     <div>
                       <p className="font-semibold text-sm">{cat.name}</p>

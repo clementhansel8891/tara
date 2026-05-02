@@ -230,7 +230,7 @@ export default function AppointmentDesk() {
                           <SelectValue placeholder={loadingContacts ? "Synchronizing contacts..." : "SELECT TARGET NODE"} />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                          {contacts.map(c => (
+                          {(Array.isArray(contacts) ? contacts : []).map(c => (
                             <SelectItem key={c.id} value={c.id} className="font-bold py-3 rounded-xl italic">
                               {c.first_name} {c.last_name} — {c.email}
                             </SelectItem>
@@ -328,7 +328,7 @@ export default function AppointmentDesk() {
                   </div>
                 ) : (
                   <div className="p-0 divide-y divide-white/5 dark:divide-slate-800/5">
-                    {appointments.map((apt) => (
+                    {(Array.isArray(appointments) ? appointments : []).map((apt) => (
                       <div key={apt.id} className="flex items-center justify-between p-10 hover:bg-indigo-600/5 transition-all group cursor-default">
                           <div className="flex items-center gap-8">
                              <div className="relative">

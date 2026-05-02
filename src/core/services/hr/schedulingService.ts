@@ -31,7 +31,7 @@ export const schedulingService = {
       { tenantId }
     );
     
-    const overrides = allOverridesRaw.filter((o) => {
+    const overrides = (Array.isArray(allOverridesRaw) ? allOverridesRaw : []).filter((o) => {
       const oDate = new Date(o.start_date).toISOString().split('T')[0];
       return oDate === date && o.employee_id === employeeId;
     });
@@ -68,7 +68,7 @@ export const schedulingService = {
       { tenantId }
     );
     
-    const swaps = allSwapsRaw.filter((s) => {
+    const swaps = (Array.isArray(allSwapsRaw) ? allSwapsRaw : []).filter((s) => {
       // For swaps, we might need a date field in the DB, but for now we look at status
       // Note: the backend swap model might need a 'date' field if not present.
       // Based on previous code, s.date was used.

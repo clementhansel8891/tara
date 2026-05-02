@@ -341,7 +341,7 @@ export default function BulletinHub() {
                 </Button>
               </div>
             ) : (
-              filteredPosts.map((post) => (
+              (Array.isArray(filteredPosts) ? filteredPosts : []).map((post) => (
                 <Card
                   key={post.id}
                   className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 overflow-hidden group hover:-translate-y-1 transition-all rounded-[2.5rem]"
@@ -564,8 +564,7 @@ export default function BulletinHub() {
                     </p>
                   </div>
                 ) : (
-                  categories
-                    .filter((cat) =>
+                  (Array.isArray(categories) ? categories : []).filter((cat) =>
                       cat.name
                         ?.toLowerCase()
                         .includes(channelSearch.toLowerCase()),
@@ -700,7 +699,7 @@ export default function BulletinHub() {
                     </h4>
                     {selectedPost.comments && selectedPost.comments.length > 0 ? (
                       <div className="space-y-6">
-                        {selectedPost.comments.map((comment: BulletinComment) => (
+                        {(Array.isArray(selectedPost.comments) ? selectedPost.comments : []).map((comment: BulletinComment) => (
                           <div
                             key={comment.id}
                             className="flex gap-5 animate-in slide-in-from-left duration-500"
@@ -772,7 +771,7 @@ export default function BulletinHub() {
                <div className="space-y-2">
                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Channel</label>
                  <div className="flex gap-2 flex-wrap">
-                    {categories.map(cat => (
+                    {(Array.isArray(categories) ? categories : []).map(cat => (
                       <Badge 
                         key={cat.id}
                         variant={newPost.category === cat.code ? "default" : "outline"}
@@ -850,7 +849,7 @@ export default function BulletinHub() {
                 <div className="space-y-4">
                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Active Infrastructure</h4>
                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                      {categories.map(cat => (
+                      {(Array.isArray(categories) ? categories : []).map(cat => (
                         <div key={cat.id} className="flex justify-between items-center p-4 bg-white dark:bg-slate-800 border rounded-2xl">
                            <div className="flex items-center gap-4">
                               <div className="h-3 w-3 rounded-full" style={{backgroundColor: cat.color}} />

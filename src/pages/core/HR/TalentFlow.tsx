@@ -169,12 +169,11 @@ export default function TalentFlow() {
       <WorkspacePanel title="Active Records" description="Candidate pipeline. Click a card to see profile.">
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {stages.map((stage) => (
+          {(Array.isArray(stages) ? stages : []).map((stage) => (
             <div key={stage} className={`rounded-lg border bg-card p-3 ${stage === "rejected" ? "border-red-100 bg-red-50/10" : ""}`}>
               <p className={`text-sm font-semibold capitalize ${stage === "rejected" ? "text-red-600" : "text-foreground"}`}>{stage}</p>
               <div className="mt-3 space-y-2">
-                {filteredCandidates
-                  .filter((candidate) => candidate.stage === stage)
+                {(Array.isArray(filteredCandidates) ? filteredCandidates : []).filter((candidate) => candidate.stage === stage)
                   .map((candidate) => (
                     <div 
                       key={candidate.id} 
@@ -279,7 +278,7 @@ export default function TalentFlow() {
                 <SelectValue placeholder="Select candidate" />
               </SelectTrigger>
               <SelectContent>
-                {candidates.map((candidate) => (
+                {(Array.isArray(candidates) ? candidates : []).map((candidate) => (
                   <SelectItem key={candidate.id} value={candidate.id}>
                     {candidate.name}
                   </SelectItem>
@@ -336,7 +335,7 @@ export default function TalentFlow() {
               <div className="space-y-2">
                 <p className="text-sm font-semibold">Uploaded Documents</p>
                 <div className="space-y-2">
-                  {candidateProfile.documents.map(doc => (
+                  {(Array.isArray(candidateProfile.documents) ? candidateProfile.documents : []).map(doc => (
                     <div key={doc.id} className="flex items-center justify-between border rounded-md p-2 text-sm bg-card">
                       <span>{doc.name} ({doc.size})</span>
                       <Button onClick={(e) => { e.preventDefault(); alert("Detailed View:\n\nMetadata: " + (typeof window !== "undefined" ? window.location.pathname : "N/A")); }} variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">View</Button>

@@ -196,7 +196,7 @@ const DeveloperConsole = ({
                  <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                 {endpoints.map(ep => (
+                 {(Array.isArray(endpoints) ? endpoints : []).map(ep => (
                    <SelectItem key={ep.value} value={ep.value}>
                       <span className="font-mono">{ep.value}</span> 
                       <span className="text-slate-400 ml-2 text-[10px] uppercase">({ep.label})</span>

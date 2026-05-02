@@ -40,14 +40,14 @@ const buildDefaultRoute = (
         { label: `${destinationDept} Approval`, dept: destinationDept },
       ];
 
-  const stepList: WorkflowStep[] = baseSteps.map((step) => ({
+  const stepList: WorkflowStep[] = (Array.isArray(baseSteps) ? baseSteps : []).map((step) => ({
     id: createId("step"),
     label: step.label,
     dept: step.dept,
     status: "PENDING",
   }));
 
-  const nodes = stepList.map((step) => ({
+  const nodes = (Array.isArray(stepList) ? stepList : []).map((step) => ({
     id: step.id,
     dept: step.dept,
     label: step.label,
@@ -183,7 +183,7 @@ export function approveRequest(
   if (!canApproveWorkflow(session, workflow)) {
     throw new Error("Not authorized to approve workflow");
   }
-  const updatedSteps: WorkflowStep[] = workflow.steps.map((step) =>
+  const updatedSteps: WorkflowStep[] = (Array.isArray(workflow.steps) ? workflow.steps : []).map((step) =>
     step.id === workflow.currentStepId
       ? {
           ...step,
@@ -240,7 +240,7 @@ export function rejectRequest(
   if (!canApproveWorkflow(session, workflow)) {
     throw new Error("Not authorized to reject workflow");
   }
-  const updatedSteps: WorkflowStep[] = workflow.steps.map((step) =>
+  const updatedSteps: WorkflowStep[] = (Array.isArray(workflow.steps) ? workflow.steps : []).map((step) =>
     step.id === workflow.currentStepId
       ? {
           ...step,
@@ -294,7 +294,7 @@ export function modifyRequest(
   if (!canApproveWorkflow(session, workflow)) {
     throw new Error("Not authorized to modify workflow");
   }
-  const resetSteps = workflow.steps.map((step, index) => ({
+  const resetSteps = (Array.isArray(workflow.steps) ? workflow.steps : []).map((step, index) => ({
     ...step,
     status: "PENDING" as const,
     decidedBy: undefined,

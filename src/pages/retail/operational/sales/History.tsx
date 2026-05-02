@@ -142,8 +142,7 @@ export default function RetailHistory() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   // Calculate stats
-  const todayTotal = mockTransactions
-    .filter((t) => t.status === 'completed')
+  const todayTotal = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => t.status === 'completed')
     .reduce((sum, t) => sum + t.total, 0);
   const transactionCount = mockTransactions.length;
   const refundCount = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => t.status === 'refunded').length;
@@ -245,7 +244,7 @@ export default function RetailHistory() {
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-22rem)]">
             <div className="divide-y">
-              {filteredTransactions.map((transaction) => {
+              {(Array.isArray(filteredTransactions) ? filteredTransactions : []).map((transaction) => {
                 const PaymentIcon = paymentIcons[transaction.paymentMethod];
                 const status = statusConfig[transaction.status];
                 
@@ -327,7 +326,7 @@ export default function RetailHistory() {
               </div>
 
               <div className="border rounded-lg divide-y">
-                {selectedTransaction.items.map((item, idx) => (
+                {(Array.isArray(selectedTransaction.items) ? selectedTransaction.items : []).map((item, idx) => (
                   <div key={idx} className="flex justify-between p-3">
                     <div>
                       <p className="font-medium">{item.name}</p>

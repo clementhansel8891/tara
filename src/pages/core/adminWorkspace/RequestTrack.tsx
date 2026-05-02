@@ -50,7 +50,7 @@ export default function RequestTrack() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {(Array.isArray(filtered) ? filtered : []).map((item) => (
                 <tr key={item.id} className="border-t">
                   <td className="p-3 font-medium">{item.title}</td>
                   <td className="p-3 text-muted-foreground">{item.status}</td>

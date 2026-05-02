@@ -173,7 +173,7 @@ export default function TreasuryMap() {
               </tr>
             </thead>
             <tbody>
-              {filteredSources.map((src) => (
+              {(Array.isArray(filteredSources) ? filteredSources : []).map((src) => (
                 <tr
                   key={src.id}
                   className="cursor-pointer border-t hover:bg-muted/50"
@@ -202,8 +202,7 @@ export default function TreasuryMap() {
         description="Reconcile gateway settlements to bank accounts."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredSources
-            .filter((src) => (src.pendingSettlement ?? 0) > 0)
+          {(Array.isArray(filteredSources) ? filteredSources : []).filter((src) => (src.pendingSettlement ?? 0) > 0)
             .map((src) => (
               <div
                 key={src.id}
@@ -252,7 +251,7 @@ export default function TreasuryMap() {
               </tr>
             </thead>
             <tbody>
-              {transfers.map((trf) => (
+              {(Array.isArray(transfers) ? transfers : []).map((trf) => (
                 <tr
                   key={trf.id}
                   className="cursor-pointer border-t hover:bg-muted/50"
@@ -339,7 +338,7 @@ export default function TreasuryMap() {
                         <SelectValue placeholder="From source" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sources.map((src) => (
+                        {(Array.isArray(sources) ? sources : []).map((src) => (
                           <SelectItem key={src.id} value={src.id}>
                             {src.name}
                           </SelectItem>
@@ -357,7 +356,7 @@ export default function TreasuryMap() {
                         <SelectValue placeholder="To source" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sources.map((src) => (
+                        {(Array.isArray(sources) ? sources : []).map((src) => (
                           <SelectItem key={src.id} value={src.id}>
                             {src.name}
                           </SelectItem>

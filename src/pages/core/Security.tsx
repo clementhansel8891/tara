@@ -178,7 +178,7 @@ export default function CoreSecurity() {
           >
             <div className="space-y-4">
               {health.length === 0 && <p className="text-xs text-muted-foreground">No active infrastructure alerts.</p>}
-              {health.map((alert) => (
+              {(Array.isArray(health) ? health : []).map((alert) => (
                 <div
                   key={alert.id}
                   className="rounded-lg border p-3"
@@ -223,7 +223,7 @@ export default function CoreSecurity() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {roleRows.map((role) => (
+                {(Array.isArray(roleRows) ? roleRows : []).map((role) => (
                   <TableRow key={role.id} className="hover:bg-muted/40">
                     <TableCell className="font-medium">{role.name}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -247,7 +247,7 @@ export default function CoreSecurity() {
           >
             <div className="space-y-4">
               {loading && <p className="text-sm text-muted-foreground">Fetching records...</p>}
-              {logs.map((log) => (
+              {(Array.isArray(logs) ? logs : []).map((log) => (
                 <div key={log.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>

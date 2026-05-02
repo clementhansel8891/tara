@@ -217,7 +217,7 @@ export default function FlowGate() {
               </tr>
             </thead>
             <tbody>
-              {auditTrail.map((entry) => (
+              {(Array.isArray(auditTrail) ? auditTrail : []).map((entry) => (
                 <tr
                   key={entry.id}
                   className="cursor-pointer border-t hover:bg-muted/50"

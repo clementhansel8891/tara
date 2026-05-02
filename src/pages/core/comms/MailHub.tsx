@@ -103,7 +103,7 @@ export default function MailHub() {
     if (!mail.isRead) {
       try {
         await apiRequest(`/comms/mail/${mail.id}/read`, "PATCH", session);
-        setMessages(prev => prev.map(m => m.id === mail.id ? { ...m, isRead: true } : m));
+        setMessages(prev => (Array.isArray(prev) ? prev : []).map(m => m.id === mail.id ? { ...m, isRead: true } : m));
         await fetchCounts();
       } catch (e) {
         console.error("Failed to mark read:", e);
@@ -115,7 +115,7 @@ export default function MailHub() {
     e.stopPropagation();
     try {
       await apiRequest(`/comms/mail/${mailId}/star`, "PATCH", session);
-      setMessages(prev => prev.map(m => m.id === mailId ? { ...m, isStarred: !m.isStarred } : m));
+      setMessages(prev => (Array.isArray(prev) ? prev : []).map(m => m.id === mailId ? { ...m, isStarred: !m.isStarred } : m));
       if (selectedMail && selectedMail.id === mailId) {
         setSelectedMail({ ...selectedMail, isStarred: !selectedMail.isStarred });
       }
@@ -273,7 +273,7 @@ export default function MailHub() {
                     <p className="text-[10px] font-bold">This folder is currently empty.</p>
                   </div>
                 ) : (
-                  filteredMessages.map((msg) => (
+                  (Array.isArray(filteredMessages) ? filteredMessages : []).map((msg) => (
                     <div 
                       key={msg.id} 
                       onClick={() => handleSelectMail(msg)}

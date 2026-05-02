@@ -123,7 +123,7 @@ export default function RosterGrid() {
         );
         setStaff(result);
         // Derive role titles from current employee list
-        const roles = new Set(result.items.map((e: Employee) => e.roleTitle).filter(Boolean));
+        const roles = new Set((Array.isArray(result.items) ? result.items : []).map((e: Employee) => e.roleTitle).filter(Boolean));
         setRoleTitles(Array.from(roles) as string[]);
       } catch (err) {
         setErrorMessage("Failed to load staff list.");
@@ -367,7 +367,7 @@ export default function RosterGrid() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All departments</SelectItem>
-                  {departments.map((dept) => (
+                  {(Array.isArray(departments) ? departments : []).map((dept) => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
                     </SelectItem>
@@ -380,7 +380,7 @@ export default function RosterGrid() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All status</SelectItem>
-                  {statusOptions.map((option) => (
+                  {(Array.isArray(statusOptions) ? statusOptions : []).map((option) => (
                     <SelectItem key={option} value={option}>
                       {option.replace("_", " ")}
                     </SelectItem>
@@ -393,7 +393,7 @@ export default function RosterGrid() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All roles</SelectItem>
-                  {roleTitles.map((title) => (
+                  {(Array.isArray(roleTitles) ? roleTitles : []).map((title) => (
                     <SelectItem key={title} value={title}>
                       {title}
                     </SelectItem>
@@ -443,7 +443,7 @@ export default function RosterGrid() {
                   </td>
                 </tr>
               ) : (
-                staff.items.map((employee) => (
+                (Array.isArray(staff.items) ? staff.items : []).map((employee) => (
                   <tr
                     key={employee.id}
                     className="border-t cursor-pointer hover:bg-muted/30"
@@ -642,7 +642,7 @@ export default function RosterGrid() {
                       <SelectValue placeholder="Select department" />
                     </SelectTrigger>
                     <SelectContent>
-                      {departments.map((dept) => (
+                      {(Array.isArray(departments) ? departments : []).map((dept) => (
                         <SelectItem key={dept.id} value={dept.id}>
                           {dept.name}
                         </SelectItem>
@@ -658,7 +658,7 @@ export default function RosterGrid() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No location</SelectItem>
-                      {locations.map((loc) => (
+                      {(Array.isArray(locations) ? locations : []).map((loc) => (
                         <SelectItem key={loc.id} value={loc.id}>
                           {loc.name}
                         </SelectItem>
@@ -677,7 +677,7 @@ export default function RosterGrid() {
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {statusOptions.map((option) => (
+                      {(Array.isArray(statusOptions) ? statusOptions : []).map((option) => (
                         <SelectItem key={option} value={option}>
                           {option.replace("_", " ")}
                         </SelectItem>
@@ -746,7 +746,7 @@ export default function RosterGrid() {
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent>
-                    {departments.map((dept) => (
+                    {(Array.isArray(departments) ? departments : []).map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
                         {dept.name}
                       </SelectItem>
@@ -762,7 +762,7 @@ export default function RosterGrid() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No location</SelectItem>
-                    {locations.map((loc) => (
+                    {(Array.isArray(locations) ? locations : []).map((loc) => (
                       <SelectItem key={loc.id} value={loc.id}>
                         {loc.name}
                       </SelectItem>
@@ -777,7 +777,7 @@ export default function RosterGrid() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {statusOptions.map((option) => (
+                    {(Array.isArray(statusOptions) ? statusOptions : []).map((option) => (
                       <SelectItem key={option} value={option}>{option.replace("_", " ")}</SelectItem>
                     ))}
                   </SelectContent>
@@ -881,7 +881,7 @@ export default function RosterGrid() {
                           <SelectValue placeholder="Select employee" />
                         </SelectTrigger>
                         <SelectContent>
-                          {staff.items.map((emp) => (
+                          {(Array.isArray(staff.items) ? staff.items : []).map((emp) => (
                             <SelectItem key={emp.id} value={emp.id}>
                               {emp.fullName}
                             </SelectItem>
@@ -897,7 +897,7 @@ export default function RosterGrid() {
                             <SelectValue placeholder="Training program" />
                           </SelectTrigger>
                           <SelectContent>
-                            {programs.map((program) => (
+                            {(Array.isArray(programs) ? programs : []).map((program) => (
                               <SelectItem key={program.id} value={program.id}>
                                 {program.name}
                               </SelectItem>

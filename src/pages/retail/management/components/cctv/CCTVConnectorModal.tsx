@@ -182,7 +182,7 @@ export default function CCTVConnectorModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROVIDERS.map((p) => (
+                  {(Array.isArray(PROVIDERS) ? PROVIDERS : []).map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name}
                     </SelectItem>

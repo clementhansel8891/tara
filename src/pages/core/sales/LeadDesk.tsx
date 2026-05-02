@@ -330,7 +330,7 @@ export default function LeadDesk() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                {filtered.map((lead) => (
+                {(Array.isArray(filtered) ? filtered : []).map((lead) => (
                   <tr 
                     key={lead.id} 
                     className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all cursor-pointer"

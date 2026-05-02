@@ -139,7 +139,7 @@ export function resolveModules(
 
   // Map active modules by id for O(1) lookup
   const activeModuleMap = new Map<ModuleId, ModuleInstance>(
-    activeModuleInstances.map((m) => [m.moduleId, m]),
+    (Array.isArray(activeModuleInstances) ? activeModuleInstances : []).map((m) => [m.moduleId, m]),
   );
 
   const resolved: ResolvedModule[] = [];

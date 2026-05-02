@@ -141,7 +141,7 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
                     animationDuration={1500}
                     stroke="none"
                   >
-                    {data.paymentMethodDistribution.map((entry, index) => (
+                    {(Array.isArray(data.paymentMethodDistribution) ? data.paymentMethodDistribution : []).map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -162,7 +162,7 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
             </div>
 
             <div className="mt-8 space-y-3">
-              {data.paymentMethodDistribution.map((item, idx) => (
+              {(Array.isArray(data.paymentMethodDistribution) ? data.paymentMethodDistribution : []).map((item, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between group/item cursor-default"

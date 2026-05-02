@@ -194,7 +194,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
         {/* Step 1: Categories */}
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {categories.map((cat) => (
+            {(Array.isArray(categories) ? categories : []).map((cat) => (
               <Card 
                 key={cat.id} 
                 className={cn(
@@ -233,7 +233,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
             </div>
 
             <div className="space-y-3">
-              {filteredProducts.map((p) => (
+              {(Array.isArray(filteredProducts) ? filteredProducts : []).map((p) => (
                 <Card key={p.id} className="rounded-2xl border-slate-100 p-4 hover:bg-slate-50 transition-colors group">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">

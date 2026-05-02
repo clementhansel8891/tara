@@ -44,7 +44,7 @@ export default function ReceiptStudio() {
   const [activeComponentId, setActiveComponentId] = useState<string | null>('1');
 
   const updateComponent = (id: string, updates: Partial<ReceiptComponent>) => {
-    setComponents(components.map(c => c.id === id ? { ...c, ...updates } : c));
+    setComponents((Array.isArray(components) ? components : []).map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   const activeComponent = useMemo(() => components.find(c => c.id === activeComponentId), [components, activeComponentId]);

@@ -66,7 +66,7 @@ export function NotificationCenter() {
         <ScrollArea className="h-[400px]">
           {notifications.length > 0 ? (
             <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
-              {notifications.map((notif) => (
+              {(Array.isArray(notifications) ? notifications : []).map((notif) => (
                 <div 
                   key={notif.id} 
                   className={cn(

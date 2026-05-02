@@ -72,7 +72,7 @@ export const RetailGlobalAdminBar = () => {
               <DropdownMenuLabel className="text-[10px] uppercase font-black italic tracking-widest text-slate-400">
                 Physical Stores
               </DropdownMenuLabel>
-              {stores.map((store) => (
+              {(Array.isArray(stores) ? stores : []).map((store) => (
                 <DropdownMenuItem
                   key={store.id}
                   className="gap-2 focus:bg-indigo-50 cursor-pointer"
@@ -98,7 +98,7 @@ export const RetailGlobalAdminBar = () => {
               <DropdownMenuLabel className="text-[10px] uppercase font-black italic tracking-widest text-slate-400">
                 Digital Channels
               </DropdownMenuLabel>
-              {channels.map((channel) => (
+              {(Array.isArray(channels) ? channels : []).map((channel) => (
                 <DropdownMenuItem
                   key={channel.id}
                   className="gap-2 focus:bg-cyan-50 cursor-pointer"

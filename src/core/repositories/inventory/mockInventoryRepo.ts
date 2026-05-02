@@ -202,7 +202,7 @@ const updateById = <T extends { id: string }>(
   patch: Partial<T>,
 ): { updated: T | null; next: T[] } => {
   let updated: T | null = null;
-  const next = items.map((item) => {
+  const next = (Array.isArray(items) ? items : []).map((item) => {
     if (item.id !== id) return item;
     updated = { ...item, ...patch };
     return updated;
@@ -228,7 +228,7 @@ export const mockInventoryRepo: InventoryRepository = {
   },
   async deleteItem(tenantId, id) {
     const items = await this.listItems(tenantId);
-    const next = items.filter(i => i.id !== id);
+    const next = (Array.isArray(items) ? items : []).filter(i => i.id !== id);
     if (next.length === items.length) return false;
     await saveToStorage(itemsKey(tenantId), next);
     return true;

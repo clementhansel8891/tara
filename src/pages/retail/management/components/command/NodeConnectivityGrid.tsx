@@ -221,7 +221,7 @@ export const NodeConnectivityGrid = ({
             ))}
 
             {/* Live Gateway Nodes from Backend */}
-            {gatewayNodes.map((node) => (
+            {(Array.isArray(gatewayNodes) ? gatewayNodes : []).map((node) => (
               <NodeRow
                 key={node.id}
                 name={node.nodeName}

@@ -299,8 +299,7 @@ const IntegrationSetup: React.FC<{
       setSaving(false);
     }
   };
-  const allFilled = info.fields
-    .filter(
+  const allFilled = (Array.isArray(info.fields) ? info.fields : []).filter(
       (f) =>
         !f.label.includes("optional") && !f.placeholder.includes("optional"),
     )
@@ -341,7 +340,7 @@ const IntegrationSetup: React.FC<{
       </div>
 
       <div className="space-y-3">
-        {info.fields.map((field) => (
+        {(Array.isArray(info.fields) ? info.fields : []).map((field) => (
           <div key={field.key} className="space-y-1.5">
             <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
               {field.label}
@@ -631,7 +630,7 @@ const CCTVViewerModal: React.FC<Props> = ({
 
         {/* Tab bar */}
         <div className="flex items-center gap-1 px-6 py-3 border-b border-slate-50 shrink-0">
-          {TABS.map((t) => (
+          {(Array.isArray(TABS) ? TABS : []).map((t) => (
             <button
               key={t.id}
               onClick={() => setViewTab(t.id)}
@@ -809,7 +808,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                     Event Timeline — {selectedDate}
                   </div>
                   <div className="space-y-2">
-                    {MOCK_EVENTS.map((ev, i) => (
+                    {(Array.isArray(MOCK_EVENTS) ? MOCK_EVENTS : []).map((ev, i) => (
                       <button
                         key={i}
                         className="w-full text-left bg-slate-50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-sm rounded-2xl px-4 py-3 transition-all group"

@@ -107,7 +107,7 @@ export default function SkillTrack() {
               </tr>
             </thead>
             <tbody>
-              {filteredAssignments.map((assignment) => (
+              {(Array.isArray(filteredAssignments) ? filteredAssignments : []).map((assignment) => (
                 <tr key={assignment.id} className="border-t">
                   <td className="p-3">{assignment.employeeId}</td>
                   <td className="p-3 text-muted-foreground">{assignment.programId}</td>
@@ -176,7 +176,7 @@ export default function SkillTrack() {
                     <SelectValue placeholder="Training program" />
                   </SelectTrigger>
                   <SelectContent>
-                    {programs.map((program) => (
+                    {(Array.isArray(programs) ? programs : []).map((program) => (
                       <SelectItem key={program.id} value={program.id}>
                         {program.name}
                       </SelectItem>
@@ -191,7 +191,7 @@ export default function SkillTrack() {
                     <SelectValue placeholder="Select employee" />
                   </SelectTrigger>
                   <SelectContent>
-                    {staff.items.map((emp) => (
+                    {(Array.isArray(staff.items) ? staff.items : []).map((emp) => (
                       <SelectItem key={emp.id} value={emp.id}>
                         {emp.fullName}
                       </SelectItem>
@@ -203,7 +203,7 @@ export default function SkillTrack() {
                     <SelectValue placeholder="Training program" />
                   </SelectTrigger>
                   <SelectContent>
-                    {programs.map((program) => (
+                    {(Array.isArray(programs) ? programs : []).map((program) => (
                       <SelectItem key={program.id} value={program.id}>
                         {program.name}
                       </SelectItem>
@@ -219,7 +219,7 @@ export default function SkillTrack() {
                   if (actionType === "bulk") {
                     const ids = bulkIds.split(",").map((id) => id.trim()).filter(Boolean);
                     await trainingService.bulkAssign(session.tenant_id, session, {
-                      employeeIds: ids.length ? ids : staff.items.map((emp) => emp.id),
+                      employeeIds: ids.length ? ids : (Array.isArray(staff.items) ? staff.items : []).map((emp) => emp.id),
                       programId: selectedProgram,
                     });
                   } else if (selectedEmployee) {

@@ -22,7 +22,7 @@ export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
     return (
       <div className="h-10 w-full mt-2 opacity-50">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data.map((v) => ({ v }))}>
+          <AreaChart data={(Array.isArray(data) ? data : []).map((v) => ({ v }))}>
             <defs>
               <linearGradient id={`color-${color}`} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
@@ -117,7 +117,7 @@ export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      {items.map((item, idx) => (
+      {(Array.isArray(items) ? items : []).map((item, idx) => (
         <div
           key={idx}
           className={`relative bg-white/[0.03] backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl transition-all duration-500 ${item.border} hover:bg-white/[0.05] hover:-translate-y-2 cursor-default group flex flex-col justify-between min-h-[180px] overflow-hidden`}

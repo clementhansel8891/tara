@@ -82,7 +82,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                 </td>
               </tr>
             ) : (
-              entries.map((entry, i) => {
+              (Array.isArray(entries) ? entries : []).map((entry, i) => {
                 const variance =
                   entry.counted !== ""
                     ? Number(entry.counted) - entry.expected

@@ -23,7 +23,7 @@ export const legalService = {
     return {
       contracts,
       expiringVisas: [], // Missing backend support for now
-      pendingRenewals: contracts.filter((item) => item.status === "draft").length,
+      pendingRenewals: (Array.isArray(contracts) ? contracts : []).filter((item) => item.status === "draft").length,
     };
   },
 

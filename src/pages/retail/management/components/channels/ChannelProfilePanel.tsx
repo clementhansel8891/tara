@@ -286,7 +286,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
       <div className="bg-white border-b shrink-0">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent h-auto p-0 px-4 gap-6 rounded-none justify-start">
-            {tabs.map((tab) => (
+            {(Array.isArray(tabs) ? tabs : []).map((tab) => (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}

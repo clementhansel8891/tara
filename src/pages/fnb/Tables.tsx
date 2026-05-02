@@ -43,7 +43,7 @@ export default function CafeTables() {
 
   const handleStartOrder = () => {
     if (selectedTable) {
-      setTables(prev => prev.map(t => 
+      setTables(prev => (Array.isArray(prev) ? prev : []).map(t => 
         t.id === selectedTable.id 
           ? { ...t, status: 'occupied' as const, occupiedSince: new Date().toISOString() }
           : t
@@ -63,12 +63,12 @@ export default function CafeTables() {
   const handleOrderComplete = (items: Array<{ product: Product; quantity: number; modifiers: string[] }>) => {
     if (selectedTable) {
       const orderTotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-      setTables(prev => prev.map(t => 
+      setTables(prev => (Array.isArray(prev) ? prev : []).map(t => 
         t.id === selectedTable.id 
           ? { 
               ...t, 
               currentOrder: {
-                items: items.map(i => ({
+                items: (Array.isArray(items) ? items : []).map(i => ({
                   productId: i.product.id,
                   name: i.product.name,
                   quantity: i.quantity,
@@ -83,7 +83,7 @@ export default function CafeTables() {
       setSelectedTable(prev => prev ? {
         ...prev,
         currentOrder: {
-          items: items.map(i => ({
+          items: (Array.isArray(items) ? items : []).map(i => ({
             productId: i.product.id,
             name: i.product.name,
             quantity: i.quantity,
@@ -99,14 +99,14 @@ export default function CafeTables() {
 
   const handleBillingComplete = () => {
     if (selectedTable) {
-      setTables(prev => prev.map(t => 
+      setTables(prev => (Array.isArray(prev) ? prev : []).map(t => 
         t.id === selectedTable.id 
           ? { ...t, status: 'cleaning' as const, currentOrder: undefined, occupiedSince: undefined }
           : t
       ));
       // Auto-reset to available after 30 seconds (simulating cleaning)
       setTimeout(() => {
-        setTables(prev => prev.map(t => 
+        setTables(prev => (Array.isArray(prev) ? prev : []).map(t => 
           t.id === selectedTable.id ? { ...t, status: 'available' as const } : t
         ));
       }, 30000);
@@ -151,7 +151,7 @@ export default function CafeTables() {
 
       {/* Table Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {tables.map((table) => (
+        {(Array.isArray(tables) ? tables : []).map((table) => (
           <button
             key={table.id}
             onClick={() => handleTableClick(table)}
@@ -226,7 +226,7 @@ export default function CafeTables() {
         <DialogContent className="max-w-4xl h-[90vh] p-0">
           <OrderPad 
             table={selectedTable}
-            products={mockCafeProducts.filter(p => p.category !== 'Retail')}
+            products={(Array.isArray(mockCafeProducts) ? mockCafeProducts : []).filter(p => p.category !== 'Retail')}
             onComplete={handleOrderComplete}
             onCancel={() => setTableAction(null)}
           />

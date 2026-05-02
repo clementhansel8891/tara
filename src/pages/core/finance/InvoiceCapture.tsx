@@ -104,7 +104,7 @@ export default function InvoiceCapture() {
           </tr>
         </thead>
         <tbody>
-          {items.map((invoice) => (
+          {(Array.isArray(items) ? items : []).map((invoice) => (
             <tr
               key={invoice.id}
               className="cursor-pointer border-t hover:bg-muted/50"

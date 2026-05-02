@@ -330,7 +330,7 @@ export default function CoreOperations() {
           description="Operational throughput and stability by service."
         >
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {moduleActivity.map((module) => (
+            {(Array.isArray(moduleActivity) ? moduleActivity : []).map((module) => (
               <div key={module.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -368,7 +368,7 @@ export default function CoreOperations() {
             description="Escalations requiring immediate review."
           >
             <div className="space-y-4">
-              {alertsQueue.map((alertItem) => (
+              {(Array.isArray(alertsQueue) ? alertsQueue : []).map((alertItem) => (
                 <div key={alertItem.id} className="rounded-lg border p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -400,7 +400,7 @@ export default function CoreOperations() {
             description="Core tasks and control points for today."
           >
             <div className="space-y-3">
-              {checklistItems.map((item) => (
+              {(Array.isArray(checklistItems) ? checklistItems : []).map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between rounded-lg border p-3"
@@ -436,7 +436,7 @@ export default function CoreOperations() {
           description="Performance and incident posture across regions."
         >
           <div className="grid gap-4 md:grid-cols-3">
-            {tenantVisibility.map((tenant) => (
+            {(Array.isArray(tenantVisibility) ? tenantVisibility : []).map((tenant) => (
               <div key={tenant.id} className="rounded-lg border p-4">
                 <div className="flex items-start justify-between">
                   <div>

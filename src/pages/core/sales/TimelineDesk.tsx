@@ -206,7 +206,7 @@ export default function TimelineDesk() {
                         <SelectValue placeholder="Select deal context" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                        {opportunities.map(o => (
+                        {(Array.isArray(opportunities) ? opportunities : []).map(o => (
                           <SelectItem key={o.id} value={o.id} className="rounded-xl py-3 font-bold">{o.accountName}</SelectItem>
                         ))}
                       </SelectContent>
@@ -288,7 +288,7 @@ export default function TimelineDesk() {
                   <p className="text-sm font-bold text-slate-400 italic">The neural stream is silent. Initialize interaction protocol.</p>
                </Card>
             ) : (
-               filtered.map((item, i) => {
+               (Array.isArray(filtered) ? filtered : []).map((item, i) => {
                   const channel = CHANNELS[item.channel] || CHANNELS.NOTE;
                   const Icon = channel.icon;
                   return (

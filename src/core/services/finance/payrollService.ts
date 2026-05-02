@@ -16,7 +16,7 @@ export const payrollService = {
 
   async updatePayrollEntry(entryId: string, updates: Partial<PayrollEntry>): Promise<PayrollEntry> {
     let updated: PayrollEntry | null = null;
-    entries = entries.map((e) => {
+    entries = (Array.isArray(entries) ? entries : []).map((e) => {
       if (e.id === entryId) {
         updated = { ...e, ...updates, updatedAt: new Date().toISOString() };
         return updated;

@@ -262,7 +262,7 @@ export default function Onboarding() {
                   {/* Dropdown results */}
                   {showDropdown && locationResults.length > 0 && (
                     <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
-                      {locationResults.map((r) => (
+                      {(Array.isArray(locationResults) ? locationResults : []).map((r) => (
                         <button
                           key={r.place_id}
                           type="button"
@@ -374,7 +374,7 @@ export default function Onboarding() {
                       setFormData({ ...formData, country: e.target.value })
                     }
                   >
-                    {COUNTRIES.map((c) => (
+                    {(Array.isArray(COUNTRIES) ? COUNTRIES : []).map((c) => (
                       <option key={c.code} value={c.code}>
                         {c.flag} {c.name}
                       </option>

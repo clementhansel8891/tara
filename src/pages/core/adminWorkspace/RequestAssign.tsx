@@ -66,7 +66,7 @@ export default function RequestAssign() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {(Array.isArray(filtered) ? filtered : []).map((item) => (
                 <tr key={item.id} className="border-t">
                   <td className="p-3 font-medium">{item.id}</td>
                   <td className="p-3 text-muted-foreground">{item.dept}</td>

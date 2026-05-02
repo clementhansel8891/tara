@@ -45,7 +45,7 @@ export function ActivityThread({
             No activity yet. Add the first comment.
           </div>
         ) : (
-          items.map((entry: ActivityEntry) => (
+          (Array.isArray(items) ? items : []).map((entry: ActivityEntry) => (
             <div key={entry.id} className="rounded-lg border p-3 text-sm">
               <p className="text-xs text-muted-foreground">
                 {entry.actorId} · {entry.createdAt.slice(0, 16).replace("T", " ")}

@@ -119,7 +119,7 @@ export const mockStaffRepo: StaffRepository = {
       (item) => item.tenantId === tenantId && item.id === staffId,
     );
     if (!current) return undefined;
-    const next = items.map((item) =>
+    const next = (Array.isArray(items) ? items : []).map((item) =>
       item.tenantId === tenantId && item.id === staffId
         ? { ...item, status: "inactive" as const, updatedAt: new Date().toISOString() }
         : item,

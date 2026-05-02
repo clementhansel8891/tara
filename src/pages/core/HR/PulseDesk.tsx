@@ -83,7 +83,7 @@ export default function PulseDesk() {
 
       {/* KPI Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, i) => {
+        {(Array.isArray(stats) ? stats : []).map((stat, i) => {
           const Icon = stat.icon;
           return (
             <div key={i} className="group relative p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
@@ -127,7 +127,7 @@ export default function PulseDesk() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            {workforceHealth.map((item, i) => (
+            {(Array.isArray(workforceHealth) ? workforceHealth : []).map((item, i) => (
               <div key={i} className="group p-8 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center justify-between mb-6">
                   <div className="space-y-1">

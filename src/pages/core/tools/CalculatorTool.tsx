@@ -93,7 +93,7 @@ export default function CalculatorTool() {
 
                 <TabsContent value="standard" className="mt-0">
                   <div className="grid grid-cols-4 gap-3">
-                    {standardKeys.map((key) => (
+                    {(Array.isArray(standardKeys) ? standardKeys : []).map((key) => (
                       <Button
                         key={key}
                         variant={key === "=" ? "default" : "outline"}
@@ -119,7 +119,7 @@ export default function CalculatorTool() {
 
                 <TabsContent value="scientific" className="mt-0">
                    <div className="grid grid-cols-4 gap-3">
-                    {scientificKeys.map((key) => (
+                    {(Array.isArray(scientificKeys) ? scientificKeys : []).map((key) => (
                       <Button
                         key={key}
                         variant="outline"
@@ -160,7 +160,7 @@ export default function CalculatorTool() {
                   <p className="text-sm">No calculations yet.</p>
                 </div>
               ) : (
-                history.map((item, i) => (
+                (Array.isArray(history) ? history : []).map((item, i) => (
                   <div key={i} className="group relative rounded-lg border bg-muted/10 p-3 hover:bg-muted/20 transition-colors">
                     <div className="flex justify-between items-start mb-1">
                       <span className="text-[10px] font-mono text-muted-foreground">{item.timestamp}</span>

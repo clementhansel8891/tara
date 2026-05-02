@@ -108,7 +108,7 @@ export default function CafeHistory() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<HistoryOrder | null>(null);
 
-  const filteredOrders = mockHistory.filter(order => 
+  const filteredOrders = (Array.isArray(mockHistory) ? mockHistory : []).filter(order => 
     order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.tableNumber.toString().includes(searchQuery) ||
     order.server.toLowerCase().includes(searchQuery.toLowerCase())
@@ -163,7 +163,7 @@ export default function CafeHistory() {
       {/* Order List */}
       <ScrollArea className="h-[calc(100vh-340px)]">
         <div className="space-y-3">
-          {filteredOrders.map((order) => (
+          {(Array.isArray(filteredOrders) ? filteredOrders : []).map((order) => (
             <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setSelectedOrder(order)}>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -215,7 +215,7 @@ export default function CafeHistory() {
               <Separator />
 
               <div className="space-y-2">
-                {selectedOrder.items.map((item, index) => (
+                {(Array.isArray(selectedOrder.items) ? selectedOrder.items : []).map((item, index) => (
                   <div key={index} className="flex justify-between">
                     <div>
                       <span>{item.quantity}x {item.name}</span>

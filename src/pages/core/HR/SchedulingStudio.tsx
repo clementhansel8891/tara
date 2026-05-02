@@ -168,7 +168,7 @@ export default function SchedulingStudio() {
                 <thead>
                   <tr className="bg-muted/30">
                     <th className="p-4 text-left border-b sticky left-0 z-10 bg-muted/30 min-w-[200px] backdrop-blur-md">Professional</th>
-                    {weekDays.map((date) => (
+                    {(Array.isArray(weekDays) ? weekDays : []).map((date) => (
                       <th key={date.toISOString()} className={`p-4 text-center border-b border-l min-w-[140px] ${isSameDay(date, new Date()) ? "bg-primary/5" : ""}`}>
                         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{format(date, "EEE")}</div>
                         <div className={`text-lg font-black ${isSameDay(date, new Date()) ? "text-primary" : ""}`}>{format(date, "dd")}</div>
@@ -184,7 +184,7 @@ export default function SchedulingStudio() {
                         Synchronizing workforce data...
                       </td>
                     </tr>
-                  ) : employees.map((emp) => (
+                  ) : (Array.isArray(employees) ? employees : []).map((emp) => (
                     <tr key={emp.id} className="group hover:bg-primary/5 transition-colors duration-150">
                       <td className="p-4 border-b sticky left-0 z-10 bg-card/80 group-hover:bg-primary/5 backdrop-blur-md transition-colors duration-150">
                         <div className="flex items-center gap-3">
@@ -197,7 +197,7 @@ export default function SchedulingStudio() {
                           </div>
                         </div>
                       </td>
-                      {weekDays.map((date) => {
+                      {(Array.isArray(weekDays) ? weekDays : []).map((date) => {
                         const dateStr = format(date, "yyyy-MM-dd");
                         const data = rosterData[emp.id]?.[dateStr];
                         

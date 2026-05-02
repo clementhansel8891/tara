@@ -409,7 +409,7 @@ export default function Assets() {
             Budget availability is enforced from ledger accounts before CAPEX requests are created.
           </p>
           <div className="mt-3 grid gap-2 md:grid-cols-3">
-                {capexBudgets.map((budget) => (
+                {(Array.isArray(capexBudgets) ? capexBudgets : []).map((budget) => (
                   <div key={budget.department} className="rounded border p-2 text-xs">
                     <p className="font-medium">{budget.department}</p>
                     <p className="text-muted-foreground">Allocated: {formatAmount(budget.allocatedBudget)}</p>
@@ -427,7 +427,7 @@ export default function Assets() {
           </p>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             {documents.length ? (
-              documents.map((document) => (
+              (Array.isArray(documents) ? documents : []).map((document) => (
                 <label
                   key={document.id}
                   className="flex items-center gap-2 rounded border px-3 py-2 text-xs"
@@ -450,7 +450,7 @@ export default function Assets() {
         </div>
         <Tabs value={tab} onValueChange={(value) => setTab(value as AssetTab)}>
           <TabsList>
-            {TABS.map((item) => (
+            {(Array.isArray(TABS) ? TABS : []).map((item) => (
               <TabsTrigger key={item.id} value={item.id}>
                 {item.label}
               </TabsTrigger>
@@ -476,7 +476,7 @@ export default function Assets() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAssets.map((asset) => (
+                  {(Array.isArray(filteredAssets) ? filteredAssets : []).map((asset) => (
                     <tr
                       key={asset.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -583,7 +583,7 @@ export default function Assets() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredCapex.map((request) => (
+                  {(Array.isArray(filteredCapex) ? filteredCapex : []).map((request) => (
                     <tr
                       key={request.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -703,7 +703,7 @@ export default function Assets() {
                   </tr>
                 </thead>
                 <tbody>
-                  {depreciationEntries.map((entry) => (
+                  {(Array.isArray(depreciationEntries) ? depreciationEntries : []).map((entry) => (
                     <tr
                       key={entry.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -736,7 +736,7 @@ export default function Assets() {
                   </tr>
                 </thead>
                 <tbody>
-                  {assetEvents.map((event) => (
+                  {(Array.isArray(assetEvents) ? assetEvents : []).map((event) => (
                     <tr
                       key={event.id}
                       className="cursor-pointer border-t hover:bg-muted/50"
@@ -912,7 +912,7 @@ export default function Assets() {
                     >
                       <SelectTrigger><SelectValue placeholder="Sponsor Department" /></SelectTrigger>
                       <SelectContent>
-                        {capexBudgets.map(b => (
+                        {(Array.isArray(capexBudgets) ? capexBudgets : []).map(b => (
                           <SelectItem key={b.department} value={b.department}>{b.department}</SelectItem>
                         ))}
                       </SelectContent>

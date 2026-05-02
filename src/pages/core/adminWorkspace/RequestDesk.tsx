@@ -132,7 +132,7 @@ export default function RequestDesk() {
                   <td colSpan={3} className="p-3 text-center text-muted-foreground">No requests found.</td>
                 </tr>
               ) : (
-                filtered.map((req) => (
+                (Array.isArray(filtered) ? filtered : []).map((req) => (
                   <tr
                     key={req.id}
                     className="cursor-pointer border-t hover:bg-muted/50"

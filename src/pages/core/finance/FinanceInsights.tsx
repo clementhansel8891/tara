@@ -123,7 +123,7 @@ export default function FinanceInsights() {
           description="Signal cards surface the most critical metrics this cycle."
         >
           <div className="grid gap-3 sm:grid-cols-2">
-            {trendCards.map((item) => (
+            {(Array.isArray(trendCards) ? trendCards : []).map((item) => (
               <div key={item.id} className="rounded-lg border p-3">
                 <p className="text-xs text-muted-foreground">{item.category}</p>
                 <p className="text-sm font-medium">{item.label}</p>
@@ -175,7 +175,7 @@ export default function FinanceInsights() {
               </tr>
             </thead>
             <tbody>
-              {filteredInsights.map((item) => (
+              {(Array.isArray(filteredInsights) ? filteredInsights : []).map((item) => (
                 <tr key={item.id} className="border-t">
                   <td className="p-3 font-medium">{item.title}</td>
                   <td className="p-3 text-muted-foreground">{item.category}</td>
@@ -193,7 +193,7 @@ export default function FinanceInsights() {
           description="Distribution of insight categories."
         >
           <div className="flex flex-wrap gap-2">
-            {breakdown.map((row) => (
+            {(Array.isArray(breakdown) ? breakdown : []).map((row) => (
               <Badge key={row.category} variant="outline">
                 {row.category}: {row.count}
               </Badge>

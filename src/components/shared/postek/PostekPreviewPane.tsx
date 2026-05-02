@@ -166,7 +166,7 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
                     >
                       {/* Editable only on first sticker */}
                       {columnIndex === 0
-                        ? layout.map((block) => (
+                        ? (Array.isArray(layout) ? layout : []).map((block) => (
                             <DraggableBlock
                               key={block.id}
                               block={block}
@@ -176,7 +176,7 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
                               {renderBlockContent(block, item)}
                             </DraggableBlock>
                           ))
-                        : layout.map((block) => {
+                        : (Array.isArray(layout) ? layout : []).map((block) => {
                             const style: React.CSSProperties = {
                               position: "absolute",
                               left: `${(block.x + marginLeft) * PREVIEW_SCALE}px`,

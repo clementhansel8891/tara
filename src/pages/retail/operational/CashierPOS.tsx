@@ -258,7 +258,7 @@ const CashierPOS = () => {
 
   const updateQuantity = (id: string, delta: number) => {
     setCart((prev) =>
-      prev.map((item) =>
+      (Array.isArray(prev) ? prev : []).map((item) =>
         item.id === id
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item,
@@ -326,7 +326,7 @@ const CashierPOS = () => {
         {
           store_id: activeStore.id,
           terminal_id: "terminal-pos",
-          items: cart.map((item) => ({
+          items: (Array.isArray(cart) ? cart : []).map((item) => ({
             product_id: item.id,
             name: item.name,
             quantity: item.quantity,
@@ -351,7 +351,7 @@ const CashierPOS = () => {
         orderId: order.id,
         date: new Date().toLocaleString(),
         cashier: session.fullName || session.user_id,
-        items: cart.map(item => ({
+        items: (Array.isArray(cart) ? cart : []).map(item => ({
           name: item.name,
           quantity: item.quantity,
           price: item.price,
@@ -502,7 +502,7 @@ const CashierPOS = () => {
                 }}
               >
                 <option value="" className="bg-slate-900">All Categories</option>
-                {categories.map((cat) => (
+                {(Array.isArray(categories) ? categories : []).map((cat) => (
                   <option key={cat.id} value={cat.id} className="bg-slate-900">
                     {cat.name}
                   </option>

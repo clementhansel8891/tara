@@ -65,7 +65,7 @@ export default function DepartmentWorkspaceLayout({
   }, [engineName, location.pathname, session]);
 
   const segments = location.pathname.replace(basePath, "").split("/").filter(Boolean);
-  const breadcrumbs = segments.map((segment, index) => ({
+  const breadcrumbs = (Array.isArray(segments) ? segments : []).map((segment, index) => ({
     label: routeLabels[segment] ?? segment.replace(/-/g, " "),
     path: `${basePath}/${segments.slice(0, index + 1).join("/")}`,
   }));
@@ -105,7 +105,7 @@ export default function DepartmentWorkspaceLayout({
                     <Link to={basePath} className={cn("text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all", `hover:${textC}`)}>{engineName}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                {breadcrumbs.map((item, index) => (
+                {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
                   <React.Fragment key={item.path}>
                     <BreadcrumbSeparator className="text-slate-300" />
                     <BreadcrumbItem>
@@ -157,13 +157,13 @@ export default function DepartmentWorkspaceLayout({
               <div className="p-6 space-y-10">
                 <SidebarIdentityCard />
 
-                {sections.map((section) => (
+                {(Array.isArray(sections) ? sections : []).map((section) => (
                   <div key={section.title} className="space-y-6">
                     <p className={cn("text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 pl-4 border-l-2", borderC20)}>
                       {section.title}
                     </p>
                     <div className="space-y-1">
-                      {section.items.map((item) => {
+                      {(Array.isArray(section.items) ? section.items : []).map((item) => {
                         const Icon = item.icon;
                         const isActive = location.pathname === item.to || (item.to === basePath && location.pathname === `${basePath}/`);
                         return (

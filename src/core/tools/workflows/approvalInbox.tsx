@@ -210,7 +210,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
                   </tr>
                 </thead>
                 <tbody className="space-y-4">
-                  {filtered.map((flow) => (
+                  {(Array.isArray(filtered) ? filtered : []).map((flow) => (
                     <tr 
                       key={flow.id} 
                       className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
@@ -331,7 +331,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
                        Audit History
                     </p>
                     <div className="space-y-4 border-l-2 border-slate-100 ml-2 pl-6">
-                      {auditTrail.map((log: any, i: number) => (
+                      {(Array.isArray(auditTrail) ? auditTrail : []).map((log: any, i: number) => (
                         <div key={i} className="relative">
                           <div className="absolute -left-[1.85rem] top-1 h-3 w-3 rounded-full bg-slate-200 border-2 border-white" />
                           <p className="text-xs font-bold text-slate-900">{log.action}</p>

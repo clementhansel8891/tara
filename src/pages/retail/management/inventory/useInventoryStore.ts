@@ -102,7 +102,7 @@ export function useInventoryStore() {
     reason: string,
   ) => {
     setInventory((prev) =>
-      prev.map((i) =>
+      (Array.isArray(prev) ? prev : []).map((i) =>
         i.id === id
           ? {
               ...i,
@@ -120,7 +120,7 @@ export function useInventoryStore() {
   };
 
   const buildOpname = (): OpnameEntry[] =>
-    inventory.map((i) => ({
+    (Array.isArray(inventory) ? inventory : []).map((i) => ({
       sku: i.sku,
       name: i.name,
       expected: i.onHand,

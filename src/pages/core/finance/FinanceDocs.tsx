@@ -89,14 +89,14 @@ export default function FinanceDocs() {
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <Tabs value={tab} onValueChange={(value) => setTab(value as DocumentTab)}>
           <TabsList>
-            {TABS.map((status) => (
+            {(Array.isArray(TABS) ? TABS : []).map((status) => (
               <TabsTrigger key={status} value={status}>
                 {status.charAt(0) + status.slice(1).toLowerCase()}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {TABS.map((status) => (
+          {(Array.isArray(TABS) ? TABS : []).map((status) => (
             <TabsContent key={status} value={status} className="mt-4">
               <DataTableShell total={filteredDocs.length} page={1} pageSize={10}>
                 <table className="w-full text-sm">
@@ -110,7 +110,7 @@ export default function FinanceDocs() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredDocs.map((doc) => (
+                    {(Array.isArray(filteredDocs) ? filteredDocs : []).map((doc) => (
                       <tr
                         key={doc.id}
                         className="cursor-pointer border-t hover:bg-muted/50"

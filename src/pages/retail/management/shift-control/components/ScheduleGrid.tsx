@@ -167,8 +167,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     shift: ScheduledShift,
     allShifts: ScheduledShift[],
   ) => {
-    const dayShifts = allShifts
-      .filter((s) => s.dayOfWeek === shift.dayOfWeek)
+    const dayShifts = (Array.isArray(allShifts) ? allShifts : []).filter((s) => s.dayOfWeek === shift.dayOfWeek)
       .sort((a, b) => timeToDecimal(a.startTime) - timeToDecimal(b.startTime));
 
     const start = timeToDecimal(shift.startTime);
@@ -246,7 +245,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         />
         <div className="flex-1 p-6 overflow-auto">
           <div className="grid grid-cols-7 gap-2">
-            {SHORT_DAYS.map((d) => (
+            {(Array.isArray(SHORT_DAYS) ? SHORT_DAYS : []).map((d) => (
               <div
                 key={d}
                 className="font-bold text-center text-slate-400 text-xs mb-2 uppercase"
@@ -254,7 +253,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 {d}
               </div>
             ))}
-            {days.map((d, i) => {
+            {(Array.isArray(days) ? days : []).map((d, i) => {
               const dayShifts = (Array.isArray(shifts) ? shifts : []).filter(
                 (s) => s.date && isSameDay(new Date(s.date), d),
               );
@@ -282,7 +281,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     {format(d, "d")}
                   </span>
                   <div className="w-full mt-2 space-y-1">
-                    {dayShifts.map((s) => (
+                    {(Array.isArray(dayShifts) ? dayShifts : []).map((s) => (
                       <div
                         key={s.id}
                         className={cn(
@@ -325,7 +324,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
             <div className="w-20 shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50/50">
               <Clock className="w-4 h-4 text-slate-400" />
             </div>
-            {visibleDates.map((date, idx) => {
+            {(Array.isArray(visibleDates) ? visibleDates : []).map((date, idx) => {
               const isToday = isSameDay(date, new Date());
               return (
                 <div
@@ -364,7 +363,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
           <div className="flex relative">
             {/* Time Axis */}
             <div className="w-20 shrink-0 border-r border-slate-200 bg-slate-50/50 flex flex-col pt-2">
-              {HOURS.map((hour) => (
+              {(Array.isArray(HOURS) ? HOURS : []).map((hour) => (
                 <div
                   key={hour}
                   className="h-20 border-b border-slate-100 flex items-start justify-center pt-2"
@@ -378,13 +377,13 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 
             {/* Grid Cells */}
             <div className="flex-1 flex pt-2 bg-white/50">
-              {visibleDates.map((date, dayIdx) => (
+              {(Array.isArray(visibleDates) ? visibleDates : []).map((date, dayIdx) => (
                 <div
                   key={dayIdx}
                   className="flex-1 min-w-[150px] border-r border-slate-100 relative group h-full"
                   onDragOver={handleDragOver}
                 >
-                  {HOURS.map((hour) => (
+                  {(Array.isArray(HOURS) ? HOURS : []).map((hour) => (
                     <div
                       key={hour}
                       className="h-20 border-b border-slate-50 relative hover:bg-blue-50/30 transition-colors"
@@ -396,8 +395,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     />
                   ))}
 
-                  {shifts
-                    .filter((s) => s.dayOfWeek === date.getDay())
+                  {(Array.isArray(shifts) ? shifts : []).filter((s) => s.dayOfWeek === date.getDay())
                     .map((shift) => {
                       const style = getPositionStyles(shift, shifts);
                       const isInteracting = dragInfo?.shift.id === shift.id;

@@ -128,8 +128,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
-                {categoryOptions
-                  .filter((c) => c.id !== "all")
+                {(Array.isArray(categoryOptions) ? categoryOptions : []).filter((c) => c.id !== "all")
                   .map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}

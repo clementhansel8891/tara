@@ -35,7 +35,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
     setError(null);
     try {
       await Promise.all(
-        selectedBalances.map(b =>
+        (Array.isArray(selectedBalances) ? selectedBalances : []).map(b =>
           inventoryService.recordTransfer(session.tenant_id, session, {
             itemId: b.itemId,
             fromLocationCode: b.locationCode,
@@ -67,7 +67,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
           <div className="rounded bg-muted p-2 text-xs">
             <p className="font-semibold mb-1">Items to Move ({selectedIds.length}):</p>
             <ul className="list-disc ml-4 opacity-80 max-h-24 overflow-y-auto">
-              {selectedBalances.map(b => (
+              {(Array.isArray(selectedBalances) ? selectedBalances : []).map(b => (
                  <li key={b.id}>{b.itemId} from {b.locationCode} ({b.quantity} units)</li>
               ))}
             </ul>

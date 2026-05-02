@@ -110,7 +110,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!session?.token || !id) return;
     try {
       await apiRequest(`/comms/notifications/${id}/read`, 'PATCH', session);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev => (Array.isArray(prev) ? prev : []).map(n => n.id === id ? { ...n, isRead: true } : n));
       // We'll trust the next sync_counts for the actual number, but we can optimistically update
       setUnreadCounts(prev => ({
           ...prev,
@@ -131,7 +131,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!session?.token) return;
     try {
       await apiRequest('/comms/notifications/read-all', 'POST', session);
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setNotifications(prev => (Array.isArray(prev) ? prev : []).map(n => ({ ...n, isRead: true })));
       setUnreadCounts(prev => ({
           ...prev,
           notifications: 0,

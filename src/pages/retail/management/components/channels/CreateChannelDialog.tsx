@@ -262,7 +262,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
       <DialogContent className="max-w-lg rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
         {/* Step indicator */}
         <div className="flex">
-          {STEP_LABELS.map((label, i) => {
+          {(Array.isArray(STEP_LABELS) ? STEP_LABELS : []).map((label, i) => {
             const s = i + 1;
             return (
               <div
@@ -307,7 +307,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
-                {CHANNEL_TYPES.map((t) => (
+                {(Array.isArray(CHANNEL_TYPES) ? CHANNEL_TYPES : []).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setSelectedType(t.id)}
@@ -411,7 +411,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                         <SelectValue placeholder="Select platform" />
                       </SelectTrigger>
                       <SelectContent>
-                        {platforms.map((p) => (
+                        {(Array.isArray(platforms) ? platforms : []).map((p) => (
                           <SelectItem
                             key={p.value}
                             value={p.value}

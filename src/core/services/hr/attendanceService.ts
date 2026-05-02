@@ -8,11 +8,11 @@ export const attendanceService = {
     // Or ideally backend provides a stats endpoint
     const today = new Date().toISOString().split("T")[0];
     const records = await apiRequest<AttendanceRecord[]>("/v1/hr/attendance", "GET", session);
-    const todayRecords = records.filter(r => r.date === today);
+    const todayRecords = (Array.isArray(records) ? records : []).filter(r => r.date === today);
     
     return {
-      present: todayRecords.filter(r => !r.checkOut).length,
-      late: todayRecords.filter(r => r.status === "late").length,
+      present: (Array.isArray(todayRecords) ? todayRecords : []).filter(r => !r.checkOut).length,
+      late: (Array.isArray(todayRecords) ? todayRecords : []).filter(r => r.status === "late").length,
       absent: 0, // Mock
       onLeave: 0 // Mock
     };

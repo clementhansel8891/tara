@@ -60,7 +60,7 @@ export default function PayslipStudio() {
   };
 
   const updateComponent = (id: string, updates: Partial<PayslipComponent>) => {
-    setComponents(components.map(c => c.id === id ? { ...c, ...updates } : c));
+    setComponents((Array.isArray(components) ? components : []).map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   const activeComponent = useMemo(() => components.find(c => c.id === activeComponentId), [components, activeComponentId]);

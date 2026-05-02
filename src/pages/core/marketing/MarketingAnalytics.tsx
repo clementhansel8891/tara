@@ -146,7 +146,7 @@ export default function MarketingAnalytics() {
 
       {/* Channel Breakdown Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {channelPerformance.map((item, i) => (
+        {(Array.isArray(channelPerformance) ? channelPerformance : []).map((item, i) => (
           <Card key={item.channel} className="rounded-[3rem] border-none shadow-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-10 space-y-8 group hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 overflow-hidden relative">
             <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000" />
             <div className="flex items-center justify-between relative z-10">
@@ -209,7 +209,7 @@ export default function MarketingAnalytics() {
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                       {filteredCampaigns.map((item) => (
+                       {(Array.isArray(filteredCampaigns) ? filteredCampaigns : []).map((item) => (
                           <tr key={item.id} className="group hover:bg-indigo-600/5 transition-all cursor-default">
                              <td className="px-12 py-10">
                                 <div className="flex items-center gap-6">
@@ -269,7 +269,7 @@ export default function MarketingAnalytics() {
                        </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                       {attribution.map((item) => (
+                       {(Array.isArray(attribution) ? attribution : []).map((item) => (
                           <tr key={item.id} className="group hover:bg-emerald-600/5 transition-all cursor-default">
                              <td className="px-12 py-10">
                                 <div className="flex items-center gap-4">

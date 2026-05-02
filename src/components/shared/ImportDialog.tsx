@@ -105,13 +105,13 @@ export function ImportDialog({
             {results.errors && results.errors.length > 0 && (
               <ScrollArea className="h-48 rounded border p-2">
                 <div className="space-y-2">
-                  {results.errors.map((err, i) => (
+                  {(Array.isArray(results.errors) ? results.errors : []).map((err, i) => (
                     <div
                       key={i}
                       className="text-xs border-b pb-1 last:border-0 text-red-600"
                     >
                       <p className="font-semibold">Row {err.row}:</p>
-                      {err.errors.map((e: any, j: number) => (
+                      {(Array.isArray(err.errors) ? err.errors : []).map((e: any, j: number) => (
                         <p key={j} className="ml-2">
                           • {e.property}:{" "}
                           {Object.values(e.constraints).join(", ")}

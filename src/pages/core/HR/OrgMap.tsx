@@ -53,7 +53,7 @@ export default function OrgMap() {
     const loadData = async () => {
       try {
         const items = await orgService.getOrgMap(session.tenant_id, session);
-        setData(items.map(dept => ({ ...dept, headcount: dept.headcount ?? 0 })) as OrgMapDept[]);
+        setData((Array.isArray(items) ? items : []).map(dept => ({ ...dept, headcount: dept.headcount ?? 0 })) as OrgMapDept[]);
       } catch (err) {
         console.error("Failed to load org map", err);
       }
@@ -115,7 +115,7 @@ export default function OrgMap() {
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((dept) => (
+              {(Array.isArray(filteredData) ? filteredData : []).map((dept) => (
                 <tr
                   key={dept.id}
                   className="cursor-pointer border-t hover:bg-muted/50"

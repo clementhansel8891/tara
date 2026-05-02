@@ -76,8 +76,7 @@ export default function InsightLayer() {
                 </tr>
               </thead>
               <tbody>
-                {metrics
-                  .filter((metric) =>
+                {(Array.isArray(metrics) ? metrics : []).filter((metric) =>
                     search ? metric.label.toLowerCase().includes(search.toLowerCase()) : true,
                   )
                   .map((metric) => (

@@ -140,14 +140,14 @@ export default function ClosePeriodStudio() {
       <WorkspacePanel title="Accounting Periods" description="Status-aware operations for close lifecycle.">
         <Tabs value={tab} onValueChange={(value) => setTab(value as PeriodTab)}>
           <TabsList>
-            {TABS.map((status) => (
+            {(Array.isArray(TABS) ? TABS : []).map((status) => (
               <TabsTrigger key={status} value={status}>
                 {status.charAt(0) + status.slice(1).toLowerCase()}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {TABS.map((status) => (
+          {(Array.isArray(TABS) ? TABS : []).map((status) => (
             <TabsContent key={status} value={status} className="mt-4">
               <DataTableShell total={filteredPeriods.length} page={1} pageSize={10}>
                 <table className="w-full text-sm">
@@ -161,7 +161,7 @@ export default function ClosePeriodStudio() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredPeriods.map((period) => (
+                    {(Array.isArray(filteredPeriods) ? filteredPeriods : []).map((period) => (
                       <tr key={period.id} className="border-t">
                         <td className="p-3 font-medium">
                           {period.startDate} - {period.endDate}
@@ -227,8 +227,7 @@ export default function ClosePeriodStudio() {
               Confirm locking the selected period for closing review and approval routing.
             </p>
             <div className="space-y-2">
-              {periods
-                .filter((period) => period.status === "OPEN")
+              {(Array.isArray(periods) ? periods : []).filter((period) => period.status === "OPEN")
                 .map((period) => (
                   <div
                     key={period.id}

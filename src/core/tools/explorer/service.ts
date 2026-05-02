@@ -29,7 +29,7 @@ export async function listFileSystem(
   );
 
   return {
-    folders: result.folders.map(f => ({
+    folders: (Array.isArray(result.folders) ? result.folders : []).map(f => ({
       id: f.id,
       name: f.name,
       tenantId: f.tenant_id,
@@ -38,7 +38,7 @@ export async function listFileSystem(
       createdAt: f.created_at,
       updatedAt: f.updated_at,
     })),
-    files: result.files.map(f => ({
+    files: (Array.isArray(result.files) ? result.files : []).map(f => ({
       id: f.id,
       name: f.name,
       tenantId: f.tenant_id,

@@ -275,7 +275,7 @@ export default function SalesDashboard() {
                <CardDescription className="text-white/70 font-medium">Real-time predictive analytics and next-best-action orchestration.</CardDescription>
             </CardHeader>
             <CardContent className="px-10 pb-10 space-y-6">
-              {nextActions.map((item) => (
+              {(Array.isArray(nextActions) ? nextActions : []).map((item) => (
                 <div key={item.id} className="relative p-5 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 space-y-4 hover:bg-white/20 transition-all cursor-pointer">
                   <div className="flex justify-between items-start">
                     <Badge className="bg-white text-indigo-600 border-none font-black text-[9px] px-2 py-0.5 rounded-full">{item.priority}</Badge>

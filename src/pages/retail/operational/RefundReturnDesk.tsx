@@ -225,7 +225,7 @@ const RefundReturnDesk = () => {
                         Inventory Reversal Map
                       </div>
                       <div className="grid gap-3">
-                        {foundOrder.items.map((item) => (
+                        {(Array.isArray(foundOrder.items) ? foundOrder.items : []).map((item) => (
                           <div
                             key={item.itemId}
                             className={`flex items-center gap-5 p-5 rounded-2xl border-2 transition-all cursor-pointer ${

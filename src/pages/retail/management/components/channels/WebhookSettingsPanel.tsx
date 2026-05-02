@@ -348,7 +348,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
               Events to Forward
             </Label>
             <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
-              {WEBHOOK_EVENTS.map((ev) => (
+              {(Array.isArray(WEBHOOK_EVENTS) ? WEBHOOK_EVENTS : []).map((ev) => (
                 <div
                   key={ev.key}
                   className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"

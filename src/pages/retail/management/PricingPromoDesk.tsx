@@ -98,7 +98,7 @@ const PricingPromoDesk = () => {
     if (success && focusedPromo) {
       // Optimistically update the promotion status locally
       setPromotions((prev) =>
-        prev.map((p) =>
+        (Array.isArray(prev) ? prev : []).map((p) =>
           p.id === focusedPromo.id
             ? { ...p, status: "active" as RetailPromotion["status"] }
             : p,
@@ -238,7 +238,7 @@ const PricingPromoDesk = () => {
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-                  {promotions.map((promo) => (
+                  {(Array.isArray(promotions) ? promotions : []).map((promo) => (
                     <div
                       key={promo.id}
                       onClick={() => setFocusedPromoId(promo.id)}

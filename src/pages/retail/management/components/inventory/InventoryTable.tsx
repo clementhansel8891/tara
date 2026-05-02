@@ -78,7 +78,7 @@ const PaginationBar: React.FC<PaginationProps> = ({
           >
             ←
           </Button>
-          {windowPages.map((pNum) => (
+          {(Array.isArray(windowPages) ? windowPages : []).map((pNum) => (
             <Button
               key={pNum}
               size="sm"
@@ -176,7 +176,7 @@ export const InventoryTable: React.FC<TableProps> = ({
               </td>
             </tr>
           ) : (
-            items.map((item, i) => {
+            (Array.isArray(items) ? items : []).map((item, i) => {
               const number = (page - 1) * pageSize + i + 1;
               return (
                 <tr

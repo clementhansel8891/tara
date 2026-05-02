@@ -74,7 +74,7 @@ const mapTransaction = (db: any): PaymentTransaction => ({
   providerId: db.providerId as any,
   idempotencyKey: db.idempotencyKey,
   status: db.status as any,
-  retryAttempts: db.retryAttempts?.map((r: any) => ({
+  retryAttempts: (Array.isArray(db.retryAttempts) ? db.retryAttempts : []).map((r: any) => ({
     attempt: r.attempt,
     attemptedAt: r.attemptedAt.toISOString(),
     providerId: r.providerId as any,

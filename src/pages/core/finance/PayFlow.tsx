@@ -163,7 +163,7 @@ export default function PayFlow() {
   };
 
   const handleCreateBatch = async () => {
-    await Promise.all(batchPayments.map(async (p) => {
+    await Promise.all((Array.isArray(batchPayments) ? batchPayments : []).map(async (p) => {
       await financeApiClient.createPayment(session.tenant_id, session, {
         amount: p.amount,
         beneficiary: p.destination,
@@ -202,7 +202,7 @@ export default function PayFlow() {
           </tr>
         </thead>
         <tbody>
-          {items.map((p) => (
+          {(Array.isArray(items) ? items : []).map((p) => (
             <tr
               key={p.id}
               className="cursor-pointer border-t hover:bg-muted/50"
@@ -269,7 +269,7 @@ export default function PayFlow() {
                 <SelectValue placeholder="Tab" />
               </SelectTrigger>
               <SelectContent>
-                {TABS.map((status) => (
+                {(Array.isArray(TABS) ? TABS : []).map((status) => (
                   <SelectItem key={status} value={status}>
                     {status}
                   </SelectItem>
@@ -291,7 +291,7 @@ export default function PayFlow() {
         description="Counts by status for transparency and approvals."
       >
         <div className="grid gap-3 sm:grid-cols-5">
-          {TABS.map((status) => (
+          {(Array.isArray(TABS) ? TABS : []).map((status) => (
             <div key={status} className="rounded-lg border p-3">
               <p className="text-xs text-muted-foreground">{status}</p>
               <p className="text-xl font-semibold">
@@ -309,14 +309,14 @@ export default function PayFlow() {
       >
         <Tabs value={tab} onValueChange={(value) => setTab(value as PaymentTab)}>
           <TabsList>
-            {TABS.map((status) => (
+            {(Array.isArray(TABS) ? TABS : []).map((status) => (
               <TabsTrigger key={status} value={status}>
                 {status.charAt(0) + status.slice(1).toLowerCase()}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {TABS.map((status) => {
+          {(Array.isArray(TABS) ? TABS : []).map((status) => {
             const items =
               status === tab ? filteredPayments : groupedPayments[status];
             return (
@@ -393,7 +393,7 @@ export default function PayFlow() {
                       >
                         <SelectTrigger><SelectValue placeholder="Payment Rail / Method" /></SelectTrigger>
                         <SelectContent>
-                          {sources.map((s) => (
+                          {(Array.isArray(sources) ? sources : []).map((s) => (
                             <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>
                           ))}
                           <SelectItem value="BANK_TRANSFER">Bank/Wire Transfer</SelectItem>
@@ -473,14 +473,14 @@ export default function PayFlow() {
             <div className="text-sm text-muted-foreground">
               Upload a CSV or add multiple payments manually.
             </div>
-            {batchPayments.map((p, idx) => (
+            {(Array.isArray(batchPayments) ? batchPayments : []).map((p, idx) => (
               <div key={idx} className="flex gap-2">
                 <Input
                   placeholder="Destination"
                   value={p.destination}
                   onChange={(e) =>
                     setBatchPayments(
-                      batchPayments.map((b, i) =>
+                      (Array.isArray(batchPayments) ? batchPayments : []).map((b, i) =>
                         i === idx ? { ...b, destination: e.target.value } : b,
                       ),
                     )
@@ -492,7 +492,7 @@ export default function PayFlow() {
                   value={p.amount}
                   onChange={(e) =>
                     setBatchPayments(
-                      batchPayments.map((b, i) =>
+                      (Array.isArray(batchPayments) ? batchPayments : []).map((b, i) =>
                         i === idx
                           ? { ...b, amount: Number(e.target.value) }
                           : b,

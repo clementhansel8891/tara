@@ -94,7 +94,7 @@ export const RetailContextSwitcher = () => {
             <Building2 className="w-3 h-3" />
             Physical Branches
           </div>
-          {stores.map((store) => (
+          {(Array.isArray(stores) ? stores : []).map((store) => (
             <DropdownMenuItem
               key={store.id}
               onSelect={() => setStore(store.id)}
@@ -124,7 +124,7 @@ export const RetailContextSwitcher = () => {
             <ShoppingBag className="w-3 h-3" />
             Ecommerce Channels
           </div>
-          {channels.map((channel) => (
+          {(Array.isArray(channels) ? channels : []).map((channel) => (
             <DropdownMenuItem
               key={channel.id}
               onSelect={() => setChannel(channel.id)}

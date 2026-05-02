@@ -92,13 +92,13 @@ export default function SpreadsheetTool() {
 
   const total = useMemo(() => {
     if (selected === null) return 0;
-    const colValues = grid.map((row) => Number(row[selected.col]) || 0);
+    const colValues = (Array.isArray(grid) ? grid : []).map((row) => Number(row[selected.col]) || 0);
     return colValues.reduce((sum, value) => sum + value, 0);
   }, [grid, selected]);
 
   const updateCell = (row: number, col: number, value: string) => {
     setGrid((prev) => {
-      const next = prev.map((r) => [...r]);
+      const next = (Array.isArray(prev) ? prev : []).map((r) => [...r]);
       next[row][col] = value;
       broadcastChange(next);
       return next;
@@ -106,7 +106,7 @@ export default function SpreadsheetTool() {
   };
 
   const exportCsv = () => {
-    const csv = grid.map((row) => row.join(",")).join("\n");
+    const csv = (Array.isArray(grid) ? grid : []).map((row) => row.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -186,7 +186,7 @@ export default function SpreadsheetTool() {
               <div className="space-y-2">
                 {loading ? (
                    <div className="p-4 text-center text-sm text-muted-foreground italic">Loading sheets...</div>
-                ) : files.map((file) => (
+                ) : (Array.isArray(files) ? files : []).map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"
@@ -270,10 +270,10 @@ export default function SpreadsheetTool() {
                 </tr>
               </thead>
               <tbody>
-                {grid.map((row, rowIndex) => (
+                {(Array.isArray(grid) ? grid : []).map((row, rowIndex) => (
                   <tr key={`row-${rowIndex}`}>
                     <td className="border p-2 text-xs text-muted-foreground">{rowIndex + 1}</td>
-                    {row.map((cell, colIndex) => {
+                    {(Array.isArray(row) ? row : []).map((cell, colIndex) => {
                       const isActive =
                         selected?.row === rowIndex && selected?.col === colIndex;
                       return (

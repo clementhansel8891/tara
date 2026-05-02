@@ -194,7 +194,7 @@ const InfrastructureControl = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-              {lbs.map(lb => (
+              {(Array.isArray(lbs) ? lbs : []).map(lb => (
                 <Card key={lb.id} className="border-2 border-slate-100 rounded-3xl overflow-hidden shadow-sm">
                   <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
                     <div className="flex items-center gap-4">
@@ -211,7 +211,7 @@ const InfrastructureControl = () => {
                   </div>
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {lb.nodes?.map(node => (
+                      {(Array.isArray(lb.nodes) ? lb.nodes : []).map(node => (
                         <div key={node.id} className="bg-white border-2 border-slate-50 rounded-2xl p-5 hover:border-blue-200 transition-all group">
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
@@ -289,7 +289,7 @@ const InfrastructureControl = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {requests.map(req => (
+              {(Array.isArray(requests) ? requests : []).map(req => (
                 <Card key={req.id} className="border-2 border-slate-100 rounded-3xl overflow-hidden hover:border-blue-300 transition-all shadow-sm">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-4">

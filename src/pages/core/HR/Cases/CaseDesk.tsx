@@ -107,7 +107,7 @@ export default function CaseDesk() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {(Array.isArray(filtered) ? filtered : []).map((item) => (
                 <tr
                   key={item.id}
                   className="border-t cursor-pointer hover:bg-muted/30"
@@ -135,7 +135,7 @@ export default function CaseDesk() {
                 <SelectValue placeholder="Select case" />
               </SelectTrigger>
               <SelectContent>
-                {cases.map((item) => (
+                {(Array.isArray(cases) ? cases : []).map((item) => (
                   <SelectItem key={item.id} value={item.id}>
                     {item.title}
                   </SelectItem>

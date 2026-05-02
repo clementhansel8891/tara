@@ -48,7 +48,7 @@ export const InventoryPageHeader: React.FC<Props> = ({
             <SelectValue placeholder="Select Store" />
           </SelectTrigger>
           <SelectContent className="rounded-xl">
-            {stores.map((s) => (
+            {(Array.isArray(stores) ? stores : []).map((s) => (
               <SelectItem key={s.id} value={s.id} className="font-bold italic">
                 {s.name}
               </SelectItem>

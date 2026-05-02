@@ -259,7 +259,7 @@ export default function MarketingDashboard() {
               <ScrollArea className="flex-1">
                  <div className="p-12 pt-8">
                     <div className="grid gap-8 md:grid-cols-2">
-                      {campaigns.map((item) => (
+                      {(Array.isArray(campaigns) ? campaigns : []).map((item) => (
                         <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 group/card relative overflow-hidden">
                            <div className="absolute top-0 right-0 h-32 w-32 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover/card:scale-150 transition-transform duration-1000" />
                            <div className="flex justify-between items-start mb-6 relative z-10">
@@ -310,7 +310,7 @@ export default function MarketingDashboard() {
               </CardHeader>
               <ScrollArea className="flex-1 bg-black/5 dark:bg-white/5">
                  <div className="p-8 space-y-6">
-                    {filteredAlerts.map((item) => (
+                    {(Array.isArray(filteredAlerts) ? filteredAlerts : []).map((item) => (
                       <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-6 group/item hover:shadow-2xl transition-all duration-500 hover:-translate-x-2">
                          <div className="flex justify-between items-start">
                             <Badge className={cn(

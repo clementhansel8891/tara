@@ -427,7 +427,7 @@ export default function PeopleCore() {
                     </tr>
                   </thead>
                   <tbody>
-                    {retailShifts.map((shift) => (
+                    {(Array.isArray(retailShifts) ? retailShifts : []).map((shift) => (
                       <tr key={shift.id} className="border-t">
                         <td className="p-3 font-medium">{shift.storeId}</td>
                         <td className="p-3 text-xs">{shift.openingTime}</td>
@@ -487,7 +487,7 @@ export default function PeopleCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAttendance.map((entry) => (
+                  {(Array.isArray(filteredAttendance) ? filteredAttendance : []).map((entry) => (
                     <tr
                       key={entry.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
@@ -521,7 +521,7 @@ export default function PeopleCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayroll.map((run) => (
+                  {(Array.isArray(filteredPayroll) ? filteredPayroll : []).map((run) => (
                     <tr
                       key={run.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
@@ -554,7 +554,7 @@ export default function PeopleCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredContracts.map((contract) => (
+                  {(Array.isArray(filteredContracts) ? filteredContracts : []).map((contract) => (
                     <tr
                       key={contract.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
@@ -586,7 +586,7 @@ export default function PeopleCore() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredReviews.map((review) => (
+                  {(Array.isArray(filteredReviews) ? filteredReviews : []).map((review) => (
                     <tr
                       key={review.id}
                       className="border-t cursor-pointer hover:bg-muted/50"
@@ -615,7 +615,7 @@ export default function PeopleCore() {
           description="Workflow requests tied to this employee."
         >
           <div className="space-y-3">
-            {workflows.map((flow) => (
+            {(Array.isArray(workflows) ? workflows : []).map((flow) => (
               <div
                 key={flow.id}
                 className="flex items-center justify-between rounded-lg border p-3"
@@ -950,7 +950,7 @@ export default function PeopleCore() {
                       <h3 className="font-semibold">Select Target Department</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
-                      {availableDepts.map(dept => (
+                      {(Array.isArray(availableDepts) ? availableDepts : []).map(dept => (
                         <div 
                           key={dept.id}
                           className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted ${targetDept === dept.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}
@@ -974,7 +974,7 @@ export default function PeopleCore() {
                       <h3 className="font-semibold">Select Work Location</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
-                      {availableLocations.map(loc => (
+                      {(Array.isArray(availableLocations) ? availableLocations : []).map(loc => (
                         <div 
                           key={loc.id}
                           className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted ${targetLocation === loc.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''}`}

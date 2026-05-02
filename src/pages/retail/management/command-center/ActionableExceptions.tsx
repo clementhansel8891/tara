@@ -33,7 +33,7 @@ export const ActionableExceptions: React.FC<ActionableExceptionsProps> = ({
         </Badge>
       </div>
       <div className="p-6 space-y-4">
-        {exceptions.map((err, i) => (
+        {(Array.isArray(exceptions) ? exceptions : []).map((err, i) => (
           <div
             key={i}
             onClick={() => navigate(err.link)}

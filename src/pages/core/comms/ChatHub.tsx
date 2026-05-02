@@ -274,7 +274,7 @@ export default function ChatHub() {
                     </div>
                   </div>
                 ))
-              ) : rooms.map(room => (
+              ) : (Array.isArray(rooms) ? rooms : []).map(room => (
                 <div 
                   key={room.id}
                   onClick={() => setSelectedRoom(room)}
@@ -331,7 +331,7 @@ export default function ChatHub() {
                  </div>
 
                 <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-slate-50/20 dark:bg-slate-900/10">
-                   {messages.map((msg, i) => {
+                   {(Array.isArray(messages) ? messages : []).map((msg, i) => {
                      const isMe = msg.senderId === session.user_id;
                       return (
                         <div key={msg.id || i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -442,7 +442,7 @@ export default function ChatHub() {
                      </div>
                      
                      <div className="h-[350px] overflow-y-auto pr-2 space-y-1 scrollbar-hide">
-                        {filteredEmployees.map(emp => (
+                        {(Array.isArray(filteredEmployees) ? filteredEmployees : []).map(emp => (
                           <div 
                             key={emp.id}
                             onClick={() => {

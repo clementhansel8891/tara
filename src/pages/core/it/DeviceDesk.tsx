@@ -104,7 +104,7 @@ export default function DeviceDesk() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} className="p-12 text-center text-muted-foreground italic">No assets mapped in this scope.</td></tr>
               ) : (
-                filtered.map((dev) => (
+                (Array.isArray(filtered) ? filtered : []).map((dev) => (
                    <tr
                     key={dev.id}
                     className="border-t cursor-pointer hover:bg-muted/50"

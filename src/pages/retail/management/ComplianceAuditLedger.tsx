@@ -328,7 +328,7 @@ const ComplianceAuditLedger = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredLogs.map((log, i) => (
+                    (Array.isArray(filteredLogs) ? filteredLogs : []).map((log, i) => (
                       <tr
                         key={i}
                         className="group hover:bg-white/5 transition-all border-b border-white/[0.02] last:border-none cursor-pointer"

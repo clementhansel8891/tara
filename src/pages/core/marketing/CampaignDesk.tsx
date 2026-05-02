@@ -301,7 +301,7 @@ export default function CampaignDesk() {
           <TabsContent value="all" className="mt-0 outline-none">
             {view === "grid" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 p-10 pt-0">
-                {filtered.map((campaign) => (
+                {(Array.isArray(filtered) ? filtered : []).map((campaign) => (
                   <Card key={campaign.id} className="group rounded-[2.5rem] border-none bg-white dark:bg-slate-900 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden cursor-default relative">
                     <div className={cn("absolute top-0 right-0 h-24 w-24 rounded-full blur-3xl -mr-12 -mt-12 transition-all duration-700 opacity-20", campaign.status === 'ACTIVE' ? "bg-emerald-500" : "bg-slate-500")} />
                     <CardHeader className="p-8 pb-4">
@@ -334,7 +334,7 @@ export default function CampaignDesk() {
                          <div className="h-full bg-indigo-600 rounded-full shadow-lg" style={{ width: '72%' }} />
                       </div>
                       <div className="flex flex-wrap gap-2 pt-2">
-                        {campaign.channelMix.map(ch => (
+                        {(Array.isArray(campaign.channelMix) ? campaign.channelMix : []).map(ch => (
                           <Badge key={ch} variant="secondary" className="rounded-full text-[8px] font-black px-2 py-0 h-4 border-none bg-slate-100 dark:bg-slate-800 text-slate-500">{ch}</Badge>
                         ))}
                       </div>
@@ -372,7 +372,7 @@ export default function CampaignDesk() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
-                    {filtered.map((campaign) => (
+                    {(Array.isArray(filtered) ? filtered : []).map((campaign) => (
                       <tr key={campaign.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
                         <td className="px-6 py-8">
                            <div className="flex items-center gap-4">
@@ -462,7 +462,7 @@ export default function CampaignDesk() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl">
-                        {OBJECTIVES.map(obj => (
+                        {(Array.isArray(OBJECTIVES) ? OBJECTIVES : []).map(obj => (
                           <SelectItem key={obj} value={obj} className="font-bold text-sm uppercase">{obj.replace('_', ' ')}</SelectItem>
                         ))}
                       </SelectContent>
@@ -487,7 +487,7 @@ export default function CampaignDesk() {
                        <Zap className="h-3.5 w-3.5" /> AI Recommended Channel Mix
                      </p>
                      <div className="flex flex-wrap gap-2">
-                        {CHANNEL_PRESETS[objective].map(ch => (
+                        {(Array.isArray(CHANNEL_PRESETS[objective]) ? CHANNEL_PRESETS[objective] : []).map(ch => (
                           <Badge key={ch} variant="secondary" className="rounded-full text-[10px] font-black px-4 py-1 bg-white dark:bg-slate-800 text-indigo-600 shadow-sm border border-indigo-500/10 uppercase tracking-widest">{ch}</Badge>
                         ))}
                      </div>
@@ -605,7 +605,7 @@ export default function CampaignDesk() {
                          <div className="space-y-3">
                             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Channel Matrix</p>
                             <div className="flex gap-2 flex-wrap">
-                               {selectedCampaign.channelMix.map(ch => (
+                               {(Array.isArray(selectedCampaign.channelMix) ? selectedCampaign.channelMix : []).map(ch => (
                                  <Badge key={ch} variant="outline" className="text-[9px] font-black uppercase px-2 py-0 h-5 border-slate-200 dark:border-slate-800 text-slate-500">{ch}</Badge>
                                ))}
                             </div>

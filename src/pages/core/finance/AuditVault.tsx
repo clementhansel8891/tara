@@ -68,7 +68,7 @@ export default function AuditVault() {
   const summary = useMemo(
     () => ({
       total: filteredRows.length,
-      uniqueActors: new Set(filteredRows.map((row) => row.actor)).size,
+      uniqueActors: new Set((Array.isArray(filteredRows) ? filteredRows : []).map((row) => row.actor)).size,
       financeLogs: (Array.isArray(filteredRows) ? filteredRows : []).filter((row) => row.source === "FINANCE_LOG").length,
       auditEntries: (Array.isArray(filteredRows) ? filteredRows : []).filter((row) => row.source === "AUDIT_LEDGER").length,
     }),
@@ -149,7 +149,7 @@ export default function AuditVault() {
               </tr>
             </thead>
             <tbody>
-              {filteredRows.map((row) => (
+              {(Array.isArray(filteredRows) ? filteredRows : []).map((row) => (
                 <tr
                   key={row.id}
                   className="cursor-pointer border-t hover:bg-muted/50"

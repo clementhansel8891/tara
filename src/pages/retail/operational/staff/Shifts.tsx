@@ -393,7 +393,7 @@ export default function RetailShifts() {
         <CardContent className="flex-1 p-0">
           <ScrollArea className="h-[calc(100vh-28rem)]">
             <div className="divide-y">
-              {shiftHistory.map((shift) => (
+              {(Array.isArray(shiftHistory) ? shiftHistory : []).map((shift) => (
                 <div
                   key={shift.id}
                   className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer"

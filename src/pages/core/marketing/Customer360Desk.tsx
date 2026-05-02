@@ -181,7 +181,7 @@ export default function Customer360Desk() {
                 </div>
               ) : (
                 <div className="p-6 space-y-4">
-                  {filteredContacts.map((customer) => (
+                  {(Array.isArray(filteredContacts) ? filteredContacts : []).map((customer) => (
                     <button
                       key={customer.id}
                       onClick={() => fetchProfile(customer.id)}
@@ -340,7 +340,7 @@ export default function Customer360Desk() {
                            ) : (
                              <div className="relative pl-12 space-y-12">
                                 <div className="absolute left-4 top-4 bottom-4 w-1 bg-indigo-500/10 rounded-full" />
-                                {profile.timeline.map((item: any, i: number) => (
+                                {(Array.isArray(profile.timeline) ? profile.timeline : []).map((item: any, i: number) => (
                                   <div key={item.id} className="relative group/item">
                                      <div className={cn(
                                        "absolute -left-12 top-0 h-10 w-10 rounded-[1.25rem] flex items-center justify-center ring-8 ring-white dark:ring-slate-900 shadow-2xl transition-all group-hover/item:scale-125 z-10 duration-500",

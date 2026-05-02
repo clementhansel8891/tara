@@ -195,7 +195,7 @@ export default function DocumentTool() {
               <div className="space-y-2">
                 {loading ? (
                   <div className="p-4 text-center text-sm text-muted-foreground italic">Loading documents...</div>
-                ) : filteredFiles.map((file) => (
+                ) : (Array.isArray(filteredFiles) ? filteredFiles : []).map((file) => (
                   <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                     <button
                       className="text-left text-sm font-medium text-foreground"

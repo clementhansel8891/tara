@@ -108,7 +108,7 @@ export default function LexBoard() {
               </tr>
             </thead>
             <tbody>
-              {filteredContracts.map((contract) => (
+              {(Array.isArray(filteredContracts) ? filteredContracts : []).map((contract) => (
                 <tr key={contract.id} className="border-t">
                   <td className="p-3">{contract.title}</td>
                   <td className="p-3 text-muted-foreground">{contract.type}</td>
@@ -206,7 +206,7 @@ export default function LexBoard() {
                 <SelectValue placeholder="Select template" />
               </SelectTrigger>
               <SelectContent>
-                {contractTemplates.map((tpl) => (
+                {(Array.isArray(contractTemplates) ? contractTemplates : []).map((tpl) => (
                   <SelectItem key={tpl.id} value={tpl.id}>
                     {tpl.name}
                   </SelectItem>

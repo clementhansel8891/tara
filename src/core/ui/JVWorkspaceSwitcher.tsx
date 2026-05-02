@@ -81,7 +81,7 @@ export function JVWorkspaceSwitcher() {
 
         {participations.length > 0 && <DropdownMenuSeparator className="bg-gray-100" />}
         
-        {participations.map((p) => {
+        {(Array.isArray(participations) ? participations : []).map((p) => {
           const isSelected = currentJV?.hostTenantId === p.jv_profiles.tenant_id;
           return (
             <DropdownMenuItem 

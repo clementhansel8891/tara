@@ -15,7 +15,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-      {products.map((p) => (
+      {(Array.isArray(products) ? products : []).map((p) => (
         <Card
           key={p.id}
           className="group cursor-pointer border-2 border-white/40 backdrop-blur-xl bg-white/30 hover:bg-white/60 hover:border-indigo-500/50 hover:shadow-[0_20px_60px_-15px_rgba(79,70,229,0.15)] hover:-translate-y-1.5 transition-all duration-500 active:scale-95 overflow-hidden rounded-[2rem] relative"

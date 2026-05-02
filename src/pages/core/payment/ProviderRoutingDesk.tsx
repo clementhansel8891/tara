@@ -43,7 +43,7 @@ export default function ProviderRoutingDesk() {
 
       <WorkspacePanel title="Routing Policies" description="Priority and failover policy controlling provider selection.">
         <div className="grid gap-3 lg:grid-cols-2">
-          {policies.map((policy) => (
+          {(Array.isArray(policies) ? policies : []).map((policy) => (
             <div key={policy.id} className="rounded-lg border p-3">
               <p className="text-sm font-medium">{policy.name}</p>
               <p className="text-xs text-muted-foreground">Retries: {policy.maxRetries} | Backoff: {policy.exponentialBackoffSeconds}s</p>
@@ -67,7 +67,7 @@ export default function ProviderRoutingDesk() {
             </tr>
           </thead>
           <tbody>
-            {providers.map((provider) => (
+            {(Array.isArray(providers) ? providers : []).map((provider) => (
               <tr key={provider.id} className="border-t">
                 <td className="p-3 font-medium">{provider.id}</td>
                 <td className="p-3 text-muted-foreground">{provider.channels.join(", ")}</td>

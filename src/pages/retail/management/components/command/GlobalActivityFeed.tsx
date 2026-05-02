@@ -204,7 +204,7 @@ export const GlobalActivityFeed = ({
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Synchronizing Vault...</span>
           </div>
         ) : logs.length > 0 ? (
-          logs.map((log) => (
+          (Array.isArray(logs) ? logs : []).map((log) => (
             <FeedItem 
               key={log.id} 
               type={mapModuleToType(log.module)}

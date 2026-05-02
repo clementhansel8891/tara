@@ -57,7 +57,7 @@ export default function RefundDesk() {
           <Select value={paymentId} onValueChange={setPaymentId}>
             <SelectTrigger><SelectValue placeholder="Settled payment" /></SelectTrigger>
             <SelectContent>
-              {settledPayments.map((item) => (
+              {(Array.isArray(settledPayments) ? settledPayments : []).map((item) => (
                 <SelectItem key={item.id} value={item.id}>
                   {item.id} - {item.destination}
                 </SelectItem>
@@ -66,7 +66,7 @@ export default function RefundDesk() {
           </Select>
           <Select value={type} onValueChange={(value: PaymentRefund["type"]) => setType(value)}>
             <SelectTrigger><SelectValue placeholder="Refund type" /></SelectTrigger>
-            <SelectContent>{REFUND_TYPES.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+            <SelectContent>{(Array.isArray(REFUND_TYPES) ? REFUND_TYPES : []).map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
           </Select>
           <Input placeholder="Amount" type="number" value={amount} onChange={(event) => setAmount(event.target.value)} />
           <Input placeholder="Reason" value={reason} onChange={(event) => setReason(event.target.value)} />
@@ -103,7 +103,7 @@ export default function RefundDesk() {
             </tr>
           </thead>
           <tbody>
-            {refunds.map((refund) => (
+            {(Array.isArray(refunds) ? refunds : []).map((refund) => (
               <tr key={refund.id} className="border-t">
                 <td className="p-3 font-medium">{refund.id}</td>
                 <td className="p-3 text-muted-foreground">{refund.paymentId}</td>

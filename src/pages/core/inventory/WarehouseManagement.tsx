@@ -90,7 +90,7 @@ export default function WarehouseManagement() {
             ) : bins.length === 0 ? (
               <p className="text-sm text-muted-foreground p-4 text-center italic border rounded-lg">No bins found for this location.</p>
             ) : (
-              bins.map((bin) => (
+              (Array.isArray(bins) ? bins : []).map((bin) => (
                 <div
                   key={bin.id}
                   onClick={() => viewBinStock(bin)}
@@ -168,7 +168,7 @@ export default function WarehouseManagement() {
                         </td>
                       </tr>
                     ) : (
-                      binStock.map((stock) => (
+                      (Array.isArray(binStock) ? binStock : []).map((stock) => (
                         <tr key={stock.id} className="hover:bg-muted/30 transition-colors">
                           <td className="p-3">
                             <p className="font-medium">{stock.product?.name || "Unknown Product"}</p>

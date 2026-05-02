@@ -14,7 +14,7 @@ export const GlobalFleetDashboard: React.FC = () => {
   const { stores, setSelectedStoreId } = useStore();
 
   const activeStores = (Array.isArray(stores) ? stores : []).filter((s) => s.status === "active").length;
-  const regions = new Set(stores.map((s) => s.timezone)).size;
+  const regions = new Set((Array.isArray(stores) ? stores : []).map((s) => s.timezone)).size;
   const flagships = (Array.isArray(stores) ? stores : []).filter((s) => s.type === "flagship").length;
 
   // Aggregate operational insights
@@ -110,7 +110,7 @@ export const GlobalFleetDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {stores.map((store) => (
+            {(Array.isArray(stores) ? stores : []).map((store) => (
               <div
                 key={store.id}
                 onClick={() => setSelectedStoreId(store.id)}

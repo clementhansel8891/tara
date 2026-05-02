@@ -114,8 +114,7 @@ export function CoreLayout() {
   const { settings } = appState;
   const activatedIds = settings.activatedModuleIds || [];
   const allContracts = getAllModuleContracts();
-  const activatedModules = allContracts
-    .filter(c => activatedIds.includes(c.id))
+  const activatedModules = (Array.isArray(allContracts) ? allContracts : []).filter(c => activatedIds.includes(c.id))
     .map(c => ({
       path: `/m/${c.id}/${c.getPages(c.getDefaultConfig())[0]?.id || ''}`,
       icon: c.id === 'retail' ? ShoppingCart : Puzzle,
@@ -193,7 +192,7 @@ export function CoreLayout() {
           {/* Navigation */}
           <ScrollArea className="flex-1 py-4">
             <nav className="px-3 space-y-6">
-              {navSections.map((section) => (
+              {(Array.isArray(navSections) ? navSections : []).map((section) => (
                 <div key={section.title} className="space-y-2">
                   {!isCollapsed ? (
                     <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 animate-in fade-in">
@@ -203,7 +202,7 @@ export function CoreLayout() {
                     <div className="h-px bg-sidebar-border mx-2" />
                   )}
                   <div className="space-y-1">
-                    {section.items.map(({ path, icon: Icon, label, end, badgeKey }) => (
+                    {(Array.isArray(section.items) ? section.items : []).map(({ path, icon: Icon, label, end, badgeKey }) => (
                       <NavLink
                         key={path}
                         to={path}

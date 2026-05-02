@@ -47,7 +47,7 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ stats }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {metrics.map((m, i) => (
+      {(Array.isArray(metrics) ? metrics : []).map((m, i) => (
         <Card
           key={i}
           className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl group hover:border-blue-200 transition-all cursor-pointer"

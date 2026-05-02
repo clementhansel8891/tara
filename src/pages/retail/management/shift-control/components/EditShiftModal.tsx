@@ -128,7 +128,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
                 >
                   Unassigned
                 </SelectItem>
-                {availableStaff.map((emp) => (
+                {(Array.isArray(availableStaff) ? availableStaff : []).map((emp) => (
                   <SelectItem
                     key={emp.id}
                     value={emp.id}

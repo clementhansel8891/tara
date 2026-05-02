@@ -222,7 +222,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "Invalid email or password" };
       }
 
-      const roles: Role[] = mockUser.user.roles.map(
+      const roles: Role[] = (Array.isArray(mockUser.user.roles) ? mockUser.user.roles : []).map(
         (r) => mockData.mockRoles[r],
       );
 
@@ -293,8 +293,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
     (moduleId: string) => {
       const pages = new Set<string>();
       state.roles.forEach((role) => {
-        role.moduleAccess
-          .filter((access) => access.moduleId === moduleId)
+        (Array.isArray(role.moduleAccess) ? role.moduleAccess : []).filter((access) => access.moduleId === moduleId)
           .forEach((access) => access.pages.forEach((p) => pages.add(p)));
       });
       return Array.from(pages);

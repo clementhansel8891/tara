@@ -95,7 +95,7 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
                   <SelectValue placeholder="Select Governance Role..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white rounded-xl">
-                  {AVAILABLE_ROLES.map((role) => (
+                  {(Array.isArray(AVAILABLE_ROLES) ? AVAILABLE_ROLES : []).map((role) => (
                     <SelectItem
                       key={role}
                       value={role}

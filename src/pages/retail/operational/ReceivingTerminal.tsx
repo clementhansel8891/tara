@@ -70,12 +70,12 @@ const ReceivingTerminal = () => {
         setActiveShift(openShift || null);
 
         // Map pending orders to shipments as a production bridge
-        const mappedShipments: Shipment[] = orders.map(o => ({
+        const mappedShipments: Shipment[] = (Array.isArray(orders) ? orders : []).map(o => ({
           id: `SHIP-${(o.id || "").slice(-8).toUpperCase()}`,
           vendor: o.customerName || "Central Distribution",
           priority: o.totalAmount > 1000000 ? "HIGH" : "NORMAL",
           status: "pending",
-          items: o.items.map(i => ({
+          items: (Array.isArray(o.items) ? o.items : []).map(i => ({
             itemId: i.itemId,
             name: i.name,
             expected: i.quantity,
@@ -126,7 +126,7 @@ const ReceivingTerminal = () => {
 
   const updateReceived = (itemId: string, delta: number) => {
     if (!activeShipment) return;
-    const newItems = activeShipment.items.map((item) =>
+    const newItems = (Array.isArray(activeShipment.items) ? activeShipment.items : []).map((item) =>
       item.itemId === itemId
         ? { ...item, received: Math.max(0, item.received + delta) }
         : item,
@@ -143,7 +143,7 @@ const ReceivingTerminal = () => {
         session,
         session.location_id || "unassigned",
         activeShipment.id,
-        activeShipment.items.map((i) => ({
+        (Array.isArray(activeShipment.items) ? activeShipment.items : []).map((i) => ({
           itemId: i.itemId,
           received: i.received,
         })),
@@ -168,7 +168,7 @@ const ReceivingTerminal = () => {
       }
 
       setShipments((prev) =>
-        prev.map((s) =>
+        (Array.isArray(prev) ? prev : []).map((s) =>
           s.id === activeShipment.id
             ? { ...activeShipment, status: "completed" }
             : s,
@@ -269,8 +269,7 @@ const ReceivingTerminal = () => {
                         </p>
                       </div>
                     ) : (
-                      shipments
-                        .filter((s) => s.status !== "completed")
+                      (Array.isArray(shipments) ? shipments : []).filter((s) => s.status !== "completed")
                         .map((shipment) => (
                           <div
                             key={shipment.id}
@@ -356,7 +355,7 @@ const ReceivingTerminal = () => {
                 <CardContent className="p-0 flex-1 overflow-hidden flex flex-col">
                   <ScrollArea className="flex-1">
                     <div className="p-8 space-y-4">
-                      {activeShipment.items.map((item) => {
+                      {(Array.isArray(activeShipment.items) ? activeShipment.items : []).map((item) => {
                         const hasVariance = item.received !== item.expected;
                         return (
                           <div

@@ -31,9 +31,9 @@ export const peopleService = {
     ]);
 
     // Filter results client-side where backend doesn't support filtering yet
-    const employeeAttendance = attendance.filter(r => r.employeeId === employeeId);
-    const employeeTrainings = trainings.filter(r => r.employeeId === employeeId);
-    const employeeLeaves = leaves.filter(r => r.employeeId === employeeId);
+    const employeeAttendance = (Array.isArray(attendance) ? attendance : []).filter(r => r.employeeId === employeeId);
+    const employeeTrainings = (Array.isArray(trainings) ? trainings : []).filter(r => r.employeeId === employeeId);
+    const employeeLeaves = (Array.isArray(leaves) ? leaves : []).filter(r => r.employeeId === employeeId);
     
     // Contracts, Reviews, Workflows - Stub for now
     const contracts: any[] = [];

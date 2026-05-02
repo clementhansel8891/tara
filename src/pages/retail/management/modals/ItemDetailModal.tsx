@@ -168,7 +168,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
           <TabsContent value="movements" className="space-y-3 mt-4">
             <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Recent Activity</div>
-            {movements.map((movement, idx) => (
+            {(Array.isArray(movements) ? movements : []).map((movement, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-300 transition-all">
                 <div className="flex items-center gap-4">
                   <Badge className={`${getMovementColor(movement.type)} font-black italic text-xs px-3`}>
@@ -191,7 +191,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
           <TabsContent value="locations" className="space-y-3 mt-4">
             <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Stock by Location</div>
-            {locations.map((location, idx) => (
+            {(Array.isArray(locations) ? locations : []).map((location, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl">
                 <div className="flex items-center gap-3">
                   <MapPin className="w-5 h-5 text-blue-600" />

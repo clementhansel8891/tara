@@ -288,7 +288,7 @@ export default function LeadCaptureDesk() {
                           </tr>
                        </thead>
                        <tbody>
-                          {filtered.map((lead) => (
+                          {(Array.isArray(filtered) ? filtered : []).map((lead) => (
                             <tr key={lead.id} className="border-t border-white/10 dark:border-slate-800/10 group hover:bg-indigo-600/5 transition-all">
                                <td className="p-8">
                                   <div className="flex items-center gap-4">
@@ -497,7 +497,7 @@ export default function LeadCaptureDesk() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                      {SOURCES.map(s => <SelectItem key={s} value={s} className="rounded-xl py-3 font-bold uppercase tracking-widest text-[10px]">{s.replace('_', ' ')}</SelectItem>)}
+                      {(Array.isArray(SOURCES) ? SOURCES : []).map(s => <SelectItem key={s} value={s} className="rounded-xl py-3 font-bold uppercase tracking-widest text-[10px]">{s.replace('_', ' ')}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

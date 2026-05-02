@@ -231,7 +231,7 @@ export default function SalesOverview() {
             <CardDescription className="text-sm font-medium">Top representatives by won revenue yield this year.</CardDescription>
           </CardHeader>
           <CardContent className="p-10 pt-0 space-y-8">
-            {analytics.topReps.map((rep: any, idx: number) => (
+            {(Array.isArray(analytics.topReps) ? analytics.topReps : []).map((rep: any, idx: number) => (
               <div key={rep.name} className="flex items-center justify-between group/item">
                 <div className="flex items-center gap-4">
                   <div className={cn(

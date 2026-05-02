@@ -184,7 +184,7 @@ export default function ProcurementInsights() {
                 <div key={i} className="h-24 rounded-3xl bg-slate-200/50 animate-pulse" />
               ))
             ) : (
-              insights.map((insight) => (
+              (Array.isArray(insights) ? insights : []).map((insight) => (
                 <div key={insight.id} className="group flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-amber-500/30 hover:shadow-xl transition-all duration-500">
                   <div className="flex items-center gap-6">
                     <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all duration-500 shadow-inner">

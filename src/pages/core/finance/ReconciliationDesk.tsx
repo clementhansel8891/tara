@@ -169,7 +169,7 @@ export const ReconciliationDesk: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {bankTxs.map((tx) => (
+                  {(Array.isArray(bankTxs) ? bankTxs : []).map((tx) => (
                     <tr 
                       key={tx.id} 
                       onClick={() => setSelectedBankTx(tx)}
@@ -261,7 +261,7 @@ export const ReconciliationDesk: React.FC = () => {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-auto max-h-[400px]">
-                {unmatchedLedger.map((entry) => (
+                {(Array.isArray(unmatchedLedger) ? unmatchedLedger : []).map((entry) => (
                   <div 
                     key={entry.id}
                     onClick={() => {

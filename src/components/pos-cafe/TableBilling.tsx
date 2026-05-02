@@ -65,7 +65,7 @@ export function TableBilling({ table, onComplete, onCancel }: TableBillingProps)
 
       {/* Order Items */}
       <div className="space-y-2 max-h-48 overflow-y-auto">
-        {table.currentOrder.items.map((item, index) => (
+        {(Array.isArray(table.currentOrder.items) ? table.currentOrder.items : []).map((item, index) => (
           <div key={index} className="flex justify-between text-sm">
             <div>
               <span>{item.quantity}x {item.name}</span>

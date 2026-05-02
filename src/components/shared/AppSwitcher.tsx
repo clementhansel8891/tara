@@ -26,7 +26,7 @@ export function AppSwitcher({ className }: AppSwitcherProps) {
   const { switchApp } = useApp();
   const modules = getAllModuleContracts();
 
-  const dynamicApps = modules.map(m => ({
+  const dynamicApps = (Array.isArray(modules) ? modules : []).map(m => ({
     id: m.id,
     name: m.name,
     icon: m.id === 'retail' ? ShoppingCart : Puzzle,
@@ -56,7 +56,7 @@ export function AppSwitcher({ className }: AppSwitcherProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        {allApps.map((app, index) => {
+        {(Array.isArray(allApps) ? allApps : []).map((app, index) => {
           const Icon = app.icon;
           const isActive = currentApp.id === app.id;
           return (

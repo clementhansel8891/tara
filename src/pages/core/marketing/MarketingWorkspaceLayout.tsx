@@ -62,7 +62,7 @@ const SECTIONS: MenuSection[] = [
 
 const ROUTE_LABELS: Record<string, string> = Object.fromEntries(
   SECTIONS.flatMap((section) =>
-    section.items.map((item) => [item.to.replace("/core/marketing/", ""), item.label]),
+    (Array.isArray(section.items) ? section.items : []).map((item) => [item.to.replace("/core/marketing/", ""), item.label]),
   ),
 );
 

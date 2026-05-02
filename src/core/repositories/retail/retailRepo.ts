@@ -263,7 +263,7 @@ export const retailRepo = {
         paymentReference: payload.paymentReference,
         customerId,
         items: {
-          create: items.map((item) => ({
+          create: (Array.isArray(items) ? items : []).map((item) => ({
             id: item.id,
             productId: item.productId,
             quantity: item.quantity,

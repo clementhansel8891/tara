@@ -39,7 +39,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
 
   const filteredProducts = selectedCategory === 'All' 
     ? products 
-    : products.filter(p => p.category === selectedCategory);
+    : (Array.isArray(products) ? products : []).filter(p => p.category === selectedCategory);
 
   const orderTotal = orderItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
@@ -88,7 +88,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
   };
 
   const removeItem = (index: number) => {
-    setOrderItems(prev => prev.filter((_, i) => i !== index));
+    setOrderItems(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
   };
 
   const handleSendToKitchen = () => {
@@ -115,7 +115,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
         <div className="flex-1 flex flex-col border-r">
           {/* Category Tabs */}
           <div className="flex gap-2 p-3 overflow-x-auto border-b bg-muted/30">
-            {CATEGORIES.map(category => (
+            {(Array.isArray(CATEGORIES) ? CATEGORIES : []).map(category => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
@@ -131,7 +131,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
           {/* Product Grid */}
           <ScrollArea className="flex-1 p-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filteredProducts.map(product => (
+              {(Array.isArray(filteredProducts) ? filteredProducts : []).map(product => (
                 <button
                   key={product.id}
                   onClick={() => handleProductClick(product)}
@@ -174,7 +174,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
               </div>
             ) : (
               <div className="space-y-3">
-                {orderItems.map((item, index) => (
+                {(Array.isArray(orderItems) ? orderItems : []).map((item, index) => (
                   <div key={`${item.product.id}-${index}`} className="p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -264,7 +264,7 @@ export function OrderPad({ table, products, onComplete, onCancel }: OrderPadProp
                       if (checked) {
                         setSelectedModifiers(prev => [...prev, modifier]);
                       } else {
-                        setSelectedModifiers(prev => prev.filter(m => m !== modifier));
+                        setSelectedModifiers(prev => (Array.isArray(prev) ? prev : []).filter(m => m !== modifier));
                       }
                     }}
                   />

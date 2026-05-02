@@ -181,7 +181,7 @@ export default function NurtureStudio() {
               </CardHeader>
               <ScrollArea className="flex-1">
                  <div className="p-3 space-y-2">
-                    {workflows.map((wf) => (
+                    {(Array.isArray(workflows) ? workflows : []).map((wf) => (
                       <button
                         key={wf.id}
                         onClick={() => setSelectedWorkflow(wf)}
@@ -311,7 +311,7 @@ export default function NurtureStudio() {
                          </div>
 
                          {/* Step Nodes */}
-                         {selectedWorkflow.steps.map((step, idx) => (
+                         {(Array.isArray(selectedWorkflow.steps) ? selectedWorkflow.steps : []).map((step, idx) => (
                             <div key={step.id} className="flex flex-col items-center gap-10 w-full max-w-2xl">
                                <div className="relative group w-full">
                                   <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-none shadow-xl rounded-[2.5rem] p-8 flex gap-8 items-center relative z-10 hover:shadow-2xl hover:translate-x-1 transition-all duration-500">

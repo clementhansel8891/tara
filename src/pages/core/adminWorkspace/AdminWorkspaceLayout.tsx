@@ -30,7 +30,7 @@ export default function AdminWorkspaceLayout() {
   const location = useLocation();
 
   const segments = location.pathname.replace("/core/admin", "").split("/").filter(Boolean);
-  const breadcrumbs = segments.map((segment, index) => ({
+  const breadcrumbs = (Array.isArray(segments) ? segments : []).map((segment, index) => ({
     label: segment.replace(/-/g, " "),
     path: `/core/admin/${segments.slice(0, index + 1).join("/")}`,
   }));
@@ -53,7 +53,7 @@ export default function AdminWorkspaceLayout() {
                     <Link to="/core/admin">Admin</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                {breadcrumbs.map((item, index) => (
+                {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
                   <React.Fragment key={item.path}>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
@@ -87,13 +87,13 @@ export default function AdminWorkspaceLayout() {
                   <p>Department: {session.department_id}</p>
                 </div>
               </WorkspacePanel>
-              {SECTIONS.map((section) => (
+              {(Array.isArray(SECTIONS) ? SECTIONS : []).map((section) => (
                 <div key={section.title} className="space-y-2">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {section.title}
                   </p>
                   <div className="space-y-1">
-                    {section.items.map((item) => {
+                    {(Array.isArray(section.items) ? section.items : []).map((item) => {
                       const Icon = item.icon;
                       return (
                         <NavLink

@@ -228,15 +228,15 @@ export const registry = {
     let result = byOrganization(products, params.organizationId);
 
     if (params.categoryId) {
-      result = result.filter((p) => p.categoryId === params.categoryId);
+      result = (Array.isArray(result) ? result : []).filter((p) => p.categoryId === params.categoryId);
     }
 
     if (params.status) {
-      result = result.filter((p) => p.status === params.status);
+      result = (Array.isArray(result) ? result : []).filter((p) => p.status === params.status);
     }
 
     if (params.moduleId) {
-      result = result.filter((p) =>
+      result = (Array.isArray(result) ? result : []).filter((p) =>
         Boolean(p.moduleExtensions?.[params.moduleId]),
       );
     }
@@ -263,7 +263,7 @@ export const registry = {
     let result = byOrganization(categories, params.organizationId);
 
     if (params.parentId !== undefined) {
-      result = result.filter((c) => c.parentId === params.parentId);
+      result = (Array.isArray(result) ? result : []).filter((c) => c.parentId === params.parentId);
     }
 
     return result.sort((a, b) => a.sortOrder - b.sortOrder);

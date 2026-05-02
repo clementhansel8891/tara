@@ -41,4 +41,4 @@ export const LOGISTICS_CARRIERS: LogisticsCarrier[] = [
 
 /** Returns only enabled carriers for use in UI dropdowns */
 export const getActiveCarriers = (): LogisticsCarrier[] =>
-  LOGISTICS_CARRIERS.filter((c) => c.enabled);
+  (Array.isArray(LOGISTICS_CARRIERS) ? LOGISTICS_CARRIERS : []).filter((c) => c.enabled);

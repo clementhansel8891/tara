@@ -140,7 +140,7 @@ const StaffAssignments = () => {
       );
 
       setStaff((prev) =>
-        prev.map((s) => (s.id === selectedStaffForRoleEdit.id ? { ...s, roleTitle: newRole } : s)),
+        (Array.isArray(prev) ? prev : []).map((s) => (s.id === selectedStaffForRoleEdit.id ? { ...s, roleTitle: newRole } : s)),
       );
 
       // Append proof of modification leveraging existing governance framework with 'Superadmin / Owner Bypass' mode.
@@ -355,7 +355,7 @@ const StaffAssignments = () => {
                           </td>
                         </tr>
                       ) : (
-                        filteredStaff.map((s, i) => (
+                        (Array.isArray(filteredStaff) ? filteredStaff : []).map((s, i) => (
                           <tr
                             key={i}
                             className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-none cursor-pointer"

@@ -97,7 +97,7 @@ export const MovementsTab: React.FC<Props> = ({
               </tr>
             </thead>
             <tbody>
-              {auditLog.map((log, i) => (
+              {(Array.isArray(auditLog) ? auditLog : []).map((log, i) => (
                 <tr
                   key={i}
                   className="border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"

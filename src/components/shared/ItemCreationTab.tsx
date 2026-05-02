@@ -82,11 +82,11 @@ export const ItemCreationTab: React.FC<Props> = ({
       ]);
       return;
     }
-    setRows(rows.filter((r) => r.tempId !== id));
+    setRows((Array.isArray(rows) ? rows : []).filter((r) => r.tempId !== id));
   };
 
   const updateRow = (id: string, patch: Partial<NewItemLine>) => {
-    setRows(rows.map((r) => (r.tempId === id ? { ...r, ...patch } : r)));
+    setRows((Array.isArray(rows) ? rows : []).map((r) => (r.tempId === id ? { ...r, ...patch } : r)));
   };
 
   // Global scanner support for creation
@@ -107,7 +107,7 @@ export const ItemCreationTab: React.FC<Props> = ({
     if (!session || !tenantId) return;
 
     try {
-      const payload = rows.map((r) => ({
+      const payload = (Array.isArray(rows) ? rows : []).map((r) => ({
         sku: r.sku,
         name: r.name,
         category: r.categoryId,
@@ -177,7 +177,7 @@ export const ItemCreationTab: React.FC<Props> = ({
 
       {/* ── Batch List ── */}
       <div className="space-y-6">
-        {rows.map((row) => (
+        {(Array.isArray(rows) ? rows : []).map((row) => (
           <NewItemFormRow
             key={row.tempId}
             line={row}

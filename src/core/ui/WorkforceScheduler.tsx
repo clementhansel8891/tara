@@ -125,7 +125,7 @@ export function WorkforceScheduler({
                 <thead>
                     <tr className="border-b bg-muted/20">
                         <th className="p-4 text-left w-64 border-r sticky left-0 bg-background/95 z-10">Employee</th>
-                        {days.map(day => (
+                        {(Array.isArray(days) ? days : []).map(day => (
                             <th key={day.toString()} className="p-4 text-center min-w-[120px]">
                                 <div className="text-xs uppercase font-bold text-muted-foreground">
                                     {format(day, "EEE")}
@@ -151,7 +151,7 @@ export function WorkforceScheduler({
                             </td>
                         </tr>
                     ) : (
-                        employees.map((emp) => (
+                        (Array.isArray(employees) ? employees : []).map((emp) => (
                             <tr key={emp.id} className="border-b hover:bg-muted/5 transition-colors">
                                 <td className="p-4 border-r sticky left-0 bg-background/95 z-10">
                                     <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export function WorkforceScheduler({
                                         </div>
                                     </div>
                                 </td>
-                                {days.map(day => (
+                                {(Array.isArray(days) ? days : []).map(day => (
                                     <td key={day.toString()} className="p-2 h-20 group relative">
                                         {/* Mock Shift Card */}
                                         <div className="h-full w-full rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-[10px] flex flex-col justify-between group-hover:bg-emerald-500/20 cursor-pointer transition-all">
