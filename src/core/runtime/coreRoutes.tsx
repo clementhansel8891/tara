@@ -525,325 +525,295 @@ export function buildCoreRoutes(): JSX.Element[] {
       <Route path="admin" element={<DeptAdmin departmentId="INVENTORY" departmentName="Inventory & Logistics" />} />
     </Route>,
     <Route
-      key="core-it"
+      key="core-it-dashboard"
       path="it"
       element={
         <ProtectedRoute permission="core.it.access" scope="COMPANY">
-          <ITWorkspaceLayout />
+          <ITWorkspaceLayout>
+            <ITDashboard />
+          </ITWorkspaceLayout>
         </ProtectedRoute>
       }
-    >
-      <Route index element={<ITDashboard />} />
-      <Route
-        path="dashboard"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <ITDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="accounts"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <AccountDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="devices"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <DeviceDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="health"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <SystemHealth />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="topology"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <TopologyMap />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="roles"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <RoleGovernance />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="shop"
-        element={
-          <ProtectedRoute permission="core.it.access" scope="COMPANY">
-            <TechShop />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="IT" title="IT & Tech" />} />
-      <Route path="admin" element={<DeptAdmin departmentId="IT" departmentName="IT & Infrastructure" />} />
-    </Route>,
+    />,
     <Route
-      key="core-sales"
+      key="core-it-roles"
+      path="it/roles"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <RoleGovernance />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-accounts"
+      path="it/accounts"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <AccountDesk />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-health"
+      path="it/health"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <SystemHealth />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-topology"
+      path="it/topology"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <TopologyMap />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-shop"
+      path="it/shop"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <TechShop />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-schedule"
+      path="it/schedule"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <DepartmentScheduleStudio workspaceDeptId="IT" title="IT & Tech" />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-it-admin"
+      path="it/admin"
+      element={
+        <ProtectedRoute permission="core.it.access" scope="COMPANY">
+          <ITWorkspaceLayout>
+            <DeptAdmin departmentId="IT" departmentName="IT & Infrastructure" />
+          </ITWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-dashboard"
       path="sales"
       element={
         <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-          <SalesWorkspaceLayout />
+          <SalesWorkspaceLayout>
+            <SalesDashboard />
+          </SalesWorkspaceLayout>
         </ProtectedRoute>
       }
-    >
-      <Route index element={<Navigate to="overview" replace />} />
-      <Route
-        path="overview"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <SalesOverview />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="dashboard"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <SalesDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="leads"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <LeadDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="pipeline"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <PipelineBoard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="opps"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <OpportunityDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="quotes"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <QuoteDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="timeline"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <TimelineDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="orders"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <SalesOrderDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="manager"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <ManagerDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="forecast"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <ForecastDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="audit"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <SalesAuditLog />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="commissions"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <IncentiveDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="customers"
-        element={
-          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
-            <Customer360Desk />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="SALES" title="Sales" />} />
-      <Route path="admin" element={<DeptAdmin departmentId="SALES" departmentName="Sales & Revenue" />} />
-    </Route>,
+    />,
     <Route
-      key="core-marketing"
+      key="core-sales-overview"
+      path="sales/overview"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <SalesOverview />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-leads"
+      path="sales/leads"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <LeadDesk />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-customers"
+      path="sales/customers"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <Customer360Desk />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-pipeline"
+      path="sales/pipeline"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <PipelineBoard />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-opps"
+      path="sales/opps"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <OpportunityDesk />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-quotes"
+      path="sales/quotes"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <QuoteDesk />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-commissions"
+      path="sales/commissions"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <IncentiveDesk />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-schedule"
+      path="sales/schedule"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <DepartmentScheduleStudio workspaceDeptId="SALES" title="Sales & Revenue" />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-sales-admin"
+      path="sales/admin"
+      element={
+        <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+          <SalesWorkspaceLayout>
+            <DeptAdmin departmentId="SALES" departmentName="Sales & Acquisition" />
+          </SalesWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+
+    /* ============================================================ */
+    /* MARKETING WORKSPACE (FLAT ROUTES)                            */
+    /* ============================================================ */
+    <Route
+      key="core-marketing-dashboard"
       path="marketing"
       element={
         <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-          <MarketingWorkspaceLayout />
+          <MarketingWorkspaceLayout>
+            <MarketingDashboard />
+          </MarketingWorkspaceLayout>
         </ProtectedRoute>
       }
-    >
-      <Route index element={<MarketingDashboard />} />
-      <Route
-        path="dashboard"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <MarketingDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="customer-360"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+    />,
+    <Route
+      key="core-marketing-customer-360"
+      path="marketing/customer-360"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
             <Customer360Desk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="appointments"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <AppointmentDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="campaigns"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <CampaignDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="execution"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <ExecutionDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="leads"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-leads"
+      path="marketing/leads"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
             <LeadCaptureDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="nurture"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <NurtureStudio />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="funnels"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <FunnelBuilderDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="inbox"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <OmnichannelInbox />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="accounts"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <ConnectedAccountsDesk />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="analytics"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <MarketingAnalytics />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="alerts"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <MarketingAlerts />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="audit"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <MarketingAuditLog />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="white-label"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <WhiteLabelSettings />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="creative"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-campaigns"
+      path="marketing/campaigns"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
+            <CampaignDesk />
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-creative"
+      path="marketing/creative"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
             <CreativeLibrary />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="MARKETING" title="Marketing" />} />
-      <Route path="admin" element={<DeptAdmin departmentId="MARKETING" departmentName="Marketing & Growth" />} />
-    </Route>,
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-analytics"
+      path="marketing/analytics"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
+            <MarketingAnalytics />
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-schedule"
+      path="marketing/schedule"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
+            <DepartmentScheduleStudio workspaceDeptId="MARKETING" title="Marketing" />
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
+    <Route
+      key="core-marketing-admin"
+      path="marketing/admin"
+      element={
+        <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+          <MarketingWorkspaceLayout>
+            <DeptAdmin departmentId="MARKETING" departmentName="Marketing & Growth" />
+          </MarketingWorkspaceLayout>
+        </ProtectedRoute>
+      }
+    />,
     <Route
       key="core-admin-workspace"
       path="admin/*"
