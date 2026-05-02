@@ -575,7 +575,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="role-governance"
+        path="roles"
         element={
           <ProtectedRoute permission="core.it.access" scope="COMPANY">
             <RoleGovernance />
@@ -692,10 +692,18 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="incentives"
+        path="commissions"
         element={
           <ProtectedRoute permission="core.sales.access" scope="COMPANY">
             <IncentiveDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="customers"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <Customer360Desk />
           </ProtectedRoute>
         }
       />
@@ -753,7 +761,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="lead-capture"
+        path="leads"
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <LeadCaptureDesk />
@@ -825,21 +833,14 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="creative-library"
+        path="creative"
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <CreativeLibrary />
           </ProtectedRoute>
         }
       />
-      <Route
-        path="customer-360"
-        element={
-          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
-            <Customer360 />
-          </ProtectedRoute>
-        }
-      />
+
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="MARKETING" title="Marketing" />} />
       <Route path="admin" element={<DeptAdmin departmentId="MARKETING" departmentName="Marketing & Growth" />} />
     </Route>,
