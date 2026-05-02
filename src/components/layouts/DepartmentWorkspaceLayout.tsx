@@ -58,10 +58,8 @@ export default function DepartmentWorkspaceLayout({
   React.useEffect(() => {
     console.log(`[DepartmentWorkspaceLayout:${engineName}] Mounted`, {
       path: location.pathname,
-      tenant_id: session.tenant_id,
-      location_id: session.location_id,
-      role: session.role,
-      permissions: session.permissions?.length,
+      hasChildren: !!children,
+      childrenType: typeof children,
     });
   }, [engineName, location.pathname, session]);
 
