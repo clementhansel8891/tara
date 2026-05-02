@@ -222,8 +222,8 @@ export const financeService = {
   async getInbox(
     tenantId: string,
     session: SessionContext,
-  ): Promise<WorkflowRequest[]> {
-    return apiRequest<WorkflowRequest[]>("/v1/finance/inbox", "GET", session);
+  ): Promise<{ alerts: FinanceAlert[], pendingPayments: FinancePaymentRow[], totalCount: number }> {
+    return apiRequest<{ alerts: FinanceAlert[], pendingPayments: FinancePaymentRow[], totalCount: number }>("/v1/finance/inbox", "GET", session);
   },
 
   async getMoneySources(

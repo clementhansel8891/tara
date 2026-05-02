@@ -81,15 +81,31 @@ export default function MoneyDesk() {
 
   const refreshDesk = useCallback(() => {
     financeService
-      .getAlerts(session.tenant_id, session)
-      .then(setAlerts)
-      .catch(() => {});
-    financeService
       .getInbox(session.tenant_id, session)
       .then((inbox) => {
-        setTasks(inbox);
-        // Approvals = inbox items routed to finance that are pending
-        setApprovals(inbox.filter((item) => item.status === "PENDING"));
+        if (inbox.alerts) {
+          setAlerts(inbox.alerts);
+        }
+        if (inbox.pendingPayments) {
+          const mappedTasks: WorkflowRequest[] = inbox.pendingPayments.map((p) => ({
+            id: p.id,
+            tenantId: session.tenant_id,
+            entityType: "PAYMENT",
+            entityId: p.beneficiary,
+            makerDept: "FINANCE",
+            destinationDept: "FINANCE",
+            status: p.status === "PENDING_APPROVAL" ? "PENDING" : (p.status as any),
+            requestedBy: "SYSTEM",
+            requestedAt: p.scheduledDate || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            cycle: 1,
+            steps: [],
+            route: { nodes: [], edges: [], startNodeId: "" },
+            currentStepId: "",
+          }));
+          setTasks(mappedTasks);
+          setApprovals(mappedTasks.filter((item) => item.status === "PENDING"));
+        }
       })
       .catch(() => {});
     financeService
