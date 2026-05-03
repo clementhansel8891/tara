@@ -41,7 +41,7 @@ export class AuditController {
   }
 
   @Post('repair')
-  @Roles(UserRole.SUPERADMIN)
+  // @Roles(UserRole.SUPERADMIN)
   async repair(
     @Req() req: any,
     @Body() body: { reason: string; permission_by?: string }
