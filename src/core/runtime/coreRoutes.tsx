@@ -761,7 +761,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="lead-capture"
+        path="leads"
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <LeadCaptureDesk />
@@ -833,7 +833,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route
-        path="creative-library"
+        path="creative"
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <CreativeLibrary />
