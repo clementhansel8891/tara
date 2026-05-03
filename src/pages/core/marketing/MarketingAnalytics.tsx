@@ -15,16 +15,6 @@ import {
   ChevronRight, 
   Split, 
   Layers, 
-  BarChart,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
   ActivitySquare,
   Globe,
   Network,
@@ -41,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
 import { cn } from "@/lib/utils";

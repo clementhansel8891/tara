@@ -160,28 +160,32 @@ export default function PeopleCore() {
   }, [record]);
 
   const filteredAttendance = useMemo(() => {
-    return (record?.attendance || []).filter((r: any) =>
+    const data = Array.isArray(record?.attendance) ? record.attendance : [];
+    return data.filter((r: any) =>
       r.status?.toLowerCase().includes(listSearch.toLowerCase()) ||
       r.date?.toLowerCase().includes(listSearch.toLowerCase())
     );
   }, [record, listSearch]);
 
   const filteredPayroll = useMemo(() => {
-    return (record?.payrollRuns || []).filter((r: any) =>
+    const data = Array.isArray(record?.payrollRuns) ? record.payrollRuns : [];
+    return data.filter((r: any) =>
       r.periodStart?.toLowerCase().includes(listSearch.toLowerCase()) ||
       r.status?.toLowerCase().includes(listSearch.toLowerCase())
     );
   }, [record, listSearch]);
 
   const filteredContracts = useMemo(() => {
-    return (record?.contracts || []).filter((r: any) =>
+    const data = Array.isArray(record?.contracts) ? record.contracts : [];
+    return data.filter((r: any) =>
       r.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
       r.status?.toLowerCase().includes(listSearch.toLowerCase())
     );
   }, [record, listSearch]);
 
   const filteredReviews = useMemo(() => {
-    return (record?.reviews || []).filter((r: any) =>
+    const data = Array.isArray(record?.reviews) ? record.reviews : [];
+    return data.filter((r: any) =>
       r.title?.toLowerCase().includes(listSearch.toLowerCase()) ||
       r.status?.toLowerCase().includes(listSearch.toLowerCase())
     );

@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
 import { cn } from "@/lib/utils";
