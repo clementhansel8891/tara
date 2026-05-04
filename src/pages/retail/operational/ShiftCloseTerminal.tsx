@@ -69,7 +69,14 @@ const ShiftCloseTerminal = () => {
     if (session.tenant_id) fetchReconciliationData();
   }, [session.tenant_id, session.user_id, activeStore?.id, session.location_id, session]);
 
-  const variance = actualCash ? parseInt(actualCash) - expectedCash : 0;
+  const parseAmount = (val: string) => {
+    if (!val) return 0;
+    // Handle thousands separators (dots or commas)
+    const cleaned = val.replace(/[,.]/g, '');
+    return parseInt(cleaned) || 0;
+  };
+
+  const variance = actualCash ? parseAmount(actualCash) - expectedCash : 0;
   const needsExplanation = Math.abs(variance) > 10000;
 
   const handleCloseShift = async () => {
@@ -96,7 +103,7 @@ const ShiftCloseTerminal = () => {
         session.tenant_id!,
         session,
         activeShift.id,
-        parseInt(actualCash),
+        parseAmount(actualCash),
         explanation,
         closingNote,
         complianceNote,
@@ -163,7 +170,7 @@ const ShiftCloseTerminal = () => {
                   Physical Tender
                 </div>
                 <div className="text-3xl font-black italic tracking-tighter text-white">
-                  Rp {parseInt(actualCash).toLocaleString()}
+                  Rp {parseAmount(actualCash).toLocaleString()}
                 </div>
               </div>
               <div className="p-8 bg-white/5 rounded-[2rem] border border-emerald-500/20 shadow-inner">
