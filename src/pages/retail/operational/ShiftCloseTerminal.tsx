@@ -53,16 +53,8 @@ const ShiftCloseTerminal = () => {
         
         if (current) {
           setActiveShift(current);
-          
-          try {
-             const summary = await retailService.reconcileShift(session.tenant_id!, session, current.id);
-             setExpectedCash(summary.expected_cash || 0);
-             setExpectedCard(summary.metadata?.expectedCard || 0);
-          } catch (e) {
-             console.warn("Reconciliation summary failed, falling back to shift base fields", e);
-             setExpectedCash(current.expected_cash || 0);
-             setExpectedCard(0);
-          }
+          setExpectedCash(current.expected_cash ? Number(current.expected_cash) : 0);
+          setExpectedCard(0);
         }
       } catch (error) {
         console.error("Failed to fetch shift data", error);
