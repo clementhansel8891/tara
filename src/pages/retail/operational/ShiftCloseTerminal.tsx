@@ -48,7 +48,7 @@ const ShiftCloseTerminal = () => {
           { store_id: session.location_id }
         );
         const current = shifts.find(
-          (s) => s.employeeId === session.user_id && s.status === "open",
+          (s) => s.status === "open",
         );
         
         if (current) {
@@ -56,11 +56,11 @@ const ShiftCloseTerminal = () => {
           
           try {
              const summary = await retailService.reconcileShift(session.tenant_id!, session, current.id);
-             setExpectedCash(summary.expectedCash || 0);
+             setExpectedCash(summary.expected_cash || 0);
              setExpectedCard(summary.metadata?.expectedCard || 0);
           } catch (e) {
              console.warn("Reconciliation summary failed, falling back to shift base fields", e);
-             setExpectedCash(current.expectedCash || 0);
+             setExpectedCash(current.expected_cash || 0);
              setExpectedCard(0);
           }
         }
