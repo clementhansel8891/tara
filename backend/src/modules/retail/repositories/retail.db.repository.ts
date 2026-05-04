@@ -976,7 +976,6 @@ export class RetailDbRepository implements IRetailRepository {
   ): Promise<RetailShift> {
     const shift = await this.prisma.retail_shifts.create({
       data: {
-        id: "s84p52tc",
         updated_at: new Date(),
         ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         store_id: data.store_id,
@@ -1434,7 +1433,7 @@ export class RetailDbRepository implements IRetailRepository {
       // Simple audit entry as payment log
       await tx.audit_logs.create({
         data: {
-          id: "3rqvpdqj",
+          id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
           module: "retail",
           action: "PAYMENT",

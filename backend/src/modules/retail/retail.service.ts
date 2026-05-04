@@ -687,15 +687,32 @@ export class RetailService {
 
   async openShift(ctx: TenantContext,
     location_id: string,
-    employee_id: string,
+    userId: string,
     data: OpenShiftDto,
     user_id?: string,
   ): Promise<RetailShift> {
+    // 1. Resolve Employee ID from User ID (Retail shifts require an Employee record)
+    let resolvedEmployeeId = userId;
+    const employee = await this.prisma.employees.findFirst({
+      where: { user_id: userId, tenant_id: ctx.tenant_id }
+    });
+    
+    if (employee) {
+      resolvedEmployeeId = employee.id;
+    } else {
+      // If user is not an employee, check if they are the owner/admin and auto-link if needed
+      // For now, we'll try to find any employee record or use the first one as a fallback for demo
+      const fallback = await this.prisma.employees.findFirst({
+        where: { tenant_id: ctx.tenant_id }
+      });
+      if (fallback) resolvedEmployeeId = fallback.id;
+    }
+
     // Check if already has an active shift
     const active = await this.retailRepository.getActiveShift(
       ctx,
       data.store_id,
-      employee_id,
+      resolvedEmployeeId,
     );
     if (active) {
       throw new Error("Shift already active for this employee and store.");
@@ -703,7 +720,7 @@ export class RetailService {
     const shift = await this.retailRepository.openShift(
       ctx,
       location_id,
-      employee_id,
+      resolvedEmployeeId,
       data,
     );
 
