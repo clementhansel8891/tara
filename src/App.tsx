@@ -28,6 +28,7 @@ import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
 import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
 import { IdentityProvider } from "@/core/identity/context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -146,6 +147,7 @@ export default function App() {
               <BarcodeScannerProvider>
                 <BrowserRouter>
                   <AppRoutes />
+                  <Toaster />
                 </BrowserRouter>
               </BarcodeScannerProvider>
             </NotificationProvider>
