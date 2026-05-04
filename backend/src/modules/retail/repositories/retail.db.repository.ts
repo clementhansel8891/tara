@@ -1064,6 +1064,7 @@ export class RetailDbRepository implements IRetailRepository {
   ): Promise<RetailShift | null> {
     const shift = await this.prisma.retail_shifts.findFirst({
       where: { id: shift_id, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
+      include: { retail_cash_movements: true }
     });
     return shift ? this.mapShift(shift) : null;
   }
@@ -1082,7 +1083,8 @@ export class RetailDbRepository implements IRetailRepository {
   async reconcileShift(ctx: TenantContext,
     shift_id: string,
     data: {
-      actual_cash: Prisma.Decimal;
+      actualCash?: Prisma.Decimal;
+      cash_movements?: any[];
       variance: Prisma.Decimal;
       reason: string;
     },
@@ -2545,6 +2547,7 @@ export class RetailDbRepository implements IRetailRepository {
       reconciliation_reason: s.reconciliation_reason,
       status: s.status as any,
       notes: s.notes,
+      cash_movements: s.retail_cash_movements || [],
     };
   }
 

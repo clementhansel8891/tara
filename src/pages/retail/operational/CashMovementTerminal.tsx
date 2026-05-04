@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import retailService from '@/core/services/retail/retailService';
+import { retailService } from '@/core/services/retail/retailService';
 
 const CashMovementTerminal = () => {
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ const CashMovementTerminal = () => {
 
     setIsSubmitting(true);
     try {
-      await (retailService as any).recordCashMovement(
+      await retailService.recordCashMovement(
         session.tenant_id!,
         activeShift.id,
         {
@@ -56,7 +56,8 @@ const CashMovementTerminal = () => {
           type,
           reason,
           notes,
-        }
+        },
+        session
       );
 
       toast({ 

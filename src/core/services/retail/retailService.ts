@@ -736,6 +736,25 @@ export const retailService = {
     );
   },
 
+  async recordCashMovement(
+    tenantId: string,
+    shiftId: string,
+    data: {
+      amount: number;
+      type: "CASH_OUT" | "CASH_IN";
+      reason?: string;
+      notes?: string;
+    },
+    session: SessionContext,
+  ) {
+    return apiRequest<any>(
+      `/v1/retail/shifts/${shiftId}/cash-movement`,
+      "POST",
+      session,
+      data,
+    );
+  },
+
   async reconcileShift(
     tenantId: string,
     session: SessionContext,

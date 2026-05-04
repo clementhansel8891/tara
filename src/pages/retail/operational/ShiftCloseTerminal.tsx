@@ -12,6 +12,9 @@ import {
   ChevronRight,
   ShieldAlert,
   Fingerprint,
+  X,
+  ArrowDownCircle,
+  ArrowUpCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +81,16 @@ const ShiftCloseTerminal = () => {
 
   const variance = actualCash ? parseAmount(actualCash) - expectedCash : 0;
   const needsExplanation = Math.abs(variance) > 10000;
+
+  const totalCashOut = (activeShift?.cash_movements || [])
+    .filter((m: any) => m.type === "CASH_OUT")
+    .reduce((sum: number, m: any) => sum + Number(m.amount), 0);
+
+  const totalCashIn = (activeShift?.cash_movements || [])
+    .filter((m: any) => m.type === "CASH_IN")
+    .reduce((sum: number, m: any) => sum + Number(m.amount), 0);
+
+  const netAdjustments = totalCashIn - totalCashOut;
 
   const handleCloseShift = async () => {
     if (!activeShift) {
@@ -245,6 +258,12 @@ const ShiftCloseTerminal = () => {
                 <div className="text-6xl font-black text-white tracking-tighter italic">
                   Rp {expectedCash.toLocaleString()}
                 </div>
+                {netAdjustments !== 0 && (
+                  <div className={`mt-3 text-[10px] font-black uppercase tracking-widest italic flex items-center gap-2 ${netAdjustments < 0 ? "text-rose-500" : "text-emerald-500"}`}>
+                    {netAdjustments < 0 ? <ArrowDownCircle className="w-3 h-3" /> : <ArrowUpCircle className="w-3 h-3" />}
+                    Petty Cash: {netAdjustments < 0 ? "-" : "+"}Rp {Math.abs(netAdjustments).toLocaleString()}
+                  </div>
+                )}
                 <p className="text-[10px] text-blue-500 mt-4 uppercase font-black italic tracking-widest opacity-60">
                   Aggregated from Live Transaction Stream
                 </p>

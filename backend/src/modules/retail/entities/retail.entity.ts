@@ -223,6 +223,7 @@ export class RetailShift {
   closingCash?: Prisma.Decimal;
   expectedCash?: Prisma.Decimal;
   actualCash?: Prisma.Decimal;
+  cash_movements?: any[];
 }
 
 
