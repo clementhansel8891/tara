@@ -430,6 +430,7 @@ export interface RetailShift extends HRAuditFields {
   status: "open" | "closed";
   notes?: string;
   closingNote?: string;
+  cash_movements?: any[];
 }
 
 // ============================================================

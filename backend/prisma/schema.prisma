@@ -233,6 +233,7 @@ model tenants {
   retail_order_items                     retail_order_items[]
   retail_promotions                      retail_promotions[]
   retail_shifts                          retail_shifts[]
+  retail_cash_movements                  retail_cash_movements[]
   retail_wishlists                       retail_wishlists[]
   sales_alerts                           sales_alerts[]
   sales_audit_events                     sales_audit_events[]
@@ -1311,6 +1312,7 @@ model employees {
   hr_payroll_adjustments                                         hr_payroll_adjustments[]
   retail_orders                                                  retail_orders[]
   retail_shifts                                                  retail_shifts[]
+  retail_cash_movements                                          retail_cash_movements[]
   schedule_assignments                                           schedule_assignments[]
   stores                                                         stores[]
   training_assignments                                           training_assignments[]
@@ -5940,6 +5942,7 @@ model stores {
   pos_devices                    pos_devices[]
   retail_orders                  retail_orders[]
   retail_shifts                  retail_shifts[]
+  retail_cash_movements          retail_cash_movements[]
   inventory_pools                inventory_pools?                 @relation(fields: [inventory_pool_id], references: [id])
   locations                      locations                        @relation(fields: [location_id], references: [id])
   employees                      employees?                       @relation(fields: [manager_id], references: [id])

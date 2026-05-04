@@ -82,13 +82,18 @@ const ShiftCloseTerminal = () => {
   const variance = actualCash ? parseAmount(actualCash) - expectedCash : 0;
   const needsExplanation = Math.abs(variance) > 10000;
 
-  const totalCashOut = (activeShift?.cash_movements || [])
-    .filter((m: any) => m.type === "CASH_OUT")
-    .reduce((sum: number, m: any) => sum + Number(m.amount), 0);
+  interface CashMovement {
+    amount: number | string;
+    type: "CASH_IN" | "CASH_OUT";
+  }
 
-  const totalCashIn = (activeShift?.cash_movements || [])
-    .filter((m: any) => m.type === "CASH_IN")
-    .reduce((sum: number, m: any) => sum + Number(m.amount), 0);
+  const totalCashOut = (activeShift?.cash_movements as CashMovement[] || [])
+    .filter((m) => m.type === "CASH_OUT")
+    .reduce((sum, m) => sum + Number(m.amount), 0);
+
+  const totalCashIn = (activeShift?.cash_movements as CashMovement[] || [])
+    .filter((m) => m.type === "CASH_IN")
+    .reduce((sum, m) => sum + Number(m.amount), 0);
 
   const netAdjustments = totalCashIn - totalCashOut;
 
