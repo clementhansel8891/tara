@@ -202,7 +202,7 @@ export default function RetailShifts() {
 
     const closing = parseFloat(closingCash) || calculatedTotal;
     // Simulated expected cash calculation
-    const expectedCash = currentShift.openingCash + 278.50; // Simulated cash sales
+    const expectedCash = currentShift.openingCash + (currentShift.cashSales || 0);
     const difference = closing - expectedCash;
 
     const closedShift: ShiftRecord = {
@@ -211,11 +211,11 @@ export default function RetailShifts() {
       closingCash: closing,
       expectedCash,
       cashDifference: difference,
-      totalSales: 892.75, // Simulated
-      transactions: 32, // Simulated
-      cashSales: 278.50, // Simulated
-      cardSales: 456.25, // Simulated
-      mobileSales: 158.00, // Simulated
+      totalSales: currentShift.totalSales || 0,
+      transactions: currentShift.transactions || 0,
+      cashSales: currentShift.cashSales || 0,
+      cardSales: currentShift.cardSales || 0,
+      mobileSales: currentShift.mobileSales || 0,
       notes: shiftNotes,
       status: 'closed',
     };
@@ -582,12 +582,12 @@ export default function RetailShifts() {
                   </div>
                   <div className="flex justify-between p-2 bg-muted rounded">
                     <span className="text-muted-foreground">Expected Cash Sales</span>
-                    <span className="font-medium">{formatCurrency(278.50)}</span>
+                    <span className="font-medium">{formatCurrency(currentShift.cashSales || 0)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between p-2 bg-muted rounded">
                     <span className="text-muted-foreground">Expected Total</span>
-                    <span className="font-bold">{formatCurrency(currentShift.openingCash + 278.50)}</span>
+                    <span className="font-bold">{formatCurrency(currentShift.openingCash + (currentShift.cashSales || 0))}</span>
                   </div>
                   <div className="flex justify-between p-2 bg-muted rounded">
                     <span className="text-muted-foreground">Actual Count</span>
@@ -596,19 +596,8 @@ export default function RetailShifts() {
                   <Separator />
                   <div className={cn(
                     "flex justify-between p-3 rounded-lg",
-                    calculatedTotal - (currentShift.openingCash + 278.50) >= 0
-                      ? "bg-green-500/10"
-                      : "bg-destructive/10"
-                  )}>
-                    <span className="font-medium">Variance</span>
-                    <span className={cn(
-                      "font-bold",
-                      calculatedTotal - (currentShift.openingCash + 278.50) >= 0
-                        ? "text-green-500"
-                        : "text-destructive"
-                    )}>
-                      {calculatedTotal - (currentShift.openingCash + 278.50) >= 0 ? '+' : ''}
-                      {formatCurrency(calculatedTotal - (currentShift.openingCash + 278.50))}
+                      {calculatedTotal - (currentShift.openingCash + (currentShift.cashSales || 0)) >= 0 ? '+' : ''}
+                      {formatCurrency(calculatedTotal - (currentShift.openingCash + (currentShift.cashSales || 0)))}
                     </span>
                   </div>
                 </div>

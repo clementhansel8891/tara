@@ -26,7 +26,7 @@ import type { RetailShift } from "@/core/types/retail/retail";
 
 const ShiftCloseTerminal = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
+  const { activeStore, activeChannel, refreshState } = useRetail();
   const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
   const [expectedCash, setExpectedCash] = useState<number>(0);
   const [expectedCard, setExpectedCard] = useState<number>(0);
@@ -45,15 +45,18 @@ const ShiftCloseTerminal = () => {
         const shifts = await retailService.listShifts(
           session.tenant_id!,
           session,
-          { store_id: session.location_id }
+          { 
+            store_id: activeStore?.id || session.location_id,
+            employee_id: session.user_id 
+          }
         );
         const current = shifts.find(
-          (s) => s.status === "open",
+          (s) => s.status === "open" && s.employeeId === session.user_id,
         );
         
         if (current) {
           setActiveShift(current);
-          setExpectedCash(current.expected_cash ? Number(current.expected_cash) : 0);
+          setExpectedCash(current.expectedCash ? Number(current.expectedCash) : 0);
           setExpectedCard(0);
         }
       } catch (error) {
@@ -64,7 +67,7 @@ const ShiftCloseTerminal = () => {
       }
     };
     if (session.tenant_id) fetchReconciliationData();
-  }, [session.tenant_id, session.user_id, session.location_id, session]);
+  }, [session.tenant_id, session.user_id, activeStore?.id, session.location_id, session]);
 
   const variance = actualCash ? parseInt(actualCash) - expectedCash : 0;
   const needsExplanation = Math.abs(variance) > 10000;
@@ -174,7 +177,10 @@ const ShiftCloseTerminal = () => {
             </div>
             <Button
               className="w-full h-20 bg-emerald-600 hover:bg-emerald-500 text-white font-black italic gap-4 rounded-2xl shadow-2xl shadow-emerald-600/20 transition-all uppercase tracking-[0.2em] text-sm"
-              onClick={() => window.location.reload()}
+              onClick={async () => {
+                await refreshState();
+                window.location.href = "/m/retail/operational/gateway";
+              }}
             >
               <FileText className="w-7 h-7" /> Archive & Restart Node
             </Button>

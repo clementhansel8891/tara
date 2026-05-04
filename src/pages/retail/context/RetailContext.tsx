@@ -128,11 +128,12 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       const shifts = await retailService.listShifts(session.tenant_id, session, { 
-        store_id: activeStoreRef.current?.id 
+        store_id: activeStoreRef.current?.id,
+        employee_id: session.user_id 
       });
-      // Lenient detection: if ANY shift is open for this store, we consider it active for the operational gateway
+      // Isolate to the current user's open shift
       const openShift = Array.isArray(shifts) ? shifts.find(
-        (s: any) => s.status === "open"
+        (s: any) => s.status === "open" && s.employeeId === session.user_id
       ) : null;
       setActiveShift(openShift || null);
     } catch (e) {

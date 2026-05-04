@@ -557,9 +557,17 @@ export class RetailController {
 
 
   @Get("shifts")
-  async listShifts(@Req() request: RequestWithTenant) {
-    const { tenant_id, location_id } = request.tenantContext;
-    const shifts = await this.retailService.listShifts(request.tenantContext, location_id!);
+  async listShifts(
+    @Req() request: RequestWithTenant,
+    @Query("store_id") store_id?: string,
+    @Query("employee_id") employee_id?: string,
+  ) {
+    const { location_id } = request.tenantContext;
+    const shifts = await this.retailService.listShifts(
+      request.tenantContext,
+      store_id || location_id!,
+      employee_id,
+    );
     return this.respond(request.tenantContext, shifts);
   }
 

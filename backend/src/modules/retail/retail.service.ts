@@ -794,8 +794,8 @@ export class RetailService {
     return shift;
   }
 
-  async listShifts(ctx: TenantContext, store_id?: string): Promise<RetailShift[]> {
-    return this.retailRepository.listShifts(ctx, store_id);
+  async listShifts(ctx: TenantContext, store_id?: string, employee_id?: string): Promise<RetailShift[]> {
+    return this.retailRepository.listShifts(ctx, store_id, employee_id);
   }
 
   async reconcileShift(ctx: TenantContext,
