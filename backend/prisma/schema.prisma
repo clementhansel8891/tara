@@ -5444,11 +5444,35 @@ model retail_shifts {
   companies             companies? @relation(fields: [company_id], references: [id])
   // @@map("retail_shifts") - standardized
   tenants               tenants    @relation(fields: [tenant_id], references: [id])
+  retail_cash_movements retail_cash_movements[]
 
   @@index([employee_id])
   @@index([store_id])
   @@index([tenant_id])
   @@index([company_id])
+}
+
+model retail_cash_movements {
+  id              String   @id @default(uuid())
+  tenant_id       String
+  store_id        String
+  shift_id        String
+  employee_id     String
+  amount          Decimal  @db.Decimal(15, 2)
+  type            String   // e.g., "CASH_OUT", "CASH_IN"
+  reason          String?
+  notes           String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updated_at
+
+  shifts          retail_shifts @relation(fields: [shift_id], references: [id])
+  tenants         tenants       @relation(fields: [tenant_id], references: [id])
+  stores          stores        @relation(fields: [store_id], references: [id])
+  employees       employees     @relation(fields: [employee_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([shift_id])
+  @@index([store_id])
 }
 
 model retail_wishlist_items {
