@@ -120,13 +120,13 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
       const payload = {
         name,
         code,
-        locationId: selectedLocationId,
+        location_id: selectedLocationId,
         type,
         address: finalAddress,
         phone,
         email,
-        managerId: managerId || undefined,
-        inventoryPoolId: inventoryPoolId || undefined,
+        manager_id: managerId || undefined,
+        inventory_pool_id: inventoryPoolId || undefined,
         country: selectedCountryCode || undefined,
         currency: selectedCountry?.currency || undefined,
         timezone: "Asia/Jakarta", // Defaulting for ID, could be made dynamic

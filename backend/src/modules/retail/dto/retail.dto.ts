@@ -188,7 +188,7 @@ export class CreateStoreDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsEnum(["flagship", "satellite", "warehouse"])
+  @IsEnum(["flagship", "satellite", "warehouse", "express", "kiosk", "pop-up"])
   type: string;
 
   @IsOptional()
