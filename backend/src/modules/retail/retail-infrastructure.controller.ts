@@ -63,5 +63,26 @@ export class RetailInfrastructureController {
     const { tenant_id } = request.tenantContext;
     return this.infraService.updateLoadBalancer(tenant_id, lbId, data);
   }
+
+  @Post("heartbeat")
+  async reportHeartbeat(
+    @Req() request: RequestWithTenant,
+    @Body()
+    data: {
+      deviceId: string;
+      component: string;
+      status: string;
+      metrics?: any;
+    },
+  ) {
+    const { tenant_id } = request.tenantContext;
+    return this.infraService.recordHeartbeat(
+      tenant_id,
+      data.deviceId,
+      data.component,
+      data.status,
+      data.metrics,
+    );
+  }
 }
 

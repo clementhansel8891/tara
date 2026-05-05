@@ -446,12 +446,28 @@ export class RetailService {
         });
       }
 
+      // 1.5 Auto-resolve Shift ID if not provided (Audit Integrity)
+      let shiftId = data.shift_id;
+      if (!shiftId && user_id) {
+        const emp = await tx.employees.findFirst({ where: { user_id, tenant_id: ctx.tenant_id } });
+        if (emp) {
+          const activeShift = await tx.retail_shifts.findFirst({
+            where: { store_id: data.store_id, employee_id: emp.id, status: "open", tenant_id: ctx.tenant_id }
+          });
+          if (activeShift) shiftId = activeShift.id;
+        }
+      }
+
       // 2. Initial creation (PENDING)
       // 3. Finalize Order
       const order = await this.retailRepository.createOrder(
         ctx,
         location_id,
-        data,
+        { 
+          ...data, 
+          shift_id: shiftId,
+          currency: data.currency || "IDR"
+        },
         user_id,
         tx,
       );
@@ -521,6 +537,7 @@ export class RetailService {
       const bonusAmount = new Prisma.Decimal(order.grand_total.toString()).mul(bonusRate);
 
       if (bonusAmount.gt(0) && order.cashier_id) {
+        // Log to HR Sales Bonuses for payroll
         await this.prisma.hr_sales_bonuses.create({
           data: {
             id: `BON-${order.id.slice(-8).toUpperCase()}-${Date.now().toString().slice(-4)}`,
@@ -531,6 +548,12 @@ export class RetailService {
             status: "PENDING",
             created_at: new Date(),
           },
+        });
+
+        // Update Order record with commission amount for auditability
+        await this.prisma.retail_orders.update({
+          where: { id: order.id },
+          data: { commission_amount: bonusAmount }
         });
       }
     }
@@ -548,6 +571,9 @@ export class RetailService {
         idempotency_key: idempotency_key || "N/A"
       },
     });
+    
+    // Signal completion for Core Sync (Marketing, Sales, Finance)
+    this.eventEmitter.emit('retail.order.completed', { ctx, order });
 
     return data.payment_method === "GATEWAY" 
       ? { ...order, client_secret: paymentResult?.client_secret, transaction_id: paymentResult?.transaction_id }
@@ -692,21 +718,7 @@ export class RetailService {
     user_id?: string,
   ): Promise<RetailShift> {
     // 1. Resolve Employee ID from User ID (Retail shifts require an Employee record)
-    let resolvedEmployeeId = userId;
-    const employee = await this.prisma.employees.findFirst({
-      where: { user_id: userId, tenant_id: ctx.tenant_id }
-    });
-    
-    if (employee) {
-      resolvedEmployeeId = employee.id;
-    } else {
-      // If user is not an employee, check if they are the owner/admin and auto-link if needed
-      // For now, we'll try to find any employee record or use the first one as a fallback for demo
-      const fallback = await this.prisma.employees.findFirst({
-        where: { tenant_id: ctx.tenant_id }
-      });
-      if (fallback) resolvedEmployeeId = fallback.id;
-    }
+    const resolvedEmployeeId = await this.resolveEmployeeId(ctx, userId);
 
     // Check if already has an active shift
     const active = await this.retailRepository.getActiveShift(
@@ -722,6 +734,7 @@ export class RetailService {
       location_id,
       resolvedEmployeeId,
       data,
+      resolvedEmployeeId, // Track who opened it (physical operator)
     );
 
     if (user_id) {
@@ -744,10 +757,13 @@ export class RetailService {
     data: CloseShiftDto,
     user_id: string,
   ): Promise<RetailShift> {
+    const closed_by_id = await this.resolveEmployeeId(ctx, user_id);
+
     const shift = await this.retailRepository.closeShift(
       ctx,
       shift_id,
       data,
+      closed_by_id,
     );
 
     // Phase 1: Variance Alerting logic
@@ -807,7 +823,7 @@ export class RetailService {
   ) {
     const shift = await this.retailRepository.getShift(ctx, shift_id);
     if (!shift || shift.status !== "open") {
-      throw new Error("Cannot record movement for a closed or missing shift");
+      throw new BadRequestException("Cannot record movement for a closed or missing shift");
     }
 
     const movement = await this.retailRepository.createCashMovement(ctx, {
@@ -1777,5 +1793,48 @@ export class RetailService {
       total: Number(order.grand_total),
       paymentMethod: order.payment_method || "CASH"
     });
+  }
+
+  private async resolveEmployeeId(ctx: TenantContext, userId: string): Promise<string> {
+    const employee = await this.prisma.employees.findFirst({
+      where: { user_id: userId, tenant_id: ctx.tenant_id }
+    });
+
+    if (employee) return employee.id;
+
+    // Auto-create employee record for authenticated users to allow retail operations (Audit Integrity)
+    const userRecord = await this.prisma.users.findUnique({ where: { id: userId } });
+    const dept = await this.prisma.departments.findFirst({ where: { tenant_id: ctx.tenant_id } });
+    
+    // We need a location_id. Try to find the first store or use a default.
+    const storeRecord = await this.prisma.stores.findFirst({ 
+      where: { tenant_id: ctx.tenant_id } 
+    });
+
+    if (userRecord && dept && storeRecord) {
+      const newEmp = await this.prisma.employees.create({
+        data: {
+          id: uuidv4(),
+          tenant_id: ctx.tenant_id,
+          user_id: userId,
+          first_name: userRecord.first_name || "Retail",
+          last_name: userRecord.last_name || "Operator",
+          email: userRecord.email,
+          employee_code: `EMP-${userId.slice(0, 8).toUpperCase()}`,
+          department_id: dept.id,
+          location_id: storeRecord.location_id,
+          positions: "Operator",
+          hire_date: new Date(),
+          status: "active"
+        }
+      });
+      return newEmp.id;
+    }
+
+    // Fallback to any existing employee if user/dept/store resolution fails
+    const fallback = await this.prisma.employees.findFirst({
+      where: { tenant_id: ctx.tenant_id }
+    });
+    return fallback ? fallback.id : userId; // userId as last resort
   }
 }

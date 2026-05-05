@@ -45,7 +45,12 @@ export class RetailCoreListener {
       module: 'RETAIL',
       entity_type: 'ORDER',
       entity_id: order.id,
-      metadata: { amount: order.grand_total, currency: order.currency },
+      metadata: { 
+        amount: order.grand_total, 
+        currency: order.currency,
+        commission: order.commission_amount,
+        shift_id: order.shift_id
+      },
     });
 
     // 2. Core Sales Sync
@@ -60,11 +65,12 @@ export class RetailCoreListener {
       store_id: order.store_id,
       ecommerce_id: order.ecommerce_id,
       location_id: order.location_id,
-      items: order.items.map((item: any) => ({
-        sku: item.sku,
-        name: item.name,
+      items: order.retail_order_items?.map((item: any) => ({
+        sku: item.item_masters?.sku,
+        name: item.item_masters?.name,
         qty: item.quantity,
         price: item.unit_price,
+        commission: item.commission_amount,
       })),
     });
   }

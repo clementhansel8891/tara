@@ -46,4 +46,20 @@ export class RetailInfrastructureService {
   ): Promise<RetailLoadBalancer> {
     return this.infraRepo.updateLoadBalancer(tenant_id, lbId, data);
   }
+
+  async recordHeartbeat(
+    tenant_id: string,
+    deviceId: string,
+    component: string,
+    status: string,
+    metrics?: any,
+  ): Promise<void> {
+    return this.infraRepo.recordHeartbeat(
+      tenant_id,
+      deviceId,
+      component,
+      status,
+      metrics,
+    );
+  }
 }

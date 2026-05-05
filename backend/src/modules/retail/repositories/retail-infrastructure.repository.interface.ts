@@ -20,6 +20,13 @@ export abstract class IRetailInfrastructureRepository {
     nodeId: string,
     healthScore: number,
   ): Promise<void>;
+  abstract recordHeartbeat(
+    tenant_id: string,
+    deviceId: string,
+    component: string,
+    status: string,
+    metrics?: any,
+  ): Promise<void>;
 
   // Load Balancers
   abstract listLoadBalancers(tenant_id: string): Promise<RetailLoadBalancer[]>;

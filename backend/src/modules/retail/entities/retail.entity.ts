@@ -170,6 +170,7 @@ export class RetailOrder {
   cashier_id: string;
   customer_id?: string;
   customer_name?: string;
+  shift_id?: string;
   status: OrderStatus;
   items: RetailOrderItem[];
   subtotal: Prisma.Decimal;
@@ -177,6 +178,7 @@ export class RetailOrder {
   discount_total: Prisma.Decimal;
   grand_total: Prisma.Decimal;
   currency: string;
+  commission_amount?: Prisma.Decimal;
   payment_method: "cash" | "card" | "qr" | "wallet";
   payment_status: "unpaid" | "paid" | "partial";
   reservation_expires_at?: Date;
@@ -195,6 +197,8 @@ export class RetailOrderItem {
   tax_amount: Prisma.Decimal;
   discount_amount: Prisma.Decimal;
   total_price: Prisma.Decimal;
+  commission_rate?: Prisma.Decimal;
+  commission_amount?: Prisma.Decimal;
 }
 
 export class RetailShift {

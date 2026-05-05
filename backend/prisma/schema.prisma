@@ -1311,7 +1311,9 @@ model employees {
   procurement_requisitions                                       procurement_requisitions[]
   hr_payroll_adjustments                                         hr_payroll_adjustments[]
   retail_orders                                                  retail_orders[]
-  retail_shifts                                                  retail_shifts[]
+  retail_shifts                                                  retail_shifts[]            @relation("OpenedShifts")
+  closed_shifts                                                  retail_shifts[]            @relation("ClosedShifts")
+  opened_by_shifts                                               retail_shifts[]            @relation("OpenedBy")
   retail_cash_movements                                          retail_cash_movements[]
   schedule_assignments                                           schedule_assignments[]
   stores                                                         stores[]
@@ -3427,6 +3429,7 @@ model it_devices {
   owner_id         String?
   status           String
   metadata         Json?
+  last_heartbeat   DateTime?
   created_at       DateTime           @default(now())
   connection       String
   name             String
@@ -5347,8 +5350,10 @@ model retail_order_items {
   returned_at   DateTime?
   tenant_id     String
   ecommerce_id  String?
-  company_id    String?
-  tax_rate      Decimal       @default(0.11) @db.Decimal(5, 2)
+  company_id        String?
+  tax_rate          Decimal       @default(0.11) @db.Decimal(5, 2)
+  commission_rate   Decimal?      @db.Decimal(5, 2)
+  commission_amount Decimal?      @db.Decimal(15, 2)
   retail_orders retail_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
   item_masters  item_masters  @relation(fields: [product_id], references: [id])
   companies     companies?    @relation(fields: [company_id], references: [id])
@@ -5371,10 +5376,13 @@ model retail_orders {
   device_id          String?
   cashier_id         String?
   customer_id        String?
+  shift_id           String?
   status             String               @default("paid")
   subtotal           Decimal              @db.Decimal(15, 2)
   tax                Decimal              @db.Decimal(15, 2)
   total_amount       Decimal              @db.Decimal(15, 2)
+  currency           String               @default("IDR")
+  commission_amount  Decimal?             @db.Decimal(15, 2)
   payment_method     String?
   payment_reference  String?
   notes              String?
@@ -5382,6 +5390,7 @@ model retail_orders {
   updated_at         DateTime             @default(now())
   retail_order_items retail_order_items[]
   employees          employees?           @relation(fields: [cashier_id], references: [id])
+  shifts             retail_shifts?       @relation(fields: [shift_id], references: [id])
   retail_customers   retail_customers?    @relation(fields: [customer_id], references: [id])
   pos_devices        pos_devices?         @relation(fields: [device_id], references: [id])
   stores             stores               @relation(fields: [store_id], references: [id])
@@ -5439,9 +5448,14 @@ model retail_shifts {
   closing_note          String?
   compliance_note       String?
   reconciliation_reason String?
+  closed_by_id          String?
+  opened_by_id          String?
   created_at            DateTime   @default(now())
   updated_at            DateTime   @default(now())
-  employees             employees  @relation(fields: [employee_id], references: [id])
+  employees             employees  @relation("OpenedShifts", fields: [employee_id], references: [id])
+  closed_by             employees? @relation("ClosedShifts", fields: [closed_by_id], references: [id])
+  opened_by             employees? @relation("OpenedBy", fields: [opened_by_id], references: [id])
+  retail_orders         retail_orders[]
   stores                stores     @relation(fields: [store_id], references: [id])
   companies             companies? @relation(fields: [company_id], references: [id])
   // @@map("retail_shifts") - standardized

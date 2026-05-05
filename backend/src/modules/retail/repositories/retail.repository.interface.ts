@@ -211,10 +211,12 @@ export abstract class IRetailRepository {
     location_id: string,
     employee_id: string,
     data: OpenShiftDto,
+    opened_by_id?: string,
   ): Promise<RetailShift>;
   abstract closeShift( ctx: TenantContext,
     shift_id: string,
     data: CloseShiftDto,
+    closed_by_id?: string,
   ): Promise<RetailShift>;
   abstract listShifts( ctx: TenantContext,
     store_id?: string,

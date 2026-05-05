@@ -699,6 +699,8 @@ export class RetailDbRepository implements IRetailRepository {
           total_price: itemSubtotal,
           discount: 0,
           tax_rate: item.tax_rate ? new Prisma.Decimal(item.tax_rate) : undefined,
+          commission_rate: item.commission_rate ? new Prisma.Decimal(item.commission_rate) : undefined,
+          commission_amount: item.commission_amount ? new Prisma.Decimal(item.commission_amount) : undefined,
         };
       }),
     );
@@ -714,10 +716,13 @@ export class RetailDbRepository implements IRetailRepository {
         device_id: data.terminal_id || undefined,
         cashier_id: user_id || undefined,
         customer_id: data.customer_id || undefined,
+        shift_id: data.shift_id || undefined,
         status: "pending",
         subtotal,
         tax,
         total_amount: grand_total,
+        currency: data.currency || "IDR",
+        commission_amount: data.commission_amount ? new Prisma.Decimal(data.commission_amount) : undefined,
         payment_method: data.payment_method,
         notes: data.notes,
         retail_order_items: { create: itemsData },
@@ -973,6 +978,7 @@ export class RetailDbRepository implements IRetailRepository {
     location_id: string,
     employee_id: string,
     data: OpenShiftDto,
+    opened_by_id?: string,
   ): Promise<RetailShift> {
     const shift = await this.prisma.retail_shifts.create({
       data: {
@@ -980,6 +986,7 @@ export class RetailDbRepository implements IRetailRepository {
         ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         store_id: data.store_id,
         employee_id: employee_id,
+        opened_by_id: opened_by_id,
         start_time: new Date(),
         opening_cash: data.opening_cash,
         expected_cash: data.opening_cash,
@@ -992,6 +999,7 @@ export class RetailDbRepository implements IRetailRepository {
   async closeShift(ctx: TenantContext,
     shift_id: string,
     data: CloseShiftDto,
+    closed_by_id?: string,
   ): Promise<RetailShift> {
     const shift = await this.prisma.retail_shifts.update({
       where: { id: shift_id, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
@@ -1002,6 +1010,7 @@ export class RetailDbRepository implements IRetailRepository {
         notes: data.notes,
         closing_note: data.closing_note,
         compliance_note: data.compliance_note,
+        closed_by_id: closed_by_id,
       },
     });
     return this.mapShift(shift);
@@ -1030,7 +1039,7 @@ export class RetailDbRepository implements IRetailRepository {
         }
       }),
       this.prisma.retail_shifts.update({
-        where: { id: data.shift_id },
+        where: { id: data.shift_id, tenant_id: ctx.tenant_id },
         data: {
           expected_cash: {
             increment: data.type === "CASH_IN" ? data.amount : -data.amount
@@ -1838,10 +1847,12 @@ export class RetailDbRepository implements IRetailRepository {
           device_id: null,
           cashier_id: employee ? employee.id : null,
           customer_id: data.customer_id,
+          shift_id: data.shift_id,
           status: data.payment_method === "GATEWAY" || data.payment_method === "qr" ? "pending" : "paid",
           subtotal: new Prisma.Decimal(subtotal),
           tax: new Prisma.Decimal(Number(data.grand_total) - subtotal),
           total_amount: new Prisma.Decimal(Number(data.grand_total)),
+          currency: "IDR",
           payment_method: data.payment_method,
           notes: data.notes,
           retail_order_items: { create: itemsData },
@@ -2495,13 +2506,15 @@ export class RetailDbRepository implements IRetailRepository {
       cashier_id: o.cashier_id,
       customer_id: o.customer_id,
       customer_name: o.retail_customers?.name || o.customer?.name,
+      shift_id: o.shift_id,
       status: o.status as any,
       items: (o.retail_order_items || []).map((item: any) => this.mapOrderItem(item)) || [],
       subtotal: (o.subtotal as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
       tax_total: (o.tax as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
       discount_total: new Prisma.Decimal(0) as any,
       grand_total: (o.total_amount as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
-      currency: "IDR",
+      currency: o.currency || "IDR",
+      commission_amount: (o.commission_amount as unknown as Prisma.Decimal) || undefined,
       payment_method: o.payment_method as any,
       payment_status: "paid",
       created_at: o.created_at,
@@ -2520,6 +2533,8 @@ export class RetailDbRepository implements IRetailRepository {
       tax_amount: new Prisma.Decimal(0) as any,
       discount_amount: (item.discount as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
       total_price: (item.total_price as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
+      commission_rate: (item.commission_rate as unknown as Prisma.Decimal) || undefined,
+      commission_amount: (item.commission_amount as unknown as Prisma.Decimal) || undefined,
     };
   }
 

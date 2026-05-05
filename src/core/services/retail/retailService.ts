@@ -456,6 +456,8 @@ export const retailService = {
     grandTotal: number,
     shiftId?: string,
     notes?: string,
+    currency: string = "IDR",
+    commissionAmount?: number,
   ) {
     return apiRequest<RetailOrder>("/v1/retail/orders", "POST", session, {
       store_id: storeId,
@@ -471,6 +473,8 @@ export const retailService = {
       payment_method: paymentMethod,
       grand_total: grandTotal,
       shift_id: shiftId,
+      currency: currency,
+      commission_amount: commissionAmount,
       notes,
     });
   },
@@ -499,7 +503,19 @@ export const retailService = {
   async checkout(
     tenantId: string,
     session: SessionContext,
-    checkoutData: any,
+    checkoutData: {
+      store_id: string;
+      terminal_id: string;
+      items: any[];
+      payment_method: string;
+      payment_received: number;
+      grand_total: number;
+      shift_id?: string;
+      currency?: string;
+      commission_amount?: number;
+      payment_channel?: string;
+      notes?: string;
+    },
     idempotencyKey?: string,
   ) {
     const headers: Record<string, string> = {};
@@ -511,7 +527,10 @@ export const retailService = {
       "/v1/retail/checkout",
       "POST",
       session,
-      checkoutData,
+      {
+        ...checkoutData,
+        currency: checkoutData.currency || "IDR",
+      },
       headers
     );
   },

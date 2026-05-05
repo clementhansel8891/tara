@@ -24,6 +24,7 @@ import { BarcodeScannerProvider } from "@/contexts/BarcodeScannerContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { CoreLayout } from "@/layouts/CoreLayout";
 import { ModuleLayout } from "@/layouts/ModuleLayout";
+import { HeartbeatManager } from "@/core/infrastructure/HeartbeatManager";
 import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
 import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
 import { IdentityProvider } from "@/core/identity/context";
@@ -147,6 +148,7 @@ export default function App() {
               <BarcodeScannerProvider>
                 <BrowserRouter>
                   <AppRoutes />
+                  <HeartbeatManager />
                   <Toaster />
                 </BrowserRouter>
               </BarcodeScannerProvider>

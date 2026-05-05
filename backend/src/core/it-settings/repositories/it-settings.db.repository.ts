@@ -33,10 +33,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
       ip_address: (d.metadata as any)?.ip_address || undefined,
       macAddress: (d.metadata as any)?.macAddress || undefined,
       status: d.status.toLowerCase() as any,
-      lastSeen: d.created_at, // d.updated_at might be better, but d.created_at is safe
+      lastSeen: d.last_heartbeat || d.updated_at || d.created_at,
       metadata: (d.metadata as any) || {},
       created_at: d.created_at,
-      updated_at: d.created_at,
+      updated_at: d.updated_at,
     }));
   }
 
@@ -70,10 +70,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
       ip_address: (created.metadata as any)?.ip_address || undefined,
       macAddress: (created.metadata as any)?.macAddress || undefined,
       status: "online",
-      lastSeen: created.created_at,
+      lastSeen: created.last_heartbeat || created.updated_at || created.created_at,
       metadata: (created.metadata as any) || {},
       created_at: created.created_at,
-      updated_at: created.created_at,
+      updated_at: created.updated_at,
     };
   }
 
@@ -95,10 +95,10 @@ export class ITSettingsDbRepository extends IITSettingsRepository {
       ip_address: (updated.metadata as any)?.ip_address || undefined,
       macAddress: (updated.metadata as any)?.macAddress || undefined,
       status: updated.status.toLowerCase() as any,
-      lastSeen: updated.created_at,
+      lastSeen: updated.last_heartbeat || updated.updated_at || updated.created_at,
       metadata: (updated.metadata as any) || {},
       created_at: updated.created_at,
-      updated_at: updated.created_at,
+      updated_at: updated.updated_at,
     };
   }
 

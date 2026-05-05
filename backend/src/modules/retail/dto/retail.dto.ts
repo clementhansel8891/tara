@@ -464,13 +464,19 @@ export class OrderItemDto {
   unit_price: string;
 
   @IsOptional()
-  @IsString()
-  name?: string;
+  @Transform(toDecimalString)
+  @Matches(DECIMAL_19_4_RE)
+  tax_rate?: string;
 
   @IsOptional()
   @Transform(toDecimalString)
   @Matches(DECIMAL_19_4_RE)
-  tax_rate?: string;
+  commission_rate?: string;
+
+  @IsOptional()
+  @Transform(toDecimalString)
+  @Matches(DECIMAL_19_4_RE)
+  commission_amount?: string;
 }
 
 export class CreateOrderDto {
@@ -519,6 +525,15 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   shift_id?: string;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @IsOptional()
+  @Transform(toDecimalString)
+  @Matches(DECIMAL_19_4_RE)
+  commission_amount?: string;
 
   @IsOptional()
   @IsString()

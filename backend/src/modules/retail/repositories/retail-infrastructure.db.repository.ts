@@ -58,6 +58,34 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
     });
   }
 
+  async recordHeartbeat(
+    tenant_id: string,
+    deviceId: string,
+    component: string,
+    status: string,
+    metrics?: any,
+  ): Promise<void> {
+    // 1. Update it_devices (Asset tracking)
+    await this.prisma.it_devices.update({
+      where: { id: deviceId, tenant_id: tenant_id },
+      data: {
+        last_heartbeat: new Date(),
+        status: status,
+      },
+    });
+
+    // 2. Log to it_system_health (Diagnostic stream)
+    await this.prisma.it_system_health.create({
+      data: {
+        tenant_id: tenant_id,
+        component: component || "RETAIL_NODE",
+        status: status,
+        latency_ms: metrics?.latency || 0,
+        checked_at: new Date(),
+      },
+    });
+  }
+
   // ============================================================
   // LOAD BALANCERS
   // ============================================================

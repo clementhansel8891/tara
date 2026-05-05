@@ -333,11 +333,13 @@ const CashierPOS = () => {
             unit_price: item.price,
             discount: item.discount,
             taxRate: item.taxRate,
+            commission_rate: 0.05, // Default 5% for audit demonstration
           })),
           payment_method: paymentMethodMap[method] || "cash",
           payment_received: receivedAmount || grandTotal,
           grand_total: grandTotal,
           shift_id: activeShift?.id || undefined,
+          currency: activeStore.currency || "IDR",
           payment_channel: channel,
           notes: finalNotes,
         },
