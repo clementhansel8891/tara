@@ -125,6 +125,7 @@ const RetailOperationalGateway = () => {
                   variant="outline" 
                   className="bg-white/5 border-white/10 text-white hover:bg-indigo-600 hover:text-white h-16 w-16 rounded-2xl transition-all hover:scale-110 active:scale-95 shadow-xl group"
                   onClick={() => window.location.href = "/"}
+                  title="Go to Core"
                 >
                   <Home className="w-6 h-6 group-hover:rotate-12 transition-transform" />
                 </Button>
@@ -133,6 +134,7 @@ const RetailOperationalGateway = () => {
                   variant="outline" 
                   className="bg-white/5 border-white/10 text-white hover:bg-white/10 h-16 w-16 rounded-2xl transition-all hover:scale-110 active:scale-95 shadow-xl"
                   onClick={toggleFullscreen}
+                  title="Toggle Fullscreen"
                 >
                   {isFullscreen ? <Minimize2 className="w-6 h-6 text-indigo-400" /> : <Maximize2 className="w-6 h-6 text-indigo-400" />}
                 </Button>
@@ -143,7 +145,7 @@ const RetailOperationalGateway = () => {
                   onClick={handleExit}
                 >
                   <Power className="w-5 h-5" />
-                  Deauthorize
+                  Management
                 </Button>
              </div>
           </div>
