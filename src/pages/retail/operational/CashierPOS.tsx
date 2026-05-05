@@ -47,7 +47,7 @@ interface CartItem {
 
 const CashierPOS = () => {
   const session = useSession();
-  const { activeStore } = useRetail();
+  const { activeStore, activeShift, isLoading: isContextLoading } = useRetail();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -66,7 +66,6 @@ const CashierPOS = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState<string>(
     window.crypto.randomUUID?.() || Math.random().toString(36).substring(2),
@@ -105,7 +104,7 @@ const CashierPOS = () => {
           session.tenant_id,
           session,
           {
-            locationId: session.location_id,
+            locationId: activeStore?.id || session.location_id,
             categoryId,
             pageSize: 2000, // Ensure we get all items, not just the 20-item default
           },
@@ -131,28 +130,12 @@ const CashierPOS = () => {
       if (!session.tenant_id) return;
       try {
         setIsLoading(true);
-        const [catData, shifts] = await Promise.all([
-          retailService.listCategories(session.tenant_id, session),
-          retailService.listShifts(
-            session.tenant_id,
-            session,
-            session.location_id,
-          ),
-        ]);
+        const catData = await retailService.listCategories(session.tenant_id, session);
         setCategories(catData);
-        const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.user_id,
-        );
-        setActiveShift(openShift || null);
         // Fetch products without a category filter (all items)
         await fetchProducts();
       } catch (error) {
         console.error("Failed to initialize POS", error);
-        toastRef.current({
-          title: "Init Failed",
-          description: "Connection error.",
-          variant: "destructive",
-        });
       } finally {
         setIsLoading(false);
       }
@@ -161,15 +144,13 @@ const CashierPOS = () => {
     if (session.tenant_id) {
       init();
     } else {
-      // If no tenant, we still need to stop loading but maybe show an error later
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.tenant_id, session.user_id, session.location_id]);
+  }, [session.tenant_id, fetchProducts]);
 
   // When the user changes category, re-fetch from the server with the correct filter
   useEffect(() => {
-    if (!isLoading && !activeShift) {
+    if (!isLoading && !isContextLoading && !activeShift) {
       toast({
         title: "Fiscal Gate Active",
         description: "Please initialize a shift before accessing the terminal.",
@@ -177,7 +158,7 @@ const CashierPOS = () => {
       });
       navigate("/m/retail/operational/gateway");
     }
-  }, [activeShift, isLoading, navigate]);
+  }, [activeShift, isLoading, isContextLoading, navigate, toast]);
 
   useEffect(() => {
     fetchProducts(activeCategory?.id);

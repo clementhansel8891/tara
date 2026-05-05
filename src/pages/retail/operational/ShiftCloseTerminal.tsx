@@ -29,8 +29,7 @@ import type { RetailShift } from "@/core/types/retail/retail";
 
 const ShiftCloseTerminal = () => {
   const session = useSession();
-  const { activeStore, activeChannel, refreshState } = useRetail();
-  const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
+  const { activeStore, activeChannel, activeShift, refreshState, isLoading: isContextLoading } = useRetail();
   const [expectedCash, setExpectedCash] = useState<number>(0);
   const [expectedCard, setExpectedCard] = useState<number>(0);
   const [actualCash, setActualCash] = useState<string>("");
@@ -42,35 +41,14 @@ const ShiftCloseTerminal = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchReconciliationData = async () => {
-      try {
-        setIsLoading(true);
-        const shifts = await retailService.listShifts(
-          session.tenant_id!,
-          session,
-          { 
-            store_id: activeStore?.id || session.location_id,
-            employee_id: session.user_id 
-          }
-        );
-        const current = shifts.find(
-          (s) => s.status === "open",
-        );
-        
-        if (current) {
-          setActiveShift(current);
-          setExpectedCash(current.expectedCash ? Number(current.expectedCash) : 0);
-          setExpectedCard(0);
-        }
-      } catch (error) {
-        console.error("Failed to fetch shift data", error);
-        toast({ title: "Sync Error", description: "Could not fetch active shift telemetry.", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if (session.tenant_id) fetchReconciliationData();
-  }, [session.tenant_id, session.user_id, activeStore?.id, session.location_id, session]);
+    if (!isContextLoading && activeShift) {
+      setExpectedCash(activeShift.expectedCash ? Number(activeShift.expectedCash) : 0);
+      setExpectedCard(0);
+      setIsLoading(false);
+    } else if (!isContextLoading && !activeShift && !isClosed) {
+      setIsLoading(false);
+    }
+  }, [activeShift, isContextLoading, isClosed]);
 
   const parseAmount = (val: string) => {
     if (!val) return 0;

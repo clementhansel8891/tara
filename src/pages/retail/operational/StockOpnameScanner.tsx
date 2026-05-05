@@ -35,41 +35,44 @@ interface ScanEntry {
 
 const StockOpnameScanner = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
+  const { activeStore, activeChannel, activeShift, isLoading: isContextLoading } = useRetail();
   const [scanInput, setScanInput] = useState("");
   const [products, setProducts] = useState<RetailProduct[]>([]);
   const [history, setHistory] = useState<ScanEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
+  const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await retailService.listInventory(
           session.tenant_id,
           session,
+          { locationId: activeStore?.id || session.location_id }
         );
         setProducts(data);
-
-        // Fetch active shift
-        const shifts = await retailService.listShifts(
-          session.tenant_id,
-          session,
-        );
-        const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.user_id,
-        );
-        setActiveShift(openShift || null);
       } catch (error) {
-        console.error("Failed to fetch inventory or shift", error);
+        console.error("Failed to fetch inventory", error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchData();
-  }, [session.tenant_id, session.user_id, session]);
+
+    if (!isContextLoading && !activeShift) {
+       toast({
+        title: "Fiscal Gate Active",
+        description: "Please initialize a shift before accessing the audit terminal.",
+        variant: "destructive",
+      });
+      window.location.href = "/m/retail/operational/gateway";
+      return;
+    }
+
+    if (session.tenant_id) fetchData();
+  }, [session.tenant_id, session, isContextLoading, activeShift, activeStore?.id]);
 
   const handleScan = (e: React.FormEvent) => {
     e.preventDefault();

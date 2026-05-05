@@ -43,31 +43,19 @@ interface Shipment {
 
 const ReceivingTerminal = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
+  const { activeStore, activeChannel, activeShift, isLoading: isContextLoading } = useRetail();
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [activeShipment, setActiveShipment] = useState<Shipment | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
   const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
+  const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [shifts, orders] = await Promise.all([
-          retailService.listShifts(
-            session.tenant_id!,
-            session,
-            { store_id: session.location_id }
-          ),
-          retailService.listOrders(session.tenant_id!, session, { status: "pending" })
-        ]);
-
-        const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.user_id,
-        );
-        setActiveShift(openShift || null);
+        const orders = await retailService.listOrders(session.tenant_id!, session, { status: "pending" });
 
         // Map pending orders to shipments as a production bridge
         const mappedShipments: Shipment[] = (Array.isArray(orders) ? orders : []).map(o => ({
@@ -112,13 +100,23 @@ const ReceivingTerminal = () => {
 
       } catch (e) {
         console.error("Failed to fetch logistics data", e);
-        toast({ title: "Logistics Offline", description: "Could not sync inbound manifests.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
     };
+
+    if (!isContextLoading && !activeShift) {
+       toast({
+        title: "Fiscal Gate Active",
+        description: "Please initialize a shift before accessing the receiving terminal.",
+        variant: "destructive",
+      });
+      window.location.href = "/m/retail/operational/gateway";
+      return;
+    }
+
     if (session.tenant_id) fetchData();
-  }, [session.tenant_id, session.user_id, session]);
+  }, [session.tenant_id, session, isContextLoading, activeShift]);
 
   const startIntake = (shipment: Shipment) => {
     setActiveShipment({ ...shipment, status: "receiving" });

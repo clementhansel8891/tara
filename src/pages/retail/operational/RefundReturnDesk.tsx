@@ -27,40 +27,24 @@ import type { RetailOrder, RetailShift } from "@/core/types/retail/retail";
 
 const RefundReturnDesk = () => {
   const session = useSession();
-  const { activeStore, activeChannel } = useRetail();
+  const { activeStore, activeChannel, activeShift, isLoading: isContextLoading } = useRetail();
   const [ticketId, setTicketId] = useState("");
   const [foundOrder, setFoundOrder] = useState<RetailOrder | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
-  const [activeShift, setActiveShift] = useState<RetailShift | null>(null);
+  const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      if (!session.tenant_id || !session.user_id) return; // Guard clause
-
-      try {
-        // FIX: Ensure parameters match service definition
-        const shifts = await retailService.listShifts(
-          session.tenant_id!,
-          session,
-          session.location_id,
-        );
-        const openShift = shifts.find(
-          (s) => s.status === "open" && s.employeeId === session.user_id,
-        );
-        setActiveShift(openShift || null);
-      } catch (e) {
-        console.error("Failed to fetch shift", e);
-        toast({
-          title: "Connection Error",
-          description: "Could not sync with Zenvix Shift Control.",
-          variant: "destructive",
-        });
-      }
-    };
-    fetchData();
-  }, [session.tenant_id, session.user_id, session]);
+    if (!isContextLoading && !activeShift) {
+      toast({
+        title: "Fiscal Gate Active",
+        description: "Please initialize a shift before accessing the desk.",
+        variant: "destructive",
+      });
+      window.location.href = "/m/retail/operational/gateway";
+    }
+  }, [activeShift, isContextLoading]);
 
   const handleLookup = async () => {
     if (!ticketId) return;
