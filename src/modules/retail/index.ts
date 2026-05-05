@@ -43,6 +43,12 @@ import CashMovementTerminal from "@/pages/retail/operational/CashMovementTermina
 import RetailOperationalGateway from "@/pages/retail/operational/OperationalGateway";
 import DepartmentScheduleStudio from "@/pages/core/HR/DepartmentScheduleStudio";
 
+// Shared Governance Components
+import PurchaseRequestDesk from "@/pages/core/procurement/PurchaseRequestDesk";
+import MyPulse from "@/pages/portal/MyPulse";
+import LogHub from "@/pages/core/logs/LogHub";
+import WorkflowInbox from "@/pages/core/WorkflowInbox";
+
 // ============================================================
 // MODULE IDENTITY (LOCKED)
 // ============================================================
@@ -243,6 +249,46 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     menuGroup: "management",
     requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
     component: () => DeptAdmin({ departmentId: "RETAIL", departmentName: "Retail Operations" }),
+  },
+  {
+    id: "mgt-prs",
+    moduleId: MODULE_ID,
+    title: "Stock Request",
+    route: "/m/retail/management/prs",
+    icon: "ShoppingCart",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: PurchaseRequestDesk,
+  },
+  {
+    id: "mgt-portal",
+    moduleId: MODULE_ID,
+    title: "Staff Portal",
+    route: "/m/retail/management/portal",
+    icon: "UserCircle",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: MyPulse,
+  },
+  {
+    id: "mgt-logs",
+    moduleId: MODULE_ID,
+    title: "Log Hub",
+    route: "/m/retail/management/logs",
+    icon: "History",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: LogHub,
+  },
+  {
+    id: "mgt-workflow",
+    moduleId: MODULE_ID,
+    title: "Workflow Inbox",
+    route: "/m/retail/management/workflow",
+    icon: "GitBranch",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: WorkflowInbox,
   },
 
   // --- OPERATIONAL PLANE ---
