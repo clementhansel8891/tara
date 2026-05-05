@@ -103,8 +103,8 @@ const RetailOperationalGateway = () => {
                 <span className="text-sm font-black uppercase text-white italic tracking-widest">{user?.first_name} {user?.last_name}</span>
              </div>
 
-             <div className="px-4">
-               <RetailModeSwitchControl />
+             <div className="px-6 flex items-center gap-6 border-r border-white/10">
+               <RetailModeSwitchControl variant="tactical" />
              </div>
 
              {activeShift ? (
