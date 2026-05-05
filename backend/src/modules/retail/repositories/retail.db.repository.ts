@@ -1060,11 +1060,15 @@ export class RetailDbRepository implements IRetailRepository {
       ];
     }
 
+    console.log(`[RetailRepository] listShifts for tenant ${ctx.tenant_id}, store ${store_id}, employee ${employee_id}. Where:`, JSON.stringify(where, null, 2));
+
     const shifts = await this.prisma.retail_shifts.findMany({
       where,
       orderBy: { start_time: "desc" },
       take: 50,
     });
+    
+    console.log(`[RetailRepository] Found ${shifts.length} shifts`);
     return shifts.map((s: prismaShift) => this.mapShift(s));
   }
 
