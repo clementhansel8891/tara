@@ -40,7 +40,7 @@ const ShiftCloseTerminal = () => {
   const [isClosed, setIsClosed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const parseDecimal = (val: any): number => {
+  const parseDecimal = (val: unknown): number => {
     if (val === null || val === undefined) return 0;
     if (typeof val === 'number') return val;
     // Handle Prisma/Decimal.js objects that might be serialized
@@ -207,7 +207,7 @@ const ShiftCloseTerminal = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-950 relative flex selection:bg-indigo-500 selection:text-white">
+    <div className="flex-1 relative flex selection:bg-indigo-500 selection:text-white">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-indigo-500/10 blur-[130px] rounded-full animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-blue-500/10 blur-[120px] rounded-full animate-pulse" />

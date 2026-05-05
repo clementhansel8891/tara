@@ -24,7 +24,7 @@ export const RetailOperationalShell: React.FC<{ children: React.ReactNode }> = (
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col relative overflow-hidden">
+    <div className="h-screen bg-slate-950 flex flex-col relative overflow-hidden">
       {/* 6.1 Launcher Button - Minimal entry point */}
       {!isGateway && (
         <div className="absolute top-4 left-4 z-50 flex gap-2">

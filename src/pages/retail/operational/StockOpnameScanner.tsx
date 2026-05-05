@@ -360,7 +360,7 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
   if (noShell) return content;
 
   return (
-    <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-950 p-8 flex flex-col">
+    <div className="flex-1 p-8 flex flex-col">
        {content}
     </div>
   );

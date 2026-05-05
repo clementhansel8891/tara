@@ -33,6 +33,18 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
+interface AuditLog {
+  id: string;
+  action: string;
+  user_id: string;
+  created_at: string;
+  hash_chain: string;
+  metadata?: {
+    impact?: string;
+    [key: string]: any;
+  };
+}
+
 const eventColors: Record<string, string> = {
   FISCAL_VOID: "text-rose-500 bg-rose-500/10 border-rose-500/20",
   PERMISSION_CHANGE: "text-amber-500 bg-amber-500/10 border-amber-500/20",
@@ -45,7 +57,7 @@ const eventColors: Record<string, string> = {
 
 const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
   const [expansionFeature, setExpansionFeature] = useState("");
@@ -55,7 +67,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
     const fetchLogs = async () => {
       try {
         setIsLoading(true);
-        const data = await apiRequest<any[]>("/v1/audit/logs", "GET", session);
+        const data = await apiRequest<AuditLog[]>("/v1/audit/logs", "GET", session);
         setLogs(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch audit logs:", err);
@@ -65,7 +77,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
       }
     };
     if (session.tenant_id) fetchLogs();
-  }, [session.tenant_id]);
+  }, [session.tenant_id, session]);
 
   const openExpansion = (feature: string) => {
     setExpansionFeature(feature);
@@ -350,10 +362,10 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
   if (noShell) return content;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white">
+    <div className="flex-1 flex flex-col selection:bg-indigo-500 selection:text-white">
       <StrategicExpansionModal
         isOpen={isExpansionModalOpen}
-        onClose={() => setIsExpansionModalOpen(false)}
+        onOpenChange={setIsExpansionModalOpen}
         featureName={expansionFeature}
       />
 

@@ -80,7 +80,7 @@ const CashMovementTerminal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col p-4 md:p-8 relative overflow-hidden selection:bg-indigo-500/30">
+    <div className="flex-1 flex flex-col p-4 md:p-8 relative selection:bg-indigo-500/30">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 p-32 opacity-[0.02] pointer-events-none">
         <Banknote className="w-[40rem] h-[40rem]" />

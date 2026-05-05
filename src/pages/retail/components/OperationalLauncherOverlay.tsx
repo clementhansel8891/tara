@@ -7,6 +7,7 @@ import {
   Monitor,
   Lock,
   X,
+  Banknote,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRetail } from "../context/RetailContext";
@@ -78,6 +79,15 @@ const APPS: LauncherApp[] = [
     route: "/m/retail/operational/shift-close",
     color: "text-slate-900",
     bg: "bg-slate-200",
+  },
+  {
+    id: "ops-cash-movement",
+    title: "Cash Movement",
+    desc: "Petty Cash & Out",
+    icon: Banknote,
+    route: "/m/retail/operational/cash-movement",
+    color: "text-amber-600",
+    bg: "bg-amber-600/10",
   },
 ];
 
