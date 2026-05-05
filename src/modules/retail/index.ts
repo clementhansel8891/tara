@@ -42,6 +42,8 @@ import ShiftOpenTerminal from "@/pages/retail/operational/ShiftOpenTerminal";
 import CashMovementTerminal from "@/pages/retail/operational/CashMovementTerminal";
 import RetailOperationalGateway from "@/pages/retail/operational/OperationalGateway";
 import DepartmentScheduleStudio from "@/pages/core/HR/DepartmentScheduleStudio";
+import DepartmentAttendanceStudio from "@/pages/core/HR/DepartmentAttendanceStudio";
+import { DeptAdmin } from "@/components/shared/DeptAdmin";
 
 // Shared Governance Components
 import PurchaseRequestDesk from "@/pages/core/procurement/PurchaseRequestDesk";

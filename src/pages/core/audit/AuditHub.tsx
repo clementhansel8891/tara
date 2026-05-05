@@ -203,7 +203,7 @@ export default function AuditHub() {
                       onClick={() => setSelectedLog(log)}
                     >
                       <TableCell className="font-mono text-xs">
-                        {new Date(log.createdAt).toLocaleString()}
+                        {new Date(log.createdAt || log.created_at || log.timestamp).toLocaleString()}
                       </TableCell>
                       <TableCell className="capitalize font-medium">{log.module}</TableCell>
                       <TableCell>
@@ -211,11 +211,11 @@ export default function AuditHub() {
                       </TableCell>
                       <TableCell>
                         <div className="text-xs">
-                          <span className="font-semibold">{log.entityType}:</span>
-                          <span className="text-muted-foreground ml-1">{log.entityId}</span>
+                          <span className="font-semibold">{log.entityType || log.entity_type || "N/A"}:</span>
+                          <span className="text-muted-foreground ml-1">{log.entityId || log.entity_id}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{log.userId?.split("-")[0] || "anon"}...</TableCell>
+                      <TableCell className="font-mono text-xs">{(log.userId || log.user_id)?.split("-")[0] || "anon"}...</TableCell>
                       <TableCell>{getSeverityBadge(log.severity)}</TableCell>
                       <TableCell>
                         <Button disabled title="Not available yet" variant="ghost" size="icon">
@@ -276,11 +276,11 @@ export default function AuditHub() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block">User ID</label>
-                  <span className="font-mono text-xs">{selectedLog.userId}</span>
+                  <span className="font-mono text-xs">{selectedLog.userId || selectedLog.user_id}</span>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block">IP Address</label>
-                  <span className="font-mono text-xs">{selectedLog.ipAddress || "N/A"}</span>
+                  <span className="font-mono text-xs">{selectedLog.ipAddress || selectedLog.ip_address || "N/A"}</span>
                 </div>
               </div>
 

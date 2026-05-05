@@ -280,14 +280,14 @@ export default function LogHub() {
                       onClick={() => setSelectedLog(log)}
                     >
                       <TableCell className="font-mono text-[10px] whitespace-nowrap">
-                        {new Date(log.createdAt).toLocaleString()}
+                        {new Date(log.createdAt || log.created_at || log.timestamp).toLocaleString()}
                       </TableCell>
                       <TableCell>{getLevelBadge(log.level)}</TableCell>
                       <TableCell className="capitalize text-xs font-medium">{log.module}</TableCell>
                       <TableCell className="text-xs truncate max-w-[120px]">{log.event}</TableCell>
                       <TableCell className="text-xs truncate max-w-[200px]">{log.message}</TableCell>
                       <TableCell className="text-right font-mono text-xs">
-                        {log.durationMs || "-"}
+                        {log.durationMs || log.duration_ms || "-"}
                       </TableCell>
                       <TableCell>
                         <Button disabled title="Not available yet" variant="ghost" size="icon">
@@ -335,7 +335,9 @@ export default function LogHub() {
           <SheetHeader>
             <SheetTitle>System Log Detail</SheetTitle>
           </SheetHeader>
-          {selectedLog && (
+          {selectedLog && (() => {
+            const logDuration = selectedLog.durationMs || selectedLog.duration_ms;
+            return (
             <div className="space-y-6 mt-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -352,7 +354,7 @@ export default function LogHub() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block">Duration</label>
-                  <span className="text-xs">{selectedLog.durationMs ? `${selectedLog.durationMs}ms` : "N/A"}</span>
+                  <span className="text-xs">{logDuration ? `${logDuration}ms` : "N/A"}</span>
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs text-muted-foreground block">Message</label>
@@ -360,11 +362,11 @@ export default function LogHub() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block">Request ID</label>
-                  <span className="font-mono text-xs">{selectedLog.requestId || "N/A"}</span>
+                  <span className="font-mono text-xs">{selectedLog.requestId || selectedLog.request_id || "N/A"}</span>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground block">User ID</label>
-                  <span className="font-mono text-xs">{selectedLog.userId || "N/A"}</span>
+                  <span className="font-mono text-xs">{selectedLog.userId || selectedLog.user_id || "N/A"}</span>
                 </div>
               </div>
 
@@ -377,16 +379,16 @@ export default function LogHub() {
                 </div>
               )}
 
-              {selectedLog.errorStack && (
+              {(selectedLog.errorStack || selectedLog.error_stack) && (
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground block">Error Stack</label>
                   <div className="bg-red-950/20 border border-red-500/20 text-red-100 p-3 rounded-md text-[10px] font-mono whitespace-pre overflow-x-auto leading-tight">
-                    {selectedLog.errorStack}
+                    {selectedLog.errorStack || selectedLog.error_stack}
                   </div>
                 </div>
               )}
             </div>
-          )}
+          )})}
         </SheetContent>
       </Sheet>
     </div>
