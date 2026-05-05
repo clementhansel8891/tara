@@ -511,11 +511,11 @@ export class RetailController {
     @Req() request: RequestWithTenant,
     @Body() data: OpenShiftDto,
   ) {
-    const { tenant_id, location_id, user_id } = request.tenantContext;
+    const { location_id, user_id } = request.tenantContext;
 
     const shift = await this.retailService.openShift(
       request.tenantContext,
-      location_id!,
+      data.store_id || location_id!,
       user_id!,
       data,
       user_id!,
@@ -578,10 +578,9 @@ export class RetailController {
     @Query("store_id") store_id?: string,
     @Query("employee_id") employee_id?: string,
   ) {
-    const { location_id } = request.tenantContext;
     const shifts = await this.retailService.listShifts(
       request.tenantContext,
-      store_id || location_id!,
+      store_id, // Pass undefined if not provided, letting service/repo handle it
       employee_id,
     );
     return this.respond(request.tenantContext, shifts);
