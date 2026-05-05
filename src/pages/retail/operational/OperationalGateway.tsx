@@ -103,6 +103,10 @@ const RetailOperationalGateway = () => {
                 <span className="text-sm font-black uppercase text-white italic tracking-widest">{user?.first_name} {user?.last_name}</span>
              </div>
 
+             <div className="px-4">
+               <RetailModeSwitchControl />
+             </div>
+
              {activeShift ? (
                <div className="flex items-center gap-4 px-6 py-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -121,9 +125,6 @@ const RetailOperationalGateway = () => {
                </div>
              )}
               <div className="flex items-center gap-3">
-                 <div className="mr-4 scale-125 origin-right">
-                   <RetailModeSwitchControl />
-                 </div>
 
                  <Button 
                    variant="outline" 
