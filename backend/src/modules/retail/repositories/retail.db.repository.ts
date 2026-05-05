@@ -1065,6 +1065,7 @@ export class RetailDbRepository implements IRetailRepository {
 
     const shifts = await this.prisma.retail_shifts.findMany({
       where,
+      include: { retail_cash_movements: true },
       orderBy: { start_time: "desc" },
       take: 50,
     });

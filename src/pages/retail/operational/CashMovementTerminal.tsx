@@ -15,7 +15,7 @@ import { retailService } from '@/core/services/retail/retailService';
 
 const CashMovementTerminal = () => {
   const navigate = useNavigate();
-  const { activeShift } = useRetail();
+  const { activeShift, refreshState } = useRetail();
   const { session } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [type, setType] = useState<'CASH_OUT' | 'CASH_IN'>('CASH_OUT');
@@ -65,6 +65,7 @@ const CashMovementTerminal = () => {
         description: `${type === 'CASH_OUT' ? 'Deducted' : 'Added'} Rp ${numAmount.toLocaleString()} to register.`,
       });
       
+      await refreshState();
       navigate('/m/retail/operational/gateway');
     } catch (error: any) {
       toast({ 
