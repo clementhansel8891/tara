@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import {
   RotateCcw,
   Search,
@@ -11,30 +9,28 @@ import {
   Package,
   AlertCircle,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import { useRetail } from "../context/RetailContext";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
-import type { RetailOrder, RetailShift } from "@/core/types/retail/retail";
+import { useNavigate } from "react-router-dom";
 
 const RefundReturnDesk = () => {
   const session = useSession();
+  const navigate = useNavigate();
   const { activeStore, activeChannel, activeShift, isLoading: isContextLoading } = useRetail();
   const [ticketId, setTicketId] = useState("");
   const [foundOrder, setFoundOrder] = useState<RetailOrder | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
-  const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
 
   React.useEffect(() => {
     if (!isContextLoading && !activeShift) {
@@ -180,6 +176,16 @@ const RefundReturnDesk = () => {
                 className="h-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
              >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSearching ? 'animate-spin' : ''}`} /> Sync Ledger
+             </Button>
+
+             <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate("/m/retail/operational/gateway")}
+                className="h-10 w-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10"
+                title="Exit to Gateway"
+             >
+                <X className="w-4 h-4" />
              </Button>
           </div>
         </div>

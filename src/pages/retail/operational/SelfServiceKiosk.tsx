@@ -15,9 +15,9 @@ import {
   Monitor,
   Sparkles,
   X,
-  CheckCircle,
-  RefreshCw,
+  Home,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,6 +257,16 @@ const SelfServiceKiosk = () => {
               }
             >
               <Info className="w-6 h-6" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/20 text-white border border-white/10 transition-all"
+              onClick={() => navigate("/m/retail/operational/gateway")}
+              title="Exit to Gateway"
+            >
+              <Home className="w-6 h-6 text-blue-400" />
             </Button>
           </div>
         </div>

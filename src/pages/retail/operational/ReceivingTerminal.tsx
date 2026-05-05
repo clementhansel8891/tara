@@ -9,10 +9,10 @@ import {
   RefreshCw,
   CheckCircle2,
   History,
-  X,
-  Layers,
   Activity,
+  Home,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,7 @@ const ReceivingTerminal = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
-  const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -224,6 +224,16 @@ const ReceivingTerminal = () => {
               className="h-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh Manifests
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate("/m/retail/operational/gateway")}
+              className="h-10 w-10 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10"
+              title="Exit to Gateway"
+            >
+              <Home className="w-4 h-4 text-blue-400" />
             </Button>
           </div>
         </div>
