@@ -1011,5 +1011,27 @@ export const retailService = {
       entry,
     );
   },
+  
+  async recordHeartbeat(
+    tenantId: string,
+    session: SessionContext,
+    data: {
+      device_id: string;
+      status: string;
+      diagnostics?: any;
+    }
+  ) {
+    return apiRequest<{ success: boolean }>(
+      "/v1/retail/infrastructure/heartbeat",
+      "POST",
+      session,
+      {
+        deviceId: data.device_id,
+        component: "TERMINAL_POS",
+        status: data.status,
+        metrics: data.diagnostics
+      }
+    );
+  },
 };
 
