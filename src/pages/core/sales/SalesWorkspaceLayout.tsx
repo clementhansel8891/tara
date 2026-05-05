@@ -8,11 +8,15 @@ import {
   FileText,
   BadgeDollarSign,
   Briefcase,
-  GitBranch,
-  Settings2,
-  Rocket,
-  Zap,
-  Layers
+  Layers,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  Archive,
+  History,
+  ShieldCheck,
+  Cpu
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -41,11 +45,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management",
     items: [
-      { label: "Workflow", to: "/core/workflow?scope=Sales", icon: GitBranch },
-      { label: "Staff Schedule", to: "/core/sales/schedule", icon: Briefcase },
-      { label: "Administration", to: "/core/sales/admin", icon: Settings2 },
+      { label: "Schedule", to: "/core/sales/schedule", icon: Briefcase },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=SALES", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=SALES", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=SALES", icon: Archive },
+      { label: "Attendance", to: "/core/sales/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=SALES", icon: History },
+      { label: "Audit", to: "/core/audit?scope=SALES", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=SALES", icon: GitBranch },
+      { label: "Administrative", to: "/core/sales/admin", icon: Cpu },
     ],
   },
 ];

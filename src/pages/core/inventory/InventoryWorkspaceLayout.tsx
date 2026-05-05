@@ -7,10 +7,15 @@ import {
   ArrowDownLeft,
   RefreshCcw,
   Warehouse,
-  Radio,
-  FileText,
-  Settings2,
-  Database
+  Database,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  History,
+  ShieldCheck,
+  GitBranch,
+  Users
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -39,10 +44,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management",
     items: [
-      { label: "Audit Vault", to: "/core/inventory/audit", icon: FileText },
-      { label: "Administration", to: "/core/inventory/admin", icon: Settings2 },
+      { label: "Schedule", to: "/core/inventory/schedule", icon: Users },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=INVENTORY", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock", icon: Archive },
+      { label: "Attendance", to: "/core/inventory/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=INVENTORY", icon: History },
+      { label: "Audit", to: "/core/inventory/audit", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=INVENTORY", icon: GitBranch },
+      { label: "Administrative", to: "/core/inventory/admin", icon: Settings2 },
     ],
   },
 ];

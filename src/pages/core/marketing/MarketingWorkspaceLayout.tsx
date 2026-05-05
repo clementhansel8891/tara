@@ -10,11 +10,15 @@ import {
   Layers,
   HeartPulse,
   Mail,
-  Share2,
-  BarChart3,
-  Calendar,
-  FileText,
-  Target
+  Target,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  Archive,
+  History,
+  Cpu,
+  Briefcase
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -51,11 +55,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management",
     items: [
-      { label: "Workflow", to: "/core/workflow?scope=Marketing", icon: GitBranch },
-      { label: "Audit Vault", to: "/core/marketing/audit", icon: ShieldCheck },
-      { label: "Administration", to: "/core/marketing/admin", icon: Settings2 },
+      { label: "Schedule", to: "/core/marketing/schedule", icon: Briefcase },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=MARKETING", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=MARKETING", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=MARKETING", icon: Archive },
+      { label: "Attendance", to: "/core/marketing/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=MARKETING", icon: History },
+      { label: "Audit", to: "/core/audit?scope=MARKETING", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=MARKETING", icon: GitBranch },
+      { label: "Administrative", to: "/core/marketing/admin", icon: Cpu },
     ],
   },
 ];

@@ -10,11 +10,15 @@ import {
   FileSignature,
   Lock,
   ShieldCheck,
-  BarChart3,
-  Settings2,
-  Scale,
   RefreshCcw,
-  Cpu
+  Cpu,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  Archive,
+  History,
+  GitBranch
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -50,8 +54,21 @@ const SECTIONS: MenuSection[] = [
       { label: "Period Close", to: "/core/finance/close", icon: Lock },
       { label: "Audit Vault", to: "/core/finance/audit", icon: ShieldCheck },
       { label: "Policy Manager", to: "/core/finance/policy", icon: Scale },
-      { label: "Staff Schedule", to: "/core/finance/schedule", icon: Settings2 },
-      { label: "Administration", to: "/core/finance/admin", icon: Cpu },
+    ],
+  },
+  {
+    title: "Management",
+    items: [
+      { label: "Schedule", to: "/core/finance/schedule", icon: Lock },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=FINANCE", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=FINANCE", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=FINANCE", icon: Archive },
+      { label: "Attendance", to: "/core/finance/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=FINANCE", icon: History },
+      { label: "Audit", to: "/core/audit?scope=FINANCE", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=FINANCE", icon: GitBranch },
+      { label: "Administrative", to: "/core/finance/admin", icon: Cpu },
     ],
   },
 ];

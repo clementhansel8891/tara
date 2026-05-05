@@ -7,10 +7,14 @@ import {
   GitBranch,
   Settings2,
   ClipboardList,
-  Truck,
-  AlertTriangle,
-  LayoutGrid,
-  Monitor
+  Monitor,
+  Clock,
+  UserCircle,
+  History,
+  ShieldCheck,
+  Cpu,
+  Archive,
+  ArrowDownLeft
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -38,11 +42,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management",
     items: [
-      { label: "Workflow", to: "/core/workflow?scope=Procurement", icon: GitBranch },
-      { label: "Staff Schedule", to: "/core/procurement/schedule", icon: Users },
-      { label: "Administration", to: "/core/procurement/admin", icon: Settings2 },
+      { label: "Schedule", to: "/core/procurement/schedule", icon: Users },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=PROCUREMENT", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=PROCUREMENT", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=PROCUREMENT", icon: Archive },
+      { label: "Attendance", to: "/core/procurement/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=PROCUREMENT", icon: History },
+      { label: "Audit", to: "/core/audit?scope=PROCUREMENT", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=PROCUREMENT", icon: GitBranch },
+      { label: "Administrative", to: "/core/procurement/admin", icon: Settings2 },
     ],
   },
 ];

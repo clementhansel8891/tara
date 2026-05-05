@@ -23,10 +23,18 @@ import {
   PackageCheck,
   Tag,
   Eye,
-  MonitorDot,
-  FileText,
   Layout,
   Home,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  Archive,
+  History,
+  ShieldCheck,
+  GitBranch,
+  Cpu,
+  Briefcase
 } from "lucide-react";
 import { useRetail } from "../context/RetailContext";
 import { RetailModeSwitchControl } from "../components/RetailModeSwitchControl";
@@ -49,55 +57,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management & Governance",
     items: [
-      {
-        label: "Store Profile",
-        to: "/m/retail/management/profile",
-        icon: Store,
-      },
-      {
-        label: "Commerce Channels",
-        to: "/m/retail/management/ecommerce",
-        icon: Globe,
-      },
-      { label: "Staff Roles", to: "/m/retail/management/staff", icon: Users },
-      {
-        label: "Shift Control",
-        to: "/m/retail/management/shifts",
-        icon: Clock,
-      },
-      {
-        label: "Staff Schedule",
-        to: "/m/retail/management/schedule",
-        icon: Users,
-      },
-    ],
-  },
-  {
-    title: "Operations Hub",
-    items: [
-      {
-        label: "Fulfillment Hub",
-        to: "/m/retail/management/orders",
-        icon: PackageCheck,
-      },
-      { label: "Pricing Desk", to: "/m/retail/management/pricing", icon: Tag },
-      {
-        label: "Inventory Visibility",
-        to: "/m/retail/management/inventory",
-        icon: Eye,
-      },
-      {
-        label: "Device Control",
-        to: "/m/retail/management/devices",
-        icon: MonitorDot,
-      },
-      {
-        label: "Audit Ledger",
-        to: "/m/retail/management/audit",
-        icon: FileText,
-      },
+      { label: "Schedule", to: "/m/retail/management/schedule", icon: Briefcase },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=RETAIL", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/m/retail/operational/receiving", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/m/retail/operational/opname", icon: Archive },
+      { label: "Attendance", to: "/m/retail/management/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=RETAIL", icon: History },
+      { label: "Audit", to: "/m/retail/management/audit", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=RETAIL", icon: GitBranch },
+      { label: "Administrative", to: "/m/retail/management/admin", icon: Cpu },
     ],
   },
 ];

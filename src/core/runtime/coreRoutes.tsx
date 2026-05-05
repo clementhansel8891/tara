@@ -134,6 +134,7 @@ import MailHub from "@/pages/core/comms/MailHub";
 import ChatHub from "@/pages/core/comms/ChatHub";
 import MyPulse from "@/pages/portal/MyPulse";
 import { DeptAdmin } from "@/components/shared/DeptAdmin";
+import DepartmentAttendanceStudio from "@/pages/core/HR/DepartmentAttendanceStudio";
 
 /**
  * Build Core Routes.
@@ -301,6 +302,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="FINANCE" title="Finance" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="FINANCE" title="Finance" />} />
       <Route path="admin" element={<DeptAdmin departmentId="FINANCE" departmentName="Finance & Treasury" />} />
     </Route>,
     <Route
@@ -437,6 +439,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="PROCUREMENT" title="Procurement" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="PROCUREMENT" title="Procurement" />} />
       <Route path="admin" element={<DeptAdmin departmentId="PROCUREMENT" departmentName="Procurement & Sourcing" />} />
     </Route>,
     <Route
@@ -522,6 +525,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="INVENTORY" title="Inventory" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="INVENTORY" title="Inventory" />} />
       <Route path="admin" element={<DeptAdmin departmentId="INVENTORY" departmentName="Inventory & Logistics" />} />
     </Route>,
     <Route
@@ -591,6 +595,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="IT" title="IT & Tech" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="IT" title="IT & Tech" />} />
       <Route path="admin" element={<DeptAdmin departmentId="IT" departmentName="IT & Infrastructure" />} />
     </Route>,
     <Route
@@ -708,6 +713,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="SALES" title="Sales" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="SALES" title="Sales" />} />
       <Route path="admin" element={<DeptAdmin departmentId="SALES" departmentName="Sales & Revenue" />} />
     </Route>,
     <Route
@@ -849,6 +855,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="MARKETING" title="Marketing" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="MARKETING" title="Marketing" />} />
       <Route path="admin" element={<DeptAdmin departmentId="MARKETING" departmentName="Marketing & Growth" />} />
     </Route>,
     <Route
@@ -1001,6 +1008,7 @@ export function buildCoreRoutes(): JSX.Element[] {
         }
       />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="HR" title="HR & Legal" />} />
+      <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="HR" title="HR & Legal" />} />
       <Route path="admin" element={<DeptAdmin departmentId="HR" departmentName="Human Resources & Legal" />} />
       <Route
         path="lexboard"

@@ -4,10 +4,14 @@ import {
   LayoutGrid,
   Activity,
   Server,
-  Network,
-  Fingerprint,
-  Cpu,
-  ShoppingCart
+  ShoppingCart,
+  Clock,
+  UserCircle,
+  ArrowDownLeft,
+  Archive,
+  History,
+  GitBranch,
+  Briefcase
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -32,7 +36,21 @@ const SECTIONS: MenuSection[] = [
     items: [
       { label: "Role Registry", to: "/core/it/roles", icon: Fingerprint },
       { label: "Account Control", to: "/core/it/accounts", icon: ShieldCheck },
-      { label: "System Core", to: "/core/it/admin", icon: Cpu },
+    ],
+  },
+  {
+    title: "Management",
+    items: [
+      { label: "Schedule", to: "/core/it/schedule", icon: Briefcase },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=IT", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=IT", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=IT", icon: Archive },
+      { label: "Attendance", to: "/core/it/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=IT", icon: History },
+      { label: "Audit", to: "/core/audit?scope=IT", icon: ShieldCheck },
+      { label: "Workflow", to: "/core/workflow?scope=IT", icon: GitBranch },
+      { label: "Administrative", to: "/core/it/admin", icon: Cpu },
     ],
   },
 ];

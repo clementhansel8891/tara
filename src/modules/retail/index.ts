@@ -224,6 +224,26 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
     component: () => DepartmentScheduleStudio({ workspaceDeptId: "RETAIL", title: "Retail Operations" }),
   },
+  {
+    id: "mgt-attendance",
+    moduleId: MODULE_ID,
+    title: "Attendance",
+    route: "/m/retail/management/attendance",
+    icon: "Clock",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: () => DepartmentAttendanceStudio({ workspaceDeptId: "RETAIL", title: "Retail Operations" }),
+  },
+  {
+    id: "mgt-admin",
+    moduleId: MODULE_ID,
+    title: "Administrative",
+    route: "/m/retail/management/admin",
+    icon: "Settings",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: () => DeptAdmin({ departmentId: "RETAIL", departmentName: "Retail Operations" }),
+  },
 
   // --- OPERATIONAL PLANE ---
   {

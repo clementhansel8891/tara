@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { PageShell } from "@/core/ui/PageShell";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkforceScheduler } from "@/core/ui/WorkforceScheduler";
-import { useDepartmentalScheduling } from "@/core/hooks/useDepartmentalScheduling";
+import { useDepartmentalGovernance } from "@/core/hooks/useDepartmentalGovernance";
 import { useSession } from "@/core/security/session";
 
 interface DepartmentScheduleStudioProps {
@@ -19,8 +19,8 @@ export default function DepartmentScheduleStudio({
   title 
 }: DepartmentScheduleStudioProps) {
   const session = useSession();
-  const { activeDepartmentId, canManageAll } = useDepartmentalScheduling(workspaceDeptId);
-  const [selectedDeptId, setSelectedDeptId] = useState(activeDepartmentId || workspaceDeptId);
+  const { canManagePersonnel } = useDepartmentalGovernance();
+  const [selectedDeptId, setSelectedDeptId] = useState(workspaceDeptId);
 
   return (
     <PageShell
@@ -35,7 +35,7 @@ export default function DepartmentScheduleStudio({
         <WorkforceScheduler 
           departmentId={selectedDeptId} 
           title={`${selectedDeptId} Staffing Matrix`}
-          isHR={canManageAll}
+          isHR={canManagePersonnel}
           onDepartmentChange={setSelectedDeptId}
         />
       </div>

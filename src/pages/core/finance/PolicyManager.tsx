@@ -12,14 +12,15 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { ApprovalStatusBadge } from "@/core/tools/ApprovalStatusBadge";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
-import { type FinanceCapexBudgetRow, type FinancePolicyRow } from "@/core/services/finance/financeService";
 import { financeApiClient } from "@/core/services/finance/financeApiClient";
 import { logService } from "@/core/services/finance/logService";
+import { useDepartmentalGovernance } from "@/core/hooks/useDepartmentalGovernance";
 
 type PolicyType = "APPROVAL_LIMIT" | "PAYMENT_RULE" | "EXPENSE_POLICY";
 
 export default function PolicyManager() {
   const session = useSession();
+  const { canManageFiscal } = useDepartmentalGovernance();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [policyForm, setPolicyForm] = useState({
@@ -148,11 +149,33 @@ export default function PolicyManager() {
         description="Ledger-backed budget controls used by CAPEX request validation."
       >
         <div className="mb-3 grid gap-2 md:grid-cols-3">
-          <Input
-            placeholder="Department"
-            value={budgetForm.department}
-            onChange={(event) => setBudgetForm({ ...budgetForm, department: event.target.value })}
-          />
+          {canManageFiscal ? (
+            <Select 
+              value={budgetForm.department} 
+              onValueChange={(v) => setBudgetForm({ ...budgetForm, department: v })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="HR">HR & Legal</SelectItem>
+                <SelectItem value="FINANCE">Finance</SelectItem>
+                <SelectItem value="IT">IT & Tech</SelectItem>
+                <SelectItem value="PROCUREMENT">Procurement</SelectItem>
+                <SelectItem value="INVENTORY">Inventory</SelectItem>
+                <SelectItem value="SALES">Sales</SelectItem>
+                <SelectItem value="MARKETING">Marketing</SelectItem>
+                <SelectItem value="RETAIL">Retail</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              placeholder="Department"
+              value={budgetForm.department}
+              onChange={(event) => setBudgetForm({ ...budgetForm, department: event.target.value })}
+              disabled
+            />
+          )}
           <Input
             placeholder="Total Budget"
             type="number"
@@ -161,7 +184,7 @@ export default function PolicyManager() {
               setBudgetForm({ ...budgetForm, totalBudget: Number(event.target.value) })
             }
           />
-          <Button onClick={saveCapexBudget}>Set Budget</Button>
+          <Button onClick={saveCapexBudget} disabled={!canManageFiscal}>Set Budget</Button>
         </div>
         <DataTableShell total={capexBudgets.length} page={1} pageSize={10}>
           <table className="w-full text-sm">

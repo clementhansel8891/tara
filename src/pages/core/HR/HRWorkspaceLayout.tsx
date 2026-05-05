@@ -10,7 +10,15 @@ import {
   FileSpreadsheet,
   GitBranch,
   Settings2,
-  Briefcase
+  Briefcase,
+  Clock,
+  UserCircle,
+  ShoppingCart,
+  ArrowDownLeft,
+  Archive,
+  History,
+  ShieldCheck,
+  Cpu
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -39,11 +47,18 @@ const SECTIONS: MenuSection[] = [
     ],
   },
   {
-    title: "Governance",
+    title: "Management",
     items: [
+      { label: "Schedule", to: "/core/hr/schedule", icon: Briefcase },
+      { label: "Staff Portal", to: "/core/portal", icon: UserCircle },
+      { label: "Stock Request", to: "/core/procurement/prs?dept=HR", icon: ShoppingCart },
+      { label: "Stock Taking", to: "/core/inventory/receiving?dept=HR", icon: ArrowDownLeft },
+      { label: "Stock Opname", to: "/core/inventory/stock?dept=HR", icon: Archive },
+      { label: "Attendance", to: "/core/hr/attendance", icon: Clock },
+      { label: "Log", to: "/core/logs?scope=HR", icon: History },
+      { label: "Audit", to: "/core/audit?scope=HR", icon: ShieldCheck },
       { label: "Workflow", to: "/core/workflow?scope=HR", icon: GitBranch },
-      { label: "Lex Board", to: "/core/hr/lexboard", icon: Scale },
-      { label: "Administration", to: "/core/hr/admin", icon: Settings2 },
+      { label: "Administrative", to: "/core/hr/admin", icon: Cpu },
     ],
   },
 ];
