@@ -42,96 +42,45 @@ const RetailWorkspace = () => {
   const navigate = useNavigate();
   const { activeStore, activeChannel } = useRetail();
 
-  const managementApps = [
+  const appSections = [
     {
-      id: "mgt-dashboard",
-      title: "Command Center",
-      desc: "Sales, KPIs, and store vitals",
-      icon: BarChart3,
-      route: "/m/retail/management/dashboard",
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      title: "Core Governance",
+      apps: [
+        { id: "mgt-dashboard", title: "Command Center", desc: "Sales & KPIs", icon: BarChart3, route: "/m/retail/management/dashboard", color: "text-blue-600", bg: "bg-blue-50" },
+        { id: "mgt-profile", title: "Store Profile", desc: "Identity & Tax", icon: Store, route: "/m/retail/management/profile", color: "text-indigo-600", bg: "bg-indigo-50" },
+        { id: "mgt-audit", title: "Audit Ledger", desc: "Transaction logs", icon: ShieldAlert, route: "/m/retail/management/audit", color: "text-red-600", bg: "bg-red-50" },
+      ]
     },
     {
-      id: "mgt-profile",
-      title: "Store Profile",
-      desc: "Identity and tax settings",
-      icon: Store,
-      route: "/m/retail/management/profile",
-      color: "text-indigo-600",
-      bg: "bg-indigo-50",
+      title: "Inventory & Fulfilment",
+      apps: [
+        { id: "mgt-orders", title: "Fulfillment Hub", desc: "Unified order truth", icon: BoxSelect, route: "/m/retail/management/orders", color: "text-orange-600", bg: "bg-orange-50" },
+        { id: "mgt-inventory", title: "Inventory ATS", desc: "Stock visibility", icon: Eye, route: "/m/retail/management/inventory", color: "text-emerald-600", bg: "bg-emerald-50" },
+        { id: "mgt-pricing", title: "Pricing Desk", desc: "Maker-checker promos", icon: Tag, route: "/m/retail/management/pricing", color: "text-pink-600", bg: "bg-pink-50" },
+        { id: "mgt-prs", title: "Stock Request", desc: "Purchase requests", icon: ShoppingCart, route: "/m/retail/management/prs?dept=RETAIL", color: "text-amber-600", bg: "bg-amber-50" },
+        { id: "ops-receiving", title: "Stock Intake", desc: "Goods receiving", icon: MonitorDot, route: "/m/retail/operational/receiving", color: "text-slate-600", bg: "bg-slate-50" },
+        { id: "ops-opname", title: "Stock Opname", desc: "Audit & counts", icon: BoxSelect, route: "/m/retail/operational/opname", color: "text-blue-600", bg: "bg-blue-50" },
+      ]
     },
     {
-      id: "mgt-staff",
-      title: "Staff Roles",
-      desc: "Local access enforcement",
-      icon: Users,
-      route: "/m/retail/management/staff",
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      title: "Workforce & Compliance",
+      apps: [
+        { id: "mgt-shifts", title: "Shift Control", desc: "Shift gatekeeping", icon: Clock, route: "/m/retail/management/shifts", color: "text-green-600", bg: "bg-green-50" },
+        { id: "mgt-staff", title: "Staff Roles", desc: "Access enforcement", icon: Users, route: "/m/retail/management/staff", color: "text-purple-600", bg: "bg-purple-50" },
+        { id: "mgt-schedule", title: "Staff Schedule", desc: "Roster management", icon: FileText, route: "/m/retail/management/schedule", color: "text-sky-600", bg: "bg-sky-50" },
+        { id: "mgt-attendance", title: "Attendance", desc: "Time tracking", icon: Clock, route: "/m/retail/management/attendance", color: "text-emerald-600", bg: "bg-emerald-50" },
+        { id: "mgt-portal", title: "Staff Portal", desc: "Employee self-service", icon: Users, route: "/m/retail/management/portal", color: "text-indigo-600", bg: "bg-indigo-50" },
+      ]
     },
     {
-      id: "mgt-shifts",
-      title: "Shift Control",
-      desc: "Workforce gatekeeping",
-      icon: Clock,
-      route: "/m/retail/management/shifts",
-      color: "text-green-600",
-      bg: "bg-green-50",
-    },
-    {
-      id: "mgt-commerce",
-      title: "Commerce Channels",
-      desc: "Headless & Marketplace",
-      icon: Globe,
-      route: "/m/retail/management/ecommerce",
-      color: "text-cyan-600",
-      bg: "bg-cyan-50",
-    },
-    {
-      id: "mgt-orders",
-      title: "Fulfillment Hub",
-      desc: "Unified order truth",
-      icon: BoxSelect,
-      route: "/m/retail/management/orders",
-      color: "text-orange-600",
-      bg: "bg-orange-50",
-    },
-    {
-      id: "mgt-pricing",
-      title: "Pricing Desk",
-      desc: "Maker-checker promotions",
-      icon: Tag,
-      route: "/m/retail/management/pricing",
-      color: "text-pink-600",
-      bg: "bg-pink-50",
-    },
-    {
-      id: "mgt-inventory",
-      title: "Inventory ATS",
-      desc: "Stock visibility & buffers",
-      icon: Eye,
-      route: "/m/retail/management/inventory",
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-    },
-    {
-      id: "mgt-devices",
-      title: "Device Registry",
-      desc: "Hardware fraud monitoring",
-      icon: MonitorDot,
-      route: "/m/retail/management/devices",
-      color: "text-slate-600",
-      bg: "bg-slate-50",
-    },
-    {
-      id: "mgt-audit",
-      title: "Audit Ledger",
-      desc: "Immutable transaction logs",
-      icon: FileText,
-      route: "/m/retail/management/audit",
-      color: "text-red-600",
-      bg: "bg-red-50",
+      title: "Infrastructure & Logs",
+      apps: [
+        { id: "mgt-devices", title: "Device Registry", desc: "Hardware monitor", icon: MonitorDot, route: "/m/retail/management/devices", color: "text-slate-600", bg: "bg-slate-50" },
+        { id: "mgt-infrastructure", title: "Infra Control", desc: "Network & settings", icon: Globe, route: "/m/retail/management/infrastructure", color: "text-cyan-600", bg: "bg-cyan-50" },
+        { id: "mgt-admin", title: "Administrative", desc: "System settings", icon: Layout, route: "/m/retail/management/admin", color: "text-slate-700", bg: "bg-slate-100" },
+        { id: "mgt-logs", title: "System Logs", desc: "Activity history", icon: Search, route: "/m/retail/management/logs?scope=RETAIL", color: "text-slate-500", bg: "bg-slate-50" },
+        { id: "mgt-workflow", title: "Workflow Inbox", desc: "Approval tasks", icon: AlertCircle, route: "/m/retail/management/workflow?scope=RETAIL", color: "text-amber-700", bg: "bg-amber-50" },
+      ]
     },
   ];
 
@@ -166,36 +115,40 @@ const RetailWorkspace = () => {
         </div>
 
         {/* 2. Management App Grid */}
-        <div className="space-y-4">
-          <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 px-2 flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-orange-500" />
-            Governance Applications
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            {(Array.isArray(managementApps) ? managementApps : []).map((app) => (
-              <Card
-                key={app.id}
-                className="group hover:border-blue-400 hover:shadow-2xl transition-all cursor-pointer bg-white border-2 border-slate-100 rounded-3xl overflow-hidden"
-                onClick={() => navigate(app.route)}
-              >
-                <CardContent className="p-6 space-y-4">
-                  <div
-                    className={`w-14 h-14 ${app.bg} rounded-2xl flex items-center justify-center ${app.color} group-hover:scale-110 group-hover:rotate-3 transition-transform`}
+        <div className="space-y-12">
+          {appSections.map((section) => (
+            <div key={section.title} className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-[0.25em] text-slate-400 px-4 flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+                {section.title}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {section.apps.map((app) => (
+                  <Card
+                    key={app.id}
+                    className="group hover:border-blue-400 hover:shadow-2xl transition-all cursor-pointer bg-white border-2 border-slate-100 rounded-[2rem] overflow-hidden"
+                    onClick={() => navigate(app.route)}
                   >
-                    <app.icon className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <div className="font-black text-slate-900 leading-tight uppercase tracking-tighter italic">
-                      {app.title}
-                    </div>
-                    <div className="text-[10px] leading-tight text-slate-500 mt-1 font-bold italic">
-                      {app.desc}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <CardContent className="p-6 space-y-4">
+                      <div
+                        className={`w-14 h-14 ${app.bg} rounded-2xl flex items-center justify-center ${app.color} group-hover:scale-110 group-hover:rotate-3 transition-transform`}
+                      >
+                        <app.icon className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-900 leading-tight uppercase tracking-tighter italic text-sm">
+                          {app.title}
+                        </div>
+                        <div className="text-[10px] leading-tight text-slate-500 mt-1 font-bold italic truncate">
+                          {app.desc}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* 3. Operational Quick-Jump */}

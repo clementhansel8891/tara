@@ -45,30 +45,43 @@ type MenuSection = { title: string; items: MenuItem[] };
 
 const SECTIONS: MenuSection[] = [
   {
-    title: "Overview",
+    title: "Core Governance",
     items: [
-      { label: "Back to Core", to: "/core", icon: Home },
       { label: "Retail Home", to: "/m/retail/workspace", icon: Layout },
-      {
-        label: "Command Center",
-        to: "/m/retail/management/dashboard",
-        icon: BarChart3,
-      },
+      { label: "Command Center", to: "/m/retail/management/dashboard", icon: BarChart3 },
+      { label: "Store Profile", to: "/m/retail/management/profile", icon: Store },
+      { label: "Audit Ledger", to: "/m/retail/management/audit", icon: ShieldCheck },
     ],
   },
   {
-    title: "Management & Governance",
+    title: "Inventory & Fulfilment",
     items: [
-      { label: "Schedule", to: "/m/retail/management/schedule", icon: Briefcase },
-      { label: "Staff Portal", to: "/m/retail/management/portal", icon: UserCircle },
+      { label: "Fulfillment Hub", to: "/m/retail/management/orders", icon: PackageCheck },
+      { label: "Inventory Visibility", to: "/m/retail/management/inventory", icon: Eye },
+      { label: "Pricing Desk", to: "/m/retail/management/pricing", icon: Tag },
       { label: "Stock Request", to: "/m/retail/management/prs?dept=RETAIL", icon: ShoppingCart },
-      { label: "Stock Taking", to: "/m/retail/operational/receiving", icon: ArrowDownLeft },
+      { label: "Stock Intake", to: "/m/retail/operational/receiving", icon: ArrowDownLeft },
       { label: "Stock Opname", to: "/m/retail/operational/opname", icon: Archive },
-      { label: "Attendance", to: "/m/retail/management/attendance", icon: Clock },
-      { label: "Log", to: "/m/retail/management/logs?scope=RETAIL", icon: History },
-      { label: "Audit", to: "/m/retail/management/audit", icon: ShieldCheck },
-      { label: "Workflow", to: "/m/retail/management/workflow?scope=RETAIL", icon: GitBranch },
-      { label: "Administrative", to: "/m/retail/management/admin", icon: Cpu },
+    ],
+  },
+  {
+    title: "Workforce & Compliance",
+    items: [
+      { label: "Shift Control", to: "/m/retail/management/shifts", icon: Clock },
+      { label: "Staff Assignments", to: "/m/retail/management/staff", icon: Users },
+      { label: "Staff Schedule", to: "/m/retail/management/schedule", icon: Briefcase },
+      { label: "Attendance Tracker", to: "/m/retail/management/attendance", icon: Clock },
+      { label: "Staff Portal", to: "/m/retail/management/portal", icon: UserCircle },
+    ],
+  },
+  {
+    title: "Infrastructure & Logs",
+    items: [
+      { label: "Device Control", to: "/m/retail/management/devices", icon: Cpu },
+      { label: "Infra Control", to: "/m/retail/management/infrastructure", icon: Globe },
+      { label: "Administrative", to: "/m/retail/management/admin", icon: Settings },
+      { label: "System Logs", to: "/m/retail/management/logs?scope=RETAIL", icon: History },
+      { label: "Workflow Inbox", to: "/m/retail/management/workflow?scope=RETAIL", icon: GitBranch },
     ],
   },
 ];
