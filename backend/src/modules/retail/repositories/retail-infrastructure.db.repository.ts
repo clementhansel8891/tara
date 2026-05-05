@@ -65,12 +65,21 @@ export class RetailInfrastructureDbRepository implements IRetailInfrastructureRe
     status: string,
     metrics?: any,
   ): Promise<void> {
-    // 1. Update it_devices (Asset tracking)
-    await this.prisma.it_devices.update({
-      where: { id: deviceId, tenant_id: tenant_id },
-      data: {
+    // 1. Upsert it_devices (Asset tracking)
+    await this.prisma.it_devices.upsert({
+      where: { id: deviceId },
+      update: {
         last_heartbeat: new Date(),
         status: status,
+      },
+      create: {
+        id: deviceId,
+        tenant_id: tenant_id,
+        name: deviceId,
+        type: "TERMINAL_POS",
+        status: status,
+        connection: "ONLINE",
+        last_heartbeat: new Date(),
       },
     });
 
