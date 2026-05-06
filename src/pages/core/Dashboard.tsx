@@ -212,7 +212,7 @@ export default function CoreDashboard() {
                 {/* Enterprise Financial Trajectory */}
                 <WorkspacePanel title="Enterprise Financial Trajectory" description="6-month trailing revenue vs operational expenses." className="lg:col-span-2 relative overflow-hidden">
                   <div className="h-[300px] w-full mt-4">
-                    {timeseries?.financialOverview ? (
+                    {Array.isArray(timeseries?.financialOverview) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart data={timeseries.financialOverview} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                           <defs>
@@ -243,7 +243,7 @@ export default function CoreDashboard() {
                 {/* Regional Performance Leaders */}
                 <WorkspacePanel title="Regional Performance Leaders" description="Top retail branches by revenue contribution.">
                   <div className="h-[300px] w-full mt-4">
-                    {timeseries?.topBranches ? (
+                    {Array.isArray(timeseries?.topBranches) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={timeseries.topBranches} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
@@ -269,7 +269,7 @@ export default function CoreDashboard() {
                 {/* Operational Risk Telemetry */}
                 <WorkspacePanel title="Operational Risk Telemetry" description="Active alerts across infrastructure layers.">
                   <div className="h-[250px] w-full mt-4">
-                    {timeseries?.alertsByModule ? (
+                    {Array.isArray(timeseries?.alertsByModule) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={timeseries.alertsByModule} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -311,7 +311,7 @@ export default function CoreDashboard() {
                 {/* Human Capital Distribution */}
                 <WorkspacePanel title="Human Capital Distribution" description="Workforce allocation by operational unit.">
                   <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
-                    {timeseries?.hrDistribution ? (
+                    {Array.isArray(timeseries?.hrDistribution) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -344,7 +344,7 @@ export default function CoreDashboard() {
                 {/* Core Systems Integrity Donut */}
                 <WorkspacePanel title="Core Systems Integrity" description="Real-time module availability & health.">
                   <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
-                    {timeseries?.moduleHealth ? (
+                    {Array.isArray(timeseries?.moduleHealth) ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
