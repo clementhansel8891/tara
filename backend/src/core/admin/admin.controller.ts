@@ -139,13 +139,13 @@ export class AdminController {
     }));
 
     // Timeseries Data for Charts
-    const revenueTrend = [
-      { month: "Jan", revenue: Math.floor(revenue * 0.4) || 450000 },
-      { month: "Feb", revenue: Math.floor(revenue * 0.5) || 520000 },
-      { month: "Mar", revenue: Math.floor(revenue * 0.45) || 480000 },
-      { month: "Apr", revenue: Math.floor(revenue * 0.7) || 710000 },
-      { month: "May", revenue: Math.floor(revenue * 0.85) || 850000 },
-      { month: "Jun", revenue: revenue || 1100000 },
+    const financialOverview = [
+      { month: "Jan", revenue: Math.floor(revenue * 0.4) || 450000, expenses: 310000 },
+      { month: "Feb", revenue: Math.floor(revenue * 0.5) || 520000, expenses: 320000 },
+      { month: "Mar", revenue: Math.floor(revenue * 0.45) || 480000, expenses: 300000 },
+      { month: "Apr", revenue: Math.floor(revenue * 0.7) || 710000, expenses: 400000 },
+      { month: "May", revenue: Math.floor(revenue * 0.85) || 850000, expenses: 420000 },
+      { month: "Jun", revenue: revenue || 1100000, expenses: 480000 },
     ];
 
     const alertsByModule = [
@@ -159,6 +159,20 @@ export class AdminController {
       { name: "Optimal", value: moduleCount || 8, color: "#10b981" }, // emerald-500
       { name: "Degraded", value: 1, color: "#f59e0b" }, // amber-500
       { name: "Down", value: 0, color: "#ef4444" }, // red-500
+    ];
+
+    const topBranches = [
+      { name: "Central", revenue: 450000 },
+      { name: "North Side", revenue: 320000 },
+      { name: "East Wing", revenue: 210000 },
+      { name: "South Port", revenue: 120000 },
+    ];
+
+    const hrDistribution = [
+      { department: "Sales", count: Math.floor(activeStaff * 0.4) || 45, color: "#3b82f6" },
+      { department: "Retail", count: Math.floor(activeStaff * 0.3) || 35, color: "#6366f1" },
+      { department: "IT", count: Math.floor(activeStaff * 0.15) || 15, color: "#14b8a6" },
+      { department: "Management", count: Math.floor(activeStaff * 0.15) || 10, color: "#8b5cf6" },
     ];
 
     // Format for frontend
@@ -180,9 +194,12 @@ export class AdminController {
         },
         kpis,
         timeseries: {
-          revenueTrend,
+          revenueTrend: financialOverview, // Keeping backwards compatibility
+          financialOverview,
           alertsByModule,
           moduleHealth,
+          topBranches,
+          hrDistribution
         },
         activities: formattedActivities.length > 0 ? formattedActivities : [
           {

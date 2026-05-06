@@ -39,7 +39,7 @@ import {
   ShieldAlert,
   ScrollText
 } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ComposedChart } from 'recharts';
 import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,8 +74,11 @@ export default function CoreDashboard() {
   const [activities, setActivities] = useState<any[]>([]);
   const [timeseries, setTimeseries] = useState<{
     revenueTrend: any[];
+    financialOverview: any[];
     alertsByModule: any[];
     moduleHealth: any[];
+    topBranches: any[];
+    hrDistribution: any[];
   } | null>(null);
   const [expansionOpen, setExpansionOpen] = useState(false);
   const [expansionFeature, setExpansionFeature] = useState("");
@@ -204,14 +207,14 @@ export default function CoreDashboard() {
                 ))}
               </div>
 
-              {/* Analysis & Activity */}
+              {/* Financial & Regional Row */}
               <div className="grid gap-6 lg:grid-cols-3">
-                {/* Revenue Trend Chart */}
-                <WorkspacePanel title="Revenue Growth Velocity" description="6-month trailing performance." className="lg:col-span-2 relative overflow-hidden">
+                {/* Enterprise Financial Trajectory */}
+                <WorkspacePanel title="Enterprise Financial Trajectory" description="6-month trailing revenue vs operational expenses." className="lg:col-span-2 relative overflow-hidden">
                   <div className="h-[300px] w-full mt-4">
-                    {timeseries?.revenueTrend ? (
+                    {timeseries?.financialOverview ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={timeseries.revenueTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <ComposedChart data={timeseries.financialOverview} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                           <defs>
                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
@@ -222,12 +225,14 @@ export default function CoreDashboard() {
                           <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
                           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
                           <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)' }}
-                            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                            formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name.charAt(0).toUpperCase() + name.slice(1)]}
                             cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }}
                           />
-                          <Area type="monotone" dataKey="revenue" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                        </AreaChart>
+                          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '10px' }} iconType="circle" />
+                          <Area type="monotone" dataKey="revenue" name="Gross Revenue" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
+                          <Bar dataKey="expenses" name="OpEx Burn" barSize={12} fill="#ef4444" radius={[4, 4, 0, 0]} opacity={0.8} />
+                        </ComposedChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
@@ -235,63 +240,49 @@ export default function CoreDashboard() {
                   </div>
                 </WorkspacePanel>
 
-                {/* Module Health Donut */}
-                <WorkspacePanel title="System Health" description="Live module availability.">
-                  <div className="h-[300px] w-full mt-4 flex items-center justify-center relative">
-                    {timeseries?.moduleHealth ? (
+                {/* Regional Performance Leaders */}
+                <WorkspacePanel title="Regional Performance Leaders" description="Top retail branches by revenue contribution.">
+                  <div className="h-[300px] w-full mt-4">
+                    {timeseries?.topBranches ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={timeseries.moduleHealth}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={90}
-                            paddingAngle={5}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {timeseries.moduleHealth.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
+                        <BarChart data={timeseries.topBranches} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                          <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
                           <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                            itemStyle={{ fontSize: '12px', fontWeight: 800 }}
+                            cursor={{ fill: '#f8fafc' }}
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
                           />
-                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} />
-                        </PieChart>
+                          <Bar dataKey="revenue" fill="#14b8a6" radius={[0, 4, 4, 0]} barSize={20} />
+                        </BarChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
                     )}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-                       <Monitor className="h-6 w-6 text-emerald-500 mb-1" />
-                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Online</span>
-                    </div>
                   </div>
                 </WorkspacePanel>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-[1fr_1.6fr]">
-                {/* Alerts Bar Chart */}
-                <WorkspacePanel title="Operational Alerts" description="Active issues by module layer.">
-                  <div className="h-[350px] w-full mt-4">
+              {/* Operational & Health Row */}
+              <div className="grid gap-6 lg:grid-cols-3">
+                {/* Operational Risk Telemetry */}
+                <WorkspacePanel title="Operational Risk Telemetry" description="Active alerts across infrastructure layers.">
+                  <div className="h-[250px] w-full mt-4">
                     {timeseries?.alertsByModule ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={timeseries.alertsByModule} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-                          <YAxis dataKey="module" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
+                        <BarChart data={timeseries.alertsByModule} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="module" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
                           <RechartsTooltip 
                             cursor={{ fill: '#f8fafc' }}
                             contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                            itemStyle={{ fontSize: '12px', fontWeight: 800 }}
                           />
                           <Bar 
                             dataKey="count" 
-                            fill="#f59e0b" 
-                            radius={[0, 4, 4, 0]} 
+                            name="Active Alerts"
+                            radius={[4, 4, 0, 0]} 
                             barSize={30}
                             onClick={(data) => {
                               toast.info(`Drilling down into ${data.module} alerts...`);
@@ -317,50 +308,117 @@ export default function CoreDashboard() {
                   </div>
                 </WorkspacePanel>
 
-                {/* Global Business Pulse - Compacted */}
-                <WorkspacePanel 
-                  title="Global Business Pulse" 
-                  description="Real-time event synchronization across the enterprise infrastructure."
-                  action={
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                      <Input 
-                        placeholder="SEARCH INTELLIGENCE..." 
-                        className="h-11 w-48 lg:w-64 pl-12 rounded-xl border-slate-200/50 bg-slate-50/50 focus:bg-white font-black text-[10px] uppercase tracking-widest transition-all"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                      />
+                {/* Human Capital Distribution */}
+                <WorkspacePanel title="Human Capital Distribution" description="Workforce allocation by operational unit.">
+                  <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
+                    {timeseries?.hrDistribution ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={timeseries.hrDistribution}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            paddingAngle={2}
+                            dataKey="count"
+                            stroke="none"
+                            labelLine={false}
+                          >
+                            {timeseries.hrDistribution.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip 
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                            itemStyle={{ fontSize: '12px', fontWeight: 800 }}
+                          />
+                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
+                    )}
+                  </div>
+                </WorkspacePanel>
+
+                {/* Core Systems Integrity Donut */}
+                <WorkspacePanel title="Core Systems Integrity" description="Real-time module availability & health.">
+                  <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
+                    {timeseries?.moduleHealth ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={timeseries.moduleHealth}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                            stroke="none"
+                          >
+                            {timeseries.moduleHealth.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip 
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                          />
+                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
+                    )}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
+                       <Monitor className="h-6 w-6 text-emerald-500 mb-1" />
+                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Optimal</span>
                     </div>
-                  }
-                >
-                  <ScrollArea className="h-[350px] pr-4 pt-4">
-                    <div className="space-y-4 pb-4">
-                      {filteredActivities.map((activity, i) => (
-                        <div key={i} className="group flex items-center justify-between p-5 rounded-[1.5rem] border border-slate-100/50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer" onClick={() => toast.info(`Viewing details for: ${activity.title}`)}>
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-white shadow-md flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all border border-slate-50 shrink-0">
-                              {IconMap[activity.icon] ? React.createElement(IconMap[activity.icon], { className: "h-5 w-5" }) : <Activity className="h-5 w-5" />}
-                            </div>
-                            <div className="space-y-0.5">
-                              <p className="text-[11px] font-black uppercase tracking-tight italic">{activity.title}</p>
-                              <p className="text-[10px] font-medium text-slate-500 leading-relaxed max-w-sm truncate">{activity.detail}</p>
-                            </div>
-                          </div>
-                          <div className="text-right space-y-1.5 flex flex-col items-end shrink-0 pl-4">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">{activity.time}</p>
-                            <Badge variant="outline" className="rounded-full px-2 py-0 text-[8px] font-black uppercase tracking-widest border-slate-200/50 bg-white">
-                              {activity.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                      {filteredActivities.length === 0 && (
-                        <div className="flex h-full items-center justify-center py-20 text-xs font-black uppercase text-slate-300">No events found.</div>
-                      )}
-                    </div>
-                  </ScrollArea>
+                  </div>
                 </WorkspacePanel>
               </div>
+
+              {/* Global Business Pulse - Enterprise Feed */}
+              <WorkspacePanel 
+                title="Global Event Telemetry" 
+                description="Live synchronization of critical events across the enterprise infrastructure."
+                action={
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                    <Input 
+                      placeholder="SEARCH EVENTS..." 
+                      className="h-11 w-48 lg:w-64 pl-12 rounded-xl border-slate-200/50 bg-slate-50/50 focus:bg-white font-black text-[10px] uppercase tracking-widest transition-all"
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                    />
+                  </div>
+                }
+              >
+                <div className="pt-4 grid gap-4 lg:grid-cols-2">
+                  {filteredActivities.slice(0, 6).map((activity, i) => (
+                    <div key={i} className="group flex items-center justify-between p-5 rounded-[1.5rem] border border-slate-100/50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer" onClick={() => toast.info(`Viewing details for: ${activity.title}`)}>
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 rounded-xl bg-white shadow-md flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all border border-slate-50 shrink-0">
+                          {IconMap[activity.icon] ? React.createElement(IconMap[activity.icon], { className: "h-5 w-5" }) : <Activity className="h-5 w-5" />}
+                        </div>
+                        <div className="space-y-0.5">
+                          <p className="text-[11px] font-black uppercase tracking-tight italic">{activity.title}</p>
+                          <p className="text-[10px] font-medium text-slate-500 leading-relaxed truncate max-w-[200px] xl:max-w-md">{activity.detail}</p>
+                        </div>
+                      </div>
+                      <div className="text-right space-y-1.5 flex flex-col items-end shrink-0 pl-4">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">{activity.time}</p>
+                        <Badge variant="outline" className="rounded-full px-2 py-0 text-[8px] font-black uppercase tracking-widest border-slate-200/50 bg-white">
+                          {activity.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {filteredActivities.length === 0 && (
+                    <div className="col-span-2 flex h-full items-center justify-center py-10 text-xs font-black uppercase text-slate-300">No events found.</div>
+                  )}
+                </div>
+              </WorkspacePanel>
             </TabsContent>
 
             <TabsContent value="operations" className="m-0">
