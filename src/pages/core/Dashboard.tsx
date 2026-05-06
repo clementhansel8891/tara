@@ -39,7 +39,7 @@ import {
   ShieldAlert,
   ScrollText
 } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ComposedChart } from 'recharts';
+import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ComposedChart, Line } from 'recharts';
 import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,7 @@ export default function CoreDashboard() {
     moduleHealth: any[];
     topBranches: any[];
     hrDistribution: any[];
+    campaignCorrelation: any[];
   } | null>(null);
   const [expansionOpen, setExpansionOpen] = useState(false);
   const [expansionFeature, setExpansionFeature] = useState("");
@@ -374,6 +375,34 @@ export default function CoreDashboard() {
                        <Monitor className="h-6 w-6 text-emerald-500 mb-1" />
                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Optimal</span>
                     </div>
+                  </div>
+                </WorkspacePanel>
+              </div>
+
+              {/* Marketing ROI & Campaign Correlation */}
+              <div className="grid gap-6 mb-6">
+                <WorkspacePanel title="Marketing Campaign ROI" description="Correlation between Ad Spend (CPC) and Generated Sales." className="relative overflow-hidden">
+                  <div className="h-[350px] w-full mt-4">
+                    {Array.isArray(timeseries?.campaignCorrelation) ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={timeseries.campaignCorrelation} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
+                          <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                          <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                          <RechartsTooltip 
+                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                            formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
+                            cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }}
+                          />
+                          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '10px' }} iconType="circle" />
+                          <Bar yAxisId="left" dataKey="sales" name="Gross Sales" barSize={20} fill="#14b8a6" radius={[4, 4, 0, 0]} opacity={0.8} />
+                          <Line yAxisId="right" type="monotone" dataKey="adSpend" name="Ad Spend (CPC)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
+                    )}
                   </div>
                 </WorkspacePanel>
               </div>

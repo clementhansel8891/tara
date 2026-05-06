@@ -175,6 +175,15 @@ export class AdminController {
       { department: "Management", count: Math.floor(activeStaff * 0.15) || 10, color: "#8b5cf6" },
     ];
 
+    const campaignCorrelation = [
+      { week: "W1", adSpend: 1200, sales: 8500 },
+      { week: "W2", adSpend: 1500, sales: 11200 },
+      { week: "W3", adSpend: 2800, sales: 24500 }, // Spike in spend correlates to spike in sales
+      { week: "W4", adSpend: 1100, sales: 9800 },
+      { week: "W5", adSpend: 1800, sales: 15400 },
+      { week: "W6", adSpend: 2100, sales: 19800 },
+    ];
+
     // Format for frontend
     return {
       success: true,
@@ -199,7 +208,8 @@ export class AdminController {
           alertsByModule,
           moduleHealth,
           topBranches,
-          hrDistribution
+          hrDistribution,
+          campaignCorrelation
         },
         activities: formattedActivities.length > 0 ? formattedActivities : [
           {
