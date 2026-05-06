@@ -98,6 +98,10 @@ model tenants {
   finance_general_ledger_projections     finance_general_ledger_projections[]
   finance_account_statement_projections  finance_account_statement_projections[]
   fixed_assets                           fixed_assets[]
+  explorer_folders                       explorer_folders[]
+  explorer_files                         explorer_files[]
+  explorer_notes                         explorer_notes[]
+  export_audit_trail                     export_audit_trail[]
   fnb_ingredients                        fnb_ingredients[]
   fnb_recipes                            fnb_recipes[]
   hr_attendance_records                  hr_attendance_records[]
@@ -229,6 +233,7 @@ model tenants {
   retail_order_items                     retail_order_items[]
   retail_promotions                      retail_promotions[]
   retail_shifts                          retail_shifts[]
+  retail_cash_movements                  retail_cash_movements[]
   retail_wishlists                       retail_wishlists[]
   sales_alerts                           sales_alerts[]
   sales_audit_events                     sales_audit_events[]
@@ -781,6 +786,10 @@ model companies {
   country                               String                                  @default("US")
   currency                              String                                  @default("USD")
   industry                              String                                  @default("retail")
+  primary_location_id                   String?
+  parent_id                             String?
+  parent                                companies?                              @relation("CompanyHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children                              companies[]                             @relation("CompanyHierarchy")
   agentic_events                        agentic_events[]
   audit_hash_anchors                    audit_hash_anchors[]
   audit_logs                            audit_logs[]
@@ -843,6 +852,9 @@ model companies {
   hr_employee_benefits                  hr_employee_benefits[]
   hr_employee_skills                    hr_employee_skills[]
   hr_exchange_rates                     hr_exchange_rates[]
+  explorer_folders                      explorer_folders[]
+  explorer_files                        explorer_files[]
+  explorer_notes                        explorer_notes[]
   hr_headcount_plans                    hr_headcount_plans[]
   hr_holidays                           hr_holidays[]
   hr_insights                           hr_insights[]
@@ -1114,6 +1126,8 @@ model departments {
   head_id                                                         String?
   description                                                     String?
   status                                                          String                     @default("active")
+  branch_id                                                       String?
+  ecommerce_id                                                    String?
   created_at                                                      DateTime                   @default(now())
   updated_at                                                      DateTime                   @default(now())
   deleted_at                                                      DateTime?
@@ -1140,6 +1154,9 @@ model departments {
   // @@map("departments") - standardized
   tenants                                                         tenants                    @relation(fields: [tenant_id], references: [id])
   capex_budgets                                                   capex_budgets[]
+  explorer_folders                                                explorer_folders[]
+  explorer_files                                                  explorer_files[]
+  explorer_notes                                                  explorer_notes[]
   money_sources                                                   money_sources[]
 
   @@unique([tenant_id, code])
@@ -1294,7 +1311,10 @@ model employees {
   procurement_requisitions                                       procurement_requisitions[]
   hr_payroll_adjustments                                         hr_payroll_adjustments[]
   retail_orders                                                  retail_orders[]
-  retail_shifts                                                  retail_shifts[]
+  retail_shifts                                                  retail_shifts[]            @relation("OpenedShifts")
+  closed_shifts                                                  retail_shifts[]            @relation("ClosedShifts")
+  opened_by_shifts                                               retail_shifts[]            @relation("OpenedBy")
+  retail_cash_movements                                          retail_cash_movements[]
   schedule_assignments                                           schedule_assignments[]
   stores                                                         stores[]
   training_assignments                                           training_assignments[]
@@ -1934,7 +1954,7 @@ model finance_insight_snapshots {
   // @@map("finance_insight_snapshots") - standardized
   tenants           tenants  @relation(fields: [tenant_id], references: [id])
 
-  @@unique([tenant_id, snapshot_sequence, forecast_hash])
+  @@unique([tenant_id, company_id, snapshot_sequence, forecast_hash])
   @@index([forecast_hash])
   @@index([tenant_id, snapshot_sequence])
 }
@@ -3409,6 +3429,7 @@ model it_devices {
   owner_id         String?
   status           String
   metadata         Json?
+  last_heartbeat   DateTime?
   created_at       DateTime           @default(now())
   connection       String
   name             String
@@ -3653,6 +3674,11 @@ model locations {
   code                                                        String
   address                                                     String?
   type                                                        String
+  latitude                                                    Decimal?
+  longitude                                                   Decimal?
+  geofence_radius                                             Float?                  @default(200)
+  google_place_id                                             String?
+  formatted_address                                           String?
   created_at                                                  DateTime                @default(now())
   updated_at                                                  DateTime                @default(now())
   deleted_at                                                  DateTime?
@@ -4117,13 +4143,13 @@ model module_licenses {
 }
 
 model money_sources {
-  id                 String                @id @default(uuid())
+  id                 String     @id @default(uuid())
   tenant_id          String
   company_id         String?
   name               String
   type               String
-  currency           String                @default("IDR")
-  balance            Decimal               @db.Decimal(15, 2)
+  currency           String     @default("IDR")
+  balance            Decimal    @db.Decimal(15, 2)
   pending_settlement Decimal               @default(0) @db.Decimal(15, 2)
   provider           String?
   min_limit          Decimal?              @db.Decimal(15, 2)
@@ -4138,7 +4164,7 @@ model money_sources {
   departments        departments?          @relation(fields: [department_id], references: [id])
   updated_at         DateTime              @default(now())
   // @@map("money_sources") - standardized
-  tenants            tenants               @relation(fields: [tenant_id], references: [id])
+  tenants            tenants    @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, name])
   @@index([tenant_id])
@@ -5171,6 +5197,7 @@ model retail_channels {
   integration_category String     @default("PRESET")
   webhook_url          String?
   companies            companies? @relation(fields: [company_id], references: [id])
+  // @@map("retail_channels") - standardized
   tenants              tenants    @relation(fields: [tenant_id], references: [id])
   fulfilment_branches  retail_channel_branch_links[]
 
@@ -5335,8 +5362,10 @@ model retail_order_items {
   returned_at   DateTime?
   tenant_id     String
   ecommerce_id  String?
-  company_id    String?
-  tax_rate      Decimal       @default(0.11) @db.Decimal(5, 2)
+  company_id        String?
+  tax_rate          Decimal       @default(0.11) @db.Decimal(5, 2)
+  commission_rate   Decimal?      @db.Decimal(5, 2)
+  commission_amount Decimal?      @db.Decimal(15, 2)
   retail_orders retail_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
   item_masters  item_masters  @relation(fields: [product_id], references: [id])
   companies     companies?    @relation(fields: [company_id], references: [id])
@@ -5359,10 +5388,13 @@ model retail_orders {
   device_id          String?
   cashier_id         String?
   customer_id        String?
+  shift_id           String?
   status             String               @default("paid")
   subtotal           Decimal              @db.Decimal(15, 2)
   tax                Decimal              @db.Decimal(15, 2)
   total_amount       Decimal              @db.Decimal(15, 2)
+  currency           String               @default("IDR")
+  commission_amount  Decimal?             @db.Decimal(15, 2)
   payment_method     String?
   payment_reference  String?
   notes              String?
@@ -5370,6 +5402,7 @@ model retail_orders {
   updated_at         DateTime             @default(now())
   retail_order_items retail_order_items[]
   employees          employees?           @relation(fields: [cashier_id], references: [id])
+  shifts             retail_shifts?       @relation(fields: [shift_id], references: [id])
   retail_customers   retail_customers?    @relation(fields: [customer_id], references: [id])
   pos_devices        pos_devices?         @relation(fields: [device_id], references: [id])
   stores             stores               @relation(fields: [store_id], references: [id])
@@ -5427,18 +5460,47 @@ model retail_shifts {
   closing_note          String?
   compliance_note       String?
   reconciliation_reason String?
+  closed_by_id          String?
+  opened_by_id          String?
   created_at            DateTime   @default(now())
   updated_at            DateTime   @default(now())
-  employees             employees  @relation(fields: [employee_id], references: [id])
+  employees             employees  @relation("OpenedShifts", fields: [employee_id], references: [id])
+  closed_by             employees? @relation("ClosedShifts", fields: [closed_by_id], references: [id])
+  opened_by             employees? @relation("OpenedBy", fields: [opened_by_id], references: [id])
+  retail_orders         retail_orders[]
   stores                stores     @relation(fields: [store_id], references: [id])
   companies             companies? @relation(fields: [company_id], references: [id])
   // @@map("retail_shifts") - standardized
   tenants               tenants    @relation(fields: [tenant_id], references: [id])
+  retail_cash_movements retail_cash_movements[]
 
   @@index([employee_id])
   @@index([store_id])
   @@index([tenant_id])
   @@index([company_id])
+}
+
+model retail_cash_movements {
+  id              String   @id @default(uuid())
+  tenant_id       String
+  store_id        String
+  shift_id        String
+  employee_id     String
+  amount          Decimal  @db.Decimal(15, 2)
+  type            String   // e.g., "CASH_OUT", "CASH_IN"
+  reason          String?
+  notes           String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  shifts          retail_shifts @relation(fields: [shift_id], references: [id])
+  tenants         tenants       @relation(fields: [tenant_id], references: [id])
+  stores          stores        @relation(fields: [store_id], references: [id])
+  employees       employees     @relation(fields: [employee_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([shift_id])
+  @@index([store_id])
 }
 
 model retail_wishlist_items {
@@ -5906,6 +5968,7 @@ model stores {
   pos_devices                    pos_devices[]
   retail_orders                  retail_orders[]
   retail_shifts                  retail_shifts[]
+  retail_cash_movements          retail_cash_movements[]
   inventory_pools                inventory_pools?                 @relation(fields: [inventory_pool_id], references: [id])
   locations                      locations                        @relation(fields: [location_id], references: [id])
   employees                      employees?                       @relation(fields: [manager_id], references: [id])
@@ -6273,6 +6336,10 @@ model users {
   companies                     companies?                      @relation(fields: [company_id], references: [id])
   // @@map("users") - standardized
   tenants                       tenants                         @relation(fields: [tenant_id], references: [id])
+  explorer_files                explorer_files[]
+  edited_files                  explorer_files[]                @relation("FileEditor")
+  explorer_notes                explorer_notes[]
+  export_audit_trail            export_audit_trail[]
 
   @@unique([tenant_id, email])
 }
@@ -7104,4 +7171,107 @@ model inventory_transfers {
   from_location locations    @relation("from_location", fields: [from_location_id], references: [id])
   to_location   locations    @relation("to_location", fields: [to_location_id], references: [id])
   tenants       tenants      @relation(fields: [tenant_id], references: [id])
+}
+
+model explorer_folders {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  branch_id     String?
+  ecommerce_id  String?
+  access_level  String   @default("private")
+  name          String
+  parent_id     String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  parent        explorer_folders? @relation("FolderHierarchy", fields: [parent_id], references: [id])
+  children      explorer_folders[] @relation("FolderHierarchy")
+  files         explorer_files[]
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+}
+
+model explorer_files {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  branch_id     String?
+  ecommerce_id  String?
+  access_level  String   @default("private")
+  owner_id      String
+  folder_id     String?
+  name          String
+  type          String
+  size          Int
+  mime_type     String
+  storage_path  String
+  last_edited_by String?
+  history        Json?    @default("[]")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  owner         users        @relation(fields: [owner_id], references: [id])
+  folder        explorer_folders? @relation(fields: [folder_id], references: [id])
+  last_editor   users?       @relation("FileEditor", fields: [last_edited_by], references: [id])
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+  @@index([branch_id])
+  @@index([ecommerce_id])
+  @@index([owner_id])
+  @@index([folder_id])
+}
+
+model explorer_notes {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  department_id String?
+  owner_id      String
+  title         String
+  content       String   @db.Text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  departments   departments? @relation(fields: [department_id], references: [id])
+  owner         users        @relation(fields: [owner_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([company_id])
+  @@index([department_id])
+}
+
+model export_audit_trail {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  user_id       String
+  forensic_code String   @unique
+  ip_address    String
+  timestamp     DateTime @default(now())
+  metadata      Json?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  users         users        @relation(fields: [user_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([user_id])
+  @@index([forensic_code])
 }
