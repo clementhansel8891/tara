@@ -1,9 +1,11 @@
 import { IsArray, IsIn, IsNotEmpty, IsString } from "class-validator";
 
+export type ConnectedProvider = "META" | "GOOGLE" | "TIKTOK" | "YOUTUBE" | "INSTAGRAM" | "FACEBOOK";
+
 export class ConnectAccountDto {
   @IsString()
-  @IsIn(["meta", "google"])
-  provider: "meta" | "google";
+  @IsIn(["META", "GOOGLE", "TIKTOK", "YOUTUBE", "INSTAGRAM", "FACEBOOK"])
+  provider: ConnectedProvider;
 
   @IsString()
   @IsNotEmpty()

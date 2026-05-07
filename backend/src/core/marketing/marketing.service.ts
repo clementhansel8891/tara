@@ -9,14 +9,18 @@ import { ScheduleExecutionDto } from "./dto/schedule-execution.dto";
 import { UpdateAccountStatusDto } from "./dto/update-account-status.dto";
 import { UpdateCampaignStatusDto } from "./dto/update-campaign-status.dto";
 import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
+import { UpdateAccountSettingsDto } from "./dto/update-account-settings.dto";
 import { IMarketingRepository } from "./repositories/marketing.repository.interface";
 import { AuditService } from "../../shared/audit/audit.service";
+
+import { SocialSyncService } from "./social-sync.service";
 
 @Injectable()
 export class MarketingService {
   constructor(
     private readonly repository: IMarketingRepository,
     private readonly auditService: AuditService,
+    private readonly socialSyncService: SocialSyncService,
   ) {}
 
   async getDashboard(ctx: TenantContext) {
@@ -253,6 +257,28 @@ export class MarketingService {
     return account;
   }
 
+  async updateAccountSettings(ctx: TenantContext,
+    accountId: string,
+    dto: UpdateAccountSettingsDto,
+    actor_id: string,
+  ) {
+    const account = await this.repository.updateAccountSettings(
+      ctx,
+      accountId,
+      dto,
+    );
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "UPDATE_SETTINGS",
+      entity_type: "CONNECTED_ACCOUNT",
+      entity_id: accountId,
+      metadata: { ...dto },
+    });
+    return account;
+  }
+
   async updateAccountStatus(ctx: TenantContext,
     accountId: string,
     dto: UpdateAccountStatusDto,
@@ -274,6 +300,33 @@ export class MarketingService {
       metadata: { status: dto.status },
     });
     return account;
+  }
+
+  async deleteAccount(ctx: TenantContext, accountId: string, actor_id: string) {
+    await this.repository.deleteAccount(ctx, accountId);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "DELETE",
+      entity_type: "ACCOUNT",
+      entity_id: accountId,
+    });
+    return { success: true };
+  }
+
+  async triggerManualSync(ctx: TenantContext, accountId: string, actor_id: string) {
+    const result = await this.socialSyncService.syncAccount(ctx, accountId, actor_id);
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: actor_id,
+      module: "marketing",
+      action: "MANUAL_SYNC",
+      entity_type: "ACCOUNT",
+      entity_id: accountId,
+      metadata: { dataPoints: result.dataPoints },
+    });
+    return result;
   }
 
   async getAttribution(ctx: TenantContext) {

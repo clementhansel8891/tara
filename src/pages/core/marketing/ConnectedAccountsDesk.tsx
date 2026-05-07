@@ -19,9 +19,18 @@ import {
   Database,
   Search,
   Layers,
+  Clock,
+  Hash,
+  Instagram,
+  Youtube,
+  Play,
   Facebook,
-  Chrome
+  Chrome,
+  Shield,
+  History,
+  Info
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -54,13 +63,14 @@ import { useSession } from "@/core/security/session";
 import { marketingService } from "@/core/services/marketing/marketingService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 import type {
   ConnectedAccount,
   ConnectedProvider,
   ConnectionStatus,
 } from "@/core/types/marketing/marketing";
 
-const PROVIDERS: ConnectedProvider[] = ["META", "GOOGLE"];
+const PROVIDERS: ConnectedProvider[] = ["META", "GOOGLE", "TIKTOK", "YOUTUBE", "INSTAGRAM", "FACEBOOK"];
 
 export default function ConnectedAccountsDesk() {
   const session = useSession();
@@ -71,6 +81,13 @@ export default function ConnectedAccountsDesk() {
   const [refreshing, setRefreshing] = useState(false);
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
   const [connectOpen, setConnectOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<ConnectedAccount | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  
+  // Settings Form State
+  const [budget, setBudget] = useState("");
+  const [frequency, setFrequency] = useState("4H");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -104,26 +121,68 @@ export default function ConnectedAccountsDesk() {
     }
   };
 
-  const handleConnect = async () => {
-    if (!accountName.trim()) {
-      toast.error("Designation required for initialization.");
-      return;
-    }
+  const handleSync = async (accountId: string) => {
     try {
       setRefreshing(true);
-      await marketingService.connectAccount(session.tenant_id, session, {
-        provider,
-        accountName,
-        scopes: scopes.split(",").map((item) => item.trim()).filter(Boolean),
-      });
-      setAccountName("");
-      setConnectOpen(false);
-      toast.success("Strategic Integration Initialized", {
-        description: `${provider} cloud link established and secure.`
-      });
+      toast.info("Initializing multi-cloud data synchronization...");
+      const result = await marketingService.syncAccount(session.tenant_id, session, accountId);
+      toast.success(`Synchronization successful: ${result.data.dataPoints} data points ingested.`);
       refresh(true);
     } catch (err) {
-      console.error("Failed to connect account:", err);
+      toast.error("Cloud synchronization protocol failure.");
+      setRefreshing(false);
+    }
+  };
+
+  const handleDelete = async (accountId: string) => {
+    if (!confirm("Are you sure you want to decommission this node? All cloud link credentials will be purged.")) return;
+    try {
+      setRefreshing(true);
+      await marketingService.deleteAccount(session.tenant_id, session, accountId);
+      toast.success("Integration node decommissioned successfully.");
+      refresh(true);
+    } catch (err) {
+      toast.error("Node decommissioning failure.");
+      setRefreshing(false);
+    }
+  };
+
+  const openSettings = (account: ConnectedAccount) => {
+    setSelectedAccount(account);
+    setBudget(account.dailyBudgetLimit?.toString() || "");
+    setFrequency(account.syncFrequency || "4H");
+    setSettingsOpen(true);
+  };
+
+  const handleSaveSettings = async () => {
+    if (!selectedAccount) return;
+    try {
+      setSavingSettings(true);
+      await marketingService.updateAccountSettings(session.tenant_id, session, selectedAccount.id, {
+        daily_budget_limit: budget ? parseFloat(budget) : undefined,
+        sync_frequency: frequency,
+      });
+      toast.success("Account configuration updated.");
+      setSettingsOpen(false);
+      refresh();
+    } catch (err) {
+      toast.error("Failed to update configuration.");
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    try {
+      setRefreshing(true);
+      const { url } = await marketingService.getAuthUrl(session.tenant_id, session, provider);
+      if (url) {
+        window.location.href = url;
+      } else {
+        toast.error("Handshake protocol generation failed.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch auth URL:", err);
       toast.error("Initialization failure.");
       setRefreshing(false);
     }
@@ -167,6 +226,15 @@ export default function ConnectedAccountsDesk() {
           >
             <RefreshCw className={cn("h-6 w-6 text-indigo-600", refreshing && "animate-spin")} />
           </Button>
+          <Link to="/core/marketing/audit-logs">
+            <Button
+              variant="secondary"
+              className="h-14 px-6 rounded-2xl bg-white dark:bg-slate-800 border-none shadow-xl hover:scale-105 transition-all font-black text-[10px] uppercase tracking-widest gap-2"
+            >
+              <Shield className="h-5 w-5 text-indigo-600" />
+              Governance Trail
+            </Button>
+          </Link>
           <Button 
             className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
             onClick={() => setConnectOpen(true)}
@@ -212,9 +280,19 @@ export default function ConnectedAccountsDesk() {
               <div className="flex items-center justify-between mb-6">
                 <div className={cn(
                   "h-16 w-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110 duration-500",
-                  item.provider === 'META' ? "bg-blue-600 text-white" : "bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
+                  item.provider === 'META' ? "bg-blue-600 text-white" : 
+                  item.provider === 'GOOGLE' ? "bg-white text-slate-900 dark:bg-slate-800 dark:text-white" :
+                  item.provider === 'TIKTOK' ? "bg-black text-white" :
+                  item.provider === 'YOUTUBE' ? "bg-red-600 text-white" :
+                  item.provider === 'INSTAGRAM' ? "bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 text-white" :
+                  "bg-blue-700 text-white"
                 )}>
-                  {item.provider === 'META' ? <Facebook className="h-8 w-8" /> : <Chrome className="h-8 w-8" />}
+                  {item.provider === 'META' ? <Facebook className="h-8 w-8" /> : 
+                   item.provider === 'GOOGLE' ? <Chrome className="h-8 w-8" /> :
+                   item.provider === 'TIKTOK' ? <Play className="h-8 w-8" /> :
+                   item.provider === 'YOUTUBE' ? <Youtube className="h-8 w-8" /> :
+                   item.provider === 'INSTAGRAM' ? <Instagram className="h-8 w-8" /> :
+                   <Facebook className="h-8 w-8" />}
                 </div>
                 <div className="text-right">
                    <Badge className={cn(
@@ -224,7 +302,15 @@ export default function ConnectedAccountsDesk() {
                    )}>
                      {item.status}
                    </Badge>
-                   <p className="text-[9px] font-black uppercase text-slate-400 tracking-tighter mt-2 italic">VERIFIED NODE</p>
+                   <div className="mt-2">
+                     <Badge variant="outline" className={cn(
+                       "rounded-full font-black text-[7px] px-2 py-0.5 border shadow-sm tracking-widest uppercase italic",
+                       item.syncStatus === 'SYNCING' ? "border-indigo-500 text-indigo-500 animate-pulse" :
+                       item.syncStatus === 'FAILED' ? "border-rose-500 text-rose-500" : "border-slate-200 text-slate-400"
+                     )}>
+                       Sync: {item.syncStatus}
+                     </Badge>
+                   </div>
                 </div>
               </div>
               <div className="space-y-1">
@@ -256,9 +342,11 @@ export default function ConnectedAccountsDesk() {
                  <div className="grid grid-cols-2 gap-3">
                     <Button 
                       variant="outline" 
-                      className="h-12 rounded-xl border-none bg-slate-50 dark:bg-slate-800 font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                      onClick={() => setStatus(item.id, "CONNECTED")}
+                      className="h-12 rounded-xl border-none bg-slate-50 dark:bg-slate-800 font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm gap-2"
+                      onClick={() => handleSync(item.id)}
+                      disabled={refreshing || item.syncStatus === 'SYNCING'}
                     >
+                      {item.syncStatus === 'SYNCING' ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
                       SYNCHRONIZE
                     </Button>
                     <DropdownMenu>
@@ -273,7 +361,10 @@ export default function ConnectedAccountsDesk() {
                          <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => setStatus(item.id, "CONNECTED")}><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Re-Authorize Link</DropdownMenuItem>
                          <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => setStatus(item.id, "EXPIRED")}><AlertCircle className="h-4 w-4 text-amber-500" /> Revoke Tokens</DropdownMenuItem>
                          <DropdownMenuSeparator />
-                         <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold text-rose-600" onClick={() => setStatus(item.id, "DISCONNECTED")}><Trash2 className="h-4 w-4" /> Decommission Node</DropdownMenuItem>
+                         <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => openSettings(item)}>
+                            <Settings className="h-4 w-4 text-indigo-500" /> Configure Settings
+                         </DropdownMenuItem>
+                         <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold text-rose-600" onClick={() => handleDelete(item.id)}><Trash2 className="h-4 w-4" /> Decommission Node</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                  </div>
@@ -284,7 +375,7 @@ export default function ConnectedAccountsDesk() {
                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                   <div className={cn(
                     "h-full transition-all duration-1000",
-                    item.status === 'CONNECTED' ? "bg-emerald-500" : "bg-slate-300"
+                    item.status === 'CONNECTED' ? (item.syncStatus === 'SYNCING' ? "bg-indigo-500" : "bg-emerald-500") : "bg-slate-300"
                   )} style={{ width: item.status === 'CONNECTED' ? '100%' : '30%' }} />
                </div>
             </div>
@@ -332,24 +423,6 @@ export default function ConnectedAccountsDesk() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Designation</Label>
-                <Input 
-                  placeholder="E.G. ENTERPRISE MAIN ADS" 
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                  className="h-16 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-lg uppercase"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Authorization Scopes</Label>
-                <Input 
-                  placeholder="ads_read, leads_retrieval..." 
-                  value={scopes}
-                  onChange={(e) => setScopes(e.target.value)}
-                  className="h-16 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold text-sm text-indigo-500"
-                />
-              </div>
             </div>
             <DialogFooter>
               <Button 
@@ -362,6 +435,71 @@ export default function ConnectedAccountsDesk() {
               </Button>
             </DialogFooter>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-white dark:bg-slate-900 max-w-lg p-10">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic flex items-center gap-4">
+               <Settings className="h-8 w-8 text-indigo-600" />
+               Account Configuration
+            </DialogTitle>
+            <DialogDescription className="text-base font-medium italic opacity-60 italic">
+              Adjust synchronization frequency and budget safeguards for {selectedAccount?.accountName}.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-8 py-4">
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Daily Budget Safe-Limit (USD)</Label>
+              <div className="relative">
+                <Hash className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Input 
+                  type="number"
+                  placeholder="0.00" 
+                  className="h-14 pl-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl font-bold"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 italic font-medium leading-none px-1">Automated pause will trigger if spend exceeds this threshold.</p>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Synchronization Frequency</Label>
+              <Select value={frequency} onValueChange={setFrequency}>
+                <SelectTrigger className="h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl font-bold">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-none shadow-2xl">
+                  <SelectItem value="1H">Real-time (1 Hour)</SelectItem>
+                  <SelectItem value="4H">Standard (4 Hours)</SelectItem>
+                  <SelectItem value="12H">Optimized (12 Hours)</SelectItem>
+                  <SelectItem value="24H">Daily Sync (24 Hours)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-8 gap-4 sm:justify-start">
+            <Button 
+              className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest gap-2 flex-1 shadow-xl shadow-indigo-500/20"
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              {savingSettings ? <RefreshCw className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
+              AUTHORIZE CHANGES
+            </Button>
+            <Button 
+              variant="ghost"
+              className="h-14 px-8 rounded-2xl font-black text-xs uppercase tracking-widest"
+              onClick={() => setSettingsOpen(false)}
+            >
+              CANCEL
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

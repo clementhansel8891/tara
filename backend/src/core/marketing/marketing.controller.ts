@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Delete,
   Req,
   UseInterceptors,
   UseGuards,
@@ -30,15 +31,18 @@ import { CreateWorkflowDto } from "./dto/create-workflow.dto";
 import { RunExecutionDto } from "./dto/run-execution.dto";
 import { ScheduleExecutionDto } from "./dto/schedule-execution.dto";
 import { UpdateAccountStatusDto } from "./dto/update-account-status.dto";
+import { UpdateAccountSettingsDto } from "./dto/update-account-settings.dto";
 import { UpdateCampaignStatusDto } from "./dto/update-campaign-status.dto";
 import { UpdateWorkflowStatusDto } from "./dto/update-workflow-status.dto";
 import { MarketingService } from "./marketing.service";
 import { Customer360Service } from "./customer-360.service";
 import { BookingService } from "./booking.service";
 import { OmnichannelService } from "./omnichannel.service";
+import { SocialSyncService } from "./social-sync.service";
 import { PrismaService } from "../../persistence/prisma.service";
 import { isModuleActive } from "../../shared/helpers/module-active.helper";
 import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
+import { Query } from "@nestjs/common";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -55,6 +59,7 @@ export class MarketingController {
     private readonly customer360: Customer360Service,
     private readonly bookingService: BookingService,
     private readonly omnichannel: OmnichannelService,
+    private readonly socialSync: SocialSyncService,
   ) {}
 
   private actor_id(request: RequestWithTenant) {
@@ -349,6 +354,63 @@ export class MarketingController {
     };
   }
 
+  @Put("accounts/:id/settings")
+  async updateAccountSettings(
+    @Req() request: RequestWithTenant,
+    @Param("id") accountId: string,
+    @Body() dto: UpdateAccountSettingsDto,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    return {
+      success: true,
+      tenant_id,
+      message: "Account configuration updated",
+      data: await this.marketingService.updateAccountSettings(
+        request.tenantContext,
+        accountId,
+        dto,
+        this.actor_id(request),
+      ),
+    };
+  }
+
+  @Delete("accounts/:id")
+  async deleteAccount(
+    @Req() request: RequestWithTenant,
+    @Param("id") accountId: string,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    await this.marketingService.deleteAccount(
+      request.tenantContext,
+      accountId,
+      this.actor_id(request),
+    );
+    return {
+      success: true,
+      tenant_id,
+      message: "Account decommissioned",
+    };
+  }
+
+  @Post("accounts/:id/sync")
+  async triggerManualSync(
+    @Req() request: RequestWithTenant,
+    @Param("id") accountId: string,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    const result = await this.marketingService.triggerManualSync(
+      request.tenantContext,
+      accountId,
+      this.actor_id(request),
+    );
+    return {
+      success: true,
+      tenant_id,
+      message: "Manual synchronization complete",
+      data: result,
+    };
+  }
+
   @Get("attribution")
   async getAttribution(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
@@ -542,5 +604,112 @@ export class MarketingController {
     const { tenant_id } = request.tenantContext;
     const data = await this.omnichannel.getConversations(request.tenantContext);
     return { success: true, tenant_id, count: data.length, data };
+  }
+
+  // --- OAuth Callbacks ---
+
+  @Get("oauth/callback/meta")
+  async handleMetaCallback(
+    @Req() request: RequestWithTenant,
+    @Query("code") code: string,
+    @Res() res: Response,
+  ) {
+    await this.socialSync.handleMetaCallback(request.tenantContext, code);
+    // Redirect back to frontend
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}/marketing/accounts?status=success&provider=meta`);
+  }
+
+  @Get("oauth/callback/google")
+  async handleGoogleCallback(
+    @Req() request: RequestWithTenant,
+    @Query("code") code: string,
+    @Res() res: Response,
+  ) {
+    await this.socialSync.handleGoogleCallback(request.tenantContext, code);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}/marketing/accounts?status=success&provider=google`);
+  }
+
+  @Get("oauth/callback/tiktok")
+  async handleTikTokCallback(
+    @Req() request: RequestWithTenant,
+    @Query("code") code: string,
+    @Res() res: Response,
+  ) {
+    await this.socialSync.handleTikTokCallback(request.tenantContext, code);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}/marketing/accounts?status=success&provider=tiktok`);
+  }
+
+  @Get("oauth/callback/youtube")
+  async handleYoutubeCallback(
+    @Req() request: RequestWithTenant,
+    @Query("code") code: string,
+    @Res() res: Response,
+  ) {
+    await this.socialSync.handleYoutubeCallback(request.tenantContext, code);
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    return res.redirect(`${frontendUrl}/marketing/accounts?status=success&provider=youtube`);
+  }
+
+  @Get("webhooks/meta")
+  verifyMetaWebhook(
+    @Query("hub.mode") mode: string,
+    @Query("hub.verify_token") token: string,
+    @Query("hub.challenge") challenge: string,
+  ) {
+    const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
+    if (mode === "subscribe" && token === verifyToken) {
+      return challenge;
+    }
+    return "Verification failed";
+  }
+
+  @Post("webhooks/meta")
+  async handleMetaWebhook(@Body() payload: any) {
+    await this.omnichannel.processInboundWebhook(payload);
+    return { success: true };
+  }
+
+  @Get("oauth/authorize/:provider")
+  async getAuthUrl(
+    @Req() request: RequestWithTenant,
+    @Param("provider") provider: string,
+  ) {
+    const tenant_id = request.tenantContext.tenant_id;
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:3001";
+    
+    if (provider === "meta") {
+      const appId = process.env.META_APP_ID;
+      const redirectUri = encodeURIComponent(`${backendUrl}/marketing/oauth/callback/meta`);
+      const scopes = encodeURIComponent("ads_read,ads_management,leads_retrieval");
+      return { 
+        url: `https://www.facebook.com/v17.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&state=${tenant_id}&scope=${scopes}` 
+      };
+    } else if (provider === "google") {
+      const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
+      const redirectUri = encodeURIComponent(`${backendUrl}/marketing/oauth/callback/google`);
+      const scopes = encodeURIComponent("https://www.googleapis.com/auth/adwords");
+      return {
+        url: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&state=${tenant_id}&response_type=code&scope=${scopes}&access_type=offline`
+      };
+    } else if (provider === "tiktok") {
+      const clientId = process.env.TIKTOK_CLIENT_ID;
+      const redirectUri = encodeURIComponent(`${backendUrl}/marketing/oauth/callback/tiktok`);
+      const scopes = encodeURIComponent("user.info.basic,video.list,video.stats");
+      return {
+        url: `https://www.tiktok.com/v2/auth/authorize/?client_key=${clientId}&redirect_uri=${redirectUri}&state=${tenant_id}&response_type=code&scope=${scopes}`
+      };
+    } else if (provider === "youtube") {
+      const clientId = process.env.GOOGLE_ADS_CLIENT_ID; // Usually same project as Google Ads
+      const redirectUri = encodeURIComponent(`${backendUrl}/marketing/oauth/callback/youtube`);
+      const scopes = encodeURIComponent("https://www.googleapis.com/auth/youtube.readonly");
+      return {
+        url: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&state=${tenant_id}&response_type=code&scope=${scopes}&access_type=offline`
+      };
+    }
+    
+    return { url: null };
   }
 }

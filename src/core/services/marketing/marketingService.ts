@@ -187,6 +187,15 @@ export const marketingService = {
   ) {
     return apiRequest<ConnectedAccount>(`/v1/marketing/accounts/${accountId}/status`, "PUT", session, { status });
   },
+  
+  async updateAccountSettings(
+    tenantId: string,
+    session: SessionContext,
+    accountId: string,
+    payload: { daily_budget_limit?: number; sync_frequency?: string; status?: string },
+  ) {
+    return apiRequest<ConnectedAccount>(`/v1/marketing/accounts/${accountId}/settings`, "PUT", session, payload);
+  },
 
   async acknowledgeAlert(tenantId: string, session: SessionContext, alertId: string) {
     return apiRequest<MarketingAlert>(`/v1/marketing/alerts/${alertId}/ack`, "PUT", session);
@@ -214,6 +223,18 @@ export const marketingService = {
   
   async updateCreativeAsset(tenantId: string, session: SessionContext, assetId: string, payload: any) {
     return apiRequest<any>(`/v1/marketing/assets/${assetId}`, "PUT", session, payload);
+  },
+
+  async getAuthUrl(tenantId: string, session: SessionContext, provider: string): Promise<{ url: string }> {
+    return apiRequest<{ url: string }>(`/v1/marketing/oauth/authorize/${provider.toLowerCase()}`, "GET", session);
+  },
+  
+  async syncAccount(tenantId: string, session: SessionContext, accountId: string) {
+    return apiRequest<any>(`/v1/marketing/accounts/${accountId}/sync`, "POST", session);
+  },
+
+  async deleteAccount(tenantId: string, session: SessionContext, accountId: string) {
+    return apiRequest<any>(`/v1/marketing/accounts/${accountId}`, "DELETE", session);
   },
 };
 

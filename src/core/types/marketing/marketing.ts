@@ -40,7 +40,7 @@ export type LeadLifecycleStatus =
   | "HANDOFF_READY"
   | "HANDOFF_SENT";
 
-export type ConnectedProvider = "META" | "GOOGLE";
+export type ConnectedProvider = "META" | "GOOGLE" | "TIKTOK" | "YOUTUBE" | "INSTAGRAM" | "FACEBOOK";
 export type ConnectionStatus = "CONNECTED" | "EXPIRED" | "DISCONNECTED";
 
 export type NurtureWorkflowStatus = "DRAFT" | "ACTIVE" | "PAUSED";
@@ -132,8 +132,12 @@ export type ConnectedAccount = {
   provider: ConnectedProvider;
   accountName: string;
   status: ConnectionStatus;
+  syncStatus: "IDLE" | "SYNCING" | "FAILED";
+  syncFrequency?: string;
+  dailyBudgetLimit?: number;
   tokenExpiresAt: string;
   scopes: string[];
+  metadata?: any;
   lastSyncAt?: string;
   createdAt: string;
   updatedAt: string;

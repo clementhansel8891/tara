@@ -45,6 +45,51 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   IS_WORKER?: string;
+
+  // Marketing Integrations
+  @IsString()
+  @IsOptional()
+  META_APP_ID?: string;
+
+  @IsString()
+  @IsOptional()
+  META_APP_SECRET?: string;
+
+  @IsString()
+  @IsOptional()
+  META_BUSINESS_API_TOKEN?: string;
+
+  @IsString()
+  @IsOptional()
+  TWILIO_ACCOUNT_SID?: string;
+
+  @IsString()
+  @IsOptional()
+  TWILIO_AUTH_TOKEN?: string;
+
+  @IsString()
+  @IsOptional()
+  TWILIO_PHONE_NUMBER?: string;
+
+  @IsString()
+  @IsOptional()
+  MAIL_HOST?: string;
+
+  @IsNumber()
+  @IsOptional()
+  MAIL_PORT?: number;
+
+  @IsString()
+  @IsOptional()
+  MAIL_USER?: string;
+
+  @IsString()
+  @IsOptional()
+  MAIL_PASS?: string;
+
+  @IsString()
+  @IsOptional()
+  MAIL_FROM?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

@@ -2,13 +2,47 @@ import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../persistence/prisma.service";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
+import { ConfigService } from "@nestjs/config";
 import { v4 as uuidv4 } from "uuid";
+import * as nodemailer from "nodemailer";
+import { Twilio } from "twilio";
+import axios from "axios";
 
 @Injectable()
 export class OmnichannelService {
   private readonly logger = new Logger(OmnichannelService.name);
+  private twilioClient: Twilio | null = null;
+  private mailTransport: nodemailer.Transporter | null = null;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {
+    this.initProviders();
+  }
+
+  private initProviders() {
+    // Init Twilio if SID is present
+    const twilioSid = this.configService.get<string>("TWILIO_ACCOUNT_SID");
+    const twilioToken = this.configService.get<string>("TWILIO_AUTH_TOKEN");
+    if (twilioSid && twilioToken && !twilioSid.includes("placeholder")) {
+      this.twilioClient = new Twilio(twilioSid, twilioToken);
+    }
+
+    // Init Mailer if host is present
+    const mailHost = this.configService.get<string>("MAIL_HOST");
+    if (mailHost && !mailHost.includes("placeholder")) {
+      this.mailTransport = nodemailer.createTransport({
+        host: mailHost,
+        port: this.configService.get<number>("MAIL_PORT") || 587,
+        secure: false,
+        auth: {
+          user: this.configService.get<string>("MAIL_USER"),
+          pass: this.configService.get<string>("MAIL_PASS"),
+        },
+      });
+    }
+  }
 
   /**
    * Send a message via the specified channel
@@ -29,28 +63,69 @@ export class OmnichannelService {
       }
     });
 
-    // 2. Execute provider logic (Commented out for plug-and-play as per feedback)
+    // 2. Execute provider logic
     try {
-      /*
-      if (channel === "SMS") {
-        // Example Twilio integration
-        // await this.twilioClient.messages.create({ body: content, to: contact.phone, from: '...' });
-      } else if (channel === "WHATSAPP") {
-        // Example Meta Business API integration
-        // await this.metaApi.sendWhatsAppMessage(contact.phone, content);
-      } else if (channel === "EMAIL") {
-        // Example SendGrid/SES integration
-        // await this.emailProvider.send({ to: contact.email, subject: '...', text: content });
-      }
-      */
+      let providerSuccess = true;
+      let errorMsg = "";
 
-      // Simulate successful send
+      if (channel === "EMAIL" && this.mailTransport) {
+        const contact = await this.prisma.marketing_contacts.findUnique({ where: { id: contactId } });
+        if (contact?.email) {
+          await this.mailTransport.sendMail({
+            from: this.configService.get<string>("MAIL_FROM") || "noreply@zenvix.ai",
+            to: contact.email,
+            subject: "Notification from Zenvix",
+            text: content,
+          });
+        } else {
+          throw new Error("Contact email not found");
+        }
+      } else if (channel === "SMS" && this.twilioClient) {
+        const contact = await this.prisma.marketing_contacts.findUnique({ where: { id: contactId } });
+        if (contact?.phone) {
+          await this.twilioClient.messages.create({
+            body: content,
+            to: contact.phone,
+            from: this.configService.get<string>("TWILIO_PHONE_NUMBER"),
+          });
+        } else {
+          throw new Error("Contact phone not found");
+        }
+      } else if (channel === "WHATSAPP") {
+        const metaToken = this.configService.get<string>("META_BUSINESS_API_TOKEN");
+        const contact = await this.prisma.marketing_contacts.findUnique({ where: { id: contactId } });
+        if (metaToken && !metaToken.includes("placeholder") && contact?.phone) {
+          // Meta WhatsApp Business API integration
+          await axios.post(
+            `https://graph.facebook.com/v17.0/${this.configService.get("META_PHONE_ID")}/messages`,
+            {
+              messaging_product: "whatsapp",
+              to: contact.phone,
+              type: "text",
+              text: { body: content },
+            },
+            { headers: { Authorization: `Bearer ${metaToken}` } },
+          );
+        } else {
+          this.logger.warn(`WhatsApp skip: No token or phone for contact ${contactId}`);
+          providerSuccess = false;
+          errorMsg = "WhatsApp provider not configured or contact phone missing";
+        }
+      } else {
+        this.logger.warn(`Provider for ${channel} not initialized. Simulating success.`);
+      }
+
+      // 3. Update status
       await this.prisma.marketing_omnichannel_messages.update({
         where: { id: message.id },
-        data: { status: "SENT", sent_at: new Date() }
+        data: {
+          status: providerSuccess ? "SENT" : "FAILED",
+          sent_at: providerSuccess ? new Date() : undefined,
+          metadata: errorMsg ? { error: errorMsg } : undefined,
+        },
       });
 
-      return { success: true, messageId: message.id };
+      return { success: providerSuccess, messageId: message.id, error: errorMsg };
     } catch (error) {
       this.logger.error(`Failed to send ${channel} message: ${error.message}`);
       await this.prisma.marketing_omnichannel_messages.update({
@@ -66,9 +141,18 @@ export class OmnichannelService {
    */
   getChannelStatus() {
     return {
-      WHATSAPP: { status: "UNDER_CONSTRUCTION", message: "WhatsApp Business API integration coming soon." },
-      SMS: { status: "READY_FOR_PLUG_AND_PLAY", message: "Configure your provider credentials in settings." },
-      EMAIL: { status: "ACTIVE", message: "Email delivery system active." }
+      WHATSAPP: {
+        status: this.configService.get("META_BUSINESS_API_TOKEN")?.includes("placeholder") ? "PENDING_CONFIG" : "ACTIVE",
+        message: "Meta Business API ready."
+      },
+      SMS: {
+        status: this.twilioClient ? "ACTIVE" : "PENDING_CONFIG",
+        message: this.twilioClient ? "Twilio integration active." : "Configure Twilio SID/Token."
+      },
+      EMAIL: {
+        status: this.mailTransport ? "ACTIVE" : "PENDING_CONFIG",
+        message: this.mailTransport ? "Email delivery active." : "Configure SMTP credentials."
+      }
     };
   }
 
@@ -105,5 +189,64 @@ export class OmnichannelService {
     }
 
     return Array.from(groups.values());
+  }
+
+  /**
+   * Process incoming Meta webhooks (WhatsApp/Messenger)
+   */
+  async processInboundWebhook(payload: any) {
+    this.logger.log(`Processing inbound webhook: ${JSON.stringify(payload)}`);
+    
+    // 1. Validate payload structure
+    if (!payload.entry || !payload.entry[0].changes || !payload.entry[0].changes[0].value.messages) {
+      this.logger.warn("Received non-message webhook or invalid structure");
+      return;
+    }
+
+    const messageData = payload.entry[0].changes[0].value.messages[0];
+    const from = messageData.from; // Phone number
+    const text = messageData.text?.body || "Non-text message";
+    const externalId = messageData.id;
+
+    // 2. Identify contact by phone
+    let contact = await this.prisma.marketing_contacts.findFirst({
+      where: { phone: from }
+    });
+
+    if (!contact) {
+      this.logger.log(`Creating new contact for unknown phone: ${from}`);
+      // Auto-create lead/contact for unknown inbound
+      contact = await this.prisma.marketing_contacts.create({
+        data: {
+          id: uuidv4(),
+          tenant_id: "system", // Fallback, usually we'd extract from webhook metadata or app_id
+          first_name: "Inbound",
+          last_name: from,
+          phone: from,
+          status: "ACTIVE",
+          score: 10, // Initial interest
+        }
+      });
+    }
+
+    // 3. Persist inbound message
+    await this.prisma.marketing_omnichannel_messages.create({
+      data: {
+        id: uuidv4(),
+        tenant_id: contact.tenant_id,
+        contact_id: contact.id,
+        channel: "WHATSAPP",
+        direction: "INBOUND",
+        content: text,
+        status: "DELIVERED",
+        sent_at: new Date(),
+        metadata: {
+          external_id: externalId,
+          raw_payload: payload
+        }
+      }
+    });
+
+    this.logger.log(`Inbound message from ${from} processed successfully`);
   }
 }

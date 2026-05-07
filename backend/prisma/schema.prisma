@@ -180,6 +180,7 @@ model tenants {
   marketing_automation_rules             marketing_automation_rules[]
   marketing_appointments                 marketing_appointments[]
   marketing_creative_assets              marketing_creative_assets[]
+  marketing_sync_logs                    marketing_sync_logs[]
   module_license_logs                    module_license_logs[]
   module_licenses                        module_licenses[]
   money_sources                          money_sources[]
@@ -3848,7 +3849,15 @@ model marketing_accounts {
   account_name     String
   status           String                @default("CONNECTED")
   token_expires_at DateTime
+  access_token     String?
+  refresh_token    String?
+  external_id      String?
+  sync_status      String                @default("IDLE")
+  sync_frequency   String                @default("4H")
   scopes           String[]
+  daily_budget_limit Decimal?            @db.Decimal(15, 2)
+  metadata         Json?
+
   last_sync_at     DateTime
   created_at       DateTime              @default(now())
   updated_at       DateTime              @default(now())
@@ -3857,6 +3866,7 @@ model marketing_accounts {
   companies        companies?            @relation(fields: [company_id], references: [id])
   branches         stores?               @relation(fields: [branch_id], references: [id])
   ecommerces       ecommerce_connectors? @relation(fields: [ecommerce_id], references: [id])
+  sync_logs        marketing_sync_logs[]
   // @@map("marketing_accounts") - standardized
   tenants          tenants               @relation(fields: [tenant_id], references: [id])
 
@@ -3864,6 +3874,27 @@ model marketing_accounts {
   @@index([company_id])
   @@index([branch_id])
   @@index([ecommerce_id])
+}
+
+model marketing_sync_logs {
+  id                String             @id @default(uuid())
+  tenant_id         String
+  account_id        String
+  status            String
+  triggered_by      String
+  started_at        DateTime           @default(now())
+  finished_at       DateTime?
+  error_msg         String?
+  data_points_count Int                @default(0)
+  cost_estimate     Decimal?           @db.Decimal(10, 4)
+  metadata          Json?
+  marketing_account marketing_accounts @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  updated_at        DateTime           @default(now())
+  // @@map("marketing_sync_logs") - standardized
+  tenants           tenants            @relation(fields: [tenant_id], references: [id])
+
+  @@index([account_id])
+  @@index([tenant_id])
 }
 
 model marketing_alerts {

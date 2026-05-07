@@ -30,6 +30,7 @@ import { CreateWorkflowDto } from "../dto/create-workflow.dto";
 import { UpdateWorkflowStatusDto } from "../dto/update-workflow-status.dto";
 import { ConnectAccountDto } from "../dto/connect-account.dto";
 import { UpdateAccountStatusDto } from "../dto/update-account-status.dto";
+import { UpdateAccountSettingsDto } from "../dto/update-account-settings.dto";
 import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
@@ -410,6 +411,9 @@ export class MarketingDbRepository extends IMarketingRepository {
       updated_at: i.updated_at,
       branch_id: i.branch_id ?? undefined,
       ecommerce_id: i.ecommerce_id ?? undefined,
+      daily_budget_limit: i.daily_budget_limit ? Number(i.daily_budget_limit) : undefined,
+      sync_frequency: i.sync_frequency,
+      metadata: i.metadata,
     }));
   }
 
@@ -441,6 +445,9 @@ export class MarketingDbRepository extends IMarketingRepository {
       updated_at: item.updated_at,
       branch_id: item.branch_id ?? undefined,
       ecommerce_id: item.ecommerce_id ?? undefined,
+      daily_budget_limit: item.daily_budget_limit ? Number(item.daily_budget_limit) : undefined,
+      sync_frequency: item.sync_frequency,
+      metadata: item.metadata,
     };
   }
 
@@ -468,6 +475,44 @@ export class MarketingDbRepository extends IMarketingRepository {
     };
   }
 
+  async updateAccountSettings(ctx: TenantContext,
+    id: string,
+    dto: UpdateAccountSettingsDto,
+  ): Promise<MarketingConnectedAccount> {
+    const item = await this.prisma.marketing_accounts.update({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      data: {
+        daily_budget_limit: dto.daily_budget_limit,
+        sync_frequency: dto.sync_frequency,
+        status: dto.status?.toUpperCase(),
+      },
+    });
+    return {
+      id: item.id,
+      tenant_id: item.tenant_id,
+      provider: item.provider as any,
+      account_name: item.account_name,
+      status: item.status.toLowerCase() as any,
+      tokenExpiresAt: item.token_expires_at,
+      scopes: item.scopes,
+      lastSyncAt: item.last_sync_at || undefined,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      branch_id: item.branch_id ?? undefined,
+      ecommerce_id: item.ecommerce_id ?? undefined,
+      daily_budget_limit: item.daily_budget_limit ? Number(item.daily_budget_limit) : undefined,
+      sync_frequency: item.sync_frequency,
+      metadata: item.metadata,
+    };
+  }
+
+  async deleteAccount(ctx: TenantContext, id: string): Promise<boolean> {
+    await this.prisma.marketing_accounts.delete({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+    });
+    return true;
+  }
+
   async getAttribution(ctx: TenantContext): Promise<MarketingAttribution[]> {
     const items = await this.prisma.marketing_attribution.findMany({
       where: MultiTenancyUtil.getScope(ctx),
@@ -489,51 +534,43 @@ export class MarketingDbRepository extends IMarketingRepository {
     }));
   }
 
-  async getAlerts(ctx: TenantContext): Promise<MarketingAlert[]> {
-    const items = await this.prisma.marketing_alerts.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
-      orderBy: { created_at: "desc" },
-    });
-    return items.map((i: any) => ({
-      id: i.id,
-      tenant_id: i.tenant_id,
-      type: i.type as any,
-      severity: i.severity as any,
-      entity_type: i.entity_type as any,
-      entity_id: i.entity_id,
-      message: i.message,
-      acknowledged: i.acknowledged,
-      created_at: i.created_at,
-      updated_at: i.updated_at,
-      branch_id: i.branch_id ?? undefined,
-      ecommerce_id: i.ecommerce_id ?? undefined,
-    }));
-  }
 
-  async acknowledgeAlert(ctx: TenantContext,
-    id: string,
-  ): Promise<MarketingAlert> {
-    const item = await this.prisma.marketing_alerts.update({
-      where: { id, ...MultiTenancyUtil.getScope(ctx) },
-      data: { acknowledged: true },
-    });
-    return {
-      id: item.id,
-      tenant_id: item.tenant_id,
-      type: item.type as any,
-      severity: item.severity as any,
-      entity_type: item.entity_type as any,
-      entity_id: item.entity_id,
-      message: item.message,
-      acknowledged: item.acknowledged,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      branch_id: item.branch_id ?? undefined,
-      ecommerce_id: item.ecommerce_id ?? undefined,
-    };
-  }
 
   async runHealthSweep(ctx: TenantContext, actor_id: string): Promise<MarketingAlert[]> {
+    const accounts = await this.prisma.marketing_accounts.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+    });
+
+    const now = new Date();
+    for (const account of accounts) {
+      if (account.token_expires_at && account.token_expires_at < now) {
+        const existing = await this.prisma.marketing_alerts.findFirst({
+          where: {
+            ...MultiTenancyUtil.getScope(ctx),
+            type: "TOKEN_EXPIRY",
+            entity_id: account.id,
+            acknowledged: false,
+          }
+        });
+
+        if (!existing) {
+          await this.prisma.marketing_alerts.create({
+            data: MultiTenancyUtil.wrapCreate(ctx, {
+              id: uuidv4(),
+              type: "TOKEN_EXPIRY",
+              severity: "HIGH",
+              entity_type: "ACCOUNT",
+              entity_id: account.id,
+              message: `OAuth token for ${account.provider} (${account.account_name}) has expired.`,
+              acknowledged: false,
+              created_at: now,
+              updated_at: now,
+            })
+          });
+        }
+      }
+    }
+
     return this.getAlerts(ctx);
   }
 
@@ -770,5 +807,48 @@ export class MarketingDbRepository extends IMarketingRepository {
 
     return results;
   }
+
+  async getAlerts(ctx: TenantContext): Promise<MarketingAlert[]> {
+    const items = await this.prisma.marketing_alerts.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { created_at: "desc" },
+    });
+    return items.map((i: any) => ({
+      id: i.id,
+      tenant_id: i.tenant_id,
+      type: i.type as any,
+      severity: i.severity as any,
+      entity_type: i.entity_type as any,
+      entity_id: i.entity_id,
+      message: i.message,
+      acknowledged: i.acknowledged,
+      created_at: i.created_at,
+      updated_at: i.updated_at,
+      branch_id: i.branch_id ?? undefined,
+      ecommerce_id: i.ecommerce_id ?? undefined,
+    }));
+  }
+
+  async acknowledgeAlert(ctx: TenantContext, id: string): Promise<MarketingAlert> {
+    const item = await this.prisma.marketing_alerts.update({
+      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      data: { acknowledged: true },
+    });
+    return {
+      id: item.id,
+      tenant_id: item.tenant_id,
+      type: item.type as any,
+      severity: item.severity as any,
+      entity_type: item.entity_type as any,
+      entity_id: item.entity_id,
+      message: item.message,
+      acknowledged: item.acknowledged,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      branch_id: item.branch_id ?? undefined,
+      ecommerce_id: item.ecommerce_id ?? undefined,
+    };
+  }
+
 }
 

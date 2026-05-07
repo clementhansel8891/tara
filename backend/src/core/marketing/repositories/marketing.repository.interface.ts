@@ -104,6 +104,9 @@ export abstract class IMarketingRepository {
     dto: UpdateAccountStatusDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount>;
+  abstract deleteAccount( ctx: TenantContext,
+    accountId: string,
+  ): Promise<boolean>;
 
   abstract getAttribution( ctx: TenantContext): Promise<MarketingAttribution[]>;
   abstract getAlerts( ctx: TenantContext): Promise<MarketingAlert[]>;

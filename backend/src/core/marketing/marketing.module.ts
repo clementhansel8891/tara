@@ -8,10 +8,13 @@ import { MarketingMockRepository } from "./repositories/marketing.mock.repositor
 import { IMarketingRepository } from "./repositories/marketing.repository.interface";
 import { Customer360Service } from "./customer-360.service";
 import { OmnichannelService } from "./omnichannel.service";
+import { SocialSyncService } from "./social-sync.service";
+import { SocialSyncWorker } from "./social-sync.worker";
 import { MarketingAutomationEngine } from "./automation-engine.service";
 import { BookingService } from "./booking.service";
 import { EventsModule } from "../../shared/events/events.module";
 import { AuditModule } from "../../shared/audit/audit.module";
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [EventsModule, AuditModule],
@@ -21,6 +24,8 @@ import { AuditModule } from "../../shared/audit/audit.module";
     MarketingService,
     Customer360Service,
     OmnichannelService,
+    SocialSyncService,
+    SocialSyncWorker,
     MarketingAutomationEngine,
     BookingService,
     {
@@ -34,6 +39,7 @@ import { AuditModule } from "../../shared/audit/audit.module";
     MarketingService,
     Customer360Service,
     OmnichannelService,
+    SocialSyncService,
     BookingService,
   ],
 })

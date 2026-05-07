@@ -707,6 +707,14 @@ export class MarketingMockRepository extends IMarketingRepository {
     return account;
   }
 
+  async deleteAccount(ctx: TenantContext, accountId: string): Promise<boolean> {
+    const store = this.getStore(ctx.tenant_id);
+    const index = store.accounts.findIndex((item) => item.id === accountId);
+    if (index === -1) throw new NotFoundException("Account not found");
+    store.accounts.splice(index, 1);
+    return true;
+  }
+
   async getAttribution(ctx: TenantContext): Promise<MarketingAttribution[]> {
     return this.getStore(ctx.tenant_id).attribution;
   }

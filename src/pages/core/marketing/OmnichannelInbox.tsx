@@ -32,7 +32,8 @@ import {
   BrainCircuit,
   Box,
   Layout,
-  Rocket
+  Rocket,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -147,9 +148,24 @@ export default function OmnichannelInbox() {
     }
   };
 
+  const [autoRefresh, setAutoRefresh] = useState(false);
+
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  useEffect(() => {
+    let interval: any;
+    if (autoRefresh) {
+      interval = setInterval(() => {
+        loadConversations(true);
+        if (selectedConv) {
+          loadMessages(selectedConv.contactId);
+        }
+      }, 10000); // 10s sync
+    }
+    return () => clearInterval(interval);
+  }, [autoRefresh, loadConversations, loadMessages, selectedConv]);
 
   useEffect(() => {
     if (selectedConv) {
@@ -421,7 +437,17 @@ export default function OmnichannelInbox() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
+                  <Button 
+                    variant={autoRefresh ? "default" : "outline"}
+                    className={cn(
+                      "h-12 px-6 rounded-2xl transition-all shadow-sm font-black text-[10px] uppercase tracking-widest gap-2",
+                      autoRefresh ? "bg-emerald-600 hover:bg-emerald-700" : "bg-white/50 dark:bg-slate-800/50"
+                    )}
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                  >
+                    <RefreshCw className={cn("h-4 w-4", autoRefresh && "animate-spin")} /> {autoRefresh ? "SYNC ACTIVE" : "AUTO-SYNC"}
+                  </Button>
+                  
                   <Button 
                     className="h-12 px-8 rounded-2xl bg-indigo-600/10 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all shadow-sm font-black text-[10px] uppercase tracking-widest gap-2 group"
                     onClick={() => toast.info("Triggering intelligent n8n workflow for this lead context...", {
@@ -503,11 +529,14 @@ export default function OmnichannelInbox() {
                               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic opacity-60">
                                 {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              {msg.direction === 'OUTBOUND' && (
-                                <div className="flex gap-0.5">
-                                  <CheckCheck className={cn("h-3.5 w-3.5", msg.status === 'READ' ? "text-emerald-500" : "text-slate-300")} />
-                                </div>
-                              )}
+                                {msg.direction === 'OUTBOUND' && (
+                                  <div className="flex gap-1 items-center">
+                                    {msg.status === 'SENDING' && <Loader2 className="h-3 w-3 animate-spin text-slate-300" />}
+                                    {msg.status === 'SENT' && <CheckCheck className="h-3.5 w-3.5 text-slate-300" />}
+                                    {msg.status === 'READ' && <CheckCheck className="h-3.5 w-3.5 text-emerald-500" />}
+                                    {msg.status === 'FAILED' && <AlertCircle className="h-3.5 w-3.5 text-rose-500" />}
+                                  </div>
+                                )}
                             </div>
                           </div>
                         </div>
