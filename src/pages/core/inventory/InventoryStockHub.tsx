@@ -37,8 +37,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   MoreHorizontal,
+  MoreVertical,
   Trash2,
   ArrowRightLeft,
+  ArrowLeftRight,
   PackagePlus,
   Send,
   ClipboardCheck,
@@ -49,6 +51,19 @@ import {
   Zap,
   Box,
   ShieldCheck,
+  Package,
+  Plus,
+  Upload,
+  FolderTree,
+  Move,
+  Globe,
+  LayoutGrid,
+  Layers,
+  LayoutList,
+  LayoutPanelLeft,
+  Search,
+  Filter,
+  Image as ImageIcon,
 } from "lucide-react";
 import type {
   InventoryStockBalance,
@@ -59,18 +74,15 @@ import { BatchIntakeDialog } from "./components/BatchIntakeDialog";
 import { BatchTransferDialog } from "./components/BatchTransferDialog";
 import { CategoryManager } from "@/components/shared/CategoryManager";
 import { ImageManager } from "./components/ImageManager";
-import { FolderTree, Move, MoreVertical } from "lucide-react";
-import { Image as ImageIcon } from "lucide-react";
 import { AdjustmentDialog } from "./components/AdjustmentDialog";
 import { ExportButton } from "@/components/shared/ExportButton";
 import { ImportDialog } from "@/components/shared/ImportDialog";
-import { Upload } from "lucide-react";
 import { ItemCreationTab } from "@/components/shared/ItemCreationTab";
 import { TransferDesk } from "./TransferDesk";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { InventoryGlassHeader } from "@/components/shared/InventoryGlassHeader";
 import { InventoryFilterHub } from "@/components/shared/InventoryFilterHub";
-import { Package, LayoutGrid, Layers, Globe, ArrowLeftRight, Search, Plus, Filter, LayoutList, LayoutPanelLeft } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Badge as UIBadge } from "@/components/ui/badge";
 
@@ -138,6 +150,10 @@ export default function InventoryStockHub() {
   const [opnameActive, setOpnameActive] = useState(false);
   const [opnameEntries, setOpnameEntries] = useState<OpnameEntry[]>([]);
   const [isSubmittingOpname, setIsSubmittingOpname] = useState(false);
+  const opnameDiscrepancyWidth = useMemo(() => {
+    if (opnameEntries.length === 0) return 0;
+    return (opnameEntries.filter(e => e.actualCount !== e.systemCount).length / opnameEntries.length) * 100;
+  }, [opnameEntries]);
 
   // Quick Create Opname
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
@@ -595,11 +611,13 @@ export default function InventoryStockHub() {
         )}
       </div>
 
-      {viewMode === "transfers" ? (
+      {viewMode === "transfers" && (
         <div className="max-w-[1600px] mx-auto">
           <TransferDesk />
         </div>
-      ) : viewMode === "opname" ? (
+      )}
+
+      {viewMode === "opname" && (
         <div className="max-w-[1600px] mx-auto space-y-8">
           {!opnameActive ? (
             <Card className="rounded-[3rem] border-white/5 bg-slate-900/40 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10 p-16 text-center space-y-8">
@@ -616,7 +634,7 @@ export default function InventoryStockHub() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto py-8">
-                {[
+                { [
                   { icon: ScanLine, label: "Precision Scan", desc: "Scan barcodes to sync" },
                   { icon: Zap, label: "Real-time Sync", desc: "Live ledger comparison" },
                   { icon: ShieldCheck, label: "Audit Trace", desc: "Approval-gated commit" },
@@ -626,7 +644,8 @@ export default function InventoryStockHub() {
                     <div className="text-xs font-black italic uppercase text-white">{f.label}</div>
                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight leading-relaxed">{f.desc}</div>
                   </div>
-                ))}
+                )) }
+              </div>
               <div className="max-w-md mx-auto space-y-4 py-8">
                 <div className="space-y-2 text-left">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Audit Target Location</label>
@@ -657,7 +676,13 @@ export default function InventoryStockHub() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
+              {(() => {
+                const discrepancyWidth = opnameEntries.length > 0 
+                  ? (opnameEntries.filter(ent => ent.actualCount !== ent.systemCount).length / opnameEntries.length) * 100 
+                  : 0;
+                return (
+                  <>
+                    <div className="lg:col-span-2 space-y-8">
                 <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/30 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10">
                   <div className="p-8 border-b border-white/10 flex items-center justify-between bg-white/5">
                     <div className="flex items-center gap-4">
@@ -767,8 +792,8 @@ export default function InventoryStockHub() {
                         <div className="h-2 bg-black/40 rounded-full overflow-hidden border border-white/5">
                           <div 
                             className="h-full bg-red-500 transition-all duration-1000" 
-                            style={{ width: `${opnameEntries.length > 0 ? (opnameEntries.filter(e => e.actualCount !== e.systemCount).length / opnameEntries.length) * 100 : 0}%` }}
-                          />
+                            style={{ width: `${opnameDiscrepancyWidth}%` }}
+                          ></div>
                         </div>
                       </div>
 
@@ -805,9 +830,10 @@ export default function InventoryStockHub() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      ) : (
+          </div>
+      )}
+
+      {viewMode !== "transfers" && viewMode !== "opname" && (
         <Card className="max-w-[1600px] mx-auto rounded-[2.5rem] border-white/5 bg-slate-900/30 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10">
           <div className="p-8 border-b border-white/40 flex items-center justify-between bg-slate-900/5">
             <div>
