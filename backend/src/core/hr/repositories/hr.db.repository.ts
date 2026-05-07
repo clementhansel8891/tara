@@ -91,8 +91,10 @@ export class HRDbRepository implements IHRRepository {
     const [employees, total] = await Promise.all([
       this.prisma.employees.findMany({
         where,
-        include: { locations: true,
+        include: { 
+          locations: true,
           departments: true,
+          companies: true,
         },
         orderBy: { last_name: "asc" },
         skip: (page - 1) * limit,
@@ -123,8 +125,10 @@ export class HRDbRepository implements IHRRepository {
     const [employees, total] = await Promise.all([
       this.prisma.employees.findMany({
         where,
-        include: { locations: true,
+        include: { 
+          locations: true,
           departments: true,
+          companies: true,
         },
         orderBy: { last_name: "asc" },
         skip: (page - 1) * limit,
@@ -149,8 +153,10 @@ export class HRDbRepository implements IHRRepository {
         tenant_id: tenant_id,
         deleted_at: null,
       },
-      include: { locations: true,
+      include: { 
+        locations: true,
         departments: true,
+        companies: true,
       },
     });
 
@@ -165,6 +171,7 @@ export class HRDbRepository implements IHRRepository {
       },
       include: { locations: true,
         departments: true,
+        companies: true,
       },
     });
 

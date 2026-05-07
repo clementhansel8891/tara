@@ -16,6 +16,7 @@ export interface ApiRequestOptions {
   responseType?: "json" | "blob";
   correlationId?: string;
   tenantId?: string;
+  locationId?: string;
 }
 
 export async function apiRequest<T>(
@@ -32,7 +33,7 @@ export async function apiRequest<T>(
     normalizedPath = `/v1${normalizedPath.startsWith("/") ? "" : "/"}${normalizedPath}`;
   }
 
-  const { responseType = "json", correlationId, tenantId } = options;
+  const { responseType = "json", correlationId, tenantId, locationId } = options;
   
   const headers: Record<string, string> = {};
 
@@ -59,6 +60,11 @@ export async function apiRequest<T>(
     headers["x-tenant-id"] = finalTenantId;
   }
 
+  const finalLocationId = locationId || session?.location_id;
+  if (finalLocationId) {
+    headers["x-location-id"] = finalLocationId;
+  }
+
   if (jvContext?.branchId) {
     headers["x-branch-id"] = jvContext.branchId;
   }
@@ -68,9 +74,6 @@ export async function apiRequest<T>(
     headers["x-user-role"] = session.role;
     if (session.company_id) {
       headers["x-company-id"] = session.company_id;
-    }
-    if (session.location_id) {
-      headers["x-location-id"] = session.location_id;
     }
     if (session.token) {
       headers["Authorization"] = `Bearer ${session.token}`;

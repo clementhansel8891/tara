@@ -31,9 +31,10 @@ export const attendanceService = {
       reason?: string;
   }) {
     return apiRequest<AttendanceRecord>("/v1/hr/attendance/clock-in", "POST", actor, {
-      locationId: input.locationId,
       employeeId: actor.user_id,
       reason: input.reason
+    }, {
+      locationId: input.locationId
     });
   },
 

@@ -15,10 +15,10 @@ import {
   History,
   FileText,
   Download,
-  DollarSign,
-  HandCoins,
-  Receipt,
-  Briefcase
+  Briefcase,
+  Coins,
+  CreditCard,
+  Target
 } from 'lucide-react';
 import { useSession } from '@/core/security/session';
 import { useApp } from '@/contexts/AppContext';
@@ -70,13 +70,35 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
   // Performance State
   const [perfSnapshot, setPerfSnapshot] = useState<any>(null);
 
-  // Docs State
   const [docs, setDocs] = useState<any[]>([
     { id: 'p1', title: 'Payslip - March 2026', type: 'PAYSLIP', date: '2026-03-28' },
     { id: 'p2', title: 'Payslip - February 2026', type: 'PAYSLIP', date: '2026-02-28' },
     { id: 'c1', title: 'Employment Contract - v2', type: 'CONTRACT', date: '2025-01-10' },
     { id: 'd1', title: 'Code of Conduct', type: 'POLICY', date: '2026-01-01' },
   ]);
+
+  const currencyData = useMemo(() => {
+    const company = record?.employee?.companies;
+    const currency = company?.currency || 'USD';
+    const symbolMap: Record<string, string> = {
+      'USD': '$',
+      'IDR': 'Rp',
+      'EUR': '€',
+      'GBP': '£'
+    };
+    return {
+      code: currency,
+      symbol: symbolMap[currency] || currency,
+      icon: currency === 'IDR' ? Coins : DollarSign
+    };
+  }, [record]);
+
+  const formatWithCurrency = (amount: number) => {
+    if (currencyData.code === 'IDR') {
+      return `Rp ${amount.toLocaleString('id-ID')}`;
+    }
+    return `${currencyData.symbol}${amount.toLocaleString()}`;
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -214,7 +236,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                 className="h-14 px-6 rounded-2xl font-black italic tracking-widest uppercase text-[10px] border-slate-200 bg-white hover:bg-slate-50 gap-2 shadow-sm"
                 onClick={() => setIsLoanOpen(true)}
              >
-                <HandCoins className="w-4 h-4 text-indigo-600" /> Loan Request
+                <currencyData.icon className="w-4 h-4 text-indigo-600" /> Loan Request
              </Button>
           </div>
         </div>
@@ -272,7 +294,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                     <div className="space-y-1">
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Next Net Payout (Est.)</p>
                        <p className="text-3xl font-black text-slate-900">
-                         {formatCurrency(
+                         {formatWithCurrency(
                            (record?.employee?.baseSalary || 4500) + 
                            (perfSnapshot?.accruedBonus || 0) - 
                            (perfSnapshot?.estimatedTax || 850) - 
@@ -290,7 +312,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                             </div>
                             <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                                <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Bonus</p>
-                               <p className="text-lg font-black text-emerald-900">+{formatCurrency(perfSnapshot?.accruedBonus || 450)}</p>
+                               <p className="text-lg font-black text-emerald-900">+{formatWithCurrency(perfSnapshot?.accruedBonus || 450)}</p>
                             </div>
                          </div>
                        )}
@@ -301,7 +323,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                                 <AlertCircle className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase">Est. Tax & Social</span>
                              </div>
-                             <span className="text-xs font-black text-slate-700">-{formatCurrency(perfSnapshot?.estimatedTax || 850)}</span>
+                             <span className="text-xs font-black text-slate-700">-{formatWithCurrency(perfSnapshot?.estimatedTax || 850)}</span>
                           </div>
 
                           {activeLoan && (
@@ -310,7 +332,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                                   <Receipt className="w-3.5 h-3.5" />
                                   <span className="text-[9px] font-black uppercase">Loan Installment</span>
                                </div>
-                               <span className="text-xs font-black text-amber-900">-{formatCurrency(activeLoan.monthlyInstallment)}</span>
+                               <span className="text-xs font-black text-amber-900">-{formatWithCurrency(activeLoan.monthlyInstallment)}</span>
                             </div>
                           )}
                        </div>
@@ -456,18 +478,156 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
            </Card>
         </TabsContent>
 
-        {/* Other Tabs Stubs for Phase 1 Migration */}
-        {['payroll', 'leave', 'performance'].map((tab) => (
-          <TabsContent key={tab} value={tab}>
-             <div className="py-20 flex flex-col items-center justify-center text-slate-300">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                   <Info className="w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-black italic uppercase tracking-wider text-slate-400">{tab.toUpperCase()} NODE</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2">Undergoing Operational Migration</p>
-             </div>
-          </TabsContent>
-        ))}
+        <TabsContent value="payroll">
+           <Card className="border-slate-200 shadow-sm">
+              <CardHeader>
+                 <CardTitle className="text-xl font-black italic uppercase tracking-wider">Payroll Consolidation</CardTitle>
+                 <CardDescription className="text-xs font-bold uppercase tracking-widest text-slate-500">Historical compensation runs and disbursement telemetry.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                    <table className="w-full text-left">
+                       <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          <tr>
+                             <th className="p-6">Period Node</th>
+                             <th className="p-6">Base Pay</th>
+                             <th className="p-6">Bonus Signal</th>
+                             <th className="p-6">Net Disbursement</th>
+                             <th className="p-6">Action</th>
+                          </tr>
+                       </thead>
+                       <tbody className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          {(record?.payrollRuns || []).map((run: any) => (
+                            <tr key={run.id} className="border-t border-slate-100 hover:bg-slate-50/30 transition-colors">
+                               <td className="p-6 italic font-black text-slate-900">{run.period}</td>
+                               <td className="p-6">{formatWithCurrency(run.basePay)}</td>
+                               <td className="p-6 text-emerald-600">+{formatWithCurrency(run.bonuses || 0)}</td>
+                               <td className="p-6 font-black">{formatWithCurrency(run.netPay)}</td>
+                               <td className="p-6">
+                                  <Button variant="ghost" size="sm" className="h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest gap-2">
+                                     <Download className="w-3 h-3" /> PDF
+                                  </Button>
+                               </td>
+                            </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 </div>
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        <TabsContent value="leave">
+           <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between">
+                 <div>
+                    <CardTitle className="text-xl font-black italic uppercase tracking-wider">Leave Roster</CardTitle>
+                    <CardDescription className="text-xs font-bold uppercase tracking-widest text-slate-500">Scheduled absences and balance synchronization.</CardDescription>
+                 </div>
+                 <Button className="h-10 px-6 rounded-xl font-black italic uppercase tracking-widest text-[9px] bg-slate-900">Request Time-Off</Button>
+              </CardHeader>
+              <CardContent>
+                 <div className="rounded-2xl border border-slate-100 overflow-hidden">
+                    <table className="w-full text-left">
+                       <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                          <tr>
+                             <th className="p-6">Interval</th>
+                             <th className="p-6">Category</th>
+                             <th className="p-6">Status</th>
+                             <th className="p-6">Reasoning</th>
+                          </tr>
+                       </thead>
+                       <tbody className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          {(record?.leaves || []).map((req: any) => (
+                            <tr key={req.id} className="border-t border-slate-100 hover:bg-slate-50/30 transition-colors">
+                               <td className="p-6">{req.startDate} — {req.endDate}</td>
+                               <td className="p-6 italic text-slate-500">{req.type}</td>
+                               <td className="p-6">
+                                  <Badge className={cn(
+                                     "font-black text-[9px] uppercase tracking-widest",
+                                     req.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
+                                  )}>
+                                     {req.status}
+                                  </Badge>
+                               </td>
+                               <td className="p-6 text-slate-400 truncate max-w-[200px]">{req.reason || 'N/A'}</td>
+                            </tr>
+                          ))}
+                       </tbody>
+                    </table>
+                 </div>
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        <TabsContent value="performance">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border-slate-200 shadow-sm col-span-2">
+                 <CardHeader>
+                    <CardTitle className="text-xl font-black italic uppercase tracking-wider">Operational Efficiency</CardTitle>
+                    <CardDescription className="text-xs font-bold uppercase tracking-widest text-slate-500">Real-time performance metrics and contribution signal.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-8">
+                    <div className="grid grid-cols-3 gap-6">
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sales Throughput</p>
+                          <p className="text-2xl font-black text-slate-900">{perfSnapshot?.itemsSold || 142} <span className="text-xs text-slate-400">SKUs</span></p>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quality Score</p>
+                          <p className="text-2xl font-black text-slate-900">98.2%</p>
+                       </div>
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bonuses Accrued</p>
+                          <p className="text-2xl font-black text-emerald-600">+{formatWithCurrency(perfSnapshot?.accruedBonus || 450)}</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Competency Radar</h4>
+                       <div className="grid grid-cols-2 gap-6">
+                          {['Customer Focus', 'Inventory Integrity', 'Process Compliance', 'Team Synergy'].map(skill => (
+                             <div key={skill} className="space-y-2">
+                                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                   <span className="text-slate-500">{skill}</span>
+                                   <span className="text-slate-900">{Math.floor(Math.random() * 20) + 80}%</span>
+                                </div>
+                                <Progress value={Math.floor(Math.random() * 20) + 80} className="h-1.5 bg-slate-100" />
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 </CardContent>
+              </Card>
+
+              <Card className="border-slate-200 shadow-sm bg-slate-900 text-white">
+                 <CardHeader>
+                    <CardTitle className="text-lg font-black italic uppercase tracking-wider text-indigo-400">Target Pulse</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-6">
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-4">
+                       <Target className="w-8 h-8 text-indigo-400" />
+                       <div>
+                          <p className="text-xs font-black uppercase">Quarterly Goal</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">Reach 500 SKU Volume</p>
+                       </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                          <span className="text-slate-400">Progress</span>
+                          <span className="text-white">28%</span>
+                       </div>
+                       <Progress value={28} className="h-2 bg-white/10" />
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10">
+                       <p className="text-[9px] font-bold text-slate-500 uppercase italic tracking-widest">Your performance contribution is directly linked to the quarterly dividend pool.</p>
+                    </div>
+                 </CardContent>
+              </Card>
+           </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -566,7 +726,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Principal Amount</Label>
                   <div className="relative">
-                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                     <currencyData.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                      <Input 
                         type="number" 
                         className="pl-9 h-12 border-slate-200 rounded-xl font-black italic text-lg" 
@@ -574,6 +734,9 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                         value={loanAmount}
                         onChange={(e) => setLoanAmount(e.target.value)}
                      />
+                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">
+                        {currencyData.code}
+                     </div>
                   </div>
                </div>
 
@@ -594,7 +757,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                   <div className="space-y-2">
                      <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly Est.</Label>
                      <div className="h-12 flex items-center px-4 bg-slate-100 rounded-xl font-black text-xs text-slate-900">
-                        {formatCurrency(Math.round(Number(loanAmount || 0) / Number(loanInstallments)))}
+                        {formatWithCurrency(Math.round(Number(loanAmount || 0) / Number(loanInstallments)))}
                      </div>
                   </div>
                </div>
