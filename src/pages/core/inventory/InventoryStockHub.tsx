@@ -95,6 +95,10 @@ interface OpnameEntry {
   systemCount: number;
   actualCount: number;
   timestamp: string;
+  type: "NORMAL" | "NEW_DISCOVERY" | "ANOMALY";
+  reason?: string;
+  notes?: string;
+  barcode?: string;
 }
 
 const ITEM_CATEGORIES = [
@@ -155,12 +159,16 @@ export default function InventoryStockHub() {
     return (opnameEntries.filter(e => e.actualCount !== e.systemCount).length / opnameEntries.length) * 100;
   }, [opnameEntries]);
 
-  // Quick Create Opname
-  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
-  const [quickCreateBarcode, setQuickCreateBarcode] = useState("");
-  const [quickCreateName, setQuickCreateName] = useState("");
-  const [quickCreateCategory, setQuickCreateCategory] = useState("ITEM");
-  const [isCreatingQuickItem, setIsCreatingQuickItem] = useState(false);
+  // Discovery / Anomaly Dialog state
+  const [isDiscoveryOpen, setIsDiscoveryOpen] = useState(false);
+  const [discoveryBarcode, setDiscoveryBarcode] = useState("");
+  const [discoveryName, setDiscoveryName] = useState("");
+  const [discoverySku, setDiscoverySku] = useState("");
+  const [discoveryCategory, setDiscoveryCategory] = useState("ITEM");
+  const [discoveryType, setDiscoveryType] = useState<"NEW_DISCOVERY" | "ANOMALY">("NEW_DISCOVERY");
+  const [discoveryReason, setDiscoveryReason] = useState("");
+  const [discoveryNotes, setDiscoveryNotes] = useState("");
+  const [isProcessingDiscovery, setIsProcessingDiscovery] = useState(false);
 
   useBarcodeScanner((barcode) => {
     if (viewMode === "opname" && opnameActive) {
@@ -244,9 +252,13 @@ export default function InventoryStockHub() {
   const handleOpnameScan = useCallback((barcode: string) => {
     const item = items.find(i => i.barcode === barcode || i.sku === barcode || i.id === barcode);
     if (!item) {
-      setQuickCreateBarcode(barcode);
-      setQuickCreateName("");
-      setIsQuickCreateOpen(true);
+      setDiscoveryBarcode(barcode);
+      setDiscoveryName("");
+      setDiscoverySku("");
+      setDiscoveryType("NEW_DISCOVERY");
+      setDiscoveryReason("");
+      setDiscoveryNotes("");
+      setIsDiscoveryOpen(true);
       return;
     }
 
@@ -262,13 +274,29 @@ export default function InventoryStockHub() {
         itemId: item.id,
         sku: item.sku,
         name: item.name,
-        systemCount: balance?.amount || 0,
+        systemCount: balance?.quantity || 0,
         actualCount: 1,
-        timestamp: new Date().toLocaleTimeString()
+        timestamp: new Date().toLocaleTimeString(),
+        type: "NORMAL"
       }, ...prev];
     });
     setStatusMessage(`Added ${item.name} to audit list.`);
   }, [items, balances, selectedLocationId]);
+
+  const handleManualDiscovery = () => {
+    setDiscoveryBarcode("");
+    setDiscoveryName("");
+    setDiscoverySku("");
+    setDiscoveryType("NEW_DISCOVERY");
+    setDiscoveryReason("");
+    setDiscoveryNotes("");
+    setIsDiscoveryOpen(true);
+  };
+
+  const generateSystemBarcode = () => {
+    setDiscoveryBarcode(`ZVX-${Date.now()}`);
+    setStatusMessage("System barcode generated.");
+  };
 
   const startOpname = () => {
     if (!selectedLocationId && viewMode !== "total") {
@@ -290,7 +318,8 @@ export default function InventoryStockHub() {
           itemId: e.itemId,
           locationId: selectedLocationId || session.location_id,
           actualCount: e.actualCount,
-          reason: "Stock Opname Audit"
+          reason: e.type === "NORMAL" ? "Stock Opname Audit" : `Audit Discovery: ${e.reason}`,
+          notes: e.notes || `Audit Type: ${e.type}`
         }))
       );
       setStatusMessage("Opname session submitted for reconciliation.");
@@ -304,38 +333,69 @@ export default function InventoryStockHub() {
     }
   };
 
-  const handleQuickCreate = async () => {
-    if (!quickCreateName.trim()) return;
-    setIsCreatingQuickItem(true);
+  const handleDiscovery = async () => {
+    if (discoveryType === "NEW_DISCOVERY" && (!discoveryName.trim() || !discoverySku.trim() || !discoveryBarcode.trim())) {
+      setErrorMessage("Please fill in all item details for stock addition.");
+      return;
+    }
+    if (!discoveryReason.trim()) {
+      setErrorMessage("Reason is mandatory for audit discovery.");
+      return;
+    }
+
+    setIsProcessingDiscovery(true);
     try {
-      const newItem = await inventoryService.createItem(session.tenant_id, session, {
-        sku: quickCreateBarcode,
-        barcode: quickCreateBarcode,
-        name: quickCreateName.trim(),
-        category: quickCreateCategory as any,
-        uom: "PCS",
-        basePrice: 0,
-        moduleTags: ["GENERAL"],
-        status: "active"
-      });
-      
-      // Add to entries
-      setOpnameEntries(prev => [{
-        itemId: newItem.id,
-        sku: newItem.sku,
-        name: newItem.name,
-        systemCount: 0,
-        actualCount: 1,
-        timestamp: new Date().toLocaleTimeString()
-      }, ...prev]);
-      
-      setIsQuickCreateOpen(false);
-      setStatusMessage(`Discovered and registered: ${newItem.name}`);
-      refresh(); // Refresh items list
+      if (discoveryType === "NEW_DISCOVERY") {
+        // Register new item
+        const newItem = await inventoryService.createItem(session.tenant_id, session, {
+          sku: discoverySku,
+          barcode: discoveryBarcode,
+          name: discoveryName.trim(),
+          category: discoveryCategory as any,
+          uom: "PCS",
+          basePrice: 0,
+          moduleTags: ["GENERAL"],
+          status: "active",
+          description: discoveryNotes
+        });
+
+        setOpnameEntries(prev => [{
+          itemId: newItem.id,
+          sku: newItem.sku,
+          name: newItem.name,
+          systemCount: 0,
+          actualCount: 1,
+          timestamp: new Date().toLocaleTimeString(),
+          type: "NEW_DISCOVERY",
+          reason: discoveryReason,
+          notes: discoveryNotes,
+          barcode: discoveryBarcode
+        }, ...prev]);
+        setStatusMessage(`Successfully registered ${newItem.name} and added to audit.`);
+        refresh();
+      } else {
+        // Handle Anomaly
+        const anomalyId = `ANOM-${Date.now()}`;
+        setOpnameEntries(prev => [{
+          itemId: anomalyId,
+          sku: discoverySku || "UNKNOWN",
+          name: discoveryName || "Unknown Anomaly",
+          systemCount: 0,
+          actualCount: 1,
+          timestamp: new Date().toLocaleTimeString(),
+          type: "ANOMALY",
+          reason: discoveryReason,
+          notes: discoveryNotes,
+          barcode: discoveryBarcode
+        }, ...prev]);
+        setStatusMessage(`Anomaly recorded for investigation.`);
+      }
+
+      setIsDiscoveryOpen(false);
     } catch (err) {
-      setErrorMessage("Failed to quick-register item.");
+      setErrorMessage("Discovery processing failed.");
     } finally {
-      setIsCreatingQuickItem(false);
+      setIsProcessingDiscovery(false);
     }
   };
 
@@ -673,6 +733,7 @@ export default function InventoryStockHub() {
               >
                 <Zap className="w-6 h-6 fill-current" /> Start Audit Session
               </Button>
+
             </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -695,9 +756,13 @@ export default function InventoryStockHub() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <UIBadge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 px-3 py-1 font-black italic text-[10px] uppercase">
-                        SENSORS: NOMINAL
-                      </UIBadge>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleManualDiscovery}
+                        className="h-10 px-4 rounded-xl border-white/10 bg-white/5 text-white font-black italic uppercase tracking-widest text-[9px] gap-2 hover:bg-white/10"
+                      >
+                        <Plus className="w-4 h-4 text-indigo-400" /> Discovery
+                      </Button>
                     </div>
                   </div>
                   
@@ -718,10 +783,19 @@ export default function InventoryStockHub() {
                                   <Box className="w-7 h-7" />
                                 </div>
                                 <div>
-                                  <div className="text-base font-black text-white italic tracking-tight">{e.name}</div>
-                                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                    {e.sku} • {e.timestamp}
+                                  <div className="flex items-center gap-2">
+                                    <div className="text-base font-black text-white italic tracking-tight">{e.name}</div>
+                                    {e.type === "NEW_DISCOVERY" && <UIBadge className="bg-emerald-500 text-white border-none text-[8px] h-4 font-black italic">NEW DISCOVERY</UIBadge>}
+                                    {e.type === "ANOMALY" && <UIBadge className="bg-red-500 text-white border-none text-[8px] h-4 font-black italic">ANOMALY</UIBadge>}
                                   </div>
+                                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+                                    {e.sku} • {e.timestamp} {e.barcode ? `• BC: ${e.barcode}` : ""}
+                                  </div>
+                                  {e.reason && (
+                                    <div className="text-[9px] font-bold text-indigo-400/80 uppercase tracking-tight mt-1 italic">
+                                      Reason: {e.reason}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               
@@ -770,14 +844,25 @@ export default function InventoryStockHub() {
                         <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 italic">Session Reconciliation</h3>
                         <div className="mt-8 grid grid-cols-2 gap-4">
                           <div className="p-6 bg-black/40 rounded-[1.5rem] border border-white/5 shadow-inner">
-                            <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Total SKUs</div>
-                            <div className="text-3xl font-black text-white italic">{opnameEntries.length}</div>
+                            <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Standard Items</div>
+                            <div className="text-3xl font-black text-white italic">{opnameEntries.filter(e => e.type === "NORMAL").length}</div>
                           </div>
                           <div className="p-6 bg-black/40 rounded-[1.5rem] border border-white/5 shadow-inner">
-                            <div className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1 italic">Matched</div>
+                            <div className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1 italic">Discoveries</div>
                             <div className="text-3xl font-black text-emerald-500 italic">
-                              {opnameEntries.filter(e => e.actualCount === e.systemCount).length}
+                              {opnameEntries.filter(e => e.type === "NEW_DISCOVERY").length}
                             </div>
+                          </div>
+                        </div>
+                        <div className="mt-4 p-6 bg-red-500/10 rounded-[1.5rem] border border-red-500/20 shadow-inner flex items-center justify-between">
+                          <div>
+                            <div className="text-[8px] font-black text-red-500 uppercase tracking-widest mb-1 italic">Detected Anomalies</div>
+                            <div className="text-3xl font-black text-red-500 italic">
+                              {opnameEntries.filter(e => e.type === "ANOMALY").length}
+                            </div>
+                          </div>
+                          <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                            <AlertCircle className="w-5 h-5 text-red-500" />
                           </div>
                         </div>
                       </div>
@@ -1240,47 +1325,124 @@ export default function InventoryStockHub() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Dialog open={isQuickCreateOpen} onOpenChange={setIsQuickCreateOpen}>
-        <DialogContent className="rounded-[2rem] border-white/10 bg-slate-900 text-white shadow-2xl">
+      <Dialog open={isDiscoveryOpen} onOpenChange={setIsDiscoveryOpen}>
+        <DialogContent className="rounded-[2.5rem] border-white/10 bg-slate-900 text-white shadow-2xl max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black italic tracking-tighter uppercase text-indigo-400">Unknown Item Discovered</DialogTitle>
+            <DialogTitle className="text-2xl font-black italic tracking-tighter uppercase text-indigo-400">
+              Audit Discovery Terminal
+            </DialogTitle>
             <DialogDescription className="text-slate-400 font-bold italic">
-              Barcode <span className="text-white">[{quickCreateBarcode}]</span> is not in the system. Register it now to include it in the audit.
+              Classify and record items found during physical audit that are not synchronized with the digital ledger.
             </DialogDescription>
           </DialogHeader>
+
           <div className="space-y-6 py-6">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Item Name</Label>
-              <Input 
-                value={quickCreateName} 
-                onChange={e => setQuickCreateName(e.target.value)}
-                placeholder="E.G. NEW PRODUCT SKU X..."
-                className="h-14 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase tracking-wider focus:border-indigo-500/50"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant={discoveryType === "NEW_DISCOVERY" ? "default" : "outline"}
+                onClick={() => setDiscoveryType("NEW_DISCOVERY")}
+                className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 border-white/10 ${discoveryType === "NEW_DISCOVERY" ? "bg-white text-slate-950" : "bg-white/5 text-white"}`}
+              >
+                <PackagePlus className="w-6 h-6" />
+                <span className="text-[10px] font-black uppercase italic">Add to Stock</span>
+              </Button>
+              <Button 
+                variant={discoveryType === "ANOMALY" ? "default" : "outline"}
+                onClick={() => setDiscoveryType("ANOMALY")}
+                className={`h-20 rounded-2xl flex flex-col items-center justify-center gap-1 border-white/10 ${discoveryType === "ANOMALY" ? "bg-red-500 text-white" : "bg-white/5 text-white"}`}
+              >
+                <AlertCircle className="w-6 h-6" />
+                <span className="text-[10px] font-black uppercase italic">Mark as Anomaly</span>
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</Label>
-              <Select value={quickCreateCategory} onValueChange={setQuickCreateCategory}>
-                <SelectTrigger className="h-14 rounded-xl bg-white/5 border-white/10 text-white font-bold italic text-xs">
-                  <SelectValue placeholder="SELECT CATEGORY..." />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-white/10 text-white rounded-xl">
-                  {ITEM_CATEGORIES.map(c => (
-                    <SelectItem key={c} value={c} className="font-bold italic">{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Barcode</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={discoveryBarcode} 
+                      onChange={e => setDiscoveryBarcode(e.target.value)}
+                      placeholder="SCAN OR ENTER..."
+                      className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase"
+                    />
+                    {!discoveryBarcode && (
+                      <Button onClick={generateSystemBarcode} variant="outline" className="h-12 w-12 shrink-0 rounded-xl border-white/10 bg-white/5">
+                        <RefreshCw className="w-4 h-4 text-indigo-400" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">SKU</Label>
+                  <Input 
+                    value={discoverySku} 
+                    onChange={e => setDiscoverySku(e.target.value)}
+                    placeholder="ENTER SKU..."
+                    className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase"
+                  />
+                </div>
+              </div>
+
+              {discoveryType === "NEW_DISCOVERY" && (
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Item Name</Label>
+                    <Input 
+                      value={discoveryName} 
+                      onChange={e => setDiscoveryName(e.target.value)}
+                      placeholder="PRODUCT DESCRIPTION..."
+                      className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</Label>
+                    <Select value={discoveryCategory} onValueChange={setDiscoveryCategory}>
+                      <SelectTrigger className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic">
+                        <SelectValue placeholder="SELECT CATEGORY..." />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-white/10 text-white">
+                        {ITEM_CATEGORIES.map(c => (
+                          <SelectItem key={c} value={c} className="font-bold italic">{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Reason for {discoveryType === "ANOMALY" ? "Anomaly" : "Stock Addition"}</Label>
+                <Input 
+                  value={discoveryReason} 
+                  onChange={e => setDiscoveryReason(e.target.value)}
+                  placeholder="E.G. FOUND UNREGISTERED IN BIN 04..."
+                  className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Notes / Details</Label>
+                <Input 
+                  value={discoveryNotes} 
+                  onChange={e => setDiscoveryNotes(e.target.value)}
+                  placeholder="ADDITIONAL CONTEXT..."
+                  className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-bold italic uppercase"
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsQuickCreateOpen(false)} className="rounded-xl font-black italic uppercase text-[10px] tracking-widest text-slate-500">Cancel</Button>
+
+          <DialogFooter className="gap-3">
+            <Button variant="ghost" onClick={() => setIsDiscoveryOpen(false)} className="rounded-xl font-black italic uppercase text-[10px] tracking-widest text-slate-500">Cancel</Button>
             <Button 
-              onClick={handleQuickCreate} 
-              disabled={!quickCreateName.trim() || isCreatingQuickItem}
-              className="h-14 px-8 rounded-xl bg-white text-slate-950 font-black italic uppercase tracking-widest text-xs gap-2"
+              onClick={handleDiscovery} 
+              disabled={isProcessingDiscovery || !discoveryReason.trim()}
+              className={`h-14 px-8 rounded-xl font-black italic uppercase tracking-widest text-xs gap-2 ${discoveryType === "ANOMALY" ? "bg-red-500 text-white hover:bg-red-600" : "bg-white text-slate-950 hover:bg-slate-200"}`}
             >
-              {isCreatingQuickItem ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} 
-              Register & Add to Audit
+              {isProcessingDiscovery ? <RefreshCw className="w-4 h-4 animate-spin" /> : (discoveryType === "ANOMALY" ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />)} 
+              {discoveryType === "ANOMALY" ? "Log Anomaly" : "Add to Audit"}
             </Button>
           </DialogFooter>
         </DialogContent>

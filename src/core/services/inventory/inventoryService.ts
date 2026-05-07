@@ -622,5 +622,21 @@ export const inventoryService = {
       { categoryId },
     );
   },
+
+  async submitBulkAdjustment(
+    tenantId: string,
+    session: SessionContext,
+    adjustments: Array<{
+      itemId: string;
+      locationId: string;
+      actualCount: number;
+      reason: string;
+      notes?: string;
+    }>,
+  ) {
+    return apiRequest<any>("/v1/inventory/bulk-adjustments", "POST", session, {
+      adjustments,
+    });
+  },
 };
 
