@@ -135,15 +135,10 @@ export default function CoreDashboard() {
           </div>
 
           <TabsContent value="overview" className="space-y-12 m-0">
-            {/* Tier 0: The Strategic Core */}
-            <div className="grid gap-8 lg:grid-cols-4">
-               <div className="lg:col-span-3">
-                  <ExecutiveKpiRow kpis={dashboardData.kpis} />
-               </div>
-               <StrategicScorecard />
-            </div>
+            {/* Tier 0: Executive KPI Matrix */}
+            <ExecutiveKpiRow kpis={dashboardData.kpis} />
 
-            {/* Tier 1: Financial Trajectory & Regional Performance */}
+            {/* Tier 1: Strategic Core & Financial Trajectory */}
             <div className="grid gap-8 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <FinancialTrajectoryChart 
@@ -155,40 +150,40 @@ export default function CoreDashboard() {
                   }}
                 />
               </div>
-              <BranchLeaderboard data={dashboardData.timeseries.topBranches} />
+              <StrategicScorecard />
             </div>
 
-            {/* Tier 2: Resource Allocation & Efficiency */}
-            <div className="grid gap-8 lg:grid-cols-4">
-               <div className="lg:col-span-2 space-y-8">
-                  <HrCapitalWidget distribution={dashboardData.timeseries.hrDistribution} />
-                  <div className="grid gap-8 sm:grid-cols-2">
-                     <CashPositionWidget />
-                     <ArApWaterfallChart />
-                  </div>
-               </div>
-               <div className="space-y-8">
-                  <PayrollBurnTrendChart />
-                  <AttendanceGauge />
-               </div>
+            {/* Tier 2: Human Capital & Regional Leaders */}
+            <div className="grid gap-8 lg:grid-cols-3">
+               <HrCapitalWidget distribution={dashboardData.timeseries.hrDistribution} />
+               <BranchLeaderboard data={dashboardData.timeseries.topBranches} />
                <SalesPipelineFunnel />
             </div>
 
-            {/* Tier 3: Supply Chain & Risk Matrix */}
+            {/* Tier 3: Treasury & Efficiency */}
             <div className="grid gap-8 lg:grid-cols-3">
-               <div className="lg:col-span-2 grid gap-8 sm:grid-cols-2">
-                  <InventoryHealthWidget />
-                  <ProcurementPipelineWidget />
+               <CashPositionWidget />
+               <ArApWaterfallChart />
+               <div className="grid gap-8">
+                  <PayrollBurnTrendChart />
+                  <AttendanceGauge />
                </div>
+            </div>
+
+            {/* Tier 4: Supply Chain & Risk Matrix */}
+            <div className="grid gap-8 lg:grid-cols-3">
+               <InventoryHealthWidget />
+               <ProcurementPipelineWidget />
                <AlertsRiskMatrix data={dashboardData.timeseries.alertsByModule as any} />
             </div>
 
-            {/* Tier 4: Growth & Compliance */}
+            {/* Tier 5: Growth & Compliance */}
             <div className="grid gap-8 lg:grid-cols-3">
                <MarketingRoiChart data={dashboardData.timeseries.campaignCorrelation} />
                <SystemHealthDonut data={dashboardData.timeseries.moduleHealth} />
                <ComplianceHeatmap />
             </div>
+
 
             {/* Tier 5: Global Intelligence Feed */}
             <div className="grid gap-8 lg:grid-cols-3">
