@@ -1,8 +1,7 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Store, User, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Store, User, Clock, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Shift {
@@ -23,52 +22,82 @@ export const RetailShiftMatrix: React.FC<RetailShiftMatrixProps> = ({ data = [] 
   const navigate = useNavigate();
 
   return (
-    <WorkspacePanel 
-      title="Retail Shift Oversight" 
-      description="Live status of cashiers and reconciliation"
-      variant="glass"
-      className="cursor-pointer"
+    <div 
+      className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/m/retail/management')}
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <ShoppingBag className="h-6 w-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Retail Shift Matrix</h4>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Live status of cashiers and reconciliation</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
+           <span className="text-[10px] font-black text-white">{data.length}</span>
+           <span className="text-[8px] font-bold text-slate-500 ml-1 uppercase tracking-tighter">Active Shifts</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {data.map((shift, i) => (
-          <div key={i} className="group flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white/50 p-4 transition-all hover:bg-white hover:shadow-md">
+          <div key={i} className="group/shift relative flex flex-col gap-6 rounded-3xl border border-white/5 bg-white/2 p-6 transition-all hover:bg-white/5 hover:border-white/10">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Store className="h-3.5 w-3.5 text-slate-400" />
-                <span className="text-[10px] font-black uppercase tracking-tight text-slate-500">{shift.store}</span>
+              <div className="flex items-center gap-2 text-slate-500 group-hover/shift:text-indigo-400 transition-colors">
+                <Store className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{shift.store}</span>
               </div>
-              <Badge variant="outline" className={cn(
-                "h-5 rounded-full px-2 text-[8px] font-black uppercase border-none",
-                shift.status === 'OPEN' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
+              <div className={cn(
+                "h-5 rounded-full px-2.5 flex items-center text-[8px] font-black uppercase tracking-widest border",
+                shift.status === 'OPEN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border-white/5'
               )}>
                 {shift.status}
-              </Badge>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
-                <User className="h-4 w-4" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 border border-white/5 text-white">
+                <User className="h-6 w-6 opacity-40 group-hover/shift:opacity-100 transition-opacity" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-900">{shift.cashier}</p>
-                <div className="flex items-center gap-1 text-[9px] font-medium text-slate-400">
-                  <Clock className="h-2.5 w-2.5" /> Opened {new Date(shift.openTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <p className="text-sm font-black text-white tracking-tight">{shift.cashier}</p>
+                <div className="flex items-center gap-1.5 text-[9px] font-bold text-slate-500 mt-1">
+                  <Clock className="h-3 w-3" /> Opened {new Date(shift.openTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
               </div>
             </div>
 
-            <div className="mt-1 flex items-center justify-between border-t border-slate-50 pt-3">
-              <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Reconciled</span>
+            <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-4">
+              <span className="text-[9px] font-black uppercase text-slate-600 tracking-[0.2em] group-hover/shift:text-slate-400 transition-colors">Reconciled</span>
               {shift.reconciled ? (
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                <div className="flex items-center gap-1.5 text-emerald-400">
+                   <span className="text-[8px] font-black uppercase">Cleared</span>
+                   <CheckCircle2 className="h-4 w-4" />
+                </div>
               ) : (
-                <AlertCircle className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
+                <div className="flex items-center gap-1.5 text-rose-500">
+                   <span className="text-[8px] font-black uppercase animate-pulse">Pending</span>
+                   <AlertCircle className="h-4 w-4 animate-pulse" />
+                </div>
               )}
+            </div>
+            
+            {/* Subtle highlight line */}
+            <div className="absolute top-0 right-0 h-10 w-10 overflow-hidden pointer-events-none">
+               <div className={cn(
+                 "absolute -top-5 -right-5 h-10 w-10 rotate-45 transition-colors",
+                 shift.reconciled ? "bg-emerald-500/20" : "bg-rose-500/20"
+               )} />
             </div>
           </div>
         ))}
       </div>
-    </WorkspacePanel>
+      
+      {/* Decorative background glow */}
+      <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-indigo-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    </div>
   );
 };

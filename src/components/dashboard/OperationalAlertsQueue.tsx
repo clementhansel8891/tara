@@ -1,7 +1,6 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertCircle, AlertTriangle, Info, ArrowRight } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Info, ArrowRight, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,60 +21,75 @@ interface OperationalAlertsQueueProps {
 export const OperationalAlertsQueue: React.FC<OperationalAlertsQueueProps> = ({ data = [] }) => {
   const navigate = useNavigate();
 
-  const getSeverityConfig = (severity: string) => {
+  const getSeverityStyle = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return { icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' };
-      case 'HIGH': return { icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' };
-      case 'MEDIUM': return { icon: Info, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' };
-      default: return { icon: Info, color: 'text-slate-600', bg: 'bg-slate-50', border: 'border-slate-100' };
+      case 'CRITICAL': return { icon: AlertCircle, color: 'text-rose-500', glow: 'shadow-rose-500/20', bg: 'bg-rose-500/10', border: 'border-rose-500/20' };
+      case 'HIGH': return { icon: AlertTriangle, color: 'text-amber-500', glow: 'shadow-amber-500/20', bg: 'bg-amber-500/10', border: 'border-amber-500/20' };
+      case 'MEDIUM': return { icon: Info, color: 'text-blue-500', glow: 'shadow-blue-500/20', bg: 'bg-blue-500/10', border: 'border-blue-500/20' };
+      default: return { icon: Info, color: 'text-slate-400', glow: 'shadow-slate-500/10', bg: 'bg-white/5', border: 'border-white/10' };
     }
   };
 
   return (
-    <WorkspacePanel 
-      title="Operational Alerts Queue" 
-      description="Aggregated critical issues requiring intervention"
-      variant="glass"
-    >
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20">
+            <ShieldAlert className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black uppercase tracking-[0.15em] text-white">Alerts Queue</h4>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Critical issues requiring intervention</p>
+          </div>
+        </div>
+        <div className="flex h-8 w-16 items-center justify-center rounded-lg bg-white/5 border border-white/10">
+           <span className="text-[10px] font-black text-white">{data.length}</span>
+           <span className="text-[8px] font-bold text-slate-500 ml-1 uppercase tracking-tighter">Live</span>
+        </div>
+      </div>
+
       <ScrollArea className="h-[300px] pr-4">
-        <div className="space-y-3">
+        <div className="space-y-4">
           {data.length > 0 ? (
             data.map((alert, i) => {
-              const config = getSeverityConfig(alert.severity);
+              const style = getSeverityStyle(alert.severity);
               return (
                 <div 
                   key={i} 
                   className={cn(
-                    "flex items-start gap-4 rounded-2xl border p-4 transition-all hover:shadow-md cursor-pointer",
-                    config.bg, config.border
+                    "group relative flex items-start gap-4 rounded-2xl border p-5 transition-all duration-300 hover:translate-x-1 cursor-pointer overflow-hidden",
+                    style.bg, style.border
                   )}
                   onClick={() => alert.actionUrl && navigate(alert.actionUrl)}
                 >
-                  <div className={cn("mt-0.5 rounded-full p-2 bg-white", config.color)}>
-                    <config.icon className="h-4 w-4" />
+                  <div className={cn("mt-1 shrink-0 rounded-full p-2 bg-slate-950 border border-white/5", style.color, style.glow)}>
+                    <style.icon className="h-4 w-4" />
                   </div>
-                  <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-tight text-slate-500">{alert.module}</span>
-                      <span className="text-[10px] font-bold text-slate-400">{new Date(alert.time).toLocaleTimeString()}</span>
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">{alert.module}</span>
+                      <span className="text-[9px] font-bold text-slate-500">{new Date(alert.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
-                    <p className="text-xs font-black text-slate-900">{alert.title}</p>
-                    <p className="text-[10px] leading-relaxed text-slate-600">{alert.detail}</p>
+                    <p className="text-xs font-black text-white">{alert.title}</p>
+                    <p className="text-[10px] leading-relaxed text-slate-500 group-hover:text-slate-400 transition-colors line-clamp-2">{alert.detail}</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 self-center text-slate-300" />
+                  <ArrowRight className="h-4 w-4 self-center text-slate-600 group-hover:text-white transition-colors" />
                 </div>
               );
             })
           ) : (
-            <div className="flex flex-col items-center justify-center h-[260px] gap-3 opacity-30">
-               <div className="h-12 w-12 rounded-full bg-emerald-50 flex items-center justify-center">
-                  <Info className="h-6 w-6 text-emerald-500" />
+            <div className="flex flex-col items-center justify-center h-[260px] gap-4 opacity-40">
+               <div className="h-16 w-16 rounded-3xl bg-emerald-500/5 flex items-center justify-center border border-emerald-500/10">
+                  <Info className="h-8 w-8 text-emerald-500" />
                </div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Operational Environment Stable<br/>No Critical Alerts</p>
+               <div className="text-center">
+                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-500">System Neutral</p>
+                 <p className="text-[8px] font-bold uppercase tracking-widest text-slate-600 mt-1">No active critical alerts</p>
+               </div>
             </div>
           )}
         </div>
       </ScrollArea>
-    </WorkspacePanel>
+    </div>
   );
 };

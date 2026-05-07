@@ -1,14 +1,14 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, Landmark, CreditCard } from 'lucide-react';
+import { Wallet, Landmark, CreditCard, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const CashPositionWidget: React.FC = () => {
   const navigate = useNavigate();
 
   const data = [
-    { name: 'Bank Accounts', value: 750000, color: '#4f46e5', icon: Landmark },
+    { name: 'Bank Accounts', value: 750000, color: '#6366f1', icon: Landmark },
     { name: 'Digital Wallets', value: 120000, color: '#10b981', icon: Wallet },
     { name: 'Credit Lines', value: 500000, color: '#f59e0b', icon: CreditCard },
   ];
@@ -16,59 +16,75 @@ export const CashPositionWidget: React.FC = () => {
   const total = data.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
-    <WorkspacePanel 
-      title="Cash Position" 
-      description="Liquidity across all money sources"
-      variant="glass"
-      className="cursor-pointer"
+    <div 
+      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/finance/treasury')}
     >
-      <div className="flex items-center gap-6">
-        <div className="relative h-[180px] w-[180px]">
+      <div className="flex items-center justify-between mb-8 relative z-10">
+        <div>
+          <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Cash Position</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Liquidity across all sources</p>
+        </div>
+        <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+          <Landmark className="h-6 w-6 text-indigo-400" />
+        </div>
+      </div>
+
+      <div className="flex flex-col xl:flex-row items-center gap-10 relative z-10">
+        <div className="relative h-[220px] w-[220px] shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={80}
-                paddingAngle={5}
+                innerRadius={70}
+                outerRadius={95}
+                paddingAngle={8}
                 dataKey="value"
+                stroke="none"
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.color} className="group-hover:opacity-80 transition-opacity" />
                 ))}
               </Pie>
-              <Tooltip />
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[10px] font-black uppercase text-muted-foreground">Total</p>
-            <p className="text-xl font-black text-foreground">${(total / 1000000).toFixed(1)}M</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Total Net</p>
+            <p className="text-3xl font-black text-white tracking-tighter">${(total / 1000000).toFixed(1)}M</p>
           </div>
         </div>
 
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 w-full space-y-6">
           {data.map((item, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg p-1.5" style={{ backgroundColor: `${item.color}15`, color: item.color }}>
-                  <item.icon className="h-4 w-4" />
+            <div key={i} className="flex items-center justify-between group/item">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 text-slate-400 group-hover/item:text-white group-hover/item:border-white/10 transition-all">
+                  <item.icon className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-bold text-slate-600">{item.name}</span>
+                <div>
+                   <p className="text-xs font-black text-slate-400 group-hover/item:text-white transition-colors uppercase tracking-widest">{item.name}</p>
+                   <div className="mt-1 h-1 w-24 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-full transition-all duration-1000" style={{ width: `${(item.value / total) * 100}%`, backgroundColor: item.color }} />
+                   </div>
+                </div>
               </div>
-              <span className="text-xs font-black text-slate-900">${(item.value / 1000).toFixed(0)}k</span>
+              <p className="text-sm font-black text-white">${(item.value / 1000).toFixed(0)}k</p>
             </div>
           ))}
-          <div className="mt-4 border-t pt-4">
-            <div className="flex justify-between">
-              <span className="text-[10px] font-black uppercase text-muted-foreground">Est. Runway</span>
-              <span className="text-xs font-black text-indigo-600">184 Days</span>
+          <div className="mt-6 border-t border-white/5 pt-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+               <TrendingUp className="h-4 w-4 text-emerald-500" />
+               <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">Est. Runway</span>
             </div>
+            <span className="text-sm font-black text-emerald-400">184 Days</span>
           </div>
         </div>
       </div>
-    </WorkspacePanel>
+      
+      {/* Subtle background glow */}
+      <div className="absolute -bottom-24 -right-24 h-48 w-48 bg-indigo-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    </div>
   );
 };

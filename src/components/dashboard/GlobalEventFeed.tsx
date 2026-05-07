@@ -1,12 +1,11 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ActivityItem } from '@/types/dashboard.types';
 import { useNavigate } from 'react-router-dom';
-import { Activity as ActivityIcon } from 'lucide-react';
+import { Activity as ActivityIcon, Terminal, Globe, ShieldCheck } from 'lucide-react';
 
 interface GlobalEventFeedProps {
   activities: ActivityItem[];
@@ -17,9 +16,9 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
 
   const getSeverityStyles = (severity?: string) => {
     switch (severity) {
-      case 'critical': return 'bg-rose-100 text-rose-700 border-rose-200';
-      case 'warning': return 'bg-amber-100 text-amber-700 border-amber-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'critical': return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+      case 'warning': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+      default: return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
     }
   };
 
@@ -35,51 +34,82 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
   };
 
   return (
-    <WorkspacePanel 
-      title="Global Event Telemetry" 
-      description="Real-time multi-tenant activity stream"
-      variant="glass"
-    >
-      <ScrollArea className="h-[400px] pr-4">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+         <Globe className="h-40 w-40 text-white" />
+      </div>
+
+      <div className="flex items-center justify-between mb-10 relative z-10">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <Terminal className="h-6 w-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Global Event Telemetry</h4>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Real-time multi-tenant activity stream</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
+           <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+           <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Live Stream Active</span>
+        </div>
+      </div>
+
+      <ScrollArea className="h-[450px] pr-6 relative z-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {activities.length > 0 ? activities.map((activity, i) => (
             <div 
               key={i} 
               onClick={() => handleItemClick(activity.module)}
-              className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white/50 p-4 transition-all hover:bg-white hover:shadow-md cursor-pointer"
+              className="group/item flex items-start gap-5 rounded-3xl border border-white/5 bg-white/2 p-6 transition-all hover:bg-white/5 hover:border-white/10 cursor-pointer relative overflow-hidden"
             >
-              <div className={cn("mt-1 h-3 w-3 rounded-full shrink-0", activity.severity === 'critical' ? 'bg-rose-500 animate-pulse' : activity.severity === 'warning' ? 'bg-amber-500' : 'bg-blue-500')} />
-              <div className="flex-1 space-y-1">
+              <div className={cn(
+                "mt-2 h-2.5 w-2.5 rounded-full shrink-0 shadow-lg", 
+                activity.severity === 'critical' ? 'bg-rose-500 animate-pulse shadow-rose-500/40' : 
+                activity.severity === 'warning' ? 'bg-amber-500 shadow-amber-500/40' : 
+                'bg-blue-500 shadow-blue-500/40'
+              )} />
+              <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black text-slate-900">{activity.title}</p>
-                  <span className="text-[10px] font-bold text-slate-400">{formatDistanceToNow(new Date(activity.time))} ago</span>
+                  <p className="text-sm font-black text-white group-hover/item:text-indigo-400 transition-colors">{activity.title}</p>
+                  <span className="text-[9px] font-black uppercase text-slate-600 tracking-tighter">{formatDistanceToNow(new Date(activity.time))} ago</span>
                 </div>
-                <p className="text-[10px] text-slate-500 line-clamp-1">{activity.detail}</p>
-                <div className="flex items-center gap-2 pt-1">
+                <p className="text-[11px] font-medium text-slate-500 line-clamp-2 leading-relaxed group-hover/item:text-slate-400 transition-colors">{activity.detail}</p>
+                <div className="flex items-center gap-3 pt-2">
                   {activity.module && (
-                    <Badge variant="outline" className="h-5 rounded-full px-2 text-[9px] font-black uppercase">
+                    <div className="px-2.5 py-0.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[8px] font-black uppercase text-indigo-400 tracking-widest">
                       {activity.module}
-                    </Badge>
+                    </div>
                   )}
-                  <Badge variant="outline" className={cn("h-5 rounded-full px-2 text-[9px] font-black uppercase border-none", getSeverityStyles(activity.severity))}>
+                  <div className={cn("px-2.5 py-0.5 rounded-lg border text-[8px] font-black uppercase tracking-widest", getSeverityStyles(activity.severity))}>
                     {activity.status}
-                  </Badge>
+                  </div>
                 </div>
               </div>
+              
+              {/* Hover highlight line */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 scale-y-0 group-hover/item:scale-y-100 transition-transform duration-300" />
             </div>
           )) : (
-            <div className="col-span-2 flex h-[300px] flex-col items-center justify-center text-center">
-              <div className="rounded-full bg-slate-100 p-4">
-                <ActivityIcon className="h-8 w-8 text-slate-300" />
+            <div className="col-span-2 flex h-[350px] flex-col items-center justify-center text-center opacity-30">
+              <div className="rounded-3xl bg-white/5 p-6 border border-white/10">
+                <ActivityIcon className="h-10 w-10 text-slate-500" />
               </div>
-              <p className="mt-4 text-sm font-bold text-slate-400">System Ready</p>
-              <p className="text-xs text-slate-400">Awaiting incoming events</p>
+              <p className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-slate-400 italic">Static Environment</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Awaiting ingress events from core engine</p>
             </div>
           )}
         </div>
       </ScrollArea>
-    </WorkspacePanel>
+      
+      {/* Footer info line */}
+      <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between opacity-50 relative z-10">
+         <div className="flex items-center gap-2">
+            <ShieldCheck className="h-3 w-3 text-emerald-500" />
+            <span className="text-[8px] font-black uppercase text-slate-500 tracking-widest">Encrypted Stream Protocol TLS 1.3</span>
+         </div>
+         <span className="text-[8px] font-black uppercase text-slate-600">Buffer: 1024 Events</span>
+      </div>
+    </div>
   );
 };
-
-import { Activity as ActivityIcon } from 'lucide-react';

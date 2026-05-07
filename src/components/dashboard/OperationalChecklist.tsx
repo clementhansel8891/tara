@@ -1,7 +1,7 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { ClipboardCheck, Target, ListTodo } from 'lucide-react';
 
 export const OperationalChecklist: React.FC = () => {
   const [items, setItems] = React.useState([
@@ -22,44 +22,57 @@ export const OperationalChecklist: React.FC = () => {
   const progress = (completedCount / items.length) * 100;
 
   return (
-    <WorkspacePanel 
-      title="Daily Operational Checklist" 
-      description="Mission-critical tasks for management oversight"
-      variant="glass"
-    >
-      <div className="mb-6 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase text-slate-500">Execution Progress</span>
-          <span className="text-xs font-black text-indigo-600">{Math.round(progress)}%</span>
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <ListTodo className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black uppercase tracking-[0.15em] text-white">Daily Checklist</h4>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Mission-critical tasks for oversight</p>
+          </div>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+           <Target className="h-5 w-5 text-indigo-400 opacity-50" />
+        </div>
+      </div>
+
+      <div className="mb-8 space-y-3 px-1">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Execution Progress</span>
+          <span className="text-sm font-black text-white">{Math.round(progress)}%</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5 border border-white/5">
           <div 
-            className="h-full bg-indigo-500 transition-all duration-500" 
+            className="h-full bg-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
             style={{ width: `${progress}%` }} 
           />
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {items.map((item) => (
           <div 
             key={item.id} 
             className={cn(
-              "group flex items-center gap-3 rounded-xl border border-transparent p-1 transition-all",
-              item.completed && "opacity-60"
+              "group/item flex items-center gap-4 rounded-2xl border border-transparent p-2 transition-all hover:bg-white/5",
+              item.completed && "opacity-50"
             )}
           >
-            <Checkbox 
-              id={item.id} 
-              checked={item.completed} 
-              onCheckedChange={() => toggleItem(item.id)}
-              className="h-5 w-5 rounded-md border-slate-300 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-            />
+            <div className="relative">
+              <Checkbox 
+                id={item.id} 
+                checked={item.completed} 
+                onCheckedChange={() => toggleItem(item.id)}
+                className="h-6 w-6 rounded-lg border-slate-700 bg-slate-950 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 transition-all"
+              />
+            </div>
             <label 
               htmlFor={item.id} 
               className={cn(
-                "cursor-pointer text-[11px] font-bold transition-all",
-                item.completed ? "text-slate-400 line-through" : "text-slate-700"
+                "cursor-pointer text-xs font-black transition-all tracking-tight",
+                item.completed ? "text-slate-500 line-through" : "text-slate-300 group-hover/item:text-white"
               )}
             >
               {item.label}
@@ -67,6 +80,9 @@ export const OperationalChecklist: React.FC = () => {
           </div>
         ))}
       </div>
-    </WorkspacePanel>
+      
+      {/* Subtle corner glow */}
+      <div className="absolute -bottom-16 -right-16 h-32 w-32 bg-indigo-500/5 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    </div>
   );
 };

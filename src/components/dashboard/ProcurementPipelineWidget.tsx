@@ -1,48 +1,63 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, FileText, CheckCircle, Truck } from 'lucide-react';
+import { ShoppingCart, FileText, CheckCircle, Truck, Package } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const ProcurementPipelineWidget: React.FC = () => {
   const navigate = useNavigate();
 
   const stages = [
-    { label: 'Draft', value: 5, icon: FileText, color: 'text-slate-400' },
-    { label: 'Review', value: 12, icon: ShoppingCart, color: 'text-amber-500' },
-    { label: 'Approved', value: 8, icon: CheckCircle, color: 'text-indigo-600' },
-    { label: 'Delivered', value: 24, icon: Truck, color: 'text-emerald-500' },
+    { label: 'Draft', value: 5, icon: FileText, color: 'text-slate-500', glow: 'shadow-slate-500/10' },
+    { label: 'Review', value: 12, icon: ShoppingCart, color: 'text-amber-500', glow: 'shadow-amber-500/30' },
+    { label: 'Approved', value: 8, icon: CheckCircle, color: 'text-indigo-400', glow: 'shadow-indigo-500/30' },
+    { label: 'Delivered', value: 24, icon: Truck, color: 'text-emerald-500', glow: 'shadow-emerald-500/30' },
   ];
 
   return (
-    <WorkspacePanel 
-      title="Procurement Pipeline" 
-      description="Active purchase requests and fulfillment"
-      variant="glass"
-      className="cursor-pointer"
+    <div 
+      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/procurement/prs')}
     >
-      <div className="relative mt-2">
-        <div className="absolute left-0 top-6 h-0.5 w-full bg-slate-100" />
+      <div className="flex items-center justify-between mb-10 relative z-10">
+        <div>
+          <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Procurement Flow</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Active purchase requests and fulfillment</p>
+        </div>
+        <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+          <Package className="h-6 w-6 text-indigo-400" />
+        </div>
+      </div>
+
+      <div className="relative mt-4 mb-8 z-10">
+        <div className="absolute left-0 top-8 h-1 w-full bg-white/5 rounded-full" />
         <div className="relative flex justify-between">
           {stages.map((s, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
-              <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-white shadow-md">
-                <s.icon className={`h-5 w-5 ${s.color}`} />
+            <div key={i} className="flex flex-col items-center gap-4 group/stage">
+              <div className={cn(
+                "z-10 flex h-16 w-16 items-center justify-center rounded-[1.5rem] border-4 border-slate-900 bg-slate-950 shadow-2xl transition-all duration-500 group-hover/stage:scale-110",
+                s.color
+              )}>
+                <s.icon className={cn("h-6 w-6 transition-all", s.glow)} />
               </div>
               <div className="text-center">
-                <p className="text-[10px] font-black uppercase text-muted-foreground">{s.label}</p>
-                <p className="text-sm font-black text-slate-900">{s.value}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover/stage:text-white transition-colors">{s.label}</p>
+                <p className="text-xl font-black text-white mt-1">{s.value}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
-      <div className="mt-6 border-t pt-4">
-        <div className="flex justify-between">
-          <span className="text-[10px] font-black uppercase text-muted-foreground">Open PO Value</span>
-          <span className="text-xs font-black text-indigo-600">$432,500</span>
+
+      <div className="mt-auto border-t border-white/5 pt-8 flex items-center justify-between relative z-10">
+        <div className="flex items-center gap-2">
+           <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Open PO Value</span>
         </div>
+        <span className="text-2xl font-black text-indigo-400 tracking-tighter">$432,500</span>
       </div>
-    </WorkspacePanel>
+      
+      {/* Subtle background glow */}
+      <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-emerald-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    </div>
   );
 };

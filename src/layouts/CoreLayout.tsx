@@ -307,7 +307,7 @@ export function CoreLayout() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0 relative bg-background/50 overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="flex-1 flex flex-col min-h-0 relative bg-slate-950 overflow-hidden transition-all duration-300 ease-in-out">
         {/* Header */}
         <header className="flex items-center justify-between px-4 md:px-6 h-16 border-b bg-background/80 backdrop-blur-md sticky top-0 z-30 transition-all">
           <div className="flex items-center gap-4">

@@ -1,7 +1,6 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { Badge } from '@/components/ui/badge';
-import { Clock, User, ArrowRight } from 'lucide-react';
+import { Clock, User, ArrowRight, GitBranch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,49 +20,56 @@ interface WorkflowPipelineProps {
 export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = ({ data = [] }) => {
   const navigate = useNavigate();
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-amber-100 text-amber-700';
-      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-700';
-      case 'COMPLETED': return 'bg-emerald-100 text-emerald-700';
-      default: return 'bg-rose-100 text-rose-700';
+      case 'PENDING': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+      case 'IN_PROGRESS': return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'COMPLETED': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+      default: return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
     }
   };
 
   return (
-    <WorkspacePanel 
-      title="Operational Pipeline" 
-      description="Active multi-step business processes"
-      variant="glass"
-      action={
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-slate-400 border border-white/10 group-hover:text-white transition-colors">
+            <GitBranch className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black uppercase tracking-[0.15em] text-white">Operational Pipeline</h4>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Active multi-step business processes</p>
+          </div>
+        </div>
         <button 
-          onClick={() => navigate('/core/workflow-inbox')}
-          className="flex items-center gap-1 text-[10px] font-black uppercase text-indigo-600 hover:underline"
+          onClick={() => navigate('/core/workflow')}
+          className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+          title="Go to Workflow Inbox"
         >
-          View Inbox <ArrowRight className="h-3 w-3" />
+          <ArrowRight className="h-4 w-4" />
         </button>
-      }
-    >
-      <div className="space-y-3">
+      </div>
+
+      <div className="space-y-4">
         {data.length > 0 ? (
           data.map((item, i) => (
-            <div key={i} className="flex items-center gap-4 rounded-2xl border border-slate-50 bg-white/50 p-3 transition-all hover:bg-white hover:shadow-sm">
-              <div className={cn("h-10 w-1 rounded-full", item.status === 'PENDING' ? 'bg-amber-400' : 'bg-blue-400')} />
-              <div className="flex-1 space-y-1">
+            <div key={i} className="group relative flex items-center gap-4 rounded-2xl border border-white/5 bg-white/2 p-4 transition-all hover:bg-white/5 cursor-pointer">
+              <div className={cn("h-12 w-1 rounded-full", item.status === 'PENDING' ? 'bg-amber-500' : 'bg-blue-500')} />
+              <div className="flex-1 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-tight text-slate-400">{item.type}</span>
-                  <Badge variant="outline" className={cn("h-5 rounded-full px-2 text-[9px] font-black border-none", getStatusColor(item.status))}>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 group-hover:text-indigo-400 transition-colors">{item.type}</span>
+                  <div className={cn("rounded-full px-2 py-0.5 text-[8px] font-black border tracking-widest uppercase", getStatusStyle(item.status))}>
                     {item.status}
-                  </Badge>
+                  </div>
                 </div>
-                <p className="text-xs font-bold text-slate-900">{item.title}</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400">
-                    <Clock className="h-2.5 w-2.5" /> {item.timeElapsed} elapsed
+                <p className="text-xs font-black text-white">{item.title}</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-600">
+                    <Clock className="h-3 w-3" /> {item.timeElapsed}
                   </div>
                   {item.assignee && (
-                    <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400">
-                      <User className="h-2.5 w-2.5" /> {item.assignee}
+                    <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-600">
+                      <User className="h-3 w-3" /> {item.assignee}
                     </div>
                   )}
                 </div>
@@ -71,14 +77,21 @@ export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = ({ data = [] })
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 gap-3 opacity-30">
-             <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-slate-400" />
+          <div className="flex flex-col items-center justify-center py-16 gap-4 opacity-40">
+             <div className="h-16 w-16 rounded-3xl bg-white/5 flex items-center justify-center border border-white/10">
+                <Clock className="h-8 w-8 text-slate-600" />
              </div>
-             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">No active processes</p>
+             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-600">No active processes</p>
           </div>
         )}
       </div>
-    </WorkspacePanel>
+
+      <button 
+        className="mt-6 w-full py-4 rounded-2xl border border-white/5 bg-white/5 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all active:scale-[0.98]"
+        onClick={() => navigate('/core/workflow')}
+      >
+        ACCESS CONTROL CENTER
+      </button>
+    </div>
   );
 };

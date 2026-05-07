@@ -80,12 +80,18 @@ export default function CoreDashboard() {
 
   if (loading || !dashboardData) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-            <LayoutDashboard className="h-10 w-10 text-white" />
+      <div className="flex h-screen items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-8">
+          <div className="relative h-24 w-24">
+             <div className="absolute inset-0 bg-indigo-600/20 rounded-[2.5rem] blur-2xl animate-pulse" />
+             <div className="relative h-full w-full bg-indigo-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40 border border-white/10">
+                <LayoutDashboard className="h-12 w-12 text-white" />
+             </div>
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Synchronizing Executive Intelligence...</p>
+          <div className="flex flex-col items-center gap-2">
+             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white italic">ZENVIX INTELLIGENCE ENGINE</p>
+             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-500">Synchronizing Executive Telemetry...</p>
+          </div>
         </div>
       </div>
     );
@@ -116,24 +122,29 @@ export default function CoreDashboard() {
       }
     >
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-        <Tabs defaultValue="overview" className="space-y-10">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/50 dark:bg-slate-900/50 p-4 rounded-[2.5rem] border border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl">
-            <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl h-12">
-              <TabsTrigger value="overview" className="rounded-xl px-8 h-10 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] transition-all">
+        <Tabs defaultValue="overview" className="space-y-12">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 bg-slate-900/50 p-6 rounded-[3rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
+            <TabsList className="bg-slate-950/50 p-1.5 rounded-2xl h-14 border border-white/5">
+              <TabsTrigger value="overview" className="rounded-xl px-10 h-11 data-[state=active]:bg-indigo-600 data-[state=active]:shadow-[0_0_20px_rgba(79,70,229,0.4)] data-[state=active]:text-white font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-slate-500">
                 Strategic Overview
               </TabsTrigger>
-              <TabsTrigger value="operations" className="rounded-xl px-8 h-10 data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] transition-all">
+              <TabsTrigger value="operations" className="rounded-xl px-10 h-11 data-[state=active]:bg-indigo-600 data-[state=active]:shadow-[0_0_20px_rgba(79,70,229,0.4)] data-[state=active]:text-white font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-slate-500">
                 Tactical Flow
               </TabsTrigger>
             </TabsList>
 
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-6 pr-4">
                <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Governance Tier</span>
-                  <span className="text-[10px] font-bold text-indigo-600">L4 COMMANDER</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Governance Tier</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                     <span className="text-[11px] font-black text-white italic tracking-tighter">L4 COMMANDER</span>
+                  </div>
                </div>
-               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                  <LayoutDashboard className="h-5 w-5 text-white" />
+               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px]">
+                  <div className="h-full w-full bg-slate-900 rounded-[0.9rem] flex items-center justify-center">
+                    <LayoutDashboard className="h-5 w-5 text-indigo-400" />
+                  </div>
                </div>
             </div>
           </div>

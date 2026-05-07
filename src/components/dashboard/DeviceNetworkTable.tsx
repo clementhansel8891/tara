@@ -1,8 +1,6 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Smartphone, Monitor, Cpu, Battery, Wifi, WifiOff } from 'lucide-react';
+import { Smartphone, Monitor, Cpu, Battery, Wifi, WifiOff, Radio } from 'lucide-react';
 
 interface Device {
   id: string;
@@ -28,63 +26,84 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
   };
 
   return (
-    <WorkspacePanel 
-      title="Hardware & IoT Network" 
-      description="Live status of edge devices and terminals"
-      variant="glass"
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <Radio className="h-6 w-6" />
+          </div>
+          <div>
+            <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Edge Infrastructure</h4>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Live status of hardware nodes & IoT network</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
+           <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{data.length} Nodes Online</span>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto relative z-10">
+        <table className="w-full text-left border-separate border-spacing-y-4">
           <thead>
-            <tr className="border-b border-slate-100">
-              <th className="pb-3 text-[10px] font-black uppercase text-slate-400">Device</th>
-              <th className="pb-3 text-[10px] font-black uppercase text-slate-400">Location</th>
-              <th className="pb-3 text-[10px] font-black uppercase text-slate-400">Status</th>
-              <th className="pb-3 text-[10px] font-black uppercase text-slate-400 text-right">Energy</th>
+            <tr>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Hardware Node</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Deployment</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Connectivity</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-right">Telemetry</th>
             </tr>
           </thead>
           <tbody>
             {data.map((device, i) => {
               const Icon = getIcon(device.type);
               return (
-                <tr key={i} className="group border-b border-slate-50 last:border-none">
-                  <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-slate-100 p-2 text-slate-600 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                        <Icon className="h-4 w-4" />
+                <tr key={i} className="group/row">
+                  <td className="px-4 py-4 bg-white/2 rounded-l-[1.25rem] border-y border-l border-white/5 group-hover/row:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 border border-white/5 text-slate-500 group-hover/row:text-indigo-400 group-hover/row:border-indigo-500/30 transition-all">
+                        <Icon className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-[11px] font-bold text-slate-900">{device.name}</p>
-                        <p className="text-[9px] font-medium text-slate-400">{device.type}</p>
+                        <p className="text-xs font-black text-white">{device.name}</p>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{device.type}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4">
-                    <span className="text-[10px] font-bold text-slate-500">{device.location}</span>
+                  <td className="px-4 py-4 bg-white/2 border-y border-white/5 group-hover/row:bg-white/5 transition-colors">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover/row:text-slate-300 transition-colors">{device.location}</span>
                   </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-2">
+                  <td className="px-4 py-4 bg-white/2 border-y border-white/5 group-hover/row:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-2.5">
                       {device.status === 'ONLINE' ? (
-                        <Wifi className="h-3.5 w-3.5 text-emerald-500" />
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                           <Wifi className="h-3 w-3" />
+                           <span className="text-[9px] font-black uppercase tracking-[0.1em]">Signal Active</span>
+                        </div>
                       ) : (
-                        <WifiOff className="h-3.5 w-3.5 text-rose-500" />
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500">
+                           <WifiOff className="h-3 w-3" />
+                           <span className="text-[9px] font-black uppercase tracking-[0.1em]">Signal Lost</span>
+                        </div>
                       )}
-                      <span className={cn(
-                        "text-[10px] font-black uppercase tracking-widest",
-                        device.status === 'ONLINE' ? 'text-emerald-500' : 'text-rose-500'
-                      )}>
-                        {device.status}
-                      </span>
                     </div>
                   </td>
-                  <td className="py-4 text-right">
+                  <td className="px-4 py-4 bg-white/2 rounded-r-[1.25rem] border-y border-r border-white/5 group-hover/row:bg-white/5 text-right transition-colors">
                     {device.battery !== undefined && (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Battery className={cn(
-                          "h-3 w-3",
+                      <div className="flex items-center justify-end gap-2">
+                        <span className={cn(
+                          "text-[10px] font-black",
                           device.battery < 20 ? 'text-rose-500' : 'text-slate-400'
-                        )} />
-                        <span className="text-[10px] font-black text-slate-600">{device.battery}%</span>
+                        )}>{device.battery}%</span>
+                        <div className="relative w-6 h-3 border border-slate-700 rounded-[2px] p-[1px]">
+                           <div 
+                             className={cn(
+                               "h-full rounded-[1px]",
+                               device.battery < 20 ? 'bg-rose-500' : 'bg-emerald-500'
+                             )} 
+                             style={{ width: `${device.battery}%` }} 
+                           />
+                           <div className="absolute -right-[3px] top-1/2 -translate-y-1/2 w-[2px] h-1 bg-slate-700 rounded-r-sm" />
+                        </div>
                       </div>
                     )}
                   </td>
@@ -94,6 +113,9 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
           </tbody>
         </table>
       </div>
-    </WorkspacePanel>
+      
+      {/* Subtle background glow */}
+      <div className="absolute -bottom-20 -left-20 h-48 w-48 bg-indigo-500/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+    </div>
   );
 };

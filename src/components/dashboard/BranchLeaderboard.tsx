@@ -1,7 +1,8 @@
 import React from 'react';
-import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Layout } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { Trophy, TrendingUp, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface BranchLeaderboardProps {
   data: { name: string; revenue: number; percentOfTotal?: number }[];
@@ -17,34 +18,48 @@ export const BranchLeaderboard: React.FC<BranchLeaderboardProps> = ({ data }) =>
   })).sort((a, b) => b.revenue - a.revenue);
 
   return (
-    <WorkspacePanel 
-      title="Branch Revenue Leaderboard" 
-      description="Top performing locations by gross revenue"
-      variant="glass"
-    >
-      <div className="h-[300px] w-full">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Regional Performance</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Top performing branches by revenue</p>
+        </div>
+        <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+          <Trophy className="h-6 w-6 text-indigo-400" />
+        </div>
+      </div>
+
+      <div className="h-[280px] w-full">
         {formattedData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={formattedData} layout="vertical" margin={{ top: 5, right: 30, left: 60, bottom: 5 }}>
+            <BarChart data={formattedData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
               <XAxis type="number" hide />
               <YAxis 
                 dataKey="name" 
                 type="category" 
                 axisLine={false} 
                 tickLine={false} 
-                tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} 
-                width={100}
+                tick={{ fontSize: 9, fontWeight: 900, fill: '#64748b', textTransform: 'uppercase' }} 
+                width={80}
               />
               <Tooltip 
-                cursor={{ fill: 'transparent' }}
+                cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
                     return (
-                      <div className="rounded-xl border bg-white p-3 shadow-xl">
-                        <p className="text-[10px] font-black uppercase text-muted-foreground">{data.name}</p>
-                        <p className="text-sm font-black text-indigo-600">${(data.revenue / 1000).toFixed(1)}k</p>
-                        <p className="text-[10px] font-bold text-slate-400">{data.percentOfTotal.toFixed(1)}% of total</p>
+                      <div className="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-2xl backdrop-blur-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <MapPin className="h-3 w-3 text-indigo-400" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{data.name}</p>
+                        </div>
+                        <p className="text-xl font-black text-white">${(data.revenue / 1000).toFixed(1)}k</p>
+                        <div className="mt-2 flex items-center gap-1.5">
+                           <div className="h-1 w-12 bg-white/5 rounded-full overflow-hidden">
+                              <div className="h-full bg-indigo-500" style={{ width: `${data.percentOfTotal}%` }} />
+                           </div>
+                           <p className="text-[9px] font-bold text-slate-500">{data.percentOfTotal.toFixed(1)}% market share</p>
+                        </div>
                       </div>
                     );
                   }
@@ -53,37 +68,46 @@ export const BranchLeaderboard: React.FC<BranchLeaderboardProps> = ({ data }) =>
               />
               <Bar 
                 dataKey="revenue" 
-                radius={[0, 12, 12, 0]} 
-                barSize={32}
+                radius={[0, 8, 8, 0]} 
+                barSize={24}
                 onClick={() => navigate('/m/retail/management')}
                 className="cursor-pointer"
               >
                 {formattedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={index === 0 ? '#4f46e5' : index === 1 ? '#6366f1' : index === 2 ? '#818cf8' : '#c7d2fe'} 
+                    fill={index === 0 ? '#6366f1' : index === 1 ? '#4f46e5' : index === 2 ? '#4338ca' : '#1e1b4b'} 
                   />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-3 opacity-40">
-             <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
-                <BarChart className="h-6 w-6 text-slate-400" />
+          <div className="flex flex-col items-center justify-center h-full gap-4 opacity-40">
+             <div className="h-16 w-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+                <TrendingUp className="h-8 w-8 text-slate-600" />
              </div>
-             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Regional Data Unavailable</p>
+             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Awaiting Regional Telemetry</p>
           </div>
         )}
       </div>
-      <div className="mt-4 grid grid-cols-4 gap-4 border-t pt-4">
+
+      <div className="mt-6 grid grid-cols-4 gap-4 border-t border-white/5 pt-6">
         {formattedData.slice(0, 4).map((d, i) => (
-          <div key={i} className="text-center">
-            <span className="text-[14px]">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎗️'}</span>
-            <p className="text-[9px] font-black uppercase text-muted-foreground truncate">{d.name}</p>
+          <div key={i} className="group flex flex-col items-center text-center transition-all hover:-translate-y-1">
+            <div className={cn(
+              "mb-2 flex h-8 w-8 items-center justify-center rounded-xl font-black text-xs border transition-all",
+              i === 0 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
+              i === 1 ? "bg-slate-300/10 border-slate-300/20 text-slate-300" :
+              i === 2 ? "bg-orange-500/10 border-orange-500/20 text-orange-500" :
+              "bg-white/5 border-white/10 text-slate-500"
+            )}>
+              {i + 1}
+            </div>
+            <p className="text-[8px] font-black uppercase text-slate-500 truncate w-full group-hover:text-white transition-colors">{d.name}</p>
           </div>
         ))}
       </div>
-    </WorkspacePanel>
+    </div>
   );
 };

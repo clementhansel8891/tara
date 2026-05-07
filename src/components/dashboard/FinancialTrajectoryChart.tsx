@@ -32,22 +32,23 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
   }));
 
   return (
-    <WorkspacePanel 
-      title="Financial Trajectory" 
-      description="Revenue vs Operating Expenses vs Gross Profit"
-      variant="glass"
-      action={
-        <div className="flex gap-2 bg-slate-100/50 p-1 rounded-xl">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Financial Trajectory</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Revenue vs OpEx vs Gross Profit</p>
+        </div>
+        <div className="flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl">
           {['3M', '6M', '12M'].map((p) => (
             <Button 
               key={p}
-              variant={period === p ? "secondary" : "ghost"} 
+              variant="ghost" 
               size="sm" 
               className={cn(
-                "h-7 px-4 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all",
+                "h-8 px-5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300",
                 period === p 
-                  ? "bg-white shadow-sm text-indigo-600" 
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" 
+                  : "text-slate-400 hover:text-white hover:bg-white/5"
               )}
               onClick={() => onPeriodChange(p)}
             >
@@ -55,41 +56,76 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
             </Button>
           ))}
         </div>
-      }
-    >
-      <div className="h-[300px] w-100%">
+      </div>
+
+      <div className="h-[320px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+              <linearGradient id="colorRevenuePremium" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
             <XAxis 
               dataKey="month" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} 
+              tick={{ fontSize: 10, fontWeight: 800, fill: '#475569', textTransform: 'uppercase' }} 
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+              tick={{ fontSize: 10, fontWeight: 800, fill: '#475569' }}
               tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip 
-              contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-              itemStyle={{ fontSize: 12, fontWeight: 600 }}
+              contentStyle={{ 
+                backgroundColor: '#0f172a', 
+                borderRadius: '1.5rem', 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)',
+                padding: '1rem'
+              }}
+              itemStyle={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}
+              cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
             />
-            <Legend verticalAlign="top" align="right" height={36} iconType="circle" />
-            <Area type="monotone" dataKey="revenue" fill="url(#colorRevenue)" stroke="#4f46e5" strokeWidth={3} />
-            <Bar dataKey="expenses" barSize={20} fill="#94a3b8" radius={[4, 4, 0, 0]} opacity={0.3} />
-            <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} />
+            <Legend 
+              verticalAlign="top" 
+              align="right" 
+              height={40} 
+              iconType="circle" 
+              wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="revenue" 
+              fill="url(#colorRevenuePremium)" 
+              stroke="#6366f1" 
+              strokeWidth={4} 
+              animationDuration={1500}
+            />
+            <Bar 
+              dataKey="expenses" 
+              barSize={16} 
+              fill="#475569" 
+              radius={[4, 4, 0, 0]} 
+              opacity={0.4} 
+              animationDuration={2000}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="profit" 
+              stroke="#10b981" 
+              strokeWidth={4} 
+              dot={{ r: 5, fill: '#10b981', strokeWidth: 3, stroke: '#0f172a' }} 
+              activeDot={{ r: 8, strokeWidth: 0 }}
+              animationDuration={2500}
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
-    </WorkspacePanel>
+    </div>
   );
 };
