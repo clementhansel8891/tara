@@ -36,19 +36,16 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogTrigger,
-  DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
 import {
@@ -264,7 +261,7 @@ export default function OmnichannelInbox() {
                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Initiation Protocol</p>
                           </div>
                           <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic">Start Conversation</DialogTitle>
-                          <DialogDescription className="text-sm font-medium italic italic">Authorize a new strategic link with a validated contact node.</DialogDescription>
+                          <DialogDescription className="text-sm font-medium italic">Authorize a new strategic link with a validated contact node.</DialogDescription>
                        </DialogHeader>
                        <div className="space-y-6">
                          <div className="relative group">
@@ -437,6 +434,7 @@ export default function OmnichannelInbox() {
                   </div>
                 </div>
                 
+                <div className="flex items-center gap-4">
                   <Button 
                     variant={autoRefresh ? "default" : "outline"}
                     className={cn(
@@ -597,7 +595,7 @@ export default function OmnichannelInbox() {
               </div>
               <div className="text-center space-y-4">
                 <h3 className="text-4xl font-black uppercase tracking-tighter italic">Command Center Inactive</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[400px] mx-auto leading-relaxed italic italic">Select a strategic conversation from the matrix to begin orchestrating your omnichannel communication strategy.</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-[400px] mx-auto leading-relaxed italic">Select a strategic conversation from the matrix to begin orchestrating your omnichannel communication strategy.</p>
               </div>
               <Button 
                 className="h-[4.5rem] px-12 rounded-[2.5rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-4 group transition-all hover:scale-105 active:scale-95 text-white"
@@ -680,11 +678,11 @@ export default function OmnichannelInbox() {
                  </Button>
                  <div className="flex items-start gap-4 p-5 rounded-2xl bg-white/20 dark:bg-slate-800/20 border border-white/10">
                     <Target className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic italic">
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic">
                       "Strategic Insight: Client demonstrates high intent for Enterprise Q4. Authorize high-touch conversion protocol."
                     </p>
                  </div>
-              </div>
+               </div>
             </div>
           </div>
         )}
