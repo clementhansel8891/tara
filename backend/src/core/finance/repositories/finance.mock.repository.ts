@@ -732,4 +732,25 @@ export class FinanceMockRepository extends IFinanceRepository {
     this.moneySources[idx] = { ...this.moneySources[idx], ...updates };
     return this.moneySources[idx];
   }
+
+  // Loans
+  async listLoans(ctx: TenantContext, employee_id?: string): Promise<any[]> {
+    return [];
+  }
+
+  async getLoanById(ctx: TenantContext, id: string): Promise<any | null> {
+    return null;
+  }
+
+  async createLoan(ctx: TenantContext, data: any, tx?: Prisma.TransactionClient): Promise<any> {
+    return { id: "mock-loan-1", ...data };
+  }
+
+  async updateLoanStatus(ctx: TenantContext, id: string, status: string, tx?: Prisma.TransactionClient): Promise<void> {
+    return;
+  }
+
+  async listInstallments(ctx: TenantContext, loan_id: string): Promise<any[]> {
+    return [];
+  }
 }

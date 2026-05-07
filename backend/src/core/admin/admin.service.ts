@@ -263,8 +263,8 @@ export class AdminService {
     // 9. Additional Metrics
     const [pendingApprovals, openReceivables, openPayables] = await Promise.all([
       this.prisma.workflow_requests.count({ where: { tenant_id, status: 'PENDING' } }),
-      this.prisma.finance_invoices?.count({ where: { tenant_id, status: 'PENDING' } }) || Promise.resolve(0),
-      this.prisma.finance_bills?.count({ where: { tenant_id, status: 'PENDING' } }) || Promise.resolve(0)
+      this.prisma.finance_ar_invoices?.count({ where: { tenant_id, status: 'PENDING' } }) || Promise.resolve(0),
+      this.prisma.payables?.count({ where: { tenant_id, status: 'PENDING' } }) || Promise.resolve(0)
     ]);
 
     return {
@@ -322,7 +322,7 @@ export class AdminService {
     // 1. Module Activity (Mocked for now based on statuses, ideally from IT health)
     const statuses = await this.repository.getModuleStatuses(tenant_id);
     const moduleActivity = statuses.map(s => ({
-      name: s.moduleName,
+      name: s.moduleKey,
       status: s.enabled ? 'STABLE' : 'DOWN',
       throughput: Math.floor(Math.random() * 100),
       latency: Math.floor(Math.random() * 50) + 10,
@@ -370,9 +370,9 @@ export class AdminService {
     // 6. Retail Shifts
     const retailShifts = await this.prisma.retail_shifts.findMany({
       where: { tenant_id },
-      include: { location: true },
+      include: { stores: true, opened_by: true },
       take: 10,
-      orderBy: { opened_at: 'desc' }
+      orderBy: { start_time: 'desc' }
     });
 
     return {
@@ -401,19 +401,19 @@ export class AdminService {
       alertsQueue,
       workflowItems: workflowItems.map(w => ({
         id: w.id,
-        type: w.type,
-        title: w.title,
+        type: w.entity_type,
+        title: `${w.entity_type}: ${w.entity_id}`,
         status: w.status as any,
         assignee: (w as any).assigned_to,
         timeElapsed: this.getTimeElapsed(w.created_at)
       })),
       retailShifts: retailShifts.map(s => ({
         id: s.id,
-        store: s.location.name,
+        store: s.stores?.name || "Unknown",
         status: s.status,
-        cashier: s.opened_by,
-        openTime: s.opened_at.toISOString(),
-        closeTime: s.closed_at?.toISOString(),
+        cashier: s.opened_by ? `${s.opened_by.first_name} ${s.opened_by.last_name}` : "Unknown",
+        openTime: s.start_time.toISOString(),
+        closeTime: s.end_time?.toISOString(),
         reconciled: (s as any).reconciled || false
       })),
       auditIntegrity: {
