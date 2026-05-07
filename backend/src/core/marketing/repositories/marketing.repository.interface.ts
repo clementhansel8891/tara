@@ -6,6 +6,7 @@ import { CreateWorkflowDto } from "../dto/create-workflow.dto";
 import { RunExecutionDto } from "../dto/run-execution.dto";
 import { ScheduleExecutionDto } from "../dto/schedule-execution.dto";
 import { UpdateAccountStatusDto } from "../dto/update-account-status.dto";
+import { UpdateAccountSettingsDto } from "../dto/update-account-settings.dto";
 import { UpdateCampaignStatusDto } from "../dto/update-campaign-status.dto";
 import { UpdateWorkflowStatusDto } from "../dto/update-workflow-status.dto";
 import { MarketingConnectedAccount } from "../entities/marketing-account.entity";
@@ -102,6 +103,11 @@ export abstract class IMarketingRepository {
   abstract updateAccountStatus( ctx: TenantContext,
     accountId: string,
     dto: UpdateAccountStatusDto,
+    actor_id: string,
+  ): Promise<MarketingConnectedAccount>;
+  abstract updateAccountSettings( ctx: TenantContext,
+    accountId: string,
+    dto: UpdateAccountSettingsDto,
     actor_id: string,
   ): Promise<MarketingConnectedAccount>;
   abstract deleteAccount( ctx: TenantContext,

@@ -478,6 +478,7 @@ export class MarketingDbRepository extends IMarketingRepository {
   async updateAccountSettings(ctx: TenantContext,
     id: string,
     dto: UpdateAccountSettingsDto,
+    actor_id: string,
   ): Promise<MarketingConnectedAccount> {
     const item = await this.prisma.marketing_accounts.update({
       where: { id, ...MultiTenancyUtil.getScope(ctx) },

@@ -26,6 +26,7 @@ import { MarketingAppointment } from "../entities/marketing-appointment.entity";
 import { MarketingAutomationRule } from "../entities/marketing-automation.entity";
 import { MarketingCreativeAsset } from "../entities/marketing-creative-asset.entity";
 import { MarketingOmnichannelMessage } from "../entities/marketing-message.entity";
+import { UpdateAccountSettingsDto } from "../dto/update-account-settings.dto";
 import {
   IMarketingRepository,
   MarketingChannelPerformance,
@@ -703,6 +704,28 @@ export class MarketingMockRepository extends IMarketingRepository {
       "account",
       account.id,
       dto.status,
+    );
+    return account;
+  }
+
+  async updateAccountSettings(
+    ctx: TenantContext,
+    accountId: string,
+    dto: UpdateAccountSettingsDto,
+    actor_id: string,
+  ): Promise<MarketingConnectedAccount> {
+    const account = this.findAccount(ctx.tenant_id, accountId);
+    if (dto.daily_budget_limit !== undefined) account.daily_budget_limit = dto.daily_budget_limit;
+    if (dto.sync_frequency !== undefined) account.sync_frequency = dto.sync_frequency;
+    if (dto.status) account.status = dto.status.toLowerCase() as any;
+    account.updated_at = this.now();
+    this.addAudit(
+      ctx.tenant_id,
+      actor_id,
+      "account.settings_updated",
+      "account",
+      account.id,
+      JSON.stringify(dto),
     );
     return account;
   }

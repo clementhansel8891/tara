@@ -266,6 +266,7 @@ export class MarketingService {
       ctx,
       accountId,
       dto,
+      actor_id,
     );
     await this.auditService.log({
       tenant_id: ctx.tenant_id,
