@@ -10,6 +10,16 @@ interface AlertsRiskMatrixProps {
 export const AlertsRiskMatrix: React.FC<AlertsRiskMatrixProps> = ({ data = [] }) => {
   const navigate = useNavigate();
 
+  const mockData = [
+    { module: 'Retail', critical: 2, high: 5, medium: 8, low: 12 },
+    { module: 'Finance', critical: 0, high: 2, medium: 4, low: 6 },
+    { module: 'HR', critical: 1, high: 3, medium: 5, low: 7 },
+    { module: 'IT', critical: 0, high: 1, medium: 2, low: 4 },
+    { module: 'Inventory', critical: 3, high: 6, medium: 9, low: 11 }
+  ];
+
+  const activeData = data.length > 0 ? data : mockData;
+
   const handleBarClick = (payload: any) => {
     const module = payload.module;
     const routes: Record<string, string> = {
@@ -30,7 +40,7 @@ export const AlertsRiskMatrix: React.FC<AlertsRiskMatrixProps> = ({ data = [] })
     >
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+          <BarChart data={activeData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
             <XAxis dataKey="module" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} />
             <Tooltip 
