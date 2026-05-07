@@ -109,6 +109,19 @@ export class SettingsDbRepository implements ISettingsRepository {
     });
   }
 
+  async createLocation(tenant_id: string, data: any, user_id: string): Promise<any> {
+    const code = data.code || `LOC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    return this.prisma.locations.create({
+      data: {
+        tenant_id,
+        name: data.name,
+        code,
+        type: data.type || 'OFFICE',
+        address: data.address,
+      }
+    });
+  }
+
   async createChildCompany(tenant_id: string, data: any, user_id: string): Promise<any> {
     const code = data.code || `CC-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
     

@@ -70,6 +70,25 @@ export class SettingsService {
     return this.repository.getLocations(tenant_id);
   }
 
+  async createLocation(tenant_id: string, data: any, user_id: string) {
+    this.logger.log(`Creating location for tenant: ${tenant_id}`);
+    
+    const result = await this.repository.createLocation(tenant_id, data, user_id);
+
+    await this.audit.log({
+      tenant_id,
+      user_id,
+      module: 'CORE',
+      action: 'CREATE_LOCATION',
+      entity_type: 'LOCATION',
+      entity_id: result.id,
+      metadata: { name: result.name, type: result.type },
+      severity: 'INFO',
+    });
+
+    return result;
+  }
+
   async createChildCompany(tenant_id: string, data: any, user_id: string) {
     this.logger.log(`Creating child company for parent tenant: ${tenant_id}`);
     

@@ -88,4 +88,15 @@ export class SettingsController {
       data: await this.settingsService.getLocations(tenant_id),
     };
   }
+
+  @Post('locations')
+  @Roles(UserRole.ADMIN, UserRole.OWNER)
+  async createLocation(@Req() req: RequestWithTenant, @Body() body: any) {
+    const { tenant_id, user_id } = req.tenantContext;
+    return {
+      success: true,
+      message: 'Location created',
+      data: await this.settingsService.createLocation(tenant_id, body, user_id || 'system'),
+    };
+  }
 }

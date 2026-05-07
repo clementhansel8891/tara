@@ -1,115 +1,244 @@
 import * as React from "react";
+import { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
   DialogDescription,
-  DialogFooter
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
-  Construction, 
-  ShieldCheck, 
-  Layers,
-  Cpu,
-  Sparkles,
-  Network
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { 
+  Building2, 
+  MapPin, 
+  UserPlus, 
+  Rocket,
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { orgSettingsService } from "@/core/services/orgSettingsService";
+import { adminService } from "@/core/services/adminService";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StrategicExpansionModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  featureName: string;
-  expectedDeployment?: string;
+  featureName?: string;
 }
 
 export function StrategicExpansionModal({ 
   isOpen, 
-  onOpenChange, 
-  featureName,
-  expectedDeployment = "DEPLOYMENT Q4-26"
+  onOpenChange,
+  featureName = "Strategic Expansion"
 }: StrategicExpansionModalProps) {
+  const { session } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [successMode, setSuccessMode] = useState<string | null>(null);
+
+  // Form States
+  const [companyForm, setCompanyForm] = useState({ name: "", industry: "retail", country: "US", currency: "USD" });
+  const [branchForm, setBranchForm] = useState({ name: "", address: "", email: "", phone: "" });
+  const [inviteForm, setInviteForm] = useState({ email: "", role: "ADMIN", department: "executive" });
+
+  const handleCreateCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setLoading(true);
+    try {
+      await orgSettingsService.createChildCompany(session, companyForm);
+      setSuccessMode("company");
+      toast.success("Subsidiary Successfully Provisioned");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create subsidiary");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setLoading(true);
+    try {
+      await orgSettingsService.createLocation(session, branchForm);
+      setSuccessMode("branch");
+      toast.success("Corporate Branch Registered");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create branch");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setLoading(true);
+    try {
+      await adminService.createInvitation(session, inviteForm);
+      setSuccessMode("invite");
+      toast.success("Executive Invitation Dispatched");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send invitation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetAndClose = () => {
+    setSuccessMode(null);
+    setCompanyForm({ name: "", industry: "retail", country: "US", currency: "USD" });
+    setBranchForm({ name: "", address: "", email: "", phone: "" });
+    setInviteForm({ email: "", role: "ADMIN", department: "executive" });
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] rounded-[3.5rem] border border-white/5 bg-slate-950/95 backdrop-blur-3xl p-0 overflow-hidden shadow-[0_0_120px_rgba(99,102,241,0.25)]">
-        {/* Animated Accent Line */}
-        <div className="h-2.5 bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-white/40 animate-[shimmer_2s_infinite] -translate-x-full" />
-        </div>
-        
-        <div className="p-14 space-y-12 relative overflow-hidden">
-          {/* Blueprint Background Grid */}
-          <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
-               style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-          
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/10 rounded-full blur-[100px] -ml-32 -mb-32 pointer-events-none" />
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) resetAndClose();
+      else onOpenChange(true);
+    }}>
+      <DialogContent className="sm:max-w-[700px] rounded-[3.5rem] border border-slate-100 bg-white p-0 overflow-hidden shadow-2xl">
+        {/* Header Area */}
+        <div className="bg-slate-950 p-10 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6366f1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
           
           <DialogHeader className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <Badge className="bg-indigo-600/20 text-indigo-400 font-black text-[11px] uppercase tracking-[0.3em] border border-indigo-500/20 px-4 py-2 rounded-xl italic">
-                Phase 2 Architecture
-              </Badge>
-              <div className="flex items-center gap-2 text-rose-500 font-black text-[10px] uppercase tracking-[0.2em] italic animate-pulse">
-                <Construction className="h-4 w-4" /> Feature Under Calibration
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
+                <Rocket className="h-5 w-5 text-indigo-400" />
               </div>
+              <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic text-white">
+                Enterprise Provisioning
+              </DialogTitle>
             </div>
-            <DialogTitle className="text-5xl font-black tracking-tighter uppercase italic leading-none text-white mb-4">
-              {featureName}
-            </DialogTitle>
-            <DialogDescription className="text-lg font-medium italic leading-relaxed text-slate-400 mt-2 tracking-tight">
-              "This tactical node is undergoing high-fidelity calibration for integration into the global Zenvix matrix."
+            <DialogDescription className="text-slate-400 font-medium">
+              Execute strategic growth initiatives across the global organizational matrix.
             </DialogDescription>
           </DialogHeader>
+        </div>
 
-          <div className="space-y-10 relative z-10">
-            {/* Visual Roadmap Nodes */}
-            <div className="grid grid-cols-3 gap-6">
-              {[
-                { icon: Layers, label: "Topology", status: "VERIFIED", color: "text-emerald-400", bg: "bg-white/[0.03]", border: "border-white/5" },
-                { icon: Cpu, label: "Engine", status: "CALIBRATING", color: "text-indigo-400", bg: "bg-white/[0.03]", border: "border-white/5" },
-                { icon: Network, label: "Network", status: "PENDING", color: "text-slate-500", bg: "bg-white/[0.03]", border: "border-white/5" },
-              ].map((node, i) => (
-                <div key={i} className={cn("p-8 rounded-[2.5rem] border backdrop-blur-3xl shadow-2xl flex flex-col items-center gap-4 transition-all duration-500 hover:scale-110 hover:-translate-y-2 group/node", node.bg, node.border)}>
-                   <div className={cn("h-16 w-16 rounded-2xl flex items-center justify-center shadow-2xl transition-transform duration-700 group-hover/node:rotate-12 bg-white/5 border border-white/5")}>
-                      <node.icon className={cn("h-8 w-8", node.color)} />
-                   </div>
-                   <div className="text-center space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">{node.label}</p>
-                      <p className={cn("text-[9px] font-black uppercase tracking-widest italic animate-pulse", node.color)}>{node.status}</p>
-                   </div>
-                </div>
-              ))}
+        {/* Content Area */}
+        <div className="p-10 relative bg-slate-50">
+          {successMode ? (
+            <div className="py-12 flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in zoom-in duration-500">
+              <div className="h-24 w-24 rounded-full bg-emerald-100 flex items-center justify-center mb-4 shadow-xl shadow-emerald-100">
+                <CheckCircle2 className="h-12 w-12 text-emerald-600" />
+              </div>
+              <h3 className="text-3xl font-black italic tracking-tight text-slate-900 uppercase">
+                {successMode === "company" && "Subsidiary Deployed"}
+                {successMode === "branch" && "Branch Activated"}
+                {successMode === "invite" && "Protocol Initiated"}
+              </h3>
+              <p className="text-slate-500 font-medium max-w-sm">
+                The strategic expansion command has been successfully executed and recorded in the global ledger.
+              </p>
+              <Button onClick={resetAndClose} className="mt-8 h-12 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-xs">
+                Acknowledge & Close
+              </Button>
             </div>
+          ) : (
+            <Tabs defaultValue="company" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-8 h-14 bg-slate-200/50 rounded-2xl p-1">
+                <TabsTrigger value="company" className="rounded-xl font-black uppercase tracking-wider text-[10px] data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm">
+                  <Building2 className="h-4 w-4 mr-2" /> Subsidiary
+                </TabsTrigger>
+                <TabsTrigger value="branch" className="rounded-xl font-black uppercase tracking-wider text-[10px] data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm">
+                  <MapPin className="h-4 w-4 mr-2" /> Corp Branch
+                </TabsTrigger>
+                <TabsTrigger value="invite" className="rounded-xl font-black uppercase tracking-wider text-[10px] data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm">
+                  <UserPlus className="h-4 w-4 mr-2" /> Recruitment
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Neural Advisory Note */}
-            <div className="rounded-[3rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl p-10 group overflow-hidden relative shadow-inner">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-1000" />
-               <div className="flex items-start gap-6 relative z-10">
-                  <div className="h-14 w-14 rounded-2xl bg-white/[0.05] flex items-center justify-center shadow-2xl shrink-0 group-hover:rotate-[15deg] transition-all duration-500 border border-white/5">
-                     <Sparkles className="h-7 w-7 text-indigo-400 fill-indigo-400/20" />
+              <TabsContent value="company" className="space-y-6 mt-0">
+                <form onSubmit={handleCreateCompany} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Legal Entity Name</Label>
+                      <Input required value={companyForm.name} onChange={e => setCompanyForm({...companyForm, name: e.target.value})} placeholder="e.g. Zenvix Logistics LLC" className="h-12 rounded-xl bg-white border-slate-200" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Base Currency</Label>
+                        <Input required value={companyForm.currency} onChange={e => setCompanyForm({...companyForm, currency: e.target.value})} placeholder="USD" className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Industry Module</Label>
+                        <Input required value={companyForm.industry} onChange={e => setCompanyForm({...companyForm, industry: e.target.value})} placeholder="retail" className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                     <p className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Tactical Insight</p>
-                     <p className="text-sm font-medium italic leading-relaxed text-slate-400 tracking-tight">
-                        The <strong className="text-white">{featureName}</strong> protocol is being optimized for <strong className="text-indigo-400">99.9% operational yield</strong>. Deployment is authorized for the <span className="text-indigo-400 font-black">{expectedDeployment}</span> cycle.
-                     </p>
+                  <Button type="submit" disabled={loading} className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Provision Subsidiary Environment"}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="branch" className="space-y-6 mt-0">
+                <form onSubmit={handleCreateBranch} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Office Name</Label>
+                      <Input required value={branchForm.name} onChange={e => setBranchForm({...branchForm, name: e.target.value})} placeholder="e.g. EMEA Regional HQ" className="h-12 rounded-xl bg-white border-slate-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Physical Address</Label>
+                      <Input required value={branchForm.address} onChange={e => setBranchForm({...branchForm, address: e.target.value})} placeholder="Full address" className="h-12 rounded-xl bg-white border-slate-200" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contact Email</Label>
+                        <Input type="email" value={branchForm.email} onChange={e => setBranchForm({...branchForm, email: e.target.value})} placeholder="office@company.com" className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Phone</Label>
+                        <Input value={branchForm.phone} onChange={e => setBranchForm({...branchForm, phone: e.target.value})} placeholder="+1..." className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                    </div>
                   </div>
-               </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="relative z-10 pt-6">
-            <Button 
-               className="w-full h-20 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 font-black text-sm uppercase tracking-[0.3em] shadow-[0_20px_50px_rgba(79,70,229,0.4)] gap-4 group transition-all duration-500 hover:scale-105 active:scale-95 text-white italic"
-               onClick={() => onOpenChange(false)}
-            >
-              <ShieldCheck className="h-6 w-6" /> ACKNOWLEDGE STRATEGIC DEPLOYMENT
-            </Button>
-          </DialogFooter>
+                  <Button type="submit" disabled={loading} className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Register Corporate Branch"}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="invite" className="space-y-6 mt-0">
+                <form onSubmit={handleCreateInvite} className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Executive Email</Label>
+                      <Input required type="email" value={inviteForm.email} onChange={e => setInviteForm({...inviteForm, email: e.target.value})} placeholder="executive@domain.com" className="h-12 rounded-xl bg-white border-slate-200" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">System Role</Label>
+                        <Input required value={inviteForm.role} onChange={e => setInviteForm({...inviteForm, role: e.target.value})} className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Department</Label>
+                        <Input required value={inviteForm.department} onChange={e => setInviteForm({...inviteForm, department: e.target.value})} className="h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={loading} className="w-full h-14 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
+                    {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Dispatch Magic Link"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </DialogContent>
     </Dialog>

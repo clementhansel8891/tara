@@ -45,5 +45,9 @@ export const orgSettingsService = {
   async getLocations(session: SessionContext): Promise<any[]> {
     const result = await apiRequest<any[]>("/v1/settings/locations", "GET", session);
     return result || [];
+  },
+
+  async createLocation(session: SessionContext, data: any): Promise<any> {
+    return apiRequest<any>("/v1/settings/locations", "POST", session, data);
   }
 };
