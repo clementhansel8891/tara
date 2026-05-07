@@ -1532,29 +1532,4 @@ export class InventoryDbRepository implements IInventoryRepository {
       },
     });
   }
-
-  async getAgenticEvents(ctx: TenantContext): Promise<PrismaAgenticEvent[]> {
-    return this.prisma.agentic_events.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
-      orderBy: { created_at: "desc" },
-    });
-  }
-
-  async createAgenticEvent(
-    ctx: TenantContext,
-    data: CreateAgenticEventDto,
-  ): Promise<PrismaAgenticEvent> {
-    return this.prisma.agentic_events.create({
-      data: {
-        id: uuidv4(),
-        updated_at: new Date(),
-        ...MultiTenancyUtil.getScope(ctx),
-        event_type: data.event_type,
-        entity_id: data.entity_id,
-        entity_type: data.entity_type,
-        payload: data.payload,
-        status: "PENDING",
-      },
-    });
-  }
 }
