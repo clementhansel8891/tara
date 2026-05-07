@@ -13,6 +13,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,9 +56,11 @@ import {
   PrintItem,
 } from "@/components/shared/PostekPrintModal";
 import { MOVEMENT_META } from "./inventory/inventory.types";
+import { CategoryManager } from "@/components/shared/CategoryManager";
 
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { useDebounce } from "@/hooks/useDebounce";
+import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { retailService } from "@/core/services/retail/retailService";
 import { crisisManagementService } from "@/core/services/retail/crisisManagementService";
 import type { RetailProduct, RetailStore } from "@/core/types/retail/retail";
@@ -95,7 +113,7 @@ const MOCK_AUDIT_LOG: AuditEntry[] = [
 ];
 
 const InventoryVisibility = () => {
-  const { session } = useAuth();
+  const { session, updateBranch } = useAuth();
   const { toast } = useToast();
 
   const [inventory, setInventory] = useState<InventoryItemView[]>([]);
@@ -130,6 +148,10 @@ const InventoryVisibility = () => {
   const [editItem, setEditItem] = useState<InventoryItemView | null>(null);
   const [detailItem, setDetailItem] = useState<InventoryItemView | null>(null);
   const [movementType, setMovementType] = useState<MovementType | null>(null);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [isReclassifyOpen, setIsReclassifyOpen] = useState(false);
+  const [selectedItemForReclassify, setSelectedItemForReclassify] = useState<InventoryItemView | null>(null);
+  const [newCategoryId, setNewCategoryId] = useState("");
 
   // Unified Postek Print Modal
   const [printItems, setPrintItems] = useState<PrintItem[]>([]);
@@ -271,12 +293,15 @@ const InventoryVisibility = () => {
       const data = await retailService.listStores(tenantId, session);
       setStores(data);
       if (data.length > 0 && !selectedStoreId) {
-        setSelectedStoreId(data[0].id);
+        const firstStore = data[0];
+        setSelectedStoreId(firstStore.id);
+        // Sync branch scope to session so all API calls carry x-branch-id
+        updateBranch(firstStore.locationId || firstStore.id);
       }
     } catch (error) {
       console.error(error);
     }
-  }, [tenantId, session, selectedStoreId]);
+  }, [tenantId, session, selectedStoreId, updateBranch]);
 
   useEffect(() => {
     if (tenantId) {
@@ -611,7 +636,12 @@ const InventoryVisibility = () => {
         <InventoryPageHeader
           stores={stores}
           selectedStoreId={selectedStoreId}
-          onStoreChange={setSelectedStoreId}
+          onStoreChange={(storeId) => {
+            setSelectedStoreId(storeId);
+            // Sync branch scope: find the store's locationId
+            const store = stores.find((s) => s.id === storeId);
+            updateBranch(store?.locationId || storeId);
+          }}
           lastSync={lastSync}
           isLoading={isLoading}
           canWrite={canWrite}
@@ -656,6 +686,7 @@ const InventoryVisibility = () => {
                   onFiltersChange={(patch) =>
                     setFilters((prev) => ({ ...prev, ...patch }))
                   }
+                  onManageCategories={() => setIsCategoryManagerOpen(true)}
                 />
               </div>
               <Card className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white">
@@ -683,6 +714,11 @@ const InventoryVisibility = () => {
                     ]);
                   }}
                   onMovement={(type) => setMovementType(type)}
+                  onReclassify={(item) => {
+                    setSelectedItemForReclassify(item);
+                    setNewCategoryId(item.categoryId || "");
+                    setIsReclassifyOpen(true);
+                  }}
                   onCategoryClick={handleCategoryClick}
                   onRowClick={(item) => setDetailItem(item)}
                 />
@@ -924,6 +960,72 @@ const InventoryVisibility = () => {
         onClose={() => setPrintItems([])}
         items={printItems}
       />
+      <CategoryManager
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        onCategoriesChange={fetchCategories}
+      />
+
+      <Dialog open={isReclassifyOpen} onOpenChange={setIsReclassifyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reclassify Item</DialogTitle>
+            <DialogDescription>
+              Move <strong>{selectedItemForReclassify?.name}</strong> to a different category.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Select New Category</Label>
+              <Select value={newCategoryId} onValueChange={setNewCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOptions.filter(c => c.id !== "all").map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReclassifyOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!newCategoryId}
+              onClick={async () => {
+                if (!selectedItemForReclassify || !session?.tenant_id) return;
+                try {
+                  await inventoryService.updateItemCategory(
+                    session.tenant_id,
+                    session,
+                    selectedItemForReclassify.id,
+                    newCategoryId,
+                  );
+                  toast({
+                    title: "Success",
+                    description: "Item reclassified successfully.",
+                  });
+                  setIsReclassifyOpen(false);
+                  fetchInventory();
+                } catch (err: any) {
+                  toast({
+                    title: "Error",
+                    description: err.message || "Failed to reclassify item.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Update Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

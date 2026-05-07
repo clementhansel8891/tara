@@ -48,7 +48,9 @@ import type {
 import { TransferDialog } from "./components/TransferDialog";
 import { BatchIntakeDialog } from "./components/BatchIntakeDialog";
 import { BatchTransferDialog } from "./components/BatchTransferDialog";
+import { CategoryManager } from "@/components/shared/CategoryManager";
 import { ImageManager } from "./components/ImageManager";
+import { FolderTree, Move, MoreVertical } from "lucide-react";
 import { Image as ImageIcon } from "lucide-react";
 import { AdjustmentDialog } from "./components/AdjustmentDialog";
 import { ExportButton } from "@/components/shared/ExportButton";
@@ -56,6 +58,7 @@ import { ImportDialog } from "@/components/shared/ImportDialog";
 import { Upload } from "lucide-react";
 import { ItemCreationTab } from "@/components/shared/ItemCreationTab";
 import { TransferDesk } from "./TransferDesk";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 type ViewMode = "total" | "branch" | "ecommerce" | "transfers";
 
@@ -95,12 +98,23 @@ export default function InventoryStockHub() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("branch");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isBatchIntakeOpen, setIsBatchIntakeOpen] = useState(false);
   const [isBatchTransferOpen, setIsBatchTransferOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
+  const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
+  const [isReclassifyOpen, setIsReclassifyOpen] = useState(false);
+  const [selectedItemForReclassify, setSelectedItemForReclassify] = useState<any>(null);
+  const [newCategoryId, setNewCategoryId] = useState("");
+
+  useBarcodeScanner((barcode) => {
+    setSearch(barcode);
+    setStatusMessage(`Scanned barcode: ${barcode}`);
+  });
 
   // New Item Dialog state
   const [isNewItemOpen, setIsNewItemOpen] = useState(false);
@@ -174,23 +188,26 @@ export default function InventoryStockHub() {
 
   const refresh = useCallback(async () => {
     try {
-      const [i, b, d, locs] = await Promise.all([
-        inventoryService.listItems(session.tenant_id, session),
-        inventoryService.listBalances(session.tenant_id, session),
+      const locFilter = selectedLocationId || undefined;
+      const [i, b, d, locs, cats] = await Promise.all([
+        inventoryService.listItems(session.tenant_id, session, locFilter),
+        inventoryService.listBalances(session.tenant_id, session, locFilter),
         orgService.getOrgMap(session.tenant_id, session),
         hrService.listLocations(session.tenant_id, session),
+        inventoryService.listCategories(session.tenant_id, session),
       ]);
       setItems(i);
       setBalances(b);
       setDepartments(d);
       setLocations(locs);
+      setDynamicCategories(cats);
     } catch (err) {
       console.error("Failed to fetch inventory stock hub data:", err);
       setErrorMessage("Failed to load inventory data.");
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, selectedLocationId]);
 
   useEffect(() => {
     refresh();
@@ -340,6 +357,12 @@ export default function InventoryStockHub() {
             >
               Recompute alerts
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsCategoryManagerOpen(true)}
+            >
+              <FolderTree className="mr-2 h-4 w-4" /> Categories
+            </Button>
             <Button onClick={() => setIsNewItemOpen(true)}>+ New Item</Button>
           </div>
         }
@@ -370,6 +393,22 @@ export default function InventoryStockHub() {
                 <SelectItem value="ALL">All Departments</SelectItem>
                 {(Array.isArray(departments) ? departments : []).map(dept => (
                   <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedLocationId || "all"}
+              onValueChange={(v) => setSelectedLocationId(v === "all" ? "" : v)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Location: All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {(Array.isArray(locations) ? locations : []).map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name} <span className="text-xs text-slate-400 ml-1">({loc.type})</span>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -448,6 +487,7 @@ export default function InventoryStockHub() {
                   <th className="p-3 text-right">Qty</th>
                   <th className="p-3 text-left">Reorder</th>
                   <th className="p-3 text-left">Module Tags</th>
+                  <th className="p-3 text-right w-10">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -505,6 +545,42 @@ export default function InventoryStockHub() {
                       </td>
                       <td className="p-3 text-xs text-muted-foreground">
                         {(item.moduleTags || []).join(", ")}
+                      </td>
+                      <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="gap-2"
+                              onClick={() => {
+                                setSelectedItemForReclassify(item);
+                                setNewCategoryId("");
+                                setIsReclassifyOpen(true);
+                              }}
+                            >
+                              <Move className="h-4 w-4" /> Change Category
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="gap-2"
+                              onClick={() => {
+                                setSelectedItemForImages({ id: item.id, name: item.name });
+                                setIsImageManagerOpen(true);
+                              }}
+                            >
+                              <ImageIcon className="h-4 w-4" /> Manage Images
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive"
+                              onClick={() => handleDelete(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" /> Delete Item
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   );
@@ -658,10 +734,14 @@ export default function InventoryStockHub() {
               canWrite={true}
               session={session}
               tenantId={session.tenant_id}
-              categoryOptions={[
-                { id: "all", name: "All Categories" },
-                ...ITEM_CATEGORIES.map((c) => ({ id: c, name: c })),
-              ]}
+              categoryOptions={
+                dynamicCategories.length > 0
+                  ? dynamicCategories.map((c) => ({ id: c.name, name: c.name }))
+                  : [
+                      { id: "all", name: "All Categories" },
+                      ...ITEM_CATEGORIES.map((c) => ({ id: c, name: c })),
+                    ]
+              }
               onSuccess={() => {
                 setIsNewItemOpen(false);
                 refresh();
@@ -683,6 +763,64 @@ export default function InventoryStockHub() {
           onImagesUpdated={refresh}
         />
       )}
+      <CategoryManager
+        isOpen={isCategoryManagerOpen}
+        onClose={() => setIsCategoryManagerOpen(false)}
+        onCategoriesChange={refresh}
+      />
+
+      <Dialog open={isReclassifyOpen} onOpenChange={setIsReclassifyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reclassify Item</DialogTitle>
+            <DialogDescription>
+              Move <strong>{selectedItemForReclassify?.name}</strong> to a different category.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Select New Category</Label>
+              <Select value={newCategoryId} onValueChange={setNewCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dynamicCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsReclassifyOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!newCategoryId}
+              onClick={async () => {
+                try {
+                  await inventoryService.updateItemCategory(
+                    session.tenant_id,
+                    session,
+                    selectedItemForReclassify.id,
+                    newCategoryId,
+                  );
+                  setStatusMessage("Item reclassified successfully.");
+                  setIsReclassifyOpen(false);
+                  refresh();
+                } catch (err: any) {
+                  setErrorMessage(err.message || "Failed to reclassify item.");
+                }
+              }}
+            >
+              Update Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

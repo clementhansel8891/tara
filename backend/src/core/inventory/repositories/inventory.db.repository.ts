@@ -106,10 +106,18 @@ export class InventoryDbRepository implements IInventoryRepository {
     };
   }
 
-  async getItems(ctx: TenantContext): Promise<InventoryItem[]> {
+  async getItems(ctx: TenantContext, location_id?: string): Promise<InventoryItem[]> {
     const scope = MultiTenancyUtil.getScope(ctx);
+    const where: any = { ...scope, status: { not: "deleted" } };
+
+    // When a specific branch/store location is requested, return only items
+    // that have a stock record at that location
+    if (location_id) {
+      where.stock_levels = { some: { location_id } };
+    }
+
     const products = await this.prisma.item_masters.findMany({
-      where: { ...scope, status: { not: "deleted" } },
+      where,
       include: { product_categories: true, item_images: true },
       orderBy: { created_at: "desc" },
     });
@@ -1468,5 +1476,85 @@ export class InventoryDbRepository implements IInventoryRepository {
       FOR UPDATE
     `);
     return rows[0] || null;
+  }
+
+  // --- Category Management ---
+  async getProductCategories(ctx: TenantContext): Promise<any[]> {
+    return this.prisma.product_categories.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { name: "asc" },
+    });
+  }
+
+  async createProductCategory(ctx: TenantContext, data: any): Promise<any> {
+    return this.prisma.product_categories.create({
+      data: MultiTenancyUtil.wrapCreate(ctx, {
+        id: uuidv4(),
+        updated_at: new Date(),
+        name: data.name,
+        parent_id: data.parent_id || null,
+        icon: data.icon || null,
+      }),
+    });
+  }
+
+  async updateProductCategory(ctx: TenantContext, id: string, data: any): Promise<any> {
+    return this.prisma.product_categories.update({
+      where: { id, tenant_id: ctx.tenant_id },
+      data: {
+        ...data,
+        updated_at: new Date(),
+      },
+    });
+  }
+
+  async deleteProductCategory(ctx: TenantContext, id: string): Promise<void> {
+    // Check if category has items
+    const itemCount = await this.prisma.item_masters.count({
+      where: { category_id: id, tenant_id: ctx.tenant_id },
+    });
+
+    if (itemCount > 0) {
+      throw new Error("Cannot delete category with associated items. Reclassify items first.");
+    }
+
+    await this.prisma.product_categories.delete({
+      where: { id, tenant_id: ctx.tenant_id },
+    });
+  }
+
+  async updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string): Promise<any> {
+    return this.prisma.item_masters.update({
+      where: { id: itemId, tenant_id: ctx.tenant_id },
+      data: {
+        category_id: categoryId,
+        updated_at: new Date(),
+      },
+    });
+  }
+
+  async getAgenticEvents(ctx: TenantContext): Promise<PrismaAgenticEvent[]> {
+    return this.prisma.agentic_events.findMany({
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { created_at: "desc" },
+    });
+  }
+
+  async createAgenticEvent(
+    ctx: TenantContext,
+    data: CreateAgenticEventDto,
+  ): Promise<PrismaAgenticEvent> {
+    return this.prisma.agentic_events.create({
+      data: {
+        id: uuidv4(),
+        updated_at: new Date(),
+        ...MultiTenancyUtil.getScope(ctx),
+        event_type: data.eventType,
+        entity_id: data.entityId,
+        entity_type: data.entityType,
+        payload: data.payload,
+        status: "PENDING",
+      },
+    });
   }
 }

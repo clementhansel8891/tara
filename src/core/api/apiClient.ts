@@ -65,8 +65,15 @@ export async function apiRequest<T>(
     headers["x-location-id"] = finalLocationId;
   }
 
-  if (jvContext?.branchId) {
-    headers["x-branch-id"] = jvContext.branchId;
+  // branch_id — JV mirror takes priority, then session
+  const effectiveBranchId = jvContext?.branchId || session?.branch_id;
+  if (effectiveBranchId) {
+    headers["x-branch-id"] = effectiveBranchId;
+  }
+
+  // ecommerce_id — from session scope (JV scope injects via backend middleware)
+  if (session?.ecommerce_id) {
+    headers["x-ecommerce-id"] = session.ecommerce_id;
   }
 
   if (session) {

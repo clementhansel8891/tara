@@ -16,6 +16,7 @@ import {
   Truck,
   Trash2,
   Printer,
+  FolderTree,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InventoryItemView } from "./types";
@@ -37,6 +38,7 @@ type TableProps = {
   onEdit: (item: InventoryItemView) => void;
   onPrint: (item: InventoryItemView) => void;
   onMovement: (type: "transfer_out", item: InventoryItemView) => void;
+  onReclassify?: (item: InventoryItemView) => void;
   onCategoryClick?: (categoryId: string) => void;
   onRowClick?: (item: InventoryItemView) => void;
 } & PaginationProps;
@@ -280,6 +282,16 @@ export const InventoryTable: React.FC<TableProps> = ({
                         >
                           <Truck className="w-3.5 h-3.5 text-indigo-600" />{" "}
                           Transfer Out
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="rounded-xl gap-2 font-black italic text-xs py-3"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onReclassify?.(item);
+                          }}
+                        >
+                          <FolderTree className="w-3.5 h-3.5 text-orange-600" />{" "}
+                          Change Category
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

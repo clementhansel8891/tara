@@ -20,12 +20,27 @@ export const inventoryService = {
   async listItems(
     tenantId: string,
     session: SessionContext,
+    locationId?: string,
   ): Promise<InventoryItemMaster[]> {
+    const params = locationId ? `?location_id=${locationId}` : "";
     return apiRequest<InventoryItemMaster[]>(
-      "/v1/inventory/items",
+      `/v1/inventory/items${params}`,
       "GET",
       session,
     );
+  },
+
+  async lookupItemByBarcode(
+    tenantId: string,
+    session: SessionContext,
+    barcode: string,
+  ): Promise<InventoryItemMaster | null> {
+    const res = await apiRequest<{ data: InventoryItemMaster | null }>(
+      `/v1/inventory/items/lookup?barcode=${barcode}`,
+      "GET",
+      session,
+    );
+    return res.data;
   },
 
   async listBalances(
@@ -558,6 +573,53 @@ export const inventoryService = {
       `/v1/inventory/items/${itemId}/images`,
       "GET",
       session,
+    );
+  },
+
+  // --- Category Management ---
+  async listCategories(
+    tenantId: string,
+    session: SessionContext,
+  ): Promise<any[]> {
+    return apiRequest<any[]>("/v1/inventory/categories", "GET", session);
+  },
+
+  async createCategory(
+    tenantId: string,
+    session: SessionContext,
+    payload: { name: string; parent_id?: string; icon?: string },
+  ): Promise<any> {
+    return apiRequest<any>("/v1/inventory/categories", "POST", session, payload);
+  },
+
+  async updateCategory(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+    payload: { name: string; parent_id?: string; icon?: string },
+  ): Promise<any> {
+    return apiRequest<any>(`/v1/inventory/categories/${id}`, "PUT", session, payload);
+  },
+
+  async deleteCategory(
+    tenantId: string,
+    session: SessionContext,
+    id: string,
+  ): Promise<void> {
+    return apiRequest<void>(`/v1/inventory/categories/${id}`, "DELETE", session);
+  },
+
+  async updateItemCategory(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+    categoryId: string,
+  ): Promise<any> {
+    return apiRequest<any>(
+      `/v1/inventory/items/${itemId}/category`,
+      "PATCH",
+      session,
+      { categoryId },
     );
   },
 };

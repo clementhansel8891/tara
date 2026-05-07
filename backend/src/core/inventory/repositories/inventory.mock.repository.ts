@@ -19,7 +19,7 @@ import {
 import { TenantContext } from "../../../gateway/tenant-context.interface";
 
 @Injectable()
-export class InventoryMockRepository implements IInventoryRepository {
+export class InventoryMockRepository extends IInventoryRepository {
   private items: any[] = [];
   private balances: any[] = [];
   private movements: any[] = [];
@@ -72,8 +72,16 @@ export class InventoryMockRepository implements IInventoryRepository {
     };
   }
 
-  async getItems(ctx: TenantContext): Promise<InventoryItem[]> {
-    return this.items.filter((i) => i.tenant_id === ctx.tenant_id);
+  async getItems(ctx: TenantContext, location_id?: string): Promise<InventoryItem[]> {
+    const items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
+    if (location_id) {
+      // For mock: filter items that have a balance entry at the given location
+      const productIds = this.balances
+        .filter((b) => b.location_id === location_id)
+        .map((b) => b.product_id);
+      return items.filter((i) => productIds.includes(i.id));
+    }
+    return items;
   }
 
   async createItem(ctx: TenantContext, data: CreateItemDto): Promise<InventoryItem> {

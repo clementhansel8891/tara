@@ -17,7 +17,9 @@ import { FilterBar } from "@/core/tools/FilterBar";
 import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
-import { Package, CheckCircle, AlertTriangle } from "lucide-react";
+import { peopleService } from "@/core/services/hr/peopleService";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+import { Package, CheckCircle, AlertTriangle, Coins, DollarSign } from "lucide-react";
 
 interface ProcurementReceiptItem {
   id: string;
@@ -49,6 +51,28 @@ export default function InventoryReceiving() {
     Array<{ sku: string; quantity: number; unitCost: number }>
   >([{ sku: "", quantity: 1, unitCost: 0 }]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currency, setCurrency] = useState<{ code: string; symbol: string }>({ code: "IDR", symbol: "Rp" });
+
+  useBarcodeScanner((barcode) => {
+    if (isReceiveOpen) {
+      // If modal is open, try to fill SKU
+      setReceiveItems((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && !last.sku) {
+          // Fill existing empty line
+          return prev.map((item, idx) => idx === prev.length - 1 ? { ...item, sku: barcode } : item);
+        } else {
+          // Add new line
+          return [...prev, { sku: barcode, quantity: 1, unitCost: 0 }];
+        }
+      });
+      setStatusMessage(`Scanned SKU: ${barcode}`);
+    } else {
+      // Otherwise, filter the queue
+      setSearch(barcode);
+      setStatusMessage(`Filtering by: ${barcode}`);
+    }
+  });
 
   const refresh = useCallback(async () => {
     try {
@@ -60,11 +84,27 @@ export default function InventoryReceiving() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenant_id]);
+  }, [session.tenant_id, session]);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    const init = async () => {
+      await refresh();
+      try {
+        const profile = await peopleService.getEmployee360(session.tenant_id, session.user_id, session);
+        const cCode = profile?.employee?.currency || "IDR";
+        const symbolMap: Record<string, string> = {
+          'USD': '$',
+          'IDR': 'Rp',
+          'EUR': '€',
+          'GBP': '£'
+        };
+        setCurrency({ code: cCode, symbol: symbolMap[cCode] || cCode });
+      } catch (e) {
+        console.warn("Failed to resolve currency, defaulting to IDR");
+      }
+    };
+    init();
+  }, [refresh, session]);
 
   const filteredQueue = useMemo(
     () =>
@@ -196,9 +236,9 @@ export default function InventoryReceiving() {
                     </td>
                     <td className="p-3 text-muted-foreground">{po.category || "—"}</td>
                     <td className="p-3 text-right font-mono">
-                      {Number(po.totalAmount).toLocaleString("en-ID", {
+                      {Number(po.totalAmount).toLocaleString(currency.code === "IDR" ? "id-ID" : "en-US", {
                         style: "currency",
-                        currency: "IDR",
+                        currency: currency.code,
                         minimumFractionDigits: 0,
                       })}
                     </td>

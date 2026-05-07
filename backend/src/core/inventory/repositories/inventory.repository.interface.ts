@@ -43,7 +43,7 @@ export type InventoryDashboard = {
 
 export abstract class IInventoryRepository {
   abstract getDashboard(ctx: TenantContext): Promise<InventoryDashboard>;
-  abstract getItems(ctx: TenantContext): Promise<InventoryItem[]>;
+  abstract getItems(ctx: TenantContext, location_id?: string): Promise<InventoryItem[]>;
   abstract createItem(
     ctx: TenantContext,
     data: CreateItemDto,
@@ -218,5 +218,12 @@ export abstract class IInventoryRepository {
     ctx: TenantContext,
     data: CreateAgenticEventDto,
   ): Promise<AgenticEvent>;
+
+  // --- Category Management ---
+  abstract getProductCategories(ctx: TenantContext): Promise<any[]>;
+  abstract createProductCategory(ctx: TenantContext, data: any): Promise<any>;
+  abstract updateProductCategory(ctx: TenantContext, id: string, data: any): Promise<any>;
+  abstract deleteProductCategory(ctx: TenantContext, id: string): Promise<void>;
+  abstract updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string): Promise<any>;
 }
 

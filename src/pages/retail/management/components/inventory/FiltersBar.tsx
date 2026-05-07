@@ -17,6 +17,7 @@ type Props = {
   categoryOptions: { id: string; name: string }[];
   onFiltersChange: (patch: Partial<InventoryFilters>) => void;
   onAddSku?: () => void;
+  onManageCategories?: () => void;
 };
 
 export const FiltersBar: React.FC<Props> = ({
@@ -25,6 +26,7 @@ export const FiltersBar: React.FC<Props> = ({
   categoryOptions,
   onFiltersChange,
   onAddSku,
+  onManageCategories,
 }) => {
   return (
     <div className="flex items-center gap-3 bg-white rounded-[1.5rem] p-3 border border-slate-100 shadow-lg">
@@ -144,12 +146,21 @@ export const FiltersBar: React.FC<Props> = ({
         </SelectContent>
       </Select>
       {canWrite && (
-        <Button
-          onClick={onAddSku}
-          className="h-11 px-5 rounded-xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2"
-        >
-          <Plus className="w-4 h-4" /> Add SKU
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={onManageCategories}
+            className="h-11 px-4 rounded-xl font-black italic text-xs uppercase tracking-widest gap-2"
+          >
+            Categories
+          </Button>
+          <Button
+            onClick={onAddSku}
+            className="h-11 px-5 rounded-xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2"
+          >
+            <Plus className="w-4 h-4" /> Add SKU
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -32,8 +32,8 @@ export class InventoryService {
     return this.repository.getDashboard(ctx);
   }
 
-  async getItems(ctx: TenantContext) {
-    return this.repository.getItems(ctx);
+  async getItems(ctx: TenantContext, location_id?: string) {
+    return this.repository.getItems(ctx, location_id);
   }
 
   async createItem(ctx: TenantContext, data: CreateItemDto, user_id?: string) {
@@ -1120,5 +1120,30 @@ export class InventoryService {
         adjustment: result,
         status: 'SUCCESS'
     };
+  }
+
+  async lookupByBarcode(ctx: TenantContext, barcode: string) {
+    return this.repository.lookupByBarcode(ctx, barcode);
+  }
+
+  // --- Category Management ---
+  async getCategories(ctx: TenantContext) {
+    return this.repository.getProductCategories(ctx);
+  }
+
+  async createCategory(ctx: TenantContext, data: any) {
+    return this.repository.createProductCategory(ctx, data);
+  }
+
+  async updateCategory(ctx: TenantContext, id: string, data: any) {
+    return this.repository.updateProductCategory(ctx, id, data);
+  }
+
+  async deleteCategory(ctx: TenantContext, id: string) {
+    return this.repository.deleteProductCategory(ctx, id);
+  }
+
+  async updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string) {
+    return this.repository.updateItemCategory(ctx, itemId, categoryId);
   }
 }

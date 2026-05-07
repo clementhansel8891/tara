@@ -33,6 +33,7 @@ import { TransferStockDto } from "./dto/transfer-stock.dto";
 import { ImportItemDto } from "./dto/import-item.dto";
 import { CreateMovementRequestDto } from "./dto/create-movement-request.dto";
 import { CreateAgenticEventDto } from "./dto/create-agentic-event.dto";
+import { CreateCategoryDto } from "./dto/create-category.dto";
 import { InventoryService } from "./inventory.service";
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 import { AuditService } from "../../shared/audit/audit.service";
@@ -111,10 +112,20 @@ export class InventoryController {
   }
 
   @Get("items")
-  async getItems(@Req() request: RequestWithTenant) {
-    const { tenant_id: tenant_id } = request.tenantContext;
-    const data = await this.inventoryService.getItems(request.tenantContext);
+  async getItems(
+    @Req() request: RequestWithTenant,
+    @Query("location_id") location_id?: string,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.getItems(request.tenantContext, location_id);
     return { success: true, tenant_id, count: data.length, data };
+  }
+
+  @Get("items/lookup")
+  async lookupItem(@Req() request: RequestWithTenant, @Query("barcode") barcode: string) {
+    const { tenant_id: tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.lookupByBarcode(request.tenantContext, barcode);
+    return { success: true, tenant_id, data };
   }
 
   @Post("items/:id/images")
@@ -1013,6 +1024,40 @@ export class InventoryController {
       user_id,
     );
     return { success: true, tenant_id, message: "Receipt processed and inventory intake triggered", data };
+  }
+
+  // --- Category Management ---
+  @Get("categories")
+  async getCategories(@Req() request: RequestWithTenant) {
+    return this.inventoryService.getCategories(request.tenantContext);
+  }
+
+  @Post("categories")
+  async createCategory(@Req() request: RequestWithTenant, @Body() data: CreateCategoryDto) {
+    return this.inventoryService.createCategory(request.tenantContext, data);
+  }
+
+  @Put("categories/:id")
+  async updateCategory(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() data: CreateCategoryDto,
+  ) {
+    return this.inventoryService.updateCategory(request.tenantContext, id, data);
+  }
+
+  @Delete("categories/:id")
+  async deleteCategory(@Req() request: RequestWithTenant, @Param("id") id: string) {
+    return this.inventoryService.deleteCategory(request.tenantContext, id);
+  }
+
+  @Patch("items/:id/category")
+  async updateItemCategory(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+    @Body("categoryId") categoryId: string,
+  ) {
+    return this.inventoryService.updateItemCategory(request.tenantContext, itemId, categoryId);
   }
 }
 

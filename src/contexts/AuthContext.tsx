@@ -42,6 +42,8 @@ interface AuthContextType {
   logout: () => void;
   setSession: (session: SessionContext) => void;
   updateLocation: (locationId: string) => void;
+  updateBranch: (branchId: string | undefined) => void;
+  updateEcommerce: (ecommerceId: string | undefined) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -241,6 +243,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateBranch = useCallback(
+    (branch_id: string | undefined) => {
+      setSessionState((prev) => {
+        if (!prev || prev.branch_id === branch_id) return prev;
+        const next = { ...prev, branch_id };
+        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
+        return next;
+      });
+    },
+    [],
+  );
+
+  const updateEcommerce = useCallback(
+    (ecommerce_id: string | undefined) => {
+      setSessionState((prev) => {
+        if (!prev || prev.ecommerce_id === ecommerce_id) return prev;
+        const next = { ...prev, ecommerce_id };
+        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
+        return next;
+      });
+    },
+    [],
+  );
+
   // Auto-resolve locationId if missing but tenantId is present
   useEffect(() => {
     if (session && session.tenant_id && !session.location_id) {
@@ -278,6 +304,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       setSession,
       updateLocation,
+      updateBranch,
+      updateEcommerce,
     }),
     [
       user,
@@ -289,6 +317,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       setSession,
       updateLocation,
+      updateBranch,
+      updateEcommerce,
     ],
   );
 
