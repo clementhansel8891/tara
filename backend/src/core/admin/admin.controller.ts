@@ -203,13 +203,13 @@ export class AdminController {
         },
         kpis,
         timeseries: {
-          revenueTrend: financialOverview, // Keeping backwards compatibility
-          financialOverview,
-          alertsByModule,
-          moduleHealth,
-          topBranches,
-          hrDistribution,
-          campaignCorrelation
+          revenueTrend: financialOverview || [],
+          financialOverview: financialOverview || [],
+          alertsByModule: alertsByModule || [],
+          moduleHealth: moduleHealth || [],
+          topBranches: topBranches || [],
+          hrDistribution: hrDistribution || [],
+          campaignCorrelation: campaignCorrelation || []
         },
         activities: formattedActivities.length > 0 ? formattedActivities : [
           {

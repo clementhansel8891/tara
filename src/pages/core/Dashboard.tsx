@@ -213,9 +213,9 @@ export default function CoreDashboard() {
                 {/* Enterprise Financial Trajectory */}
                 <WorkspacePanel title="Enterprise Financial Trajectory" description="6-month trailing revenue vs operational expenses." className="lg:col-span-2 relative overflow-hidden">
                   <div className="h-[300px] w-full mt-4">
-                    {Array.isArray(timeseries?.financialOverview) ? (
+                    {Array.isArray(timeseries?.financialOverview || timeseries?.revenueTrend) ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={timeseries.financialOverview} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                        <ComposedChart data={timeseries?.financialOverview || timeseries?.revenueTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                           <defs>
                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
@@ -224,10 +224,10 @@ export default function CoreDashboard() {
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${(val || 0) / 1000}k`} />
                           <RechartsTooltip 
                             contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                            formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                            formatter={(value: number, name: string) => [`$${(value || 0).toLocaleString()}`, name.charAt(0).toUpperCase() + name.slice(1)]}
                             cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }}
                           />
                           <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '10px' }} iconType="circle" />
@@ -236,7 +236,7 @@ export default function CoreDashboard() {
                         </ComposedChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
+                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Synchronizing Telemetry...</div>
                     )}
                   </div>
                 </WorkspacePanel>
