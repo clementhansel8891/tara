@@ -81,8 +81,7 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
   ]);
 
   const currencyData = useMemo(() => {
-    const company = record?.employee?.companies;
-    const currency = company?.currency || 'USD';
+    const currency = record?.employee?.currency || 'USD';
     const symbolMap: Record<string, string> = {
       'USD': '$',
       'IDR': 'Rp',
