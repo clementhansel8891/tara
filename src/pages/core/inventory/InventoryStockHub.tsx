@@ -59,6 +59,11 @@ import { Upload } from "lucide-react";
 import { ItemCreationTab } from "@/components/shared/ItemCreationTab";
 import { TransferDesk } from "./TransferDesk";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+import { InventoryGlassHeader } from "@/components/shared/InventoryGlassHeader";
+import { InventoryFilterHub } from "@/components/shared/InventoryFilterHub";
+import { Package, LayoutGrid, Layers, Globe, ArrowLeftRight, Search, Plus, Filter, LayoutList, LayoutPanelLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge as UIBadge } from "@/components/ui/badge";
 
 type ViewMode = "total" | "branch" | "ecommerce" | "transfers";
 
@@ -322,96 +327,33 @@ export default function InventoryStockHub() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      <InventoryGlassHeader
         title="Stock Hub"
         subtitle="Global -> location -> department stock visibility with module-aware context tags."
-        primaryAction={
-          <div className="flex items-center gap-2">
-            <ExportButton
-              endpoint="/inventory/items/export"
-              filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
-            />
-            <Button
+        icon={Package}
+        stats={[
+          { label: "Total Items", value: items.length },
+          { label: "Total Stock", value: balances.reduce((acc, b) => acc + b.quantity, 0) },
+          { label: "Locations", value: locations.length },
+        ]}
+        actions={
+          <div className="flex items-center gap-3">
+             <Button
               variant="outline"
-              size="sm"
-              onClick={() => setIsImportOpen(true)}
-            >
-              <Upload className="mr-2 h-4 w-4" /> Import Items
-            </Button>
-            <Button
-              onClick={async () => {
-                try {
-                  await inventoryService.runLowStockScan(
-                    session.tenant_id,
-                    session,
-                  );
-                  setStatusMessage(
-                    "Low stock scan completed. Alerts refreshed.",
-                  );
-                  refresh();
-                } catch (err) {
-                  setErrorMessage("Stock scan failed.");
-                }
-              }}
-            >
-              Recompute alerts
-            </Button>
-            <Button
-              variant="outline"
+              size="lg"
+              className="rounded-2xl border-white bg-white/50 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2"
               onClick={() => setIsCategoryManagerOpen(true)}
             >
-              <FolderTree className="mr-2 h-4 w-4" /> Categories
+              <FolderTree className="h-4 w-4" /> Categories
             </Button>
-            <Button onClick={() => setIsNewItemOpen(true)}>+ New Item</Button>
-          </div>
-        }
-        secondaryActions={
-          <div className="flex items-center gap-2">
-            <Tabs
-              value={viewMode}
-              onValueChange={(v) => setViewMode(v as ViewMode)}
+            <Button 
+              size="lg"
+              className="rounded-2xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2"
+              onClick={() => setIsNewItemOpen(true)}
             >
-              <TabsList>
-                <TabsTrigger value="total">Total</TabsTrigger>
-                <TabsTrigger value="branch">Branch</TabsTrigger>
-                <TabsTrigger value="ecommerce">Ecommerce</TabsTrigger>
-                <TabsTrigger value="transfers">Manage Transfers</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Input
-              placeholder="Filter by module tag (e.g. RETAIL)"
-              value={moduleFilter}
-              onChange={(event) => setModuleFilter(event.target.value)}
-              className="min-w-[220px]"
-            />
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Department: All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Departments</SelectItem>
-                {(Array.isArray(departments) ? departments : []).map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={selectedLocationId || "all"}
-              onValueChange={(v) => setSelectedLocationId(v === "all" ? "" : v)}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Location: All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {(Array.isArray(locations) ? locations : []).map((loc) => (
-                  <SelectItem key={loc.id} value={loc.id}>
-                    {loc.name} <span className="text-xs text-slate-400 ml-1">({loc.type})</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Plus className="h-4 w-4" /> New Item
+            </Button>
           </div>
         }
       />
@@ -422,41 +364,125 @@ export default function InventoryStockHub() {
         onClear={clearStatus}
       />
 
+      <div className="max-w-[1600px] mx-auto space-y-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <Tabs
+            value={viewMode}
+            onValueChange={(v) => setViewMode(v as ViewMode)}
+            className="w-auto"
+          >
+            <TabsList className="h-14 p-1.5 bg-white/70 backdrop-blur-md border border-white rounded-[1.2rem] shadow-sm">
+              {[
+                { id: "total", label: "Global", icon: Globe },
+                { id: "branch", label: "Branches", icon: LayoutPanelLeft },
+                { id: "ecommerce", label: "Ecommerce", icon: LayoutList },
+                { id: "transfers", label: "Transfers", icon: ArrowLeftRight },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.id}
+                  value={t.id}
+                  className="rounded-xl px-6 font-black italic text-[10px] uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all gap-2"
+                >
+                  <t.icon className="w-3.5 h-3.5" />
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-3">
+             <ExportButton
+              endpoint="/inventory/items/export"
+              filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
+            />
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-2xl border-white bg-white/50 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6"
+              onClick={() => setIsImportOpen(true)}
+            >
+              <Upload className="h-4 w-4" /> Import
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-2xl border-white bg-white/50 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6"
+              onClick={async () => {
+                try {
+                  await inventoryService.runLowStockScan(session.tenant_id, session);
+                  setStatusMessage("Low stock scan completed. Alerts refreshed.");
+                  refresh();
+                } catch (err) {
+                  setErrorMessage("Stock scan failed.");
+                }
+              }}
+            >
+              Sync
+            </Button>
+          </div>
+        </div>
+
+        {viewMode !== "transfers" && (
+          <InventoryFilterHub
+            search={search}
+            onSearchChange={setSearch}
+            category={newItemCategory}
+            onCategoryChange={(v) => {
+              // Note: reusing category state for filtering if needed, or just search
+              // In this view, category filter usually happens via search or specialized dropdown
+            }}
+            categories={dynamicCategories.map(c => ({ id: c.id, name: c.name }))}
+            location={selectedLocationId}
+            onLocationChange={setSelectedLocationId}
+            locations={locations.map(l => ({ id: l.id, name: l.name }))}
+            moduleTag={moduleFilter}
+            onModuleTagChange={setModuleFilter}
+            onStatusChange={(v) => {}}
+          />
+        )}
+      </div>
+
       {viewMode === "transfers" ? (
-        <TransferDesk />
+        <div className="max-w-[1600px] mx-auto">
+          <TransferDesk />
+        </div>
       ) : (
-        <WorkspacePanel
-          title="Location + Department Inventory"
-          description="Drill-down stock records across hierarchy layers."
-        >
-          <div className="flex items-center justify-between mb-4 px-1">
-            <FilterBar searchValue={search} onSearchChange={setSearch} />
+        <Card className="max-w-[1600px] mx-auto rounded-[2.5rem] border-white/50 bg-white/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <div className="p-8 border-b border-white/40 flex items-center justify-between bg-slate-900/5">
+            <div>
+              <h2 className="text-2xl font-black tracking-tighter text-slate-900 uppercase italic leading-none">
+                Stock Ledger
+              </h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-2">
+                Real-time visibility across {viewMode} hierarchy
+              </p>
+            </div>
             {selectedIds.length > 0 && (
-              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
-                <span className="text-sm font-medium text-primary">
-                  {selectedIds.length} selected
-                </span>
+              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-2">
+                <UIBadge className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 px-3 py-1 font-bold italic text-[10px] uppercase">
+                  {selectedIds.length} SELECTED
+                </UIBadge>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button disabled title="Not available yet" variant="outline" size="sm" className="gap-2">
-                      Batch Actions <MoreHorizontal className="h-4 w-4" />
+                    <Button variant="outline" size="sm" className="rounded-xl border-white bg-white/50 font-black italic text-[10px] uppercase tracking-widest gap-2">
+                      Actions <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="rounded-2xl border-white/50 backdrop-blur-xl shadow-2xl">
                     <DropdownMenuItem
-                      className="gap-2"
+                      className="gap-2 font-bold italic"
                       onClick={() => setIsBatchIntakeOpen(true)}
                     >
                       <PackagePlus className="h-4 w-4" /> Batch Intake
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="gap-2"
+                      className="gap-2 font-bold italic"
                       onClick={() => setIsBatchTransferOpen(true)}
                     >
                       <ArrowRightLeft className="h-4 w-4" /> Batch Transfer
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className="gap-2 text-destructive"
+                      className="gap-2 text-destructive font-bold italic"
                       onClick={handleBatchDelete}
                     >
                       <Trash2 className="h-4 w-4" /> Delete Selected
@@ -466,6 +492,7 @@ export default function InventoryStockHub() {
               </div>
             )}
           </div>
+          <div className="p-4">
           <DataTableShell total={filteredBalances.length} page={1} pageSize={10}>
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">

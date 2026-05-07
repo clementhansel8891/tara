@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
+import { Card } from "@/components/ui/card";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { useSession } from "@/core/security/session";
@@ -101,15 +101,15 @@ export function TransferDesk() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "REQUESTED":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Requested</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 font-black italic text-[10px] uppercase">Requested</Badge>;
       case "PICKED":
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Picked</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-black italic text-[10px] uppercase">Picked</Badge>;
       case "IN_TRANSIT":
-        return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 animate-pulse">In-Transit</Badge>;
+        return <Badge className="bg-indigo-500/10 text-indigo-600 border-indigo-500/20 font-black italic text-[10px] uppercase animate-pulse">In-Transit</Badge>;
       case "RECEIVED":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Received</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-black italic text-[10px] uppercase">Received</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="font-black italic text-[10px] uppercase">{status}</Badge>;
     }
   };
 
@@ -124,19 +124,27 @@ export function TransferDesk() {
         }}
       />
 
-      <WorkspacePanel
-        title="Transfer Desk"
-        description="Manage the full lifecycle of internal stock movements."
-      >
+      <Card className="rounded-[2.5rem] border-white/50 bg-white/50 backdrop-blur-xl shadow-2xl overflow-hidden">
+        <div className="p-8 border-b border-white/40 flex items-center justify-between bg-slate-900/5">
+          <div>
+            <h2 className="text-2xl font-black tracking-tighter text-slate-900 uppercase italic leading-none">
+              Transfer Desk
+            </h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-2">
+              Internal logistics and stock rebalancing pipeline
+            </p>
+          </div>
+        </div>
+        <div className="p-4">
         <DataTableShell total={transfers.length} page={1} pageSize={20}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-muted/50 text-xs uppercase text-muted-foreground border-b">
-                <th className="p-4 text-left">Item Info</th>
-                <th className="p-4 text-left">Route</th>
-                <th className="p-4 text-left">Status</th>
-                <th className="p-4 text-left">Audit Log</th>
-                <th className="p-4 text-right">Actions</th>
+              <tr className="bg-slate-900/5 text-[10px] uppercase text-slate-400 border-b">
+                <th className="p-6 text-left font-black tracking-widest">Item Info</th>
+                <th className="p-6 text-left font-black tracking-widest">Route</th>
+                <th className="p-6 text-left font-black tracking-widest">Status</th>
+                <th className="p-6 text-left font-black tracking-widest">Timeline</th>
+                <th className="p-6 text-right font-black tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -216,34 +224,38 @@ export function TransferDesk() {
               ))}
             </tbody>
           </table>
-        </DataTableShell>
-      </WorkspacePanel>
+        </div>
+      </Card>
 
       {/* Shipping Dialog */}
       <Dialog open={isShipOpen} onOpenChange={setIsShipOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Truck className="h-5 w-5" /> Ship Inventory
+        <DialogContent className="rounded-[2rem] border-white/50 backdrop-blur-2xl bg-white/80 shadow-2xl sm:max-w-[500px]">
+          <DialogHeader className="p-2">
+            <DialogTitle className="flex items-center gap-3 text-2xl font-black tracking-tighter text-slate-900 uppercase italic leading-none">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white">
+                <Truck className="h-6 w-6" />
+              </div>
+              Ship Inventory
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 text-sm text-blue-800">
-               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-               <p>Marking this as shipped will move the items into a <strong>Virtual Transit Pool</strong>, removing them from the source location's available stock.</p>
+          <div className="py-6 space-y-6">
+            <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-[1.5rem] flex gap-4 text-xs text-slate-600 leading-relaxed italic font-medium">
+               <AlertCircle className="h-5 w-5 text-indigo-500 shrink-0" />
+               <p>Marking this as shipped will move items into the <strong className="text-indigo-600">Transit Pool</strong>. This action reserves the stock and cannot be undone until received.</p>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tracking / Waybill Number</label>
+            <div className="space-y-3 px-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tracking / Waybill ID</label>
               <Input 
-                placeholder="e.g. TRK-9821038" 
+                className="h-12 rounded-xl bg-white border-slate-100 shadow-inner font-bold italic placeholder:text-slate-300"
+                placeholder="e.g. TRK-ZEN-9821" 
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsShipOpen(false)} disabled={isBusy}>Cancel</Button>
-            <Button onClick={handleShip} disabled={isBusy}>Confirm Shipment</Button>
+          <DialogFooter className="gap-2 p-2 pt-0">
+            <Button variant="outline" className="rounded-xl font-black italic text-[10px] uppercase tracking-widest h-12 px-6" onClick={() => setIsShipOpen(false)} disabled={isBusy}>Cancel</Button>
+            <Button className="rounded-xl bg-slate-900 text-white font-black italic text-[10px] uppercase tracking-widest h-12 px-8" onClick={handleShip} disabled={isBusy}>Confirm Shipment</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

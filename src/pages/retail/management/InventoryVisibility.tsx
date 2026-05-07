@@ -59,6 +59,9 @@ import { MOVEMENT_META } from "./inventory/inventory.types";
 import { CategoryManager } from "@/components/shared/CategoryManager";
 
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
+import { InventoryGlassHeader } from "@/components/shared/InventoryGlassHeader";
+import { InventoryFilterHub } from "@/components/shared/InventoryFilterHub";
+import { Package, LayoutGrid, Layers, Globe, ArrowLeftRight, Search, Plus, Filter, LayoutList, LayoutPanelLeft, RefreshCw, Lock } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { retailService } from "@/core/services/retail/retailService";
@@ -629,48 +632,80 @@ const InventoryVisibility = () => {
     }
   });
 
+  const selectedStore = stores.find((s) => s.id === selectedStoreId);
+
   return (
-    <div className="flex flex-col">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen flex flex-col">
       {/* ── Header ── */}
-      <div className="px-8 py-5 border-b bg-white shrink-0">
-        <InventoryPageHeader
-          stores={stores}
-          selectedStoreId={selectedStoreId}
-          onStoreChange={(storeId) => {
-            setSelectedStoreId(storeId);
-            // Sync branch scope: find the store's locationId
-            const store = stores.find((s) => s.id === storeId);
-            updateBranch(store?.locationId || storeId);
-          }}
-          lastSync={lastSync}
-          isLoading={isLoading}
-          canWrite={canWrite}
-          onSync={handleSync}
-        />
-        {stats && (
-          <InventoryKpiBar stats={stats} isAggregating={isAggregating} />
-        )}
-      </div>
+      <InventoryGlassHeader
+        title="Retail Inventory"
+        subtitle={`${selectedStore?.name ?? "Select Store"} • Operations Gateway`}
+        icon={Package}
+        stats={[
+          { label: "Total SKUs", value: stats?.totalSKUs ?? 0 },
+          { label: "Total SOH", value: stats?.totalSOH ?? 0 },
+          { label: "Critical", value: stats?.critical ?? 0, color: "text-rose-500" },
+          { label: "Low", value: stats?.low ?? 0, color: "text-amber-500" },
+        ]}
+        actions={
+          <div className="flex items-center gap-3">
+             <Select value={selectedStoreId} onValueChange={(id) => {
+                setSelectedStoreId(id);
+                const store = stores.find((s) => s.id === id);
+                updateBranch(store?.locationId || id);
+             }}>
+              <SelectTrigger className="w-52 h-14 rounded-2xl bg-white/70 backdrop-blur-md border-white shadow-sm font-black italic text-sm">
+                <SelectValue placeholder="Select Store" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-white/50 backdrop-blur-xl">
+                {(Array.isArray(stores) ? stores : []).map((s) => (
+                  <SelectItem key={s.id} value={s.id} className="font-bold italic">
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleSync}
+              disabled={isLoading}
+              className="h-14 px-6 rounded-2xl border-white bg-white/50 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2"
+            >
+              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
+              Sync
+            </Button>
+
+            {!canWrite && (
+              <Badge className="bg-amber-500 text-white border-none font-black italic text-[10px] uppercase px-4 h-14 rounded-2xl flex items-center gap-2">
+                <Lock className="w-4 h-4" /> View Only
+              </Badge>
+            )}
+          </div>
+        }
+      />
 
       {/* ── Tabs ── */}
       <div className="flex-1">
         <Tabs defaultValue="ledger" className="flex flex-col">
-          <div className="px-8 pt-4 border-b bg-white shrink-0">
-            <TabsList className="bg-slate-100 rounded-xl p-1 h-10">
+          <div className="max-w-[1600px] mx-auto pt-4 shrink-0">
+            <TabsList className="h-14 p-1.5 bg-white/70 backdrop-blur-md border border-white rounded-[1.2rem] shadow-sm w-full md:w-auto overflow-x-auto overflow-y-hidden no-scrollbar">
               {[
-                { val: "ledger", label: "Stock Ledger", icon: Layers },
-                { val: "opname", label: "Stock Opname", icon: ClipboardCheck },
+                { val: "ledger", label: "Ledger", icon: Layers },
+                { val: "opname", label: "Opname", icon: ClipboardCheck },
                 { val: "movements", label: "Movements", icon: ArrowLeftRight },
                 { val: "approvals", label: "Approvals", icon: ShieldCheck },
-                { val: "creation", label: "Item Creation", icon: PlusSquare },
-                { val: "report", label: "Stock Report", icon: FileText },
+                { val: "creation", label: "Creation", icon: PlusSquare },
+                { val: "report", label: "Report", icon: FileText },
               ].map((t) => (
                 <TabsTrigger
                   key={t.val}
                   value={t.val}
-                  className="rounded-lg font-black italic text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="rounded-xl px-6 font-black italic text-[10px] uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all gap-2"
                 >
-                  <t.icon className="w-3.5 h-3.5" /> {t.label}
+                  <t.icon className="w-3.5 h-3.5" />
+                  {t.label}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -678,18 +713,43 @@ const InventoryVisibility = () => {
 
           <TabsContent value="ledger" className="flex-1 m-0 p-8">
             <div className="max-w-7xl mx-auto space-y-6">
-              <div className="sticky top-0 z-30 pt-4 pb-4 bg-slate-50/80 backdrop-blur-md -mt-4 mb-2">
-                <FiltersBar
-                  canWrite={canWrite}
-                  filters={filters}
-                  categoryOptions={categoryOptions}
-                  onFiltersChange={(patch) =>
-                    setFilters((prev) => ({ ...prev, ...patch }))
-                  }
-                  onManageCategories={() => setIsCategoryManagerOpen(true)}
-                />
-              </div>
-              <Card className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white">
+            <div className="max-w-[1600px] mx-auto space-y-8">
+              <InventoryFilterHub
+                search={filters.search}
+                onSearchChange={(v) => setFilters(prev => ({ ...prev, search: v }))}
+                category={filters.category}
+                onCategoryChange={(v) => setFilters(prev => ({ ...prev, category: v }))}
+                categories={categoryOptions}
+                type={filters.type}
+                onTypeChange={(v) => setFilters(prev => ({ ...prev, type: v }))}
+                status={filters.status}
+                onStatusChange={(v) => setFilters(prev => ({ ...prev, status: v }))}
+                minPrice={filters.minPrice}
+                maxPrice={filters.maxPrice}
+                onPriceRangeChange={(min, max) => setFilters(prev => ({ ...prev, minPrice: min, maxPrice: max }))}
+                advancedActions={
+                  canWrite && (
+                    <div className="flex gap-3">
+                       <Button
+                        variant="outline"
+                        size="lg"
+                        className="rounded-2xl border-white bg-white/50 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6"
+                        onClick={() => setIsCategoryManagerOpen(true)}
+                      >
+                        Categories
+                      </Button>
+                      <Button 
+                        size="lg"
+                        className="rounded-2xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-8"
+                        onClick={() => setEditItem({} as InventoryItemView)}
+                      >
+                        <Plus className="h-4 w-4" /> Add SKU
+                      </Button>
+                    </div>
+                  )
+                }
+              />
+              <Card className="rounded-[2.5rem] border-white/50 bg-white/50 backdrop-blur-xl shadow-2xl overflow-hidden">
                 <InventoryTable
                   items={inventory}
                   isLoading={isLoading}
