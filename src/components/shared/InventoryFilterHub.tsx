@@ -27,6 +27,7 @@ export interface InventoryFilterHubProps {
   locations?: { id: string; name: string }[];
   moduleTag?: string;
   onModuleTagChange?: (val: string) => void;
+  locationLabel?: string;
   minPrice?: number;
   maxPrice?: number;
   onPriceRangeChange?: (min?: number, max?: number) => void;
@@ -46,6 +47,7 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
   location,
   onLocationChange,
   locations,
+  locationLabel = "Location",
   moduleTag,
   onModuleTagChange,
   minPrice,
@@ -161,13 +163,13 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
               {/* Location Filter */}
               {onLocationChange && locations && (
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Location</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">{locationLabel}</label>
                   <Select value={location || "all"} onValueChange={onLocationChange}>
                     <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
-                      <SelectValue placeholder="All Locations" />
+                      <SelectValue placeholder={`All ${locationLabel}s`} />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                      <SelectItem value="all">All Locations</SelectItem>
+                      <SelectItem value="all">All {locationLabel}s</SelectItem>
                       {locations.map(loc => (
                         <SelectItem key={loc.id} value={loc.id} className="font-bold italic">{loc.name}</SelectItem>
                       ))}

@@ -447,6 +447,7 @@ export default function InventoryStockHub() {
             }}
             categories={dynamicCategories.map(c => ({ id: c.id, name: c.name }))}
             location={selectedLocationId}
+            locationLabel={viewMode === "ecommerce" ? "Ecommerce" : "Location"}
             onLocationChange={setSelectedLocationId}
             locations={locations
               .filter(l => {
