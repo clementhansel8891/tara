@@ -39,6 +39,7 @@ export class Employee {
   hire_date: Date;
   termination_date?: Date;
   hr_employee_skills?: any[];
+  companies?: any;
   created_at: Date;
   updated_at: Date;
 }

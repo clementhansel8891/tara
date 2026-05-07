@@ -729,7 +729,9 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Principal Amount</Label>
                   <div className="relative">
-                     <currencyData.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                     {React.createElement(currencyData.icon, { 
+                        className: "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" 
+                     })}
                      <Input 
                         type="number" 
                         className="pl-9 h-12 border-slate-200 rounded-xl font-black italic text-lg" 

@@ -1094,6 +1094,8 @@ export class HRDbRepository implements IHRRepository {
       termination_date: e.deleted_at,
       documents_metadata: e.extra_info,
       hr_employee_skills: (e as any).hr_employee_skills ? (e as any).hr_employee_skills.map((es: any) => this.mapEmployeeSkill(es)) : undefined,
+      companies: e.companies,
+      currency: e.companies?.base_currency || "USD",
       created_at: e.created_at,
       updated_at: e.updated_at,
     };
