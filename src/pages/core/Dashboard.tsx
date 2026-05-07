@@ -54,8 +54,8 @@ export default function CoreDashboard() {
       else setLoading(true);
       
       const res = await adminService.getDashboardMetrics(session.tenant_id, session);
-      if (res.success) {
-        setDashboardData(res.data);
+      if (res) {
+        setDashboardData(res);
       }
       
       if (isManual) toast.success("Executive telemetry synchronized.");

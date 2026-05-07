@@ -30,8 +30,8 @@ export function OperationsView() {
     async function load() {
       try {
         const res = await adminService.getDashboardTactical(session);
-        if (res.success) {
-          setTacticalData(res.data);
+        if (res) {
+          setTacticalData(res);
         }
       } catch (err) {
         console.error("Failed to load tactical flow data", err);
