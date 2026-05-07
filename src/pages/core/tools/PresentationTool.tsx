@@ -13,6 +13,8 @@ import {
   deleteFile,
   generateForensicCode,
   moveToRecycle,
+  listRecycleBin,
+  restoreFromRecycle,
 } from "@/core/tools/explorer/service";
 import { useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
@@ -45,6 +47,7 @@ export default function PresentationTool() {
   const [title, setTitle] = useState("Untitled Deck");
 
   const [files, setFiles] = useState<any[]>([]);
+  const [recycleBin, setRecycleBin] = useState<{ folders: any[]; files: any[] }>({ folders: [], files: [] });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -76,6 +79,9 @@ export default function PresentationTool() {
     const fetchSlides = async () => {
       const { files } = await listFileSystem(session);
       setFiles((Array.isArray(files) ? files : []).filter(f => f.type === "slide" || f.type === "zslide"));
+
+      const recycle = await listRecycleBin(session);
+      setRecycleBin(recycle);
     };
     fetchSlides();
   }, [session, version]);
@@ -276,20 +282,20 @@ export default function PresentationTool() {
         </WorkspacePanel>
 
         <WorkspacePanel title="Recycle bin" description="Only owners/admins can restore.">
-          {listRecycleBin(session.tenant_id, session, "slide").length === 0 ? (
+          {recycleBin.files.filter(f => f.type === "slide" || f.type === "zslide").length === 0 ? (
             <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               Recycle bin is empty.
             </div>
           ) : (
             <div className="space-y-2">
-              {listRecycleBin(session.tenant_id, session, "slide").map((file) => (
+              {recycleBin.files.filter(f => f.type === "slide" || f.type === "zslide").map((file) => (
                 <div key={file.id} className="flex items-center justify-between rounded-lg border p-2">
                   <div className="text-sm">{file.name}</div>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => {
-                      restoreFromRecycle(session.tenant_id, session, file.id);
+                    onClick={async () => {
+                      await restoreFromRecycle(session, file.id);
                       setVersion((prev) => prev + 1);
                     }}
                   >

@@ -5,6 +5,9 @@ export const adminService = {
   async getDashboardMetrics(tenantId: string, session: SessionContext) {
     return apiRequest<any>("/v1/admin/dashboard", "GET", session);
   },
+  async getDashboardTactical(session: SessionContext) {
+    return apiRequest<any>("/v1/admin/dashboard/tactical", "GET", session);
+  },
   async getRequests(tenantId: string, session: SessionContext) {
     return apiRequest<any[]>("/v1/admin/requests", "GET", session);
   },

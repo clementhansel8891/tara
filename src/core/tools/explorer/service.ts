@@ -168,7 +168,42 @@ export async function updateFileContent(
   await apiRequest(`/explorer/files/${fileId}`, "PATCH", session, { content, name });
 }
 
-// Recycle bin logic (Backend needs to support these routes)
+export async function listRecycleBin(
+  session: SessionContext,
+): Promise<{ folders: ToolFolder[]; files: ToolFileRecord[] }> {
+  const result = await apiRequest<{ folders: any[]; files: any[] }>(
+    `/explorer/system/recycle-bin`,
+    "GET",
+    session,
+  );
+
+  return {
+    folders: (Array.isArray(result.folders) ? result.folders : []).map(f => ({
+      id: f.id,
+      name: f.name,
+      tenantId: f.tenant_id,
+      departmentId: f.department_id,
+      parentId: f.parent_id,
+      createdAt: f.created_at,
+      updatedAt: f.updated_at,
+    })),
+    files: (Array.isArray(result.files) ? result.files : []).map(f => ({
+      id: f.id,
+      name: f.name,
+      tenantId: f.tenant_id,
+      departmentId: f.department_id,
+      ownerId: f.owner_id,
+      folderId: f.folder_id,
+      type: f.type as ToolFileType,
+      size: f.size,
+      mimeType: f.mime_type,
+      createdAt: f.created_at,
+      updatedAt: f.updated_at,
+    })),
+  };
+}
+
+// Recycle bin logic
 export async function moveToRecycle(session: SessionContext, fileId: string) { return deleteFile(session, fileId); }
 export async function restoreFromRecycle(session: SessionContext, fileId: string) {
   await apiRequest(`/explorer/files/${fileId}/restore`, "POST", session);

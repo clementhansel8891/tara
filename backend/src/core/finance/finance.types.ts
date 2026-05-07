@@ -247,3 +247,29 @@ export interface PayableBill {
 }
 
 export type PaymentMethod = "BANK_TRANSFER" | "CREDIT_CARD" | "CASH" | "CHECK";
+
+export interface Loan {
+  id: string;
+  tenant_id: string;
+  company_id?: string;
+  employee_id: string;
+  amount: Prisma.Decimal;
+  interest_rate: Prisma.Decimal;
+  term_months: number;
+  start_date: Date | string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "PAID";
+  purpose?: string;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+export interface LoanInstallment {
+  id: string;
+  loan_id: string;
+  due_date: Date | string;
+  amount: Prisma.Decimal;
+  principal: Prisma.Decimal;
+  interest: Prisma.Decimal;
+  status: "PENDING" | "PAID" | "OVERDUE";
+  paid_at?: Date | string;
+}

@@ -46,192 +46,58 @@ export class AdminController {
   @Get("dashboard")
   async getDashboardMetrics(@Req() request: RequestWithTenant) {
     const { tenant_id } = request.tenantContext;
-
-    // 1. Revenue (Sum of Retail Orders with status COMPLETED or PAID)
-    let revenue = 0;
-    const moduleContributions: any = {};
-    if (await isModuleActive(this.prisma, tenant_id, "retail")) {
-      const revenueAggr = await this.prisma.retail_orders.aggregate({
-        where: {
-          tenant_id: tenant_id,
-          status: { in: ["COMPLETED", "PAID", "complete", "paid"] },
-        },
-        _sum: { total_amount: true },
-      });
-      revenue = revenueAggr._sum.total_amount?.toNumber() || 0;
-
-      const activeStores = await this.prisma.locations.count({
-        where: { tenant_id: tenant_id, type: "STORE" },
-      });
-      moduleContributions.retail = {
-        activeStores,
-      };
-    }
-
-    // 2. Active Staff
-    const activeStaff = await this.prisma.employees.count({
-      where: { tenant_id: tenant_id, status: "active" },
-    });
-
-    // 3. Alerts (Inventory Alerts, etc.)
-    const alerts = await this.prisma.inventory_alerts.count({
-      where: { tenant_id: tenant_id, status: "OPEN" },
-    });
-
-    // 4. Module Status
-    const modules = await this.prisma.companies.findUnique({
-      where: { id: tenant_id },
-      select: {
-        id: true,
-      },
-    }); // we'll mock the ratio for now or count actual modules using admin service
-    const activeModules = await this.adminService.getModuleStatuses(tenant_id);
-    const moduleCount = activeModules.filter((m) => m.enabled).length;
-    const totalModules = activeModules.length || 20;
-
-    // 5. Activities (from AuditLog)
-    const activities = await this.prisma.audit_logs.findMany({
-      where: { tenant_id: tenant_id },
-      orderBy: { created_at: "desc" },
-      take: 4,
-      select: {
-        id: true,
-        action: true,
-        metadata: true,
-        created_at: true,
-        module: true,
-      },
-    });
-
-    // Format for frontend
+    const data = await this.adminService.getDashboardMetrics(tenant_id);
+    
+    // Maintain kpis structure for backward compatibility/simpler frontend mapping if needed
     const kpis = [
       {
         label: "Revenue",
-        value: `$${(revenue / 1000000).toFixed(2)}M`,
+        value: `$${(data.metrics.revenue / 1000000).toFixed(2)}M`,
         delta: "Live DB Aggregate",
         icon: "Briefcase",
+        trend: 'up'
       },
       {
         label: "Active Staff",
-        value: activeStaff.toString(),
+        value: data.metrics.activeStaff.toString(),
         delta: "Live DB Count",
         icon: "Users",
+        trend: 'flat'
       },
       {
         label: "Alerts",
-        value: alerts.toString(),
+        value: data.metrics.alerts.toString(),
         delta: "Pending Review",
         icon: "AlertTriangle",
+        trend: 'down'
       },
       {
         label: "Module Status",
-        value: `${moduleCount}/${totalModules}`,
+        value: `${data.systemStatus.activeModules}/${data.systemStatus.totalModules}`,
         delta: "Active Services",
         icon: "ClipboardCheck",
+        trend: 'up'
       },
     ];
 
-    const formattedActivities = activities.map((a: any) => ({
-      title: `${a.module.toUpperCase()} ${a.action}`,
-      detail: JSON.stringify(a.metadata).substring(0, 50) + "...",
-      time: a.created_at.toISOString(),
-      status: "Logged",
-    }));
-
-    // Timeseries Data for Charts
-    const financialOverview = [
-      { month: "Jan", revenue: Math.floor(revenue * 0.4) || 450000, expenses: 310000 },
-      { month: "Feb", revenue: Math.floor(revenue * 0.5) || 520000, expenses: 320000 },
-      { month: "Mar", revenue: Math.floor(revenue * 0.45) || 480000, expenses: 300000 },
-      { month: "Apr", revenue: Math.floor(revenue * 0.7) || 710000, expenses: 400000 },
-      { month: "May", revenue: Math.floor(revenue * 0.85) || 850000, expenses: 420000 },
-      { month: "Jun", revenue: revenue || 1100000, expenses: 480000 },
-    ];
-
-    const alertsByModule = [
-      { module: "Retail", count: Math.floor(alerts * 0.5) || 12 },
-      { module: "HR", count: Math.floor(alerts * 0.2) || 4 },
-      { module: "Finance", count: Math.floor(alerts * 0.15) || 3 },
-      { module: "IT", count: Math.floor(alerts * 0.15) || 3 },
-    ];
-
-    const moduleHealth = [
-      { name: "Optimal", value: moduleCount || 8, color: "#10b981" }, // emerald-500
-      { name: "Degraded", value: 1, color: "#f59e0b" }, // amber-500
-      { name: "Down", value: 0, color: "#ef4444" }, // red-500
-    ];
-
-    const topBranches = [
-      { name: "Central", revenue: 450000 },
-      { name: "North Side", revenue: 320000 },
-      { name: "East Wing", revenue: 210000 },
-      { name: "South Port", revenue: 120000 },
-    ];
-
-    const hrDistribution = [
-      { department: "Sales", count: Math.floor(activeStaff * 0.4) || 45, color: "#3b82f6" },
-      { department: "Retail", count: Math.floor(activeStaff * 0.3) || 35, color: "#6366f1" },
-      { department: "IT", count: Math.floor(activeStaff * 0.15) || 15, color: "#14b8a6" },
-      { department: "Management", count: Math.floor(activeStaff * 0.15) || 10, color: "#8b5cf6" },
-    ];
-
-    const campaignCorrelation = [
-      { week: "W1", adSpend: 1200, sales: 8500 },
-      { week: "W2", adSpend: 1500, sales: 11200 },
-      { week: "W3", adSpend: 2800, sales: 24500 }, // Spike in spend correlates to spike in sales
-      { week: "W4", adSpend: 1100, sales: 9800 },
-      { week: "W5", adSpend: 1800, sales: 15400 },
-      { week: "W6", adSpend: 2100, sales: 19800 },
-    ];
-
-    // Format for frontend
     return {
       success: true,
       tenant_id,
       data: {
-        metrics: {
-          revenue,
-          activeStaff,
-          alerts,
-          healthScore: 98,
-        },
-        systemStatus: {
-          activeModules: moduleCount,
-          totalModules: totalModules,
-          uptime: "99.9%",
-          lastBackup: new Date().toISOString(),
-        },
-        kpis,
-        timeseries: {
-          revenueTrend: financialOverview || [],
-          financialOverview: financialOverview || [],
-          alertsByModule: alertsByModule || [],
-          moduleHealth: moduleHealth || [],
-          topBranches: topBranches || [],
-          hrDistribution: hrDistribution || [],
-          campaignCorrelation: campaignCorrelation || []
-        },
-        activities: formattedActivities.length > 0 ? formattedActivities : [
-          {
-            title: "System Ready",
-            detail: "Awaiting incoming events",
-            time: new Date().toISOString(),
-            status: "Online",
-          }
-        ],
-        recentActivity:
-          formattedActivities.length > 0
-            ? formattedActivities
-            : [
-                {
-                  title: "System Ready",
-                  detail: "Awaiting incoming events",
-                  time: new Date().toISOString(),
-                  status: "Online",
-                },
-              ],
-        moduleContributions,
+        ...data,
+        kpis
       },
+    };
+  }
+
+  @Get("dashboard/tactical")
+  async getDashboardTactical(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.adminService.getDashboardTactical(tenant_id);
+    return {
+      success: true,
+      tenant_id,
+      data
     };
   }
 

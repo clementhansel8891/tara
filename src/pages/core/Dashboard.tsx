@@ -2,51 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as React from "react";
 import { 
-  TrendingUp, 
   RefreshCw, 
   Search, 
-  Target, 
-  Zap, 
-  Activity, 
-  DollarSign, 
-  ArrowUpRight, 
-  ShieldCheck, 
   Rocket, 
-  Users, 
-  PieChart, 
-  BarChart3, 
-  AlertTriangle,
-  Bell,
-  CheckCircle2,
-  ChevronRight,
-  MoreVertical,
   LayoutDashboard,
-  Filter,
-  ActivitySquare,
-  Globe,
-  Layers,
-  Box,
-  Fingerprint,
-  Monitor,
-  Network,
-  Cpu,
-  Bot,
-  Briefcase,
-  ClipboardCheck,
-  Building2,
-  Clock,
-  History,
-  ShieldAlert,
-  ScrollText
+  Bell,
+  Briefcase
 } from "lucide-react";
-import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, ComposedChart, Line } from 'recharts';
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "@/core/security/session";
 import { adminService } from "@/core/services";
 import { cn } from "@/lib/utils";
@@ -55,14 +19,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OperationsView } from "@/components/shared/OperationsView";
 import { PageShell } from "@/core/ui/PageShell";
 import { PageHeader } from "@/core/ui/PageHeader";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-
-const IconMap: Record<string, any> = {
-  Briefcase,
-  Users,
-  AlertTriangle,
-  ClipboardCheck,
-};
+import { ExecutiveKpiRow } from "@/components/dashboard/ExecutiveKpiRow";
+import { FinancialTrajectoryChart } from "@/components/dashboard/FinancialTrajectoryChart";
+import { ArApWaterfallChart } from "@/components/dashboard/ArApWaterfallChart";
+import { CashPositionWidget } from "@/components/dashboard/CashPositionWidget";
+import { BranchLeaderboard } from "@/components/dashboard/BranchLeaderboard";
+import { HrCapitalWidget } from "@/components/dashboard/HrCapitalWidget";
+import { PayrollBurnTrendChart } from "@/components/dashboard/PayrollBurnTrendChart";
+import { AttendanceGauge } from "@/components/dashboard/AttendanceGauge";
+import { InventoryHealthWidget } from "@/components/dashboard/InventoryHealthWidget";
+import { ProcurementPipelineWidget } from "@/components/dashboard/ProcurementPipelineWidget";
+import { SalesPipelineFunnel } from "@/components/dashboard/SalesPipelineFunnel";
+import { AlertsRiskMatrix } from "@/components/dashboard/AlertsRiskMatrix";
+import { MarketingRoiChart } from "@/components/dashboard/MarketingRoiChart";
+import { GlobalEventFeed } from "@/components/dashboard/GlobalEventFeed";
+import { StrategicScorecard } from "@/components/dashboard/StrategicScorecard";
+import { SystemHealthDonut } from "@/components/dashboard/SystemHealthDonut";
+import { ComplianceHeatmap } from "@/components/dashboard/ComplianceHeatmap";
+import { DashboardPayload } from "@/types/dashboard.types";
+import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 export default function CoreDashboard() {
   const session = useSession();
@@ -70,19 +45,8 @@ export default function CoreDashboard() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [kpis, setKpis] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [timeseries, setTimeseries] = useState<{
-    revenueTrend: any[];
-    financialOverview: any[];
-    alertsByModule: any[];
-    moduleHealth: any[];
-    topBranches: any[];
-    hrDistribution: any[];
-    campaignCorrelation: any[];
-  } | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardPayload['data'] | null>(null);
   const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -90,10 +54,8 @@ export default function CoreDashboard() {
       else setLoading(true);
       
       const res = await adminService.getDashboardMetrics(session.tenant_id, session);
-      setKpis(res.kpis || []);
-      setActivities(res.activities || []);
-      if (res.timeseries) {
-        setTimeseries(res.timeseries);
+      if (res.success) {
+        setDashboardData(res.data);
       }
       
       if (isManual) toast.success("Executive telemetry synchronized.");
@@ -110,26 +72,7 @@ export default function CoreDashboard() {
     refresh();
   }, [refresh]);
 
-  const executiveBriefs = [
-    { id: 1, title: "Strategic Bid Pending", detail: "Procurement bid #PR-902 requires executive sign-off for $120k expansion.", time: "2m ago", level: "critical", icon: Target },
-    { id: 2, title: "Market Growth Spike", detail: "Retail branch 'Jakarta Central' exceeded monthly revenue targets by 24%.", time: "15m ago", level: "positive", icon: TrendingUp },
-    { id: 3, title: "Governance Audit", detail: "Annual platform compliance sweep completed with zero critical vulnerabilities.", time: "1h ago", level: "stable", icon: ShieldCheck },
-    { id: 4, title: "Supply Chain Risk", detail: "Logistics delay detected for raw material shipment from Singapore node.", time: "3h ago", level: "warning", icon: AlertTriangle },
-  ];
-
-  const filteredActivities = useMemo(
-    () =>
-      (Array.isArray(activities) ? activities : []).filter((item) =>
-        search
-          ? `${item.title} ${item.detail} ${item.status}`
-               .toLowerCase()
-               .includes(search.toLowerCase())
-          : true,
-      ),
-    [activities, search],
-  );
-
-  if (loading) {
+  if (loading || !dashboardData) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-6">
@@ -179,275 +122,47 @@ export default function CoreDashboard() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-10 m-0">
-              {/* Core KPI Matrix */}
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {(Array.isArray(kpis) ? kpis : []).map((kpi, i) => (
-                  <Card key={i} className="rounded-[2rem] border-none shadow-2xl shadow-slate-200/30 dark:shadow-none bg-white dark:bg-slate-900/80 backdrop-blur-xl overflow-hidden group border border-white/20">
-                    <CardContent className="p-8">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className={cn(
-                          "h-14 w-14 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-all duration-500",
-                          kpi.trend === 'up' ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10"
-                        )}>
-                          {kpi.icon === 'dollar' ? <DollarSign className="h-7 w-7" /> : <Activity className="h-7 w-7" />}
-                        </div>
-                        <div className={cn(
-                          "flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
-                          kpi.trend === 'up' ? "text-emerald-500 bg-emerald-50/50" : "text-indigo-500 bg-indigo-50/50"
-                        )}>
-                          <ArrowUpRight className={cn("h-3 w-3", kpi.trend !== 'up' && "rotate-90")} />
-                          {kpi.change}
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic mb-1">{kpi.label}</p>
-                        <h4 className="text-3xl font-black italic tracking-tighter uppercase leading-none">{kpi.value}</h4>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {/* Executive KPI Matrix */}
+              <ExecutiveKpiRow kpis={dashboardData.kpis} />
 
-              {/* Financial & Regional Row */}
+              {/* Tier 1: Financial & Treasury Intelligence */}
               <div className="grid gap-6 lg:grid-cols-3">
-                {/* Enterprise Financial Trajectory */}
-                <WorkspacePanel title="Enterprise Financial Trajectory" description="6-month trailing revenue vs operational expenses." className="lg:col-span-2 relative overflow-hidden">
-                  <div className="h-[300px] w-full mt-4">
-                    {Array.isArray(timeseries?.financialOverview || timeseries?.revenueTrend) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={timeseries?.financialOverview || timeseries?.revenueTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${(val || 0) / 1000}k`} />
-                          <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                            formatter={(value: number, name: string) => [`$${(value || 0).toLocaleString()}`, name.charAt(0).toUpperCase() + name.slice(1)]}
-                            cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }}
-                          />
-                          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '10px' }} iconType="circle" />
-                          <Area type="monotone" dataKey="revenue" name="Gross Revenue" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
-                          <Bar dataKey="expenses" name="OpEx Burn" barSize={12} fill="#ef4444" radius={[4, 4, 0, 0]} opacity={0.8} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Synchronizing Telemetry...</div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-
-                {/* Regional Performance Leaders */}
-                <WorkspacePanel title="Regional Performance Leaders" description="Top retail branches by revenue contribution.">
-                  <div className="h-[300px] w-full mt-4">
-                    {Array.isArray(timeseries?.topBranches) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={timeseries.topBranches} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
-                          <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-                          <RechartsTooltip 
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                            formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
-                          />
-                          <Bar dataKey="revenue" fill="#14b8a6" radius={[0, 4, 4, 0]} barSize={20} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-              </div>
-
-              {/* Operational & Health Row */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {/* Operational Risk Telemetry */}
-                <WorkspacePanel title="Operational Risk Telemetry" description="Active alerts across infrastructure layers.">
-                  <div className="h-[250px] w-full mt-4">
-                    {Array.isArray(timeseries?.alertsByModule) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={timeseries.alertsByModule} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                          <XAxis dataKey="module" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-                          <RechartsTooltip 
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                          />
-                          <Bar 
-                            dataKey="count" 
-                            name="Active Alerts"
-                            radius={[4, 4, 0, 0]} 
-                            barSize={30}
-                            onClick={(data) => {
-                              toast.info(`Drilling down into ${data.module} alerts...`);
-                              if (data.module === "Retail") navigate("/retail");
-                              if (data.module === "Finance") navigate("/core/finance");
-                              if (data.module === "HR") navigate("/core/hr");
-                            }}
-                            className="cursor-pointer hover:opacity-80 transition-opacity"
-                          >
-                            {timeseries.alertsByModule.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={
-                                entry.module === "Retail" ? "#6366f1" : 
-                                entry.module === "HR" ? "#ec4899" : 
-                                entry.module === "Finance" ? "#14b8a6" : "#f59e0b"
-                              } />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-
-                {/* Human Capital Distribution */}
-                <WorkspacePanel title="Human Capital Distribution" description="Workforce allocation by operational unit.">
-                  <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
-                    {Array.isArray(timeseries?.hrDistribution) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={timeseries.hrDistribution}
-                            cx="50%"
-                            cy="50%"
-                            outerRadius={80}
-                            paddingAngle={2}
-                            dataKey="count"
-                            stroke="none"
-                            labelLine={false}
-                          >
-                            {timeseries.hrDistribution.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                            itemStyle={{ fontSize: '12px', fontWeight: 800 }}
-                          />
-                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-
-                {/* Core Systems Integrity Donut */}
-                <WorkspacePanel title="Core Systems Integrity" description="Real-time module availability & health.">
-                  <div className="h-[250px] w-full mt-4 flex items-center justify-center relative">
-                    {Array.isArray(timeseries?.moduleHealth) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={timeseries.moduleHealth}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {timeseries.moduleHealth.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
-                          />
-                          <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
-                    )}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
-                       <Monitor className="h-6 w-6 text-emerald-500 mb-1" />
-                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Optimal</span>
-                    </div>
-                  </div>
-                </WorkspacePanel>
-              </div>
-
-              {/* Marketing ROI & Campaign Correlation */}
-              <div className="grid gap-6 mb-6">
-                <WorkspacePanel title="Marketing Campaign ROI" description="Correlation between Ad Spend (CPC) and Generated Sales." className="relative overflow-hidden">
-                  <div className="h-[350px] w-full mt-4">
-                    {Array.isArray(timeseries?.campaignCorrelation) ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={timeseries.campaignCorrelation} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                          <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                          <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
-                          <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} tickFormatter={(val) => `$${val / 1000}k`} />
-                          <RechartsTooltip 
-                            contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
-                            formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
-                            cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '3 3' }}
-                          />
-                          <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingBottom: '10px' }} iconType="circle" />
-                          <Bar yAxisId="left" dataKey="sales" name="Gross Sales" barSize={20} fill="#14b8a6" radius={[4, 4, 0, 0]} opacity={0.8} />
-                          <Line yAxisId="right" type="monotone" dataKey="adSpend" name="Ad Spend (CPC)" stroke="#ef4444" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs font-black uppercase text-slate-300">Loading Data...</div>
-                    )}
-                  </div>
-                </WorkspacePanel>
-              </div>
-
-              {/* Global Business Pulse - Enterprise Feed */}
-              <WorkspacePanel 
-                title="Global Event Telemetry" 
-                description="Live synchronization of critical events across the enterprise infrastructure."
-                action={
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                    <Input 
-                      placeholder="SEARCH EVENTS..." 
-                      className="h-11 w-48 lg:w-64 pl-12 rounded-xl border-slate-200/50 bg-slate-50/50 focus:bg-white font-black text-[10px] uppercase tracking-widest transition-all"
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                    />
-                  </div>
-                }
-              >
-                <div className="pt-4 grid gap-4 lg:grid-cols-2">
-                  {filteredActivities.slice(0, 6).map((activity, i) => (
-                    <div key={i} className="group flex items-center justify-between p-5 rounded-[1.5rem] border border-slate-100/50 hover:border-indigo-100 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer" onClick={() => toast.info(`Viewing details for: ${activity.title}`)}>
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-xl bg-white shadow-md flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all border border-slate-50 shrink-0">
-                          {IconMap[activity.icon] ? React.createElement(IconMap[activity.icon], { className: "h-5 w-5" }) : <Activity className="h-5 w-5" />}
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[11px] font-black uppercase tracking-tight italic">{activity.title}</p>
-                          <p className="text-[10px] font-medium text-slate-500 leading-relaxed truncate max-w-[200px] xl:max-w-md">{activity.detail}</p>
-                        </div>
-                      </div>
-                      <div className="text-right space-y-1.5 flex flex-col items-end shrink-0 pl-4">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">{activity.time}</p>
-                        <Badge variant="outline" className="rounded-full px-2 py-0 text-[8px] font-black uppercase tracking-widest border-slate-200/50 bg-white">
-                          {activity.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                  {filteredActivities.length === 0 && (
-                    <div className="col-span-2 flex h-full items-center justify-center py-10 text-xs font-black uppercase text-slate-300">No events found.</div>
-                  )}
+                <div className="lg:col-span-2">
+                  <FinancialTrajectoryChart data={dashboardData.timeseries.financialOverview} />
                 </div>
-              </WorkspacePanel>
+                <div className="space-y-6">
+                  <CashPositionWidget />
+                  <ArApWaterfallChart />
+                </div>
+              </div>
+
+              {/* Tier 2: Human Capital & Regional Leaders */}
+              <div className="grid gap-6 lg:grid-cols-3">
+                <HrCapitalWidget distribution={dashboardData.timeseries.hrDistribution} />
+                <div className="space-y-6">
+                  <PayrollBurnTrendChart />
+                  <AttendanceGauge />
+                </div>
+                <BranchLeaderboard data={dashboardData.timeseries.topBranches} />
+              </div>
+
+              {/* Tier 3: Inventory, Procurement & Sales */}
+              <div className="grid gap-6 lg:grid-cols-3">
+                <InventoryHealthWidget />
+                <ProcurementPipelineWidget />
+                <SalesPipelineFunnel />
+              </div>
+
+              {/* Tier 4: Risk, Marketing & System Health */}
+              <div className="grid gap-6 lg:grid-cols-4">
+                <AlertsRiskMatrix data={dashboardData.timeseries.alertsByModule as any} />
+                <MarketingRoiChart data={dashboardData.timeseries.campaignCorrelation} />
+                <ComplianceHeatmap />
+                <SystemHealthDonut data={dashboardData.timeseries.moduleHealth} />
+              </div>
+
+              {/* Tier 5: Global Event Stream */}
+              <GlobalEventFeed activities={dashboardData.activities} />
             </TabsContent>
 
             <TabsContent value="operations" className="m-0">
@@ -456,51 +171,9 @@ export default function CoreDashboard() {
           </Tabs>
         </div>
 
-        {/* Executive Briefing Side Panel */}
+        {/* Executive Sidebar: Scorecard & Support */}
         <div className="space-y-8">
-          <div className="rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-100 p-8 shadow-2xl shadow-slate-200/40">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-slate-950 flex items-center justify-center text-white">
-                  <Bell className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-black uppercase tracking-widest italic">Executive Briefing</h4>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active Action Items</p>
-                </div>
-              </div>
-              <Badge className="bg-indigo-50 text-indigo-600 border-none rounded-full h-6 w-6 flex items-center justify-center p-0 text-[10px] font-black">{executiveBriefs.length}</Badge>
-            </div>
-
-            <div className="space-y-6">
-              {(Array.isArray(executiveBriefs) ? executiveBriefs : []).map((brief) => (
-                <div key={brief.id} className="relative pl-6 pb-6 border-l border-slate-100 last:pb-0">
-                  <div className={cn(
-                    "absolute left-[-5px] top-0 h-2.5 w-2.5 rounded-full ring-4 ring-white dark:ring-slate-900",
-                    brief.level === 'critical' ? "bg-rose-500" : 
-                    brief.level === 'warning' ? "bg-amber-500" : 
-                    brief.level === 'positive' ? "bg-emerald-500" : "bg-indigo-500"
-                  )} />
-                  <div className="space-y-2 group cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-500 transition-colors">{brief.time}</p>
-                      <brief.icon className={cn(
-                        "h-4 w-4",
-                        brief.level === 'critical' ? "text-rose-500" : 
-                        brief.level === 'warning' ? "text-amber-500" : "text-slate-300"
-                      )} />
-                    </div>
-                    <h5 className="text-xs font-black uppercase italic tracking-tight">{brief.title}</h5>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">{brief.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <Button variant="outline" className="w-full mt-8 h-12 rounded-xl border-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50">
-              Clear All Briefs
-            </Button>
-          </div>
+          <StrategicScorecard />
 
           <div className="rounded-[2.5rem] bg-indigo-600 p-8 text-white shadow-2xl shadow-indigo-500/30 relative overflow-hidden">
              <div className="absolute bottom-0 right-0 h-32 w-32 bg-white/10 rounded-full -mb-16 -mr-16 blur-2xl" />
@@ -523,7 +196,7 @@ export default function CoreDashboard() {
       <StrategicExpansionModal 
         isOpen={expansionOpen} 
         onClose={() => setExpansionOpen(false)}
-        feature={expansionFeature}
+        feature=""
       />
     </PageShell>
   );

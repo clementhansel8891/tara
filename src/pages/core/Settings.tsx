@@ -93,11 +93,22 @@ export default function CoreSettings() {
   const [isAddingChild, setIsAddingChild] = useState(false);
   const [selectedChild, setSelectedChild] = useState<OrgProfile | null>(null);
   const [isChildDetailOpen, setIsChildDetailOpen] = useState(false);
-  const [newChild, setNewChild] = useState({
+  const [newChild, setNewChild] = useState<{
+    name: string;
+    industry: string;
+    country: string;
+    currency: string;
+    address?: string;
+    latitude?: number;
+    longitude?: number;
+    geofence_radius?: number;
+  }>({
     name: "",
     industry: "retail",
     country: "US",
-    currency: "USD"
+    currency: "USD",
+    address: "",
+    geofence_radius: 200,
   });
 
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -138,7 +149,7 @@ export default function CoreSettings() {
       const created = await orgSettingsService.createChildCompany(session, newChild);
       setChildCompanies([created, ...childCompanies]);
       setIsAddingChild(false);
-      setNewChild({ name: "", industry: "retail", country: "US", currency: "USD" });
+      setNewChild({ name: "", industry: "retail", country: "US", currency: "USD", address: "", geofence_radius: 200 });
       toast({ title: "Expansion Successful", description: `${created.name} registered in hierarchy.` });
     } catch (err: any) {
       toast({ title: "Expansion Failed", description: err.message || "Registry error.", variant: "destructive" });
@@ -554,23 +565,90 @@ export default function CoreSettings() {
 
       {/* Satellite Node Registration Modal */}
       <Dialog open={isAddingChild} onOpenChange={setIsAddingChild}>
-        <DialogContent className="sm:max-w-xl rounded-[3rem] border-none shadow-2xl p-12">
+        <DialogContent className="sm:max-w-2xl rounded-[3rem] border-none shadow-2xl p-10 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="space-y-4">
             <DialogTitle className="text-4xl font-black tracking-tighter italic uppercase">Register Satellite Node</DialogTitle>
-            <DialogDescription className="font-medium text-slate-500">
+            <DialogDescription className="font-medium text-slate-500 uppercase tracking-widest text-[10px]">
               Initialize a new subsidiary entity within the organizational hierarchy.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-8 py-8">
+          <div className="space-y-6 py-6">
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Name</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Identity (Name)</Label>
               <Input
                 placeholder="Enterprise Satellite Name"
-                className="h-14 rounded-2xl border-slate-100 bg-slate-50 focus:bg-white transition-all font-bold"
+                className="h-12 rounded-xl border-slate-100 bg-slate-50 focus:bg-white transition-all font-bold"
                 value={newChild.name}
                 onChange={(e) => setNewChild({ ...newChild, name: e.target.value })}
               />
             </div>
+
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">HQ Physical Address</Label>
+              <Textarea
+                placeholder="Enter full physical address for this node"
+                className="rounded-xl border-slate-100 bg-slate-50 focus:bg-white transition-all font-bold min-h-[80px]"
+                value={newChild.address || ""}
+                onChange={(e) => setNewChild({ ...newChild, address: e.target.value })}
+              />
+            </div>
+
+            {/* Geospatial Section */}
+            <div className="p-6 bg-indigo-50/50 rounded-[2rem] border border-indigo-100/50 space-y-6">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                  <Globe className="w-3.5 h-3.5" /> Geospatial Anchoring
+                </label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.0000"
+                    className="h-10 rounded-xl border-none bg-white shadow-inner font-bold"
+                    value={newChild.latitude ?? ""}
+                    onChange={(e) =>
+                      setNewChild({ ...newChild, latitude: parseFloat(e.target.value) })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Longitude</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    placeholder="0.0000"
+                    className="h-10 rounded-xl border-none bg-white shadow-inner font-bold"
+                    value={newChild.longitude ?? ""}
+                    onChange={(e) =>
+                      setNewChild({ ...newChild, longitude: parseFloat(e.target.value) })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Geofence Radius</Label>
+                  <span className="text-[10px] font-black text-indigo-600">{newChild.geofence_radius ?? 200}m</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="1000"
+                  step="50"
+                  className="w-full h-1.5 bg-indigo-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                  value={newChild.geofence_radius ?? 200}
+                  onChange={(e) =>
+                    setNewChild({ ...newChild, geofence_radius: parseInt(e.target.value) })
+                  }
+                />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-3">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Industry Vector</Label>
@@ -600,15 +678,16 @@ export default function CoreSettings() {
               </div>
             </div>
           </div>
-          <DialogFooter className="gap-4">
+          <DialogFooter className="gap-4 pt-4">
             <Button variant="ghost" onClick={() => setIsAddingChild(false)} className="rounded-xl h-14 px-8 font-black text-xs uppercase tracking-widest">
               ABORT
             </Button>
-            <Button 
-              disabled={saving || !newChild.name} 
+            <Button
+              disabled={saving || !newChild.name}
               onClick={handleCreateChildCompany}
               className="rounded-2xl h-14 px-10 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-500/20"
             >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               INITIALIZE NODE
             </Button>
           </DialogFooter>

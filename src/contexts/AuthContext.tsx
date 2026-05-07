@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const newSession = {
                 user_id: data.id,
                 tenant_id: defaultCompany.tenant_id,
+                company_id: defaultCompany.company.id,
                 location_id: "", 
                 role: defaultCompany.role as Role,
                 department_id: "dept-default",
@@ -147,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const newSession = {
               user_id: data.user.id,
               tenant_id: defaultCompany.tenant_id,
+              company_id: defaultCompany.company.id,
               location_id: "",
               role: defaultCompany.role as Role,
               department_id: "dept-ret",
@@ -197,6 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const newSession = {
             user_id: user?.id || "unknown",
             tenant_id: json.tenant_id || json.data?.tenant_id,
+            company_id: json.company_id || json.data?.company_id,
             location_id: json.location_id || json.data?.location_id,
             role: Roles.SUPERADMIN, 
             department_id: json.department_id || json.data?.department_id,

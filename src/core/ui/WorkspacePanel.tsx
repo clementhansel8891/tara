@@ -6,6 +6,8 @@ interface WorkspacePanelProps extends React.HTMLAttributes<HTMLElement> {
   description?: string;
   className?: string;
   children: React.ReactNode;
+  action?: React.ReactNode;
+  variant?: 'default' | 'glass' | 'dark';
 }
 
 export function WorkspacePanel({
@@ -13,21 +15,42 @@ export function WorkspacePanel({
   description,
   className,
   children,
+  action,
+  variant = 'default',
   ...props
 }: WorkspacePanelProps) {
+  const variantClasses = {
+    default: "bg-background",
+    glass: "bg-white/80 backdrop-blur-xl border-white/20 shadow-xl",
+    dark: "bg-slate-900 text-slate-100 border-slate-800"
+  };
+
   return (
     <section 
-      className={cn("rounded-2xl border bg-background p-5 shadow-sm", className)}
+      className={cn(
+        "rounded-2xl border p-5 shadow-sm transition-all duration-300", 
+        variantClasses[variant],
+        className
+      )}
       {...props}
     >
-      {(title || description) && (
-        <div className="mb-4 space-y-1">
-          {title ? (
-            <p className="text-sm font-semibold text-foreground">{title}</p>
-          ) : null}
-          {description ? (
-            <p className="text-xs text-muted-foreground">{description}</p>
-          ) : null}
+      {(title || description || action) && (
+        <div className="mb-4 flex items-center justify-between">
+          <div className="space-y-1">
+            {title ? (
+              <p className={cn(
+                "text-sm font-semibold",
+                variant === 'dark' ? "text-slate-100" : "text-foreground"
+              )}>{title}</p>
+            ) : null}
+            {description ? (
+              <p className={cn(
+                "text-xs",
+                variant === 'dark' ? "text-slate-400" : "text-muted-foreground"
+              )}>{description}</p>
+            ) : null}
+          </div>
+          {action && <div>{action}</div>}
         </div>
       )}
       {children}

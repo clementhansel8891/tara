@@ -38,9 +38,12 @@ export class TenantInterceptor implements NestInterceptor {
     const role = request.headers["x-user-role"];
 
     // Attach tenant context to request object
+    // NOTE: company_id falls back to tenant_id so it always resolves to a valid
+    // record — never the literal string "default" which breaks FK constraints.
+    const companyIdHeader = request.headers["x-company-id"] as string | undefined;
     const tenantContext: TenantContext = {
       tenant_id: tenant_id as string,
-      company_id: (request.headers["x-company-id"] as string) || "default",
+      company_id: companyIdHeader || (tenant_id as string),
       location_id: location_id as string | undefined,
       user_id: user_id as string | undefined,
       role: role as string | undefined,

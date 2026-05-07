@@ -66,6 +66,9 @@ export async function apiRequest<T>(
   if (session) {
     headers["x-actor-id"] = session.user_id;
     headers["x-user-role"] = session.role;
+    if (session.company_id) {
+      headers["x-company-id"] = session.company_id;
+    }
     if (session.location_id) {
       headers["x-location-id"] = session.location_id;
     }

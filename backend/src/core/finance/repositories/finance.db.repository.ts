@@ -1425,4 +1425,65 @@ export class FinanceDbRepository extends IFinanceRepository {
       net: new Prisma.Decimal(0),
     };
   }
+
+  async listLoans(ctx: TenantContext, employee_id?: string) {
+    const { tenant_id } = ctx;
+    return (this.prisma as any).finance_loans.findMany({
+      where: {
+        tenant_id,
+        ...(employee_id ? { employee_id } : {}),
+      },
+      include: {
+        installments: true,
+        employee: {
+          select: {
+            first_name: true,
+            last_name: true,
+          },
+        },
+      },
+      orderBy: { created_at: "desc" },
+    });
+  }
+
+  async getLoanById(ctx: TenantContext, id: string) {
+    const { tenant_id } = ctx;
+    return (this.prisma as any).finance_loans.findUnique({
+      where: { id, tenant_id },
+      include: { installments: true },
+    });
+  }
+
+  async createLoan(ctx: TenantContext, data: any, tx?: Prisma.TransactionClient) {
+    const { tenant_id, company_id } = ctx;
+    const client = tx || this.prisma;
+    return (client as any).finance_loans.create({
+      data: {
+        ...data,
+        tenant_id,
+        company_id: data.company_id || company_id,
+      },
+    });
+  }
+
+  async updateLoanStatus(
+    ctx: TenantContext,
+    id: string,
+    status: string,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const { tenant_id } = ctx;
+    const client = tx || this.prisma;
+    await (client as any).finance_loans.update({
+      where: { id, tenant_id },
+      data: { status },
+    });
+  }
+
+  async listInstallments(ctx: TenantContext, loan_id: string) {
+    return (this.prisma as any).finance_loan_installments.findMany({
+      where: { loan_id },
+      orderBy: { due_date: "asc" },
+    });
+  }
 }

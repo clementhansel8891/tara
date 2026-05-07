@@ -3,6 +3,7 @@ import { Roles, type Role } from "./roles";
 export interface SessionContext {
   user_id: string;
   tenant_id: string;
+  company_id?: string;
   location_id: string;
   role: Role;
   department_id: string;

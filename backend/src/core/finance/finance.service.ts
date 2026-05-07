@@ -289,5 +289,64 @@ export class FinanceService {
       metadata: payload
     });
   }
+
+  // Loans
+  async listLoans(ctx: TenantContext, employee_id?: string) {
+    return this.financeRepository.listLoans(ctx, employee_id);
+  }
+
+  async getLoanById(ctx: TenantContext, id: string) {
+    return this.financeRepository.getLoanById(ctx, id);
+  }
+
+  async applyForLoan(ctx: TenantContext, data: any, user_id: string) {
+    // Resolve employee_id from user_id if not provided
+    let employee_id = data.employee_id;
+    if (!employee_id) {
+      const employee = await (this.prisma as any).employees.findFirst({
+        where: { user_id, tenant_id: ctx.tenant_id },
+      });
+      if (!employee) throw new Error("Employee record not found for user");
+      employee_id = employee.id;
+    }
+
+    const loan = await this.financeRepository.createLoan(ctx, {
+      ...data,
+      employee_id,
+      status: "PENDING",
+    });
+
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id,
+      module: "FINANCE",
+      action: "LOAN_APPLICATION_SUBMITTED",
+      entity_type: "LOAN",
+      entity_id: loan.id,
+      metadata: data,
+    });
+
+    return loan;
+  }
+
+  async approveLoan(ctx: TenantContext, id: string, user_id: string) {
+    await this.financeRepository.updateLoanStatus(ctx, id, "APPROVED");
+
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id,
+      module: "FINANCE",
+      action: "LOAN_APPROVED",
+      entity_type: "LOAN",
+      entity_id: id,
+    });
+  }
+
+  async getEmployeeIdByUserId(ctx: TenantContext, user_id: string) {
+    const employee = await (this.prisma as any).employees.findFirst({
+      where: { user_id, tenant_id: ctx.tenant_id },
+    });
+    return employee?.id;
+  }
 }
 

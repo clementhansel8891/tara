@@ -257,4 +257,28 @@ export class FinanceController {
   async getAssetAuditPack(@TenantCtx() ctx: TenantContext, @Param('id') id: string) {
     return this.financeService.getAssetAuditPack(ctx, id);
   }
+
+  // --- Loans ---
+  @Get('loans')
+  async listLoans(@TenantCtx() ctx: TenantContext) {
+    return this.financeService.listLoans(ctx);
+  }
+
+  @Get('loans/my')
+  async getMyLoans(@TenantCtx() ctx: TenantContext) {
+    const employeeId = await this.financeService.getEmployeeIdByUserId(ctx, ctx.user_id || '');
+    if (!employeeId) return [];
+    return this.financeService.listLoans(ctx, employeeId);
+  }
+
+  @Post('loans')
+  async applyForLoan(@TenantCtx() ctx: TenantContext, @Body() dto: any) {
+    return this.financeService.applyForLoan(ctx, dto, ctx.user_id || 'SYSTEM');
+  }
+
+  @Patch('loans/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER)
+  async approveLoan(@TenantCtx() ctx: TenantContext, @Param('id') id: string) {
+    return this.financeService.approveLoan(ctx, id, ctx.user_id || 'SYSTEM');
+  }
 }

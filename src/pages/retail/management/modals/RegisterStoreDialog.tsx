@@ -7,6 +7,7 @@ import {
   Mail,
   User,
   Database,
+  Globe,
 } from "lucide-react";
 import {
   Dialog,
@@ -96,6 +97,9 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
     const email = formData.get("email") as string;
     const managerId = formData.get("managerId") as string;
     const inventoryPoolId = formData.get("inventoryPoolId") as string;
+    const latitude = formData.get("latitude") ? parseFloat(formData.get("latitude") as string) : undefined;
+    const longitude = formData.get("longitude") ? parseFloat(formData.get("longitude") as string) : undefined;
+    const geofenceRadius = formData.get("geofence_radius") ? parseFloat(formData.get("geofence_radius") as string) : 200;
 
     if (!name || !code || !selectedLocationId) {
       toast({
@@ -124,8 +128,12 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
         email,
         managerId: managerId || undefined,
         inventoryPoolId: inventoryPoolId || undefined,
+        latitude,
+        longitude,
+        geofenceRadius,
         country: selectedCountryCode || undefined,
         currency: selectedCountry?.currency || undefined,
+        timezone: "Asia/Jakarta", // Defaulting for ID, could be made dynamic
       };
 
       const created = await retailService.createStore(
@@ -312,6 +320,51 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                   className="flex min-h-[80px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-bold italic text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                   placeholder="Street, City, Building..."
                 />
+              </div>
+
+              {/* Geospatial Section */}
+              <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5" /> Geospatial Anchoring
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latitude</Label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="latitude"
+                      placeholder="0.0000"
+                      className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-2 font-bold text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Longitude</Label>
+                    <input
+                      type="number"
+                      step="any"
+                      name="longitude"
+                      placeholder="0.0000"
+                      className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-2 font-bold text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Geofence Radius (m)</Label>
+                  <input
+                    type="range"
+                    min="50"
+                    max="1000"
+                    step="50"
+                    name="geofence_radius"
+                    defaultValue="200"
+                    className="w-full h-1.5 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1">

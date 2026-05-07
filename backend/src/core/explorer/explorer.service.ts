@@ -9,6 +9,11 @@ import { createHash } from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 
+// UUID v4 pattern — used to sanitize FK fields before Prisma writes
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const toUuid = (v?: string | null): string | undefined =>
+  v && UUID_RE.test(v) ? v : undefined;
+
 @Injectable()
 export class ExplorerService {
   private readonly uploadDir = path.join(process.cwd(), "uploads");
@@ -71,11 +76,11 @@ export class ExplorerService {
     return this.prisma.explorer_folders.create({
       data: {
         tenant_id,
-        company_id: dto.company_id || company_id,
-        department_id: dto.department_id || department_id,
-        branch_id: dto.branch_id || branch_id,
-        ecommerce_id: dto.ecommerce_id || ecommerce_id,
-        access_level: "private", // Default to private
+        company_id: toUuid(dto.company_id) ?? toUuid(company_id) ?? null,
+        department_id: toUuid(dto.department_id) ?? toUuid(department_id) ?? null,
+        branch_id: toUuid(dto.branch_id) ?? toUuid(branch_id) ?? null,
+        ecommerce_id: toUuid(dto.ecommerce_id) ?? toUuid(ecommerce_id) ?? null,
+        access_level: "private",
         name: dto.name,
         parent_id: dto.parent_id,
       },
@@ -104,10 +109,10 @@ export class ExplorerService {
     const record = await this.prisma.explorer_files.create({
       data: {
         tenant_id,
-        company_id: dto.company_id || company_id,
-        department_id: dto.department_id || department_id,
-        branch_id: dto.branch_id || branch_id,
-        ecommerce_id: dto.ecommerce_id || ecommerce_id,
+        company_id: toUuid(dto.company_id) ?? toUuid(company_id) ?? null,
+        department_id: toUuid(dto.department_id) ?? toUuid(department_id) ?? null,
+        branch_id: toUuid(dto.branch_id) ?? toUuid(branch_id) ?? null,
+        ecommerce_id: toUuid(dto.ecommerce_id) ?? toUuid(ecommerce_id) ?? null,
         owner_id: user_id,
         folder_id: dto.folder_id,
         access_level: "private", // Default to private
@@ -304,6 +309,45 @@ export class ExplorerService {
     return { success: true };
   }
 
+  async restoreFile(ctx: any, file_id: string) {
+    const { tenant_id } = ctx;
+    return this.prisma.explorer_files.update({
+      where: { id: file_id, tenant_id },
+      data: { deleted_at: null },
+    });
+  }
+
+  async moveFile(ctx: any, file_id: string, folder_id: string | null) {
+    const { tenant_id } = ctx;
+    return this.prisma.explorer_files.update({
+      where: { id: file_id, tenant_id },
+      data: { folder_id },
+    });
+  }
+
+  async listRecycleBin(ctx: any) {
+    const { tenant_id, user_id, role, company_id } = ctx;
+    
+    const [folders, files] = await Promise.all([
+      this.prisma.explorer_folders.findMany({
+        where: { tenant_id, NOT: { deleted_at: null } },
+      }),
+      this.prisma.explorer_files.findMany({
+        where: { tenant_id, NOT: { deleted_at: null } },
+      }),
+    ]);
+
+    return { folders, files };
+  }
+
+  async renameFolder(ctx: any, folder_id: string, name: string) {
+    const { tenant_id } = ctx;
+    return this.prisma.explorer_folders.update({
+      where: { id: folder_id, tenant_id },
+      data: { name },
+    });
+  }
+
   /**
    * Forensic Generation
    * Generates a unique traceable code for exports.
@@ -377,8 +421,8 @@ export class ExplorerService {
     return this.prisma.explorer_notes.create({
       data: {
         tenant_id,
-        company_id: dto.company_id || company_id,
-        department_id: dto.department_id || department_id,
+        company_id: toUuid(dto.company_id) ?? toUuid(company_id) ?? null,
+        department_id: toUuid(dto.department_id) ?? toUuid(department_id) ?? null,
         owner_id: user_id,
         title: dto.title,
         content: dto.content,

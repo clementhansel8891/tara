@@ -222,7 +222,19 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   timezone?: string;
-
+ 
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+ 
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+ 
+  @IsOptional()
+  @IsNumber()
+  geofenceRadius?: number;
+ 
   @IsOptional()
   @IsString()
   inventory_pool_id?: string;

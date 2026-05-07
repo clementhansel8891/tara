@@ -20,6 +20,7 @@ model tenants {
   custom_domain                          String?                                  @unique
   dns_config                             Json? // CNAME records, SSL status, etc.
   companies                              companies[]
+  finance_loans                          finance_loans[]
   users                                  users[]
   accounting_periods                     accounting_periods[]
   admin_audit_events                     admin_audit_events[]
@@ -791,6 +792,7 @@ model companies {
   parent                                companies?                              @relation("CompanyHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children                              companies[]                             @relation("CompanyHierarchy")
   agentic_events                        agentic_events[]
+  finance_loans                         finance_loans[]
   audit_hash_anchors                    audit_hash_anchors[]
   audit_logs                            audit_logs[]
   bulletin_categories                   bulletin_categories[]
@@ -1290,6 +1292,7 @@ model employees {
   job_roles                                                      job_roles?                 @relation(fields: [job_role_id], references: [id])
   locations                                                      locations                  @relation(fields: [location_id], references: [id])
   companies                                                      companies?                 @relation(fields: [company_id], references: [id])
+  finance_loans                                                  finance_loans[]
   hr_attendance_records                                          hr_attendance_records[]
   hr_cases                                                       hr_cases[]
   hr_compliance_documents                                        hr_compliance_documents[]
@@ -7274,4 +7277,43 @@ model export_audit_trail {
   @@index([tenant_id])
   @@index([user_id])
   @@index([forensic_code])
+}
+
+model finance_loans {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  company_id    String?
+  employee_id   String
+  amount        Decimal  @db.Decimal(20, 2)
+  interest_rate Decimal  @db.Decimal(5, 2)
+  term_months   Int
+  start_date    DateTime
+  status        String   @default("PENDING")
+  purpose       String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+  deleted_at    DateTime?
+
+  tenants       tenants      @relation(fields: [tenant_id], references: [id])
+  companies     companies?   @relation(fields: [company_id], references: [id])
+  employee      employees    @relation(fields: [employee_id], references: [id])
+  installments  finance_loan_installments[]
+
+  @@index([tenant_id])
+  @@index([employee_id])
+}
+
+model finance_loan_installments {
+  id            String   @id @default(uuid())
+  loan_id       String
+  due_date      DateTime
+  amount        Decimal  @db.Decimal(20, 2)
+  principal     Decimal  @db.Decimal(20, 2)
+  interest      Decimal  @db.Decimal(20, 2)
+  status        String   @default("PENDING")
+  paid_at       DateTime?
+
+  loan          finance_loans @relation(fields: [loan_id], references: [id])
+
+  @@index([loan_id])
 }

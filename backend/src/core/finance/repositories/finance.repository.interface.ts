@@ -254,5 +254,12 @@ export abstract class IFinanceRepository {
     parentId?: string,
     type?: string
   ): Promise<PerformanceTreeNode>;
+
+  // Loans
+  abstract listLoans(ctx: TenantContext, employee_id?: string): Promise<any[]>;
+  abstract getLoanById(ctx: TenantContext, id: string): Promise<any | null>;
+  abstract createLoan(ctx: TenantContext, data: any, tx?: Prisma.TransactionClient): Promise<any>;
+  abstract updateLoanStatus(ctx: TenantContext, id: string, status: string, tx?: Prisma.TransactionClient): Promise<void>;
+  abstract listInstallments(ctx: TenantContext, loan_id: string): Promise<any[]>;
 }
 

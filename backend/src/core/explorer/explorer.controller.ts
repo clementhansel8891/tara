@@ -38,6 +38,12 @@ export class ExplorerController {
     return this.explorerService.getFileSystem(tenantContext, folder_id);
   }
 
+  @Get("system/recycle-bin")
+  async listRecycleBin(@Req() req: RequestWithTenant) {
+    const { tenantContext } = req;
+    return this.explorerService.listRecycleBin(tenantContext);
+  }
+
   @Post("folders")
   async createFolder(
     @Req() req: RequestWithTenant,
@@ -45,6 +51,16 @@ export class ExplorerController {
   ) {
     const { tenantContext } = req;
     return this.explorerService.createFolder(tenantContext, dto);
+  }
+
+  @Patch("folders/:id")
+  async renameFolder(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+    @Body("name") name: string,
+  ) {
+    const { tenantContext } = req;
+    return this.explorerService.renameFolder(tenantContext, id, name);
   }
 
   @Post("files/upload")
@@ -74,6 +90,25 @@ export class ExplorerController {
   ) {
     const { tenantContext } = req;
     return this.explorerService.deleteFile(tenantContext, id);
+  }
+
+  @Post("files/:id/restore")
+  async restoreFile(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+  ) {
+    const { tenantContext } = req;
+    return this.explorerService.restoreFile(tenantContext, id);
+  }
+
+  @Patch("files/:id/move")
+  async moveFile(
+    @Req() req: RequestWithTenant,
+    @Param("id") id: string,
+    @Body("folder_id") folder_id: string | null,
+  ) {
+    const { tenantContext } = req;
+    return this.explorerService.moveFile(tenantContext, id, folder_id);
   }
 
   @Patch("files/:id")
