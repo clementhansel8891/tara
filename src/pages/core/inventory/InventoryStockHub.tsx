@@ -829,9 +829,13 @@ export default function InventoryStockHub() {
                   </p>
                 </div>
               </div>
+          </>
+        );
+      })()}
             </div>
-          </div>
-      )}
+          )}
+      </div>
+    )}
 
       {viewMode !== "transfers" && viewMode !== "opname" && (
         <Card className="max-w-[1600px] mx-auto rounded-[2.5rem] border-white/5 bg-slate-900/30 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10">
