@@ -240,6 +240,60 @@ export class HrPayrollService {
     return this.payslipService.generatePayslipPdf(tenant_id, payroll.id);
   }
 
+  async getPerformanceSnapshot(tenant_id: string, employee_id: string): Promise<any> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    // 1. Get Employee Base Salary
+    const compensation = await this.prisma.compensations.findUnique({
+      where: { employee_id },
+    });
+    const baseSalary = compensation ? Number(compensation.base_salary) : 0;
+
+    // 2. Get Sales Bonuses (Items Sold)
+    const salesBonuses = await this.prisma.hr_sales_bonuses.findMany({
+      where: {
+        tenant_id,
+        employee_id,
+        created_at: { gte: startOfMonth, lte: endOfMonth },
+      },
+    });
+
+    const itemsSold = salesBonuses.length;
+    const accruedBonus = salesBonuses.reduce((sum, bonus) => sum + Number(bonus.amount), 0);
+
+    // 3. Get Estimated Overtime (from attendance)
+    const attendance = await this.prisma.hr_attendance_records.findMany({
+      where: {
+        tenant_id,
+        employee_id,
+        check_in_time: { gte: startOfMonth, lte: endOfMonth },
+        status: 'APPROVED',
+      },
+    });
+
+    let overtimePay = 0;
+    const hourlyRate = baseSalary / 160;
+    attendance.forEach((record: any) => {
+      const overtimeHours = (record.overtime_minutes || 0) / 60;
+      overtimePay += overtimeHours * hourlyRate * 1.5;
+    });
+
+    const grossEarnings = baseSalary + accruedBonus + overtimePay;
+
+    // 4. Estimate Tax
+    const taxInfo = await this.payrollEngine.calculateTax(tenant_id, new Prisma.Decimal(grossEarnings));
+    const estimatedTax = taxInfo.amount.toNumber();
+
+    return {
+      itemsSold,
+      accruedBonus,
+      estimatedTax,
+      grossEarnings,
+    };
+  }
+
   private mapLine(l: any): any {
     return {
       id: l.id,

@@ -145,7 +145,7 @@ export class PayrollEngineService {
     };
   }
 
-  private async calculateTax(tenant_id: string, amount: Decimal): Promise<{ rate: number; amount: Decimal; type: string }> {
+  public async calculateTax(tenant_id: string, amount: Decimal): Promise<{ rate: number; amount: Decimal; type: string }> {
     const config = await this.prisma.finance_tax_configs.findFirst({
       where: { tenant_id, is_enabled: true }
     });

@@ -1462,6 +1462,7 @@ export class FinanceDbRepository extends IFinanceRepository {
         ...data,
         tenant_id,
         company_id: data.company_id || company_id,
+        currency: data.currency || "USD",
       },
     });
   }

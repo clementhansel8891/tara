@@ -123,5 +123,14 @@ export class HrPayrollController {
     
     res.end(pdfBuffer);
   }
+
+  @Get("performance-snapshot/:employee_id")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
+  async getPerformanceSnapshot(
+    @Headers("x-tenant-id") tenant_id: string,
+    @Param("employee_id") employee_id: string,
+  ) {
+    return this.payrollService.getPerformanceSnapshot(tenant_id, employee_id);
+  }
 }
 

@@ -7285,6 +7285,7 @@ model finance_loans {
   company_id    String?
   employee_id   String
   amount        Decimal  @db.Decimal(20, 2)
+  currency      String   @default("USD")
   interest_rate Decimal  @db.Decimal(5, 2)
   term_months   Int
   start_date    DateTime

@@ -310,9 +310,20 @@ export class FinanceService {
       employee_id = employee.id;
     }
 
+    // Resolve company currency
+    let currency = data.currency;
+    if (!currency) {
+      const company = await (this.prisma as any).companies.findUnique({
+        where: { id: ctx.company_id || "system" },
+        select: { currency: true },
+      });
+      currency = company?.currency || "USD";
+    }
+
     const loan = await this.financeRepository.createLoan(ctx, {
       ...data,
       employee_id,
+      currency,
       status: "PENDING",
     });
 
