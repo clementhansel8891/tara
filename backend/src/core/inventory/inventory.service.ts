@@ -15,7 +15,10 @@ import { v4 as uuidv4 } from "uuid";
 import { ProcurementService } from "../procurement/procurement.service";
 import { MultiTenancyUtil } from "../../shared/utils/multi-tenancy.util";
 import * as path from "path";
+import * as fsPromises from "fs/promises";
 import { ItemImageService } from "./item-image.service";
+import { ImportItemDto } from "./dto/import-item.dto";
+import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
 
 @Injectable()
 export class InventoryService {
@@ -27,6 +30,7 @@ export class InventoryService {
     private readonly eventBus: EventBusService,
     private readonly procurementService: ProcurementService,
     private readonly itemImageService: ItemImageService,
+    private readonly fileProcessingService: FileProcessingService,
   ) {}
 
   private readonly logger = new Logger(InventoryService.name);
@@ -1221,4 +1225,129 @@ export class InventoryService {
 
     return results;
   }
+
+  async processDataImportJob(jobId: string, ctx: TenantContext) {
+    const job = await this.prisma.inventory_import_jobs.findUnique({ where: { id: jobId } });
+    if (!job) return;
+
+    await this.prisma.inventory_import_jobs.update({
+      where: { id: jobId },
+      data: { status: 'PROCESSING', started_at: new Date() },
+    });
+
+    try {
+      const isCsv = job.filename.toLowerCase().endsWith('.csv');
+      const dtoClass = ImportItemDto;
+
+      const onBatch = async (batch: any[]) => {
+        await this.batchCreateItems(ctx, batch, job.user_id);
+        await this.prisma.inventory_import_jobs.update({
+          where: { id: jobId },
+          data: { processed_items: { increment: batch.length } },
+        });
+      };
+
+      const result = isCsv
+        ? await this.fileProcessingService.parseCsvStream(job.file_path, dtoClass, onBatch)
+        : await this.fileProcessingService.parseExcelStream(job.file_path, dtoClass, onBatch);
+
+      await this.prisma.inventory_import_jobs.update({
+        where: { id: jobId },
+        data: {
+          status: 'COMPLETED',
+          completed_at: new Date(),
+          total_items: result.total,
+          error_count: result.errorCount,
+          errors: result.errors as any,
+        },
+      });
+
+      // Cleanup staging file
+      await fsPromises.unlink(job.file_path).catch(() => {});
+    } catch (err) {
+      this.logger.error(`Import job ${jobId} failed: ${err.message}`);
+      await this.prisma.inventory_import_jobs.update({
+        where: { id: jobId },
+        data: {
+          status: 'FAILED',
+          completed_at: new Date(),
+          errors: [{ message: err.message }] as any,
+        },
+      });
+    }
+  }
+
+  async processImageImportJob(jobId: string, ctx: TenantContext) {
+    const job = await this.prisma.inventory_import_jobs.findUnique({ where: { id: jobId } });
+    if (!job) return;
+
+    await this.prisma.inventory_import_jobs.update({
+      where: { id: jobId },
+      data: { status: 'PROCESSING', started_at: new Date() },
+    });
+
+    try {
+      const errors: string[] = [];
+      const results = await this.fileProcessingService.processZipImages(
+        job.file_path,
+        async (fileName, buffer) => {
+          const sku = path.parse(fileName).name.split(/[_-]/)[0];
+          const item = await this.prisma.item_masters.findFirst({
+            where: { tenant_id: ctx.tenant_id, sku },
+          });
+
+          if (!item) {
+            errors.push(`SKU ${sku} not found for file ${fileName}`);
+            return;
+          }
+
+          const file: any = {
+            originalname: fileName,
+            buffer: buffer,
+            mimetype: 'image/' + path.extname(fileName).replace('.', ''),
+            size: buffer.length,
+          };
+
+          const customName = `${sku}_${Date.now()}${path.extname(fileName)}`;
+          await this.itemImageService.uploadImage(
+            ctx.tenant_id,
+            item.id,
+            file,
+            job.user_id,
+            customName,
+          );
+
+          await this.prisma.inventory_import_jobs.update({
+            where: { id: jobId },
+            data: { processed_items: { increment: 1 } },
+          });
+        }
+      );
+
+      await this.prisma.inventory_import_jobs.update({
+        where: { id: jobId },
+        data: {
+          status: 'COMPLETED',
+          completed_at: new Date(),
+          total_items: results.total,
+          error_count: results.errors.length + errors.length,
+          errors: [...results.errors, ...errors] as any,
+        },
+      });
+
+      // Cleanup
+      await fsPromises.unlink(job.file_path).catch(() => {});
+    } catch (err) {
+      this.logger.error(`Image import job ${jobId} failed: ${err.message}`);
+      await this.prisma.inventory_import_jobs.update({
+        where: { id: jobId },
+        data: {
+          status: 'FAILED',
+          completed_at: new Date(),
+          errors: [{ message: err.message }] as any,
+        },
+      });
+    }
+  }
+
 }

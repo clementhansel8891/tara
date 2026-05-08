@@ -34,16 +34,16 @@ export class ImportItemDto {
   base_price?: number;
 
   @IsOptional()
-  taxRate?: number;
+  tax_rate?: number;
 
   @IsOptional()
   @IsString()
-  departmentId?: string;
+  department_id?: string;
 
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  moduleTags?: string[];
+  module_tags?: string[];
 
   @IsOptional()
   @IsBoolean()

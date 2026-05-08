@@ -30,6 +30,11 @@ async function bootstrap() {
     rawBody: true, // Required for Stripe signature validation
   });
 
+  // Increase body size limits
+  const bodyParser = require("body-parser");
+  app.use(bodyParser.json({ limit: "500mb" }));
+  app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
+
   const loggerService = app.get(LoggerService);
   
   // 1. Global Prefix (Disabled for frontend compatibility)

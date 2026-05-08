@@ -286,6 +286,7 @@ model tenants {
   payment_gateway_accounts               payment_gateway_accounts[]
   payroll_disbursement_logs              payroll_disbursement_logs[]
   hr_payroll_adjustments                 hr_payroll_adjustments[]
+  inventory_import_jobs                  inventory_import_jobs[]
 }
 
 model accounting_periods {
@@ -3842,33 +3843,33 @@ model mail_threads {
 }
 
 model marketing_accounts {
-  id               String                @id @default(uuid())
-  tenant_id        String
-  company_id       String?
-  provider         String
-  account_name     String
-  status           String                @default("CONNECTED")
-  token_expires_at DateTime
-  access_token     String?
-  refresh_token    String?
-  external_id      String?
-  sync_status      String                @default("IDLE")
-  sync_frequency   String                @default("4H")
-  scopes           String[]
-  daily_budget_limit Decimal?            @db.Decimal(15, 2)
-  metadata         Json?
+  id                 String   @id @default(uuid())
+  tenant_id          String
+  company_id         String?
+  provider           String
+  account_name       String
+  status             String   @default("CONNECTED")
+  token_expires_at   DateTime
+  access_token       String?
+  refresh_token      String?
+  external_id        String?
+  sync_status        String   @default("IDLE")
+  sync_frequency     String   @default("4H")
+  scopes             String[]
+  daily_budget_limit Decimal? @db.Decimal(15, 2)
+  metadata           Json?
 
-  last_sync_at     DateTime
-  created_at       DateTime              @default(now())
-  updated_at       DateTime              @default(now())
-  branch_id        String?
-  ecommerce_id     String?
-  companies        companies?            @relation(fields: [company_id], references: [id])
-  branches         stores?               @relation(fields: [branch_id], references: [id])
-  ecommerces       ecommerce_connectors? @relation(fields: [ecommerce_id], references: [id])
-  sync_logs        marketing_sync_logs[]
+  last_sync_at DateTime
+  created_at   DateTime              @default(now())
+  updated_at   DateTime              @default(now())
+  branch_id    String?
+  ecommerce_id String?
+  companies    companies?            @relation(fields: [company_id], references: [id])
+  branches     stores?               @relation(fields: [branch_id], references: [id])
+  ecommerces   ecommerce_connectors? @relation(fields: [ecommerce_id], references: [id])
+  sync_logs    marketing_sync_logs[]
   // @@map("marketing_accounts") - standardized
-  tenants          tenants               @relation(fields: [tenant_id], references: [id])
+  tenants      tenants               @relation(fields: [tenant_id], references: [id])
 
   @@index([tenant_id])
   @@index([company_id])
@@ -4177,13 +4178,13 @@ model module_licenses {
 }
 
 model money_sources {
-  id                 String     @id @default(uuid())
+  id                 String                @id @default(uuid())
   tenant_id          String
   company_id         String?
   name               String
   type               String
-  currency           String     @default("IDR")
-  balance            Decimal    @db.Decimal(15, 2)
+  currency           String                @default("IDR")
+  balance            Decimal               @db.Decimal(15, 2)
   pending_settlement Decimal               @default(0) @db.Decimal(15, 2)
   provider           String?
   min_limit          Decimal?              @db.Decimal(15, 2)
@@ -4198,7 +4199,7 @@ model money_sources {
   departments        departments?          @relation(fields: [department_id], references: [id])
   updated_at         DateTime              @default(now())
   // @@map("money_sources") - standardized
-  tenants            tenants    @relation(fields: [tenant_id], references: [id])
+  tenants            tenants               @relation(fields: [tenant_id], references: [id])
 
   @@unique([tenant_id, name])
   @@index([tenant_id])
@@ -5215,24 +5216,24 @@ model retail_carts {
 }
 
 model retail_channels {
-  id                   String     @id @default(uuid())
+  id                   String                        @id @default(uuid())
   tenant_id            String
   ecommerce_id         String?
   company_id           String?
   name                 String
   type                 String
-  status               String     @default("active")
+  status               String                        @default("active")
   sync_frequency       String
   last_sync_at         DateTime?
-  created_at           DateTime   @default(now())
-  updated_at           DateTime   @default(now())
-  adapter_type         String     @default("CUSTOM")
+  created_at           DateTime                      @default(now())
+  updated_at           DateTime                      @default(now())
+  adapter_type         String                        @default("CUSTOM")
   credentials          Json?
-  integration_category String     @default("PRESET")
+  integration_category String                        @default("PRESET")
   webhook_url          String?
-  companies            companies? @relation(fields: [company_id], references: [id])
+  companies            companies?                    @relation(fields: [company_id], references: [id])
   // @@map("retail_channels") - standardized
-  tenants              tenants    @relation(fields: [tenant_id], references: [id])
+  tenants              tenants                       @relation(fields: [tenant_id], references: [id])
   fulfilment_branches  retail_channel_branch_links[]
 
   retail_channel_products retail_channel_products[]
@@ -5385,27 +5386,27 @@ model retail_load_balancers {
 }
 
 model retail_order_items {
-  id            String        @id @default(uuid())
-  order_id      String
-  product_id    String
-  quantity      Int
-  unit_price    Decimal       @db.Decimal(15, 2)
-  unit_cost     Decimal       @default(0) @db.Decimal(15, 2)
-  total_price   Decimal       @db.Decimal(15, 2)
-  discount      Decimal       @default(0) @db.Decimal(15, 2)
-  returned_at   DateTime?
-  tenant_id     String
-  ecommerce_id  String?
+  id                String        @id @default(uuid())
+  order_id          String
+  product_id        String
+  quantity          Int
+  unit_price        Decimal       @db.Decimal(15, 2)
+  unit_cost         Decimal       @default(0) @db.Decimal(15, 2)
+  total_price       Decimal       @db.Decimal(15, 2)
+  discount          Decimal       @default(0) @db.Decimal(15, 2)
+  returned_at       DateTime?
+  tenant_id         String
+  ecommerce_id      String?
   company_id        String?
   tax_rate          Decimal       @default(0.11) @db.Decimal(5, 2)
   commission_rate   Decimal?      @db.Decimal(5, 2)
   commission_amount Decimal?      @db.Decimal(15, 2)
-  retail_orders retail_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  item_masters  item_masters  @relation(fields: [product_id], references: [id])
-  companies     companies?    @relation(fields: [company_id], references: [id])
-  updated_at    DateTime      @default(now())
+  retail_orders     retail_orders @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  item_masters      item_masters  @relation(fields: [product_id], references: [id])
+  companies         companies?    @relation(fields: [company_id], references: [id])
+  updated_at        DateTime      @default(now())
   // @@map("retail_order_items") - standardized
-  tenants       tenants       @relation(fields: [tenant_id], references: [id])
+  tenants           tenants       @relation(fields: [tenant_id], references: [id])
 
   @@index([order_id])
   @@index([product_id])
@@ -5476,7 +5477,7 @@ model retail_promotions {
 }
 
 model retail_shifts {
-  id                    String     @id @default(uuid())
+  id                    String                  @id @default(uuid())
   tenant_id             String
   ecommerce_id          String?
   company_id            String?
@@ -5484,28 +5485,28 @@ model retail_shifts {
   employee_id           String
   start_time            DateTime
   end_time              DateTime?
-  opening_cash          Decimal    @db.Decimal(15, 2)
-  closing_cash          Decimal?   @db.Decimal(15, 2)
-  actual_cash           Decimal?   @db.Decimal(15, 2)
-  expected_cash         Decimal?   @db.Decimal(15, 2)
-  variance              Decimal?   @db.Decimal(15, 2)
-  status                String     @default("open")
+  opening_cash          Decimal                 @db.Decimal(15, 2)
+  closing_cash          Decimal?                @db.Decimal(15, 2)
+  actual_cash           Decimal?                @db.Decimal(15, 2)
+  expected_cash         Decimal?                @db.Decimal(15, 2)
+  variance              Decimal?                @db.Decimal(15, 2)
+  status                String                  @default("open")
   notes                 String?
   closing_note          String?
   compliance_note       String?
   reconciliation_reason String?
   closed_by_id          String?
   opened_by_id          String?
-  created_at            DateTime   @default(now())
-  updated_at            DateTime   @default(now())
-  employees             employees  @relation("OpenedShifts", fields: [employee_id], references: [id])
-  closed_by             employees? @relation("ClosedShifts", fields: [closed_by_id], references: [id])
-  opened_by             employees? @relation("OpenedBy", fields: [opened_by_id], references: [id])
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @default(now())
+  employees             employees               @relation("OpenedShifts", fields: [employee_id], references: [id])
+  closed_by             employees?              @relation("ClosedShifts", fields: [closed_by_id], references: [id])
+  opened_by             employees?              @relation("OpenedBy", fields: [opened_by_id], references: [id])
   retail_orders         retail_orders[]
-  stores                stores     @relation(fields: [store_id], references: [id])
-  companies             companies? @relation(fields: [company_id], references: [id])
+  stores                stores                  @relation(fields: [store_id], references: [id])
+  companies             companies?              @relation(fields: [company_id], references: [id])
   // @@map("retail_shifts") - standardized
-  tenants               tenants    @relation(fields: [tenant_id], references: [id])
+  tenants               tenants                 @relation(fields: [tenant_id], references: [id])
   retail_cash_movements retail_cash_movements[]
 
   @@index([employee_id])
@@ -5515,22 +5516,22 @@ model retail_shifts {
 }
 
 model retail_cash_movements {
-  id              String   @id @default(uuid())
-  tenant_id       String
-  store_id        String
-  shift_id        String
-  employee_id     String
-  amount          Decimal  @db.Decimal(15, 2)
-  type            String   // e.g., "CASH_OUT", "CASH_IN"
-  reason          String?
-  notes           String?
-  created_at      DateTime @default(now())
-  updated_at      DateTime @updatedAt
+  id          String   @id @default(uuid())
+  tenant_id   String
+  store_id    String
+  shift_id    String
+  employee_id String
+  amount      Decimal  @db.Decimal(15, 2)
+  type        String // e.g., "CASH_OUT", "CASH_IN"
+  reason      String?
+  notes       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 
-  shifts          retail_shifts @relation(fields: [shift_id], references: [id])
-  tenants         tenants       @relation(fields: [tenant_id], references: [id])
-  stores          stores        @relation(fields: [store_id], references: [id])
-  employees       employees     @relation(fields: [employee_id], references: [id])
+  shifts    retail_shifts @relation(fields: [shift_id], references: [id])
+  tenants   tenants       @relation(fields: [tenant_id], references: [id])
+  stores    stores        @relation(fields: [store_id], references: [id])
+  employees employees     @relation(fields: [employee_id], references: [id])
 
   @@index([tenant_id])
   @@index([shift_id])
@@ -7208,25 +7209,25 @@ model inventory_transfers {
 }
 
 model explorer_folders {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   tenant_id     String
   company_id    String?
   department_id String?
   branch_id     String?
   ecommerce_id  String?
-  access_level  String   @default("private")
+  access_level  String    @default("private")
   name          String
   parent_id     String?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
   deleted_at    DateTime?
 
-  tenants       tenants      @relation(fields: [tenant_id], references: [id])
-  companies     companies?   @relation(fields: [company_id], references: [id])
-  departments   departments? @relation(fields: [department_id], references: [id])
-  parent        explorer_folders? @relation("FolderHierarchy", fields: [parent_id], references: [id])
-  children      explorer_folders[] @relation("FolderHierarchy")
-  files         explorer_files[]
+  tenants     tenants            @relation(fields: [tenant_id], references: [id])
+  companies   companies?         @relation(fields: [company_id], references: [id])
+  departments departments?       @relation(fields: [department_id], references: [id])
+  parent      explorer_folders?  @relation("FolderHierarchy", fields: [parent_id], references: [id])
+  children    explorer_folders[] @relation("FolderHierarchy")
+  files       explorer_files[]
 
   @@index([tenant_id])
   @@index([company_id])
@@ -7234,32 +7235,32 @@ model explorer_folders {
 }
 
 model explorer_files {
-  id            String   @id @default(uuid())
-  tenant_id     String
-  company_id    String?
-  department_id String?
-  branch_id     String?
-  ecommerce_id  String?
-  access_level  String   @default("private")
-  owner_id      String
-  folder_id     String?
-  name          String
-  type          String
-  size          Int
-  mime_type     String
-  storage_path  String
+  id             String    @id @default(uuid())
+  tenant_id      String
+  company_id     String?
+  department_id  String?
+  branch_id      String?
+  ecommerce_id   String?
+  access_level   String    @default("private")
+  owner_id       String
+  folder_id      String?
+  name           String
+  type           String
+  size           Int
+  mime_type      String
+  storage_path   String
   last_edited_by String?
-  history        Json?    @default("[]")
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
-  deleted_at    DateTime?
+  history        Json?     @default("[]")
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @default(now())
+  deleted_at     DateTime?
 
-  tenants       tenants      @relation(fields: [tenant_id], references: [id])
-  companies     companies?   @relation(fields: [company_id], references: [id])
-  departments   departments? @relation(fields: [department_id], references: [id])
-  owner         users        @relation(fields: [owner_id], references: [id])
-  folder        explorer_folders? @relation(fields: [folder_id], references: [id])
-  last_editor   users?       @relation("FileEditor", fields: [last_edited_by], references: [id])
+  tenants     tenants           @relation(fields: [tenant_id], references: [id])
+  companies   companies?        @relation(fields: [company_id], references: [id])
+  departments departments?      @relation(fields: [department_id], references: [id])
+  owner       users             @relation(fields: [owner_id], references: [id])
+  folder      explorer_folders? @relation(fields: [folder_id], references: [id])
+  last_editor users?            @relation("FileEditor", fields: [last_edited_by], references: [id])
 
   @@index([tenant_id])
   @@index([company_id])
@@ -7271,21 +7272,21 @@ model explorer_files {
 }
 
 model explorer_notes {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   tenant_id     String
   company_id    String?
   department_id String?
   owner_id      String
   title         String
-  content       String   @db.Text
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
+  content       String    @db.Text
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
   deleted_at    DateTime?
 
-  tenants       tenants      @relation(fields: [tenant_id], references: [id])
-  companies     companies?   @relation(fields: [company_id], references: [id])
-  departments   departments? @relation(fields: [department_id], references: [id])
-  owner         users        @relation(fields: [owner_id], references: [id])
+  tenants     tenants      @relation(fields: [tenant_id], references: [id])
+  companies   companies?   @relation(fields: [company_id], references: [id])
+  departments departments? @relation(fields: [department_id], references: [id])
+  owner       users        @relation(fields: [owner_id], references: [id])
 
   @@index([tenant_id])
   @@index([company_id])
@@ -7302,8 +7303,8 @@ model export_audit_trail {
   timestamp     DateTime @default(now())
   metadata      Json?
 
-  tenants       tenants      @relation(fields: [tenant_id], references: [id])
-  users         users        @relation(fields: [user_id], references: [id])
+  tenants tenants @relation(fields: [tenant_id], references: [id])
+  users   users   @relation(fields: [user_id], references: [id])
 
   @@index([tenant_id])
   @@index([user_id])
@@ -7311,41 +7312,65 @@ model export_audit_trail {
 }
 
 model finance_loans {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   tenant_id     String
   company_id    String?
   employee_id   String
-  amount        Decimal  @db.Decimal(20, 2)
-  currency      String   @default("USD")
-  interest_rate Decimal  @db.Decimal(5, 2)
+  amount        Decimal   @db.Decimal(20, 2)
+  currency      String    @default("USD")
+  interest_rate Decimal   @db.Decimal(5, 2)
   term_months   Int
   start_date    DateTime
-  status        String   @default("PENDING")
+  status        String    @default("PENDING")
   purpose       String?
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
   deleted_at    DateTime?
 
-  tenants       tenants      @relation(fields: [tenant_id], references: [id])
-  companies     companies?   @relation(fields: [company_id], references: [id])
-  employee      employees    @relation(fields: [employee_id], references: [id])
-  installments  finance_loan_installments[]
+  tenants      tenants                     @relation(fields: [tenant_id], references: [id])
+  companies    companies?                  @relation(fields: [company_id], references: [id])
+  employee     employees                   @relation(fields: [employee_id], references: [id])
+  installments finance_loan_installments[]
 
   @@index([tenant_id])
   @@index([employee_id])
 }
 
 model finance_loan_installments {
-  id            String   @id @default(uuid())
-  loan_id       String
-  due_date      DateTime
-  amount        Decimal  @db.Decimal(20, 2)
-  principal     Decimal  @db.Decimal(20, 2)
-  interest      Decimal  @db.Decimal(20, 2)
-  status        String   @default("PENDING")
-  paid_at       DateTime?
+  id        String    @id @default(uuid())
+  loan_id   String
+  due_date  DateTime
+  amount    Decimal   @db.Decimal(20, 2)
+  principal Decimal   @db.Decimal(20, 2)
+  interest  Decimal   @db.Decimal(20, 2)
+  status    String    @default("PENDING")
+  paid_at   DateTime?
 
-  loan          finance_loans @relation(fields: [loan_id], references: [id])
+  loan finance_loans @relation(fields: [loan_id], references: [id])
 
   @@index([loan_id])
+}
+
+model inventory_import_jobs {
+  id              String    @id @default(uuid())
+  tenant_id       String
+  user_id         String
+  type            String // DATA, IMAGES
+  filename        String
+  file_path       String
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  total_items     Int       @default(0)
+  processed_items Int       @default(0)
+  error_count     Int       @default(0)
+  errors          Json? // Array of { identifier, message }
+  started_at      DateTime?
+  completed_at    DateTime?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+
+  tenants tenants @relation(fields: [tenant_id], references: [id])
+
+  @@index([tenant_id])
+  @@index([status])
+  @@index([type])
 }

@@ -64,6 +64,7 @@ import {
   Search,
   Filter,
   Image as ImageIcon,
+  FileArchive,
 } from "lucide-react";
 import type {
   InventoryStockBalance,
@@ -144,6 +145,7 @@ export default function InventoryStockHub() {
   const [isBatchTransferOpen, setIsBatchTransferOpen] = useState(false);
   const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isImageImportOpen, setIsImageImportOpen] = useState(false);
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [dynamicCategories, setDynamicCategories] = useState<any[]>([]);
   const [isReclassifyOpen, setIsReclassifyOpen] = useState(false);
@@ -623,7 +625,15 @@ export default function InventoryStockHub() {
               className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
               onClick={() => setIsImportOpen(true)}
             >
-              <Upload className="h-4 w-4" /> Import
+              <Upload className="h-4 w-4" /> Import Data
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
+              onClick={() => setIsImageImportOpen(true)}
+            >
+              <FileArchive className="h-4 w-4" /> Bulk Images
             </Button>
             <Button
               variant="outline"
@@ -1214,11 +1224,22 @@ export default function InventoryStockHub() {
       <ImportDialog
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
-        endpoint="/inventory/items/import"
+        endpoint="inventory/items/import"
         title="Import Inventory Items"
+        type="DATA"
         onSuccess={() => {
           refresh();
-          setIsImportOpen(false);
+        }}
+      />
+
+      <ImportDialog
+        open={isImageImportOpen}
+        onOpenChange={setIsImageImportOpen}
+        endpoint="inventory/items/import/images"
+        title="Bulk Image Migration"
+        type="IMAGES"
+        onSuccess={() => {
+          refresh();
         }}
       />
 

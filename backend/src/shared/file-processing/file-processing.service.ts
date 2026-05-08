@@ -4,6 +4,10 @@ import * as ExcelJS from "exceljs";
 import { Readable } from "stream";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
+import * as fs from "fs";
+import * as fsPromises from "fs/promises";
+import * as path from "path";
+import AdmZip from "adm-zip";
 
 @Injectable()
 export class FileProcessingService {
@@ -16,6 +20,18 @@ export class FileProcessingService {
       return `'${value}`; // Prepend single quote as per Excel security best practices
     }
     return value;
+  }
+
+  /**
+   * Normalizes a header key to lowercase snake_case.
+   */
+  private normalizeKey(key: string): string {
+    return key
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
   }
 
   /**
@@ -32,10 +48,11 @@ export class FileProcessingService {
       stream
         .pipe(csv())
         .on("data", (data: any) => {
-          // Sanitize incoming data
+          // Sanitize and normalize incoming data
           const sanitized: any = {};
           for (const key in data) {
-            sanitized[key] = this.sanitizeValue(data[key]);
+            const normalizedKey = this.normalizeKey(key);
+            sanitized[normalizedKey] = this.sanitizeValue(data[key]);
           }
           results.push(sanitized);
         })
@@ -44,6 +61,62 @@ export class FileProcessingService {
     });
 
     return this.validateData(results, dtoClass);
+  }
+
+  /**
+   * Streams a CSV file from disk and processes it in chunks.
+   */
+  async parseCsvStream<T>(
+    filePath: string,
+    dtoClass: new () => T,
+    onBatch: (batch: T[]) => Promise<void>,
+    batchSize = 500,
+  ): Promise<{ total: number; errorCount: number; errors: any[] }> {
+    let count = 0;
+    let batch: any[] = [];
+    let errorCount = 0;
+    const allErrors: any[] = [];
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on("data", async (data: any) => {
+          const sanitized: any = {};
+          for (const key in data) {
+            sanitized[this.normalizeKey(key)] = this.sanitizeValue(data[key]);
+          }
+          batch.push(sanitized);
+
+          if (batch.length >= batchSize) {
+            const currentBatch = [...batch];
+            batch = [];
+            const { data: validData, errors } = await this.validateData(
+              currentBatch,
+              dtoClass,
+            );
+            errorCount += errors.length;
+            allErrors.push(...errors);
+            await onBatch(validData);
+            count += validData.length;
+          }
+        })
+        .on("end", async () => {
+          if (batch.length > 0) {
+            const { data: validData, errors } = await this.validateData(
+              batch,
+              dtoClass,
+            );
+            errorCount += errors.length;
+            allErrors.push(...errors);
+            await onBatch(validData);
+            count += validData.length;
+          }
+          resolve(count);
+        })
+        .on("error", reject);
+    });
+
+    return { total: count, errorCount, errors: allErrors };
   }
 
   /**
@@ -64,7 +137,8 @@ export class FileProcessingService {
 
     const headers: string[] = [];
     worksheet.getRow(1).eachCell((cell: ExcelJS.Cell, colNumber: number) => {
-      headers[colNumber] = cell.value?.toString() || "";
+      const rawHeader = cell.value?.toString() || "";
+      headers[colNumber] = this.normalizeKey(rawHeader);
     });
 
     worksheet.eachRow((row: ExcelJS.Row, rowNumber: number) => {
@@ -80,6 +154,95 @@ export class FileProcessingService {
     });
 
     return this.validateData(results, dtoClass);
+  }
+
+  /**
+   * Streams an Excel file from disk and processes it in chunks.
+   */
+  async parseExcelStream<T>(
+    filePath: string,
+    dtoClass: new () => T,
+    onBatch: (batch: T[]) => Promise<void>,
+    batchSize = 500,
+  ): Promise<{ total: number; errorCount: number; errors: any[] }> {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(filePath);
+    const worksheet = workbook.getWorksheet(1);
+    if (!worksheet) throw new Error("Worksheet not found");
+
+    const headers: string[] = [];
+    worksheet.getRow(1).eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+      headers[colNumber] = this.normalizeKey(cell.value?.toString() || "");
+    });
+
+    let count = 0;
+    let batch: any[] = [];
+    let errorCount = 0;
+    const allErrors: any[] = [];
+
+    for (let i = 2; i <= worksheet.rowCount; i++) {
+      const row = worksheet.getRow(i);
+      const rowData: any = {};
+      row.eachCell((cell: ExcelJS.Cell, colNumber: number) => {
+        const header = headers[colNumber];
+        if (header) rowData[header] = this.sanitizeValue(cell.value);
+      });
+      batch.push(rowData);
+
+      if (batch.length >= batchSize) {
+        const { data: validData, errors } = await this.validateData(
+          batch,
+          dtoClass,
+        );
+        errorCount += errors.length;
+        allErrors.push(...errors);
+        await onBatch(validData);
+        count += validData.length;
+        batch = [];
+      }
+    }
+
+    if (batch.length > 0) {
+      const { data: validData, errors } = await this.validateData(
+        batch,
+        dtoClass,
+      );
+      errorCount += errors.length;
+      allErrors.push(...errors);
+      await onBatch(validData);
+      count += validData.length;
+    }
+
+    return { total: count, errorCount, errors: allErrors };
+  }
+
+  /**
+   * Extracts images from a ZIP file and calls a callback for each.
+   */
+  async processZipImages(
+    zipPath: string,
+    callback: (fileName: string, buffer: Buffer) => Promise<void>,
+  ): Promise<{ total: number; processed: number; errors: string[] }> {
+    const zip = new AdmZip(zipPath);
+    const zipEntries = zip.getEntries();
+    let processed = 0;
+    const errors: string[] = [];
+
+    for (const entry of zipEntries) {
+      if (entry.isDirectory) continue;
+      const ext = path.extname(entry.name).toLowerCase();
+      if (![".jpg", ".jpeg", ".png", ".webp"].includes(ext)) continue;
+
+      try {
+        const buffer = entry.getData();
+        await callback(entry.name, buffer);
+        processed++;
+      } catch (err) {
+        errors.push(`${entry.name}: ${err.message}`);
+      }
+    }
+
+    return { total: zipEntries.length, processed, errors };
   }
 
   /**
@@ -108,7 +271,7 @@ export class FileProcessingService {
         text: string;
         opacity?: number;
         size?: number;
-        position?: { x: number; y: number }; 
+        position?: { x: number; y: number };
       };
     },
   ): Promise<Buffer> {
@@ -142,14 +305,16 @@ export class FileProcessingService {
       const posY = options.watermark.position?.y || 1;
       const size = options.watermark.size || 72;
       const opacity = options.watermark.opacity || 0.2;
-      const argbOpacity = Math.round(opacity * 255).toString(16).padStart(2, '0');
+      const argbOpacity = Math.round(opacity * 255)
+        .toString(16)
+        .padStart(2, "0");
 
       const wmCell = worksheet.getCell(posY, posX);
       wmCell.value = wmText;
       wmCell.font = {
         size: size,
         bold: true,
-        color: { argb: `${argbOpacity}808080` }, 
+        color: { argb: `${argbOpacity}808080` },
       };
       wmCell.alignment = { vertical: "middle", horizontal: "center" };
     }

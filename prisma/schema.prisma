@@ -2637,6 +2637,7 @@ model hr_compliance_reports {
   file_url        String?
   created_at      DateTime         @default(now())
   updated_at      DateTime         @default(now())
+  deleted_at      DateTime?
   hr_payroll_runs hr_payroll_runs? @relation(fields: [payroll_run_id], references: [id])
   companies       companies?       @relation(fields: [company_id], references: [id])
   // @@map("hr_compliance_reports") - standardized
@@ -2831,6 +2832,7 @@ model hr_payroll_runs {
   approved_at               DateTime?
   created_at                DateTime                    @default(now())
   updated_at                DateTime                    @default(now())
+  deleted_at                DateTime?
   hr_compliance_reports     hr_compliance_reports[]
   companies                 companies?                  @relation(fields: [company_id], references: [id])
   payroll_lines             payroll_lines[]
@@ -4585,6 +4587,7 @@ model payroll_lines {
   adjustmentLines         payroll_adjustment_lines[]
   created_at              DateTime                   @default(now())
   updated_at              DateTime                   @default(now())
+  deleted_at              DateTime?
   employees               employees                  @relation(fields: [employee_id], references: [id])
   hr_payroll_runs         hr_payroll_runs            @relation(fields: [payroll_run_id], references: [id])
   companies               companies?                 @relation(fields: [company_id], references: [id])
@@ -4610,6 +4613,7 @@ model payroll_profiles {
   payment_method     String     @default("bank_transfer")
   created_at         DateTime   @default(now())
   updated_at         DateTime   @default(now())
+  deleted_at         DateTime?
   employees          employees  @relation(fields: [employee_id], references: [id])
   companies          companies? @relation(fields: [company_id], references: [id])
   // @@map("payroll_profiles") - standardized
@@ -6491,6 +6495,7 @@ model payroll_categories {
   status      String                     @default("ACTIVE")
   created_at  DateTime                   @default(now())
   updated_at  DateTime                   @default(now())
+  deleted_at  DateTime?
   companies   companies?                 @relation(fields: [company_id], references: [id])
   adjustments payroll_adjustment_lines[]
   // @@map("payroll_categories") - standardized
@@ -6511,6 +6516,7 @@ model payroll_adjustment_lines {
   notes           String?
   created_at      DateTime           @default(now())
   updated_at      DateTime           @default(now())
+  deleted_at      DateTime?
   companies       companies?         @relation(fields: [company_id], references: [id])
   category        payroll_categories @relation(fields: [category_id], references: [id])
   payroll_line    payroll_lines      @relation(fields: [payroll_line_id], references: [id])

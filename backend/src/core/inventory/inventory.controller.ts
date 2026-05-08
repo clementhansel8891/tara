@@ -17,6 +17,10 @@ import {
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import * as path from "path";
+import * as fs from "fs";
+import { NotFoundException } from "@nestjs/common";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { TenantGuard } from "../../shared/guards/tenant.guard";
@@ -247,83 +251,118 @@ export class InventoryController {
   }
 
   @Post("items/import")
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = './uploads/imports';
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `data-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    }),
+  }))
   @RequireInventoryRole(InventoryRole.MANAGER)
   async importItems(
     @Req() request: RequestWithTenant,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const { tenant_id: tenant_id, user_id } = request.tenantContext;
+    const { tenant_id, user_id } = request.tenantContext;
     if (!file) {
       return { success: false, message: "No file uploaded" };
     }
 
-    let result;
-    if (file.originalname.endsWith(".csv")) {
-      result = await this.fileProcessingService.parseCsv(
-        file.buffer,
-        ImportItemDto,
-      );
-    } else {
-      result = await this.fileProcessingService.parseExcel(
-        file.buffer,
-        ImportItemDto,
-      );
-    }
-
-    if (result.errors.length > 0) {
-      return {
-        success: false,
-        message: "Validation failed",
-        errors: result.errors,
-      };
-    }
-
-    const imported = await this.inventoryService.batchCreateItems(
-      request.tenantContext,
-      result.data,
-      user_id,
-    );
-
-    await this.auditService.log({
-      tenant_id: tenant_id,
-      user_id: request.tenantContext.user_id || "system",
-      module: "INVENTORY",
-      action: "IMPORT",
-      entity_type: "ITEM",
-      entity_id: "BATCH",
-      metadata: {
+    const job = await this.prisma.inventory_import_jobs.create({
+      data: {
+        tenant_id,
+        user_id: user_id || 'system',
+        type: 'DATA',
         filename: file.originalname,
-        count: imported.length,
-        traceId: uuidv4(),
+        file_path: file.path,
+        status: 'PENDING',
       },
     });
 
+    // Start background processing
+    this.inventoryService.processDataImportJob(job.id, request.tenantContext);
+
     return {
       success: true,
-      tenant_id,
-      message: `${imported.length} items imported successfully`,
-      data: imported,
+      message: "Import job initiated",
+      jobId: job.id,
     };
   }
 
-  @Post("items/bulk-images")
+  @Post("items/import/images")
+  @UseInterceptors(FileInterceptor("file", {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        const uploadDir = './uploads/imports';
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, `images-${uniqueSuffix}${path.extname(file.originalname)}`);
+      },
+    }),
+  }))
   @RequireInventoryRole(InventoryRole.MANAGER)
-  @UseInterceptors(FilesInterceptor("files"))
-  async bulkUploadImages(
+  async importImages(
     @Req() request: RequestWithTenant,
-    @UploadedFiles() files: Express.Multer.File[],
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    const { user_id } = request.tenantContext;
-    const result = await this.inventoryService.processBulkImages(
-      request.tenantContext,
-      files,
-      user_id || "system",
-    );
+    const { tenant_id, user_id } = request.tenantContext;
+    if (!file) {
+      return { success: false, message: "No file uploaded" };
+    }
+
+    const job = await this.prisma.inventory_import_jobs.create({
+      data: {
+        tenant_id,
+        user_id: user_id || 'system',
+        type: 'IMAGES',
+        filename: file.originalname,
+        file_path: file.path,
+        status: 'PENDING',
+      },
+    });
+
+    // Start background processing
+    this.inventoryService.processImageImportJob(job.id, request.tenantContext);
+
     return {
       success: true,
-      ...result,
+      message: "Image import job initiated",
+      jobId: job.id,
     };
+  }
+
+  @Get("import/status/:jobId")
+  @RequireInventoryRole(InventoryRole.CLERK)
+  async getImportStatus(@Param("jobId") jobId: string, @Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    const job = await this.prisma.inventory_import_jobs.findFirst({
+      where: { id: jobId, tenant_id },
+    });
+    if (!job) throw new NotFoundException("Job not found");
+    return job;
+  }
+
+  @Get("import/jobs/active")
+  @RequireInventoryRole(InventoryRole.CLERK)
+  async getActiveJobs(@Req() request: RequestWithTenant) {
+    const { tenant_id } = request.tenantContext;
+    return this.prisma.inventory_import_jobs.findMany({
+      where: { tenant_id, status: { in: ['PENDING', 'PROCESSING'] } },
+      orderBy: { created_at: 'desc' },
+    });
   }
 
   @Get("items/template")
