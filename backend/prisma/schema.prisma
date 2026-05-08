@@ -3525,7 +3525,12 @@ model item_masters {
   description                 String?
   unit                        String
   base_price                  Decimal                       @db.Decimal(15, 2)
+  selling_price               Decimal                       @default(0) @db.Decimal(15, 2)
   tax_rate                    Decimal                       @default(0.11) @db.Decimal(5, 2)
+  discount_rate               Decimal                       @default(0) @db.Decimal(5, 2)
+  discount_type               String                        @default("percentage")
+  pricing_tiers               Json?
+  metadata                    Json?
   image_url                   String?
   module_tags                 String[]                      @default([])
   status                      String                        @default("active")
