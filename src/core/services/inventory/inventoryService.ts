@@ -244,9 +244,11 @@ export const inventoryService = {
   async getDashboard(
     tenantId: string,
     session: SessionContext,
+    location_id?: string,
   ): Promise<InventoryDashboardMetrics> {
+    const query = location_id ? `?location_id=${location_id}` : "";
     return apiRequest<InventoryDashboardMetrics>(
-      "/v1/inventory/dashboard",
+      `/v1/inventory/dashboard${query}`,
       "GET",
       session,
     );

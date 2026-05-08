@@ -30,19 +30,19 @@ export {
 };
 
 export type InventoryDashboard = {
-  totalItems: number;
-  totalLocations: number;
-  totalDepartments: number;
-  totalOnHandQty: number;
-  totalValuation: number;
-  lowStockCount: number;
-  expiryWarningCount: number;
-  pendingAdjustments: number;
-  pendingReceiptSyncs: number;
+  total_items: number;
+  total_locations: number;
+  total_departments: number;
+  total_on_hand_qty: number;
+  total_valuation: number;
+  low_stock_count: number;
+  expiry_warning_count: number;
+  pending_adjustments: number;
+  pending_receipt_syncs: number;
 };
 
 export abstract class IInventoryRepository {
-  abstract getDashboard(ctx: TenantContext): Promise<InventoryDashboard>;
+  abstract getDashboard(ctx: TenantContext, location_id?: string): Promise<InventoryDashboard>;
   abstract getItems(
     ctx: TenantContext,
     location_id?: string,

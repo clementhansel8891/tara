@@ -151,6 +151,7 @@ export default function InventoryStockHub() {
   const [page, setPage] = useState(1);
   const pageSize = 30;
   const [totalCount, setTotalCount] = useState(0);
+  const [dashboardStats, setDashboardStats] = useState<any | null>(null);
   const [isReclassifyOpen, setIsReclassifyOpen] = useState(false);
   const [selectedItemForReclassify, setSelectedItemForReclassify] = useState<any>(null);
   const [newCategoryId, setNewCategoryId] = useState("");
@@ -408,17 +409,19 @@ export default function InventoryStockHub() {
     setLoading(true);
     try {
       const locFilter = selectedLocationId || undefined;
-      const [i, b, d, locs, cats, channels] = await Promise.all([
+      const [i, b, d, locs, cats, channels, stats] = await Promise.all([
         inventoryService.listItems(session.tenant_id, session, locFilter, targetPage, pageSize, search),
         inventoryService.listBalances(session.tenant_id, session, locFilter, undefined, targetPage, pageSize, search),
         orgService.getOrgMap(session.tenant_id, session),
         hrService.listLocations(session.tenant_id, session),
         inventoryService.listCategories(session.tenant_id, session),
         retailService.listChannels(session.tenant_id, session),
+        inventoryService.getDashboard(session.tenant_id, session, locFilter),
       ]);
       setItems(i);
       setBalances(b);
       setDepartments(d);
+      setDashboardStats(stats);
       
       // Merge locations with ecommerce channels
       const ecommerceLocations = channels
@@ -573,8 +576,8 @@ export default function InventoryStockHub() {
         subtitle="Global -> location -> department stock visibility with module-aware context tags."
         icon={Package}
         stats={[
-          { label: "Total Items", value: items.length },
-          { label: "Total Stock", value: balances.reduce((acc, b) => acc + b.quantity, 0) },
+          { label: "Total Items", value: dashboardStats?.total_items || items.length },
+          { label: "Total Stock", value: dashboardStats?.total_on_hand_qty || 0 },
           { label: "Locations", value: locations.length },
         ]}
         actions={

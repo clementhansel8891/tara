@@ -398,6 +398,14 @@ export class RetailDbRepository implements IRetailRepository {
     if (options?.category_id) where.category_id = options.category_id;
     if (options?.type) where.type = options.type;
 
+    if (options?.location_id) {
+      where.stock_levels = {
+        some: {
+          location_id: options.location_id,
+        },
+      };
+    }
+
     if (options?.minPrice !== undefined || options?.maxPrice !== undefined) {
       where.base_price = {};
       if (options.minPrice !== undefined)

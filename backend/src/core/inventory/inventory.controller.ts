@@ -75,9 +75,12 @@ export class InventoryController {
   ) {}
 
   @Get("dashboard")
-  async getDashboard(@Req() request: RequestWithTenant) {
+  async getDashboard(
+    @Req() request: RequestWithTenant,
+    @Query("location_id") location_id?: string
+  ) {
     const { tenant_id: tenant_id } = request.tenantContext;
-    const dashboardData = await this.inventoryService.getDashboard(request.tenantContext);
+    const dashboardData = await this.inventoryService.getDashboard(request.tenantContext, location_id);
 
     const moduleContributions: any = {};
     if (await isModuleActive(this.prisma, tenant_id, "retail")) {

@@ -36,8 +36,8 @@ export class InventoryService {
 
   private readonly logger = new Logger(InventoryService.name);
 
-  async getDashboard(ctx: TenantContext) {
-    return this.repository.getDashboard(ctx);
+  async getDashboard(ctx: TenantContext, location_id?: string) {
+    return this.repository.getDashboard(ctx, location_id);
   }
 
   async getItems(ctx: TenantContext, location_id?: string, page: number = 1, limit: number = 30, search?: string) {

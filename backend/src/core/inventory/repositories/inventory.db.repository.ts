@@ -37,11 +37,18 @@ import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 export class InventoryDbRepository implements IInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard(ctx: TenantContext): Promise<InventoryDashboard> {
-    const scope = MultiTenancyUtil.getScope(ctx);
+  async getDashboard(ctx: TenantContext, location_id?: string): Promise<InventoryDashboard> {
+    const scope = { ...MultiTenancyUtil.getScope(ctx) };
+    if (location_id) scope.location_id = location_id;
     
+    // For item count, if filtered by location, we count items that have stock levels at that location
+    const itemWhere = { ...MultiTenancyUtil.getScope(ctx) };
+    if (location_id) {
+      (itemWhere as any).stock_levels = { some: { location_id } };
+    }
+
     const totalItems = await this.prisma.item_masters.count({
-      where: scope,
+      where: itemWhere,
     });
     const totalLocations = await this.prisma.locations.count({
       where: scope,
@@ -94,15 +101,15 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
 
     return {
-      totalItems,
-      totalLocations,
-      totalDepartments,
-      totalOnHandQty,
-      totalValuation,
-      pendingAdjustments,
-      pendingReceiptSyncs,
-      lowStockCount,
-      expiryWarningCount,
+      total_items: totalItems,
+      total_locations: totalLocations,
+      total_departments: totalDepartments,
+      total_on_hand_qty: totalOnHandQty,
+      total_valuation: totalValuation,
+      pending_adjustments: pendingAdjustments,
+      pending_receipt_syncs: pendingReceiptSyncs,
+      low_stock_count: lowStockCount,
+      expiry_warning_count: expiryWarningCount,
     };
   }
 
