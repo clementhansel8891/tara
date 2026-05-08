@@ -488,7 +488,7 @@ export default function InventoryStockHub() {
   const filteredBalances = useMemo(
     () =>
       (Array.isArray(aggregatedBalances) ? aggregatedBalances : []).filter((balance) => {
-        const item = itemById[balance.item_id];
+        const item = balance.item || itemById[balance.item_id];
         if (!item) return false;
 
         const locInfo = locationById[balance.location_id || ""];
