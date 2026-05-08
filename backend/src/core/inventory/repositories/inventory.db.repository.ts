@@ -781,11 +781,6 @@ export class InventoryDbRepository implements IInventoryRepository {
             module_tags: itemData.moduleTags ?? [],
             status: itemData.status || "active",
             department_id: itemData.departmentId || null,
-            selling_price: itemData.selling_price ?? 0,
-            discount_rate: itemData.discount_rate ?? 0,
-            discount_type: itemData.discount_type || "percentage",
-            pricing_tiers: itemData.pricing_tiers ? (typeof itemData.pricing_tiers === 'string' ? JSON.parse(itemData.pricing_tiers) : itemData.pricing_tiers) : null,
-            metadata: itemData.metadata ? (typeof itemData.metadata === 'string' ? JSON.parse(itemData.metadata) : itemData.metadata) : null,
           },
           include: { product_categories: true },
         });
