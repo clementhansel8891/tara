@@ -325,9 +325,89 @@ export function ImportDialog({
                 {loading ? "Preparing..." : "Begin Migration"}
               </Button>
             </DialogFooter>
+
+            <ActiveJobsList session={session} onSelectJob={(id) => setJobId(id)} />
           </div>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ActiveJobsList({ session, onSelectJob }: { session: any, onSelectJob: (id: string) => void }) {
+  const [jobs, setJobs] = useState<any[]>([]);
+
+  const fetchJobs = async () => {
+    try {
+      const data = await apiRequest<any[]>("inventory/import/jobs/active", "GET", session);
+      setJobs(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch active jobs", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+    const interval = setInterval(fetchJobs, 5000);
+    return () => clearInterval(interval);
+  }, [session]);
+
+  if (jobs.length === 0) return null;
+
+  return (
+    <div className="space-y-3 pt-4 border-t border-dashed">
+      <div className="flex items-center justify-between px-1">
+        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ongoing Tasks</h4>
+        <div className="flex items-center space-x-1">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+          </span>
+          <span className="text-[10px] font-medium text-primary uppercase">{jobs.length} Active</span>
+        </div>
+      </div>
+      <ScrollArea className="max-h-[200px]">
+        <div className="space-y-2 pr-4 pb-2">
+          {jobs.map((job) => {
+            const progress = job.total_items > 0 ? Math.round((job.processed_items / job.total_items) * 100) : 0;
+            return (
+              <div 
+                key={job.id} 
+                onClick={() => onSelectJob(job.id)}
+                className="group relative bg-slate-50/50 hover:bg-primary/5 border border-slate-100 hover:border-primary/20 rounded-2xl p-4 transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div className="flex items-start justify-between relative z-10">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-300">
+                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 truncate max-w-[180px]">
+                        {job.filename}
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-400">
+                        {new Date(job.created_at).toLocaleTimeString()} • {job.status}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-slate-700">{progress}%</p>
+                    <p className="text-[10px] font-medium text-slate-400">
+                      {job.processed_items} / {job.total_items}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 relative h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-500 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
+    </div>
   );
 }
