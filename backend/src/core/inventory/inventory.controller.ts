@@ -105,8 +105,8 @@ export class InventoryController {
         });
 
       moduleContributions.retail = {
-        storeInventoryCount: storeInventoryAgg._sum.on_hand || 0,
-        pendingStoreTransfers: pendingStockTransfers,
+        store_inventory_count: storeInventoryAgg._sum.on_hand || 0,
+        pending_store_transfers: pendingStockTransfers,
       };
     }
 

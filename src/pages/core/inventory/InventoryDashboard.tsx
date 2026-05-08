@@ -109,11 +109,11 @@ export default function InventoryDashboard() {
       {/* Primary KPI Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {[
-          { label: "Master Items", value: metrics.totalItems, color: "blue", icon: Box },
-          { label: "On-Hand Qty", value: metrics.totalOnHandQty.toLocaleString(), color: "emerald", icon: Package },
-          { label: "Stock Valuation", value: `$${(metrics.totalValuation / 1000).toFixed(1)}k`, color: "indigo", icon: BarChart3 },
-          { label: "Pending Adj", value: metrics.pendingAdjustments, color: "rose", icon: Activity },
-          { label: "Pending Syncs", value: metrics.pendingReceiptSyncs, color: "amber", icon: RefreshCcw },
+          { label: "Master Items", value: metrics.total_items, color: "blue", icon: Box },
+          { label: "On-Hand Qty", value: (metrics.total_on_hand_qty || 0).toLocaleString(), color: "emerald", icon: Package },
+          { label: "Stock Valuation", value: `$${((metrics.total_valuation || 0) / 1000).toFixed(1)}k`, color: "indigo", icon: BarChart3 },
+          { label: "Pending Adj", value: metrics.pending_adjustments, color: "rose", icon: Activity },
+          { label: "Pending Syncs", value: metrics.pending_receipt_syncs, color: "amber", icon: RefreshCcw },
         ].map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -202,10 +202,10 @@ export default function InventoryDashboard() {
 
                 <div className="space-y-4 pt-4 border-t border-white/10">
                    {[
-                     { label: "Active Locations", value: metrics.totalLocations },
-                     { label: "Dept Scopes", value: metrics.totalDepartments },
-                     { label: "Low Stock Node", value: metrics.lowStockCount },
-                     { label: "Expiry Warning", value: metrics.expiryWarningCount },
+                     { label: "Active Locations", value: metrics.total_locations },
+                     { label: "Dept Scopes", value: metrics.total_departments },
+                     { label: "Low Stock Node", value: metrics.low_stock_count },
+                     { label: "Expiry Warning", value: metrics.expiry_warning_count },
                    ].map((node) => (
                      <div key={node.label} className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{node.label}</span>
@@ -221,7 +221,7 @@ export default function InventoryDashboard() {
           </div>
 
           {/* Module Contributions */}
-          {metrics.moduleContributions?.retail && (
+          {metrics.module_contributions?.retail && (
              <div className="p-6 rounded-3xl bg-emerald-500/5 border border-emerald-500/20 space-y-4">
                 <div className="flex items-center gap-3 text-emerald-600">
                    <Zap className="h-5 w-5" />
@@ -230,11 +230,11 @@ export default function InventoryDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-1">
                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Store Stock</p>
-                      <p className="text-lg font-black text-slate-900 dark:text-white tracking-tighter italic">{metrics.moduleContributions.retail.storeInventoryCount}</p>
+                      <p className="text-lg font-black text-slate-900 dark:text-white tracking-tighter italic">{metrics.module_contributions.retail.store_inventory_count}</p>
                    </div>
                    <div className="space-y-1">
                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Pending X-Fer</p>
-                      <p className="text-lg font-black text-slate-900 dark:text-white tracking-tighter italic">{metrics.moduleContributions.retail.pendingStoreTransfers}</p>
+                      <p className="text-lg font-black text-slate-900 dark:text-white tracking-tighter italic">{metrics.module_contributions.retail.pending_store_transfers}</p>
                    </div>
                 </div>
              </div>
