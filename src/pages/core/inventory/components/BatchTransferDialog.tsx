@@ -37,11 +37,11 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
       await Promise.all(
         (Array.isArray(selectedBalances) ? selectedBalances : []).map(b =>
           inventoryService.recordTransfer(session.tenant_id, session, {
-            itemId: b.itemId,
-            fromLocationCode: b.locationCode,
-            fromDepartmentCode: b.departmentCode,
-            toLocationCode: toLocation,
-            toDepartmentCode: toDepartment || undefined,
+            item_id: b.item_id,
+            from_location_id: b.location_id,
+            from_department_id: b.department_id,
+            to_location_id: toLocation,
+            to_department_id: toDepartment || undefined,
             quantity: b.quantity,
             reason: reason || "Batch transfer",
           })
@@ -68,7 +68,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
             <p className="font-semibold mb-1">Items to Move ({selectedIds.length}):</p>
             <ul className="list-disc ml-4 opacity-80 max-h-24 overflow-y-auto">
               {(Array.isArray(selectedBalances) ? selectedBalances : []).map(b => (
-                 <li key={b.id}>{b.itemId} from {b.locationCode} ({b.quantity} units)</li>
+                 <li key={b.id}>{b.item_id} from {b.location_id} ({b.quantity} units)</li>
               ))}
             </ul>
           </div>

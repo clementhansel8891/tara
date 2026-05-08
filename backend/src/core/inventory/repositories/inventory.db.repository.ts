@@ -124,20 +124,20 @@ export class InventoryDbRepository implements IInventoryRepository {
 
     return (products as any[]).map((p) => ({
       id: p.id,
-      tenantId: p.tenant_id,
+      tenant_id: p.tenant_id,
       sku: p.sku,
       name: p.name,
       category: p.product_categories?.name as any,
       uom: p.unit,
       barcode: p.barcode,
       qrCode: p.barcode,
-      moduleTags: p.module_tags || [],
-      departmentId: p.department_id || undefined,
+      module_tags: p.module_tags || [],
+      department_id: p.department_id || undefined,
       active: p.status === "active",
-      imageUrl: p.image_url || undefined,
+      image_url: p.image_url || undefined,
       images: p.item_images || [],
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
     }));
   }
 
@@ -172,10 +172,10 @@ export class InventoryDbRepository implements IInventoryRepository {
         description: data.description ?? null,
         unit: data.uom ?? "unit",
         base_price: data.base_price ?? 0,
-        tax_rate: data.taxRate ?? 0,
-        module_tags: data.moduleTags ?? [],
+        tax_rate: (data as any).tax_rate ?? 0,
+        module_tags: (data as any).module_tags ?? [],
         status: data.status || "active",
-        department_id: data.departmentId || null,
+        department_id: (data as any).department_id || null,
       }),
       include: { product_categories: true },
     });
@@ -188,10 +188,10 @@ export class InventoryDbRepository implements IInventoryRepository {
       category: product.product_categories.name as any,
       uom: product.unit,
       barcode: product.barcode,
-      qrCode: product.barcode,
-      moduleTags: product.module_tags || [],
+      qr_code: product.barcode,
+      module_tags: product.module_tags || [],
       active: product.status === "active",
-      departmentId: product.department_id || undefined,
+      department_id: product.department_id || undefined,
       image_url: product.image_url || undefined,
       images: [],
       created_at: product.created_at,
@@ -201,11 +201,11 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getBalances(ctx: TenantContext,
     location_id?: string,
-    departmentId?: string,
+    department_id?: string,
   ): Promise<StockBalance[]> {
     const where: any = { ...MultiTenancyUtil.getScope(ctx) };
     if (location_id) where.location_id = location_id;
-    if (departmentId) where.department_id = departmentId;
+    if (department_id) where.department_id = department_id;
 
     const levels = await this.prisma.stock_levels.findMany({
       where,
@@ -217,18 +217,17 @@ export class InventoryDbRepository implements IInventoryRepository {
         l: any
       ) => ({
         id: l.id,
-        tenantId: l.tenant_id,
-        itemId: l.product_id,
-        locationId: l.location_id,
-        locationCode: l.location_id,
-        departmentCode: l.department_id || undefined,
+        tenant_id: l.tenant_id,
+        item_id: l.product_id,
+        location_id: l.location_id,
+        department_id: l.department_id || undefined,
         quantity: Number(l.on_hand),
-        reservedQuantity: Number(l.reserved),
-        inTransitQuantity: Number(l.in_transit),
-        avgUnitCost: Number(l.base_price || 0),
-        reorderPoint: Number(l.min_buffer || 0),
-        safetyStock: Number(l.min_buffer || 0),
-        updatedAt: l.updated_at,
+        reserved_quantity: Number(l.reserved),
+        in_transit_quantity: Number(l.in_transit),
+        avg_unit_cost: Number(l.base_price || 0),
+        reorder_point: Number(l.min_buffer || 0),
+        safety_stock: Number(l.min_buffer || 0),
+        updated_at: l.updated_at,
       }),
     );
   }
@@ -251,14 +250,14 @@ export class InventoryDbRepository implements IInventoryRepository {
       id: m.id,
       tenant_id: m.tenant_id,
       item_id: m.product_id,
-      movementType: m.type.toLowerCase() as any,
+      movement_type: m.type.toLowerCase() as any,
       quantity: m.quantity,
-      unitCost: 0,
+      unit_cost: 0,
       reason: "Movement",
-      sourceLocationId: m.from_location_id || undefined,
-      destinationLocationId: m.to_location_id || undefined,
-      referenceId: m.reference_id,
-      createdBy: m.performed_by,
+      source_location_id: m.from_location_id || undefined,
+      destination_location_id: m.to_location_id || undefined,
+      reference_id: m.reference_id,
+      created_by: m.performed_by,
       created_at: m.created_at,
     }));
   }
@@ -275,7 +274,7 @@ export class InventoryDbRepository implements IInventoryRepository {
             tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
-            department_id: data.departmentId || "DEFAULT",
+            department_id: data.department_id || "DEFAULT",
           },
         },
         create: {
@@ -283,7 +282,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           updated_at: new Date(),
           ...MultiTenancyUtil.getScope(ctx),
           location_id: data.location_id,
-          department_id: data.departmentId || "DEFAULT",
+          department_id: data.department_id || "DEFAULT",
           product_id: data.item_id,
           on_hand: data.quantity,
           available: data.quantity,
@@ -378,7 +377,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   ): Promise<StockMovement[]> {
     // For legacy immediate transfer, we use a single transaction but lock both rows
     return this.prisma.$transaction(async (tx): Promise<StockMovement[]> => {
-      const source = await this.getLock(tx, ctx.tenant_id, data.item_id, data.fromLocationId);
+      const source = await this.getLock(tx, ctx.tenant_id, data.item_id, data.from_location_id);
       if (!source || source.available < data.quantity) throw new Error(`Insufficient source stock for transfer`);
 
       // 1. Decrement source
@@ -395,15 +394,15 @@ export class InventoryDbRepository implements IInventoryRepository {
         where: {
           tenant_id_location_id_product_id_department_id: {
             tenant_id: ctx.tenant_id,
-            location_id: data.toLocationId,
+            location_id: data.to_location_id,
             product_id: data.item_id,
-            department_id: data.toDepartmentId || "DEFAULT",
+            department_id: data.to_department_id || "DEFAULT",
           },
         },
         create: {
           ...MultiTenancyUtil.getScope(ctx),
-          location_id: data.toLocationId,
-          department_id: data.toDepartmentId || null,
+          location_id: data.to_location_id,
+          department_id: data.to_department_id || null,
           product_id: data.item_id,
           on_hand: data.quantity,
           available: data.quantity,
@@ -420,16 +419,16 @@ export class InventoryDbRepository implements IInventoryRepository {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
-          location_id: data.fromLocationId, // Mandatory location_id
-          from_location_id: data.fromLocationId,
-          from_department_id: data.fromDepartmentId || null,
-          to_location_id: data.toLocationId,
-          to_department_id: data.toDepartmentId || null,
+          location_id: data.from_location_id, // Mandatory location_id
+          from_location_id: data.from_location_id,
+          from_department_id: data.from_department_id || null,
+          to_location_id: data.to_location_id,
+          to_department_id: data.to_department_id || null,
           quantity: -data.quantity,
           type: "TRANSFER_OUT",
-          reference_id: data.referenceId || `TR-${Date.now()}`,
-          reference_type: data.referenceType || 'INTERNAL',
-          performed_by: data.createdBy || "system",
+          reference_id: data.reference_id || `TR-${Date.now()}`,
+          reference_type: data.reference_type || 'INTERNAL',
+          performed_by: data.created_by || "system",
         },
       });
 
@@ -438,16 +437,16 @@ export class InventoryDbRepository implements IInventoryRepository {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
-          location_id: data.toLocationId, // Mandatory location_id
-          from_location_id: data.fromLocationId,
-          from_department_id: data.fromDepartmentId || null,
-          to_location_id: data.toLocationId,
-          to_department_id: data.toDepartmentId || null,
+          location_id: data.to_location_id, // Mandatory location_id
+          from_location_id: data.from_location_id,
+          from_department_id: data.from_department_id || null,
+          to_location_id: data.to_location_id,
+          to_department_id: data.to_department_id || null,
           quantity: data.quantity,
           type: "TRANSFER_IN",
-          reference_id: data.referenceId || `TR-${Date.now()}`,
-          reference_type: data.referenceType || 'INTERNAL',
-          performed_by: data.createdBy || "system",
+          reference_id: data.reference_id || `TR-${Date.now()}`,
+          reference_type: data.reference_type || 'INTERNAL',
+          performed_by: data.created_by || "system",
         },
       });
 

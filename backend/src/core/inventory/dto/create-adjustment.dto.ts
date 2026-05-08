@@ -11,10 +11,10 @@ export class CreateAdjustmentDto {
 
   @IsString()
   @IsOptional()
-  departmentId?: string;
+  department_id?: string;
 
   @IsNumber()
-  requestedDelta: number;
+  requested_delta: number;
 
   @IsString()
   @IsNotEmpty()

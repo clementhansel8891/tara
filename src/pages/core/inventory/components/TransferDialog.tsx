@@ -63,11 +63,11 @@ export function TransferDialog({
     setError(null);
     try {
       await inventoryService.recordTransfer(session.tenant_id, session, {
-        itemId: selectedBalance.item.id,
-        fromLocationCode: selectedBalance.balance.locationCode,
-        fromDepartmentCode: selectedBalance.balance.departmentCode,
-        toLocationCode: toLocation,
-        toDepartmentCode: toDepartment || undefined,
+        item_id: selectedBalance.item.id,
+        from_location_id: selectedBalance.balance.location_id,
+        from_department_id: selectedBalance.balance.department_id,
+        to_location_id: toLocation,
+        to_department_id: toDepartment || undefined,
         quantity,
         reason: reason || "Stock transfer",
       });
@@ -103,9 +103,9 @@ export function TransferDialog({
               </span>
             </p>
             <p className="text-muted-foreground text-xs mt-0.5">
-              From: {selectedBalance?.balance.locationCode}
-              {selectedBalance?.balance.departmentCode &&
-                ` · ${selectedBalance.balance.departmentCode}`}{" "}
+              From: {selectedBalance?.balance.location_id}
+              {selectedBalance?.balance.department_id &&
+                ` · ${selectedBalance.balance.department_id}`}{" "}
               — Qty: {selectedBalance?.balance.quantity}
             </p>
           </div>

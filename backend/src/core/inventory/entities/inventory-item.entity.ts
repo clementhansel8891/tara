@@ -1,6 +1,6 @@
 export class InventoryItem {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   sku: string;
   name: string;
   category:
@@ -11,18 +11,17 @@ export class InventoryItem {
     | "spare_part";
   uom: string;
   barcode: string;
-  qrCode: string;
-  moduleTags: string[];
+  qr_code: string;
+  module_tags: string[];
   active: boolean;
-  departmentId?: string;
-  imageUrl?: string;
+  department_id?: string;
+  image_url?: string;
   images?: any[];
-  sellingPrice?: number;
-  discountRate?: number;
-  discountType?: string;
-  pricingTiers?: any;
+  selling_price?: number;
+  discount_rate?: number;
+  discount_type?: string;
+  pricing_tiers?: any;
   metadata?: any;
-  createdAt: Date;
-  updatedAt: Date;
-
+  created_at: Date;
+  updated_at: Date;
 }

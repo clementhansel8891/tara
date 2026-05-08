@@ -43,154 +43,154 @@ export type InventoryIntegrationStatus = "PENDING" | "SYNCED" | "FAILED";
 
 export type InventoryItemMaster = {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   sku: string;
   name: string;
   category: InventoryCategory;
   uom: string;
   barcode: string;
-  qrCode: string;
-  moduleTags: string[];
+  qr_code?: string;
+  module_tags: string[];
   active: boolean;
   description?: string;
-  retailPrice?: number;
-  createdAt: string;
-  updatedAt: string;
+  retail_price?: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type InventoryStockBalance = {
   id: string;
-  tenantId: string;
-  itemId: string;
-  locationCode: string;
-  departmentCode?: string;
+  tenant_id: string;
+  item_id: string;
+  location_id: string;
+  department_id?: string;
   quantity: number;
-  reservedQuantity: number;
-  avgUnitCost: number;
+  reserved_quantity: number;
+  avg_unit_cost: number;
   currency: "IDR" | "USD";
-  reorderPoint: number;
-  safetyStock: number;
-  expiryDate?: string;
-  lastCountedAt?: string;
-  updatedAt: string;
+  reorder_point: number;
+  safety_stock: number;
+  expiry_date?: string;
+  last_counted_at?: string;
+  updated_at: string;
 };
 
 export type InventoryMovement = {
   id: string;
-  tenantId: string;
-  itemId: string;
+  tenant_id: string;
+  item_id: string;
   type: InventoryMovementType;
   quantity: number;
-  unitCost: number;
+  unit_cost: number;
   reason: string;
-  sourceLocationCode?: string;
-  sourceDepartmentCode?: string;
-  destinationLocationCode?: string;
-  destinationDepartmentCode?: string;
-  referenceType?: string;
-  referenceId?: string;
-  performedBy: string;
-  deviceId?: string;
-  createdAt: string;
+  source_location_id?: string;
+  source_department_id?: string;
+  destination_location_id?: string;
+  destination_department_id?: string;
+  reference_type?: string;
+  reference_id?: string;
+  performed_by: string;
+  device_id?: string;
+  created_at: string;
 };
 
 export type InventoryAdjustmentRequest = {
   id: string;
-  tenantId: string;
-  itemId: string;
-  locationCode: string;
-  departmentCode?: string;
-  requestedDelta: number;
+  tenant_id: string;
+  item_id: string;
+  location_id: string;
+  department_id?: string;
+  requested_delta: number;
   reason: string;
   status: InventoryAdjustmentStatus;
-  requestedBy: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  requested_by: string;
+  approved_by?: string;
+  approved_at?: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type InventoryAuditCycle = {
   id: string;
-  tenantId: string;
-  locationCode: string;
-  departmentCode?: string;
+  tenant_id: string;
+  location_id: string;
+  department_id?: string;
   scope: "LOCATION" | "DEPARTMENT" | "ITEM";
   status: InventoryAuditCycleStatus;
-  openedBy: string;
-  closedBy?: string;
-  expectedValue?: number;
-  countedValue?: number;
-  varianceValue?: number;
-  createdAt: string;
-  updatedAt: string;
+  opened_by: string;
+  closed_by?: string;
+  expected_value?: number;
+  counted_value?: number;
+  variance_value?: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type InventoryAlert = {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   type: InventoryAlertType;
   severity: "LOW" | "MEDIUM" | "HIGH";
   status: InventoryAlertStatus;
-  entityId: string;
+  entity_id: string;
   message: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type InventoryIntegrationEvent = {
   id: string;
-  tenantId: string;
+  tenant_id: string;
   target: InventoryIntegrationTarget;
   status: InventoryIntegrationStatus;
-  eventType: string;
-  entityId: string;
+  event_type: string;
+  entity_id: string;
   detail: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type InventoryDashboardMetrics = {
-  totalItems: number;
-  totalLocations: number;
-  totalDepartments: number;
-  totalOnHandQty: number;
-  totalValuation: number;
-  lowStockCount: number;
-  expiryWarningCount: number;
-  pendingAdjustments: number;
-  pendingReceiptSyncs: number;
-  moduleContributions?: {
+  total_items: number;
+  total_locations: number;
+  total_departments: number;
+  total_on_hand_qty: number;
+  total_valuation: number;
+  low_stock_count: number;
+  expiry_warning_count: number;
+  pending_adjustments: number;
+  pending_receipt_syncs: number;
+  module_contributions?: {
     retail?: {
-      storeInventoryCount: number;
-      pendingStoreTransfers: number;
+      store_inventory_count: number;
+      pending_store_transfers: number;
     };
   };
 };
 
 export type WarehouseBin = {
   id: string;
-  tenantId: string;
-  locationId: string;
+  tenant_id: string;
+  location_id: string;
   code: string;
   zone?: string;
   aisle?: string;
   rack?: string;
   level?: string;
   capacity: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type BinAssignment = {
   id: string;
-  tenantId: string;
-  binId: string;
-  productId: string;
+  tenant_id: string;
+  bin_id: string;
+  product_id: string;
   qty: number;
-  assignedAt: string;
-  updatedAt: string;
+  assigned_at: string;
+  updated_at: string;
   product?: InventoryItemMaster;
 };
 
@@ -198,29 +198,29 @@ export type IotEventType = "RFID_SCAN" | "BARCODE_SCAN" | "TEMP_ALERT" | "MOTION
 
 export type InventoryIotEvent = {
   id: string;
-  tenantId: string;
-  deviceId: string;
-  eventType: IotEventType;
+  tenant_id: string;
+  device_id: string;
+  event_type: IotEventType;
   sku?: string;
-  locationId?: string;
-  binId?: string;
+  location_id?: string;
+  bin_id?: string;
   payload: any;
   processed: boolean;
-  processedAt?: string;
-  createdAt: string;
+  processed_at?: string;
+  created_at: string;
 };
 
 export type AgenticEventType = "STOCK_MOVEMENT_CREATED" | "ADJUSTMENT_APPROVED" | "LOW_STOCK_ALERT";
 
 export type AgenticEvent = {
   id: string;
-  tenantId: string;
-  eventType: AgenticEventType;
-  entityId: string;
-  entityType: string;
+  tenant_id: string;
+  event_type: AgenticEventType;
+  entity_id: string;
+  entity_type: string;
   payload: any;
   status: "PENDING" | "PROCESSED" | "FAILED";
-  processedAt?: string;
-  errorMsg?: string;
-  createdAt: string;
+  processed_at?: string;
+  error_msg?: string;
+  created_at: string;
 };

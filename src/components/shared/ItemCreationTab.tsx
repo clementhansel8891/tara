@@ -122,7 +122,7 @@ export const ItemCreationTab: React.FC<Props> = ({
         name: r.name,
         category: r.categoryId,
         barcode: r.barcode,
-        basePrice: r.price,
+        base_price: r.price,
         uom: r.unit,
         description: r.description,
         active: r.status === "active",

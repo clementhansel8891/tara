@@ -61,10 +61,10 @@ export function AdjustmentDialog({
     setError(null);
     try {
       await inventoryService.requestAdjustment(session.tenant_id, session, {
-        itemId: selectedBalance.item.id,
-        locationCode: selectedBalance.balance.locationCode,
-        departmentCode: selectedBalance.balance.departmentCode,
-        requestedDelta: delta,
+        item_id: selectedBalance.item.id,
+        location_id: selectedBalance.balance.location_id,
+        department_id: selectedBalance.balance.department_id,
+        requested_delta: delta,
         reason,
       });
       onSuccess();
@@ -99,9 +99,9 @@ export function AdjustmentDialog({
               </span>
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {selectedBalance?.balance.locationCode}
-              {selectedBalance?.balance.departmentCode &&
-                ` · ${selectedBalance.balance.departmentCode}`}
+              {selectedBalance?.balance.location_id}
+              {selectedBalance?.balance.department_id &&
+                ` · ${selectedBalance.balance.department_id}`}
               {" — "}Current Qty: {selectedBalance?.balance.quantity}
             </p>
           </div>

@@ -56,7 +56,7 @@ export class CreateItemDto {
   base_price?: number;
 
   @IsOptional()
-  taxRate?: number;
+  tax_rate?: number;
 
   @IsBoolean()
   @IsOptional()
@@ -64,7 +64,7 @@ export class CreateItemDto {
 
   @IsString({ each: true })
   @IsOptional()
-  moduleTags?: string[];
+  module_tags?: string[];
 
   @IsString()
   @IsOptional()
@@ -72,7 +72,7 @@ export class CreateItemDto {
 
   @IsString()
   @IsOptional()
-  departmentId?: string;
+  department_id?: string;
 
   @IsOptional()
   selling_price?: number;

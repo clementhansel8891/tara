@@ -19,11 +19,11 @@ interface BatchIntakeDialogProps {
 }
 
 const emptyRow = () => ({
-  itemId: "",
-  locationId: "",
-  departmentId: "",
+  item_id: "",
+  location_id: "",
+  department_id: "",
   quantity: 1,
-  unitCost: 0,
+  unit_cost: 0,
   reason: "Batch Intake",
 });
 
@@ -53,7 +53,7 @@ export function BatchIntakeDialog({
   };
 
   const handleBatchIntake = async () => {
-    const valid = (Array.isArray(items) ? items : []).filter((i) => i.itemId.trim() && i.quantity > 0);
+    const valid = (Array.isArray(items) ? items : []).filter((i) => i.item_id.trim() && i.quantity > 0);
     if (valid.length === 0) {
       setError("Add at least one row with a Product ID and quantity > 0.");
       return;
@@ -106,30 +106,34 @@ export function BatchIntakeDialog({
               {(Array.isArray(items) ? items : []).map((item, idx) => (
                 <tr key={idx} className="border-b">
                   <td className="p-2">
-                    <Input
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="SKU or ID"
-                      value={item.itemId}
-                      onChange={(e) => updateItem(idx, "itemId", e.target.value)}
+                      value={item.item_id}
+                      onChange={(e) => updateItem(idx, "item_id", e.target.value)}
                     />
                   </td>
                   <td className="p-2 space-y-1">
-                    <Input
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Location ID"
-                      value={item.locationId}
+                      value={item.location_id}
                       onChange={(e) =>
-                        updateItem(idx, "locationId", e.target.value)
+                        updateItem(idx, "location_id", e.target.value)
                       }
                     />
-                    <Input
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Dept ID (opt.)"
-                      value={item.departmentId}
+                      value={item.department_id}
                       onChange={(e) =>
-                        updateItem(idx, "departmentId", e.target.value)
+                        updateItem(idx, "department_id", e.target.value)
                       }
                     />
                   </td>
                   <td className="p-2">
-                    <Input
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       type="number"
                       min={1}
                       value={item.quantity}
@@ -139,12 +143,13 @@ export function BatchIntakeDialog({
                     />
                   </td>
                   <td className="p-2">
-                    <Input
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       type="number"
                       min={0}
-                      value={item.unitCost}
+                      value={item.unit_cost}
                       onChange={(e) =>
-                        updateItem(idx, "unitCost", Number(e.target.value))
+                        updateItem(idx, "unit_cost", Number(e.target.value))
                       }
                     />
                   </td>

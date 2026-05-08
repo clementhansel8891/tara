@@ -20,9 +20,9 @@ export const inventoryService = {
   async listItems(
     tenantId: string,
     session: SessionContext,
-    locationId?: string,
+    location_id?: string,
   ): Promise<InventoryItemMaster[]> {
-    const params = locationId ? `?location_id=${locationId}` : "";
+    const params = location_id ? `?location_id=${location_id}` : "";
     return apiRequest<InventoryItemMaster[]>(
       `/v1/inventory/items${params}`,
       "GET",
@@ -46,12 +46,12 @@ export const inventoryService = {
   async listBalances(
     tenantId: string,
     session: SessionContext,
-    locationId?: string,
-    departmentId?: string,
+    location_id?: string,
+    department_id?: string,
   ): Promise<InventoryStockBalance[]> {
     const params = new URLSearchParams();
-    if (locationId) params.append("location_id", locationId);
-    if (departmentId) params.append("departmentId", departmentId);
+    if (location_id) params.append("location_id", location_id);
+    if (department_id) params.append("department_id", department_id);
     const query = params.toString() ? `?${params.toString()}` : "";
     return apiRequest<InventoryStockBalance[]>(
       `/v1/inventory/balances${query}`,
@@ -63,9 +63,9 @@ export const inventoryService = {
   async listMovements(
     tenantId: string,
     session: SessionContext,
-    itemId?: string,
+    item_id?: string,
   ): Promise<InventoryMovement[]> {
-    const query = itemId ? `?itemId=${itemId}` : "";
+    const query = item_id ? `?item_id=${item_id}` : "";
     return apiRequest<InventoryMovement[]>(
       `/v1/inventory/movements${query}`,
       "GET",
@@ -122,10 +122,10 @@ export const inventoryService = {
       name: string;
       category: InventoryItemMaster["category"];
       uom: string;
-      basePrice?: number;
+      base_price?: number;
       description?: string;
-      moduleTags: string[];
-      departmentId?: string;
+      module_tags: string[];
+      department_id?: string;
       status?: string;
     },
   ): Promise<InventoryItemMaster> {
@@ -141,114 +141,86 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     payload: {
-      itemId: string;
-      locationCode: string;
-      departmentCode?: string;
+      item_id: string;
+      location_id: string;
+      department_id?: string;
       quantity: number;
-      unitCost: number;
+      unit_cost: number;
       reason: string;
-      referenceType?: string;
-      referenceId?: string;
+      reference_type?: string;
+      reference_id?: string;
     },
   ) {
-    // Adapter to match backend DTO
-    const dto = {
-      ...payload,
-      locationId: payload.locationCode,
-      departmentId: payload.departmentCode,
-    };
-    return apiRequest<any>("/v1/inventory/intake", "POST", session, dto);
+    return apiRequest<any>("/v1/inventory/intake", "POST", session, payload);
   },
 
   async recordDeduction(
     tenantId: string,
     session: SessionContext,
     payload: {
-      itemId: string;
-      locationCode: string;
-      departmentCode?: string;
+      item_id: string;
+      location_id: string;
+      department_id?: string;
       quantity: number;
       reason: string;
-      referenceType?: string;
-      referenceId?: string;
+      reference_type?: string;
+      reference_id?: string;
     },
   ) {
-    // Adapter to match backend DTO
-    const dto = {
-      ...payload,
-      locationId: payload.locationCode,
-      departmentId: payload.departmentCode,
-    };
-    return apiRequest<any>("/v1/inventory/consume", "POST", session, dto);
+    return apiRequest<any>("/v1/inventory/consume", "POST", session, payload);
   },
 
   async recordTransfer(
     tenantId: string,
     session: SessionContext,
     payload: {
-      itemId: string;
-      fromLocationCode: string; // fromLocationId in DTO
-      fromDepartmentCode?: string; // fromDepartmentId in DTO
-      toLocationCode: string; // toLocationId in DTO
-      toDepartmentCode?: string; // toDepartmentId in DTO
+      item_id: string;
+      from_location_id: string;
+      from_department_id?: string;
+      to_location_id: string;
+      to_department_id?: string;
       quantity: number;
       reason: string;
     },
   ) {
-    const dto = {
-      itemId: payload.itemId,
-      fromLocationId: payload.fromLocationCode,
-      fromDepartmentId: payload.fromDepartmentCode,
-      toLocationId: payload.toLocationCode,
-      toDepartmentId: payload.toDepartmentCode,
-      quantity: payload.quantity,
-      reason: payload.reason,
-    };
-    return apiRequest<any>("/v1/inventory/transfer", "POST", session, dto);
+    return apiRequest<any>("/v1/inventory/transfer", "POST", session, payload);
   },
 
   async requestAdjustment(
     tenantId: string,
     session: SessionContext,
     payload: {
-      itemId: string;
-      locationCode: string;
-      departmentCode?: string;
-      requestedDelta: number;
+      item_id: string;
+      location_id: string;
+      department_id?: string;
+      requested_delta: number;
       reason: string;
     },
   ) {
-    const dto = {
-      itemId: payload.itemId,
-      locationId: payload.locationCode,
-      departmentId: payload.departmentCode,
-      requestedDelta: payload.requestedDelta,
-      reason: payload.reason,
-    };
-    return apiRequest<any>("/v1/inventory/adjustments", "POST", session, dto);
+    return apiRequest<any>("/v1/inventory/adjustments", "POST", session, payload);
   },
 
   async approveAdjustment(
     tenantId: string,
     session: SessionContext,
-    adjustmentId: string,
+    adjustment_id: string,
   ) {
     return apiRequest<any>(
-      `/v1/inventory/adjustments/${adjustmentId}/approve`,
+      `/v1/inventory/adjustments/${adjustment_id}/approve`,
       "PUT",
       session,
-      { approvedBy: session.user_id },
+      { approved_by: session.user_id },
     );
   },
 
   async updateAlertStatus(
     tenantId: string,
     session: SessionContext,
-    alertId: string,
+    alert_id: string,
     status: InventoryAlertStatus,
   ) {
     return apiRequest<any>(
-      `/v1/inventory/alerts/${alertId}/status`,
+      `/v1/inventory/alerts/${alert_id}/status`,
       "PUT",
       session,
       { status },
@@ -270,8 +242,8 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     payload: {
-      locationCode: string;
-      departmentCode?: string;
+      location_id: string;
+      department_id?: string;
       scope: "LOCATION" | "DEPARTMENT" | "ITEM";
     },
   ) {
@@ -281,7 +253,7 @@ export const inventoryService = {
   async initiateAudit(
     tenantId: string,
     session: SessionContext,
-    payload: { location_code: string; department_code?: string; scope: string },
+    payload: { location_id: string; department_id?: string; scope: string },
   ) {
     return apiRequest<any>("/v1/inventory/audit/initiate", "POST", session, payload);
   },
@@ -289,17 +261,17 @@ export const inventoryService = {
   async closeAuditCycle(
     tenantId: string,
     session: SessionContext,
-    cycleId: string,
-    results: { countedValue: number; varianceValue: number },
+    cycle_id: string,
+    results: { counted_value: number; variance_value: number },
   ) {
     return apiRequest<any>(
-      `/v1/inventory/audit-cycles/${cycleId}`,
+      `/v1/inventory/audit-cycles/${cycle_id}`,
       "PUT",
       session,
       {
         ...results,
         status: "COMPLETED",
-        closedBy: session.user_id,
+        closed_by: session.user_id,
       },
     );
   },
@@ -312,7 +284,6 @@ export const inventoryService = {
     return apiRequest<any>("/v1/inventory/scans/expiry", "POST", session, {});
   },
 
-  // Missing implementation for listProcurementReceiptQueue and processProcurementReceipt
   async listProcurementReceiptQueue(tenantId: string, session: SessionContext) {
     return apiRequest<any[]>("/v1/inventory/procurement-receipts", "GET", session);
   },
@@ -321,30 +292,30 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     payload: {
-      finalPoId: string;
-      locationId: string;
-      items: Array<{ sku: string; quantity: number; unitCost?: number }>;
+      final_po_id: string;
+      location_id: string;
+      items: Array<{ sku: string; quantity: number; unit_cost?: number }>;
     },
   ) {
     return apiRequest<any>(
-      `/v1/inventory/procurement-receipts/${payload.finalPoId}/process`,
+      `/v1/inventory/procurement-receipts/${payload.final_po_id}/process`,
       "POST",
       session,
-      { locationId: payload.locationId, items: payload.items },
+      { location_id: payload.location_id, items: payload.items },
     );
   },
 
-  async deleteItem(tenantId: string, session: SessionContext, itemId: string) {
-    return apiRequest<any>(`/v1/inventory/items/${itemId}`, "DELETE", session);
+  async deleteItem(tenantId: string, session: SessionContext, item_id: string) {
+    return apiRequest<any>(`/v1/inventory/items/${item_id}`, "DELETE", session);
   },
 
   async batchDeleteItems(
     tenantId: string,
     session: SessionContext,
-    itemIds: string[],
+    item_ids: string[],
   ) {
     return apiRequest<any>("/v1/inventory/items/batch-delete", "POST", session, {
-      itemIds,
+      item_ids,
     });
   },
 
@@ -375,10 +346,10 @@ export const inventoryService = {
   async getWarehouseBins(
     tenantId: string,
     session: SessionContext,
-    locationId: string,
+    location_id: string,
   ): Promise<WarehouseBin[]> {
     return apiRequest<WarehouseBin[]>(
-      `/v1/warehouse/bins?locationId=${locationId}`,
+      `/v1/warehouse/bins?location_id=${location_id}`,
       "GET",
       session,
     );
@@ -388,7 +359,7 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     payload: {
-      locationId: string;
+      location_id: string;
       code: string;
       zone?: string;
       aisle?: string;
@@ -403,10 +374,10 @@ export const inventoryService = {
   async getBinStock(
     tenantId: string,
     session: SessionContext,
-    binId: string,
+    bin_id: string,
   ): Promise<BinAssignment[]> {
     return apiRequest<BinAssignment[]>(
-      `/v1/warehouse/bins/${binId}/stock`,
+      `/v1/warehouse/bins/${bin_id}/stock`,
       "GET",
       session,
     );
@@ -415,11 +386,11 @@ export const inventoryService = {
   async assignStockToBin(
     tenantId: string,
     session: SessionContext,
-    binId: string,
-    payload: { productId: string; qty: number },
+    bin_id: string,
+    payload: { product_id: string; qty: number },
   ) {
     return apiRequest<any>(
-      `/v1/warehouse/bins/${binId}/assign`,
+      `/v1/warehouse/bins/${bin_id}/assign`,
       "POST",
       session,
       payload,
@@ -438,16 +409,16 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     payload: {
-      deviceId: string;
-      eventType: string;
+      device_id: string;
+      event_type: string;
       sku: string;
-      locationId?: string;
-      binId?: string;
+      location_id?: string;
+      bin_id?: string;
       payload: any;
     },
   ) {
     const endpoint =
-      payload.eventType === "RFID_SCAN"
+      payload.event_type === "RFID_SCAN"
         ? "/v1/inventory/iot/rfid-scan"
         : "/v1/inventory/iot/barcode-scan";
     return apiRequest<any>(endpoint, "POST", session, payload);
@@ -495,10 +466,10 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     id: string,
-    trackingNumber: string,
+    tracking_number: string,
   ) {
     return apiRequest<any>(`/v1/inventory/stock-transfers/${id}/ship`, "PUT", session, {
-      tracking_number: trackingNumber,
+      tracking_number: tracking_number,
     });
   },
 
@@ -513,15 +484,14 @@ export const inventoryService = {
   async uploadItemImage(
     tenantId: string,
     session: SessionContext,
-    itemId: string,
+    item_id: string,
     file: File,
   ) {
     const formData = new FormData();
     formData.append("file", file);
 
-    // Manual fetch because apiRequest might not handle FormData easily if it's JSON-only
     const baseUrl = (window as any).VITE_API_URL || "http://localhost:3001/api";
-    const response = await fetch(`${baseUrl}/v1/inventory/items/${itemId}/images`, {
+    const response = await fetch(`${baseUrl}/v1/inventory/items/${item_id}/images`, {
       method: "POST",
       headers: {
         "x-tenant-id": tenantId,
@@ -540,11 +510,11 @@ export const inventoryService = {
   async deleteItemImage(
     tenantId: string,
     session: SessionContext,
-    itemId: string,
-    imageId: string,
+    item_id: string,
+    image_id: string,
   ) {
     return apiRequest<any>(
-      `/v1/inventory/items/${itemId}/images/${imageId}`,
+      `/v1/inventory/items/${item_id}/images/${image_id}`,
       "DELETE",
       session,
     );
@@ -553,11 +523,11 @@ export const inventoryService = {
   async setPrimaryItemImage(
     tenantId: string,
     session: SessionContext,
-    itemId: string,
-    imageId: string,
+    item_id: string,
+    image_id: string,
   ) {
     return apiRequest<any>(
-      `/v1/inventory/items/${itemId}/images/${imageId}/primary`,
+      `/v1/inventory/items/${item_id}/images/${image_id}/primary`,
       "PUT",
       session,
       {},
@@ -567,10 +537,10 @@ export const inventoryService = {
   async listItemImages(
     tenantId: string,
     session: SessionContext,
-    itemId: string,
+    item_id: string,
   ) {
     return apiRequest<any[]>(
-      `/v1/inventory/items/${itemId}/images`,
+      `/v1/inventory/items/${item_id}/images`,
       "GET",
       session,
     );
@@ -612,14 +582,14 @@ export const inventoryService = {
   async updateItemCategory(
     tenantId: string,
     session: SessionContext,
-    itemId: string,
-    categoryId: string,
+    item_id: string,
+    category_id: string,
   ): Promise<any> {
     return apiRequest<any>(
-      `/v1/inventory/items/${itemId}/category`,
+      `/v1/inventory/items/${item_id}/category`,
       "PATCH",
       session,
-      { categoryId },
+      { category_id },
     );
   },
 
@@ -627,9 +597,9 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     adjustments: Array<{
-      itemId: string;
-      locationId: string;
-      actualCount: number;
+      item_id: string;
+      location_id: string;
+      actual_count: number;
       reason: string;
       notes?: string;
     }>,
@@ -639,4 +609,3 @@ export const inventoryService = {
     });
   },
 };
-

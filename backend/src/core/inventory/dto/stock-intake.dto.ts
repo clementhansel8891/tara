@@ -17,7 +17,7 @@ export class StockIntakeDto {
 
   @IsString()
   @IsOptional()
-  departmentId?: string;
+  department_id?: string;
 
   @IsNumber()
   @Min(0.0001)
@@ -25,7 +25,7 @@ export class StockIntakeDto {
 
   @IsNumber()
   @Min(0)
-  unitCost: number;
+  unit_cost: number;
 
   @IsString()
   @IsNotEmpty()
@@ -33,13 +33,13 @@ export class StockIntakeDto {
 
   @IsString()
   @IsOptional()
-  referenceType?: string;
+  reference_type?: string;
 
   @IsString()
   @IsOptional()
-  referenceId?: string;
+  reference_id?: string;
 
   @IsString()
   @IsOptional()
-  createdBy?: string;
+  created_by?: string;
 }

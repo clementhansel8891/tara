@@ -13,19 +13,19 @@ export class TransferStockDto {
 
   @IsString()
   @IsNotEmpty()
-  fromLocationId: string;
+  from_location_id: string;
 
   @IsString()
   @IsOptional()
-  fromDepartmentId?: string;
+  from_department_id?: string;
 
   @IsString()
   @IsNotEmpty()
-  toLocationId: string;
+  to_location_id: string;
 
   @IsString()
   @IsOptional()
-  toDepartmentId?: string;
+  to_department_id?: string;
 
   @IsNumber()
   @Min(0.0001)
@@ -37,13 +37,13 @@ export class TransferStockDto {
 
   @IsString()
   @IsOptional()
-  referenceType?: string;
+  reference_type?: string;
 
   @IsString()
   @IsOptional()
-  referenceId?: string;
+  reference_id?: string;
 
   @IsString()
   @IsOptional()
-  createdBy?: string;
+  created_by?: string;
 }

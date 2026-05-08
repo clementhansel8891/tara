@@ -446,8 +446,8 @@ export default function InventoryStockHub() {
     [items],
   );
 
-  const locationByCode = useMemo(
-    () => Object.fromEntries((Array.isArray(locations) ? locations : []).map((loc) => [loc.code, loc])),
+  const locationById = useMemo(
+    () => Object.fromEntries((Array.isArray(locations) ? locations : []).map((loc) => [loc.id, loc])),
     [locations],
   );
 
@@ -455,14 +455,14 @@ export default function InventoryStockHub() {
     if (viewMode !== "total") return balances;
     const map = new Map<string, InventoryStockBalance>();
     balances.forEach((b) => {
-      const existing = map.get(b.itemId);
+      const existing = map.get(b.item_id);
       if (existing) {
         existing.quantity += b.quantity;
       } else {
-        map.set(b.itemId, {
+        map.set(b.item_id, {
           ...b,
-          locationCode: "GLOBAL",
-          departmentCode: "ALL",
+          location_id: "GLOBAL",
+          department_id: "ALL",
         });
       }
     });
@@ -472,16 +472,16 @@ export default function InventoryStockHub() {
   const filteredBalances = useMemo(
     () =>
       (Array.isArray(aggregatedBalances) ? aggregatedBalances : []).filter((balance) => {
-        const item = itemById[balance.itemId];
+        const item = itemById[balance.item_id];
         if (!item) return false;
 
-        const locInfo = locationByCode[balance.locationCode || ""];
+        const locInfo = locationById[balance.location_id || ""];
         const isEcomLoc =
           locInfo?.type === "ECOMMERCE" ||
-          balance.locationCode?.toLowerCase()?.includes("ecom") ||
-          balance.locationCode?.toLowerCase()?.includes("ec");
+          balance.location_id?.toLowerCase()?.includes("ecom") ||
+          balance.location_id?.toLowerCase()?.includes("ec");
 
-        const hasEcomTag = (item.moduleTags || []).some(
+        const hasEcomTag = (item.module_tags || []).some(
           (tag) => tag.toUpperCase() === "ECOMMERCE" || tag.toUpperCase() === "RETAIL",
         );
 
@@ -490,28 +490,28 @@ export default function InventoryStockHub() {
           if (!isEcomLoc && !hasEcomTag) return false;
         } else if (viewMode === "branch") {
           // In branch mode, we show everything that isn't specifically ecom-only
-          if (isEcomLoc && balance.locationCode !== "GLOBAL") return false;
+          if (isEcomLoc && balance.location_id !== "GLOBAL") return false;
         }
 
         const searchable =
-          `${item.sku} ${item.name} ${balance.locationCode || ""} ${balance.departmentCode || ""}`.toLowerCase();
+          `${item.sku} ${item.name} ${balance.location_id || ""} ${balance.department_id || ""}`.toLowerCase();
         const searchMatch = search
           ? searchable.includes(search.toLowerCase())
           : true;
         const moduleMatch = moduleFilter
-          ? (item.moduleTags || []).some(
+          ? (item.module_tags || []).some(
               (tag) => tag.toLowerCase() === moduleFilter.toLowerCase(),
             )
           : true;
         
-        const itemDeptId = (item as Record<string, unknown>).departmentId;
+        const itemDeptId = (item as Record<string, unknown>).department_id;
         const departmentMatch = departmentFilter === "ALL" 
           ? true 
-          : balance.departmentCode === departmentFilter || itemDeptId === departmentFilter;
+          : balance.department_id === departmentFilter || itemDeptId === departmentFilter;
 
         return searchMatch && moduleMatch && departmentMatch;
       }),
-    [aggregatedBalances, itemById, moduleFilter, search, viewMode, departmentFilter, locationByCode],
+    [aggregatedBalances, itemById, moduleFilter, search, viewMode, departmentFilter, locationById],
   );
 
   const toggleSelect = (id: string) => {
@@ -1005,7 +1005,7 @@ export default function InventoryStockHub() {
               </thead>
               <tbody>
                 {(Array.isArray(filteredBalances) ? filteredBalances : []).map((balance) => {
-                  const item = itemById[balance.itemId];
+                  const item = itemById[balance.item_id];
                   if (!item) return null;
                   const isSelected = selectedIds.includes(balance.id);
                   return (
@@ -1045,19 +1045,19 @@ export default function InventoryStockHub() {
                       <td className="p-3 font-medium">{item.sku}</td>
                       <td className="p-3">{item.name}</td>
                       <td className="p-3 text-muted-foreground">
-                        {balance.locationCode}
+                        {balance.location_id}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {balance.departmentCode ?? "GENERAL"}
+                        {balance.department_id ?? "GENERAL"}
                       </td>
                       <td className="p-3 text-right font-mono font-bold">
                         {balance.quantity.toLocaleString()}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {balance.reorderPoint}
+                        {balance.reorder_point}
                       </td>
                       <td className="p-3 text-xs text-muted-foreground">
-                        {(item.moduleTags || []).join(", ")}
+                        {(item.module_tags || []).join(", ")}
                       </td>
                       <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
@@ -1123,24 +1123,24 @@ export default function InventoryStockHub() {
                 {selectedBalance?.item.name}
               </span>
               <span className="text-muted-foreground">Location:</span>
-              <span>{selectedBalance?.balance.locationCode}</span>
+              <span>{selectedBalance?.balance.location_id}</span>
               <span className="text-muted-foreground">Department:</span>
               <span>
-                {selectedBalance?.balance.departmentCode || "GENERAL"}
+                {selectedBalance?.balance.department_id || "GENERAL"}
               </span>
               <span className="text-muted-foreground">Physical Qty:</span>
               <span className="font-bold text-lg">
                 {selectedBalance?.balance.quantity.toLocaleString()}
               </span>
               <span className="text-muted-foreground">Reorder Point:</span>
-              <span>{selectedBalance?.balance.reorderPoint}</span>
+              <span>{selectedBalance?.balance.reorder_point}</span>
             </div>
             <div className="border-t pt-2">
               <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Module Context
               </p>
               <div className="flex flex-wrap gap-1">
-                {(selectedBalance?.item.moduleTags || []).map((tag) => (
+                {(selectedBalance?.item.module_tags || []).map((tag) => (
                   <span
                     key={tag}
                     className="rounded bg-muted px-1.5 py-0.5 text-[10px]"
