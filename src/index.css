@@ -132,10 +132,31 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
   }
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+  }
+
+  /* Premium Global Scrollbar Implementation */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/20 rounded-full transition-all duration-300;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/60;
+    box-shadow: 0 0 10px hsl(var(--primary) / 0.4);
   }
 }
 
@@ -167,6 +188,15 @@
     @apply transition-all duration-500 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:scale-[0.98];
   }
 
+  /* Tactical Surfaces - Theme Aware */
+  .surface-tactical {
+    @apply bg-slate-100 dark:bg-slate-950/80 backdrop-blur-3xl;
+  }
+
+  .surface-tactical-card {
+    @apply bg-white/40 dark:bg-white/[0.03] border-slate-200/50 dark:border-white/10;
+  }
+
   /* Touch-friendly tap targets */
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
@@ -196,3 +226,4 @@
     50% { transform: translateY(-10px); }
   }
 }
+

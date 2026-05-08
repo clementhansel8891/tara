@@ -68,20 +68,20 @@ const RetailOperationalGateway = () => {
 
   if (!activeStore && (Array.isArray(stores) ? stores : []).length > 0) {
      return (
-        <div className="flex-1 flex flex-col items-center justify-center bg-slate-950 p-6 md:p-12 relative overflow-hidden selection:bg-indigo-500/30">
+        <div className="flex-1 flex flex-col items-center justify-center surface-tactical p-6 md:p-12 relative overflow-hidden selection:bg-indigo-500/30">
            {/* Atmospheric effect */}
            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.15)_0%,transparent_70%)]" />
            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
            
            <div className="relative z-10 max-w-4xl w-full animate-in fade-in zoom-in duration-700">
               <div className="text-center mb-16">
-                 <div className="w-28 h-28 bg-indigo-600 rounded-[3rem] mx-auto flex items-center justify-center shadow-[0_0_80px_rgba(79,70,229,0.5)] mb-10 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
-                    <Store className="w-14 h-14 text-white" />
+                 <div className="w-28 h-28 bg-primary rounded-[3rem] mx-auto flex items-center justify-center shadow-[0_0_80px_rgba(79,70,229,0.5)] mb-10 transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+                    <Store className="w-14 h-14 text-primary-foreground" />
                  </div>
-                 <h1 className="text-6xl font-black text-white italic tracking-tighter uppercase mb-4 leading-none">
+                 <h1 className="text-6xl font-black text-foreground italic tracking-tighter uppercase mb-4 leading-none">
                     Establishing Uplink
                  </h1>
-                 <p className="text-indigo-400 font-black uppercase tracking-[0.5em] text-[12px] italic opacity-70">
+                 <p className="text-primary font-black uppercase tracking-[0.5em] text-[12px] italic opacity-70">
                     Select Operational Node for Physical Execution
                  </p>
               </div>
@@ -90,23 +90,23 @@ const RetailOperationalGateway = () => {
                  {stores.map(store => (
                     <Card 
                        key={store.id}
-                       className="bg-white/[0.03] border-white/10 hover:border-indigo-500/50 hover:bg-white/[0.06] transition-all duration-500 cursor-pointer rounded-[3rem] group overflow-hidden shadow-2xl hover:-translate-y-2 active:scale-95"
+                       className="bg-card/50 border-border hover:border-primary/50 hover:bg-card/80 transition-all duration-500 cursor-pointer rounded-[3rem] group overflow-hidden shadow-2xl hover:-translate-y-2 active:scale-95"
                        onClick={() => setStore(store.id)}
                     >
                        <CardContent className="p-12 flex items-center gap-10">
-                          <div className="w-20 h-20 bg-indigo-500/10 rounded-3xl flex items-center justify-center group-hover:bg-indigo-500/20 transition-all border border-white/5">
-                             <Building2 className="w-10 h-10 text-indigo-400 group-hover:scale-110 transition-transform" />
+                          <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center group-hover:bg-primary/20 transition-all border border-border">
+                             <Building2 className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
                           </div>
                           <div className="flex-1">
-                             <div className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1.5 group-hover:text-indigo-400 transition-colors">
+                             <div className="text-3xl font-black text-foreground uppercase italic tracking-tighter mb-1.5 group-hover:text-primary transition-colors">
                                 {store.name}
                              </div>
                              <div className="flex items-center gap-3">
-                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-slate-500 border-white/5 bg-white/5">
+                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground border-border bg-muted/20">
                                    {store.type}
                                 </Badge>
-                                <span className="w-1 h-1 rounded-full bg-slate-700" />
-                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                                <span className="w-1 h-1 rounded-full bg-border" />
+                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">
                                    {store.timezone}
                                 </span>
                              </div>
@@ -119,7 +119,7 @@ const RetailOperationalGateway = () => {
               <div className="mt-20 text-center">
                  <Button 
                     variant="ghost" 
-                    className="text-slate-600 hover:text-white uppercase font-black italic text-[11px] tracking-[0.4em] gap-4 transition-all"
+                    className="text-muted-foreground hover:text-foreground uppercase font-black italic text-[11px] tracking-[0.4em] gap-4 transition-all"
                     onClick={() => { setMode('management'); navigate('/m/retail/workspace'); }}
                  >
                     <Home className="w-4 h-4" />
@@ -132,7 +132,7 @@ const RetailOperationalGateway = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-6 md:p-12 relative selection:bg-indigo-500/30 overflow-y-auto">
+    <div className="flex-1 flex flex-col p-6 md:p-12 relative selection:bg-primary/30">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 p-32 opacity-[0.03] pointer-events-none">
         <Layout className="w-[45rem] h-[45rem]" />
@@ -142,11 +142,11 @@ const RetailOperationalGateway = () => {
         {/* Top System Bar - Utilities & Mode Switch */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-8 px-8">
            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 bg-white/[0.03] border border-white/10 px-4 py-2 rounded-xl backdrop-blur-md">
-                 <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.2em] italic">System Status: Active</span>
+              <div className="flex items-center gap-3 bg-muted/20 border border-border px-4 py-2 rounded-xl backdrop-blur-md">
+                 <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                 <span className="text-[10px] font-black uppercase text-primary tracking-[0.2em] italic">System Status: Active</span>
               </div>
-              <Badge variant="outline" className="border-white/10 text-slate-500 font-black italic uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5">
+              <Badge variant="outline" className="border-border text-muted-foreground font-black italic uppercase tracking-widest text-[9px] px-3 py-1 bg-muted/20">
                 OPERATIONAL_CORE_v2.5
               </Badge>
            </div>
@@ -154,12 +154,12 @@ const RetailOperationalGateway = () => {
            <div className="flex items-center gap-6">
               <RetailModeSwitchControl variant="tactical" />
               
-              <div className="h-8 w-[1px] bg-white/10" />
+              <div className="h-8 w-[1px] bg-border" />
 
               <div className="flex items-center gap-3">
                   <Button 
                     variant="outline" 
-                    className="bg-white/5 border-white/10 text-white hover:bg-indigo-600 hover:text-white h-10 w-10 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-xl group"
+                    className="bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground h-10 w-10 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-xl group"
                     onClick={() => window.location.href = "/"}
                     title="Go to Core"
                   >
@@ -168,35 +168,35 @@ const RetailOperationalGateway = () => {
 
                   <Button 
                     variant="outline" 
-                    className="bg-white/5 border-white/10 text-white hover:bg-white/10 h-10 w-10 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-xl"
+                    className="bg-card border-border text-foreground hover:bg-muted h-10 w-10 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-xl"
                     onClick={toggleFullscreen}
                     title="Toggle Fullscreen"
                   >
-                    {isFullscreen ? <Minimize2 className="w-4 h-4 text-indigo-400" /> : <Maximize2 className="w-4 h-4 text-indigo-400" />}
+                    {isFullscreen ? <Minimize2 className="w-4 h-4 text-primary" /> : <Maximize2 className="w-4 h-4 text-primary" />}
                   </Button>
               </div>
            </div>
         </div>
 
         {/* Header Area - Ultra Tactical */}
-        <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-8 mb-12 bg-white/[0.03] p-10 rounded-[3.5rem] border border-white/10 backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-8 mb-12 bg-card/40 p-10 rounded-[3.5rem] border border-border backdrop-blur-3xl shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           
           
           <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-            <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.4)] transform hover:rotate-12 transition-transform duration-500">
-              <Store className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-primary rounded-3xl flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.4)] transform hover:rotate-12 transition-transform duration-500">
+              <Store className="w-10 h-10 text-primary-foreground" />
             </div>
             <div className="text-center md:text-left">
               <div className="flex items-center gap-4 justify-center md:justify-start mb-2">
-                <h1 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+                <h1 className="text-5xl font-black text-foreground italic tracking-tighter uppercase leading-none">
                   {companyName}
                 </h1>
-                <Badge variant="outline" className="border-indigo-500/30 text-indigo-400 font-black italic uppercase tracking-widest text-[9px] px-3 py-1 bg-indigo-500/5">
+                <Badge variant="outline" className="border-primary/30 text-primary font-black italic uppercase tracking-widest text-[9px] px-3 py-1 bg-primary/5">
                   OP_PLANE_v2.5
                 </Badge>
               </div>
-              <p className="text-indigo-400 font-black uppercase tracking-[0.4em] text-[11px] italic">
+              <p className="text-primary font-black uppercase tracking-[0.4em] text-[11px] italic">
                 {activeStore?.name || "Global Operations Hub"} • SECURITY_LEVEL: ALPHA
               </p>
             </div>
@@ -205,31 +205,31 @@ const RetailOperationalGateway = () => {
           <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
              <div className="flex flex-col items-end gap-1 px-8 border-r border-white/10 hidden xl:flex">
                 <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.3em]">Operator Identity</span>
-                <span className="text-sm font-black uppercase text-white italic tracking-widest">{user?.first_name} {user?.last_name}</span>
+                <span className="text-sm font-black uppercase text-foreground italic tracking-widest">{user?.first_name} {user?.last_name}</span>
              </div>
 
              <div className="flex items-center gap-10">
                {activeShift ? (
-                 <div className="flex items-center gap-6 px-8 py-4 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)]">
-                   <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
+                 <div className="flex items-center gap-6 px-8 py-4 bg-success/10 rounded-3xl border border-success/20 shadow-[0_0_40px_rgba(16,185,129,0.15)]">
+                   <div className="w-3 h-3 rounded-full bg-success animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-emerald-500/70 tracking-widest leading-none mb-1.5">Shift Active</span>
-                      <span className="text-xs font-black uppercase text-emerald-400 tracking-tighter italic">{activeShift.id.slice(-16).toUpperCase()}</span>
+                      <span className="text-[10px] font-black uppercase text-success tracking-widest leading-none mb-1.5">Shift Active</span>
+                      <span className="text-xs font-black uppercase text-success/80 tracking-tighter italic">{activeShift.id.slice(-16).toUpperCase()}</span>
                    </div>
                  </div>
                ) : (
-                 <div className="flex items-center gap-6 px-8 py-4 bg-rose-500/10 rounded-3xl border border-rose-500/20">
-                   <div className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.8)]" />
+                 <div className="flex items-center gap-6 px-8 py-4 bg-destructive/10 rounded-3xl border border-destructive/20">
+                   <div className="w-3 h-3 rounded-full bg-destructive shadow-[0_0_15px_rgba(244,63,94,0.8)]" />
                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-rose-500/70 tracking-widest leading-none mb-1.5">Lockdown</span>
-                      <span className="text-xs font-black uppercase text-rose-400 tracking-tighter italic">RE-AUTH_REQUIRED</span>
+                      <span className="text-[10px] font-black uppercase text-destructive tracking-widest leading-none mb-1.5">Lockdown</span>
+                      <span className="text-xs font-black uppercase text-destructive/80 tracking-tighter italic">RE-AUTH_REQUIRED</span>
                    </div>
                  </div>
                )}
 
                <Button 
                  variant="outline"
-                 className="bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-600 hover:text-white h-20 px-12 rounded-[2rem] font-black italic gap-5 tracking-[0.3em] uppercase text-xs transition-all shadow-2xl hover:scale-105 active:scale-95"
+                 className="bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground h-20 px-12 rounded-[2rem] font-black italic gap-5 tracking-[0.3em] uppercase text-xs transition-all shadow-2xl hover:scale-105 active:scale-95"
                  onClick={logout}
                >
                  <Power className="w-6 h-6" />
@@ -249,33 +249,33 @@ const RetailOperationalGateway = () => {
             >
               {/* Outer Glow Effect */}
               <div className={`absolute inset-0 ${app.bg} blur-[60px] opacity-0 group-hover:opacity-40 transition-opacity duration-700 rounded-full`} />
-              
-              <Card className="relative h-56 bg-white/[0.03] border-white/10 hover:border-white/30 transition-all duration-500 overflow-hidden backdrop-blur-3xl rounded-[3rem] shadow-2xl flex flex-col group-hover:-translate-y-3 group-active:scale-95">
+                             <Card className="relative h-56 bg-card/40 border-border hover:border-primary/30 transition-all duration-500 overflow-hidden backdrop-blur-3xl rounded-[3rem] shadow-2xl flex flex-col group-hover:-translate-y-3 group-active:scale-95">
                 <div className={`absolute top-0 right-0 w-32 h-32 ${app.bg} blur-3xl -mr-16 -mt-16 opacity-20 group-hover:scale-150 transition-transform duration-1000`} />
                 
                 <CardContent className="p-10 flex flex-col justify-between h-full relative z-10">
                   <div className="flex justify-between items-start">
-                    <div className={`w-20 h-20 ${app.bg} rounded-[2rem] flex items-center justify-center ${app.color} group-hover:rotate-[15deg] transition-all duration-500 border border-white/5 shadow-inner`}>
+                    <div className={`w-20 h-20 ${app.bg} rounded-[2rem] flex items-center justify-center ${app.color} group-hover:rotate-[15deg] transition-all duration-500 border border-border shadow-inner`}>
                       <app.icon className="w-10 h-10" />
                     </div>
                     <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                       <Maximize2 className="w-6 h-6 text-white/20" />
+                       <Maximize2 className="w-6 h-6 text-muted-foreground/20" />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <div className="font-black text-white text-3xl uppercase tracking-tighter italic group-hover:text-indigo-400 transition-colors">
+                    <div className="font-black text-foreground text-3xl uppercase tracking-tighter italic group-hover:text-primary transition-colors">
                       {app.title}
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-[0.3em]">
+                      <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em]">
                         {app.desc}
                       </span>
-                      <div className="h-[1px] flex-1 bg-white/5" />
+                      <div className="h-[1px] flex-1 bg-border/30" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
+
             </div>
           ))}
         </div>

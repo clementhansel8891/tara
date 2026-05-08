@@ -133,10 +133,10 @@ const StoreDashboard = () => {
 
   if (isLoading && !data) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-screen items-center justify-center surface-tactical">
         <div className="flex flex-col items-center gap-8 relative z-10">
-          <RefreshCw className="w-16 h-16 text-indigo-600 animate-spin" />
-          <p className="text-[11px] font-black italic uppercase tracking-[0.4em] text-white">
+          <RefreshCw className="w-16 h-16 text-primary animate-spin" />
+          <p className="text-[11px] font-black italic uppercase tracking-[0.4em] text-foreground">
             Calibrating Command Protocols...
           </p>
         </div>
@@ -146,46 +146,46 @@ const StoreDashboard = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
+    <div className="flex flex-col min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground relative overflow-hidden">
 
       {/* Atmospheric Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-500/5 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-destructive/5 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] bg-info/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Glassmorphic Command Header */}
-      <div className="px-10 py-6 bg-slate-950/50 backdrop-blur-3xl border-b border-white/5 flex items-center justify-between sticky top-0 z-50 shadow-2xl">
+      <div className="px-10 py-6 glass-header flex items-center justify-between sticky top-0 z-50 shadow-2xl">
         <div className="flex items-center gap-8">
-          <div className="w-14 h-14 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center text-white shadow-2xl group hover:rotate-3 transition-all duration-500">
+          <div className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center text-foreground shadow-2xl group hover:rotate-3 transition-all duration-500">
             <LayoutDashboard className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-white">
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-foreground">
               Operational Command Center
             </h1>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-1">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-1">
                Node: {scopedLocationId || "GLOBAL_ROOT"} • Security: {permissions.length} Grants • {rawRole}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-6 relative z-10">
-          <div className="p-2 bg-white/5 rounded-[1.5rem] flex items-center gap-4 border border-white/10 backdrop-blur-3xl">
+          <div className="p-2 bg-muted/20 rounded-[1.5rem] flex items-center gap-4 border border-border backdrop-blur-3xl">
             <LocationSwitcher
               currentLocationId={scopedLocationId}
               onLocationChange={(id) => setStore(id || null)}
             />
-            <div className="h-8 w-[1px] bg-white/10" />
+            <div className="h-8 w-[1px] bg-border" />
             <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
           </div>
 
           <Button
             variant="ghost"
-            className="w-12 h-12 rounded-2xl p-0 border border-white/5 bg-white/5 text-white hover:bg-white/10 transition-all"
+            className="w-12 h-12 rounded-2xl p-0 border border-border bg-card text-foreground hover:bg-muted transition-all"
             onClick={fetchAnalytics}
           >
             <RefreshCw
-              className={`w-5 h-5 ${isLoading ? "animate-spin text-indigo-400" : "text-slate-400"}`}
+              className={`w-5 h-5 ${isLoading ? "animate-spin text-primary" : "text-muted-foreground"}`}
             />
           </Button>
         </div>
@@ -201,14 +201,14 @@ const StoreDashboard = () => {
           <div className="space-y-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-2 h-8 bg-indigo-600 rounded-full shadow-lg shadow-indigo-600/50" />
-                <h2 className="text-lg font-black italic uppercase tracking-tighter text-white">
+                <div className="w-2 h-8 bg-primary rounded-full shadow-lg shadow-primary/50" />
+                <h2 className="text-lg font-black italic uppercase tracking-tighter text-foreground">
                   Core Performance Matrix
                 </h2>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
-                 <Zap className="w-4 h-4 text-indigo-400" />
-                 <span className="text-[10px] font-black italic uppercase text-indigo-400 tracking-widest">Live Telemetry Synchronized</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-xl">
+                 <Zap className="w-4 h-4 text-primary" />
+                 <span className="text-[10px] font-black italic uppercase text-primary tracking-widest">Live Telemetry Synchronized</span>
               </div>
             </div>
 
