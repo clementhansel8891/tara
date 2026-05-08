@@ -1167,26 +1167,37 @@ export class InventoryService {
     };
 
     for (const file of files) {
-      // 1. Extract SKU from filename (remove extension)
-      const skuMatch = file.originalname.match(/^(.+?)\.[^.]+$/);
-      if (!skuMatch) {
-        results.failed.push(`${file.originalname} (Invalid filename)`);
-        continue;
-      }
-      const sku = skuMatch[1];
-
-      // 2. Find item by SKU
-      const item = await this.prisma.item_masters.findFirst({
+      // 1. Extract potential SKU from filename
+      const filenameWithoutExt = path.parse(file.originalname).name;
+      
+      // Try strict match first
+      let sku = filenameWithoutExt;
+      let item = await this.prisma.item_masters.findFirst({
         where: {
           tenant_id: ctx.tenant_id,
           sku: sku,
         },
       });
 
+      // Fallback: If not found, try taking the first segment before an underscore or space
+      if (!item) {
+        const segments = filenameWithoutExt.split(/[_ ]/);
+        if (segments.length > 1) {
+          sku = segments[0];
+          item = await this.prisma.item_masters.findFirst({
+            where: {
+              tenant_id: ctx.tenant_id,
+              sku: sku,
+            },
+          });
+        }
+      }
+
       if (!item) {
         results.failed.push(`${file.originalname} (SKU not found)`);
         continue;
       }
+
 
       // 3. Rename: SKU_TIMESTAMP.ext
       const ext = path.extname(file.originalname);
