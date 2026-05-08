@@ -595,7 +595,7 @@ export class InventoryController {
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async reserveStock(
     @Req() request: RequestWithTenant,
-    @Body() dto: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    @Body() dto: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
@@ -607,7 +607,7 @@ export class InventoryController {
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async releaseStock(
     @Req() request: RequestWithTenant,
-    @Body() dto: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    @Body() dto: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
@@ -619,7 +619,7 @@ export class InventoryController {
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async confirmReservation(
     @Req() request: RequestWithTenant,
-    @Body() dto: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    @Body() dto: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     @Query("correlation_id") correlation_id?: string,
   ) {
     const { tenant_id: tenant_id, user_id } = request.tenantContext;
@@ -862,7 +862,7 @@ export class InventoryController {
       action: "CREATE_ADJUSTMENT",
       entity_type: "ADJUSTMENT",
       entity_id: (data as any).id || "new",
-      metadata: { delta: dto.requestedDelta, reason: dto.reason },
+      metadata: { delta: dto.requested_delta, reason: dto.reason },
     });
     return { success: true, tenant_id, message: "Adjustment request submitted", data };
   }

@@ -28,14 +28,14 @@ export class StockMovementDbRepository implements IStockMovementRepository {
             tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
-            department_id: data.departmentId || (undefined as unknown as string),
+            department_id: data.department_id || (undefined as unknown as string),
           },
         },
         create: {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
           location_id: data.location_id,
-          department_id: data.departmentId || null,
+          department_id: data.department_id || null,
           product_id: data.item_id,
           on_hand: data.quantity,
           available: data.quantity,
@@ -56,12 +56,12 @@ export class StockMovementDbRepository implements IStockMovementRepository {
           product_id: data.item_id,
           location_id: data.location_id,
           to_location_id: data.location_id,
-          to_department_id: data.departmentId || null,
+          to_department_id: data.department_id || null,
           quantity: data.quantity,
           type: "INTAKE",
-          reference_id: data.referenceId || `INTAKE-${Date.now()}`,
-          reference_type: data.referenceType || 'MANUAL',
-          performed_by: data.createdBy || "system",
+          reference_id: data.reference_id || `INTAKE-${Date.now()}`,
+          reference_type: data.reference_type || 'MANUAL',
+          performed_by: data.created_by || "system",
         },
       });
     };
@@ -76,9 +76,9 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         where: {
           tenant_id_location_id_product_id_department_id: {
             tenant_id: ctx.tenant_id,
-            location_id: data.fromLocationId,
+            location_id: data.from_location_id,
             product_id: data.item_id,
-            department_id: data.fromDepartmentId || (undefined as unknown as string),
+            department_id: data.from_department_id || (undefined as unknown as string),
           },
         },
         data: {
@@ -93,16 +93,16 @@ export class StockMovementDbRepository implements IStockMovementRepository {
         where: {
           tenant_id_location_id_product_id_department_id: {
             tenant_id: ctx.tenant_id,
-            location_id: data.toLocationId,
+            location_id: data.to_location_id,
             product_id: data.item_id,
-            department_id: data.toDepartmentId || (undefined as unknown as string),
+            department_id: data.to_department_id || (undefined as unknown as string),
           },
         },
         create: {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
-          location_id: data.toLocationId,
-          department_id: data.toDepartmentId || null,
+          location_id: data.to_location_id,
+          department_id: data.to_department_id || null,
           product_id: data.item_id,
           on_hand: data.quantity,
           available: data.quantity,
@@ -121,16 +121,16 @@ export class StockMovementDbRepository implements IStockMovementRepository {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
-          location_id: data.fromLocationId,
-          from_location_id: data.fromLocationId,
-          from_department_id: data.fromDepartmentId || null,
-          to_location_id: data.toLocationId,
-          to_department_id: data.toDepartmentId || null,
+          location_id: data.from_location_id,
+          from_location_id: data.from_location_id,
+          from_department_id: data.from_department_id || null,
+          to_location_id: data.to_location_id,
+          to_department_id: data.to_department_id || null,
           quantity: -data.quantity,
           type: "TRANSFER_OUT",
-          reference_id: data.referenceId || `TR-${Date.now()}`,
-          reference_type: data.referenceType || 'INTERNAL',
-          performed_by: data.createdBy || "system",
+          reference_id: data.reference_id || `TR-${Date.now()}`,
+          reference_type: data.reference_type || 'INTERNAL',
+          performed_by: data.created_by || "system",
         },
       });
 
@@ -139,16 +139,16 @@ export class StockMovementDbRepository implements IStockMovementRepository {
           id: uuidv4(),
           ...MultiTenancyUtil.getScope(ctx),
           product_id: data.item_id,
-          location_id: data.toLocationId,
-          from_location_id: data.fromLocationId,
-          from_department_id: data.fromDepartmentId || null,
-          to_location_id: data.toLocationId,
-          to_department_id: data.toDepartmentId || null,
+          location_id: data.to_location_id,
+          from_location_id: data.from_location_id,
+          from_department_id: data.from_department_id || null,
+          to_location_id: data.to_location_id,
+          to_department_id: data.to_department_id || null,
           quantity: data.quantity,
           type: "TRANSFER_IN",
-          reference_id: data.referenceId || `TR-${Date.now()}`,
-          reference_type: data.referenceType || 'INTERNAL',
-          performed_by: data.createdBy || "system",
+          reference_id: data.reference_id || `TR-${Date.now()}`,
+          reference_type: data.reference_type || 'INTERNAL',
+          performed_by: data.created_by || "system",
         },
       });
 
@@ -185,9 +185,9 @@ export class StockMovementDbRepository implements IStockMovementRepository {
           from_location_id: data.location_id,
           quantity: -data.quantity,
           type: "OUT",
-          reference_id: data.referenceId || `CONSUME-${Date.now()}`,
-          reference_type: data.referenceType || 'MANUAL',
-          performed_by: data.performedBy || "system",
+          reference_id: data.reference_id || `CONSUME-${Date.now()}`,
+          reference_type: data.reference_type || 'MANUAL',
+          performed_by: data.performed_by || "system",
         },
       });
     };
@@ -221,8 +221,8 @@ export class StockMovementDbRepository implements IStockMovementRepository {
                 product_id: data.product_id,
                 location_id: data.location_id,
                 quantity: data.quantity,
-                reference_id: data.referenceId,
-                reference_type: data.referenceType,
+                reference_id: data.reference_id,
+                reference_type: data.reference_type,
                 status: 'ACTIVE',
             }
         });
@@ -251,7 +251,7 @@ export class StockMovementDbRepository implements IStockMovementRepository {
 
         // Soft delete or update reservation
         await tx.stock_reservations.updateMany({
-            where: { reference_id: data.referenceId, ...MultiTenancyUtil.getScope(ctx) },
+            where: { reference_id: data.reference_id, ...MultiTenancyUtil.getScope(ctx) },
             data: { status: 'RELEASED' }
         });
     };

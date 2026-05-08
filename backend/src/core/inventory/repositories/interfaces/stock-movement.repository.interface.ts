@@ -7,8 +7,8 @@ export interface StockReservation {
   product_id: string;
   location_id: string;
   quantity: number;
-  referenceId: string;
-  referenceType: string;
+  reference_id: string;
+  reference_type: string;
 }
 
 export interface IStockMovementRepository {

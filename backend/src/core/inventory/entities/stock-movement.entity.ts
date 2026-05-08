@@ -2,7 +2,7 @@ export class StockMovement {
   id: string;
   tenant_id: string;
   item_id: string;
-  movementType:
+  movement_type:
     | "intake"
     | "deduction"
     | "transfer_out"
@@ -10,14 +10,14 @@ export class StockMovement {
     | "adjustment_plus"
     | "adjustment_minus";
   quantity: number;
-  unitCost: number;
+  unit_cost: number;
   reason: string;
-  sourceLocationId?: string;
-  sourceDepartmentId?: string;
-  destinationLocationId?: string;
-  destinationDepartmentId?: string;
-  referenceType?: string;
-  referenceId?: string;
-  createdBy: string;
+  source_location_id?: string;
+  source_department_id?: string;
+  destination_location_id?: string;
+  destination_department_id?: string;
+  reference_type?: string;
+  reference_id?: string;
+  created_by: string;
   created_at: Date;
 }

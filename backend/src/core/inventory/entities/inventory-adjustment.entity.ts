@@ -3,13 +3,13 @@ export interface InventoryAdjustment {
   tenant_id: string;
   item_id: string;
   location_id: string;
-  departmentId?: string;
-  requestedDelta: number;
+  department_id?: string;
+  requested_delta: number;
   reason: string;
   status: "pending" | "approved" | "rejected";
   requested_by: string;
-  approvedBy?: string;
-  approvedAt?: Date;
+  approved_by?: string;
+  approved_at?: Date;
   created_at: Date;
   updated_at: Date;
 }

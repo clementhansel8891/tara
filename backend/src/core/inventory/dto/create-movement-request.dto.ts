@@ -10,10 +10,10 @@ export class CreateMovementRequestDto {
   product_id: string;
 
   @IsString()
-  fromLocationId: string;
+  from_location_id: string;
 
   @IsString()
-  toLocationId: string;
+  to_location_id: string;
 
   @IsNumber()
   @Min(1)

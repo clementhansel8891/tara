@@ -1353,9 +1353,9 @@ export class RetailService {
             item_id: item.product_id,
             location_id: (order as any).location_id || "default",
             quantity: Number(item.quantity),
-            referenceId: order_id,
-            referenceType: "POS_SALE",
-            performedBy: user_id,
+            reference_id: order_id,
+            reference_type: "POS_SALE",
+            performed_by: user_id,
           },
           user_id,
           tx,
@@ -1512,11 +1512,11 @@ export class RetailService {
                 item_id: item.product_id,
                 location_id: location_id,
                 quantity: q.toNumber(),
-                unitCost: unitCost.toNumber(),
+                unit_cost: unitCost.toNumber(),
                 reason: `RETURN: ${conditionData.condition}`,
-                referenceType: 'RETAIL_ORDER',
-                referenceId: order_id,
-                createdBy: user_id
+                reference_type: 'RETAIL_ORDER',
+                reference_id: order_id,
+                created_by: user_id
             }, user_id, tx);
 
             // 5. Emit Enhanced Condition Events

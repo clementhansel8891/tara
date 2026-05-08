@@ -73,16 +73,36 @@ export class InventoryMockRepository extends IInventoryRepository {
     };
   }
 
-  async getItems(ctx: TenantContext, location_id?: string): Promise<InventoryItem[]> {
-    const items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
+  async getItems(ctx: TenantContext, location_id?: string, page?: number, limit?: number, search?: string): Promise<InventoryItem[]> {
+    let items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
     if (location_id) {
-      // For mock: filter items that have a balance entry at the given location
       const productIds = this.balances
         .filter((b) => b.location_id === location_id)
         .map((b) => b.product_id);
-      return items.filter((i) => productIds.includes(i.id));
+      items = items.filter((i) => productIds.includes(i.id));
+    }
+    if (search) {
+      items = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase()));
+    }
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      return items.slice(skip, skip + limit);
     }
     return items;
+  }
+
+  async countItems(ctx: TenantContext, location_id?: string, search?: string): Promise<number> {
+    let items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
+    if (location_id) {
+      const productIds = this.balances
+        .filter((b) => b.location_id === location_id)
+        .map((b) => b.product_id);
+      items = items.filter((i) => productIds.includes(i.id));
+    }
+    if (search) {
+      items = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) || i.sku.toLowerCase().includes(search.toLowerCase()));
+    }
+    return items.length;
   }
 
   async createItem(ctx: TenantContext, data: CreateItemDto): Promise<InventoryItem> {
@@ -91,8 +111,30 @@ export class InventoryMockRepository extends IInventoryRepository {
     return item as any;
   }
 
-  async getBalances(ctx: TenantContext): Promise<StockBalance[]> {
-    return this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
+  async getBalances(ctx: TenantContext, location_id?: string, department_id?: string, page?: number, limit?: number, search?: string): Promise<StockBalance[]> {
+    let balances = this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
+    if (location_id) {
+      balances = balances.filter((b) => b.location_id === location_id);
+    }
+    if (department_id) {
+      balances = balances.filter((b) => b.department_id === department_id);
+    }
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      return balances.slice(skip, skip + limit);
+    }
+    return balances;
+  }
+
+  async countBalances(ctx: TenantContext, location_id?: string, department_id?: string, search?: string): Promise<number> {
+    let balances = this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
+    if (location_id) {
+      balances = balances.filter((b) => b.location_id === location_id);
+    }
+    if (department_id) {
+      balances = balances.filter((b) => b.department_id === department_id);
+    }
+    return balances.length;
   }
 
   async getMovements(ctx: TenantContext): Promise<StockMovement[]> {
@@ -181,8 +223,8 @@ export class InventoryMockRepository extends IInventoryRepository {
       id: "mov-" + Math.random(),
       tenant_id: ctx.tenant_id,
       product_id: data.product_id,
-      fromLocationId: data.fromLocationId,
-      toLocationId: data.toLocationId,
+      from_location_id: data.from_location_id,
+      to_location_id: data.to_location_id,
       quantity: data.quantity,
       priority: (data.priority as any) || "MEDIUM",
       status: "PENDING",
@@ -199,15 +241,13 @@ export class InventoryMockRepository extends IInventoryRepository {
   async getPendingItems(ctx: TenantContext): Promise<InventoryItem[]> { return []; }
   async findHighestSkuByCategory(ctx: TenantContext, category: string): Promise<string | null> { return null; }
 
-  async reserveStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async releaseStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async consumeFromReservation(ctx: TenantContext, product_id: string, location_id: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<void> { return; }
-  async transferOut(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
-  async transferIn(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, referenceId: string, referenceType: string, tx?: any): Promise<StockMovement> { return {} as any; }
+  async reserveStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, reference_id: string, reference_type: string, tx?: any): Promise<void> { return; }
+  async releaseStock(ctx: TenantContext, product_id: string, location_id: string, quantity: number, reference_id: string, reference_type: string, tx?: any): Promise<void> { return; }
+  async consumeFromReservation(ctx: TenantContext, product_id: string, location_id: string, quantity: number, reference_id: string, reference_type: string, tx?: any): Promise<void> { return; }
+  async transferOut(ctx: TenantContext, product_id: string, from_location_id: string, to_location_id: string, quantity: number, reference_id: string, reference_type: string, tx?: any): Promise<StockMovement> { return {} as any; }
+  async transferIn(ctx: TenantContext, product_id: string, from_location_id: string, to_location_id: string, quantity: number, reference_id: string, reference_type: string, tx?: any): Promise<StockMovement> { return {} as any; }
   async takeSnapshot(ctx: TenantContext, location_id?: string): Promise<void> { return; }
 
-  async updateStockReserved(ctx: TenantContext, product_id: string, location_id: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
-  async updateStockInTransit(ctx: TenantContext, product_id: string, fromLocationId: string, toLocationId: string, quantity: number, type: 'increment' | 'decrement', tx?: any): Promise<void> { return; }
   async findProductByCode(ctx: TenantContext, code: string): Promise<any | null> { return null; }
 
   async lookupByBarcode(ctx: TenantContext, barcode: string): Promise<any | null> {

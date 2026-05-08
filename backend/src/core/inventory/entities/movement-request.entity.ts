@@ -2,8 +2,8 @@ export class MovementRequest {
   id: string;
   tenant_id: string;
   product_id: string;
-  fromLocationId: string;
-  toLocationId: string;
+  from_location_id: string;
+  to_location_id: string;
   quantity: number;
   priority: "LOW" | "MEDIUM" | "HIGH";
   status: "PENDING" | "APPROVED" | "REJECTED" | "FULFILLED";

@@ -43,7 +43,18 @@ export type InventoryDashboard = {
 
 export abstract class IInventoryRepository {
   abstract getDashboard(ctx: TenantContext): Promise<InventoryDashboard>;
-  abstract getItems(ctx: TenantContext, location_id?: string): Promise<InventoryItem[]>;
+  abstract getItems(
+    ctx: TenantContext,
+    location_id?: string,
+    page?: number,
+    limit?: number,
+    search?: string,
+  ): Promise<InventoryItem[]>;
+  abstract countItems(
+    ctx: TenantContext,
+    location_id?: string,
+    search?: string,
+  ): Promise<number>;
   abstract createItem(
     ctx: TenantContext,
     data: CreateItemDto,
@@ -51,8 +62,17 @@ export abstract class IInventoryRepository {
   abstract getBalances(
     ctx: TenantContext,
     location_id?: string,
-    departmentId?: string,
+    department_id?: string,
+    page?: number,
+    limit?: number,
+    search?: string,
   ): Promise<StockBalance[]>;
+  abstract countBalances(
+    ctx: TenantContext,
+    location_id?: string,
+    department_id?: string,
+    search?: string,
+  ): Promise<number>;
   abstract getMovements(
     ctx: TenantContext,
     item_id?: string,
@@ -134,8 +154,8 @@ export abstract class IInventoryRepository {
     product_id: string,
     location_id: string,
     quantity: number,
-    referenceId: string,
-    referenceType: string,
+    reference_id: string,
+    reference_type: string,
     tx?: any
   ): Promise<void>;
 
@@ -144,8 +164,8 @@ export abstract class IInventoryRepository {
     product_id: string,
     location_id: string,
     quantity: number,
-    referenceId: string,
-    referenceType: string,
+    reference_id: string,
+    reference_type: string,
     tx?: any
   ): Promise<void>;
 
@@ -154,32 +174,32 @@ export abstract class IInventoryRepository {
     product_id: string,
     location_id: string,
     quantity: number,
-    referenceId: string,
-    referenceType: string,
+    reference_id: string,
+    reference_type: string,
     tx?: any
   ): Promise<void>;
 
   abstract transferOut(
     ctx: TenantContext,
     product_id: string,
-    fromLocationId: string,
-    toLocationId: string,
+    from_location_id: string,
+    to_location_id: string,
     quantity: number,
-    referenceId: string,
-    referenceType: string,
-    transferGroupId?: string,
+    reference_id: string,
+    reference_type: string,
+    transfer_group_id?: string,
     tx?: any
   ): Promise<StockMovement>;
 
   abstract transferIn(
     ctx: TenantContext,
     product_id: string,
-    fromLocationId: string,
-    toLocationId: string,
+    from_location_id: string,
+    to_location_id: string,
     quantity: number,
-    referenceId: string,
-    referenceType: string,
-    transferGroupId?: string,
+    reference_id: string,
+    reference_type: string,
+    transfer_group_id?: string,
     tx?: any
   ): Promise<StockMovement>;
 
@@ -226,4 +246,3 @@ export abstract class IInventoryRepository {
   abstract deleteProductCategory(ctx: TenantContext, id: string): Promise<void>;
   abstract updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string): Promise<any>;
 }
-

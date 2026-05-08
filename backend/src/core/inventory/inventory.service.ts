@@ -115,8 +115,8 @@ export class InventoryService {
         location_id: data.location_id,
         quantity: data.quantity,
         type: 'intake',
-        referenceId: data.referenceId || result.referenceId,
-        referenceType: (data as any).referenceType || 'MANUAL',
+        referenceId: data.reference_id || result.reference_id,
+        referenceType: (data as any).reference_type || 'MANUAL',
         timestamp: new Date().toISOString(),
       },
       user_id,
@@ -159,8 +159,8 @@ export class InventoryService {
           location_id: data.location_id,
           quantity: -data.quantity,
           type: 'deduction',
-          referenceId: data.referenceId || result.referenceId,
-          referenceType: data.referenceType || 'CONSUMPTION',
+          referenceId: data.reference_id || result.reference_id,
+          referenceType: data.reference_type || 'CONSUMPTION',
           timestamp: new Date().toISOString(),
         },
         user_id,
@@ -188,7 +188,7 @@ export class InventoryService {
   // --- Financial-Grade Reservation Lifecycle ---
 
   async reserveStock(ctx: TenantContext,
-    data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    data: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     user_id: string,
     correlation_id?: string
   ) {
@@ -197,8 +197,8 @@ export class InventoryService {
         data.product_id, 
         data.location_id, 
         data.quantity, 
-        data.referenceId, 
-        data.referenceType
+        data.reference_id, 
+        data.reference_type
     );
     
     await this.eventBus.publish({
@@ -217,7 +217,7 @@ export class InventoryService {
   }
 
   async releaseStock(ctx: TenantContext,
-    data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    data: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     user_id: string,
     correlation_id?: string
   ) {
@@ -226,8 +226,8 @@ export class InventoryService {
         data.product_id, 
         data.location_id, 
         data.quantity, 
-        data.referenceId, 
-        data.referenceType
+        data.reference_id, 
+        data.reference_type
     );
     
     await this.eventBus.publish({
@@ -246,7 +246,7 @@ export class InventoryService {
   }
 
   async confirmReservation(ctx: TenantContext,
-    data: { product_id: string; location_id: string; quantity: number; referenceId: string; referenceType: string },
+    data: { product_id: string; location_id: string; quantity: number; reference_id: string; reference_type: string },
     user_id: string,
     correlation_id?: string
   ) {
@@ -255,25 +255,25 @@ export class InventoryService {
         data.product_id, 
         data.location_id, 
         data.quantity, 
-        data.referenceId, 
-        data.referenceType
+        data.reference_id, 
+        data.reference_type
     );
 
     await this.eventBus.publish({
         event_type: 'STOCK_MOVEMENT_CREATED',
         tenant_id: ctx.tenant_id,
-        entity_id: data.referenceId,
+        entity_id: data.reference_id,
         entity_type: 'STOCK_MOVEMENT',
         source_module: 'inventory',
         payload: {
-            movementId: data.referenceId,
+            movementId: data.reference_id,
             tenant_id: ctx.tenant_id,
             product_id: data.product_id,
             location_id: data.location_id,
             quantity: -data.quantity,
             type: 'deduction',
-            referenceId: data.referenceId,
-            referenceType: data.referenceType,
+            referenceId: data.reference_id,
+            referenceType: data.reference_type,
             status: 'CONSUMED_RESERVATION',
             timestamp: new Date().toISOString(),
         },
@@ -665,7 +665,7 @@ export class InventoryService {
                 movementId: move.id,
                 tenant_id: ctx.tenant_id,
                 product_id: data.item_id,
-                location_id: move.movementType === 'transfer_out' ? data.fromLocationId : data.toLocationId,
+                location_id: move.movementType === 'transfer_out' ? data.from_location_id : data.to_location_id,
                 quantity: move.movementType === 'transfer_out' ? -data.quantity : data.quantity,
                 type: move.movementType === 'transfer_out' ? 'transfer_out' : 'transfer_in',
                 referenceId: move.referenceId,
@@ -687,8 +687,8 @@ export class InventoryService {
         entity_id: data.item_id,
         metadata: {
           quantity: data.quantity,
-          fromLocation: data.fromLocationId,
-          toLocation: data.toLocationId,
+          fromLocation: data.from_location_id,
+          toLocation: data.to_location_id,
         },
       });
     }
@@ -716,7 +716,7 @@ export class InventoryService {
         entity_id: (adjustment as any).id,
         metadata: {
           item_id: data.item_id,
-          delta: data.requestedDelta,
+          delta: data.requested_delta,
           reason: data.reason,
         },
       });
@@ -746,8 +746,8 @@ export class InventoryService {
         tenant_id: ctx.tenant_id,
         product_id: result.item_id,
         location_id: result.location_id,
-        quantity: result.requestedDelta,
-        type: result.requestedDelta > 0 ? 'adjustment_plus' : 'adjustment_minus',
+        quantity: result.requested_delta,
+        type: result.requested_delta > 0 ? 'adjustment_plus' : 'adjustment_minus',
         referenceId: `ADJ-${adjustmentId}`,
         referenceType: 'INVENTORY_ADJUSTMENT',
         timestamp: new Date().toISOString(),
