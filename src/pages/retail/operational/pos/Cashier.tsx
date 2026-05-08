@@ -29,19 +29,26 @@ import {
   Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockRetailProducts, productCategories, Product, formatCurrency } from '@/lib/mock-data';
+import { Product, formatCurrency } from '@/lib/mock-data';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
+import { retailService } from '@/core/services/retail/retailService';
+import { useSession } from '@/core/security/session';
+import { RetailProduct } from '@/core/types/retail/retail';
+import { Loader2 } from 'lucide-react';
 
 interface CartItem {
-  product: Product;
+  product: RetailProduct;
   quantity: number;
 }
 
-const retailCategories = ['All', ...productCategories];
+const retailCategories = ['All', 'Coffee', 'Merchandise', 'Gift Cards', 'Equipment'];
 
 export default function RetailCashier() {
+  const session = useSession();
   const { state, addToCart, removeFromCart, clearCart } = useApp();
+  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<RetailProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -55,20 +62,42 @@ export default function RetailCashier() {
   // Focus barcode input on mount
   useEffect(() => {
     barcodeRef.current?.focus();
-  }, []);
+    
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const data = await retailService.listInventory(session.tenant_id!, session, {
+          locationId: state.settings.defaultLocationId || undefined
+        });
+        setProducts(data);
+      } catch (e) {
+        toast({
+          title: "Error",
+          description: "Failed to load products from registry.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (session.tenant_id) {
+      fetchProducts();
+    }
+  }, [session.tenant_id, state.settings.defaultLocationId]);
 
   // Filter products
-  const filteredProducts = (Array.isArray(mockRetailProducts) ? mockRetailProducts : []).filter((product) => {
+  const filteredProducts = (Array.isArray(products) ? products : []).filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.barcode?.includes(searchTerm);
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'All' || product.categoryName === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   // Barcode scanning
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && barcodeInput) {
-      const product = mockRetailProducts.find((p) => p.barcode === barcodeInput);
+      const product = products.find((p) => p.barcode === barcodeInput);
       if (product) {
         addToCartLocal(product);
         toast({
@@ -87,7 +116,7 @@ export default function RetailCashier() {
   };
 
   // Cart management
-  const addToCartLocal = (product: Product) => {
+  const addToCartLocal = (product: RetailProduct) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
@@ -207,33 +236,40 @@ export default function RetailCashier() {
 
         {/* Product Grid */}
         <ScrollArea className="flex-1">
-          <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
-              <Card
-                key={product.id}
-                className={cn(
-                  'cursor-pointer transition-all hover:shadow-md hover:border-primary/50 active:scale-95',
-                  product.stock === 0 && 'opacity-50 pointer-events-none'
-                )}
-                onClick={() => addToCartLocal(product)}
-              >
-                <CardContent className="p-3">
-                  <div className="aspect-square bg-muted rounded-lg mb-2 flex items-center justify-center">
-                    <Package className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-medium text-sm truncate">{product.name}</h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="font-bold text-primary">{formatCurrency(product.price)}</p>
-                    {product.stock !== undefined && (
-                      <Badge variant={product.stock < 10 ? 'destructive' : 'secondary'} className="text-xs">
-                        {product.stock}
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <p>Loading catalog...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
+                <Card
+                  key={product.id}
+                  className={cn(
+                    'cursor-pointer transition-all hover:shadow-md hover:border-primary/50 active:scale-95',
+                    product.stock === 0 && 'opacity-50 pointer-events-none'
+                  )}
+                  onClick={() => addToCartLocal(product)}
+                >
+                  <CardContent className="p-3">
+                    <div className="aspect-square bg-muted rounded-lg mb-2 flex items-center justify-center">
+                      <Package className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-medium text-sm truncate">{product.name}</h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="font-bold text-primary">{formatCurrency(product.price)}</p>
+                      {product.stock !== undefined && (
+                        <Badge variant={product.stock < 10 ? 'destructive' : 'secondary'} className="text-xs">
+                          {product.stock}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </div>
 

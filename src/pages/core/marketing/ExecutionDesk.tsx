@@ -27,7 +27,7 @@ import {
   Terminal,
   ActivitySquare
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +75,7 @@ const CHANNELS: CampaignExecutionRun["channel"][] = [
 ];
 
 export default function ExecutionDesk() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [campaignId, setCampaignId] = useState("");
@@ -86,7 +87,6 @@ export default function ExecutionDesk() {
   const [refreshing, setRefreshing] = useState(false);
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
   const [executions, setExecutions] = useState<CampaignExecutionRun[]>([]);
-  const [expansionOpen, setExpansionOpen] = useState(false);
   const [runOpen, setRunOpen] = useState(false);
 
   const refresh = useCallback(async (isManual = false) => {
@@ -212,7 +212,7 @@ export default function ExecutionDesk() {
           </Button>
           <Button 
             className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95 text-white"
-            onClick={() => setExpansionOpen(true)}
+            onClick={() => navigate("/core/marketing/automation")}
           >
             <Play className="h-6 w-6 group-hover:scale-110 transition-transform" /> 
             RUN AUTOMATION
@@ -410,12 +410,6 @@ export default function ExecutionDesk() {
             </Card>
          </div>
       </div>
-
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName="Autonomous Automation Engine" 
-      />
 
       {/* Initialize Run Wizard */}
       <Dialog open={runOpen} onOpenChange={setRunOpen}>

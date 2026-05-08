@@ -4,7 +4,10 @@ import {
   Lock,
   ArrowRight,
   TrendingUp,
+  Globe,
+  Activity
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSession } from "@/core/security/session";
 import { Roles } from "@/core/security/roles";
 import { retailService } from "@/core/services/retail/retailService";
@@ -16,7 +19,6 @@ import type {
 } from "@/core/types/retail/retail";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 // New Premium Components
 import { CommandCenterHeader } from "./components/command/CommandCenterHeader";
@@ -31,6 +33,7 @@ import { RetailCustomerActivity } from "./RetailCustomerActivity";
 import { EcommerceAnalytics } from "./EcommerceAnalytics";
 
 export default function RetailManagement() {
+  const navigate = useNavigate();
   const session = useSession();
   const [orders, setOrders] = useState<RetailOrder[]>([]);
   const [stores, setStores] = useState<RetailStore[]>([]);
@@ -39,13 +42,20 @@ export default function RetailManagement() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("fleet");
 
-  // Strategic Expansion State
-  const [isExpansionOpen, setIsExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
-
   const triggerExpansion = (feature: string) => {
-    setExpansionFeature(feature);
-    setIsExpansionOpen(true);
+    if (feature.includes("Infrastructure") || feature.includes("Node")) {
+      navigate("/core/logistics");
+      return;
+    }
+    if (feature.includes("Resource") || feature.includes("Revenue")) {
+      navigate("/core/finance");
+      return;
+    }
+    if (feature.includes("Recommendation") || feature.includes("Intelligence")) {
+      navigate("/core/sales/intelligence");
+      return;
+    }
+    navigate(\"/core/operations\");
   };
 
   // RBAC: Only HOD, owner, superadmins and admins
@@ -123,11 +133,6 @@ export default function RetailManagement() {
 
   return (
     <div className="min-h-screen bg-slate-950 selection:bg-indigo-600 selection:text-white relative overflow-hidden">
-      <StrategicExpansionModal 
-        isOpen={isExpansionOpen}
-        onOpenChange={setIsExpansionOpen}
-        featureName={expansionFeature}
-      />
 
       {/* Background Atmosphere */}
       <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
@@ -251,13 +256,13 @@ export default function RetailManagement() {
           </div>
           <div className="flex items-center gap-12">
             <span 
-              onClick={() => triggerExpansion("Infrastructure Mapping Engine")}
+              onClick={() => navigate("/m/retail/management/infrastructure-map")}
               className="hover:text-indigo-400 cursor-pointer transition-colors border-b border-transparent hover:border-indigo-400"
             >
               Infrastructure Map
             </span>
             <span 
-              onClick={() => triggerExpansion("Global Access Auditing")}
+              onClick={() => navigate("/m/retail/management/infrastructure-map")}
               className="hover:text-rose-400 cursor-pointer transition-colors border-b border-transparent hover:border-rose-400"
             >
               Access Logs

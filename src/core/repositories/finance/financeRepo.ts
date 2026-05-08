@@ -416,14 +416,145 @@ export const financeRepo: FinanceRepository = {
      };
   },
 
-  // --- Placeholders (Not in Schema yet) ---
-  async listPaymentRequests() { return []; },
-  async createPaymentRequest(_t, p) { return p; },
-  async updatePaymentRequest(_t, _id, p) { return p as any; },
-  
-  async listAssetDepreciationEntries() { return []; },
-  async createAssetDepreciationEntry(_t, p) { return p; },
-  
-  async listAssetEvents() { return []; },
-  async createAssetEvent(_t, p) { return p; },
+  // --- Payment Requests ---
+  async listPaymentRequests(tenantId) {
+    const items = await prisma.payables.findMany({ 
+      where: { tenant_id: tenantId },
+      orderBy: { created_at: 'desc' },
+    });
+    return (Array.isArray(items) ? items : []).map(d => ({
+      id: d.id,
+      tenantId: d.tenant_id,
+      amount: d.amount.toNumber(),
+      currency: (d.currency as any) || 'IDR',
+      method: 'BANK_TRANSFER' as any,
+      destination: d.vendor_name || '',
+      purpose: `Payable to ${d.vendor_name}`,
+      status: (d.status as any) || 'draft',
+      workflowId: d.workflow_id || undefined,
+      createdAt: d.created_at.toISOString(),
+      updatedAt: d.updated_at.toISOString(),
+    }));
+  },
+  async createPaymentRequest(tenantId, p) {
+    const created = await prisma.payables.create({
+      data: {
+        tenant_id: tenantId,
+        amount: p.amount,
+        currency: p.currency,
+        vendor_name: p.destination,
+        status: p.status,
+        workflow_id: p.workflowId,
+        due_date: new Date(),
+      },
+    });
+    return {
+      ...p,
+      id: created.id,
+      createdAt: created.created_at.toISOString(),
+      updatedAt: created.updated_at.toISOString(),
+    };
+  },
+  async updatePaymentRequest(tenantId, id, patch) {
+    const updated = await prisma.payables.update({
+      where: { id },
+      data: {
+        ...(patch.amount !== undefined && { amount: patch.amount }),
+        ...(patch.status !== undefined && { status: patch.status }),
+        ...(patch.destination !== undefined && { vendor_name: patch.destination }),
+      },
+    });
+    return {
+      id: updated.id,
+      tenantId: updated.tenant_id,
+      amount: updated.amount.toNumber(),
+      currency: (updated.currency as any) || 'IDR',
+      method: 'BANK_TRANSFER' as any,
+      destination: updated.vendor_name || '',
+      purpose: `Payable to ${updated.vendor_name}`,
+      status: (updated.status as any) || 'draft',
+      workflowId: updated.workflow_id || undefined,
+      createdAt: updated.created_at.toISOString(),
+      updatedAt: updated.updated_at.toISOString(),
+    };
+  },
+
+  // --- Asset Depreciation Entries ---
+  async listAssetDepreciationEntries(tenantId) {
+    const items = await prisma.asset_depreciation_entries.findMany({
+      where: { tenant_id: tenantId },
+      orderBy: { created_at: 'desc' },
+    });
+    return (Array.isArray(items) ? items : []).map(d => ({
+      id: d.id,
+      tenantId: d.tenant_id,
+      assetId: d.asset_id,
+      postingDate: d.date.toISOString().split('T')[0],
+      method: 'STRAIGHT_LINE' as any, // stored via journal, default mapping
+      amount: d.depreciation_exp.toNumber(),
+      annualizedAmount: d.depreciation_exp.toNumber() * 12,
+      accumulatedDepreciation: d.accumulated_dep.toNumber(),
+      carryingValue: d.carrying_value.toNumber(),
+      approvedBy: undefined,
+      createdAt: d.created_at.toISOString(),
+    }));
+  },
+  async createAssetDepreciationEntry(tenantId, p) {
+    const created = await prisma.asset_depreciation_entries.create({
+      data: {
+        tenant_id: tenantId,
+        asset_id: p.assetId,
+        period: new Date(p.postingDate).toISOString().substring(0, 7),
+        date: new Date(p.postingDate),
+        depreciation_exp: p.amount,
+        accumulated_dep: p.accumulatedDepreciation,
+        carrying_value: p.carryingValue,
+        journal_ref: undefined,
+      },
+    });
+    return {
+      ...p,
+      id: created.id,
+      createdAt: created.created_at.toISOString(),
+    };
+  },
+
+  // --- Asset Events ---
+  async listAssetEvents(tenantId) {
+    const items = await prisma.asset_events.findMany({
+      where: { tenant_id: tenantId },
+      orderBy: { created_at: 'desc' },
+    });
+    return (Array.isArray(items) ? items : []).map(d => ({
+      type: d.type as any,
+      id: d.id,
+      tenantId: d.tenant_id,
+      assetId: d.asset_id,
+      // Discriminated union: use IMPAIRMENT as default shape
+      impairmentAmount: 0,
+      reason: d.description,
+      attachmentDocumentIds: [],
+      journalEntryId: '',
+      approvedBy: d.recorded_by,
+      createdAt: d.created_at.toISOString(),
+    })) as any[];
+  },
+  async createAssetEvent(tenantId, p) {
+    const payload = p as any;
+    const created = await prisma.asset_events.create({
+      data: {
+        tenant_id: tenantId,
+        asset_id: payload.assetId,
+        type: payload.type,
+        description: payload.reason || payload.description || '',
+        date: new Date(),
+        recorded_by: payload.approvedBy || 'system',
+      },
+    });
+    return {
+      ...p,
+      id: created.id,
+      createdAt: created.created_at.toISOString(),
+    } as any;
+  },
 };

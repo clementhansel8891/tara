@@ -18,7 +18,7 @@ import {
   ChevronRight,
   CheckCircle2
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import type {
 } from "@/core/types/sales/sales";
 
 export default function SalesDashboard() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,6 @@ export default function SalesDashboard() {
   const [metrics, setMetrics] = useState<SalesDashboardMetrics | null>(null);
   const [nextActions, setNextActions] = useState<SalesNextAction[]>([]);
   const [leads, setLeads] = useState<SalesLead[]>([]);
-  const [expansionOpen, setExpansionOpen] = useState(false);
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -289,7 +289,7 @@ export default function SalesDashboard() {
                   </div>
                   <Button 
                     className="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-black rounded-xl h-11 text-xs"
-                    onClick={() => setExpansionOpen(true)}
+                    onClick={() => navigate("/core/sales/intelligence")}
                   >
                     EXECUTE RECOMMENDATION
                   </Button>
@@ -353,12 +353,6 @@ export default function SalesDashboard() {
           </Card>
         </div>
       </div>
-
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName="Strategic Neural Execution" 
-      />
     </div>
   );
 }

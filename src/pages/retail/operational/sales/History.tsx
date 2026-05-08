@@ -32,6 +32,12 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate, formatTime } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
+import { retailService } from '@/core/services/retail/retailService';
+import { useSession } from '@/core/security/session';
+import { useApp } from '@/contexts/AppContext';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface Transaction {
   id: string;
@@ -136,19 +142,65 @@ const statusConfig = {
 };
 
 export default function RetailHistory() {
+  const session = useSession();
+  const { state } = useApp();
+  const [isLoading, setIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const data = await retailService.listOrders(session.tenant_id!, session, {
+        store_id: state.settings.defaultLocationId || undefined
+      });
+
+      const mapped: Transaction[] = (data || []).map(o => ({
+        id: o.id,
+        items: (o.items || []).map(i => ({
+          name: i.name || 'Unknown Product',
+          quantity: i.quantity,
+          price: i.unit_price,
+        })),
+        subtotal: o.grand_total / 1.1, // Approx
+        tax: o.grand_total * 0.1,
+        total: o.grand_total,
+        paymentMethod: (o.payment_method?.toLowerCase() === 'card' ? 'card' : o.payment_method?.toLowerCase() === 'qr' ? 'mobile' : 'cash') as any,
+        staffId: o.employee_id || 'Unknown',
+        staffName: (o as any).employee_name || 'Staff Member',
+        createdAt: o.created_at,
+        status: o.status === 'completed' ? 'completed' : o.status === 'voided' ? 'voided' : 'refunded',
+      }));
+
+      setTransactions(mapped);
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch order history.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session.tenant_id) {
+      fetchOrders();
+    }
+  }, [session.tenant_id, state.settings.defaultLocationId]);
+
   // Calculate stats
-  const todayTotal = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => t.status === 'completed')
+  const todayTotal = (Array.isArray(transactions) ? transactions : []).filter((t) => t.status === 'completed')
     .reduce((sum, t) => sum + t.total, 0);
-  const transactionCount = mockTransactions.length;
-  const refundCount = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => t.status === 'refunded').length;
+  const transactionCount = transactions.length;
+  const refundCount = (Array.isArray(transactions) ? transactions : []).filter((t) => t.status === 'refunded').length;
 
   // Filter transactions
-  const filteredTransactions = (Array.isArray(mockTransactions) ? mockTransactions : []).filter((t) => {
+  const filteredTransactions = (Array.isArray(transactions) ? transactions : []).filter((t) => {
     const matchesSearch = t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.items.some((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
@@ -243,7 +295,13 @@ export default function RetailHistory() {
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-22rem)]">
-            <div className="divide-y">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                <p>Retrieving transaction logs...</p>
+              </div>
+            ) : (
+              <div className="divide-y">
               {(Array.isArray(filteredTransactions) ? filteredTransactions : []).map((transaction) => {
                 const PaymentIcon = paymentIcons[transaction.paymentMethod];
                 const status = statusConfig[transaction.status];
@@ -291,7 +349,8 @@ export default function RetailHistory() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </ScrollArea>
         </CardContent>
       </Card>

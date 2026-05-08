@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import type { ContractRecord, Requisition, SupplierMaster } from "@/core/types/p
 import { FileText, ShieldCheck, Signature, ClipboardList, Info, Building2, User } from "lucide-react";
 
 export default function ContractDesk() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -301,8 +303,11 @@ export default function ContractDesk() {
                     onChange={(e) => setNotes(e.target.value)}
                   />
                   <div className="flex gap-4 pt-2">
-                    <div className="flex-1 p-2 rounded border border-dashed text-center text-[10px] text-muted-foreground hover:bg-muted/50 cursor-pointer transition-all">
-                      + Attachments (Coming Soon)
+                    <div 
+                      onClick={() => navigate("/core/finance/docs")}
+                      className="flex-1 p-2 rounded border border-dashed text-center text-[10px] text-muted-foreground hover:bg-muted/50 cursor-pointer transition-all"
+                    >
+                      + Access Document Vault
                     </div>
                   </div>
                 </div>

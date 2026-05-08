@@ -23,7 +23,7 @@ import {
   Layers,
   Rocket
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +71,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function PipelineBoard() {
+  const navigate = useNavigate();
   const session = useSession();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -84,8 +85,6 @@ export default function PipelineBoard() {
       CLOSED_WON: [],
       CLOSED_LOST: [],
   });
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -176,10 +175,7 @@ export default function PipelineBoard() {
           </Button>
           <Button 
             className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95 text-white"
-            onClick={() => {
-              setExpansionFeature("Pipeline Intelligence Refinement");
-              setExpansionOpen(true);
-            }}
+            onClick={() => navigate("/core/sales/intelligence")}
           >
             <Filter className="h-6 w-6 group-hover:rotate-180 transition-transform duration-500" /> 
             REFINE BOARD
@@ -240,10 +236,7 @@ export default function PipelineBoard() {
                                        <DropdownMenuSeparator />
                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl text-xs font-bold" onClick={() => window.open(`/sales/opportunities?id=${item.id}`, '_blank')}><ChevronRight className="h-4 w-4" /> View Strategic Context</DropdownMenuItem>
                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl text-xs font-bold" 
-                                          onClick={() => {
-                                            setExpansionFeature("AI Next Best Action");
-                                            setExpansionOpen(true);
-                                          }}
+                                          onClick={() => navigate("/core/sales/intelligence")}
                                        >
                                           <Zap className="h-4 w-4 text-indigo-600" /> AI Strategic Guidance
                                        </DropdownMenuItem>
@@ -346,11 +339,6 @@ export default function PipelineBoard() {
          </Card>
       </div>
 
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </div>
   );
 }

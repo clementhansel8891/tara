@@ -8,26 +8,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { FeedbackAlert } from "@/core/tools/FeedbackAlert";
 import { useState, useCallback } from "react";
 import { useSession } from "@/core/security/session";
 import { retailService } from "@/core/services/retail/retailService";
 import { useToast } from "@/hooks/use-toast";
 
 export default function RetailInventory() {
+  const navigate = useNavigate();
   const session = useSession();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState<{ message: string | null; error: string | null }>({
-    message: null,
-    error: null,
-  });
-
-  const clearFeedback = () => setFeedback({ message: null, error: null });
-  const showComingSoon = () => setFeedback({ message: "This feature is coming soon in the next update.", error: null });
 
   const handleAdjust = useCallback(async (action: string) => {
     if (!session.tenant_id) return;
@@ -51,11 +45,6 @@ export default function RetailInventory() {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto p-4 md:p-6">
-      <FeedbackAlert 
-        message={feedback.message} 
-        error={feedback.error} 
-        onClear={clearFeedback} 
-      />
       <PageHeader 
         title="Inventory Operations" 
         subtitle="Operational Stock Management & Receiving"
@@ -135,7 +124,7 @@ export default function RetailInventory() {
                   <CardContent>
                     <div className="flex items-center justify-between">
                       <Badge variant="outline">Schedule: Feb 28</Badge>
-                      <Button onClick={(e) => { e.preventDefault(); showComingSoon(); }} size="sm" variant="ghost">View Details</Button>
+                       <Button onClick={() => navigate("/core/inventory/stock")} size="sm" variant="ghost">View Details</Button>
                     </div>
                   </CardContent>
                </Card>
@@ -173,7 +162,7 @@ export default function RetailInventory() {
               <p className="text-xs opacity-80 leading-relaxed">
                 Use the operational scanner to intake local courier shipments not tracked via Enterprise Logistics.
               </p>
-              <Button onClick={(e) => { e.preventDefault(); showComingSoon(); }} variant="secondary" className="w-full text-blue-700">Open Scanner</Button>
+               <Button onClick={() => navigate("/core/inventory/stock")} variant="secondary" className="w-full text-blue-700">Open Scanner</Button>
             </CardContent>
           </Card>
         </div>

@@ -9,7 +9,9 @@ import {
   ArrowUpRight,
   Zap,
   RefreshCw,
+  LayoutDashboard
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/core/security/session";
 import { retailService } from "@/core/services/retail/retailService";
@@ -42,6 +44,7 @@ export const AIInsightEngine = ({
 }: {
   onExpansionRequest?: (feature: string) => void;
 }) => {
+  const navigate = useNavigate();
   const session = useSession();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -166,7 +169,7 @@ export const AIInsightEngine = ({
                 </div>
               </div>
               <button 
-                onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
+                onClick={() => navigate("/m/retail/management/nexus-command")}
                 className="h-14 px-10 rounded-[1.25rem] bg-white text-rose-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95"
               >
                 Deploy Assets
@@ -191,7 +194,7 @@ export const AIInsightEngine = ({
                 </div>
               </div>
               <button 
-                onClick={() => onExpansionRequest?.("Strategic Resource Deployment Engine")}
+                onClick={() => navigate("/m/retail/management/nexus-command")}
                 className="h-14 px-10 rounded-[1.25rem] bg-white text-indigo-600 font-black italic text-[11px] uppercase tracking-[0.2em] hover:bg-slate-50 transition-all shadow-xl active:scale-95"
               >
                 Nexus Control

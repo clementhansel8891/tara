@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Zap,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableShell } from "@/core/tools/DataTableShell";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,6 @@ import { useSession } from "@/core/security/session";
 import { apiRequest } from "@/core/api/apiClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 interface AuditLog {
   id: string;
@@ -59,9 +59,8 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
   const session = useSession();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const fetchLogs = async () => {
@@ -79,10 +78,6 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
     if (session.tenant_id) fetchLogs();
   }, [session.tenant_id, session]);
 
-  const openExpansion = (feature: string) => {
-    setExpansionFeature(feature);
-    setIsExpansionModalOpen(true);
-  };
 
   const handleExport = async (format: 'pdf' | 'csv') => {
     try {
@@ -189,7 +184,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-2xl border-none bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 backdrop-blur-3xl rounded-[2.5rem] group cursor-pointer transition-all duration-500" onClick={() => openExpansion("Cold Storage Vault Access")}>
+            <Card className="shadow-2xl border-none bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 backdrop-blur-3xl rounded-[2.5rem] group cursor-pointer transition-all duration-500" onClick={() => navigate("/core/compliance")}>
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl mx-auto group-hover:scale-110 transition-transform">
                   <Database className="w-7 h-7" />
@@ -218,14 +213,14 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
           />
         </div>
         <Button 
-          onClick={() => openExpansion("Temporal Filter Engine")}
+          onClick={() => navigate("/core/compliance")}
           variant="ghost"
           className="h-14 px-8 rounded-2xl gap-3 font-black italic border border-white/5 text-white hover:bg-white/5 uppercase text-[10px] tracking-widest"
         >
           <Calendar className="w-5 h-5 text-indigo-500" /> Range
         </Button>
         <Button 
-          onClick={() => openExpansion("Advanced Taxonomy Filtering")}
+          onClick={() => navigate("/core/compliance")}
           variant="ghost"
           className="h-14 px-8 rounded-2xl gap-3 font-black italic border border-white/5 text-white hover:bg-white/5 uppercase text-[10px] tracking-widest"
         >
@@ -346,7 +341,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
             {filteredLogs.length} Blocks Sequenced in Current View
           </div>
           <Button 
-            onClick={() => openExpansion("Full Ledger Cryptographic Re-Validation")}
+            onClick={() => navigate("/core/compliance")}
             variant="ghost"
             size="sm"
             className="font-black italic text-[11px] uppercase text-indigo-500 hover:bg-indigo-500/10 rounded-2xl gap-3 h-11 px-6 border border-indigo-500/20"
@@ -363,11 +358,6 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
 
   return (
     <div className="flex-1 flex flex-col selection:bg-indigo-500 selection:text-white">
-      <StrategicExpansionModal
-        isOpen={isExpansionModalOpen}
-        onOpenChange={setIsExpansionModalOpen}
-        featureName={expansionFeature}
-      />
 
       {/* Header */}
       <div className="px-12 py-8 border-b border-white/5 bg-slate-950/50 backdrop-blur-3xl shrink-0 flex items-center justify-between sticky top-0 z-50">
@@ -394,7 +384,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
           </Button>
 
           <Button 
-            onClick={() => openExpansion("Cryptographic Chain Verification")}
+            onClick={() => navigate("/core/compliance")}
             className="h-12 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black italic uppercase text-[11px] tracking-widest gap-3 shadow-xl shadow-indigo-600/20"
           >
             <ExternalLink className="w-4 h-4" /> Verify Chain

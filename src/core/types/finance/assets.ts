@@ -138,14 +138,16 @@ export interface AssetAuditPack {
   assetId: string;
   tenantId: string;
   generatedAt: string;
+  asset: FixedAsset;
   capexRequest?: CapexRequest;
   depreciationEntries: AssetDepreciationEntry[];
   events: AssetEvent[];
   evidence: string[];
   checksum: string;
   signature: string;
-  // ... (previous content)
   signatureVersion: "v1";
+  auditedBy?: string;
+  auditedAt?: string;
 }
 
 export type Asset = FixedAsset;

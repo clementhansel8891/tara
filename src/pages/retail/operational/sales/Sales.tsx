@@ -27,19 +27,26 @@ import {
   Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockRetailProducts, Product, formatCurrency } from '@/lib/mock-data';
+import { formatCurrency } from '@/lib/mock-data';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
+import { retailService } from '@/core/services/retail/retailService';
+import { useSession } from '@/core/security/session';
+import { RetailProduct } from '@/core/types/retail/retail';
+import { Loader2 } from 'lucide-react';
 
 interface CartItem {
-  product: Product;
+  product: RetailProduct;
   quantity: number;
 }
 
 const retailCategories = ['All', 'Coffee', 'Merchandise', 'Gift Cards', 'Equipment'];
 
 export default function RetailSales() {
+  const session = useSession();
   const { state, addToCart, removeFromCart, clearCart } = useApp();
+  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<RetailProduct[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -51,24 +58,47 @@ export default function RetailSales() {
   // Focus barcode input on mount
   useEffect(() => {
     barcodeInputRef.current?.focus();
-  }, []);
+
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const data = await retailService.listInventory(session.tenant_id!, session, {
+          locationId: state.settings.defaultLocationId || undefined
+        });
+        setProducts(data);
+      } catch (e) {
+        toast({
+          title: "Error",
+          description: "Failed to load catalog from registry.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (session.tenant_id) {
+      fetchProducts();
+    }
+  }, [session.tenant_id, state.settings.defaultLocationId]);
 
   // Product categorization helper
-  const getCategoryForProduct = (product: Product): string => {
-    if (product.name.toLowerCase().includes('coffee') || product.name.toLowerCase().includes('bean')) {
+  const getCategoryForProduct = (product: RetailProduct): string => {
+    const cat = product.categoryName?.toLowerCase() || '';
+    if (cat.includes('coffee') || cat.includes('bean')) {
       return 'Coffee';
     }
-    if (product.name.toLowerCase().includes('gift card')) {
+    if (cat.includes('gift card')) {
       return 'Gift Cards';
     }
-    if (product.name.toLowerCase().includes('press') || product.name.toLowerCase().includes('pour') || product.name.toLowerCase().includes('set')) {
+    if (cat.includes('press') || cat.includes('pour') || cat.includes('set')) {
       return 'Equipment';
     }
     return 'Merchandise';
   };
 
   // Filter products
-  const filteredProducts = (Array.isArray(mockRetailProducts) ? mockRetailProducts : []).filter((product) => {
+  const filteredProducts = (Array.isArray(products) ? products : []).filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.barcode?.includes(searchTerm);
     const matchesCategory = selectedCategory === 'All' || getCategoryForProduct(product) === selectedCategory;
@@ -78,7 +108,7 @@ export default function RetailSales() {
   // Handle barcode scan
   const handleBarcodeScan = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && barcodeInput.trim()) {
-      const product = mockRetailProducts.find((p) => p.barcode === barcodeInput.trim());
+      const product = products.find((p) => p.barcode === barcodeInput.trim());
       if (product) {
         addToCartLocal(product);
         toast({
@@ -97,7 +127,7 @@ export default function RetailSales() {
   };
 
   // Cart operations
-  const addToCartLocal = (product: Product) => {
+  const addToCartLocal = (product: RetailProduct) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
@@ -216,35 +246,42 @@ export default function RetailSales() {
 
         {/* Product Grid */}
         <ScrollArea className="flex-1">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
-              <Card
-                key={product.id}
-                className="p-3 cursor-pointer hover:border-primary transition-colors touch-target"
-                onClick={() => addToCartLocal(product)}
-              >
-                <div className="aspect-square bg-muted rounded-lg mb-2 flex items-center justify-center">
-                  <Package className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">
-                  {product.name}
-                </h4>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="font-semibold text-primary">
-                    {formatCurrency(product.price)}
-                  </span>
-                  <Badge variant="secondary" className="text-xs">
-                    {product.stock} in stock
-                  </Badge>
-                </div>
-                {product.barcode && (
-                  <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    {product.barcode}
-                  </p>
-                )}
-              </Card>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin mb-4" />
+              <p>Fetching products...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {(Array.isArray(filteredProducts) ? filteredProducts : []).map((product) => (
+                <Card
+                  key={product.id}
+                  className="p-3 cursor-pointer hover:border-primary transition-colors touch-target"
+                  onClick={() => addToCartLocal(product)}
+                >
+                  <div className="aspect-square bg-muted rounded-lg mb-2 flex items-center justify-center">
+                    <Package className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                  <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">
+                    {product.name}
+                  </h4>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="font-semibold text-primary">
+                      {formatCurrency(product.price)}
+                    </span>
+                    <Badge variant="secondary" className="text-xs">
+                      {product.stock} in stock
+                    </Badge>
+                  </div>
+                  {product.barcode && (
+                    <p className="text-xs text-muted-foreground mt-1 font-mono">
+                      {product.barcode}
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </div>
 

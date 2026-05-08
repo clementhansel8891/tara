@@ -31,7 +31,7 @@ import {
   Cpu,
   Bot
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,7 @@ import type {
 } from "@/core/types/marketing/marketing";
 
 export default function MarketingDashboard() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,6 @@ export default function MarketingDashboard() {
   const [metrics, setMetrics] = useState<MarketingDashboardMetrics | null>(null);
   const [campaigns, setCampaigns] = useState<MarketingCampaign[]>([]);
   const [alerts, setAlerts] = useState<MarketingAlert[]>([]);
-  const [expansionOpen, setExpansionOpen] = useState(false);
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -163,7 +163,7 @@ export default function MarketingDashboard() {
           <Button
             variant="secondary"
             className="h-14 w-14 rounded-2xl bg-white dark:bg-slate-800 border-none shadow-xl hover:scale-110 transition-all"
-            onClick={() => refresh(true)}
+            onClick={() => navigate("/core/marketing/automation")}
             disabled={refreshing}
           >
             <RefreshCw className={cn("h-6 w-6 text-indigo-600", refreshing && "animate-spin")} />
@@ -252,7 +252,7 @@ export default function MarketingDashboard() {
                   </CardTitle>
                   <CardDescription className="text-sm font-medium italic italic">Real-time execution state and audience targeting across active strategic nodes.</CardDescription>
                 </div>
-                <Button variant="ghost" className="h-12 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                <Button variant="ghost" className="h-12 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-indigo-600 hover:text-white transition-all shadow-sm" onClick={() => navigate("/core/marketing/automation")}>
                    CAMPAIGN STUDIO <ArrowUpRight className="h-4 w-4" />
                 </Button>
               </CardHeader>
@@ -260,7 +260,7 @@ export default function MarketingDashboard() {
                  <div className="p-12 pt-8">
                     <div className="grid gap-8 md:grid-cols-2">
                       {(Array.isArray(campaigns) ? campaigns : []).map((item) => (
-                        <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 group/card relative overflow-hidden">
+                        <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 group/card relative overflow-hidden" onClick={() => navigate("/core/marketing/automation")}>
                            <div className="absolute top-0 right-0 h-32 w-32 bg-indigo-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover/card:scale-150 transition-transform duration-1000" />
                            <div className="flex justify-between items-start mb-6 relative z-10">
                               <div className="h-14 w-14 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center shadow-inner group-hover/card:scale-110 group-hover/card:bg-indigo-600 group-hover/card:text-white transition-all duration-500">
@@ -311,7 +311,7 @@ export default function MarketingDashboard() {
               <ScrollArea className="flex-1 bg-black/5 dark:bg-white/5">
                  <div className="p-8 space-y-6">
                     {(Array.isArray(filteredAlerts) ? filteredAlerts : []).map((item) => (
-                      <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-6 group/item hover:shadow-2xl transition-all duration-500 hover:-translate-x-2">
+                      <div key={item.id} className="p-8 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 space-y-6 group/item hover:shadow-2xl transition-all duration-500 hover:-translate-x-2" onClick={() => navigate("/core/marketing/automation")}>
                          <div className="flex justify-between items-start">
                             <Badge className={cn(
                               "rounded-full font-black text-[9px] px-4 py-1.5 border-none shadow-lg uppercase tracking-widest",
@@ -375,17 +375,11 @@ export default function MarketingDashboard() {
          </div>
           <Button 
             className="h-20 px-12 rounded-[2.5rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm uppercase tracking-widest gap-4 group transition-all hover:scale-105 active:scale-95 text-white whitespace-nowrap"
-            onClick={() => setExpansionOpen(true)}
+            onClick={() => navigate("/core/marketing/strategy")}
           >
             AUTHORIZE STRATEGY <ChevronRight className="h-6 w-6 group-hover:translate-x-2 transition-transform duration-500" />
           </Button>
       </Card>
-
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName="Strategic AI Optimization" 
-      />
     </div>
   );
 }

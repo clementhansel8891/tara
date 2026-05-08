@@ -38,8 +38,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  mockRetailProducts,
-  productCategories,
   Product,
   formatCurrency,
   generateId,
@@ -48,8 +46,12 @@ import { toast } from "@/hooks/use-toast";
 import { useSession } from "@/core/security/session";
 import { emitRetailPushEvent } from "@/modules/retail/api/retailGatewayPush";
 import { retailService } from "@/core/services/retail/retailService";
+import { RetailProduct } from "@/core/types/retail/retail";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
-interface InventoryItem extends Product {
+// Types for inventory specific data
+interface InventoryItem extends RetailProduct {
   minStock: number;
   maxStock: number;
   reorderPoint: number;
@@ -57,29 +59,7 @@ interface InventoryItem extends Product {
   supplier?: string;
 }
 
-interface ReorderRequest {
-  id: string;
-  productId: string;
-  productName: string;
-  quantity: number;
-  status: "pending" | "ordered" | "received";
-  createdAt: string;
-  supplier?: string;
-}
-
-// Enhanced inventory data
-const initialInventory: InventoryItem[] = (Array.isArray(mockRetailProducts) ? mockRetailProducts : []).map((p) => ({
-  ...p,
-  minStock: 5,
-  maxStock: 100,
-  reorderPoint: 10,
-  lastRestocked: new Date(
-    Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000,
-  ).toISOString(),
-  supplier: ["Bean Brothers", "Merch Supply Co", "Gift Direct"][
-    Math.floor(Math.random() * 3)
-  ],
-}));
+const productCategories = ['Coffee', 'Merchandise', 'Gift Cards', 'Equipment'];
 
 // Mock reorder requests
 const initialReorderRequests: ReorderRequest[] = [
@@ -110,13 +90,44 @@ const suppliers = [
 
 export default function RetailInventory() {
   const session = useSession();
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("name");
-  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
-  const [reorderRequests, setReorderRequests] = useState(
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [reorderRequests, setReorderRequests] = useState<ReorderRequest[]>(
     initialReorderRequests,
   );
+
+  const fetchInventory = async () => {
+    setIsLoading(true);
+    try {
+      const data = await retailService.listInventory(session.tenant_id!, session);
+      const mapped: InventoryItem[] = (data || []).map(p => ({
+        ...p,
+        minStock: (p.metadata as any)?.min_stock || 5,
+        maxStock: (p.metadata as any)?.max_stock || 100,
+        reorderPoint: (p.metadata as any)?.reorder_point || 10,
+        supplier: (p.metadata as any)?.supplier || "General",
+        lastRestocked: p.updatedAt,
+      }));
+      setInventory(mapped);
+    } catch (e) {
+      toast({
+        title: "Sync Error",
+        description: "Failed to pull live inventory logs.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session.tenant_id) {
+      fetchInventory();
+    }
+  }, [session.tenant_id]);
 
   // Dialog states
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -213,7 +224,7 @@ export default function RetailInventory() {
   };
 
   // Add new item
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!formData.name || !formData.category || !formData.price) {
       toast({
         title: "Missing fields",
@@ -223,58 +234,48 @@ export default function RetailInventory() {
       return;
     }
 
-    const newItem: InventoryItem = {
-      id: generateId(),
-      name: formData.name,
-      category: formData.category,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock) || 0,
-      barcode: formData.barcode || `SKU-${Date.now()}`, // Fallback if backend call fails or not integrated here yet
-      minStock: parseInt(formData.minStock),
-      maxStock: parseInt(formData.maxStock),
-      reorderPoint: parseInt(formData.reorderPoint),
-      supplier: formData.supplier,
-      lastRestocked: new Date().toISOString(),
-    };
+    try {
+      const newItem = await retailService.createProduct(session.tenant_id!, session, {
+        name: formData.name,
+        categoryId: formData.category, // assuming category name maps to ID or backend handles it
+        price: parseFloat(formData.price),
+        barcode: formData.barcode,
+        metadata: {
+          min_stock: parseInt(formData.minStock),
+          max_stock: parseInt(formData.maxStock),
+          reorder_point: parseInt(formData.reorderPoint),
+          supplier: formData.supplier,
+          stock_on_hand: parseInt(formData.stock) || 0,
+        }
+      });
 
-    // If we have a category and session, try to get a real SKU from backend
-    if (formData.category && session) {
-      void retailService
-        .generateSku(session.tenant_id, session, formData.category)
-        .then((data) => {
-          if (data.sku) {
-            setInventory((prev) =>
-              (Array.isArray(prev) ? prev : []).map((item) =>
-                item.id === newItem.id ? { ...item, barcode: data.sku } : item,
-              ),
-            );
-          }
-        });
+      const mapped: InventoryItem = {
+        ...newItem,
+        minStock: parseInt(formData.minStock),
+        maxStock: parseInt(formData.maxStock),
+        reorderPoint: parseInt(formData.reorderPoint),
+        supplier: formData.supplier,
+        lastRestocked: new Date().toISOString(),
+      };
+
+      setInventory((prev) => [...prev, mapped]);
+      toast({
+        title: "Item added",
+        description: `${mapped.name} has been added to inventory`,
+      });
+      setIsAddOpen(false);
+      resetForm();
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to create product on backend.",
+        variant: "destructive",
+      });
     }
-
-    setInventory((prev) => [...prev, newItem]);
-    toast({
-      title: "Item added",
-      description: `${newItem.name} has been added to inventory`,
-    });
-    void emitRetailPushEvent({
-      type: "inventory.item.created",
-      tenantId: session.tenant_id,
-      payload: {
-        id: newItem.id,
-        name: newItem.name,
-        category: newItem.category,
-        price: newItem.price,
-        stock: newItem.stock,
-        barcode: newItem.barcode,
-      },
-    });
-    setIsAddOpen(false);
-    resetForm();
   };
 
   // Edit item
-  const handleEditItem = () => {
+  const handleEditItem = async () => {
     if (
       !selectedProduct ||
       !formData.name ||
@@ -289,71 +290,73 @@ export default function RetailInventory() {
       return;
     }
 
-    const updatedItem: InventoryItem = {
-      ...selectedProduct,
-      name: formData.name,
-      category: formData.category,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock) || 0,
-      barcode: formData.barcode,
-      minStock: parseInt(formData.minStock),
-      maxStock: parseInt(formData.maxStock),
-      reorderPoint: parseInt(formData.reorderPoint),
-      supplier: formData.supplier,
-    };
+    try {
+      const updatedProduct = await retailService.updateProduct(session.tenant_id!, session, selectedProduct.id, {
+        name: formData.name,
+        categoryId: formData.category,
+        price: parseFloat(formData.price),
+        barcode: formData.barcode,
+        metadata: {
+          ...((selectedProduct.metadata as any) || {}),
+          min_stock: parseInt(formData.minStock),
+          max_stock: parseInt(formData.maxStock),
+          reorder_point: parseInt(formData.reorderPoint),
+          supplier: formData.supplier,
+          stock_on_hand: parseInt(formData.stock) || 0,
+        }
+      });
 
-    setInventory((prev) =>
-      (Array.isArray(prev) ? prev : []).map((item) => (item.id === selectedProduct.id ? updatedItem : item)),
-    );
+      const mapped: InventoryItem = {
+        ...updatedProduct,
+        minStock: parseInt(formData.minStock),
+        maxStock: parseInt(formData.maxStock),
+        reorderPoint: parseInt(formData.reorderPoint),
+        supplier: formData.supplier,
+        lastRestocked: selectedProduct.lastRestocked,
+      };
 
-    toast({
-      title: "Item updated",
-      description: `${formData.name} has been updated`,
-    });
-    void emitRetailPushEvent({
-      type: "inventory.item.updated",
-      tenantId: session.tenant_id,
-      payload: {
-        id: updatedItem.id,
-        name: updatedItem.name,
-        category: updatedItem.category,
-        price: updatedItem.price,
-        stock: updatedItem.stock,
-        barcode: updatedItem.barcode,
-        previousCategory: selectedProduct.category,
-        categoryChanged: selectedProduct.category !== updatedItem.category,
-      },
-    });
-    setIsEditOpen(false);
-    setSelectedProduct(null);
-    resetForm();
+      setInventory((prev) =>
+        (Array.isArray(prev) ? prev : []).map((item) => (item.id === selectedProduct.id ? mapped : item)),
+      );
+
+      toast({
+        title: "Item updated",
+        description: `${formData.name} has been updated`,
+      });
+      setIsEditOpen(false);
+      setSelectedProduct(null);
+      resetForm();
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to update product on backend.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Delete item
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
     if (!selectedProduct) return;
 
-    setInventory((prev) =>
-      (Array.isArray(prev) ? prev : []).filter((item) => item.id !== selectedProduct.id),
-    );
-    toast({
-      title: "Item deleted",
-      description: `${selectedProduct.name} has been removed from inventory`,
-    });
-    void emitRetailPushEvent({
-      type: "inventory.item.deleted",
-      tenantId: session.tenant_id,
-      payload: {
-        id: selectedProduct.id,
-        name: selectedProduct.name,
-        category: selectedProduct.category,
-        price: selectedProduct.price,
-        stock: selectedProduct.stock,
-        barcode: selectedProduct.barcode,
-      },
-    });
-    setIsDeleteOpen(false);
-    setSelectedProduct(null);
+    try {
+      await retailService.deleteProduct(session.tenant_id!, session, selectedProduct.id);
+      setInventory((prev) =>
+        (Array.isArray(prev) ? prev : []).filter((item) => item.id !== selectedProduct.id),
+      );
+      toast({
+        title: "Item deleted",
+        description: `${selectedProduct.name} has been removed from inventory`,
+      });
+      setIsDeleteOpen(false);
+      setSelectedProduct(null);
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: "Failed to remove product from registry.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle stock adjustment
@@ -605,7 +608,13 @@ export default function RetailInventory() {
           </CardHeader>
           <CardContent className="flex-1 p-0">
             <ScrollArea className="h-[calc(100vh-22rem)]">
-              <div className="divide-y">
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                  <p>Pulling inventory data...</p>
+                </div>
+              ) : (
+                <div className="divide-y">
                 {(Array.isArray(filteredInventory) ? filteredInventory : []).map((item) => {
                   const status = getStockStatus(item);
                   const stockPercent = getStockPercent(item);
@@ -702,7 +711,8 @@ export default function RetailInventory() {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              )}
             </ScrollArea>
           </CardContent>
         </Card>

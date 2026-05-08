@@ -34,7 +34,6 @@ import {
 } from "./shift-control/components/ScheduleGrid";
 import { ShiftGovernanceModal } from "./shift-control/components/ShiftGovernanceModal";
 import { EditShiftModal } from "./shift-control/components/EditShiftModal";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 const MOCK_DRAFT_SHIFTS: ScheduledShift[] = [
   {
@@ -85,8 +84,6 @@ const ShiftControl = () => {
   const [scheduledShifts, setScheduledShifts] =
     useState<ScheduledShift[]>(MOCK_DRAFT_SHIFTS);
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   // New states for Advanced Features
   const [viewMode, setViewMode] = useState<"daily" | "weekly" | "monthly">(
@@ -214,10 +211,6 @@ const ShiftControl = () => {
     }
   };
 
-  const openExpansion = (feature: string) => {
-    setExpansionFeature(feature);
-    setIsExpansionModalOpen(true);
-  };
 
   if (isLoading && shifts.length === 0) {
     return (
@@ -237,11 +230,6 @@ const ShiftControl = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-900 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
-      <StrategicExpansionModal
-        isOpen={isExpansionModalOpen}
-        onClose={() => setIsExpansionModalOpen(false)}
-        featureName={expansionFeature}
-      />
 
       {/* Header Tier */}
       <div className="px-10 py-8 border-b border-white/5 bg-slate-950/50 backdrop-blur-3xl shrink-0 flex flex-col lg:flex-row lg:items-center justify-between gap-6 sticky top-0 z-50">

@@ -167,7 +167,7 @@ export default function FinanceDocs() {
                     <div className="mt-0.5"><FileCheck2 className="w-4 h-4 text-muted-foreground" /></div>
                     <div>
                       <p className="font-medium">OCR Extraction</p>
-                      <p className="text-muted-foreground text-xs">(Coming Soon) Auto-populates metadata.</p>
+                      <p className="text-muted-foreground text-xs">Active Beta Protocol - Auto-populates metadata.</p>
                     </div>
                   </div>
                 </div>

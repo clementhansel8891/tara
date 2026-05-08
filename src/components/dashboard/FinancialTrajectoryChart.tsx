@@ -32,13 +32,13 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
   }));
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+    <div className="flex flex-col h-full rounded-[2.5rem] glass-card p-8 card-premium">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Financial Trajectory</h4>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Revenue vs OpEx vs Gross Profit</p>
+          <h4 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Financial Trajectory</h4>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Revenue vs OpEx vs Gross Profit</p>
         </div>
-        <div className="flex gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 backdrop-blur-xl">
+        <div className="flex gap-2 bg-secondary/50 p-1.5 rounded-2xl border border-border/50 backdrop-blur-xl">
           {['3M', '6M', '12M'].map((p) => (
             <Button 
               key={p}
@@ -47,8 +47,8 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
               className={cn(
                 "h-8 px-5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300",
                 period === p 
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20" 
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               )}
               onClick={() => onPeriodChange(p)}
             >
@@ -63,63 +63,63 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
           <ComposedChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorRevenuePremium" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
             <XAxis 
               dataKey="month" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 800, fill: '#475569', textTransform: 'uppercase' }} 
+              tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }} 
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 800, fill: '#475569' }}
+              tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))' }}
               tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: '#0f172a', 
+                backgroundColor: 'hsl(var(--card))', 
                 borderRadius: '1.5rem', 
-                border: '1px solid rgba(255,255,255,0.1)', 
-                boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)',
+                border: '1px solid hsl(var(--border))', 
+                boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.2)',
                 padding: '1rem'
               }}
               itemStyle={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}
-              cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }}
+              cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4' }}
             />
             <Legend 
               verticalAlign="top" 
               align="right" 
               height={40} 
               iconType="circle" 
-              wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}
+              wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'hsl(var(--foreground))' }}
             />
             <Area 
               type="monotone" 
               dataKey="revenue" 
               fill="url(#colorRevenuePremium)" 
-              stroke="#6366f1" 
+              stroke="hsl(var(--primary))" 
               strokeWidth={4} 
               animationDuration={1500}
             />
             <Bar 
               dataKey="expenses" 
               barSize={16} 
-              fill="#475569" 
+              fill="hsl(var(--muted-foreground))" 
               radius={[4, 4, 0, 0]} 
-              opacity={0.4} 
+              opacity={0.3} 
               animationDuration={2000}
             />
             <Line 
               type="monotone" 
               dataKey="profit" 
-              stroke="#10b981" 
+              stroke="hsl(var(--success))" 
               strokeWidth={4} 
-              dot={{ r: 5, fill: '#10b981', strokeWidth: 3, stroke: '#0f172a' }} 
+              dot={{ r: 5, fill: 'hsl(var(--success))', strokeWidth: 3, stroke: 'hsl(var(--card))' }} 
               activeDot={{ r: 8, strokeWidth: 0 }}
               animationDuration={2500}
             />

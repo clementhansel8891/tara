@@ -28,7 +28,7 @@ import {
   ActivitySquare,
   Network
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,13 +72,12 @@ const TRIGGERS: NurtureWorkflow["trigger"][] = [
 ];
 
 export default function NurtureStudio() {
+  const navigate = useNavigate();
   const session = useSession();
   const [selectedWorkflow, setSelectedWorkflow] = useState<NurtureWorkflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [workflows, setWorkflows] = useState<NurtureWorkflow[]>([]);
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -155,10 +154,7 @@ export default function NurtureStudio() {
           </Button>
           <Button 
             className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
-            onClick={() => {
-              setExpansionFeature("Rule Initialization Wizard");
-              setExpansionOpen(true);
-            }}
+            onClick={() => navigate("/core/marketing/automation")}
           >
             <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
             INITIALIZE RULE
@@ -235,10 +231,7 @@ export default function NurtureStudio() {
                     "{selectedWorkflow?.aiSuggestion || "Select a workflow to see AI-driven performance tips."}"
                  </p>
                  <Button variant="link" className="text-[9px] font-black uppercase tracking-widest h-auto p-0 text-indigo-300 hover:text-white transition-colors"
-                    onClick={() => {
-                      setExpansionFeature("Neural Workflow Optimization");
-                      setExpansionOpen(true);
-                    }}
+                    onClick={() => navigate("/core/marketing/automation")}
                   >
                     AUTHORIZE OPTIMIZATION
                   </Button>
@@ -267,10 +260,7 @@ export default function NurtureStudio() {
                       </div>
                       <div className="flex items-center gap-4">
                          <Button variant="outline" className="h-14 px-8 rounded-2xl bg-white/10 border-none shadow-xl hover:scale-110 transition-all text-white font-black text-[10px] uppercase tracking-widest gap-2 group"
-                            onClick={() => {
-                              setExpansionFeature(`${selectedWorkflow.name} Advanced Config`);
-                              setExpansionOpen(true);
-                            }}
+                            onClick={() => navigate("/core/marketing/automation")}
                           >
                             <Settings2 className="h-4 w-4 group-hover:rotate-90 transition-transform duration-500" /> CONFIGURATION
                          </Button>
@@ -333,10 +323,7 @@ export default function NurtureStudio() {
                                         </div>
                                         <div className="flex gap-3">
                                            <Button variant="secondary" size="sm" className="h-9 px-4 rounded-xl bg-slate-50 dark:bg-slate-700 font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                                              onClick={() => {
-                                                setExpansionFeature(`Node Protocol: ${step.messageTemplate}`);
-                                                setExpansionOpen(true);
-                                              }}
+                                              onClick={() => navigate("/core/marketing/automation")}
                                             >
                                               EDIT PROTOCOL
                                             </Button>
@@ -358,10 +345,7 @@ export default function NurtureStudio() {
                             <Button 
                               variant="outline" 
                               className="h-20 w-20 rounded-[2rem] border-4 border-dashed border-slate-200 dark:border-slate-800 bg-transparent flex flex-col gap-4 hover:bg-white dark:hover:bg-slate-900 hover:border-indigo-600 hover:text-indigo-600 transition-all group shadow-inner"
-                              onClick={() => {
-                                setExpansionFeature("Dynamic Strategy Integration");
-                                setExpansionOpen(true);
-                              }}
+                              onClick={() => navigate("/core/marketing/automation")}
                             >
                                <Plus className="h-8 w-8 group-hover:rotate-90 transition-transform duration-500" />
                             </Button>
@@ -399,10 +383,7 @@ export default function NurtureStudio() {
                 </div>
                 <Button 
                   className="h-[4.5rem] px-12 rounded-[2.5rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-4 group transition-all hover:scale-105 active:scale-95 text-white"
-                  onClick={() => {
-                     setExpansionFeature("Growth Strategy Initialization");
-                     setExpansionOpen(true);
-                   }}
+                  onClick={() => navigate("/core/marketing/automation")}
                 >
                   <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" />
                   INITIALIZE STRATEGY
@@ -412,11 +393,6 @@ export default function NurtureStudio() {
         </div>
       </div>
       
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </div>
   );
 }

@@ -39,15 +39,16 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSession } from "@/core/security/session";
 import { salesService } from "@/core/services/sales/salesService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import type { SalesOrder, SalesOpportunity } from "@/core/types/sales/sales";
 
 export default function SalesOrderDesk() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -58,10 +59,6 @@ export default function SalesOrderDesk() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [opps, setOpps] = useState<SalesOpportunity[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(false);
-
-  // Strategic Expansion State
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -234,8 +231,8 @@ export default function SalesOrderDesk() {
             <div className="flex gap-4">
                <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] shadow-inner">
                   <Button variant="ghost" size="sm" className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest bg-white dark:bg-slate-700 shadow-md text-emerald-600">ACTIVE QUEUE</Button>
-                  <Button variant="ghost" size="sm" onClick={() => { setExpansionFeature("Logistics Tracking Matrix"); setExpansionOpen(true); }} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">SHIPPED</Button>
-                  <Button variant="ghost" size="sm" onClick={() => { setExpansionFeature("Delinquency Management Protocol"); setExpansionOpen(true); }} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">DELINQUENT</Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/core/logistics")} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">SHIPPED</Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/core/finance/operations")} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">DELINQUENT</Button>
                </div>
             </div>
           </div>
@@ -301,9 +298,9 @@ export default function SalesOrderDesk() {
                              </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-none">
-                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => { setExpansionFeature("Advanced Financial Routing"); setExpansionOpen(true); }}><FileCheck className="h-4 w-4 text-indigo-600" /> Generate Invoice</DropdownMenuItem>
-                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => { setExpansionFeature("Real-time Logistics Sync"); setExpansionOpen(true); }}><Truck className="h-4 w-4 text-emerald-600" /> Track Shipment</DropdownMenuItem>
-                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold text-rose-500" onClick={() => { setExpansionFeature("Fulfillment Escalation Protocol"); setExpansionOpen(true); }}><AlertCircle className="h-4 w-4" /> Escalate Delay</DropdownMenuItem>
+                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => navigate("/core/finance/operations")}><FileCheck className="h-4 w-4 text-indigo-600" /> Generate Invoice</DropdownMenuItem>
+                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => navigate("/core/logistics")}><Truck className="h-4 w-4 text-emerald-600" /> Track Shipment</DropdownMenuItem>
+                             <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold text-rose-500" onClick={() => navigate("/core/logistics")}><AlertCircle className="h-4 w-4" /> Escalate Delay</DropdownMenuItem>
                           </DropdownMenuContent>
                        </DropdownMenu>
                     </td>
@@ -355,11 +352,6 @@ export default function SalesOrderDesk() {
          </Card>
       </div>
 
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </div>
   );
 }

@@ -22,7 +22,7 @@ import {
   Calendar,
   Layers
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function OpportunityDesk() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -86,9 +87,7 @@ export default function OpportunityDesk() {
   
   const [selectedOpp, setSelectedOpp] = useState<SalesOpportunity | null>(null);
 
-  // Strategic Expansion State
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
+  // Filter State
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const refresh = useCallback(async (isManual = false) => {
@@ -346,10 +345,7 @@ export default function OpportunityDesk() {
                                <DropdownMenuSeparator />
                                <DropdownMenuItem 
                                  className="gap-3 py-3 rounded-xl font-black text-indigo-600"
-                                 onClick={() => {
-                                   setExpansionFeature("Automated Quote Engine");
-                                   setExpansionOpen(true);
-                                 }}
+                                 onClick={() => navigate("/core/sales/intelligence")}
                                >
                                  <FileText className="h-4 w-4" /> GENERATE QUOTE
                                </DropdownMenuItem>
@@ -435,28 +431,22 @@ export default function OpportunityDesk() {
                   <div className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-none shadow-inner group">
                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 italic">"{selectedOpp?.nextAction || "Initiate discovery node and evaluate stakeholder alignment."}"</p>
                      <Button 
-                       variant="link" 
-                       onClick={() => {
-                         setExpansionFeature("Activity Engagement Protocol");
-                         setExpansionOpen(true);
-                       }}
-                       className="text-[9px] font-black uppercase tracking-widest text-indigo-600 h-auto p-0 mt-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                     >
-                        Log Activity Protocol <ArrowUpRight className="h-3 w-3" />
-                     </Button>
+                        variant="link" 
+                        onClick={() => navigate("/core/sales/intelligence")}
+                        className="text-[9px] font-black uppercase tracking-widest text-indigo-600 h-auto p-0 mt-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                         Log Activity Protocol <ArrowUpRight className="h-3 w-3" />
+                      </Button>
                   </div>
                </div>
                
                <div className="flex gap-4 pt-6">
                   <Button 
-                    onClick={() => {
-                      setExpansionFeature(`${selectedOpp?.accountName} Proposal Studio`);
-                      setExpansionOpen(true);
-                    }}
-                    className="flex-1 h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 group"
-                  >
-                    <FileText className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" /> INITIALIZE QUOTE GEN
-                  </Button>
+                     onClick={() => navigate("/core/sales/intelligence")}
+                     className="flex-1 h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 group"
+                   >
+                     <FileText className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" /> INITIALIZE QUOTE GEN
+                   </Button>
                   <Button variant="outline" className="h-16 w-16 rounded-[1.5rem] border-slate-200 hover:bg-white" onClick={() => setSelectedOpp(null)}>
                      <ChevronRight className="h-5 w-5" />
                   </Button>
@@ -466,11 +456,6 @@ export default function OpportunityDesk() {
         </DialogContent>
       </Dialog>
     </div>
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </>
   );
 }

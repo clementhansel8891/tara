@@ -11,6 +11,8 @@ import {
   History,
   Activity,
   Home,
+  X,
+  Layers,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +26,6 @@ import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import { useRetail } from "../context/RetailContext";
 import type { RetailShift } from "@/core/types/retail/retail";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 interface ShipmentItem {
   itemId: string;
@@ -48,7 +49,6 @@ const ReceivingTerminal = () => {
   const [activeShipment, setActiveShipment] = useState<Shipment | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -470,7 +470,7 @@ const ReceivingTerminal = () => {
                   System detected <span className="text-red-500">3 SKU mismatches</span> in transit hub. Immediate Supervisor Override required.
                 </p>
                 <Button 
-                  onClick={() => setIsExpansionModalOpen(true)}
+                  onClick={() => navigate("/core/logistics")}
                   className="w-full text-[10px] font-black italic uppercase h-12 bg-red-600 text-white hover:bg-red-500 transition-all rounded-xl shadow-lg shadow-red-600/20 tracking-widest"
                 >
                   Flag Intake Errors
@@ -525,12 +525,6 @@ const ReceivingTerminal = () => {
         </div>
       </div>
 
-      <StrategicExpansionModal 
-        isOpen={isExpansionModalOpen} 
-        onOpenChange={setIsExpansionModalOpen}
-        title="Variance Investigation Hub"
-        description="Initiate deep-dive audit for inbound logistics discrepancies and fiscal mismatches."
-      />
     </div>
   );
 };

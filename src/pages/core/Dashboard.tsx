@@ -41,7 +41,6 @@ import {
 import { SystemHealthDonut } from "@/components/dashboard/SystemHealthDonut";
 import { ComplianceHeatmap } from "@/components/dashboard/ComplianceHeatmap";
 import { DashboardPayload } from "@/types/dashboard.types";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 export default function CoreDashboard() {
   const session = useSession();
@@ -50,7 +49,6 @@ export default function CoreDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardPayload['data'] | null>(null);
-  const [expansionOpen, setExpansionOpen] = useState(false);
   const [period, setPeriod] = useState("6M");
 
   const refresh = useCallback(async (isManual = false, targetPeriod?: string) => {
@@ -80,17 +78,17 @@ export default function CoreDashboard() {
 
   if (loading || !dashboardData) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-8">
           <div className="relative h-24 w-24">
-             <div className="absolute inset-0 bg-indigo-600/20 rounded-[2.5rem] blur-2xl animate-pulse" />
-             <div className="relative h-full w-full bg-indigo-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-indigo-500/40 border border-white/10">
-                <LayoutDashboard className="h-12 w-12 text-white" />
+             <div className="absolute inset-0 bg-primary/20 rounded-[2.5rem] blur-2xl animate-pulse" />
+             <div className="relative h-full w-full bg-primary rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-primary/40 border border-white/10">
+                <LayoutDashboard className="h-12 w-12 text-primary-foreground" />
              </div>
           </div>
           <div className="flex flex-col items-center gap-2">
-             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white italic">ZENVIX INTELLIGENCE ENGINE</p>
-             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-500">Synchronizing Executive Telemetry...</p>
+             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-foreground italic">ZENVIX INTELLIGENCE ENGINE</p>
+             <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Synchronizing Executive Telemetry...</p>
           </div>
         </div>
       </div>
@@ -103,11 +101,6 @@ export default function CoreDashboard() {
         <PageHeader
           title="Executive Command Center"
           subtitle="Enterprise-wide intelligence, growth telemetry, and strategic governance."
-          primaryAction={
-            <Button onClick={() => setExpansionOpen(true)} className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
-              <Rocket className="h-4 w-4" /> STRATEGIC EXPANSION
-            </Button>
-          }
           secondaryActions={
             <Button 
               variant="outline" 
@@ -123,27 +116,27 @@ export default function CoreDashboard() {
     >
       <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
         <Tabs defaultValue="overview" className="space-y-12">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 bg-slate-900/50 p-6 rounded-[3rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
-            <TabsList className="bg-slate-950/50 p-1.5 rounded-2xl h-14 border border-white/5">
-              <TabsTrigger value="overview" className="rounded-xl px-10 h-11 data-[state=active]:bg-indigo-600 data-[state=active]:shadow-[0_0_20px_rgba(79,70,229,0.4)] data-[state=active]:text-white font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-slate-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 glass-card p-6 rounded-[3rem]">
+            <TabsList className="bg-secondary/50 p-1.5 rounded-2xl h-14 border border-border/50">
+              <TabsTrigger value="overview" className="rounded-xl px-10 h-11 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
                 Strategic Overview
               </TabsTrigger>
-              <TabsTrigger value="operations" className="rounded-xl px-10 h-11 data-[state=active]:bg-indigo-600 data-[state=active]:shadow-[0_0_20px_rgba(79,70,229,0.4)] data-[state=active]:text-white font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-slate-500">
+              <TabsTrigger value="operations" className="rounded-xl px-10 h-11 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
                 Tactical Flow
               </TabsTrigger>
             </TabsList>
 
             <div className="hidden lg:flex items-center gap-6 pr-4">
                <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Governance Tier</span>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Governance Tier</span>
                   <div className="flex items-center gap-2 mt-0.5">
-                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                     <span className="text-[11px] font-black text-white italic tracking-tighter">L4 COMMANDER</span>
+                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-emerald-500/50 shadow-lg" />
+                     <span className="text-[11px] font-black text-foreground italic tracking-tighter">L4 COMMANDER</span>
                   </div>
                </div>
-               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px]">
-                  <div className="h-full w-full bg-slate-900 rounded-[0.9rem] flex items-center justify-center">
-                    <LayoutDashboard className="h-5 w-5 text-indigo-400" />
+               <div className="h-12 w-12 rounded-2xl grad-primary p-[1px]">
+                  <div className="h-full w-full bg-card rounded-[0.9rem] flex items-center justify-center">
+                    <LayoutDashboard className="h-5 w-5 text-primary" />
                   </div>
                </div>
             </div>
@@ -206,17 +199,17 @@ export default function CoreDashboard() {
                </div>
                <div className="space-y-8">
                   <MarketingRoiChart data={dashboardData.timeseries.campaignCorrelation} />
-                  <div className="rounded-[2.5rem] bg-slate-900 p-8 text-white shadow-2xl relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="rounded-[2.5rem] bg-card p-8 text-card-foreground shadow-2xl relative overflow-hidden group border border-border/50">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     <div className="relative z-10 space-y-6">
-                       <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-xl border border-white/10">
-                          <Briefcase className="h-5 w-5 text-indigo-400" />
+                       <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center backdrop-blur-xl border border-primary/20">
+                          <Briefcase className="h-5 w-5 text-primary" />
                        </div>
                        <div className="space-y-1">
                           <h4 className="text-lg font-black italic uppercase tracking-tighter">Strategic Support</h4>
-                          <p className="text-[10px] text-slate-400 font-medium">Tactical assistance and complex modeling ready.</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">Tactical assistance and complex modeling ready.</p>
                        </div>
-                       <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[9px] uppercase tracking-[0.2em] rounded-xl h-10 transition-all active:scale-95">
+                       <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[9px] uppercase tracking-[0.2em] rounded-xl h-10 transition-all active:scale-95">
                           CONNECT NOW
                        </Button>
                     </div>
@@ -230,13 +223,6 @@ export default function CoreDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onClose={() => setExpansionOpen(false)}
-        feature=""
-      />
     </PageShell>
   );
 }
-

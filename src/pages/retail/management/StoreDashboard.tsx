@@ -16,7 +16,6 @@ import {
   CommandCenterAnalytics,
   AnalyticsTimeRange,
 } from "@/core/types/retail/analytics";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 
 // Modular Components
 import { GlobalKpiRow } from "./command-center/GlobalKpiRow";
@@ -66,8 +65,6 @@ const StoreDashboard = () => {
   const { activeStore, setStore } = useRetail();
   const [data, setData] = useState<CommandCenterAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isExpansionModalOpen, setIsExpansionModalOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   // Sync scopedLocationId with RetailContext
   const scopedLocationId = useMemo(() => activeStore?.id, [activeStore]);
@@ -133,10 +130,6 @@ const StoreDashboard = () => {
     }
   });
 
-  const openExpansion = (feature: string) => {
-    setExpansionFeature(feature);
-    setIsExpansionModalOpen(true);
-  };
 
   if (isLoading && !data) {
     return (
@@ -154,11 +147,6 @@ const StoreDashboard = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white relative overflow-hidden">
-      <StrategicExpansionModal
-        isOpen={isExpansionModalOpen}
-        onClose={() => setIsExpansionModalOpen(false)}
-        featureName={expansionFeature}
-      />
 
       {/* Atmospheric Background Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[130px] pointer-events-none" />

@@ -110,6 +110,12 @@ import FunnelBuilderDesk from "@/pages/core/marketing/FunnelBuilderDesk";
 import OmnichannelInbox from "@/pages/core/marketing/OmnichannelInbox";
 import CreativeLibrary from "@/pages/core/marketing/CreativeLibrary";
 import Customer360 from "@/pages/core/marketing/Customer360";
+import StrategyControlDesk from "@/pages/core/marketing/StrategyControlDesk";
+import ComplianceCommand from "@/pages/core/compliance/ComplianceCommand";
+import LogisticsControlCenter from "@/pages/core/logistics/LogisticsControlCenter";
+import FinancialOperationsDesk from "@/pages/core/finance/FinancialOperationsDesk";
+import SalesIntelligenceEngine from "@/pages/core/sales/SalesIntelligenceEngine";
+import AutomationLab from "@/pages/core/marketing/AutomationLab";
 import WhiteLabelSettings from "@/pages/core/settings/WhiteLabelSettings";
 import TopologyMap from "@/pages/core/it/TopologyMap";
 import RoleGovernance from "@/pages/core/it/RoleGovernance";
@@ -298,6 +304,14 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="finance.workspace.access" scope="COMPANY">
             <JVDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="operations"
+        element={
+          <ProtectedRoute permission="finance.workspace.access" scope="COMPANY">
+            <FinancialOperationsDesk />
           </ProtectedRoute>
         }
       />
@@ -738,6 +752,14 @@ export function buildCoreRoutes(): JSX.Element[] {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="intelligence"
+        element={
+          <ProtectedRoute permission="core.sales.access" scope="COMPANY">
+            <SalesIntelligenceEngine />
+          </ProtectedRoute>
+        }
+      />
       <Route path="schedule" element={<DepartmentScheduleStudio workspaceDeptId="SALES" title="Sales" />} />
       <Route path="attendance" element={<DepartmentAttendanceStudio workspaceDeptId="SALES" title="Sales" />} />
       <Route path="admin" element={<DeptAdmin departmentId="SALES" departmentName="Sales & Revenue" />} />
@@ -796,6 +818,22 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
             <ExecutionDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="automation"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <AutomationLab />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="strategy"
+        element={
+          <ProtectedRoute permission="core.marketing.access" scope="COMPANY">
+            <StrategyControlDesk />
           </ProtectedRoute>
         }
       />
@@ -898,6 +936,15 @@ export function buildCoreRoutes(): JSX.Element[] {
       <Route path="audit-log" element={<AuditHub />} />
       <Route path="workflow" element={<WorkflowInbox />} />
     </Route>,
+    <Route
+      key="core-logistics"
+      path="logistics/*"
+      element={
+        <ProtectedRoute permission="core.tools.access" scope="COMPANY">
+          <LogisticsControlCenter />
+        </ProtectedRoute>
+      }
+    />,
     <Route
       key="core-admin-workspace"
       path="admin/*"

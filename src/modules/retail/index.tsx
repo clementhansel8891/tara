@@ -30,6 +30,9 @@ import PricingPromoDesk from "@/pages/retail/management/PricingPromoDesk";
 import InventoryVisibility from "@/pages/retail/management/InventoryVisibility";
 import DeviceControlCenter from "@/pages/retail/management/DeviceControlCenter";
 import ComplianceAuditLedger from "@/pages/retail/management/ComplianceAuditLedger";
+import InfrastructureMap from "@/pages/retail/management/InfrastructureMap";
+import NexusCommand from "@/pages/retail/management/NexusCommand";
+import WorkforceComplianceHub from "@/pages/retail/management/WorkforceComplianceHub";
 
 // Operational Pages
 import CashierPOS from "@/pages/retail/operational/CashierPOS";
@@ -61,6 +64,7 @@ const RetailLogHubPage = () => <LogHub noShell={true} />;
 const RetailWorkflowInboxPage = () => <WorkflowInbox noShell={true} />;
 const RetailStockOpnamePage = () => <StockOpnameScanner noShell={true} />;
 const RetailAuditLedgerPage = () => <ComplianceAuditLedger noShell={true} />;
+const RetailComplianceHubPage = () => <WorkforceComplianceHub noShell={true} />;
 
 // ============================================================
 // MODULE IDENTITY (LOCKED)
@@ -302,6 +306,36 @@ const PAGES: ReadonlyArray<ModulePageDefinition> = [
     menuGroup: "management",
     requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
     component: RetailWorkflowInboxPage,
+  },
+  {
+    id: "mgt-infra-map",
+    moduleId: MODULE_ID,
+    title: "Infrastructure Map",
+    route: "/m/retail/management/infrastructure-map",
+    icon: "Globe",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: InfrastructureMap,
+  },
+  {
+    id: "mgt-nexus-command",
+    moduleId: MODULE_ID,
+    title: "Nexus Command",
+    route: "/m/retail/management/nexus-command",
+    icon: "Zap",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: NexusCommand,
+  },
+  {
+    id: "mgt-workforce-compliance",
+    moduleId: MODULE_ID,
+    title: "Workforce & Compliance",
+    route: "/m/retail/management/workforce-compliance",
+    icon: "ShieldCheck",
+    menuGroup: "management",
+    requiredPermissions: [PERMISSIONS.RETAIL_ACCESS],
+    component: RetailComplianceHubPage,
   },
 
   // --- OPERATIONAL PLANE ---

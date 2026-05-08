@@ -16,8 +16,8 @@ import {
   FileSearch,
   MoreVertical
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,14 +28,12 @@ import { toast } from "sonner";
 import type { SalesAuditEvent } from "@/core/types/sales/sales";
 
 export default function SalesAuditLog() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState<SalesAuditEvent[]>([]);
-  
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -163,8 +161,8 @@ export default function SalesAuditLog() {
             <div className="flex gap-4">
                <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] shadow-inner">
                   <Button variant="ghost" size="sm" className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest bg-white dark:bg-slate-700 shadow-md text-slate-900 dark:text-white">ALL OPERATIONS</Button>
-                  <Button variant="ghost" size="sm" onClick={() => { setExpansionFeature("Financial Audit Matrix"); setExpansionOpen(true); }} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">FINANCIAL</Button>
-                  <Button variant="ghost" size="sm" onClick={() => { setExpansionFeature("Security Audit Matrix"); setExpansionOpen(true); }} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">SECURITY</Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/core/compliance")} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">FINANCIAL</Button>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/core/compliance")} className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors">SECURITY</Button>
                </div>
             </div>
           </div>
@@ -232,11 +230,6 @@ export default function SalesAuditLog() {
         </CardContent>
       </Card>
 
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </div>
   );
 }

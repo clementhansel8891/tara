@@ -20,9 +20,10 @@ import {
   MoreVertical,
   CheckCircle2,
   Zap,
-  Info
+  Info,
+  MessageSquare
 } from "lucide-react";
-import { StrategicExpansionModal } from "@/components/ui/StrategicExpansionModal";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ import { toast } from "sonner";
 import type { SalesLead } from "@/core/types/sales/sales";
 
 export default function LeadDesk() {
+  const navigate = useNavigate();
   const session = useSession();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -72,8 +74,6 @@ export default function LeadDesk() {
 
   // Selection/Detail State
   const [selectedLead, setSelectedLead] = useState<SalesLead | null>(null);
-  const [expansionOpen, setExpansionOpen] = useState(false);
-  const [expansionFeature, setExpansionFeature] = useState("");
 
   const refresh = useCallback(async (isManual = false) => {
     try {
@@ -307,7 +307,7 @@ export default function LeadDesk() {
                   </Button>
                   <Button 
                     variant="ghost" size="sm" 
-                    onClick={() => { setExpansionFeature("SLA Monitoring Protocol"); setExpansionOpen(true); }}
+                    onClick={() => navigate("/core/sales/intelligence")}
                     className="h-10 rounded-xl px-4 font-black text-[10px] tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     SLA DELINQUENT
@@ -413,20 +413,14 @@ export default function LeadDesk() {
                 <Button 
                   variant="outline" 
                   className="rounded-xl font-black text-[10px] h-10 px-6 uppercase tracking-widest border-slate-200"
-                  onClick={() => {
-                    setExpansionFeature("Registry Data Export");
-                    setExpansionOpen(true);
-                  }}
+                  onClick={() => navigate("/core/sales/intelligence")}
                 >
                   Export Registry
                 </Button>
                 <Button 
                   variant="outline" 
                   className="rounded-xl font-black text-[10px] h-10 px-6 uppercase tracking-widest border-slate-200"
-                  onClick={() => {
-                    setExpansionFeature("Bulk Lead Management");
-                    setExpansionOpen(true);
-                  }}
+                  onClick={() => navigate("/core/sales/intelligence")}
                 >
                   Bulk Operations
                 </Button>
@@ -512,10 +506,7 @@ export default function LeadDesk() {
                
                <div className="flex gap-4 pt-6">
                   <Button 
-                    onClick={() => {
-                      setExpansionFeature(`${selectedLead?.companyName} Command Workspace`);
-                      setExpansionOpen(true);
-                    }}
+                    onClick={() => navigate("/core/sales/intelligence")}
                     className="flex-1 h-14 rounded-2xl bg-indigo-600 font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-500/20"
                   >
                     Action Workspace
@@ -529,11 +520,6 @@ export default function LeadDesk() {
         </DialogContent>
       </Dialog>
 
-      <StrategicExpansionModal 
-        isOpen={expansionOpen} 
-        onOpenChange={setExpansionOpen} 
-        featureName={expansionFeature} 
-      />
     </div>
   );
 }

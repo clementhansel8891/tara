@@ -935,6 +935,31 @@ export const retailService = {
     );
   },
 
+  async createProduct(
+    tenantId: string,
+    session: SessionContext,
+    product: Partial<RetailProduct>,
+  ) {
+    const payload = {
+      ...product,
+      base_price: (product as any).base_price || product.price,
+      category_id: (product as any).category_id || product.categoryId,
+    };
+    return apiRequest<RetailProduct>("/v1/retail/products", "POST", session, payload);
+  },
+
+  async deleteProduct(
+    tenantId: string,
+    session: SessionContext,
+    productId: string,
+  ) {
+    return apiRequest<{ success: boolean }>(
+      `/v1/retail/products/${productId}`,
+      "DELETE",
+      session,
+    );
+  },
+
 
   async listPendingItems(tenantId: string, session: SessionContext) {
     return apiRequest<RetailProduct[]>(

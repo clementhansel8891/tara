@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,8 +35,12 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
-import { formatCurrency, formatDate, formatTime, mockStaff } from '@/lib/mock-data';
+import { formatCurrency, formatDate, formatTime } from '@/lib/mock-data';
 import { toast } from '@/hooks/use-toast';
+import { attendanceService } from '@/core/services/hr/attendanceService';
+import { useSession } from '@/core/security/session';
+import { retailService } from '@/core/services/retail/retailService';
+import { Loader2 } from 'lucide-react';
 
 interface ShiftRecord {
   id: string;
@@ -58,86 +62,114 @@ interface ShiftRecord {
   status: 'open' | 'closed';
 }
 
-// Mock shift history
-const mockShiftHistory: ShiftRecord[] = [
-  {
-    id: 'shift-001',
-    staffId: '2',
-    staffName: 'Mike Chen',
-    startTime: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    openingCash: 200,
-    closingCash: 485,
-    expectedCash: 478.50,
-    cashDifference: 6.50,
-    totalSales: 892.75,
-    transactions: 32,
-    cashSales: 278.50,
-    cardSales: 456.25,
-    mobileSales: 158.00,
-    refunds: 0,
-    notes: 'Busy afternoon shift',
-    status: 'closed',
-  },
-  {
-    id: 'shift-002',
-    staffId: '5',
-    staffName: 'Anna Williams',
-    startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() - 16 * 60 * 60 * 1000).toISOString(),
-    openingCash: 200,
-    closingCash: 412,
-    expectedCash: 415.25,
-    cashDifference: -3.25,
-    totalSales: 678.50,
-    transactions: 24,
-    cashSales: 215.25,
-    cardSales: 312.25,
-    mobileSales: 151.00,
-    refunds: 25.00,
-    notes: 'One refund for damaged item',
-    status: 'closed',
-  },
-  {
-    id: 'shift-003',
-    staffId: '2',
-    staffName: 'Mike Chen',
-    startTime: new Date(Date.now() - 32 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    openingCash: 200,
-    closingCash: 520,
-    expectedCash: 520,
-    cashDifference: 0,
-    totalSales: 1045.00,
-    transactions: 41,
-    cashSales: 320.00,
-    cardSales: 525.00,
-    mobileSales: 200.00,
-    refunds: 0,
-    status: 'closed',
-  },
-];
 
-import { attendanceService } from '@/core/services/hr/attendanceService';
-import { useSession } from '@/core/security/session';
+
+
+
+interface Denominations {
+  hundreds: number;
+  fifties: number;
+  twenties: number;
+  tens: number;
+  fives: number;
+  ones: number;
+  quarters: number;
+  dimes: number;
+  nickels: number;
+  pennies: number;
+}
+
 
 export default function RetailShifts() {
   const session = useSession();
   const { state, startShift, endShift } = useApp();
-  const [shiftHistory, setShiftHistory] = useState<ShiftRecord[]>(mockShiftHistory);
+  const [isLoading, setIsLoading] = useState(true);
+  const [shiftHistory, setShiftHistory] = useState<ShiftRecord[]>([]);
+  const [currentShift, setCurrentShift] = useState<ShiftRecord | null>(null);
   const [isStartOpen, setIsStartOpen] = useState(false);
   const [isEndOpen, setIsEndOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
-  const [openingCash, setOpeningCash] = useState('200');
+  const [openingCash, setOpeningCash] = useState('');
   const [closingCash, setClosingCash] = useState('');
-  const [shiftNotes, setShiftNotes] = useState('');
   const [clockInReason, setClockInReason] = useState('');
+  const [shiftNotes, setShiftNotes] = useState('');
+  const [denominations, setDenominations] = useState<Denominations>({
+    hundreds: 0,
+    fifties: 0,
+    twenties: 0,
+    tens: 0,
+    fives: 0,
+    ones: 0,
+    quarters: 0,
+    dimes: 0,
+    nickels: 0,
+    pennies: 0,
+  });
 
-  // Current active shift (simulated)
-  const [currentShift, setCurrentShift] = useState<ShiftRecord | null>(null);
+  const calculatedTotal =
+    denominations.hundreds * 100 +
+    denominations.fifties * 50 +
+    denominations.twenties * 20 +
+    denominations.tens * 10 +
+    denominations.fives * 5 +
+    denominations.ones * 1 +
+    denominations.quarters * 0.25 +
+    denominations.dimes * 0.1 +
+    denominations.nickels * 0.05 +
+    denominations.pennies * 0.01;
 
-  // ... (rest of the stats calculation)
+  const fetchShifts = async () => {
+    setIsLoading(true);
+    try {
+      const data = await retailService.listShifts(session.tenant_id!, session, {
+        store_id: state.settings.defaultLocationId || undefined
+      });
+      
+      // Map backend RetailShift to frontend ShiftRecord
+      const mapped: ShiftRecord[] = (data || []).map(s => ({
+        id: s.id,
+        staffId: (s as any).employee_id || (s as any).employeeId || 'Unknown',
+        staffName: (s as any).employeeName || 'Staff Member',
+        startTime: (s as any).start_time || (s as any).startTime || new Date().toISOString(),
+        endTime: (s as any).end_time || (s as any).endTime,
+        openingCash: Number((s as any).opening_cash || (s as any).openingCash || 0),
+        closingCash: Number((s as any).closing_cash || (s as any).closingCash || 0),
+        expectedCash: Number((s as any).expected_cash || (s as any).expectedCash || 0),
+        cashDifference: Number((s as any).variance || (s as any).actual_cash ? (Number((s as any).actual_cash) - Number((s as any).expected_cash)) : 0),
+        totalSales: Number((s as any).total_sales || 0),
+        transactions: Number((s as any).transaction_count || 0),
+        cashSales: Number((s as any).cash_sales || 0),
+        cardSales: Number((s as any).card_sales || 0),
+        mobileSales: Number((s as any).mobile_sales || 0),
+        refunds: Number((s as any).refund_count || 0),
+        notes: s.notes,
+        status: (s as any).status === 'open' ? 'open' : 'closed',
+      }));
+
+      setShiftHistory(mapped);
+    } catch (e) {
+      toast({
+        title: "Sync Error",
+        description: "Failed to pull authoritative shift logs.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session.tenant_id) {
+      fetchShifts();
+    }
+  }, [session.tenant_id, state.settings.defaultLocationId]);
+
+  // Dynamic Statistics
+  const today = new Date().toISOString().split('T')[0];
+  const todayShifts = (shiftHistory || []).filter(s => s.startTime.startsWith(today));
+  const todaySales = todayShifts.reduce((sum, s) => sum + (s.totalSales || 0), 0);
+  const totalVariance = todayShifts.reduce((sum, s) => sum + (s.cashDifference || 0), 0);
 
   // Handle start shift
   const handleStartShift = async () => {
@@ -181,7 +213,10 @@ export default function RetailShifts() {
       setCurrentShift(newShift);
       startShift(opening);
       setIsStartOpen(false);
-      setClockInReason(''); // Reset
+      setClockInReason(''); 
+      
+      // Refresh history
+      fetchShifts();
       
       toast({
         title: 'Shift started',
@@ -224,6 +259,10 @@ export default function RetailShifts() {
     setCurrentShift(null);
     endShift(closing);
     setIsEndOpen(false);
+    
+    // Refresh history from server
+    fetchShifts();
+
     setClosingCash('');
     setShiftNotes('');
     setDenominations({
@@ -387,13 +426,20 @@ export default function RetailShifts() {
 
       {/* Shift History */}
       <Card className="flex-1 flex flex-col">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Shift History</CardTitle>
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </CardHeader>
         <CardContent className="flex-1 p-0">
           <ScrollArea className="h-[calc(100vh-28rem)]">
-            <div className="divide-y">
-              {(Array.isArray(shiftHistory) ? shiftHistory : []).map((shift) => (
+            {isLoading && shiftHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                <p>Synchronizing with Registry...</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {(Array.isArray(shiftHistory) ? shiftHistory : []).map((shift) => (
                 <div
                   key={shift.id}
                   className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer"
@@ -457,7 +503,14 @@ export default function RetailShifts() {
                   </div>
                 </div>
               ))}
-            </div>
+              {!isLoading && shiftHistory.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <Clock className="h-8 w-8 mb-4 opacity-20" />
+                  <p>No shift records found for this node.</p>
+                </div>
+              )}
+              </div>
+            )}
           </ScrollArea>
         </CardContent>
       </Card>
