@@ -124,7 +124,7 @@ export class InventoryDbRepository implements IInventoryRepository {
 
     return (products as any[]).map((p) => ({
       id: p.id,
-      tenant_id: p.tenant_id,
+      tenantId: p.tenant_id,
       sku: p.sku,
       name: p.name,
       category: p.product_categories?.name as any,
@@ -134,10 +134,10 @@ export class InventoryDbRepository implements IInventoryRepository {
       moduleTags: p.module_tags || [],
       departmentId: p.department_id || undefined,
       active: p.status === "active",
-      image_url: p.image_url || undefined,
+      imageUrl: p.image_url || undefined,
       images: p.item_images || [],
-      created_at: p.created_at,
-      updated_at: p.updated_at,
+      createdAt: p.created_at,
+      updatedAt: p.updated_at,
     }));
   }
 
@@ -217,17 +217,18 @@ export class InventoryDbRepository implements IInventoryRepository {
         l: any
       ) => ({
         id: l.id,
-        tenant_id: l.tenant_id,
-        item_id: l.product_id,
-        location_id: l.location_id,
-        departmentId: l.department_id || undefined,
-        quantity: l.on_hand,
-        reservedQuantity: l.reserved,
-        inTransitQuantity: l.in_transit,
+        tenantId: l.tenant_id,
+        itemId: l.product_id,
+        locationId: l.location_id,
+        locationCode: l.location_id,
+        departmentCode: l.department_id || undefined,
+        quantity: Number(l.on_hand),
+        reservedQuantity: Number(l.reserved),
+        inTransitQuantity: Number(l.in_transit),
         avgUnitCost: Number(l.base_price || 0),
-        reorderPoint: l.min_buffer,
-        safetyStock: l.min_buffer,
-        updated_at: l.updated_at,
+        reorderPoint: Number(l.min_buffer || 0),
+        safetyStock: Number(l.min_buffer || 0),
+        updatedAt: l.updated_at,
       }),
     );
   }

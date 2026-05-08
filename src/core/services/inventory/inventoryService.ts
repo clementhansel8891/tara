@@ -50,7 +50,7 @@ export const inventoryService = {
     departmentId?: string,
   ): Promise<InventoryStockBalance[]> {
     const params = new URLSearchParams();
-    if (locationId) params.append("locationId", locationId);
+    if (locationId) params.append("location_id", locationId);
     if (departmentId) params.append("departmentId", departmentId);
     const query = params.toString() ? `?${params.toString()}` : "";
     return apiRequest<InventoryStockBalance[]>(
