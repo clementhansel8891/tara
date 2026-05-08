@@ -30,8 +30,10 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
+    const normalizedEmail = dto.email.toLowerCase();
+    
     // 1. Check if user exists (globally by email)
-    const existing = await this.authRepo.findByEmail(this.systemCtx, dto.email);
+    const existing = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
     if (existing) {
       throw new ConflictException("Email already in use");
     }
@@ -56,7 +58,7 @@ export class AuthService {
       // Create the User record linked to the new Tenant
       const user = await tx.users.create({
         data: {
-          email: dto.email,
+          email: normalizedEmail,
           password_hash,
           first_name: dto.first_name,
           last_name: dto.last_name,
@@ -71,7 +73,8 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.authRepo.findByEmail(this.systemCtx, dto.email);
+    const normalizedEmail = dto.email.toLowerCase();
+    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
 
     if (!user) {
       throw new UnauthorizedException("Invalid credentials");
@@ -123,12 +126,16 @@ export class AuthService {
   }
 
   async verifyEmail(email: string): Promise<boolean> {
-    const user = await this.authRepo.findByEmail(this.systemCtx, email);
+    const normalizedEmail = email?.toLowerCase();
+    if (!normalizedEmail) return false;
+    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
     return !!user;
   }
 
   async resetPasswordDirect(email: string, newPassword: string): Promise<void> {
-    const user = await this.authRepo.findByEmail(this.systemCtx, email);
+    const normalizedEmail = email?.toLowerCase();
+    if (!normalizedEmail) throw new UnauthorizedException("Invalid email");
+    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
     if (!user) {
       throw new UnauthorizedException("User not found");
     }

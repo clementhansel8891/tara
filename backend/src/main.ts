@@ -150,15 +150,15 @@ async function bootstrap() {
   console.log("╔════════════════════════════════════════════════════════╗");
   console.log("║                                                        ║");
   console.log(
-    process.env.RUNTIME === "docker"
-      ? "║   🚀 Zenvix Platform Backend - PRODUCTION_MODE        ║"
-      : "║   🚀 Zenvix Platform Backend - DEV_MOCK_MODE          ║",
+    process.env.PERSISTENCE_MODE === "db"
+      ? "║   🚀 Zenvix Platform Backend - DB_PERSISTENCE         ║"
+      : "║   🚀 Zenvix Platform Backend - MOCK_MODE              ║",
   );
   console.log("║                                                        ║");
   console.log("╠════════════════════════════════════════════════════════╣");
   console.log(`║   Server running on: http://localhost:${port}           ║`);
   console.log(
-    process.env.RUNTIME === "docker"
+    process.env.PERSISTENCE_MODE === "db"
       ? "║   Mode: Production (PostgreSQL Persistence)            ║"
       : "║   Mode: Development (Mock Repositories)                ║",
   );

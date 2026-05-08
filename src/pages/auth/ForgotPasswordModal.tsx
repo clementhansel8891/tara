@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogOverlay,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     if (!email) return;
     setIsLoading(true);
     try {
-      const response = await apiRequest<any>("/v1/auth/verify-email", "POST", { email });
+      const response = await apiRequest<any>("/v1/auth/verify-email", "POST", null, { email });
       if (response.exists) {
         setStep("RESET");
       } else {
@@ -75,7 +76,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
     setIsLoading(true);
     try {
-      await apiRequest<any>("/v1/auth/reset-password-direct", "POST", {
+      await apiRequest<any>("/v1/auth/reset-password-direct", "POST", null, {
         email,
         newPassword,
       });
@@ -101,28 +102,31 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogOverlay className="bg-slate-950/40 backdrop-blur-md" />
-      <DialogContent className="sm:max-w-[440px] bg-white border-none rounded-[2rem] shadow-2xl p-0 overflow-hidden">
+      <DialogOverlay className="bg-background/40 backdrop-blur-md" />
+      <DialogContent className="sm:max-w-[440px] glass-morphism border-white/20 dark:border-white/5 rounded-[2.5rem] shadow-2xl p-0 overflow-hidden">
         {/* Progress Bar */}
-        <div className="h-1.5 w-full bg-slate-100 flex">
-          <div className={`h-full bg-blue-600 transition-all duration-500 ${step === 'EMAIL' ? 'w-1/3' : step === 'RESET' ? 'w-2/3' : 'w-full'}`} />
+        <div className="h-1.5 w-full bg-muted flex">
+          <div className={`h-full bg-primary transition-all duration-500 ${step === 'EMAIL' ? 'w-1/3' : step === 'RESET' ? 'w-2/3' : 'w-full'}`} />
         </div>
 
         <div className="p-10 space-y-8">
-          <DialogHeader className="space-y-3">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-              step === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-blue-600/10 text-blue-600'
+          <DialogHeader className="space-y-4">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all shadow-xl ${
+              step === 'SUCCESS' ? 'bg-success/10 text-success shadow-success/20' : 'bg-primary/10 text-primary shadow-primary/20'
             }`}>
-              {step === 'EMAIL' && <Mail className="w-7 h-7" />}
-              {step === 'RESET' && <KeyRound className="w-7 h-7" />}
-              {step === 'SUCCESS' && <CheckCircle2 className="w-7 h-7" />}
+              {step === 'EMAIL' && <Mail className="w-8 h-8" />}
+              {step === 'RESET' && <KeyRound className="w-8 h-8" />}
+              {step === 'SUCCESS' && <CheckCircle2 className="w-8 h-8" />}
             </div>
-            <DialogTitle className="text-3xl font-black italic tracking-tighter uppercase text-slate-950 leading-none">
+            <DialogTitle className="text-3xl font-black italic tracking-tighter uppercase text-foreground leading-none">
               {step === 'EMAIL' && "Account Recovery"}
               {step === 'RESET' && "Secure Reset"}
               {step === 'SUCCESS' && "All Set!"}
             </DialogTitle>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+            <DialogDescription className="sr-only">
+              Forgot password recovery and reset flow.
+            </DialogDescription>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-relaxed ml-1 opacity-70">
               {step === 'EMAIL' && "Enter your work email to verify your identity."}
               {step === 'RESET' && "Establish a new secure credential for your workspace."}
               {step === 'SUCCESS' && "Your password has been updated successfully."}
@@ -132,21 +136,21 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           {step === 'EMAIL' && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-1">Work Email</label>
+                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">Work Email</label>
                 <div className="relative">
                   <Input
                     type="email"
                     placeholder="name@company.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-blue-500/20 focus-visible:border-blue-500 font-bold"
+                    className="h-14 px-5 bg-background/50 border-border rounded-2xl focus-visible:ring-primary/20 focus-visible:border-primary font-bold transition-all"
                   />
                 </div>
               </div>
               <Button
                 onClick={handleVerifyEmail}
                 disabled={isLoading || !email}
-                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black italic tracking-widest uppercase gap-3 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                className="w-full h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black italic tracking-widest uppercase gap-3 shadow-xl shadow-primary/20 active:scale-95 transition-all"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Continue <ChevronRight className="w-5 h-5" /></>}
               </Button>
@@ -157,30 +161,30 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
             <div className="space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-1">New Password</label>
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">New Password</label>
                   <Input
                     type="password"
                     placeholder="••••••••"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-blue-500/20 focus-visible:border-blue-500 font-bold"
+                    className="h-14 px-5 bg-background/50 border-border rounded-2xl focus-visible:ring-primary/20 focus-visible:border-primary font-bold transition-all"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] ml-1">Confirm Password</label>
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">Confirm Password</label>
                   <Input
                     type="password"
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-14 px-5 bg-slate-50 border-slate-100 rounded-xl focus-visible:ring-blue-500/20 focus-visible:border-blue-500 font-bold"
+                    className="h-14 px-5 bg-background/50 border-border rounded-2xl focus-visible:ring-primary/20 focus-visible:border-primary font-bold transition-all"
                   />
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex gap-3">
-                <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
-                <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
+              <div className="p-4 rounded-2xl bg-warning/10 border border-warning/20 flex gap-3">
+                <ShieldAlert className="w-5 h-5 text-warning shrink-0" />
+                <p className="text-[10px] font-black text-warning leading-relaxed uppercase tracking-tight opacity-90">
                   Choose a strong password to protect your corporate identity and access.
                 </p>
               </div>
@@ -188,7 +192,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <Button
                 onClick={handleResetPassword}
                 disabled={isLoading || !newPassword || !confirmPassword}
-                className="w-full h-14 bg-slate-950 hover:bg-slate-900 text-white rounded-xl font-black italic tracking-widest uppercase gap-3 shadow-xl active:scale-95 transition-all"
+                className="w-full h-14 bg-foreground text-background hover:bg-foreground/90 rounded-2xl font-black italic tracking-widest uppercase gap-3 shadow-xl active:scale-95 transition-all"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}
               </Button>
@@ -198,18 +202,18 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           {step === 'SUCCESS' && (
             <div className="space-y-8 animate-in fade-in zoom-in duration-300">
               <div className="flex flex-col items-center gap-4 py-4 text-center">
-                <div className="p-4 bg-emerald-50 text-emerald-500 rounded-full animate-pulse">
-                  <CheckCircle2 className="w-12 h-12" />
+                <div className="p-5 bg-success/10 text-success rounded-3xl animate-pulse">
+                  <CheckCircle2 className="w-14 h-14" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black italic tracking-tighter text-slate-950 uppercase">Update Confirmed</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Identity Access Restored</p>
+                  <h3 className="text-2xl font-black italic tracking-tighter text-foreground uppercase">Update Confirmed</h3>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-2">Identity Access Restored</p>
                 </div>
               </div>
 
               <Button
                 onClick={handleClose}
-                className="w-full h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black italic tracking-widest uppercase shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+                className="w-full h-14 bg-success hover:bg-success/90 text-success-foreground rounded-2xl font-black italic tracking-widest uppercase shadow-xl shadow-success/20 active:scale-95 transition-all"
               >
                 Back to Login
               </Button>
@@ -219,7 +223,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           <div className="pt-4 text-center">
             <button
               onClick={handleClose}
-              className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 tracking-widest transition-colors"
+              className="text-[10px] font-black uppercase text-muted-foreground hover:text-foreground tracking-widest transition-colors"
             >
               Cancel and Return
             </button>

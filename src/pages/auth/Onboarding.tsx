@@ -115,46 +115,45 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Decorative backdrop */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl opacity-40 blur-[100px] pointer-events-none -z-10">
-        <div className="aspect-[2/1] bg-gradient-to-tr from-blue-200 via-indigo-200 to-purple-200 rounded-full" />
-      </div>
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl z-10">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 tracking-tight">
-          Set up your workspace
+      <div className="sm:mx-auto sm:w-full sm:max-w-xl z-10 px-4">
+        <h2 className="text-center text-4xl font-black italic tracking-tighter text-foreground uppercase leading-none">
+          Initialize Workspace
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 max-w-sm mx-auto">
-          We'll provision a dedicated cloud environment tailored to your
-          operation structure.
+        <p className="mt-4 text-center text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] max-w-xs mx-auto leading-relaxed">
+          Provisioning a dedicated cloud environment tailored to your operation structure.
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl z-10">
-        <div className="bg-white/80 backdrop-blur-md py-8 px-4 shadow-xl shadow-gray-200/50 sm:rounded-2xl sm:px-10 border border-gray-100/50 transition-all duration-300">
+      <div className="mt-12 sm:mx-auto sm:w-full sm:max-w-xl z-10 px-4">
+        <div className="glass-morphism rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-white/5 overflow-hidden p-1 transition-all duration-500">
+          <div className="bg-background/40 backdrop-blur-md rounded-[2.1rem] py-10 px-6 sm:px-12">
           {/* Progress Indicator */}
-          <div className="mb-8">
-            <div className="overflow-hidden rounded-full bg-gray-200">
+          <div className="mb-10">
+            <div className="overflow-hidden h-1.5 rounded-full bg-muted shadow-inner">
               <div
-                className="h-2 rounded-full bg-indigo-600 transition-all duration-500"
+                className="h-full rounded-full bg-primary transition-all duration-700 ease-out shadow-[0_0_15px_rgba(var(--primary),0.5)]"
                 style={{ width: `${(step / 2) * 100}%` }}
               />
             </div>
-            <div className="hidden sm:grid grid-cols-2 text-xs font-medium text-gray-500 mt-2 text-center">
-              <span className={step >= 1 ? "text-indigo-600" : ""}>
-                Company Details
+            <div className="grid grid-cols-2 text-[10px] font-black uppercase tracking-[0.2em] mt-3 text-center">
+              <span className={step >= 1 ? "text-primary" : "text-muted-foreground opacity-50"}>
+                Identity
               </span>
-              <span className={step >= 2 ? "text-indigo-600" : ""}>
+              <span className={step >= 2 ? "text-primary" : "text-muted-foreground opacity-50"}>
                 Provisioning
               </span>
             </div>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm rounded flex items-start">
+            <div className="mb-8 p-4 bg-destructive/10 border-l-4 border-destructive text-destructive text-xs font-bold uppercase tracking-widest rounded-r-xl flex items-center animate-in fade-in zoom-in duration-300">
               <svg
-                className="w-5 h-5 mr-3 flex-shrink-0 text-red-500"
+                className="w-5 h-5 mr-3 flex-shrink-0"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -169,17 +168,17 @@ export default function Onboarding() {
           )}
 
           {step === 1 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
                   Company Name
                 </label>
-                <div className="mt-1">
+                <div className="relative">
                   <input
                     type="text"
                     required
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-shadow"
-                    placeholder="Acme Corporation"
+                    className="block w-full px-5 py-4 rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-bold"
+                    placeholder="e.g. Zenvix Corp"
                     value={formData.name}
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
@@ -188,15 +187,15 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
                   Office / HQ Address
                 </label>
-                <div className="mt-1">
+                <div className="relative">
                   <textarea
                     required
                     rows={3}
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-shadow"
+                    className="block w-full px-5 py-4 rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-bold resize-none"
                     placeholder="Enter full physical address"
                     value={formData.address}
                     onChange={(e) =>
@@ -207,30 +206,30 @@ export default function Onboarding() {
               </div>
 
               {/* Geospatial Geofence Section */}
-              <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 space-y-4">
+              <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10 space-y-6 shadow-inner">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
+                  <label className="text-[10px] font-black uppercase text-primary tracking-[0.2em] flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     Geospatial Anchoring
                   </label>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-indigo-600 text-white rounded-full uppercase tracking-wider">
+                  <span className="text-[9px] font-black px-3 py-1 bg-primary text-primary-foreground rounded-full uppercase tracking-widest shadow-lg shadow-primary/20">
                     HQ Geofence
                   </span>
                 </div>
 
                 {/* Location Search — powered by Nominatim (OpenStreetMap, free) */}
-                <div ref={searchRef} className="relative">
-                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">
+                <div ref={searchRef} className="relative space-y-2">
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1 opacity-70">
                     Search Location
                   </label>
-                  <div className="relative">
+                  <div className="relative group">
                     <input
                       type="text"
-                      className="block w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
-                      placeholder="Search area, city, address…"
+                      className="block w-full pl-12 pr-12 py-4 rounded-2xl border border-border bg-background/80 backdrop-blur-sm shadow-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-bold"
+                      placeholder="Search area, address…"
                       value={locationQuery}
                       onChange={(e) => {
                         setLocationSelected(false);
@@ -239,19 +238,19 @@ export default function Onboarding() {
                       autoComplete="off"
                     />
                     {/* Search icon */}
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     {/* Loading spinner / clear */}
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
                       {locationLoading ? (
-                        <svg className="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                       ) : locationQuery ? (
                         <button type="button" onClick={() => { setLocationQuery(""); setFormData(p => ({ ...p, latitude: 0, longitude: 0 })); setLocationSelected(false); }}>
-                          <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -261,46 +260,47 @@ export default function Onboarding() {
 
                   {/* Dropdown results */}
                   {showDropdown && locationResults.length > 0 && (
-                    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-56 overflow-y-auto">
+                    <div className="absolute z-50 mt-3 w-full glass-morphism rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden animate-in fade-in zoom-in duration-200">
                       {(Array.isArray(locationResults) ? locationResults : []).map((r) => (
                         <button
                           key={r.place_id}
                           type="button"
-                          className="w-full px-4 py-2.5 text-left hover:bg-indigo-50 transition-colors border-b border-gray-100 last:border-0"
+                          className="w-full px-5 py-4 text-left hover:bg-primary/10 transition-colors border-b border-border/50 last:border-0"
                           onClick={() => handleSelectLocation(r)}
                         >
-                          <div className="flex items-start gap-2">
-                            <svg className="w-4 h-4 text-indigo-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="flex items-start gap-3">
+                            <svg className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             </svg>
-                            <span className="text-xs text-gray-700 leading-snug line-clamp-2">{r.display_name}</span>
+                            <span className="text-xs font-bold text-foreground leading-relaxed line-clamp-2 uppercase tracking-tight">{r.display_name}</span>
                           </div>
                         </button>
                       ))}
-                      <div className="px-4 py-1.5 bg-gray-50 border-t border-gray-100">
-                        <span className="text-[10px] text-gray-400">Powered by OpenStreetMap · Free</span>
+                      <div className="px-5 py-2 bg-muted/30 border-t border-border/50 flex justify-between items-center">
+                        <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Public Geospatial Index</span>
+                        <span className="text-[9px] font-black uppercase text-primary tracking-widest opacity-50">OSM Powered</span>
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Coordinates display (read-only after selection, editable fallback) */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">Latitude</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1 opacity-70">Latitude</label>
                     <input
                       type="number" step="any"
-                      className={`block w-full px-3 py-2 border rounded-lg text-sm transition-colors ${locationSelected ? "bg-indigo-50 border-indigo-200 text-indigo-800 font-medium" : "border-gray-200"}`}
+                      className={`block w-full px-4 py-3 rounded-xl border text-sm transition-all duration-300 font-bold ${locationSelected ? "bg-primary/10 border-primary/20 text-primary" : "bg-background/50 border-border text-foreground"}`}
                       placeholder="0.0000"
                       value={formData.latitude || ""}
                       onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1">Longitude</label>
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1 opacity-70">Longitude</label>
                     <input
                       type="number" step="any"
-                      className={`block w-full px-3 py-2 border rounded-lg text-sm transition-colors ${locationSelected ? "bg-indigo-50 border-indigo-200 text-indigo-800 font-medium" : "border-gray-200"}`}
+                      className={`block w-full px-4 py-3 rounded-xl border text-sm transition-all duration-300 font-bold ${locationSelected ? "bg-primary/10 border-primary/20 text-primary" : "bg-background/50 border-border text-foreground"}`}
                       placeholder="0.0000"
                       value={formData.longitude || ""}
                       onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
@@ -310,40 +310,40 @@ export default function Onboarding() {
 
                 {/* Confirmation badge after selection */}
                 {locationSelected && formData.latitude !== 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
-                    <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="flex items-center gap-3 px-5 py-3 bg-success/10 border border-success/20 rounded-2xl animate-in zoom-in duration-300 shadow-lg shadow-success/5">
+                    <svg className="w-5 h-5 text-success flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-xs text-green-700 font-medium">
+                    <span className="text-[10px] text-success font-black uppercase tracking-widest">
                       Pinned: {formData.latitude.toFixed(5)}, {formData.longitude.toFixed(5)}
                     </span>
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 uppercase tracking-tight mb-1 flex justify-between">
+                <div className="space-y-4">
+                  <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1 flex justify-between">
                     <span>Geofence Radius</span>
-                    <span className="text-indigo-600 font-bold">{formData.geofence_radius}m</span>
+                    <span className="text-primary font-black italic">{formData.geofence_radius}m</span>
                   </label>
                   <input
                     type="range"
                     min="50"
                     max="1000"
                     step="50"
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                    className="w-full h-1.5 bg-muted rounded-full appearance-none cursor-pointer accent-primary shadow-inner"
                     value={formData.geofence_radius}
                     onChange={(e) => setFormData({ ...formData, geofence_radius: parseInt(e.target.value) })}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
                   Industry
                 </label>
-                <div className="mt-1">
+                <div className="relative">
                   <select
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                    className="block w-full px-5 py-4 rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-bold appearance-none cursor-pointer"
                     value={formData.industry}
                     onChange={(e) =>
                       setFormData({ ...formData, industry: e.target.value })
@@ -359,16 +359,21 @@ export default function Onboarding() {
                     <option value="education">Education & Training</option>
                     <option value="finance">Financial Services</option>
                   </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                    <svg className="w-4 h-4 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
                   Operation Region
                 </label>
-                <div className="mt-1">
+                <div className="relative">
                   <select
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white"
+                    className="block w-full px-5 py-4 rounded-2xl border border-border bg-background/50 backdrop-blur-sm shadow-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-300 font-bold appearance-none cursor-pointer"
                     value={formData.country}
                     onChange={(e) =>
                       setFormData({ ...formData, country: e.target.value })
@@ -380,49 +385,55 @@ export default function Onboarding() {
                       </option>
                     ))}
                   </select>
-
-                  {/* Live Currency Preview */}
-                  {selectedCountry && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100/50">
-                      <span className="text-sm font-medium text-indigo-900">
-                        {selectedCountry.flag} {selectedCountry.name}
-                      </span>
-                      <span className="text-indigo-300">•</span>
-                      <span className="text-sm font-bold text-indigo-700">
-                        {selectedCountry.currency}
-                      </span>
-                      <span className="text-xs font-medium text-indigo-600/80">
-                        — {selectedCountry.currencyName} (
-                        {selectedCountry.symbol})
-                      </span>
-                    </div>
-                  )}
-
-                  <p className="mt-2 text-xs text-gray-500">
-                    Your regional selection configures compliance datasets (e.g.
-                    initial tax rates). You can override these freely later.
-                  </p>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+                    <svg className="w-4 h-4 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
+
+                {/* Live Currency Preview */}
+                {selectedCountry && (
+                  <div className="mt-4 inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm">
+                    <span className="text-sm font-black text-foreground">
+                      {selectedCountry.flag} {selectedCountry.name}
+                    </span>
+                    <span className="text-muted-foreground/30">•</span>
+                    <span className="text-sm font-black italic text-primary uppercase tracking-wider">
+                      {selectedCountry.currency}
+                    </span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
+                      — {selectedCountry.symbol}
+                    </span>
+                  </div>
+                )}
+
+                <p className="mt-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50 leading-relaxed ml-1">
+                  Initial compliance configuration derived from regional selection.
+                </p>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-6">
                 <button
                   type="button"
                   disabled={!formData.name || !formData.address}
                   onClick={() => setStep(2)}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black italic uppercase tracking-[0.15em] py-5 rounded-2xl shadow-2xl shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
                 >
-                  Continue
+                  <span>Initialization Protocol</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
                 </button>
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-6 text-center animate-in fade-in slide-in-from-right-4 py-4">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-indigo-100 mb-6">
+            <div className="space-y-10 text-center animate-in fade-in slide-in-from-right-8 duration-500 py-4">
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-[2rem] bg-primary/10 text-primary shadow-xl shadow-primary/10 mb-8 group transition-transform duration-500 hover:scale-110">
                 <svg
-                  className="h-8 w-8 text-indigo-600"
+                  className="h-10 w-10 group-hover:rotate-12 transition-transform duration-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -436,89 +447,73 @@ export default function Onboarding() {
                 </svg>
               </div>
 
-              <h3 className="text-xl leading-6 font-medium text-gray-900 mb-2">
-                Ready to Provision
-              </h3>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black italic tracking-tighter text-foreground uppercase leading-tight">
+                  Finalizing Parameters
+                </h3>
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">
+                  Verify your partition configuration before deployment.
+                </p>
+              </div>
 
-              <div className="bg-gray-50 rounded-lg p-5 text-left text-sm mb-6 border border-gray-100">
-                <div className="grid grid-cols-3 gap-y-3">
-                  <div className="text-gray-500">Company Name</div>
-                  <div className="col-span-2 font-medium text-gray-900">
+              <div className="bg-muted/30 rounded-[2rem] p-8 text-left text-xs space-y-4 border border-border/50 shadow-inner">
+                <div className="grid grid-cols-3 gap-y-4 items-center">
+                  <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">ID Entity</div>
+                  <div className="col-span-2 font-black text-foreground uppercase tracking-tight">
                     {formData.name}
                   </div>
 
-                  <div className="text-gray-500">Industry Profile</div>
-                  <div className="col-span-2 font-medium text-gray-900 uppercase">
+                  <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Industry</div>
+                  <div className="col-span-2 font-black text-primary uppercase tracking-wider italic">
                     {formData.industry}
                   </div>
 
-                  <div className="text-gray-500">Regulatory Baseline</div>
-                  <div className="col-span-2 font-medium text-gray-900">
-                    {selectedCountry?.flag} {selectedCountry?.name}
-                  </div>
-
-                  <div className="text-gray-500">HQ Address</div>
-                  <div className="col-span-2 font-medium text-gray-900 line-clamp-2">
-                    {formData.address}
-                  </div>
-
-                  <div className="text-gray-500">Coordinates</div>
-                  <div className="col-span-2 font-medium text-gray-900">
+                  <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Geo Anchor</div>
+                  <div className="col-span-2 font-black text-foreground uppercase tracking-tight truncate">
                     {formData.latitude}, {formData.longitude}
                   </div>
 
-                  <div className="text-gray-500">Fence Radius</div>
-                  <div className="col-span-2 font-medium text-indigo-600 font-bold">
-                    {formData.geofence_radius}m
+                  <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Compliance</div>
+                  <div className="col-span-2 font-black text-foreground uppercase tracking-tight">
+                    {selectedCountry?.flag} {selectedCountry?.name}
                   </div>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-500 mb-6">
-                Clicking provision creates your isolated tenant partition and
-                wires up the initial executive organization structure.
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50 leading-relaxed max-w-sm mx-auto">
+                Initialization creates your isolated tenant partition and wires up the initial executive organization structure.
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
                   disabled={loading}
-                  className="w-1/3 flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  className="w-1/3 py-5 rounded-2xl font-black italic uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all border border-border/50"
                 >
-                  Back
+                  Modify
                 </button>
                 <button
                   type="button"
                   onClick={handleProvision}
                   disabled={loading}
-                  className="w-2/3 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
+                  className="w-2/3 bg-primary hover:bg-primary/90 text-primary-foreground font-black italic uppercase tracking-[0.15em] py-5 rounded-2xl shadow-2xl shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
                 >
                   {loading ? (
                     <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
+                      <svg className="animate-spin h-5 w-5 text-primary-foreground" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Creating Workspace...
+                      <span>Deploying...</span>
                     </>
                   ) : (
-                    "Provision Environment"
+                    <>
+                      <span>Provision Cloud</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </>
                   )}
                 </button>
               </div>
