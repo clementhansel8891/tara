@@ -904,7 +904,7 @@ export class InventoryService {
   }
 
   async batchCreateItems(ctx: TenantContext,
-    data: CreateItemDto[],
+    data: any[],
     user_id?: string,
   ) {
     // Phase 1: Process each item for auto-generation
