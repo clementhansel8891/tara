@@ -68,7 +68,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     // Valuation logic would need product cost, using base_price for now
     const products = await this.prisma.item_masters.findMany({
       where: {
-        ...scope,
+        ...baseScope,
         id: { in: stockLevels.map((s: StockLevel) => s.product_id) },
       },
     });
@@ -82,20 +82,20 @@ export class InventoryDbRepository implements IInventoryRepository {
     );
 
     const pendingAdjustments = await this.prisma.inventory_adjustments.count({
-      where: { ...scope, status: "PENDING_APPROVAL" },
+      where: { ...baseScope, status: "PENDING_APPROVAL" },
     });
 
     // Placeholder checks for now
     const lowStockCount = await this.prisma.inventory_alerts.count({
-      where: { ...scope, type: "LOW_STOCK", status: "OPEN" },
+      where: { ...baseScope, type: "LOW_STOCK", status: "OPEN" },
     });
     const expiryWarningCount = await this.prisma.inventory_alerts.count({
-      where: { ...scope, type: "EXPIRY_WARNING", status: "OPEN" },
+      where: { ...baseScope, type: "EXPIRY_WARNING", status: "OPEN" },
     });
 
     const pendingReceiptSyncs = await this.prisma.procurement_final_pos.count({
       where: {
-        ...scope,
+        ...baseScope,
         status: { in: ["RELEASED", "APPROVED", "DELIVERED"] },
       },
     });
