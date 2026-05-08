@@ -59,17 +59,17 @@ export class InventoryMockRepository extends IInventoryRepository {
     ];
   }
 
-  async getDashboard(ctx: TenantContext): Promise<InventoryDashboard> {
+  async getDashboard(ctx: TenantContext, location_id?: string): Promise<InventoryDashboard> {
     return {
-      totalItems: this.items.length,
-      totalLocations: 5,
-      totalDepartments: 3,
-      totalOnHandQty: 1000,
-      totalValuation: 50000,
-      lowStockCount: 2,
-      expiryWarningCount: 0,
-      pendingAdjustments: 1,
-      pendingReceiptSyncs: 0,
+      total_items: this.items.length,
+      total_locations: 5,
+      total_departments: 3,
+      total_on_hand_qty: 1000,
+      total_valuation: 50000,
+      low_stock_count: 2,
+      expiry_warning_count: 0,
+      pending_adjustments: 1,
+      pending_receipt_syncs: 0,
     };
   }
 
