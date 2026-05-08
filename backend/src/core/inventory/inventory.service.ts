@@ -19,6 +19,7 @@ import * as fsPromises from "fs/promises";
 import { ItemImageService } from "./item-image.service";
 import { ImportItemDto } from "./dto/import-item.dto";
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
+import * as ExcelJS from "exceljs";
 
 @Injectable()
 export class InventoryService {
