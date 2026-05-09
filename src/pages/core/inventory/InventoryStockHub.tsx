@@ -161,8 +161,8 @@ export default function InventoryStockHub() {
       setGlobalStats(statsResponse);
       
       // 3. Set Total Count for pagination
-      if (Array.isArray(itemResponse) && (itemResponse as any).meta) {
-        setTotalCount((itemResponse as any).meta.total || 0);
+      if (response && response.meta) {
+        setTotalCount(response.meta.total || 0);
       } else if (statsResponse) {
         setTotalCount(statsResponse.totalItems || 0);
       }
