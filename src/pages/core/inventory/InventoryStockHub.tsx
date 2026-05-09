@@ -57,13 +57,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ImportDialog } from "@/components/shared/ImportDialog";
 import { ExportSettingsDialog as ExportDialog } from "@/components/shared/ExportSettingsDialog";
 import { CategoryManager as CategoryDialog } from "@/components/shared/CategoryManager";
-import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
-import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
-// Stubs for missing components (to be restored/fixed later)
-const ItemDetailsModal = (props: any) => null;
-const CreateItemDialog = (props: any) => null;
+import { InventoryFilterHub } from "@/components/shared/InventoryFilterHub";
+import { InventoryAnalyticsDialog } from "./components/InventoryAnalyticsDialog";
+import { ItemDetailsModal } from "./components/ItemDetailsModal";
+import { CreateItemDialog } from "./components/CreateItemDialog";
 
 const SECTIONS = [
   {
@@ -109,7 +106,10 @@ export default function InventoryStockHub() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("all");
+   const [activeCategory, setActiveCategory] = useState("all");
+  const [activeLocation, setActiveLocation] = useState("all");
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+  const [locations, setLocations] = useState<{id: string, name: string}[]>([]);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -120,16 +120,24 @@ export default function InventoryStockHub() {
   const [isImageImportOpen, setIsImageImportOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const data = await apiRequest<any[]>("/inventory/product-categories", "GET", session);
+      setCategories(data || []);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    }
+  }, [session]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       // 1. Fetch Paginated Items (with backend filtering)
-      const itemUrl = `/inventory/items?page=${page}&limit=30${search ? `&search=${encodeURIComponent(search)}` : ''}${activeCategory !== 'all' ? `&category_id=${activeCategory}` : ''}`;
+      const itemUrl = `/inventory/items?page=${page}&limit=30${search ? `&search=${encodeURIComponent(search)}` : ''}${activeCategory !== 'all' ? `&category_id=${activeCategory}` : ''}${activeLocation !== 'all' ? `&location_id=${activeLocation}` : ''}`;
       const itemResponse = await apiRequest<any>(itemUrl, "GET", session);
       
-      // apiRequest unwraps .data, but if it has .meta, it attaches it.
-      // Based on our check, items will be the array.
       setItems(itemResponse || []);
       
       // 2. Fetch Global Dashboard Stats (for KPI cards)
@@ -137,7 +145,6 @@ export default function InventoryStockHub() {
       setGlobalStats(statsResponse);
       
       // 3. Set Total Count for pagination
-      // If apiRequest attached meta to the array:
       if (Array.isArray(itemResponse) && (itemResponse as any).meta) {
         setTotalCount((itemResponse as any).meta.total || 0);
       } else if (statsResponse) {
@@ -152,20 +159,31 @@ export default function InventoryStockHub() {
     } finally {
       setLoading(false);
     }
-  }, [session, page, search, activeCategory]);
+  }, [session, page, search, activeCategory, activeLocation]);
+
+  const fetchLocations = useCallback(async () => {
+    try {
+      const data = await apiRequest<any>("/hr/locations", "GET", session);
+      const locList = Array.isArray(data) ? data : (data as any)?.data || [];
+      setLocations(locList);
+    } catch (error) {
+      console.error("Failed to fetch locations", error);
+    }
+  }, [session]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchCategories();
+    fetchLocations();
+  }, [fetchData, fetchCategories, fetchLocations]);
 
-  // We now use backend-side filtering, so filteredItems is just the items from the current page
   const filteredItems = items;
 
   const stats = useMemo(() => {
     return {
       totalItems: globalStats?.totalItems ?? totalCount ?? 0,
       lowStock: globalStats?.lowStockCount ?? 0,
-      outOfStock: items.filter(i => i.currentStock === 0).length, // Local out of stock for current page is not great, but dashboard doesn't provide it clearly yet.
+      outOfStock: items.filter(i => i.currentStock === 0).length,
       totalValue: globalStats?.totalValuation ?? 0
     };
   }, [globalStats, totalCount, items]);
@@ -259,24 +277,26 @@ export default function InventoryStockHub() {
       </div>
 
       <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[3rem] overflow-hidden">
-        <div className="p-8 border-b flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="relative flex-1 w-full max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search by SKU, Name or Category..."
-              className="pl-12 h-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-200 text-xs font-black uppercase tracking-widest hover:bg-slate-50">
-              <ListFilter className="h-4 w-4 mr-2" /> Filter
-            </Button>
-            <Button variant="outline" className="h-14 px-6 rounded-2xl border-slate-200 text-xs font-black uppercase tracking-widest hover:bg-slate-50">
-              <BarChart2 className="h-4 w-4 mr-2" /> Analytics
-            </Button>
-          </div>
+        <div className="p-8 border-b">
+          <InventoryFilterHub 
+            search={search}
+            onSearchChange={setSearch}
+            category={activeCategory}
+            onCategoryChange={setActiveCategory}
+            categories={categories}
+            location={activeLocation}
+            onLocationChange={setActiveLocation}
+            locations={locations}
+            advancedActions={
+              <Button 
+                onClick={() => setIsAnalyticsOpen(true)}
+                variant="outline" 
+                className="h-14 px-6 rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md text-xs font-black uppercase tracking-widest hover:bg-slate-800 text-slate-400"
+              >
+                <BarChart2 className="h-4 w-4 mr-2" /> Analytics
+              </Button>
+            }
+          />
         </div>
 
         <CardContent className="p-0">
@@ -466,6 +486,12 @@ export default function InventoryStockHub() {
         open={isCategoryOpen}
         onOpenChange={setIsCategoryOpen}
         onSuccess={fetchData}
+      />
+
+      <InventoryAnalyticsDialog 
+        open={isAnalyticsOpen}
+        onOpenChange={setIsAnalyticsOpen}
+        stats={globalStats}
       />
     </div>
   );

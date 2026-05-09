@@ -840,9 +840,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-  async batchCreateItems(ctx: TenantContext,
-    data: any[],
-  ): Promise<InventoryItem[]> {
+  async batchCreateItems(ctx: TenantContext, data: any[]): Promise<InventoryItem[]> {
     return this.prisma.$transaction(async (tx) => {
       const results: InventoryItem[] = [];
       const scope = MultiTenancyUtil.getScope(ctx);
@@ -859,13 +857,37 @@ export class InventoryDbRepository implements IInventoryRepository {
               id: uuidv4(),
               updated_at: new Date(),
               ...scope,
-              name: itemData.category 
+              name: itemData.category,
             },
           });
         }
 
-        const product = await tx.item_masters.create({
-          data: {
+        const product = await tx.item_masters.upsert({
+          where: {
+            tenant_id_sku: {
+              tenant_id: ctx.tenant_id,
+              sku: itemData.sku,
+            },
+          },
+          update: {
+            updated_at: new Date(),
+            category_id: category.id,
+            name: itemData.name,
+            barcode: itemData.barcode || itemData.sku,
+            description: itemData.description ?? null,
+            unit: itemData.uom || itemData.unit || "pcs",
+            base_price: itemData.base_price ?? 0,
+            tax_rate: itemData.taxRate ?? 0.11,
+            module_tags: itemData.moduleTags ?? [],
+            status: itemData.status || "active",
+            department_id: itemData.departmentId || null,
+            selling_price: itemData.selling_price ?? 0,
+            discount_rate: itemData.discount_rate ?? 0,
+            discount_type: itemData.discount_type || "percentage",
+            pricing_tiers: itemData.pricing_tiers ? (typeof itemData.pricing_tiers === 'string' ? JSON.parse(itemData.pricing_tiers) : itemData.pricing_tiers) : null,
+            metadata: itemData.metadata ? (typeof itemData.metadata === 'string' ? JSON.parse(itemData.metadata) : itemData.metadata) : null,
+          },
+          create: {
             id: uuidv4(),
             updated_at: new Date(),
             ...scope,
@@ -890,7 +912,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         });
 
         // Handle initial quantity if provided
-        if (itemData.quantity && Number(itemData.quantity) > 0) {
+        if (itemData.quantity !== undefined && itemData.quantity !== null) {
           let locationId = itemData.locationId;
           
           if (!locationId && itemData.location) {
@@ -903,8 +925,21 @@ export class InventoryDbRepository implements IInventoryRepository {
           }
 
           if (locationId) {
-            await tx.stock_levels.create({
-              data: {
+            await tx.stock_levels.upsert({
+              where: {
+                tenant_id_location_id_product_id_department_id: {
+                  tenant_id: ctx.tenant_id,
+                  location_id: locationId,
+                  product_id: product.id,
+                  department_id: itemData.departmentId || null,
+                }
+              },
+              update: {
+                on_hand: Number(itemData.quantity),
+                available: Number(itemData.quantity),
+                updated_at: new Date(),
+              },
+              create: {
                 id: uuidv4(),
                 ...scope,
                 location_id: locationId,
@@ -915,7 +950,6 @@ export class InventoryDbRepository implements IInventoryRepository {
               },
             });
           }
-
         }
 
         results.push({
@@ -938,14 +972,13 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
-
   async getNextSequence(ctx: TenantContext, category: string): Promise<number> {
-        const count = await this.prisma.item_masters.count({
-          where: {
-            ...MultiTenancyUtil.getScope(ctx),
-            product_categories: { name: category },
-          },
-        });
+    const count = await this.prisma.item_masters.count({
+      where: {
+        ...MultiTenancyUtil.getScope(ctx),
+        product_categories: { name: category },
+      },
+    });
     return count + 1;
   }
 
@@ -964,11 +997,11 @@ export class InventoryDbRepository implements IInventoryRepository {
       tenant_id: product.tenant_id,
       sku: product.sku,
       name: product.name,
-      category: (product as any).productCategory.name as any,
+      category: product.product_categories.name as any,
       uom: product.unit,
       barcode: product.barcode,
       qr_code: product.barcode,
-      module_tags: (product as any).module_tags || [],
+      module_tags: product.module_tags || [],
       active: product.status === "active",
       created_at: product.created_at,
       updated_at: product.updated_at,
@@ -986,11 +1019,11 @@ export class InventoryDbRepository implements IInventoryRepository {
       tenant_id: p.tenant_id,
       sku: p.sku,
       name: p.name,
-      category: p.productCategory.name as any,
+      category: p.product_categories.name as any,
       uom: p.unit,
       barcode: p.barcode,
       qr_code: p.barcode,
-      module_tags: (p as any).module_tags || [],
+      module_tags: p.module_tags || [],
       active: false,
       created_at: p.created_at,
       updated_at: p.updated_at,
@@ -1042,11 +1075,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     return product?.sku || null;
   }
 
-
-
-
   // --- Financial-Grade Hardening ---
-
 
   async reserveStock(ctx: TenantContext,
     product_id: string,
@@ -1729,4 +1758,3 @@ export class InventoryDbRepository implements IInventoryRepository {
     }));
   }
 }
-
