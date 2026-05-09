@@ -267,6 +267,7 @@ model tenants {
   user_companies                         user_companies[]
   user_notification_preferences          user_notification_preferences[]
   workflow_audit_entries                 workflow_audit_entries[]
+  inventory_units                        inventory_units[]
   workflow_definitions                   workflow_definitions[]
   workflow_instances                     workflow_instances[]
   workflow_requests                      workflow_requests[]
@@ -3556,6 +3557,7 @@ model item_masters {
   bin_assignments             bin_assignments[]
   item_images                 item_images[]
   retail_channel_products     retail_channel_products[]
+  inventory_units             inventory_units[]
 
   @@unique([tenant_id, barcode])
   @@unique([tenant_id, sku])
@@ -3717,6 +3719,7 @@ model locations {
   tenants                                                     tenants                 @relation(fields: [tenant_id], references: [id])
   warehouse_bins                                              warehouse_bins[]
   sales_incentive_plans                                       sales_incentive_plans[]
+  inventory_units                                             inventory_units[]
 
   @@unique([tenant_id, code])
   @@index([tenant_id])
@@ -7286,4 +7289,24 @@ model export_audit_trail {
   @@index([tenant_id])
   @@index([user_id])
   @@index([forensic_code])
+}
+
+model inventory_units {
+  id              String       @id // Unique Barcode / Serial Number
+  tenant_id       String
+  company_id      String?
+  location_id     String?
+  product_id      String
+  status          String       @default("AVAILABLE") // AVAILABLE, SOLD, RESERVED, IN_TRANSIT, DAMAGED
+  metadata        Json?        // individual history, warranty, etc.
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
+
+  item_masters    item_masters @relation(fields: [product_id], references: [id])
+  tenants         tenants      @relation(fields: [tenant_id], references: [id])
+  locations       locations?   @relation(fields: [location_id], references: [id])
+
+  @@index([product_id])
+  @@index([tenant_id])
+  @@index([location_id])
 }

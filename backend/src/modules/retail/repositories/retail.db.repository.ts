@@ -2046,11 +2046,49 @@ export class RetailDbRepository implements IRetailRepository {
       let totalCounted = 0;
 
       for (const adj of data.adjustments) {
+        // Hybrid Logic: Check if this is a Unit Barcode or a SKU Barcode
+        // In the scanner, if Serialization Mode is ON, adj.serial_number will be provided.
+        
+        let productId = adj.product_id;
+        
+        // If a serial number is provided, ensure the unit record exists
+        if (adj.serial_number) {
+          const existingUnit = await tx.inventory_units.findUnique({
+            where: { id: adj.serial_number },
+          });
+
+          if (!existingUnit) {
+            // Register new unique instance for this SKU
+            await tx.inventory_units.create({
+              data: {
+                id: adj.serial_number,
+                tenant_id: ctx.tenant_id,
+                company_id: store.company_id,
+                location_id: store.location_id,
+                product_id: productId,
+                status: "AVAILABLE",
+                metadata: { source: "OPNAME_INITIAL_TAGGING", date: new Date() },
+              }
+            });
+          } else {
+            // Update existing unit location and status
+            await tx.inventory_units.update({
+              where: { id: adj.serial_number },
+              data: { 
+                location_id: store.location_id,
+                status: "AVAILABLE",
+                updated_at: new Date(),
+              }
+            });
+            productId = existingUnit.product_id;
+          }
+        }
+
         const stock = await tx.stock_levels.findUnique({
           where: {
             location_id_product_id_department_id: {
               location_id: store.location_id,
-              product_id: adj.product_id,
+              product_id: productId,
               department_id: "DEFAULT",
             },
           },
@@ -2076,7 +2114,7 @@ export class RetailDbRepository implements IRetailRepository {
               updated_at: new Date(),
               ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
               location_id: store.location_id,
-              product_id: adj.product_id,
+              product_id: productId,
               department_id: "DEFAULT",
               on_hand: adj.actualCount,
               available: adj.actualCount,
@@ -2091,11 +2129,13 @@ export class RetailDbRepository implements IRetailRepository {
             id: uuidv4(),
             updated_at: new Date(),
             ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
-            product_id: adj.product_id,
+            product_id: productId,
             to_location_id: store.location_id,
             quantity: adj.actualCount - currentOnHand,
             type: "STOCK_OPNAME",
             referenceId: data.shift_id || "OPNAME",
+            reference_type: adj.serial_number ? "UNIT_SCAN" : "BULK_SCAN",
+            metadata: adj.serial_number ? { serial_number: adj.serial_number } : null,
             performedBy: "system",
           },
         });

@@ -23,6 +23,15 @@ import { Separator } from "@/components/ui/separator";
 import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import { useRetail } from "../context/RetailContext";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { RetailShift, RetailProduct } from "@/core/types/retail/retail";
 
 interface ScanEntry {
@@ -31,6 +40,7 @@ interface ScanEntry {
   systemCount: number;
   actualCount: number;
   timestamp: string;
+  serials?: string[];
 }
 
 const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
@@ -43,6 +53,9 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = React.useMemo(() => (path: string) => window.location.href = path, []);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [serializationMode, setSerializationMode] = useState(false);
+  const [targetSku, setTargetSku] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,39 +91,88 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
     e.preventDefault();
     if (!scanInput) return;
 
-    const product = products.find(
-      (p) => p.sku === scanInput || p.id === scanInput,
-    );
-    if (product) {
+    if (serializationMode) {
+      if (!targetSku) {
+        toast({ title: "Target Missing", description: "Select a Product SKU first before serial scanning.", variant: "destructive" });
+        return;
+      }
+
+      const product = products.find(p => p.sku === targetSku);
+      if (!product) return;
+
       setHistory((prev) => {
         const existingIdx = prev.findIndex((h) => h.sku === product.sku);
+        const currentSerial = scanInput.trim();
+
         if (existingIdx > -1) {
           const newHistory = [...prev];
+          const entry = newHistory[existingIdx];
+          
+          // Check if serial already scanned in this session
+          const alreadyScanned = entry.serials?.includes(currentSerial);
+          if (alreadyScanned) {
+            toast({ title: "Duplicate Serial", description: `Serial ${currentSerial} already scanned.`, variant: "warning" });
+            return prev;
+          }
+
           newHistory[existingIdx] = {
-            ...newHistory[existingIdx],
-            actualCount: newHistory[existingIdx].actualCount + 1,
+            ...entry,
+            actualCount: entry.actualCount + 1,
+            serials: [...(entry.serials || []), currentSerial],
             timestamp: new Date().toLocaleTimeString(),
           };
           return newHistory;
         }
+
         return [
           {
             sku: product.sku,
             name: product.name,
             systemCount: product.stock || 0,
             actualCount: 1,
+            serials: [currentSerial],
             timestamp: new Date().toLocaleTimeString(),
           },
           ...prev,
         ];
       });
-      toast({ title: "Item Scanned", description: `Scanned: ${product.name}` });
+
+      toast({ title: "Unique Unit Added", description: `Serial: ${scanInput} registered to ${product.name}` });
     } else {
-      toast({
-        title: "Invalid SKU",
-        description: `Unrecognized SKU: ${scanInput}`,
-        variant: "destructive",
-      });
+      const product = products.find(
+        (p) => p.sku === scanInput || p.id === scanInput || p.barcode === scanInput,
+      );
+      if (product) {
+        setHistory((prev) => {
+          const existingIdx = prev.findIndex((h) => h.sku === product.sku);
+          if (existingIdx > -1) {
+            const newHistory = [...prev];
+            newHistory[existingIdx] = {
+              ...newHistory[existingIdx],
+              actualCount: newHistory[existingIdx].actualCount + 1,
+              timestamp: new Date().toLocaleTimeString(),
+            };
+            return newHistory;
+          }
+          return [
+            {
+              sku: product.sku,
+              name: product.name,
+              systemCount: product.stock || 0,
+              actualCount: 1,
+              timestamp: new Date().toLocaleTimeString(),
+            },
+            ...prev,
+          ];
+        });
+        toast({ title: "Item Scanned", description: `Scanned: ${product.name}` });
+      } else {
+        toast({
+          title: "Invalid SKU",
+          description: `Unrecognized SKU: ${scanInput}`,
+          variant: "destructive",
+        });
+      }
     }
     setScanInput("");
     inputRef.current?.focus();
@@ -124,19 +186,34 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
     if (history.length === 0) return;
     setIsSubmitting(true);
     try {
+      // Prepare adjustments including serials
+      const adjustments = (Array.isArray(history) ? history : []).flatMap((h) => {
+        if (h.serials && h.serials.length > 0) {
+          // If we have serials, we might want to submit them individually or as a block
+          // For the current backend, we submit them as individual adjustments with a serial_number
+          return h.serials.map(s => ({ 
+            sku: h.sku, 
+            actualCount: 1, // Each unique scan is 1 unit
+            serial_number: s 
+          }));
+        }
+        return [{ sku: h.sku, actualCount: h.actualCount }];
+      });
+
       await retailService.submitOpname(
         session.tenant_id!,
         session,
-        session.location_id || "unassigned",
-        (Array.isArray(history) ? history : []).map((h) => ({ sku: h.sku, actualCount: h.actualCount })),
+        activeStore?.id || session.location_id || "unassigned",
+        adjustments,
         activeShift?.id,
       );
       toast({
         title: "Audit Submitted",
         description:
-          "Opname session submitted to Core Finance for reconciliation.",
+          "Opname session submitted. Unique unit histories initialized.",
       });
       setHistory([]);
+      setSerializationMode(false);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       toast({
@@ -176,6 +253,40 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
                   <p className="text-[10px] text-primary font-black tracking-[0.4em] uppercase mt-2 italic opacity-80">
                     Scanning Zone: [MAIN_FLOOR] • Hardware Sync Active
                   </p>
+                </div>
+
+                <div className="flex flex-col items-center gap-6 w-full">
+                  <div className="flex items-center gap-3 px-6 py-3 bg-secondary/50 rounded-full border border-border backdrop-blur-xl">
+                    <Switch 
+                      id="serial-mode"
+                      checked={serializationMode} 
+                      onCheckedChange={setSerializationMode}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                    <Label htmlFor="serial-mode" className="text-[10px] font-black italic uppercase tracking-widest text-foreground cursor-pointer">
+                      Serialization Mode (Deep Tracking)
+                    </Label>
+                  </div>
+
+                  {serializationMode && (
+                    <div className="w-full max-w-lg">
+                      <Select value={targetSku} onValueChange={setTargetSku}>
+                        <SelectTrigger className="h-14 bg-background/50 border-2 border-border rounded-2xl font-black italic text-[11px] uppercase tracking-widest shadow-xl">
+                          <SelectValue placeholder="Target SKU for Unique Units..." />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-border bg-card/95 backdrop-blur-3xl shadow-2xl">
+                          {(Array.isArray(products) ? products : []).map(p => (
+                            <SelectItem key={p.id} value={p.sku} className="font-bold italic text-xs py-3">
+                              {p.name} ({p.sku})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[9px] text-primary font-black uppercase text-center mt-3 italic animate-pulse">
+                        Next scan will register a new unique instance for this SKU
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="w-full relative group">
@@ -241,8 +352,15 @@ const StockOpnameScanner = ({ noShell = false }: { noShell?: boolean }) => {
                               </div>
                               <div>
                                 <div className="text-base font-black text-foreground italic tracking-tight">{scan.name}</div>
-                                <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                  {scan.sku} • {scan.timestamp}
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    {scan.sku} • {scan.timestamp}
+                                  </div>
+                                  {scan.serials && scan.serials.length > 0 && (
+                                    <Badge className="bg-primary/20 text-primary border-none text-[8px] px-2 py-0.5 font-black italic uppercase rounded-md leading-none">
+                                      {scan.serials.length} Unique Units
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
                             </div>
