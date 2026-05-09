@@ -71,11 +71,10 @@ export default {
           foreground: "hsl(var(--info-foreground))",
         },
         // Surface System
-        surface: {
-          1: "hsl(var(--surface-1))",
-          2: "hsl(var(--surface-2))",
-          3: "hsl(var(--surface-3))",
-        },
+        "surface-1": "hsl(var(--surface-1))",
+        "surface-2": "hsl(var(--surface-2))",
+        "surface-3": "hsl(var(--surface-3))",
+        
         // Premium Text System
         "text-strong": "hsl(var(--text-strong))",
         "text-dim": "hsl(var(--text-dim))",

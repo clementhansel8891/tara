@@ -234,11 +234,6 @@
     @apply bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/70;
   }
 
-  /* Surface System Utilities */
-  .bg-surface-1 { background-color: hsl(var(--surface-1)); }
-  .bg-surface-2 { background-color: hsl(var(--surface-2)); }
-  .bg-surface-3 { background-color: hsl(var(--surface-3)); }
-
   /* Animation utilities */
   .animate-float {
     animation: float 6s ease-in-out infinite;
