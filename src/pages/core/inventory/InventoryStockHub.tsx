@@ -27,7 +27,7 @@ import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { orgService, type Department } from "@/core/services/hr/orgService";
 import { hrService } from "@/core/services/hr/hrService";
 import { retailService } from "@/core/services/retail/retailService";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -136,6 +136,13 @@ export default function InventoryStockHub() {
     balance: InventoryStockBalance;
     item: InventoryItemMaster;
   } | null>(null);
+  const [salesHistory, setSalesHistory] = useState<any[]>([]);
+  const [procurementHistory, setProcurementHistory] = useState<any[]>([]);
+  const [movementHistory, setMovementHistory] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editingItemData, setEditingItemData] = useState<Partial<InventoryItemMaster>>({});
+  const [isSavingItem, setIsSavingItem] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("branch");
@@ -453,6 +460,75 @@ export default function InventoryStockHub() {
   }, [page]);
 
   useEffect(() => {
+    if (selectedBalance) {
+      const fetchHistory = async () => {
+        setIsLoadingHistory(true);
+        try {
+          const [sales, procurement, movements] = await Promise.all([
+            inventoryService.getSalesHistory(
+              session.tenant_id,
+              session,
+              selectedBalance.item.id
+            ),
+            inventoryService.getProcurementHistory(
+              session.tenant_id,
+              session,
+              selectedBalance.item.id
+            ),
+            inventoryService.listMovements(
+              session.tenant_id,
+              session,
+              selectedBalance.item.id
+            )
+          ]);
+          setSalesHistory(sales || []);
+          setProcurementHistory(procurement || []);
+          setMovementHistory(movements || []);
+        } catch (error) {
+          console.error("Failed to fetch history:", error);
+        } finally {
+          setIsLoadingHistory(false);
+        }
+      };
+      fetchHistory();
+      setIsEditingItem(false);
+      setEditingItemData({
+        name: selectedBalance.item.name,
+        description: selectedBalance.item.description || "",
+        unit: selectedBalance.item.unit || "pcs",
+        base_price: selectedBalance.item.base_price,
+        selling_price: selectedBalance.item.selling_price
+      });
+    }
+  }, [selectedBalance, session]);
+
+  const handleSaveItemEdit = async () => {
+    if (!selectedBalance) return;
+    setIsSavingItem(true);
+    try {
+      await inventoryService.updateItem(
+        session.tenant_id,
+        session,
+        selectedBalance.item.id,
+        editingItemData
+      );
+      setStatusMessage("Item updated successfully.");
+      refresh();
+      setIsEditingItem(false);
+      // Update local state to reflect changes immediately
+      setSelectedBalance(prev => prev ? {
+        ...prev,
+        item: { ...prev.item, ...editingItemData }
+      } : null);
+    } catch (error) {
+      console.error("Failed to update item:", error);
+      setStatusMessage("Error: Failed to update item.");
+    } finally {
+      setIsSavingItem(false);
+    }
+  };
+
+  useEffect(() => {
     setPage(1);
     refresh(1);
   }, [search, selectedLocationId, viewMode, categoryFilter]);
@@ -581,26 +657,17 @@ export default function InventoryStockHub() {
           { label: "Total Stock", value: dashboardStats?.total_on_hand_qty || 0 },
           { label: "Locations", value: locations.length },
         ]}
-        actions={
-          <div className="flex items-center gap-3">
-             <Button
-              variant="outline"
-              size="lg"
-              className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
-              onClick={() => setIsCategoryManagerOpen(true)}
-            >
-              <FolderTree className="h-4 w-4" /> Categories
-            </Button>
-            <Button 
-              size="lg"
-              className="rounded-2xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2"
-              onClick={() => setIsNewItemOpen(true)}
-            >
-              <Plus className="h-4 w-4" /> New Item
-            </Button>
-          </div>
-        }
-      />
+      >
+        <div className="flex justify-end">
+          <Button 
+            size="lg"
+            className="rounded-2xl bg-white text-slate-950 font-black italic text-xs uppercase tracking-widest gap-2 shadow-2xl hover:scale-105 transition-transform"
+            onClick={() => setIsNewItemOpen(true)}
+          >
+            <Plus className="h-4 w-4" /> New Item
+          </Button>
+        </div>
+      </InventoryGlassHeader>
 
       <FeedbackAlert
         message={statusMessage}
@@ -637,77 +704,87 @@ export default function InventoryStockHub() {
               ))}
             </TabsList>
           </Tabs>
-
-          <div className="flex items-center gap-3">
-             <ExportButton
-              endpoint="/inventory/items/export"
-              filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
-              onClick={() => setIsImportOpen(true)}
-            >
-              <Upload className="h-4 w-4" /> Import Data
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
-              onClick={() => setIsImageImportOpen(true)}
-            >
-              <FileArchive className="h-4 w-4" /> Bulk Images
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
-              onClick={async () => {
-                try {
-                  await inventoryService.runLowStockScan(session.tenant_id, session);
-                  setStatusMessage("Low stock scan completed. Alerts refreshed.");
-                  refresh();
-                } catch (err) {
-                  setErrorMessage("Stock scan failed.");
-                }
-              }}
-            >
-              Sync
-            </Button>
-          </div>
         </div>
 
         {viewMode !== "transfers" && (
-          <InventoryFilterHub
-            search={search}
-            onSearchChange={setSearch}
-            category={categoryFilter}
-            onCategoryChange={(v) => {
-              setCategoryFilter(v);
-              setPage(1);
-            }}
-            categories={dynamicCategories.map(c => ({ id: c.id, name: c.name }))}
-            location={selectedLocationId}
-            locationLabel={viewMode === "ecommerce" ? "Ecommerce" : "Location"}
-            onLocationChange={(v) => {
-              setSelectedLocationId(v);
-              setPage(1);
-            }}
-            locations={locations
-              .filter(l => {
-                if (viewMode === "branch") return l.type !== "ecommerce";
-                if (viewMode === "ecommerce") return l.type === "ecommerce";
-                return true;
-              })
-              .map(l => ({ id: l.id, name: l.name }))}
-            moduleTag={moduleFilter}
-            onModuleTagChange={(v) => {
-              setModuleFilter(v);
-              setPage(1);
-            }}
-            onStatusChange={(v) => {}}
-          />
+          <div className="space-y-4">
+            <InventoryFilterHub
+              search={search}
+              onSearchChange={setSearch}
+              category={categoryFilter}
+              onCategoryChange={(v) => {
+                setCategoryFilter(v);
+                setPage(1);
+              }}
+              categories={dynamicCategories.map(c => ({ id: c.id, name: c.name }))}
+              location={selectedLocationId}
+              locationLabel={viewMode === "ecommerce" ? "Ecommerce" : "Location"}
+              onLocationChange={(v) => {
+                setSelectedLocationId(v);
+                setPage(1);
+              }}
+              locations={locations
+                .filter(l => {
+                  if (viewMode === "branch") return l.type !== "ecommerce";
+                  if (viewMode === "ecommerce") return l.type === "ecommerce";
+                  return true;
+                })
+                .map(l => ({ id: l.id, name: l.name }))}
+              moduleTag={moduleFilter}
+              onModuleTagChange={(v) => {
+                setModuleFilter(v);
+                setPage(1);
+              }}
+              onStatusChange={(v) => {}}
+            />
+
+            <div className="flex items-center justify-end gap-3 py-2">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-12 px-6 text-white hover:bg-slate-800"
+                onClick={() => setIsCategoryManagerOpen(true)}
+              >
+                <FolderTree className="h-4 w-4" /> Categories
+              </Button>
+               <ExportButton
+                endpoint="/inventory/items/export"
+                filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
+              />
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-12 px-6 text-white hover:bg-slate-800"
+                onClick={() => setIsImportOpen(true)}
+              >
+                <Upload className="h-4 w-4" /> Import Data
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-12 px-6 text-white hover:bg-slate-800"
+                onClick={() => setIsImageImportOpen(true)}
+              >
+                <FileArchive className="h-4 w-4" /> Bulk Images
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-12 px-6 text-white hover:bg-slate-800"
+                onClick={async () => {
+                  try {
+                    await inventoryService.runLowStockScan(session.tenant_id, session);
+                    setStatusMessage("Low stock scan completed. Alerts refreshed.");
+                    refresh();
+                  } catch (err) {
+                    setErrorMessage("Stock scan failed.");
+                  }
+                }}
+              >
+                <RefreshCw className="h-4 w-4" /> Sync
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -1143,75 +1220,305 @@ export default function InventoryStockHub() {
         open={!!selectedBalance}
         onOpenChange={(open) => { if (!open) setSelectedBalance(null); }}
       >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Stock Record Detail</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 text-sm gap-y-2">
-              <span className="text-muted-foreground">SKU:</span>
-              <span className="font-mono font-bold">
-                {selectedBalance?.item.sku}
-              </span>
-              <span className="text-muted-foreground">Item Name:</span>
-              <span className="font-semibold">
-                {selectedBalance?.item.name}
-              </span>
-              <span className="text-muted-foreground">Location:</span>
-              <span>{selectedBalance?.balance.location_id}</span>
-              <span className="text-muted-foreground">Department:</span>
-              <span>
-                {selectedBalance?.balance.department_id || "GENERAL"}
-              </span>
-              <span className="text-muted-foreground">Physical Qty:</span>
-              <span className="font-bold text-lg">
-                {selectedBalance?.balance.quantity?.toLocaleString()}
-              </span>
-              <span className="text-muted-foreground">Reorder Point:</span>
-              <span>{selectedBalance?.balance.reorder_point}</span>
-            </div>
-            <div className="border-t pt-2">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Module Context
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {(selectedBalance?.item.module_tags || []).map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded bg-muted px-1.5 py-0.5 text-[10px]"
-                  >
-                    {tag}
-                  </span>
-                ))}
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col p-0 overflow-hidden rounded-[2rem] border-none shadow-2xl bg-slate-950/90 backdrop-blur-3xl">
+          <DialogHeader className="p-8 border-b border-white/5 bg-slate-900/50">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                {selectedBalance?.item.image_url ? (
+                  <img 
+                    src={selectedBalance.item.image_url.startsWith("/v1") 
+                      ? `http://localhost:3001${selectedBalance.item.image_url}` 
+                      : selectedBalance.item.image_url} 
+                    alt={selectedBalance.item.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Package className="w-8 h-8 text-white/20" />
+                )}
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black italic uppercase tracking-tight text-white">
+                  {selectedBalance?.item.name}
+                </DialogTitle>
+                <div className="flex items-center gap-2 mt-1">
+                   <UIBadge variant="outline" className="bg-white/5 border-white/10 text-[10px] font-bold italic py-0 px-2">
+                     {selectedBalance?.item.sku}
+                   </UIBadge>
+                   <UIBadge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 text-[10px] font-bold italic py-0 px-2 uppercase">
+                     {selectedBalance?.balance.location_id}
+                   </UIBadge>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  // Close detail first, then open transfer dialog
-                  setSelectedBalance(null);
-                  setTimeout(() => setIsTransferOpen(true), 50);
-                }}
-              >
-                <Send className="h-4 w-4" /> Start Transfer
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  // Close detail first, then open adjustment dialog
-                  setSelectedBalance(null);
-                  setTimeout(() => setIsAdjustmentOpen(true), 50);
-                }}
-              >
-                <ArrowRightLeft className="h-4 w-4" /> Adjust Stock
-              </Button>
+          </DialogHeader>
+
+          <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-8 border-b border-white/5 bg-slate-900/30">
+              <TabsList className="bg-transparent gap-6 h-12 p-0 justify-start">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 border-indigo-500 rounded-none h-12 text-[10px] font-black uppercase italic tracking-widest px-0">Overview</TabsTrigger>
+                <TabsTrigger value="sales" className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 border-indigo-500 rounded-none h-12 text-[10px] font-black uppercase italic tracking-widest px-0">Sales</TabsTrigger>
+                <TabsTrigger value="procurement" className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 border-indigo-500 rounded-none h-12 text-[10px] font-black uppercase italic tracking-widest px-0">Procurement</TabsTrigger>
+                <TabsTrigger value="movements" className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 border-indigo-500 rounded-none h-12 text-[10px] font-black uppercase italic tracking-widest px-0">Movements</TabsTrigger>
+                <TabsTrigger value="media" className="data-[state=active]:bg-transparent data-[state=active]:text-white data-[state=active]:border-b-2 border-indigo-500 rounded-none h-12 text-[10px] font-black uppercase italic tracking-widest px-0">Media</TabsTrigger>
+              </TabsList>
             </div>
-          </div>
+
+            <div className="flex-1 overflow-y-auto p-8">
+              <TabsContent value="overview" className="m-0 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Identity & Naming</h4>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase text-slate-500">Item Name</Label>
+                        <Input 
+                          value={editingItemData.name || ""} 
+                          onChange={(e) => setEditingItemData(prev => ({ ...prev, name: e.target.value }))}
+                          className="h-12 rounded-xl bg-white/5 border-white/10 text-white italic font-bold focus:ring-indigo-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase text-slate-500">Description</Label>
+                        <textarea 
+                          value={editingItemData.description || ""} 
+                          onChange={(e) => setEditingItemData(prev => ({ ...prev, description: e.target.value }))}
+                          className="w-full h-32 rounded-xl bg-white/5 border-white/10 text-white p-3 text-sm italic font-medium focus:ring-1 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/5">
+                      <Button 
+                        onClick={handleSaveItemEdit} 
+                        disabled={isSavingItem}
+                        className="w-full h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-lg shadow-indigo-500/20"
+                      >
+                        {isSavingItem ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                        Commit Metadata Changes
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Stock Velocity</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                        <span className="text-[10px] font-bold uppercase text-slate-500">Available Stock</span>
+                        <div className="text-2xl font-black text-white italic mt-1">
+                          {selectedBalance?.balance.quantity?.toLocaleString()}
+                          <span className="text-xs text-slate-500 ml-1 font-bold">{selectedBalance?.item.unit}</span>
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                        <span className="text-[10px] font-bold uppercase text-slate-500">Unit Type</span>
+                        <div className="text-2xl font-black text-white italic mt-1 uppercase">
+                          {selectedBalance?.item.unit || "pcs"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Actions</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          className="h-14 rounded-2xl border-white/10 bg-white/5 text-white font-black italic uppercase tracking-widest text-[9px] gap-2 hover:bg-white/10"
+                          onClick={() => {
+                            setSelectedBalance(null);
+                            setTimeout(() => setIsTransferOpen(true), 50);
+                          }}
+                        >
+                          <ArrowRightLeft className="w-4 h-4" /> Transfer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="h-14 rounded-2xl border-white/10 bg-white/5 text-white font-black italic uppercase tracking-widest text-[9px] gap-2 hover:bg-white/10"
+                          onClick={() => {
+                            setSelectedBalance(null);
+                            setTimeout(() => setIsAdjustmentOpen(true), 50);
+                          }}
+                        >
+                          <ClipboardCheck className="w-4 h-4" /> Adjustment
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sales" className="m-0 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Recent Outbound Flow</h4>
+                  {isLoadingHistory ? (
+                    <div className="flex items-center justify-center py-20">
+                      <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+                    </div>
+                  ) : salesHistory.length > 0 ? (
+                    <div className="rounded-2xl border border-white/5 overflow-hidden">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="bg-white/5 text-slate-500 uppercase italic font-black">
+                            <th className="p-3 text-left">Order ID</th>
+                            <th className="p-3 text-left">Date</th>
+                            <th className="p-3 text-right">Qty</th>
+                            <th className="p-3 text-right">Unit Price</th>
+                            <th className="p-3 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {salesHistory.map((s) => (
+                            <tr key={s.id} className="text-white hover:bg-white/5 transition-colors">
+                              <td className="p-3 font-mono font-bold">{s.order_id.substring(0,8)}...</td>
+                              <td className="p-3 font-bold italic">{new Date(s.retail_orders?.created_at).toLocaleDateString()}</td>
+                              <td className="p-3 text-right font-black italic">{s.quantity}</td>
+                              <td className="p-3 text-right text-slate-400">${Number(s.unit_price).toLocaleString()}</td>
+                              <td className="p-3 text-right text-indigo-400 font-black italic">${Number(s.total_price).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                       <p className="text-slate-500 font-black italic uppercase text-[10px] tracking-widest">No sales data found for this item.</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="procurement" className="m-0 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Recent Inbound Requisitions</h4>
+                  {isLoadingHistory ? (
+                    <div className="flex items-center justify-center py-20">
+                      <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
+                    </div>
+                  ) : procurementHistory.length > 0 ? (
+                    <div className="rounded-2xl border border-white/5 overflow-hidden">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="bg-white/5 text-slate-500 uppercase italic font-black">
+                            <th className="p-3 text-left">Draft ID</th>
+                            <th className="p-3 text-left">Supplier</th>
+                            <th className="p-3 text-left">Date</th>
+                            <th className="p-3 text-left">Status</th>
+                            <th className="p-3 text-right">Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {procurementHistory.map((p) => (
+                            <tr key={p.id} className="text-white hover:bg-white/5 transition-colors">
+                              <td className="p-3 font-mono font-bold">{p.id.substring(0,8)}...</td>
+                              <td className="p-3 font-bold">{p.supplier || "Unknown"}</td>
+                              <td className="p-3 italic">{new Date(p.date).toLocaleDateString()}</td>
+                              <td className="p-3">
+                                <UIBadge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black italic py-0 px-2 uppercase">
+                                  {p.status}
+                                </UIBadge>
+                              </td>
+                              <td className="p-3 text-right font-black italic">${Number(p.total).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[2rem]">
+                       <p className="text-slate-500 font-black italic uppercase text-[10px] tracking-widest">No procurement records found.</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="movements" className="m-0 animate-in fade-in slide-in-from-right-4 duration-500">
+                 <div className="space-y-4">
+                  <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Stock Movement Log</h4>
+                  <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="relative pl-8 space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-white/5">
+                      {movementHistory.map((m, idx) => (
+                        <div key={idx} className="relative">
+                          <div className={`absolute left-[-26px] top-1 w-[18px] h-[18px] rounded-full border-2 bg-slate-950 ${
+                            m.type === 'intake' || m.type === 'RESTOCK' ? 'border-emerald-500' : 
+                            m.type === 'deduction' || m.type === 'CONSUMPTION' || m.type === 'SALE' ? 'border-red-500' : 'border-indigo-500'
+                          }`}></div>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="text-white font-black italic uppercase text-[11px] tracking-tight">{m.type}</p>
+                              <p className="text-[10px] text-slate-500 font-bold mt-0.5">Reference: {m.reference_id || 'N/A'}</p>
+                              <p className="text-[9px] text-slate-600 italic mt-1 uppercase font-black">{new Date(m.created_at).toLocaleString()}</p>
+                            </div>
+                            <div className={`text-sm font-black italic ${
+                              m.quantity > 0 ? 'text-emerald-400' : 'text-red-400'
+                            }`}>
+                              {m.quantity > 0 ? '+' : ''}{m.quantity}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {movementHistory.length === 0 && (
+                        <div className="py-10 text-center text-slate-600 uppercase font-black italic text-[10px] tracking-widest">
+                          No movements tracked in this session.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="media" className="m-0 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-6">
+                  <h4 className="text-[10px] font-black uppercase italic tracking-widest text-indigo-400">Media Assets</h4>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div 
+                      className="aspect-square rounded-[2rem] border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/5 hover:border-indigo-500/50 transition-all group"
+                      onClick={() => {
+                        setSelectedItemForImages({ id: selectedBalance!.item.id, name: selectedBalance!.item.name });
+                        setIsImageManagerOpen(true);
+                      }}
+                    >
+                      <Plus className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 group-hover:scale-110 transition-transform" />
+                      <span className="text-[9px] font-black uppercase italic tracking-widest text-slate-500 group-hover:text-indigo-400">Upload Media</span>
+                    </div>
+                    {/* Primary Image Preview */}
+                    {selectedBalance?.item.image_url && (
+                       <div className="aspect-square rounded-[2rem] border border-white/10 overflow-hidden relative group shadow-2xl">
+                          <img 
+                            src={selectedBalance.item.image_url.startsWith("/v1") 
+                              ? `http://localhost:3001${selectedBalance.item.image_url}` 
+                              : selectedBalance.item.image_url} 
+                            alt="Primary"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                             <Button size="sm" variant="outline" className="h-8 rounded-xl text-[9px] font-black uppercase italic border-white/20 bg-slate-900/50" onClick={() => {
+                                setSelectedItemForImages({ id: selectedBalance!.item.id, name: selectedBalance!.item.name });
+                                setIsImageManagerOpen(true);
+                             }}>
+                                Manage
+                             </Button>
+                          </div>
+                          <div className="absolute top-3 left-3">
+                             <UIBadge className="bg-indigo-500 text-white border-none text-[8px] font-black italic px-2">PRIMARY</UIBadge>
+                          </div>
+                       </div>
+                    )}
+                  </div>
+                  <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 flex items-center gap-4 italic">
+                    <ImageIcon className="w-6 h-6 text-indigo-400" />
+                    <p className="text-[10px] text-indigo-200/50 leading-relaxed font-bold">
+                      Assets are automatically optimized for all retail channels. Supported formats: JPG, PNG, WEBP.
+                    </p>
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
+
+            <div className="p-8 border-t border-white/5 bg-slate-900/50 flex justify-end">
+               <Button variant="ghost" onClick={() => setSelectedBalance(null)} className="h-12 rounded-xl text-slate-500 hover:text-white font-black italic uppercase tracking-widest text-[10px]">
+                 Dismiss Detail
+               </Button>
+            </div>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

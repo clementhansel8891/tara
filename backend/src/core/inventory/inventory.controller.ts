@@ -1184,5 +1184,39 @@ export class InventoryController {
   ) {
     return this.inventoryService.updateItemCategory(request.tenantContext, itemId, categoryId);
   }
+
+  @Patch("items/:id")
+  @RequireInventoryRole(InventoryRole.MANAGER)
+  async updateItem(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+    @Body() dto: any,
+  ) {
+    const { tenant_id, user_id } = request.tenantContext;
+    const data = await this.inventoryService.updateItem(request.tenantContext, itemId, dto, user_id);
+    return { success: true, tenant_id, data };
+  }
+
+  @Get("items/:id/sales-history")
+  @RequireInventoryRole(InventoryRole.CLERK)
+  async getSalesHistory(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.getSalesHistory(request.tenantContext, itemId);
+    return { success: true, tenant_id, data };
+  }
+
+  @Get("items/:id/procurement-history")
+  @RequireInventoryRole(InventoryRole.CLERK)
+  async getProcurementHistory(
+    @Req() request: RequestWithTenant,
+    @Param("id") itemId: string,
+  ) {
+    const { tenant_id } = request.tenantContext;
+    const data = await this.inventoryService.getProcurementHistory(request.tenantContext, itemId);
+    return { success: true, tenant_id, data };
+  }
 }
 

@@ -249,4 +249,7 @@ export abstract class IInventoryRepository {
   abstract updateProductCategory(ctx: TenantContext, id: string, data: any): Promise<any>;
   abstract deleteProductCategory(ctx: TenantContext, id: string): Promise<void>;
   abstract updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string): Promise<any>;
+  abstract updateItem(ctx: TenantContext, itemId: string, data: any): Promise<any>;
+  abstract getSalesHistory(ctx: TenantContext, itemId: string): Promise<any[]>;
+  abstract getProcurementHistory(ctx: TenantContext, itemId: string): Promise<any[]>;
 }

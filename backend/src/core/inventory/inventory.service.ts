@@ -1177,6 +1177,30 @@ export class InventoryService {
     return this.repository.updateItemCategory(ctx, itemId, categoryId);
   }
 
+  async updateItem(ctx: TenantContext, itemId: string, data: any, user_id?: string) {
+    const item = await this.repository.updateItem(ctx, itemId, data);
+    if (user_id) {
+      await this.auditService.log({
+        tenant_id: ctx.tenant_id,
+        user_id,
+        module: "inventory",
+        action: "UPDATE",
+        entity_type: "ITEM",
+        entity_id: itemId,
+        metadata: data,
+      });
+    }
+    return item;
+  }
+
+  async getSalesHistory(ctx: TenantContext, itemId: string) {
+    return this.repository.getSalesHistory(ctx, itemId);
+  }
+
+  async getProcurementHistory(ctx: TenantContext, itemId: string) {
+    return this.repository.getProcurementHistory(ctx, itemId);
+  }
+
   async processBulkImages(
     ctx: TenantContext,
     files: Express.Multer.File[],

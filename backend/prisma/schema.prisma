@@ -214,6 +214,7 @@ model tenants {
   procurement_contracts                  procurement_contracts[]
   procurement_draft_pos                  procurement_draft_pos[]
   procurement_final_pos                  procurement_final_pos[]
+  procurement_po_lines                   procurement_po_lines[]
   procurement_goods_receipt_syncs        procurement_goods_receipt_syncs[]
   procurement_legal_handoffs             procurement_legal_handoffs[]
   procurement_rating_logs                procurement_rating_logs[]
@@ -3558,6 +3559,7 @@ model item_masters {
   bin_assignments             bin_assignments[]
   item_images                 item_images[]
   retail_channel_products     retail_channel_products[]
+  procurement_po_lines        procurement_po_lines[]
 
   @@unique([tenant_id, barcode])
   @@unique([tenant_id, sku])
@@ -4869,6 +4871,7 @@ model procurement_draft_pos {
   procurement_final_pos    procurement_final_pos[]
   // @@map("procurement_draft_pos") - standardized
   tenants                  tenants                  @relation(fields: [tenant_id], references: [id])
+  procurement_po_lines     procurement_po_lines[]
 
   @@index([requisition_id])
   @@index([tenant_id])
@@ -4906,6 +4909,27 @@ model procurement_final_pos {
   @@index([requisition_id])
   @@index([tenant_id])
   @@index([company_id])
+}
+
+model procurement_po_lines {
+  id                    String                @id @default(uuid())
+  tenant_id             String
+  draft_po_id           String
+  product_id            String
+  sku                   String
+  name                  String?
+  quantity              Decimal               @db.Decimal(15, 4)
+  unit_cost             Decimal               @db.Decimal(15, 4)
+  total_cost            Decimal               @db.Decimal(15, 4)
+  created_at            DateTime              @default(now())
+  updated_at            DateTime              @default(now())
+  procurement_draft_pos procurement_draft_pos @relation(fields: [draft_po_id], references: [id])
+  item_masters          item_masters          @relation(fields: [product_id], references: [id])
+  tenants               tenants               @relation(fields: [tenant_id], references: [id])
+
+  @@index([draft_po_id])
+  @@index([product_id])
+  @@index([tenant_id])
 }
 
 model procurement_rating_logs {

@@ -613,19 +613,43 @@ export const inventoryService = {
     );
   },
 
-  async submitBulkAdjustment(
+  async updateItem(
     tenantId: string,
     session: SessionContext,
-    adjustments: Array<{
-      item_id: string;
-      location_id: string;
-      actual_count: number;
-      reason: string;
-      notes?: string;
-    }>,
+    itemId: string,
+    payload: Partial<InventoryItemMaster>,
   ) {
-    return apiRequest<any>("/v1/inventory/bulk-adjustments", "POST", session, {
-      adjustments,
-    });
+    return apiRequest<InventoryItemMaster>(
+      `/v1/inventory/items/${itemId}`,
+      "PATCH",
+      session,
+      payload,
+    );
+  },
+
+  async getSalesHistory(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+  ): Promise<any[]> {
+    const res = await apiRequest<{ data: any[] }>(
+      `/v1/inventory/items/${itemId}/sales-history`,
+      "GET",
+      session,
+    );
+    return res.data;
+  },
+
+  async getProcurementHistory(
+    tenantId: string,
+    session: SessionContext,
+    itemId: string,
+  ): Promise<any[]> {
+    const res = await apiRequest<{ data: any[] }>(
+      `/v1/inventory/items/${itemId}/procurement-history`,
+      "GET",
+      session,
+    );
+    return res.data;
   },
 };

@@ -1498,6 +1498,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     });
   }
 
+
   // --- Agentic Layer ---
   async getAgenticEvents(ctx: TenantContext): Promise<AgenticEvent[]> {
     const events = await this.prisma.agentic_events.findMany({
@@ -1662,10 +1663,70 @@ export class InventoryDbRepository implements IInventoryRepository {
   async updateItemCategory(ctx: TenantContext, itemId: string, categoryId: string): Promise<any> {
     return this.prisma.item_masters.update({
       where: { id: itemId, tenant_id: ctx.tenant_id },
-      data: {
-        category_id: categoryId,
-        updated_at: new Date(),
-      },
+      data: { category_id: categoryId, updated_at: new Date() }
     });
   }
+
+  async updateItem(ctx: TenantContext, itemId: string, data: any): Promise<any> {
+    return this.prisma.item_masters.update({
+      where: { id: itemId, tenant_id: ctx.tenant_id },
+      data: {
+        ...data,
+        updated_at: new Date()
+      }
+    });
+  }
+
+  async getSalesHistory(ctx: TenantContext, itemId: string): Promise<any[]> {
+    return this.prisma.retail_order_items.findMany({
+      where: {
+        tenant_id: ctx.tenant_id,
+        product_id: itemId
+      },
+      include: {
+        retail_orders: {
+          select: {
+            id: true,
+            created_at: true,
+            status: true
+          }
+        }
+      },
+      orderBy: { updated_at: "desc" },
+      take: 50
+    });
+  }
+
+  async getProcurementHistory(ctx: TenantContext, itemId: string): Promise<any[]> {
+    const lines = await this.prisma.procurement_po_lines.findMany({
+      where: {
+        tenant_id: ctx.tenant_id,
+        product_id: itemId,
+      },
+      include: {
+        procurement_draft_pos: {
+          include: {
+            supplier_masters: {
+              select: { name: true }
+            },
+            procurement_final_pos: {
+              select: { id: true }
+            }
+          }
+        }
+      },
+      orderBy: { created_at: "desc" },
+      take: 50
+    });
+
+    return lines.map(line => ({
+      id: line.draft_po_id,
+      date: line.created_at,
+      status: line.procurement_draft_pos.status,
+      supplier: line.procurement_draft_pos.supplier_masters?.name,
+      total: Number(line.total_cost),
+      final_po: line.procurement_draft_pos.procurement_final_pos?.[0]?.id
+    }));
+  }
 }
+
