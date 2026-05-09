@@ -156,8 +156,18 @@
   }
 
   input, textarea, select {
-    background-color: hsl(var(--surface-2) / 0.5);
-    @apply border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300;
+    background-color: hsl(var(--surface-2) / 0.8);
+    @apply border-border text-foreground placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300 backdrop-blur-sm;
+    color-scheme: light dark;
+  }
+
+  select option {
+    @apply bg-background text-foreground;
+  }
+
+  .dark input, .dark textarea, .dark select {
+    background-color: hsl(var(--surface-3) / 0.4);
+    @apply border-white/10;
   }
 
   /* Premium Global Scrollbar Implementation */

@@ -208,99 +208,122 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
     return role.includes('cashier') || role.includes('sales') || role.includes('store manager');
   }, [record]);
 
-  if (isLoading) return <div className="p-8 text-center font-black italic animate-pulse">SYNCHRONIZING PORTAL...</div>;
+  if (isLoading) return (
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-6">
+      <div className="w-24 h-24 rounded-[2rem] bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center animate-pulse shadow-[0_0_50px_-12px_rgba(79,70,229,0.5)]">
+        <HeartPulse className="w-10 h-10 text-indigo-400" />
+      </div>
+      <div className="text-center space-y-2">
+        <p className="text-lg font-black italic uppercase tracking-[0.3em] text-white animate-pulse">Synchronizing Portal</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400/60">Establishing Secure Telemetry Node...</p>
+      </div>
+    </div>
+  );
 
   const content = (
-    <div className={cn("space-y-8", !noShell && "max-w-7xl mx-auto")}>
+    <div className={cn("space-y-12", !noShell && "max-w-[1600px] mx-auto pb-20")}>
       {!noShell && (
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-slate-200 pb-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-slate-900/20">
-                <User className="w-9 h-9 text-white" />
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-8 pb-12 border-b border-white/5 relative">
+          <div className="space-y-6 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] border border-white/20">
+                <User className="w-10 h-10 text-white" />
               </div>
-              <div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">{record?.employee?.fullName}</h1>
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                   <Briefcase className="w-3 h-3" /> {record?.employee?.roleTitle} • {record?.employee?.departmentId}
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em] mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" /> OPERATIONAL_GATEWAY
+                </p>
+                <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">{record?.employee?.fullName}</h1>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mt-4">
+                   <Briefcase className="w-3.5 h-3.5 text-indigo-400" /> {record?.employee?.roleTitle} <span className="text-slate-700">/</span> {record?.employee?.departmentId}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-             <Badge variant="outline" className="h-10 px-4 rounded-xl border-slate-200 bg-white font-bold text-slate-700 uppercase tracking-widest gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> ACTIVE_ROSTER
-             </Badge>
+          <div className="flex items-center gap-4 relative z-10">
+             <div className="flex flex-col items-end gap-2 pr-4 border-r border-white/5 mr-2">
+                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Roster Status</p>
+                <Badge variant="outline" className="h-8 px-4 rounded-xl border-indigo-500/20 bg-indigo-500/5 font-black text-indigo-400 uppercase tracking-widest gap-2">
+                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" /> ACTIVE_SESSION
+                </Badge>
+             </div>
              <Button 
-                className="h-14 px-8 rounded-2xl font-black italic tracking-widest uppercase text-xs bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 gap-3"
+                className="h-16 px-10 rounded-[1.8rem] font-black italic tracking-[0.15em] uppercase text-xs bg-indigo-600 hover:bg-indigo-700 shadow-[0_0_30px_-5px_rgba(79,70,229,0.4)] border border-white/10 gap-3 group transition-all hover:scale-[1.02] active:scale-[0.98]"
                 onClick={() => setIsClockingIn(true)}
              >
-                <Play className="w-5 h-5" /> Clock In
+                <Play className="w-5 h-5 fill-current" /> Clock In
              </Button>
              <Button 
                 variant="outline"
-                className="h-14 px-6 rounded-2xl font-black italic tracking-widest uppercase text-[10px] border-slate-200 bg-white hover:bg-slate-50 gap-2 shadow-sm"
+                className="h-16 px-8 rounded-[1.8rem] font-black italic tracking-[0.15em] uppercase text-[10px] border-white/10 bg-white/5 hover:bg-white/10 text-white gap-3 shadow-xl transition-all"
                 onClick={() => setIsLoanOpen(true)}
              >
-                <currencyData.icon className="w-4 h-4 text-indigo-600" /> Loan Request
+                <currencyData.icon className="w-4 h-4 text-indigo-400" /> Loan Request
              </Button>
           </div>
+          
+          {/* Subtle atmospheric background glow */}
+          <div className="absolute -top-20 -left-20 w-96 h-96 bg-indigo-600/10 blur-[120px] pointer-events-none rounded-full" />
         </div>
       )}
 
       {/* Tabbed Experience */}
-      <Tabs defaultValue="overview" className="space-y-8">
-        <TabsList className="bg-transparent border-b border-slate-200 w-full justify-start h-auto p-0 gap-8 rounded-none">
+      <Tabs defaultValue="overview" className="space-y-12">
+        <TabsList className="bg-transparent border-b border-white/5 w-full justify-start h-auto p-0 gap-10 rounded-none overflow-x-auto no-scrollbar">
           {['overview', 'attendance', 'payroll', 'leave', 'performance'].map((tab) => (
             <TabsTrigger 
               key={tab}
               value={tab} 
-              className="data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none h-12 px-2 font-black uppercase italic tracking-widest text-[10px] text-slate-400 transition-all border-b-4 border-transparent"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-4 data-[state=active]:border-indigo-500 data-[state=active]:text-white rounded-none h-14 px-2 font-black uppercase italic tracking-[0.25em] text-[11px] text-slate-500 hover:text-slate-300 transition-all border-b-4 border-transparent"
             >
               {tab}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <TabsContent value="overview" className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Duty Card */}
-              <Card className="border-slate-200 shadow-sm overflow-hidden">
-                 <CardHeader className="bg-slate-900 text-white p-6">
+              <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/40 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10 group hover:border-white/20 transition-all">
+                 <CardHeader className="bg-white/5 border-b border-white/5 p-8">
                     <div className="flex items-center justify-between">
-                       <CardTitle className="text-lg font-black italic uppercase tracking-wider">Today's Duty</CardTitle>
-                       <Clock className="w-5 h-5 text-indigo-400" />
+                       <CardTitle className="text-xl font-black italic uppercase tracking-[0.2em] text-white">Today's Duty</CardTitle>
+                       <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                        <Clock className="w-5 h-5 text-indigo-400" />
+                       </div>
                     </div>
                  </CardHeader>
-                 <CardContent className="p-6 space-y-4">
-                    <div className="space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shift Window</p>
-                       <p className="text-2xl font-black text-slate-900">09:00 - 18:00</p>
+                 <CardContent className="p-8 space-y-6">
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Shift Window</p>
+                       <p className="text-4xl font-black text-white italic tracking-tighter">09:00 - 18:00</p>
                     </div>
-                    <div className="flex items-center gap-2 text-slate-600">
-                       <MapPin className="w-4 h-4" />
-                       <span className="text-xs font-bold uppercase tracking-widest">{record?.employee?.locationId || 'HQ_ZONE_A'}</span>
+                    <div className="flex items-center gap-3 text-slate-400 bg-white/5 p-4 rounded-2xl border border-white/5">
+                       <MapPin className="w-4 h-4 text-indigo-400" />
+                       <span className="text-xs font-black uppercase tracking-widest">{record?.employee?.locationId || 'HQ_ZONE_A'}</span>
                     </div>
-                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                       <Badge className="bg-slate-100 text-slate-600 border-transparent font-bold text-[10px] uppercase">Normal Operation</Badge>
-                       <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest cursor-pointer hover:underline">View Schedule</span>
+                    <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+                       <Badge className="bg-indigo-500/10 text-indigo-400 border-indigo-500/20 font-black text-[9px] uppercase tracking-widest px-3 h-6">Normal Operation</Badge>
+                       <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest cursor-pointer hover:text-indigo-300 transition-colors">View Schedule</span>
                     </div>
                  </CardContent>
               </Card>
 
               {/* Wallet Preview */}
-              <Card className="border-slate-200 shadow-sm">
-                 <CardHeader className="p-6">
+              <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/40 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10 group hover:border-white/20 transition-all">
+                 <CardHeader className="p-8 bg-white/5 border-b border-white/5">
                     <div className="flex items-center justify-between">
-                       <CardTitle className="text-lg font-black italic uppercase tracking-wider">Payroll Track</CardTitle>
-                       <Wallet className="w-5 h-5 text-emerald-600" />
+                       <CardTitle className="text-xl font-black italic uppercase tracking-[0.2em] text-white">Payroll Track</CardTitle>
+                       <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                        <Wallet className="w-5 h-5 text-emerald-400" />
+                       </div>
                     </div>
                  </CardHeader>
-                 <CardContent className="p-6 space-y-6">
-                    <div className="space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Next Net Payout (Est.)</p>
-                       <p className="text-3xl font-black text-slate-900">
+                 <CardContent className="p-8 space-y-8">
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Next Net Payout (Est.)</p>
+                       <p className="text-5xl font-black text-white italic tracking-tighter">
                          {formatWithCurrency(
                            (record?.employee?.baseSalary || 4500) + 
                            (perfSnapshot?.accruedBonus || 0) - 
@@ -312,70 +335,71 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
                     
                     <div className="space-y-4">
                        {isRetailOrSales && (
-                         <div className="grid grid-cols-2 gap-3">
-                            <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                               <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Items Sold</p>
-                               <p className="text-lg font-black text-indigo-900">{perfSnapshot?.itemsSold || 142}</p>
+                         <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                               <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-2">Items Sold</p>
+                               <p className="text-2xl font-black text-white">{perfSnapshot?.itemsSold || 142}</p>
                             </div>
-                            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                               <p className="text-[8px] font-black text-emerald-400 uppercase tracking-widest mb-1">Bonus</p>
-                               <p className="text-lg font-black text-emerald-900">+{formatWithCurrency(perfSnapshot?.accruedBonus || 450)}</p>
+                            <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                               <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-2">Bonus</p>
+                               <p className="text-2xl font-black text-emerald-400">+{formatWithCurrency(perfSnapshot?.accruedBonus || 450)}</p>
                             </div>
                          </div>
                        )}
 
-                       <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                             <div className="flex items-center gap-2 text-slate-500">
-                                <AlertCircle className="w-3.5 h-3.5" />
-                                <span className="text-[9px] font-black uppercase">Est. Tax & Social</span>
+                       <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                             <div className="flex items-center gap-3 text-slate-400">
+                                <AlertCircle className="w-4 h-4 text-slate-500" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Est. Tax & Social</span>
                              </div>
-                             <span className="text-xs font-black text-slate-700">-{formatWithCurrency(perfSnapshot?.estimatedTax || 850)}</span>
+                             <span className="text-xs font-black text-slate-300">-{formatWithCurrency(perfSnapshot?.estimatedTax || 850)}</span>
                           </div>
 
                           {activeLoan && (
-                            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
-                               <div className="flex items-center gap-2 text-amber-600">
-                                  <Receipt className="w-3.5 h-3.5" />
-                                  <span className="text-[9px] font-black uppercase">Loan Installment</span>
+                            <div className="flex items-center justify-between p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10">
+                               <div className="flex items-center gap-3 text-amber-500">
+                                  <Receipt className="w-4 h-4" />
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Loan Installment</span>
                                </div>
-                               <span className="text-xs font-black text-amber-900">-{formatWithCurrency(activeLoan.monthlyInstallment)}</span>
+                               <span className="text-xs font-black text-amber-400">-{formatWithCurrency(activeLoan.monthlyInstallment)}</span>
                             </div>
                           )}
                        </div>
 
-                       <div className="space-y-2 pt-2 border-t border-slate-100">
+                       <div className="space-y-3 pt-4 border-t border-white/5">
                           <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
-                             <span className="text-slate-400">Cycle Progress</span>
-                             <span className="text-slate-900">75%</span>
+                             <span className="text-slate-500">Cycle Progress</span>
+                             <span className="text-white">75%</span>
                           </div>
-                          <Progress value={75} className="h-2 bg-slate-100" />
+                          <Progress value={75} className="h-2 bg-white/5" />
                        </div>
                     </div>
                  </CardContent>
               </Card>
 
               {/* Compliance Signal */}
-              <Card className="border-slate-200 shadow-sm bg-indigo-600 text-white">
-                 <CardHeader className="p-6">
+              <Card className="rounded-[2.5rem] border-indigo-500/20 bg-indigo-600/10 backdrop-blur-3xl shadow-2xl overflow-hidden border group transition-all hover:bg-indigo-600/20 relative">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] pointer-events-none rounded-full" />
+                 <CardHeader className="p-8 bg-white/5 border-b border-white/5">
                     <div className="flex items-center justify-between">
-                       <CardTitle className="text-lg font-black italic uppercase tracking-wider">Compliance</CardTitle>
-                       <ShieldCheck className="w-5 h-5 text-indigo-200" />
+                       <CardTitle className="text-xl font-black italic uppercase tracking-[0.2em] text-white">Compliance</CardTitle>
+                       <ShieldCheck className="w-5 h-5 text-indigo-400" />
                     </div>
                  </CardHeader>
-                 <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                          <CheckCircle2 className="w-6 h-6 text-white" />
+                 <CardContent className="p-8 space-y-8 relative z-10">
+                    <div className="flex items-center gap-5">
+                       <div className="w-16 h-16 bg-white/10 rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl">
+                          <CheckCircle2 className="w-8 h-8 text-white" />
                        </div>
                        <div>
-                          <p className="text-xs font-black uppercase tracking-widest">All Records Sync</p>
-                          <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Last audit: 2h ago</p>
+                          <p className="text-lg font-black uppercase tracking-widest text-white leading-tight">All Records Sync</p>
+                          <p className="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em] mt-1">Last audit: 2h ago</p>
                        </div>
                     </div>
                     <Button 
                         variant="outline" 
-                        className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white font-black italic uppercase tracking-widest text-[10px] rounded-xl h-10 mt-2"
+                        className="w-full bg-white text-slate-900 border-white hover:bg-slate-100 font-black italic uppercase tracking-widest text-[10px] rounded-2xl h-14 mt-4 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] transition-all hover:scale-[1.02]"
                         onClick={() => setIsComplianceOpen(true)}
                      >
                         View Audit Passport
@@ -385,61 +409,61 @@ export default function MyPulse({ noShell = false }: { noShell?: boolean }) {
            </div>
 
            {/* Recent Activity Mini-Feed */}
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <Card className="border-slate-200 shadow-sm">
-                 <CardHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between">
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/40 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10">
+                 <CardHeader className="p-8 border-b border-white/5 flex flex-row items-center justify-between bg-white/5">
                     <div className="space-y-1">
-                       <CardTitle className="text-md font-black italic uppercase tracking-wider">Attendance Ledger</CardTitle>
-                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Last 5 records</p>
+                       <CardTitle className="text-lg font-black italic uppercase tracking-[0.2em] text-white">Attendance Ledger</CardTitle>
+                       <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Last 5 verification nodes</p>
                     </div>
-                    <History className="w-5 h-5 text-slate-400" />
+                    <History className="w-5 h-5 text-slate-600" />
                  </CardHeader>
                  <CardContent className="p-0">
                     {(record?.attendance || []).slice(0, 5).map((entry: any, i: number) => (
-                      <div key={entry.id} className={cn("p-4 flex items-center justify-between", i !== 4 && "border-b border-slate-50")}>
-                         <div className="flex items-center gap-3">
-                            <div className={cn("w-2 h-2 rounded-full", entry.status === 'on_time' ? 'bg-emerald-500' : 'bg-amber-500')} />
+                      <div key={entry.id} className={cn("p-6 flex items-center justify-between group cursor-pointer hover:bg-white/5 transition-colors", i !== 4 && "border-b border-white/5")}>
+                         <div className="flex items-center gap-4">
+                            <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]", entry.status === 'on_time' ? 'bg-emerald-500 shadow-emerald-500/40' : 'bg-amber-500 shadow-amber-500/40')} />
                             <div>
-                               <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{entry.date}</p>
-                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{entry.status}</p>
+                               <p className="text-sm font-black text-white uppercase tracking-tighter italic">{entry.date}</p>
+                               <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] mt-0.5">{entry.status}</p>
                             </div>
                          </div>
-                         <ChevronRight className="w-4 h-4 text-slate-300" />
+                         <ChevronRight className="w-5 h-5 text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
                       </div>
                     ))}
-                    <div className="p-4 bg-slate-50/50 text-center">
-                       <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest cursor-pointer hover:underline" onClick={() => setActiveTab('attendance')}>Full Attendance History</span>
+                    <div className="p-6 bg-white/2 text-center border-t border-white/5 group">
+                       <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest cursor-pointer group-hover:text-indigo-300 transition-colors" onClick={() => setActiveTab('attendance')}>Access Full Attendance Telemetry</span>
                     </div>
                  </CardContent>
               </Card>
 
-              <Card className="border-slate-200 shadow-sm">
-                 <CardHeader className="p-6 border-b border-slate-100 flex flex-row items-center justify-between">
+              <Card className="rounded-[2.5rem] border-white/5 bg-slate-900/40 backdrop-blur-3xl shadow-2xl overflow-hidden border border-white/10">
+                 <CardHeader className="p-8 border-b border-white/5 flex flex-row items-center justify-between bg-white/5">
                     <div className="space-y-1">
-                       <CardTitle className="text-md font-black italic uppercase tracking-wider">Document Vault</CardTitle>
-                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Payslips & Contracts</p>
+                       <CardTitle className="text-lg font-black italic uppercase tracking-[0.2em] text-white">Document Vault</CardTitle>
+                       <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Secured Asset Discovery</p>
                     </div>
-                    <FileText className="w-5 h-5 text-slate-400" />
+                    <FileText className="w-5 h-5 text-slate-600" />
                  </CardHeader>
                  <CardContent className="p-0">
                     {docs.slice(0, 4).map((doc: any, i: number) => (
-                      <div key={doc.id} className={cn("p-4 flex items-center justify-between", i !== 3 && "border-b border-slate-50")}>
-                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600">
-                               {doc.type === 'PAYSLIP' ? <Receipt className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                      <div key={doc.id} className={cn("p-6 flex items-center justify-between group hover:bg-white/5 transition-colors", i !== 3 && "border-b border-white/5")}>
+                         <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400 border border-white/5 group-hover:border-white/10 group-hover:text-white transition-all">
+                               {doc.type === 'PAYSLIP' ? <Receipt className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                             </div>
                             <div>
-                               <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{doc.title}</p>
-                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{doc.date}</p>
+                               <p className="text-sm font-black text-white uppercase tracking-tighter italic">{doc.title}</p>
+                               <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em] mt-0.5">{doc.date}</p>
                             </div>
                          </div>
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600">
-                            <Download className="w-4 h-4" />
+                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-slate-600 hover:text-white hover:bg-indigo-600 transition-all">
+                            <Download className="w-5 h-5" />
                          </Button>
                       </div>
                     ))}
-                    <div className="p-8 text-center border-t border-slate-50">
-                       <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Secured by VaultCore™</p>
+                    <div className="p-10 text-center border-t border-white/5">
+                       <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em] italic">Telemetry Protocol Enabled • AES-256</p>
                     </div>
                  </CardContent>
               </Card>

@@ -658,13 +658,21 @@ export default function InventoryStockHub() {
           { label: "Locations", value: locations.length },
         ]}
       >
-        <div className="flex justify-end">
+        <div className="flex items-center gap-3">
           <Button 
-            size="lg"
-            className="rounded-2xl bg-white text-slate-950 font-black italic text-xs uppercase tracking-widest gap-2 shadow-2xl hover:scale-105 transition-transform"
+            size="sm"
+            variant="outline"
+            className="rounded-xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-[10px] uppercase tracking-widest gap-2 h-10 px-4 text-white hover:bg-slate-800 shadow-xl"
+            onClick={() => setIsCategoryManagerOpen(true)}
+          >
+            <Plus className="h-3.5 w-3.5" /> New Categories
+          </Button>
+          <Button 
+            size="sm"
+            className="rounded-xl bg-white text-slate-950 font-black italic text-[10px] uppercase tracking-widest gap-2 h-10 px-6 shadow-2xl hover:scale-105 transition-transform"
             onClick={() => setIsNewItemOpen(true)}
           >
-            <Plus className="h-4 w-4" /> New Item
+            <Plus className="h-3.5 w-3.5" /> New Items
           </Button>
         </div>
       </InventoryGlassHeader>
@@ -739,14 +747,10 @@ export default function InventoryStockHub() {
             />
 
             <div className="flex items-center justify-end gap-3 py-2">
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-12 px-6 text-white hover:bg-slate-800"
-                onClick={() => setIsCategoryManagerOpen(true)}
-              >
-                <FolderTree className="h-4 w-4" /> Categories
-              </Button>
+               <ExportButton
+                endpoint="/inventory/items/export"
+                filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
+              />
                <ExportButton
                 endpoint="/inventory/items/export"
                 filename={`zenvix_inventory_${session.tenant_id}.xlsx`}
