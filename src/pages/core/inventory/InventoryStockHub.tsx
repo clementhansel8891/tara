@@ -120,7 +120,7 @@ export default function InventoryStockHub() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiRequest<InventoryItem[]>("/inventory/items", "GET", session);
+      const data = await apiRequest<InventoryItem[]>("/inventory/items?limit=5000", "GET", session);
       setItems(data || []);
     } catch (error: any) {
       toast({
