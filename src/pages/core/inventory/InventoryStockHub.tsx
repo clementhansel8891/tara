@@ -126,7 +126,7 @@ export default function InventoryStockHub() {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const data = await apiRequest<any[]>("/inventory/product-categories", "GET", session);
+      const data = await apiRequest<any[]>("/inventory/categories", "GET", session);
       setCategories(data || []);
     } catch (error) {
       console.error("Failed to fetch categories", error);
