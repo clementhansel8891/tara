@@ -33,55 +33,48 @@ const StatCard: React.FC<StatsProps> = ({
 }) => (
   <Card
     className={cn(
-      "border border-white/5 shadow-2xl hover:shadow-indigo-500/10 transition-all duration-700 group overflow-hidden relative bg-white/[0.03] backdrop-blur-3xl rounded-2xl",
+      "glass-card group overflow-hidden relative border-border/50",
       className,
     )}
   >
     <div
-      className={cn("absolute top-0 left-0 w-2 h-full opacity-40 group-hover:opacity-100 transition-opacity", color)}
+      className={cn("absolute top-0 left-0 w-1.5 h-full opacity-60 group-hover:opacity-100 transition-opacity", color)}
     />
-    <CardContent className="p-5">
+    <CardContent className="p-8">
       <div className="flex items-start justify-between relative z-10">
         <div className="space-y-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
+          <p className="text-label text-muted-foreground">
             {label}
           </p>
-          <h3 className="text-2xl font-black italic tracking-tighter text-foreground group-hover:text-primary transition-colors uppercase leading-none italic">
+          <h3 className="text-4xl font-black italic tracking-tighter text-foreground group-hover:text-primary transition-colors uppercase leading-none">
             {value}
           </h3>
           {trend && (
-            <div className="flex items-center gap-3 mt-4">
-              <div
-                className={cn(
-                  "flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-black italic uppercase shadow-xl",
-                  trend.isPositive
-                    ? "bg-success/20 text-success border border-emerald-500/30"
-                    : "bg-destructive/20 text-rose-400 border border-rose-500/30",
-                )}
-              >
+            <div className="flex items-center gap-3 pt-2">
+              <Badge variant={trend.isPositive ? "success" : "destructive"}>
                 {trend.isPositive ? (
-                  <ArrowUpRight className="w-3.5 h-3.5" />
+                  <ArrowUpRight className="w-3 h-3 mr-1" />
                 ) : (
-                  <ArrowDownRight className="w-3.5 h-3.5" />
+                  <ArrowDownRight className="w-3 h-3 mr-1" />
                 )}
                 {trend.value}
-              </div>
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] italic">
-                Index
+              </Badge>
+              <span className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] italic">
+                VS_PREV_NODE
               </span>
             </div>
           )}
         </div>
         <div
           className={cn(
-            "w-12 h-12 rounded-xl bg-secondary/40 text-muted-foreground border border-border flex items-center justify-center group-hover:bg-primary group-hover:text-foreground group-hover:rotate-6 transition-all duration-700 shadow-2xl",
+            "w-14 h-14 rounded-2xl bg-surface-2 text-muted-foreground border border-border/50 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground group-hover:rotate-6 transition-premium shadow-xl",
           )}
         >
-          <Icon className="w-6 h-6" />
+          <Icon className="w-7 h-7" />
         </div>
       </div>
     </CardContent>
-    <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-all duration-1000 pointer-events-none" />
+    <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 group-hover:scale-150 transition-premium pointer-events-none" />
   </Card>
 );
 
@@ -97,33 +90,34 @@ export const CommandCenterStats = ({
   systemStatus: string;
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
       <StatCard
         label="Gross Direct Sales"
         value={`Rp ${(totalSales / 1000000).toFixed(1)}M`}
         icon={TrendingUp}
         trend={{ value: "12.5%", isPositive: true }}
-        color="bg-primary"
+        color="bg-primary shadow-[0_0_20px_rgba(var(--primary),0.4)]"
       />
       <StatCard
         label="Fleet Volume"
         value={orderCount}
         icon={Receipt}
         trend={{ value: "4.2%", isPositive: true }}
-        color="bg-violet-600"
+        color="bg-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.4)]"
       />
       <StatCard
         label="Terminal Integrity"
         value={activeTerminals}
         icon={Monitor}
-        color="bg-success"
+        color="bg-success shadow-[0_0_20px_rgba(var(--success),0.4)]"
       />
       <StatCard
         label="Edge Latency"
         value={systemStatus}
         icon={Activity}
-        color="bg-amber-600"
+        color="bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
       />
     </div>
   );
 };
+

@@ -17,30 +17,30 @@ export function PageShell({
   children,
 }: PageShellProps) {
   return (
-    <div className="min-h-screen w-full bg-slate-50/50 dark:bg-slate-950/50">
-      <div className="flex flex-col w-full h-screen font-sans">
+    <div className="min-h-screen w-full bg-background selection:bg-primary/20 selection:text-primary">
+      <div className="flex flex-col w-full h-screen">
         {header && (
-          <header className="shrink-0 border-b bg-background/80 backdrop-blur-md z-20">
+          <header className="shrink-0 border-b border-border/50 bg-surface-2/80 backdrop-blur-2xl z-20">
             {header}
           </header>
         )}
         
         <div className="flex-1 flex overflow-hidden">
           {left && (
-            <aside className="w-80 shrink-0 border-r bg-card/40 backdrop-blur-xl hidden lg:block overflow-y-auto">
+            <aside className="w-80 shrink-0 border-r border-border/50 bg-surface-2/40 backdrop-blur-2xl hidden lg:block overflow-y-auto premium-scrollbar">
               {left}
             </aside>
           )}
           
-          <main className="flex-1 overflow-y-auto relative bg-background/20">
-            <div className="container mx-auto p-6">
+          <main className="flex-1 overflow-y-auto relative bg-surface-1/30 premium-scrollbar transition-premium">
+            <div className="container max-w-7xl mx-auto p-8 lg:p-12">
               {children}
             </div>
-            {footer && <div className="p-6 border-t mt-auto">{footer}</div>}
+            {footer && <div className="p-8 border-t border-border/50 mt-auto">{footer}</div>}
           </main>
 
           {right && (
-            <aside className="w-80 shrink-0 border-l bg-card/40 backdrop-blur-xl hidden xl:block overflow-y-auto">
+            <aside className="w-80 shrink-0 border-l border-border/50 bg-surface-2/40 backdrop-blur-2xl hidden xl:block overflow-y-auto premium-scrollbar">
               {right}
             </aside>
           )}
@@ -49,5 +49,6 @@ export function PageShell({
     </div>
   );
 }
+
 
 export default PageShell;

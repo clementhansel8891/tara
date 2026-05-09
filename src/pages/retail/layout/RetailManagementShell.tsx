@@ -113,21 +113,21 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
   }));
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-background">
       <PageShell
         header={
-          <div className="space-y-1.5 p-4 md:p-6 bg-background/40 backdrop-blur-md border-b border-border/50">
+          <div className="space-y-1.5 p-4 md:p-6 bg-surface-2/40 backdrop-blur-xl border-b border-border/50 transition-premium">
             <Breadcrumb>
               <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/core" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">CORE</Link>
+                  <Link to="/core">CORE</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator className="text-muted-foreground/40" />
+              <BreadcrumbSeparator className="text-primary/40" />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/m/retail/workspace" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-all">RETAIL HUB</Link>
+                  <Link to="/m/retail/workspace">RETAIL HUB</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
                 {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
@@ -135,12 +135,12 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
                       {index === breadcrumbs.length - 1 ? (
-                        <BreadcrumbPage className="capitalize text-[9px] font-black tracking-widest text-primary">
+                        <BreadcrumbPage>
                           {item.label}
                         </BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink asChild>
-                          <Link to={item.path} className="capitalize text-[9px] font-bold tracking-wider text-muted-foreground">
+                          <Link to={item.path}>
                             {item.label}
                           </Link>
                         </BreadcrumbLink>
@@ -165,22 +165,22 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
         }
         left={
           <div className="space-y-6 p-6">
-            <WorkspacePanel className="bg-secondary text-white p-6 rounded-3xl shadow-xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-secondary/40 blur-2xl -mr-12 -mt-12" />
+            <WorkspacePanel className="grad-primary text-primary-foreground p-6 rounded-[2rem] shadow-2xl overflow-hidden relative border border-white/20">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 animate-glow" />
               <div className="space-y-4 relative z-10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-border shadow-inner">
+                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-2xl">
                     {activeChannel ? (
-                      <Globe className="w-5 h-5 text-sky-400" />
+                      <Globe className="w-6 h-6 text-white" />
                     ) : (
-                      <Store className="w-5 h-5 text-primary" />
+                      <Store className="w-6 h-6 text-white" />
                     )}
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 leading-none mb-1">
-                      Active Business Unit
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/70 leading-none mb-1">
+                      Business Entity
                     </span>
-                    <p className="text-[13px] font-black italic tracking-tight truncate max-w-[140px]">
+                    <p className="text-sm font-black italic tracking-tighter truncate max-w-[140px] uppercase">
                       {activeStore?.name ||
                         activeChannel?.name ||
                         "Zenvix Retail Hub"}
@@ -188,28 +188,28 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-border space-y-2.5">
+                <div className="pt-4 border-t border-white/20 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                      Company
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">
+                      Scope
                     </span>
-                    <span className="text-[10px] font-black truncate max-w-[100px] text-primary/70 uppercase">
-                      {activeStore?.name ? "Enterprise Hub" : "Zenvix Corp"}
+                    <span className="text-[10px] font-black truncate max-w-[100px] text-white uppercase italic">
+                      {activeStore?.name ? "Enterprise" : "Global"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                      Branch
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">
+                      Branch ID
                     </span>
-                    <span className="text-[10px] font-black text-sky-300 uppercase truncate max-w-[100px]">
-                      {activeStore?.name || "Global Scope"}
+                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px] italic">
+                      {activeStore?.name || "RETAIL_ROOT"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/50">
                       Operator
                     </span>
-                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px]">
+                    <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px] italic">
                       {session?.user_id?.slice(0, 8)}
                     </span>
                   </div>
@@ -219,8 +219,8 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
 
             <div className="space-y-8">
               {(Array.isArray(SECTIONS) ? SECTIONS : []).map((section) => (
-                <div key={section.title} className="space-y-3">
-                  <p className="px-3 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground">
+                <div key={section.title} className="space-y-4">
+                  <p className="px-4 text-label">
                     {section.title}
                   </p>
                   <div className="space-y-1">
@@ -238,19 +238,19 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
                           }}
                           className={({ isActive }) =>
                             cn(
-                              "flex items-center gap-4 rounded-2xl px-4 py-3 text-[13px] font-black italic transition-all duration-300",
+                              "flex items-center gap-4 rounded-xl px-4 py-3 text-[13px] font-black italic uppercase tracking-tighter transition-premium group",
                               isDisabled
                                 ? "opacity-30 cursor-not-allowed pointer-events-none grayscale"
                                 : isActive
-                                  ? "bg-secondary text-white shadow-[0_10px_20px_rgba(0,0,0,0.1)] scale-[1.02]"
-                                  : "text-muted-foreground hover:bg-secondary/10 hover:text-foreground",
+                                  ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-[1.02] border border-white/10"
+                                  : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
                             )
                           }
                         >
                           <Icon
                             className={cn(
-                              "h-4 w-4",
-                              !isDisabled && "text-primary",
+                              "h-4 w-4 transition-colors",
+                              !isDisabled && "text-primary group-hover:text-primary",
                             )}
                           />
                           <span className="tracking-tight uppercase">
@@ -266,35 +266,26 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
           </div>
         }
         footer={
-          <div className="pt-12 pb-8 border-t border-slate-100 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2 transition-opacity hover:opacity-100 opacity-60">
+          <div className="pt-12 pb-8 border-t border-border/50 flex justify-between items-center px-4 transition-premium hover:opacity-100 opacity-80">
             <div className="flex flex-col gap-1">
-              <p>© 2026 ZENVIX RETAIL SYSTEM • V1.0.X_PATCH_EST</p>
-              <div className="flex items-center gap-4 text-muted-foreground/60">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-label-foreground">© 2026 ZENVIX RETAIL SYSTEM • V1.0.X_PATCH_EST</p>
+              <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                 <span>IDENTITY: {activeStore?.name || "GLOBAL"}</span>
                 <span>OS: WINDOWS_X64</span>
               </div>
             </div>
             <div className="flex items-center gap-8">
               <span className="flex items-center gap-2 group cursor-default">
-                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                API_UPLINK:{" "}
-                <span className="text-success transition-colors group-hover:text-success">
-                  ACTIVE
-                </span>
+                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-success/40 status-glow" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">API_UPLINK: <span className="text-success">ACTIVE</span></span>
               </span>
               <span className="flex items-center gap-2 group cursor-default">
-                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                WEBSOCKET:{" "}
-                <span className="text-success transition-colors group-hover:text-success">
-                  ENCRYPTED
-                </span>
+                <div className="w-1.5 h-1.5 rounded-full bg-success shadow-success/40 status-glow" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">WEBSOCKET: <span className="text-success">ENCRYPTED</span></span>
               </span>
               <span className="flex items-center gap-2 group cursor-default">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary/50 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-                NODE_HEALTH:{" "}
-                <span className="text-primary transition-colors group-hover:text-blue-500">
-                  NOMINAL
-                </span>
+                <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-primary/40 status-glow" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">NODE_HEALTH: <span className="text-primary">NOMINAL</span></span>
               </span>
             </div>
           </div>
@@ -305,3 +296,4 @@ export const RetailManagementShell: React.FC<{ children: React.ReactNode }> = ({
     </div>
   );
 };
+
