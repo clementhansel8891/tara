@@ -2037,10 +2037,13 @@ export class RetailDbRepository implements IRetailRepository {
     await this.prisma.$transaction(async (tx: any) => {
       const store = await tx.stores.findUnique({
         where: { id: data.store_id },
-        select: { location_id: true },
+        select: { location_id: true, company_id: true },
       });
 
       if (!store) throw new Error("Store not found");
+
+      let totalExpected = 0;
+      let totalCounted = 0;
 
       for (const adj of data.adjustments) {
         const stock = await tx.stock_levels.findUnique({
@@ -2048,10 +2051,14 @@ export class RetailDbRepository implements IRetailRepository {
             location_id_product_id_department_id: {
               location_id: store.location_id,
               product_id: adj.product_id,
-              department_id: "DEFAULT", // Use a sentinel or ensure it matches schema expectation
+              department_id: "DEFAULT",
             },
           },
         });
+
+        const currentOnHand = stock ? Number(stock.on_hand) : 0;
+        totalExpected += currentOnHand;
+        totalCounted += adj.actualCount;
 
         if (stock) {
           await tx.stock_levels.update({
@@ -2065,7 +2072,7 @@ export class RetailDbRepository implements IRetailRepository {
         } else {
           await tx.stock_levels.create({
             data: {
-              id: "8ylu9vbw",
+              id: uuidv4(),
               updated_at: new Date(),
               ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
               location_id: store.location_id,
@@ -2086,13 +2093,32 @@ export class RetailDbRepository implements IRetailRepository {
             ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
             product_id: adj.product_id,
             to_location_id: store.location_id,
-            quantity: adj.actualCount - (stock?.on_hand || 0),
+            quantity: adj.actualCount - currentOnHand,
             type: "STOCK_OPNAME",
             referenceId: data.shift_id || "OPNAME",
-            performedBy: "system", // Should ideally be actor_id
+            performedBy: "system",
           },
         });
       }
+
+      // Create a formal Audit Cycle record for this session
+      await tx.inventory_audit_cycles.create({
+        data: {
+          id: uuidv4(),
+          tenant_id: ctx.tenant_id,
+          company_id: store.company_id,
+          location_code: store.location_id,
+          scope: "STORE_OPNAME",
+          status: "COMPLETED",
+          expected_value: totalExpected,
+          counted_value: totalCounted,
+          variance_value: totalCounted - totalExpected,
+          opened_by: "system",
+          closed_by: "system",
+          created_at: new Date(),
+          updated_at: new Date(),
+        }
+      });
     });
 
     return { success: true };
