@@ -70,6 +70,18 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        // Surface System
+        surface: {
+          1: "hsl(var(--surface-1))",
+          2: "hsl(var(--surface-2))",
+          3: "hsl(var(--surface-3))",
+        },
+        // Premium Text System
+        "text-strong": "hsl(var(--text-strong))",
+        "text-dim": "hsl(var(--text-dim))",
+        "text-label": "hsl(var(--text-label))",
+        "label-foreground": "hsl(var(--label-foreground))",
+        
         // Status Colors
         status: {
           empty: "hsl(var(--status-empty))",
@@ -99,6 +111,7 @@ export default {
           5: "hsl(var(--chart-5))",
         },
       },
+
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
