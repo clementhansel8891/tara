@@ -73,7 +73,7 @@ export class InventoryMockRepository extends IInventoryRepository {
     };
   }
 
-  async getItems(ctx: TenantContext, location_id?: string, page?: number, limit?: number, search?: string): Promise<InventoryItem[]> {
+  async getItems(ctx: TenantContext, location_id?: string, page?: number, limit?: number, search?: string, category_id?: string): Promise<InventoryItem[]> {
     let items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
     if (location_id) {
       const productIds = this.balances
@@ -91,7 +91,7 @@ export class InventoryMockRepository extends IInventoryRepository {
     return items;
   }
 
-  async countItems(ctx: TenantContext, location_id?: string, search?: string): Promise<number> {
+  async countItems(ctx: TenantContext, location_id?: string, search?: string, category_id?: string): Promise<number> {
     let items = this.items.filter((i) => i.tenant_id === ctx.tenant_id);
     if (location_id) {
       const productIds = this.balances
@@ -111,7 +111,7 @@ export class InventoryMockRepository extends IInventoryRepository {
     return item as any;
   }
 
-  async getBalances(ctx: TenantContext, location_id?: string, department_id?: string, page?: number, limit?: number, search?: string): Promise<StockBalance[]> {
+  async getBalances(ctx: TenantContext, location_id?: string, department_id?: string, page?: number, limit?: number, search?: string, category_id?: string): Promise<StockBalance[]> {
     let balances = this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
     if (location_id) {
       balances = balances.filter((b) => b.location_id === location_id);
@@ -126,7 +126,7 @@ export class InventoryMockRepository extends IInventoryRepository {
     return balances;
   }
 
-  async countBalances(ctx: TenantContext, location_id?: string, department_id?: string, search?: string): Promise<number> {
+  async countBalances(ctx: TenantContext, location_id?: string, department_id?: string, search?: string, category_id?: string): Promise<number> {
     let balances = this.balances.filter((b) => b.tenant_id === ctx.tenant_id);
     if (location_id) {
       balances = balances.filter((b) => b.location_id === location_id);

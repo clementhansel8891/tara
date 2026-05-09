@@ -49,11 +49,13 @@ export abstract class IInventoryRepository {
     page?: number,
     limit?: number,
     search?: string,
+    category_id?: string,
   ): Promise<InventoryItem[]>;
   abstract countItems(
     ctx: TenantContext,
     location_id?: string,
     search?: string,
+    category_id?: string,
   ): Promise<number>;
   abstract createItem(
     ctx: TenantContext,
@@ -66,12 +68,14 @@ export abstract class IInventoryRepository {
     page?: number,
     limit?: number,
     search?: string,
+    category_id?: string,
   ): Promise<StockBalance[]>;
   abstract countBalances(
     ctx: TenantContext,
     location_id?: string,
     department_id?: string,
     search?: string,
+    category_id?: string,
   ): Promise<number>;
   abstract getMovements(
     ctx: TenantContext,
