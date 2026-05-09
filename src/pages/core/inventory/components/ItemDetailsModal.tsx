@@ -44,6 +44,9 @@ export function ItemDetailsModal({
   const [movements, setMovements] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDecommissioning, setIsDecommissioning] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<any>({});
 
   useEffect(() => {
     if (open && item) {
@@ -67,6 +70,50 @@ export function ItemDetailsModal({
     }
   };
 
+  const handleUpdate = async () => {
+    try {
+      await apiRequest(`/inventory/items/${item.id}`, "PATCH", session, editData);
+      toast({ title: "Identity Updated", description: "Item metadata and status have been successfully synchronized." });
+      setIsEditing(false);
+      onUpdated();
+    } catch (error: any) {
+      toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDecommission = async () => {
+    try {
+      await apiRequest(`/inventory/items/${item.id}`, "DELETE", session);
+      toast({ title: "Item Decommissioned", description: "Identity has been archived and removed from active circulation." });
+      setIsDecommissioning(false);
+      onOpenChange(false);
+      onUpdated();
+    } catch (error: any) {
+      toast({ title: "Action Failed", description: error.message, variant: "destructive" });
+    }
+  };
+
+  // Aggregate balances by location to avoid redundancy
+  const aggregatedBalances = balances.reduce((acc: any[], curr: any) => {
+    const locId = curr.location_id;
+    const existing = acc.find(b => b.location_id === locId);
+    if (existing) {
+      existing.quantity += curr.quantity;
+      existing.reserved += curr.reserved_quantity || 0;
+      existing.in_transit += curr.in_transit_quantity || 0;
+    } else {
+      acc.push({ 
+        location_id: locId,
+        location_name: curr.location?.name || `Storage Node #${locId.slice(0,4)}`,
+        quantity: curr.quantity,
+        reserved: curr.reserved_quantity || 0,
+        in_transit: curr.in_transit_quantity || 0
+      });
+    }
+    return acc;
+  }, []);
+
+
   if (!item) return null;
 
   return (
@@ -82,8 +129,16 @@ export function ItemDetailsModal({
                 {item.name}
               </DialogTitle>
             </div>
-            <Badge variant="outline" className="border-indigo-500/50 text-indigo-400 font-black tracking-[0.2em] rounded-xl px-4 py-1.5 uppercase">
-              {item.status}
+            <Badge 
+              variant="outline" 
+              className={`font-black tracking-[0.2em] rounded-xl px-4 py-1.5 uppercase ${
+                item.status === 'REJECT' ? 'border-rose-500 text-rose-500 bg-rose-500/10' :
+                item.status === 'REPAIR' ? 'border-amber-500 text-amber-500 bg-amber-500/10' :
+                item.status === 'DELETED' || item.status === 'deleted' ? 'border-slate-500 text-slate-500 bg-slate-500/10' :
+                'border-indigo-500/50 text-indigo-400'
+              }`}
+            >
+              {item.status || 'Active'}
             </Badge>
           </div>
 
@@ -107,7 +162,43 @@ export function ItemDetailsModal({
           </div>
         </div>
 
-        <div className="p-8">
+        <ScrollArea className="max-h-[65vh]">
+          <div className="p-8">
+            {isEditing ? (
+              <div className="space-y-6 mb-8 p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-indigo-100 dark:border-indigo-900/30">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Item Name</label>
+                    <input 
+                      value={editData.name} 
+                      onChange={e => setEditData({...editData, name: e.target.value})}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Global Status</label>
+                    <select 
+                      value={editData.status} 
+                      onChange={e => setEditData({...editData, status: e.target.value})}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                      <option value="active">ACTIVE</option>
+                      <option value="REPAIR">REPAIR</option>
+                      <option value="REJECT">REJECT</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Identity Description</label>
+                  <textarea 
+                    value={editData.description} 
+                    onChange={e => setEditData({...editData, description: e.target.value})}
+                    rows={3}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
+                  />
+                </div>
+              </div>
+            ) : null}
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-slate-100 dark:bg-slate-900 p-1 mb-8">
               <TabsTrigger value="overview" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Overview</TabsTrigger>
@@ -144,13 +235,51 @@ export function ItemDetailsModal({
               </div>
 
               <div className="flex gap-3 justify-end pt-6 border-t">
-                <Button variant="outline" className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest border-slate-200">
-                  <Edit3 className="h-3 w-3 mr-2" /> Edit Identity
-                </Button>
-                <Button variant="outline" className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest text-rose-500 border-rose-100 hover:bg-rose-50">
-                  <Trash2 className="h-3 w-3 mr-2" /> Decommission
-                </Button>
-              </div>
+                  {isDecommissioning ? (
+                    <div className="flex flex-col gap-2 w-full">
+                      <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 mb-2">
+                        <p className="text-[10px] font-black uppercase text-rose-600 mb-1">⚠️ Critical Warning</p>
+                        <p className="text-xs font-bold text-rose-500 leading-relaxed">
+                          Decommissioning will archive this identity. It will no longer appear in active inventory cycles and requires audit clearance. 
+                          This action is persistent. Continue?
+                        </p>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="ghost" onClick={() => setIsDecommissioning(false)} className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest">
+                          Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleDecommission} className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest bg-rose-600 shadow-lg shadow-rose-200">
+                          Confirm Decommission
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Button 
+                        onClick={() => {
+                          setEditData({ name: item.name, description: item.description, status: item.status || 'active' });
+                          setIsEditing(!isEditing);
+                        }}
+                        variant="outline" 
+                        className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest border-slate-200"
+                      >
+                        <Edit3 className="h-3 w-3 mr-2" /> {isEditing ? "Discard Changes" : "Edit Identity"}
+                      </Button>
+                      {isEditing && (
+                        <Button onClick={handleUpdate} className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                          Save Changes
+                        </Button>
+                      )}
+                      <Button 
+                        onClick={() => setIsDecommissioning(true)}
+                        variant="outline" 
+                        className="rounded-xl h-12 px-6 font-black text-[10px] uppercase tracking-widest text-rose-500 border-rose-100 hover:bg-rose-50"
+                      >
+                        <Trash2 className="h-3 w-3 mr-2" /> Decommission
+                      </Button>
+                    </>
+                  )}
+                </div>
             </TabsContent>
 
             <TabsContent value="movements">
@@ -196,22 +325,26 @@ export function ItemDetailsModal({
                   <div className="space-y-4">
                     {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
                   </div>
-                ) : balances.length === 0 ? (
+                ) : aggregatedBalances.length === 0 ? (
                   <div className="h-64 flex flex-col items-center justify-center opacity-20 italic">
                     <MapPin className="h-12 w-12 mb-2" />
                     <p className="font-bold">No storage data</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {balances.map((bal, i) => (
+                    {aggregatedBalances.map((bal, i) => (
                       <div key={i} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="p-2 rounded-xl bg-primary/10 text-primary">
                             <MapPin className="h-4 w-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-black uppercase tracking-widest">Storage Node #{bal.location_id.slice(0,4)}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Available for deployment</p>
+                            <p className="text-xs font-black uppercase tracking-widest">{bal.location_name}</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase">
+                              {bal.reserved > 0 ? `${bal.reserved} reserved • ` : ''}
+                              {bal.in_transit > 0 ? `${bal.in_transit} in-transit • ` : ''}
+                              Operational Storage
+                            </p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -227,7 +360,8 @@ export function ItemDetailsModal({
               </ScrollArea>
             </TabsContent>
           </Tabs>
-        </div>
+           </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

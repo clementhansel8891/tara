@@ -155,6 +155,8 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
                       <SelectItem value="ok">OK</SelectItem>
                       <SelectItem value="low">LOW STOCK</SelectItem>
                       <SelectItem value="critical">CRITICAL</SelectItem>
+                      <SelectItem value="REPAIR">REPAIR</SelectItem>
+                      <SelectItem value="REJECT">REJECT</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
