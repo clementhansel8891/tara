@@ -32,9 +32,9 @@ export const OpnameFilters: React.FC<OpnameFiltersProps> = ({
   return (
     <div className="space-y-4">
       {/* Barcode input */}
-      <div className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-lg">
+      <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-lg">
         <div className="flex items-center gap-4">
-          <ScanLine className="w-5 h-5 text-blue-600 shrink-0" />
+          <ScanLine className="w-5 h-5 text-primary shrink-0" />
           <Input
             ref={barcodeRef}
             className="flex-1 h-12 rounded-xl font-mono font-bold border-slate-200"
@@ -47,11 +47,11 @@ export const OpnameFilters: React.FC<OpnameFiltersProps> = ({
       </div>
 
       {/* Table filters */}
-      <div className="flex items-center gap-3 bg-white rounded-[1.5rem] p-3 border border-slate-100 shadow-lg">
+      <div className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100 shadow-lg">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
           <Input
-            className="pl-12 h-11 bg-slate-50 border-none rounded-xl font-bold italic placeholder:text-slate-300"
+            className="pl-12 h-11 bg-secondary/5 border-none rounded-xl font-bold italic placeholder:text-muted-foreground/60"
             placeholder="Search SKU or name..."
             value={filters.search}
             onChange={(e) => onFiltersChange({ search: e.target.value })}

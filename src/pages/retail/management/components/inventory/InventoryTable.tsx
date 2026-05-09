@@ -60,12 +60,12 @@ const PaginationBar: React.FC<PaginationProps> = ({
   });
 
   return (
-    <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/30 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="px-6 py-4 border-t border-slate-50 bg-secondary/5/30 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 flex-wrap">
-        <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+        <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
           Page {page} of {totalPages} • Total {totalItems} items
         </span>
-        <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+        <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
           Showing {currentCount} on this page
         </span>
       </div>
@@ -100,7 +100,7 @@ const PaginationBar: React.FC<PaginationProps> = ({
           >
             →
           </Button>
-          <div className="flex items-center gap-1 text-[10px] uppercase font-black italic text-slate-500">
+          <div className="flex items-center gap-1 text-[10px] uppercase font-black italic text-muted-foreground">
             Jump:
             <Input
               type="number"
@@ -158,7 +158,7 @@ export const InventoryTable: React.FC<TableProps> = ({
             ].map((h, i) => (
               <th
                 key={i}
-                className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic"
               >
                 {h}
               </th>
@@ -170,8 +170,8 @@ export const InventoryTable: React.FC<TableProps> = ({
             <tr>
               <td colSpan={9} className="px-6 py-16 text-center">
                 <div className="flex flex-col items-center gap-2">
-                  <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
-                  <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                  <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                  <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                     Pulling from Core...
                   </span>
                 </div>
@@ -184,16 +184,16 @@ export const InventoryTable: React.FC<TableProps> = ({
                 <tr
                   key={item.id}
                   onClick={() => onRowClick?.(item)}
-                  className="group border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors cursor-pointer"
+                  className="group border-b border-slate-50 last:border-none hover:bg-secondary/5/50 transition-colors cursor-pointer"
                 >
-                  <td className="px-4 py-4 text-[11px] text-slate-400 font-bold">
+                  <td className="px-4 py-4 text-[11px] text-muted-foreground font-bold">
                     {number}
                   </td>
-                  <td className="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">
+                  <td className="px-6 py-4 font-mono text-[11px] text-muted-foreground font-bold">
                     {item.sku}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-black italic text-sm text-slate-900">
+                    <div className="font-black italic text-sm text-foreground">
                       {item.name}
                     </div>
                     <button
@@ -201,15 +201,15 @@ export const InventoryTable: React.FC<TableProps> = ({
                         e.stopPropagation();
                         onCategoryClick?.(item.categoryId);
                       }}
-                      className="text-[9px] text-slate-400 uppercase font-bold tracking-widest hover:text-blue-600 hover:underline transition-colors block text-left"
+                      className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest hover:text-primary hover:underline transition-colors block text-left"
                     >
                       {item.category}
                     </button>
                   </td>
-                  <td className="px-6 py-4 font-black italic text-slate-900">
+                  <td className="px-6 py-4 font-black italic text-foreground">
                     {item.onHand}
                   </td>
-                  <td className="px-6 py-4 text-slate-500 font-bold italic text-sm">
+                  <td className="px-6 py-4 text-muted-foreground font-bold italic text-sm">
                     {item.reserved}
                   </td>
                   <td className="px-6 py-4">
@@ -218,13 +218,13 @@ export const InventoryTable: React.FC<TableProps> = ({
                         "font-black italic",
                         item.available <= 0
                           ? "text-red-600"
-                          : "text-emerald-700",
+                          : "text-success",
                       )}
                     >
                       {item.available}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-500 font-bold italic text-sm">
+                  <td className="px-6 py-4 text-muted-foreground font-bold italic text-sm">
                     {item.minBuffer}
                   </td>
                   <td className="px-6 py-4">
@@ -244,7 +244,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={(e) => e.stopPropagation()}
-                          className="h-8 w-8 rounded-xl text-slate-300 hover:text-slate-700"
+                          className="h-8 w-8 rounded-xl text-muted-foreground/60 hover:text-muted-foreground"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
@@ -260,7 +260,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                             onEdit(item);
                           }}
                         >
-                          <Edit3 className="w-3.5 h-3.5 text-blue-600" /> Edit
+                          <Edit3 className="w-3.5 h-3.5 text-primary" /> Edit
                           Buffer
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -270,7 +270,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                             onPrint(item);
                           }}
                         >
-                          <Printer className="w-3.5 h-3.5 text-slate-600" />{" "}
+                          <Printer className="w-3.5 h-3.5 text-muted-foreground" />{" "}
                           Print Barcode
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -280,7 +280,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                             onMovement("transfer_out", item);
                           }}
                         >
-                          <Truck className="w-3.5 h-3.5 text-indigo-600" />{" "}
+                          <Truck className="w-3.5 h-3.5 text-primary" />{" "}
                           Transfer Out
                         </DropdownMenuItem>
                         <DropdownMenuItem

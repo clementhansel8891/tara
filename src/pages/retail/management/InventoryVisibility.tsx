@@ -370,7 +370,7 @@ const InventoryVisibility = () => {
       case "in stock":
       case "ok":
       case "active":
-        return "bg-emerald-50 text-emerald-600";
+        return "bg-emerald-50 text-success";
       case "low stock":
       case "low":
         return "bg-amber-50 text-amber-600";
@@ -379,9 +379,9 @@ const InventoryVisibility = () => {
       case "discontinued":
         return "bg-red-50 text-red-600";
       case "pending":
-        return "bg-indigo-50 text-indigo-600 animate-pulse";
+        return "bg-primary/5 text-primary animate-pulse";
       default:
-        return "bg-slate-100 text-slate-600";
+        return "bg-secondary/10 text-muted-foreground";
     }
   };
 
@@ -655,7 +655,7 @@ const InventoryVisibility = () => {
   });
 
   return (
-    <div className="p-8 space-y-8 bg-slate-950 min-h-screen flex flex-col text-white">
+    <div className="p-8 space-y-8 bg-background min-h-screen flex flex-col text-foreground">
       {/* ── Header ── */}
       <InventoryGlassHeader
         title="Retail Inventory"
@@ -664,7 +664,7 @@ const InventoryVisibility = () => {
         stats={[
           { label: "Total SKUs", value: stats?.totalSKUs ?? 0 },
           { label: "Total SOH", value: stats?.totalSOH ?? 0 },
-          { label: "Critical", value: stats?.critical ?? 0, color: "text-rose-500" },
+          { label: "Critical", value: stats?.critical ?? 0, color: "text-destructive" },
           { label: "Low", value: stats?.low ?? 0, color: "text-amber-500" },
         ]}
         actions={
@@ -691,14 +691,14 @@ const InventoryVisibility = () => {
               size="lg"
               onClick={handleSync}
               disabled={isLoading}
-              className="h-14 px-6 rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 text-white hover:bg-slate-800"
+              className="h-14 px-6 rounded-2xl border-border bg-secondary/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 text-foreground hover:bg-secondary/60"
             >
               <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
               Sync
             </Button>
 
             {!canWrite && (
-              <Badge className="bg-amber-500 text-white border-none font-black italic text-[10px] uppercase px-4 h-14 rounded-2xl flex items-center gap-2">
+              <Badge className="bg-amber-500 text-foreground border-none font-black italic text-[10px] uppercase px-4 h-14 rounded-2xl flex items-center gap-2">
                 <Lock className="w-4 h-4" /> View Only
               </Badge>
             )}
@@ -722,7 +722,7 @@ const InventoryVisibility = () => {
                 <TabsTrigger
                   key={t.val}
                   value={t.val}
-                  className="rounded-xl px-6 font-black italic text-[10px] uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all gap-2"
+                  className="rounded-xl px-6 font-black italic text-[10px] uppercase tracking-widest data-[state=active]:bg-secondary data-[state=active]:text-foreground transition-all gap-2"
                 >
                   <t.icon className="w-3.5 h-3.5" />
                   {t.label}
@@ -752,14 +752,14 @@ const InventoryVisibility = () => {
                        <Button
                         variant="outline"
                         size="lg"
-                        className="rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-white hover:bg-slate-800"
+                        className="rounded-2xl border-border bg-secondary/40 backdrop-blur-md font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-6 text-foreground hover:bg-secondary/60"
                         onClick={() => setIsCategoryManagerOpen(true)}
                       >
                         Categories
                       </Button>
                       <Button 
                         size="lg"
-                        className="rounded-2xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-8"
+                        className="rounded-2xl bg-secondary text-foreground font-black italic text-xs uppercase tracking-widest gap-2 h-14 px-8"
                         onClick={() => setEditItem({} as InventoryItemView)}
                       >
                         <Plus className="h-4 w-4" /> Add SKU
@@ -768,7 +768,7 @@ const InventoryVisibility = () => {
                   )
                 }
               />
-              <Card className="rounded-[2.5rem] border-white/10 bg-slate-900/30 backdrop-blur-3xl shadow-2xl overflow-hidden border">
+              <Card className="rounded-2xl border-border bg-secondary/30 backdrop-blur-3xl shadow-2xl overflow-hidden border">
                 <InventoryTable
                   items={inventory}
                   isLoading={isLoading}
@@ -853,7 +853,7 @@ const InventoryVisibility = () => {
                   <h2 className="text-2xl font-black italic tracking-tight">
                     Pending SKU Approvals
                   </h2>
-                  <p className="text-slate-500 text-sm font-medium">
+                  <p className="text-muted-foreground text-sm font-medium">
                     Items waiting for HOD verification before entering
                     inventory.
                   </p>
@@ -872,14 +872,14 @@ const InventoryVisibility = () => {
               </div>
 
               {pendingItems.length === 0 ? (
-                <div className="h-[400px] rounded-[2.5rem] bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center p-8">
+                <div className="h-[400px] rounded-2xl bg-secondary/5 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center p-8">
                   <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-4">
-                    <ShieldCheck className="w-8 h-8 text-slate-300" />
+                    <ShieldCheck className="w-8 h-8 text-muted-foreground/60" />
                   </div>
                   <h3 className="text-lg font-black italic tracking-tight">
                     All Clear!
                   </h3>
-                  <p className="text-slate-500 text-sm font-medium mt-1">
+                  <p className="text-muted-foreground text-sm font-medium mt-1">
                     No items currently awaiting approval.
                   </p>
                 </div>
@@ -891,34 +891,34 @@ const InventoryVisibility = () => {
                       className="rounded-[2rem] border-none shadow-xl overflow-hidden bg-white p-6 border-l-4 border-l-indigo-600"
                     >
                       <div className="flex justify-between items-start mb-4">
-                        <Badge className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-[10px] font-black italic uppercase">
+                        <Badge className="bg-primary/5 text-primary hover:bg-primary/10 rounded-lg text-[10px] font-black italic uppercase">
                           Pending Approval
                         </Badge>
-                        <span className="text-[10px] font-black uppercase text-slate-400 italic">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground italic">
                           {item.sku}
                         </span>
                       </div>
                       <h4 className="text-lg font-black italic tracking-tight leading-tight mb-1">
                         {item.name}
                       </h4>
-                      <p className="text-xs text-slate-500 font-medium mb-4">
+                      <p className="text-xs text-muted-foreground font-medium mb-4">
                         {item.category} • {item.unit}
                       </p>
 
                       <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-slate-50 rounded-2xl p-3">
-                          <p className="text-[9px] font-black uppercase text-slate-400 italic mb-1">
+                        <div className="bg-secondary/5 rounded-2xl p-3">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground italic mb-1">
                             Price
                           </p>
-                          <p className="text-sm font-black italic text-slate-900">
+                          <p className="text-sm font-black italic text-foreground">
                             ${item.price}
                           </p>
                         </div>
-                        <div className="bg-slate-50 rounded-2xl p-3">
-                          <p className="text-[9px] font-black uppercase text-slate-400 italic mb-1">
+                        <div className="bg-secondary/5 rounded-2xl p-3">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground italic mb-1">
                             Type
                           </p>
-                          <p className="text-sm font-black italic text-slate-900">
+                          <p className="text-sm font-black italic text-foreground">
                             {item.type}
                           </p>
                         </div>
@@ -926,7 +926,7 @@ const InventoryVisibility = () => {
 
                       <div className="flex gap-3">
                         <Button
-                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest bg-success hover:bg-emerald-700 text-foreground"
                           disabled={isApproving}
                           onClick={async () => {
                             setIsApproving(true);

@@ -220,53 +220,53 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
     <StoreContext.Provider value={contextValue}>
       <div className="flex flex-col">
         {/* Header Section */}
-        <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between gap-6">
+        <div className="px-6 py-3 border-b bg-background/40 backdrop-blur-md shrink-0 flex items-center justify-between gap-6">
           <PageHeader
             title={localStore ? localStore.name : "Fleet Registry"}
             subtitle={
               localStore
-                ? `Authoritative Node: ${localStore.code} • ${localStore.type?.toUpperCase()}`
-                : `Global Governance Hub • ${stores.length} Nodes Registered`
+                ? `Node: ${localStore.code}`
+                : `Global Hub • ${stores.length} Nodes`
             }
           />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Select
               value={selectedStoreId}
               onValueChange={setSelectedStoreId}
               disabled={isStoreManager}
             >
-              <SelectTrigger className="w-[320px] h-12 rounded-2xl border-slate-200 bg-slate-50 font-black italic text-sm shadow-sm hover:bg-white transition-all">
+              <SelectTrigger className="w-[280px] h-10 rounded-xl border-slate-200 bg-secondary/5 font-black italic text-[11px] shadow-sm hover:bg-white transition-all">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border-slate-200 shadow-2xl p-2">
+              <SelectContent className="rounded-xl border-slate-200 shadow-2xl p-1.5">
                 {(session.role?.toLowerCase() === "superadmin" ||
                   session.role?.toLowerCase() === "owner") && (
                   <>
                     <SelectItem
                       value="all_stores"
-                      className="font-black italic py-3 cursor-pointer rounded-xl"
+                      className="font-black italic py-2.5 cursor-pointer rounded-lg text-[11px]"
                     >
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <Globe className="w-4 h-4" /> GLOBAL FLEET VIEW
+                      <div className="flex items-center gap-2 text-primary">
+                        <Globe className="w-3.5 h-3.5" /> GLOBAL VIEW
                       </div>
                     </SelectItem>
-                    <Separator className="my-2" />
+                    <Separator className="my-1.5" />
                   </>
                 )}
                 {(Array.isArray(stores) ? stores : []).map((s) => (
                   <SelectItem
                     key={s.id}
                     value={s.id}
-                    className="font-bold italic py-3 cursor-pointer rounded-xl"
+                    className="font-bold italic py-2.5 cursor-pointer rounded-lg text-[11px]"
                   >
                     <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm",
+                          "w-2 h-2 rounded-full border-2 border-white shadow-sm",
                           s.status === "active"
-                            ? "bg-emerald-500"
-                            : "bg-slate-300",
+                            ? "bg-success"
+                            : "bg-muted/30",
                         )}
                       />
                       <span>{s.name}</span>
@@ -296,21 +296,21 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                 onClick={saveConfig}
                 disabled={isSaving || !isDirty}
                 className={cn(
-                  "h-11 px-8 rounded-2xl font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-xl transition-all active:scale-95",
-                  isDirty ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-900",
+                  "h-10 px-6 rounded-xl font-black italic uppercase tracking-widest text-[9px] gap-2 shadow-xl transition-all active:scale-95",
+                  isDirty ? "bg-primary hover:bg-blue-700" : "bg-secondary",
                 )}
               >
                 {isSaving ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <Save
                     className={cn(
-                      "w-4 h-4",
-                      isDirty ? "text-white" : "text-blue-400",
+                      "w-3.5 h-3.5",
+                      isDirty ? "text-foreground" : "text-blue-400",
                     )}
                   />
                 )}
-                {isDirty ? "Save Configuration" : "Node Synchronized"}
+                {isDirty ? "Save Config" : "Synced"}
               </Button>
             )}
           </div>
@@ -318,21 +318,21 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
 
         {/* Tab Navigation - Hidden in Global View */}
         {selectedStoreId !== "all_stores" && (
-          <div className="px-8 bg-white border-b shrink-0">
+          <div className="px-6 bg-background/20 backdrop-blur-sm border-b shrink-0 overflow-x-auto scrollbar-none">
             <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <TabsList className="bg-transparent h-auto p-0 gap-12 rounded-none justify-start">
+              <TabsList className="bg-transparent h-auto p-0 gap-6 rounded-none justify-start flex-nowrap min-w-max">
                 {(Array.isArray(tabs) ? tabs : []).map((tab) => (
                   <TabsTrigger
                     key={tab.id}
                     value={tab.id}
                     className={cn(
-                      "data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-4 font-black italic uppercase tracking-[0.2em] text-[10px] py-4 px-0 flex items-center gap-2 transition-all",
+                      "data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-4 font-black italic uppercase tracking-[0.2em] text-[9px] py-3 px-0 flex items-center gap-2 transition-all whitespace-nowrap",
                       activeTab === tab.id
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-slate-400 hover:text-slate-600",
+                        ? "border-blue-600 text-primary"
+                        : "border-transparent text-muted-foreground hover:text-muted-foreground",
                     )}
                   >
-                    <tab.icon className="w-4 h-4" /> {tab.label}
+                    <tab.icon className="w-3.5 h-3.5" /> {tab.label}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -341,7 +341,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
         )}
 
         {/* Content Area */}
-        <div className="bg-slate-50/50 p-8 lg:p-12">
+        <div className="bg-secondary/5/50 p-8 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {selectedStoreId === "all_stores" ? (
               <GlobalFleetDashboard />

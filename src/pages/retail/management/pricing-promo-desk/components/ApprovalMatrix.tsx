@@ -44,13 +44,13 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
   const isQuorum = governanceState.quorumReached;
 
   return (
-    <Card className="p-8 bg-slate-900 border-slate-800 text-white rounded-[2.5rem] shadow-2xl">
+    <Card className="p-8 bg-secondary border-slate-800 text-foreground rounded-2xl shadow-2xl">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h3 className="text-xs font-black italic uppercase tracking-widest text-blue-400">
             Signatory Gatekeeping
           </h3>
-          <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
+          <div className="text-[10px] font-bold text-muted-foreground mt-1 uppercase">
             {isQuorum
               ? "Quorum Reachable / Executable"
               : `Pending consensus: ${uniqueSigners}/${governanceState.requiredSignatures}`}
@@ -60,7 +60,7 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
           className={cn(
             "font-black italic text-[10px] tracking-widest border-none px-3 py-1",
             isQuorum
-              ? "bg-emerald-500/20 text-emerald-400"
+              ? "bg-success/20 text-success"
               : "bg-amber-500/20 text-amber-400",
           )}
         >
@@ -75,12 +75,12 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
             return (
               <div
                 key={dept}
-                className="flex flex-col items-center p-5 rounded-3xl bg-slate-800/50 border border-white/5 space-y-4 hover:bg-slate-800 transition-colors"
+                className="flex flex-col items-center p-5 rounded-3xl bg-secondary/60/50 border border-white/5 space-y-4 hover:bg-secondary/60 transition-colors"
               >
                 {signature ? (
-                  <CheckCircle2 className="w-8 h-8 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]" />
+                  <CheckCircle2 className="w-8 h-8 text-success drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]" />
                 ) : (
-                  <Lock className="w-8 h-8 text-slate-500" />
+                  <Lock className="w-8 h-8 text-muted-foreground" />
                 )}
                 <span className="text-[10px] font-black italic uppercase tracking-widest text-center h-8 flex items-center">
                   {dept}
@@ -96,7 +96,7 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
                   </Button>
                 ) : signature ? (
                   <div className="h-8 flex flex-col items-center justify-center">
-                    <span className="text-[9px] font-black text-emerald-500/70 uppercase italic">
+                    <span className="text-[9px] font-black text-success/70 uppercase italic">
                       Verified
                     </span>
                   </div>
@@ -121,13 +121,13 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
                 </span>
               </div>
             </div>
-            <Badge className="bg-red-500 text-white font-black italic text-[9px] uppercase border-none animate-pulse">
+            <Badge className="bg-red-500 text-foreground font-black italic text-[9px] uppercase border-none animate-pulse">
               HIGH PRIVILEGE
             </Badge>
           </div>
           <Input
             placeholder="MANDATORY: Enter Reason for Bypass Ledger..."
-            className="bg-slate-900 border-red-500/50 focus:border-red-500 focus-visible:ring-red-500/50 text-white placeholder:text-slate-600 rounded-2xl font-bold italic h-14 pl-6"
+            className="bg-secondary border-red-500/50 focus:border-red-500 focus-visible:ring-red-500/50 text-foreground placeholder:text-muted-foreground rounded-2xl font-bold italic h-14 pl-6"
             value={governanceState.bypassReason}
             onChange={(e) => onBypassReasonChange(e.target.value)}
           />
@@ -135,16 +135,16 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
       )}
 
       <div className="space-y-3 mb-8">
-        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           <span>Consensus Progress</span>
-          <span className={isQuorum ? "text-emerald-400" : "text-blue-400"}>
+          <span className={isQuorum ? "text-success" : "text-blue-400"}>
             {Math.round(progress)}%
           </span>
         </div>
         <Progress
           value={isQuorum ? 100 : progress}
-          className="h-2.5 bg-slate-800 rounded-full overflow-hidden"
-          indicatorClassName={isQuorum ? "bg-emerald-500" : "bg-blue-500"}
+          className="h-2.5 bg-secondary/60 rounded-full overflow-hidden"
+          indicatorClassName={isQuorum ? "bg-success" : "bg-primary"}
         />
       </div>
 
@@ -155,7 +155,7 @@ export const ApprovalMatrix: React.FC<ApprovalMatrixProps> = ({
           className={cn(
             "text-[10px] uppercase font-black italic tracking-widest h-10 px-6 rounded-xl transition-all",
             governanceState.isBypassMode
-              ? "text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800"
+              ? "text-muted-foreground hover:text-foreground bg-secondary/60/50 hover:bg-secondary/60"
               : "text-red-400 hover:text-red-300 hover:bg-red-500/10",
           )}
         >

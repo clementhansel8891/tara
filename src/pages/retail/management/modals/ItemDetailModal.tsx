@@ -54,10 +54,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   const getMovementColor = (type: string) => {
     switch (type) {
       case 'SALE': return 'text-red-600 bg-red-50';
-      case 'RECEIVE': return 'text-emerald-600 bg-emerald-50';
-      case 'TRANSFER': return 'text-blue-600 bg-blue-50';
+      case 'RECEIVE': return 'text-success bg-emerald-50';
+      case 'TRANSFER': return 'text-primary bg-primary/5';
       case 'ADJUSTMENT': return 'text-amber-600 bg-amber-50';
-      default: return 'text-slate-600 bg-slate-50';
+      default: return 'text-muted-foreground bg-secondary/5';
     }
   };
 
@@ -107,7 +107,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3 rounded-xl bg-slate-100 p-1">
+          <TabsList className="grid w-full grid-cols-3 rounded-xl bg-secondary/10 p-1">
             <TabsTrigger value="overview" className="rounded-lg font-black italic text-xs">Overview</TabsTrigger>
             <TabsTrigger value="movements" className="rounded-lg font-black italic text-xs">Movements</TabsTrigger>
             <TabsTrigger value="locations" className="rounded-lg font-black italic text-xs">Locations</TabsTrigger>
@@ -115,22 +115,22 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-blue-50 rounded-2xl p-6 border-2 border-blue-200">
+              <div className="bg-primary/5 rounded-2xl p-6 border-2 border-blue-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-5 h-5 text-blue-600" />
-                  <div className="text-xs font-black uppercase tracking-widest text-blue-600">Stock On Hand</div>
+                  <Package className="w-5 h-5 text-primary" />
+                  <div className="text-xs font-black uppercase tracking-widest text-primary">Stock On Hand</div>
                 </div>
                 <div className="text-3xl font-black italic text-blue-900">{item.stock}</div>
-                <div className="text-xs text-blue-600 font-bold mt-1">Units Available</div>
+                <div className="text-xs text-primary font-bold mt-1">Units Available</div>
               </div>
 
               <div className="bg-emerald-50 rounded-2xl p-6 border-2 border-emerald-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-emerald-600" />
-                  <div className="text-xs font-black uppercase tracking-widest text-emerald-600">Turnover</div>
+                  <TrendingUp className="w-5 h-5 text-success" />
+                  <div className="text-xs font-black uppercase tracking-widest text-success">Turnover</div>
                 </div>
                 <div className="text-3xl font-black italic text-emerald-900">8.2x</div>
-                <div className="text-xs text-emerald-600 font-bold mt-1">Per Month</div>
+                <div className="text-xs text-success font-bold mt-1">Per Month</div>
               </div>
 
               <div className="bg-amber-50 rounded-2xl p-6 border-2 border-amber-200">
@@ -143,23 +143,23 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-2xl p-6">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Item Details</div>
+            <div className="bg-secondary/5 rounded-2xl p-6">
+              <div className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Item Details</div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-xs text-slate-400 font-bold">Item ID</div>
+                  <div className="text-xs text-muted-foreground font-bold">Item ID</div>
                   <div className="font-black italic">{item.id}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-400 font-bold">Category</div>
+                  <div className="text-xs text-muted-foreground font-bold">Category</div>
                   <div className="font-black italic">{item.category}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-400 font-bold">Status</div>
-                  <Badge className="bg-emerald-100 text-emerald-700 font-black italic">ACTIVE</Badge>
+                  <div className="text-xs text-muted-foreground font-bold">Status</div>
+                  <Badge className="bg-success/10 text-success font-black italic">ACTIVE</Badge>
                 </div>
                 <div>
-                  <div className="text-xs text-slate-400 font-bold">Last Updated</div>
+                  <div className="text-xs text-muted-foreground font-bold">Last Updated</div>
                   <div className="font-black italic text-sm">{new Date().toLocaleDateString()}</div>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           </TabsContent>
 
           <TabsContent value="movements" className="space-y-3 mt-4">
-            <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Recent Activity</div>
+            <div className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Recent Activity</div>
             {(Array.isArray(movements) ? movements : []).map((movement, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-300 transition-all">
                 <div className="flex items-center gap-4">
@@ -176,35 +176,35 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   </Badge>
                   <div>
                     <div className="font-black italic text-sm">{movement.ref}</div>
-                    <div className="text-xs text-slate-400 font-bold">{movement.location}</div>
+                    <div className="text-xs text-muted-foreground font-bold">{movement.location}</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`font-black italic ${movement.qty > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <div className={`font-black italic ${movement.qty > 0 ? 'text-success' : 'text-red-600'}`}>
                     {movement.qty > 0 ? '+' : ''}{movement.qty}
                   </div>
-                  <div className="text-xs text-slate-400 font-bold">{movement.date}</div>
+                  <div className="text-xs text-muted-foreground font-bold">{movement.date}</div>
                 </div>
               </div>
             ))}
           </TabsContent>
 
           <TabsContent value="locations" className="space-y-3 mt-4">
-            <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Stock by Location</div>
+            <div className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Stock by Location</div>
             {(Array.isArray(locations) ? locations : []).map((location, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-5 h-5 text-blue-600" />
+                  <MapPin className="w-5 h-5 text-primary" />
                   <div>
                     <div className="font-black italic">{location.name}</div>
-                    <Badge className="bg-emerald-100 text-emerald-700 font-black italic text-xs mt-1">
+                    <Badge className="bg-success/10 text-success font-black italic text-xs mt-1">
                       {location.status}
                     </Badge>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-black italic text-slate-900">{location.stock}</div>
-                  <div className="text-xs text-slate-400 font-bold">Units</div>
+                  <div className="text-2xl font-black italic text-foreground">{location.stock}</div>
+                  <div className="text-xs text-muted-foreground font-bold">Units</div>
                 </div>
               </div>
             ))}

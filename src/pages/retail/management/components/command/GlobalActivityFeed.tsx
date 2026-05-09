@@ -33,16 +33,16 @@ const FeedItem: React.FC<FeedItemProps> = ({
   isVerified = true,
 }) => (
   <div className="flex items-start gap-5 p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg relative overflow-hidden">
-    <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="absolute top-0 right-0 w-16 h-16 bg-secondary/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
     <div
       className={cn(
         "w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 transition-all duration-500 group-hover:scale-110 shadow-2xl",
         type === "FINANCE"
-          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+          ? "bg-success/10 border-emerald-500/20 text-success"
           : type === "INFRA"
-            ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+            ? "bg-primary/10 border-indigo-500/20 text-primary"
             : type === "SECURITY"
-              ? "bg-rose-500/10 border-rose-500/20 text-rose-400"
+              ? "bg-destructive/10 border-rose-500/20 text-rose-400"
               : "bg-amber-500/10 border-amber-500/20 text-amber-400",
       )}
     >
@@ -64,32 +64,32 @@ const FeedItem: React.FC<FeedItemProps> = ({
             className={cn(
               "text-[9px] font-black italic tracking-[0.2em] border-none px-2.5 h-5 rounded-lg uppercase",
               priority === "HIGH"
-                ? "bg-rose-500/20 text-rose-400"
+                ? "bg-destructive/20 text-rose-400"
                 : priority === "MEDIUM"
                   ? "bg-amber-500/20 text-amber-400"
-                  : "bg-slate-500/20 text-slate-400",
+                  : "bg-secondary/50/20 text-muted-foreground",
             )}
           >
             {priority}
           </Badge>
           {isVerified && (
-            <div className="flex items-center gap-1.5 px-2 h-5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-              <Lock className="w-2.5 h-2.5 text-indigo-400" />
-              <span className="text-[8px] font-black italic text-indigo-400 uppercase tracking-tighter">IMMU</span>
+            <div className="flex items-center gap-1.5 px-2 h-5 rounded-lg bg-primary/10 border border-indigo-500/20">
+              <Lock className="w-2.5 h-2.5 text-primary" />
+              <span className="text-[8px] font-black italic text-primary uppercase tracking-tighter">IMMU</span>
             </div>
           )}
         </div>
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">
           {timestamp}
         </span>
       </div>
-      <p className="text-[12px] font-medium text-slate-400 leading-tight truncate group-hover:text-clip group-hover:whitespace-normal group-hover:text-white transition-colors">
+      <p className="text-[12px] font-medium text-muted-foreground leading-tight truncate group-hover:text-clip group-hover:whitespace-normal group-hover:text-foreground transition-colors">
         {message}
       </p>
     </div>
 
-    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center group-hover:bg-indigo-600 transition-colors self-center">
-      <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+    <div className="w-10 h-10 rounded-xl bg-secondary/40 border border-white/5 flex items-center justify-center group-hover:bg-primary transition-colors self-center">
+      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all" />
     </div>
   </div>
 );
@@ -155,15 +155,15 @@ export const GlobalActivityFeed = ({
   };
 
   return (
-    <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden flex flex-col h-full group/feed">
-      <CardHeader className="p-14 border-b border-white/5 bg-white/[0.01]">
+    <Card className="rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden flex flex-col h-full group/feed">
+      <CardHeader className="p-8 border-b border-white/5 bg-white/[0.01]">
         <div className="flex items-center justify-between">
           <div className="space-y-3">
-            <CardTitle className="text-4xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-white">
-              <Activity className="w-8 h-8 text-indigo-400 shadow-2xl animate-pulse" />
+            <CardTitle className="text-2xl font-black italic uppercase tracking-tighter flex items-center gap-6 text-foreground">
+              <Activity className="w-8 h-8 text-primary shadow-2xl animate-pulse" />
               Telemetry Feed
             </CardTitle>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.3em] italic">
               Global Synchronization Log • {logs.length} Recent Events
             </p>
           </div>
@@ -174,8 +174,8 @@ export const GlobalActivityFeed = ({
               className={cn(
                 "flex items-center gap-3 px-6 h-14 border rounded-2xl shadow-xl transition-all",
                 verifyResult 
-                  ? verifyResult.valid ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"
-                  : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:text-white"
+                  ? verifyResult.valid ? "bg-success/10 border-emerald-500/20 text-success" : "bg-destructive/10 border-rose-500/20 text-rose-400"
+                  : "bg-secondary/40 border-border text-muted-foreground hover:bg-white/10 hover:text-foreground"
               )}
             >
               {verifying ? (
@@ -187,9 +187,9 @@ export const GlobalActivityFeed = ({
                 {verifyResult ? (verifyResult.valid ? "Chain Verified" : "Drift Detected") : "Verify Chain"}
               </span>
             </button>
-            <div className="flex items-center gap-3 px-5 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl shadow-xl">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-              <span className="text-[10px] font-black italic uppercase text-emerald-400 tracking-[0.2em]">
+            <div className="flex items-center gap-3 px-5 h-14 bg-success/10 border border-emerald-500/20 rounded-2xl shadow-xl">
+              <div className="w-2.5 h-2.5 rounded-full bg-success animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+              <span className="text-[10px] font-black italic uppercase text-success tracking-[0.2em]">
                 Live
               </span>
             </div>
@@ -197,10 +197,10 @@ export const GlobalActivityFeed = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-10 flex-1 overflow-y-auto space-y-4 custom-scrollbar bg-transparent">
+      <CardContent className="p-6 flex-1 overflow-y-auto space-y-4 custom-scrollbar bg-transparent">
         {loading && logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-6 opacity-40">
-            <RefreshCw className="w-12 h-12 text-indigo-400 animate-spin" />
+            <RefreshCw className="w-12 h-12 text-primary animate-spin" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Synchronizing Vault...</span>
           </div>
         ) : logs.length > 0 ? (
@@ -216,16 +216,16 @@ export const GlobalActivityFeed = ({
           ))
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-6 opacity-40">
-            <Lock className="w-12 h-12 text-slate-500" />
+            <Lock className="w-12 h-12 text-muted-foreground" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Vault is Empty</span>
           </div>
         )}
       </CardContent>
 
-      <div className="p-12 border-t border-white/5 bg-white/[0.01]">
+      <div className="p-6 border-t border-white/5 bg-white/[0.01]">
         <button 
           onClick={() => onExpansionRequest("Deep Audit Virtual Vault")}
-          className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 text-white font-black italic text-[12px] uppercase tracking-[0.3em] transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-4 italic"
+          className="w-full h-16 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-black italic text-[12px] uppercase tracking-[0.3em] transition-all shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:scale-105 active:scale-95 flex items-center justify-center gap-4 italic"
         >
           Access Deep Audit Vault <ArrowRight className="w-5 h-5" />
         </button>

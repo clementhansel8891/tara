@@ -17,7 +17,7 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="rounded-[2.5rem] bg-slate-900 border-none shadow-2xl overflow-hidden group">
+    <Card className="rounded-2xl bg-secondary border-none shadow-2xl overflow-hidden group">
       <CardHeader className="p-8 pb-4">
         <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 italic">
           Terminal Network Health
@@ -32,7 +32,7 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
                 className={cn(
                   "aspect-square rounded-xl flex items-center justify-center transition-all",
                   d.isActive
-                    ? "bg-blue-600/20 border border-blue-500/30 text-blue-400"
+                    ? "bg-primary/20 border border-blue-500/30 text-blue-400"
                     : "bg-red-500/10 border border-red-500/30 text-red-500",
                 )}
               >
@@ -40,26 +40,26 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
               </div>
             ))
           ) : (
-            <div className="col-span-4 text-[10px] font-bold text-slate-600 italic uppercase py-4">
+            <div className="col-span-4 text-[10px] font-bold text-muted-foreground italic uppercase py-4">
               No Terminals Registered
             </div>
           )}
           <button
             onClick={() => navigate("/m/retail/management/devices")}
-            className="aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 cursor-pointer hover:bg-white/10 hover:text-white transition-all"
+            className="aspect-square rounded-xl bg-secondary/40 border border-border flex items-center justify-center text-foreground/40 cursor-pointer hover:bg-white/10 hover:text-foreground transition-all"
           >
             <Plus className="w-4 h-4" />
           </button>
         </div>
         <Separator className="bg-white/10" />
         <div className="flex justify-between items-center">
-          <div className="text-[10px] font-black italic text-slate-400 uppercase">
+          <div className="text-[10px] font-black italic text-muted-foreground uppercase">
             Status: <span className="text-blue-400">Stable</span>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs font-black italic text-white/40 hover:text-white p-0 h-auto"
+            className="text-xs font-black italic text-foreground/40 hover:text-foreground p-0 h-auto"
             onClick={() => navigate("/m/retail/management/devices")}
           >
             Remote Hub <ArrowUpRight className="w-3 h-3 ml-1" />

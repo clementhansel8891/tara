@@ -32,7 +32,7 @@ const DiscoveryModal = ({
           <Wifi className={`w-4 h-4 ${loading ? "animate-pulse" : ""}`} />
           Network Discovery Results
         </DialogTitle>
-        <p className="text-[11px] text-slate-400 font-medium">
+        <p className="text-[11px] text-muted-foreground font-medium">
           Found hardware using mDNS, SNMP, and ONVIF on your local branch LAN.
         </p>
       </DialogHeader>
@@ -41,12 +41,12 @@ const DiscoveryModal = ({
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <RefreshCw className="w-10 h-10 text-slate-200 animate-spin" />
-            <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+            <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
               Scanning Branch LAN…
             </div>
           </div>
         ) : results.length === 0 ? (
-          <div className="text-center py-20 text-slate-400">
+          <div className="text-center py-20 text-muted-foreground">
             <div className="text-xs font-bold">No new hardware found.</div>
             <div className="text-[10px] mt-1">
               Ensure the Branch Agent is online and devices are discoverable.
@@ -56,23 +56,23 @@ const DiscoveryModal = ({
           (Array.isArray(results) ? results : []).map((r, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all group"
+              className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 bg-secondary/5/50 hover:bg-white hover:shadow-md transition-all group"
             >
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <DeviceIcon type={r.type} cls="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-black text-slate-900 truncate">
+                <div className="text-[11px] font-black text-foreground truncate">
                   {r.name}
                 </div>
-                <div className="text-[9px] text-slate-400 font-mono mt-0.5 truncate uppercase">
+                <div className="text-[9px] text-muted-foreground font-mono mt-0.5 truncate uppercase">
                   {r.model} · {r.ipAddress}
                 </div>
               </div>
               <Button
                 size="sm"
                 onClick={() => onCommit(r.discoveryId)}
-                className="rounded-xl h-8 bg-slate-900 text-white font-black italic uppercase text-[9px] tracking-widest px-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="rounded-xl h-8 bg-secondary text-foreground font-black italic uppercase text-[9px] tracking-widest px-4 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 Onboard
               </Button>
@@ -85,7 +85,7 @@ const DiscoveryModal = ({
         <Button
           variant="outline"
           onClick={onClose}
-          className="w-full rounded-xl border-slate-200 text-slate-600 font-black italic uppercase text-[10px] tracking-widest h-10"
+          className="w-full rounded-xl border-slate-200 text-muted-foreground font-black italic uppercase text-[10px] tracking-widest h-10"
         >
           Close
         </Button>

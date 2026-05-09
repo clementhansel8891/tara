@@ -17,7 +17,7 @@ export const StoreChannelBindingModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <Link className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           OMNICHANNEL SYNCHRONIZATION
@@ -43,14 +43,14 @@ export const StoreChannelBindingModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-indigo-100/50 rounded-xl text-indigo-600">
+        <div className="p-2 bg-primary/10/50 rounded-xl text-primary">
           <Link className="w-5 h-5" />
         </div>
         <div>
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Channel Bindings
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Cross-channel commerce logic, O2O mappings, and routing precedence
           </p>
         </div>
@@ -60,13 +60,13 @@ export const StoreChannelBindingModule: React.FC = () => {
         {/* Marketplace Connectors */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <ShoppingCart className="w-4 h-4 text-slate-400" /> Omnichannel
+            <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Omnichannel
             Connectors
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Primary Headless E-commerce Store ID
               </Label>
               <Input
@@ -78,14 +78,14 @@ export const StoreChannelBindingModule: React.FC = () => {
                 placeholder="ECOM-HQ-01"
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Link this physical node to an online counterpart for BOPIS
                 features
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Active Marketplace Integrations
               </Label>
               <Input
@@ -108,12 +108,12 @@ export const StoreChannelBindingModule: React.FC = () => {
         {/* Sync & Routing */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Repeat2 className="w-4 h-4 text-slate-400" /> Order & Sync Routing
+            <Repeat2 className="w-4 h-4 text-muted-foreground" /> Order & Sync Routing
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Channel Precedence Policy
               </Label>
               <Input
@@ -129,14 +129,14 @@ export const StoreChannelBindingModule: React.FC = () => {
                 placeholder="B2B, Physical POS, VIP Marketplace, Standard Ecom"
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Stock reservation priority for competing channels during
                 undersell events
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Order Injection Logic
               </Label>
               <Select
@@ -164,7 +164,7 @@ export const StoreChannelBindingModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 O2O (Online-To-Offline) Synchronization
               </Label>
               <Select
@@ -194,7 +194,7 @@ export const StoreChannelBindingModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <div className="bg-primary/5 p-4 rounded-xl border border-blue-100">
               <p className="text-xs text-blue-800 font-medium">
                 Channel configuration determines how global orders map to this
                 physical node. Real-time marketplace credentials should be

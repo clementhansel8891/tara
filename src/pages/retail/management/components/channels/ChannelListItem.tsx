@@ -74,36 +74,36 @@ export const ChannelListItem = ({
   return (
     <div
       key={channel.id}
-      className="group hover:bg-slate-50/50 transition-all border-b border-slate-100 last:border-none"
+      className="group hover:bg-secondary/5/50 transition-all border-b border-slate-100 last:border-none"
     >
       <div className="flex flex-col lg:flex-row lg:items-center gap-6 p-8">
         <div className="flex items-center gap-6 flex-1">
-          <div className="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
+          <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
             {channel.integrationCategory === "PRESET" ? (
               <ShoppingBag className="w-8 h-8 text-blue-400" />
             ) : (
-              <Globe className="w-8 h-8 text-emerald-400" />
+              <Globe className="w-8 h-8 text-success" />
             )}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h4 className="text-lg font-black italic text-slate-900 tracking-tight uppercase italic">
+              <h4 className="text-lg font-black italic text-foreground tracking-tight uppercase italic">
                 {channel.name}
               </h4>
               <Badge
                 className={
                   channel.status === "active"
-                    ? "bg-emerald-50 text-emerald-600 border-none font-black italic text-[8px] uppercase"
-                    : "bg-slate-100 text-slate-500 border-none font-black italic text-[8px] uppercase"
+                    ? "bg-emerald-50 text-success border-none font-black italic text-[8px] uppercase"
+                    : "bg-secondary/10 text-muted-foreground border-none font-black italic text-[8px] uppercase"
                 }
               >
                 {channel.status}
               </Badge>
             </div>
-            <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
+            <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">
               {channel.type} • Node {channel.id.slice(0, 8)}
-              <Separator orientation="vertical" className="h-2 bg-slate-200" />
-              <span className="text-blue-500">
+              <Separator orientation="vertical" className="h-2 bg-muted/20" />
+              <span className="text-primary">
                 {channel.syncFrequency || "LIVE"} SYNC
               </span>
             </div>
@@ -112,40 +112,40 @@ export const ChannelListItem = ({
 
         <div className="grid grid-cols-2 lg:flex items-center gap-4 lg:gap-8">
           <div className="space-y-1">
-            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
               Tenant Scope
             </div>
-            <div className="text-[11px] font-black text-slate-700 italic">
+            <div className="text-[11px] font-black text-muted-foreground italic">
               {tenantId}
             </div>
           </div>
           <Separator
             orientation="vertical"
-            className="hidden lg:block h-8 bg-slate-200"
+            className="hidden lg:block h-8 bg-muted/20"
           />
           <div className="space-y-1">
-            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <div className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
               Operational Unit
             </div>
-            <div className="text-[11px] font-black text-slate-700 italic">
+            <div className="text-[11px] font-black text-muted-foreground italic">
               {branch}
             </div>
           </div>
           <Separator
             orientation="vertical"
-            className="hidden lg:block h-8 bg-slate-200"
+            className="hidden lg:block h-8 bg-muted/20"
           />
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               onClick={() => onOpenDetail(channel)}
-              className="w-12 h-12 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all p-0"
+              className="w-12 h-12 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all p-0"
             >
               <Settings2 className="w-5 h-5" />
             </Button>
             <Button
               onClick={() => onOpenDetail(channel)}
-              className="h-12 px-6 rounded-xl bg-slate-900 border-none font-black italic uppercase text-[9px] tracking-widest flex items-center gap-2 group/btn"
+              className="h-12 px-6 rounded-xl bg-secondary border-none font-black italic uppercase text-[9px] tracking-widest flex items-center gap-2 group/btn"
             >
               Vault{" "}
               <Key className="w-3 h-3 group-hover/btn:rotate-12 transition-transform text-amber-400" />
@@ -167,14 +167,14 @@ export const ChannelListItem = ({
               e.stopPropagation();
               copyCredential(cred.value as string, cred.label);
             }}
-            className="h-10 px-4 bg-white border border-slate-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/50 transition-all flex items-center gap-3 group/cred"
+            className="h-10 px-4 bg-white border border-slate-100 rounded-xl hover:border-blue-200 hover:bg-primary/5/50 transition-all flex items-center gap-3 group/cred"
           >
-            <cred.icon className="w-3.5 h-3.5 text-slate-400 group-hover/cred:text-blue-500 transition-colors" />
+            <cred.icon className="w-3.5 h-3.5 text-muted-foreground group-hover/cred:text-primary transition-colors" />
             <div className="flex flex-col items-start leading-none text-left">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">
                 {cred.label}
               </span>
-              <div className="font-mono text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded truncate max-w-[120px]">
+              <div className="font-mono text-[9px] font-bold text-muted-foreground bg-secondary/5 px-2 py-0.5 rounded truncate max-w-[120px]">
                 {cred.isMasked && cred.value
                   ? "••••••••"
                   : (cred.value as string) || "NOT_ISSUED"}

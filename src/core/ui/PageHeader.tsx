@@ -16,32 +16,32 @@ export function PageHeader({
   secondaryActions,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-12 p-10 rounded-[3rem] bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden group transition-all hover:border-slate-700">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-50" />
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 p-4 rounded-3xl border border-border/50 bg-card/20 backdrop-blur-md shadow-lg relative overflow-hidden group transition-all hover:border-primary/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
       <div className="relative z-10 space-y-1">
         <div className="flex items-center gap-4">
-          {icon ? <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white shadow-inner">{icon}</div> : null}
+          {icon ? <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-inner">{icon}</div> : null}
           <div>
-            <h1 className="text-4xl font-black tracking-tighter text-white uppercase italic">
+            <h1 className="text-2xl font-black tracking-tighter text-foreground uppercase italic">
               {title}
             </h1>
             {subtitle ? (
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-400 mt-1">{subtitle}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mt-0.5">{subtitle}</p>
             ) : null}
           </div>
         </div>
       </div>
       {(primaryAction || secondaryActions) && (
-        <div className="relative z-10 flex flex-wrap items-center gap-4">
+        <div className="relative z-10 flex flex-wrap items-center gap-3">
           {secondaryActions}
           {primaryAction}
         </div>
       )}
       
       {/* Decorative pulse point */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-         <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-         <span className="text-[8px] font-black uppercase text-emerald-400 tracking-widest">Live System Context</span>
+      <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
+         <div className="h-1 w-1 rounded-full bg-success animate-pulse" />
+         <span className="text-[7px] font-black uppercase text-success tracking-widest">LIVE CONTEXT</span>
       </div>
     </div>
   );

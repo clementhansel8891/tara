@@ -58,17 +58,17 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border-none shadow-2xl bg-slate-50">
+      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border-none shadow-2xl bg-secondary/5">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black italic tracking-tighter uppercase flex items-center gap-2 text-slate-900">
-            <Plus className="w-5 h-5 text-indigo-600" /> Issue Promo Proposal
+          <DialogTitle className="text-xl font-black italic tracking-tighter uppercase flex items-center gap-2 text-foreground">
+            <Plus className="w-5 h-5 text-primary" /> Issue Promo Proposal
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Campaign Title</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Campaign Title</label>
               <Input 
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -79,7 +79,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Promo Type</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Promo Type</label>
                 <select 
                   className="w-full h-12 px-3 rounded-xl border border-slate-200 font-bold italic bg-white text-sm outline-none"
                   value={formData.type}
@@ -90,9 +90,9 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Discount Value</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Discount Value</label>
                 <div className="relative">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     {formData.type === "percentage" ? <Percent className="w-4 h-4" /> : <span className="font-bold text-xs italic">Rp</span>}
                   </div>
                   <Input 
@@ -108,7 +108,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">Start Date</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Start Date</label>
                 <Input 
                   type="date"
                   value={formData.startDate}
@@ -117,7 +117,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block">End Date</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">End Date</label>
                 <Input 
                   type="date"
                   value={formData.endDate}
@@ -128,7 +128,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
             </div>
 
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-2 mb-1 block flex items-center gap-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block flex items-center gap-1">
                 <Target className="w-3 h-3" /> Target Scope
               </label>
               <select 
@@ -147,7 +147,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
             <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl font-bold uppercase tracking-wider text-xs border-slate-200" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black italic uppercase tracking-wider text-xs shadow-lg shadow-indigo-600/20">
+            <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-black italic uppercase tracking-wider text-xs shadow-lg shadow-indigo-600/20">
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Queue Proposal"}
             </Button>
           </div>

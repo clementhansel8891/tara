@@ -77,16 +77,16 @@ export const StockOpnameTab: React.FC<Props> = ({
 
   if (!opnameActive) {
     return (
-      <Card className="rounded-[2.5rem] border-none shadow-xl bg-white overflow-hidden">
-        <CardContent className="p-12 text-center space-y-6">
-          <div className="w-20 h-20 rounded-3xl bg-blue-50 flex items-center justify-center mx-auto">
-            <ClipboardCheck className="w-10 h-10 text-blue-600" />
+      <Card className="rounded-2xl border-none shadow-xl bg-white overflow-hidden">
+        <CardContent className="p-6 text-center space-y-6">
+          <div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center mx-auto">
+            <ClipboardCheck className="w-10 h-10 text-primary" />
           </div>
           <div>
             <h2 className="text-2xl font-black italic tracking-tighter uppercase">
               Stock Opname
             </h2>
-            <p className="text-sm text-slate-500 font-bold italic mt-2">
+            <p className="text-sm text-muted-foreground font-bold italic mt-2">
               Physical count & reconciliation for{" "}
               <span className="text-slate-800">{storeName}</span>
             </p>
@@ -111,13 +111,13 @@ export const StockOpnameTab: React.FC<Props> = ({
             ].map((m, i) => (
               <div
                 key={i}
-                className="bg-slate-50 rounded-2xl p-5 text-center space-y-2"
+                className="bg-secondary/5 rounded-2xl p-5 text-center space-y-2"
               >
-                <m.icon className="w-5 h-5 text-blue-600 mx-auto" />
+                <m.icon className="w-5 h-5 text-primary mx-auto" />
                 <div className="text-xs font-black italic uppercase">
                   {m.label}
                 </div>
-                <div className="text-[10px] text-slate-400 font-bold">
+                <div className="text-[10px] text-muted-foreground font-bold">
                   {m.desc}
                 </div>
               </div>
@@ -125,7 +125,7 @@ export const StockOpnameTab: React.FC<Props> = ({
           </div>
           <Button
             onClick={onStart}
-            className="h-14 px-12 rounded-2xl bg-slate-900 text-white font-black italic uppercase tracking-widest text-xs gap-2 shadow-xl"
+            className="h-14 px-12 rounded-2xl bg-secondary text-foreground font-black italic uppercase tracking-widest text-xs gap-2 shadow-xl"
           >
             <Zap className="w-5 h-5" /> Start Opname Session
           </Button>

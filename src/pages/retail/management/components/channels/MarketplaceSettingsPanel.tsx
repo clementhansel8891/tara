@@ -223,10 +223,10 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
       {/* Platform header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <h3 className="font-black italic text-slate-900 text-base">
+          <h3 className="font-black italic text-foreground text-base">
             {config.label} Settings
           </h3>
-          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
             Platform-specific integration config
           </p>
         </div>
@@ -235,7 +235,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
             href={config.docsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors"
+            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
           >
             <ExternalLink className="w-3 h-3" /> Docs
           </a>
@@ -246,7 +246,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
       <div className="space-y-4">
         {(Array.isArray(config.fields) ? config.fields : []).map((f) => (
           <div key={f.key} className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {f.label}
             </Label>
             <Input
@@ -257,7 +257,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
               className="h-11 rounded-xl font-bold text-sm"
             />
             {f.hint && (
-              <p className="flex items-center gap-1 text-[10px] font-bold text-slate-400 italic">
+              <p className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground italic">
                 <Info className="w-3 h-3 shrink-0" /> {f.hint}
               </p>
             )}
@@ -266,8 +266,8 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
       </div>
 
       {/* Status badge */}
-      <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
-        <Info className="w-4 h-4 text-blue-500 shrink-0" />
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-blue-100">
+        <Info className="w-4 h-4 text-primary shrink-0" />
         <p className="text-[11px] font-bold text-blue-700">
           Settings are encrypted at rest and only transmitted over HTTPS.
           Credentials are never logged.
@@ -277,7 +277,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
       <Button
         onClick={handleSave}
         disabled={isSaving}
-        className="w-full h-11 rounded-xl font-black italic bg-slate-900 gap-2"
+        className="w-full h-11 rounded-xl font-black italic bg-secondary gap-2"
       >
         {isSaving ? (
           <RefreshCw className="w-4 h-4 animate-spin" />

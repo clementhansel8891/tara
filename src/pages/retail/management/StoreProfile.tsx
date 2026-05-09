@@ -10,7 +10,7 @@ import { StoreGovernanceModule } from "./store-profile/modules/StoreGovernanceMo
 
 // Placeholder components for unimplemented modules
 const PlaceholderModule: React.FC<{ name: string }> = ({ name }) => (
-  <div className="flex flex-col items-center justify-center py-20 text-slate-400 animate-in fade-in">
+  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-in fade-in">
     <h3 className="text-xl font-black italic tracking-wider">
       {name.toUpperCase()}
     </h3>

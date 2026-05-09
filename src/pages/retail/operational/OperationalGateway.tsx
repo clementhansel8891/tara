@@ -23,14 +23,14 @@ interface AppItem {
 }
 
 const APPS: AppItem[] = [
-  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-blue-500", bg: "bg-blue-500/10", requireShift: true },
+  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-blue-500", bg: "bg-primary/50/10", requireShift: true },
   { id: "ops-refund", title: "Refund Desk", desc: "Post-Sale Disputes", icon: RotateCcw, route: "/m/retail/operational/refund", color: "text-red-500", bg: "bg-red-500/10", requireShift: true },
   { id: "ops-cash-movement", title: "Cash Movement", desc: "Petty Cash & Out", icon: Banknote, route: "/m/retail/operational/cash-movement", color: "text-amber-500", bg: "bg-amber-500/10", requireShift: true },
-  { id: "ops-opname", title: "Stock Opname", desc: "Inventory Audit", icon: ScanLine, route: "/m/retail/operational/opname", color: "text-indigo-500", bg: "bg-indigo-500/10", requireShift: true },
+  { id: "ops-opname", title: "Stock Opname", desc: "Inventory Audit", icon: ScanLine, route: "/m/retail/operational/opname", color: "text-primary", bg: "bg-primary/10", requireShift: true },
   { id: "ops-receiving", title: "Stock Intake", desc: "Good Receiving", icon: Truck, route: "/m/retail/operational/receiving", color: "text-orange-500", bg: "bg-orange-500/10", requireShift: true },
   { id: "ops-kiosk", title: "Self-Service", desc: "Guest Checkout", icon: Monitor, route: "/m/retail/operational/kiosk", color: "text-purple-500", bg: "bg-purple-500/10", requireShift: true },
-  { id: "ops-shift-open", title: "Shift Open", desc: "Start Session", icon: Power, route: "/m/retail/operational/shift-open", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { id: "ops-shift-close", title: "Shift Close", desc: "End Reconciliation", icon: Lock, route: "/m/retail/operational/shift-close", color: "text-slate-400", bg: "bg-slate-400/10" },
+  { id: "ops-shift-open", title: "Shift Open", desc: "Start Session", icon: Power, route: "/m/retail/operational/shift-open", color: "text-success", bg: "bg-success/10" },
+  { id: "ops-shift-close", title: "Shift Close", desc: "End Reconciliation", icon: Lock, route: "/m/retail/operational/shift-close", color: "text-muted-foreground", bg: "bg-muted/20" },
 ];
 
 const RetailOperationalGateway = () => {
@@ -68,9 +68,9 @@ const RetailOperationalGateway = () => {
 
   if (!activeStore && (Array.isArray(stores) ? stores : []).length > 0) {
      return (
-        <div className="flex-1 flex flex-col items-center justify-center surface-tactical p-6 md:p-12 relative overflow-hidden selection:bg-indigo-500/30">
+        <div className="flex-1 flex flex-col items-center justify-center surface-tactical p-6 md:p-12 relative overflow-hidden selection:bg-primary/30">
            {/* Atmospheric effect */}
-           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.15)_0%,transparent_70%)]" />
+           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.15)_0%,transparent_70%)]" />
            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
            
            <div className="relative z-10 max-w-4xl w-full animate-in fade-in zoom-in duration-700">
@@ -203,8 +203,8 @@ const RetailOperationalGateway = () => {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
-             <div className="flex flex-col items-end gap-1 px-8 border-r border-white/10 hidden xl:flex">
-                <span className="text-[9px] font-black uppercase text-slate-500 tracking-[0.3em]">Operator Identity</span>
+             <div className="flex flex-col items-end gap-1 px-8 border-r border-border/40 hidden xl:flex">
+                <span className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.3em]">Operator Identity</span>
                 <span className="text-sm font-black uppercase text-foreground italic tracking-widest">{user?.first_name} {user?.last_name}</span>
              </div>
 
@@ -281,15 +281,15 @@ const RetailOperationalGateway = () => {
         </div>
 
         {/* Footer Audit Trail */}
-        <div className="mt-12 py-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30 group/footer transition-opacity hover:opacity-100">
-          <p className="text-slate-500 font-black italic tracking-[0.4em] text-[9px] uppercase flex items-center gap-4">
-             <span className="w-10 h-[1px] bg-white/10" />
+        <div className="mt-12 py-10 border-t border-border/10 flex flex-col md:flex-row justify-between items-center gap-6 opacity-30 group/footer transition-opacity hover:opacity-100">
+          <p className="text-muted-foreground font-black italic tracking-[0.4em] text-[9px] uppercase flex items-center gap-4">
+             <span className="w-10 h-[1px] bg-border/20" />
              Zenvix_Retail_Authority • GLOBAL_SYNC_V2
           </p>
           <div className="flex items-center gap-8">
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic">Integrity: VERIFIED</span>
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic">Latency: 14ms</span>
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic">Session: ACTIVE</span>
+             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 italic">Integrity: VERIFIED</span>
+             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 italic">Latency: 14ms</span>
+             <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 italic">Session: ACTIVE</span>
           </div>
         </div>
       </div>

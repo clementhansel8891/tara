@@ -273,59 +273,59 @@ const DeviceControlCenter = () => {
   ];
 
   return (
-    <div className="min-h-full bg-slate-50/50">
+    <div className="min-h-full bg-secondary/5/50">
       {/* Header */}
-      <div className="px-8 py-6 border-b bg-white">
+      <div className="px-6 py-3 border-b bg-background/40 backdrop-blur-md sticky top-0 z-40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <PageHeader
-            title="Device Control Center"
-            subtitle="Register & monitor branch hardware — Devices, CCTV, Sensors"
+            title="Device Control"
+            subtitle="Monitor branch hardware — Devices, CCTV, Sensors"
           />
           <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2">
-              <Building2 className="w-4 h-4 text-slate-500 shrink-0" />
+            <div className="flex items-center gap-2 bg-secondary/10 rounded-xl px-3 py-1.5 border border-border/40">
+              <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               <Select value={branch} onValueChange={setBranch}>
-                <SelectTrigger className="border-none bg-transparent shadow-none h-auto p-0 text-sm font-black text-slate-800 min-w-[160px] focus:ring-0">
+                <SelectTrigger className="border-none bg-transparent shadow-none h-auto p-0 text-[11px] font-black text-slate-800 min-w-[140px] focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-border shadow-2xl">
                   {(Array.isArray(stores) ? stores : []).map((b) => (
                     <SelectItem
                       key={b.id}
                       value={b.id}
-                      className="font-semibold"
+                      className="font-bold text-[11px]"
                     >
                       {b.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="h-10 rounded-xl border-slate-200 text-slate-600 font-black italic uppercase text-[10px] tracking-widest gap-2"
+              className="h-9 rounded-xl border-slate-200 text-muted-foreground font-black italic uppercase text-[9px] tracking-widest gap-2"
             >
               <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
               />{" "}
-              Refresh
+              SYNC
             </Button>
             <Button
               size="sm"
               onClick={() => setShowReg(true)}
-              className="h-10 rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest px-5 gap-2 shadow-lg"
+              className="h-9 rounded-xl bg-secondary text-foreground font-black italic uppercase text-[9px] tracking-widest px-4 gap-2 shadow-lg"
             >
-              <PlusCircle className="w-4 h-4" /> Register
+              <PlusCircle className="w-3.5 h-3.5" /> REGISTER
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         {/* KPI Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
@@ -333,8 +333,8 @@ const DeviceControlCenter = () => {
               l: "Branch",
               v: branchName.split("–")[0].trim(),
               s: "Active scope",
-              c: "text-slate-900",
-              icon: <Building2 className="w-5 h-5 text-slate-400" />,
+              c: "text-foreground",
+              icon: <Building2 className="w-5 h-5 text-muted-foreground" />,
             },
             {
               l: "Devices Online",
@@ -342,9 +342,9 @@ const DeviceControlCenter = () => {
               s: "Hardware nodes",
               c:
                 onlineDevs === devices.length && devices.length > 0
-                  ? "text-emerald-600"
+                  ? "text-success"
                   : "text-amber-600",
-              icon: <Wifi className="w-5 h-5 text-emerald-400" />,
+              icon: <Wifi className="w-5 h-5 text-success" />,
             },
             {
               l: "Cameras Active",
@@ -352,7 +352,7 @@ const DeviceControlCenter = () => {
               s: "Live or recording",
               c:
                 activeCams === cameras.length && cameras.length > 0
-                  ? "text-emerald-600"
+                  ? "text-success"
                   : "text-amber-600",
               icon: <Camera className="w-5 h-5 text-blue-400" />,
             },
@@ -360,12 +360,12 @@ const DeviceControlCenter = () => {
               l: "Sensor Alerts",
               v: String(alertSens),
               s: alertSens > 0 ? "Needs attention" : "All clear",
-              c: alertSens > 0 ? "text-red-600" : "text-emerald-600",
+              c: alertSens > 0 ? "text-red-600" : "text-success",
               icon:
                 alertSens > 0 ? (
                   <AlertTriangle className="w-5 h-5 text-red-400" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <CheckCircle2 className="w-5 h-5 text-success" />
                 ),
             },
           ].map((k, i) => (
@@ -376,7 +376,7 @@ const DeviceControlCenter = () => {
               <CardContent className="p-5 flex items-start gap-3">
                 <div className="mt-0.5">{k.icon}</div>
                 <div>
-                  <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest">
+                  <div className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">
                     {k.l}
                   </div>
                   <div
@@ -384,7 +384,7 @@ const DeviceControlCenter = () => {
                   >
                     {k.v}
                   </div>
-                  <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">
                     {k.s}
                   </div>
                 </div>
@@ -399,12 +399,12 @@ const DeviceControlCenter = () => {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${tab === t.id ? "bg-slate-900 text-white shadow-md" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${tab === t.id ? "bg-secondary text-foreground shadow-md" : "text-muted-foreground hover:text-slate-800 hover:bg-secondary/5"}`}
             >
               {t.icon}
               {t.label}
               <span
-                className={`text-[9px] rounded-full px-2 py-0.5 font-black ${tab === t.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}
+                className={`text-[9px] rounded-full px-2 py-0.5 font-black ${tab === t.id ? "bg-white/20 text-foreground" : "bg-secondary/10 text-muted-foreground"}`}
               >
                 {t.count}
               </span>
@@ -432,7 +432,7 @@ const DeviceControlCenter = () => {
                     <CardContent className="p-5 space-y-3">
                       <div className="flex items-start justify-between">
                         <div
-                          className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-emerald-600" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-slate-100 text-slate-400"}`}
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-success" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-secondary/10 text-muted-foreground"}`}
                         >
                           <DeviceIcon type={dev.type} cls="w-5 h-5" />
                         </div>
@@ -447,21 +447,21 @@ const DeviceControlCenter = () => {
                             ) : null}
                             {dev.status}
                           </Badge>
-                          <MoreVertical className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                          <MoreVertical className="w-4 h-4 text-muted-foreground/60 group-hover:text-muted-foreground transition-colors" />
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm font-black italic tracking-tighter text-slate-900 leading-tight">
+                        <div className="text-sm font-black italic tracking-tighter text-foreground leading-tight">
                           {dev.name}
                         </div>
                         {dev.model && (
-                          <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                          <div className="text-[10px] text-muted-foreground font-semibold mt-0.5">
                             {dev.model}
                           </div>
                         )}
                       </div>
-                      <Separator className="bg-slate-50" />
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-500">
+                      <Separator className="bg-secondary/5" />
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                         {dev.connType && (
                           <span className="flex items-center gap-1">
                             <ConnIcon t={dev.connType} />
@@ -475,7 +475,7 @@ const DeviceControlCenter = () => {
                           <span className="font-mono">{dev.comPort}</span>
                         )}
                         {dev.assignment?.role && (
-                          <span className="text-slate-400">
+                          <span className="text-muted-foreground">
                             {dev.assignment.role}
                           </span>
                         )}
@@ -487,19 +487,19 @@ const DeviceControlCenter = () => {
               <div className="flex flex-col gap-4 col-span-1 min-h-[160px]">
                 <button
                   onClick={() => setShowReg(true)}
-                  className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
+                  className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-secondary/5/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
                 >
-                  <PlusCircle className="w-6 h-6 text-slate-300 group-hover:text-slate-600 transition-all" />
-                  <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 group-hover:text-slate-700">
+                  <PlusCircle className="w-6 h-6 text-muted-foreground/60 group-hover:text-muted-foreground transition-all" />
+                  <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
                     Register Device
                   </div>
                 </button>
                 <button
                   onClick={handleScan}
-                  className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
+                  className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-secondary/5/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
                 >
-                  <RefreshCw className="w-6 h-6 text-slate-300 group-hover:text-blue-500 transition-all" />
-                  <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 group-hover:text-blue-600">
+                  <RefreshCw className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary transition-all" />
+                  <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-primary">
                     Scan Network
                   </div>
                 </button>
@@ -524,30 +524,30 @@ const DeviceControlCenter = () => {
                 >
                   <Card className="rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-xl hover:border-blue-200 hover:-translate-y-0.5 transition-all group overflow-hidden h-full">
                     <div
-                      className={`h-32 flex items-center justify-center relative ${cam.status === "live" || cam.status === "recording" ? "bg-slate-800" : "bg-slate-100"}`}
+                      className={`h-32 flex items-center justify-center relative ${cam.status === "live" || cam.status === "recording" ? "bg-secondary/60" : "bg-secondary/10"}`}
                     >
                       {cam.status === "live" || cam.status === "recording" ? (
                         <>
-                          <Camera className="w-8 h-8 text-slate-600 opacity-20" />
+                          <Camera className="w-8 h-8 text-muted-foreground opacity-20" />
                           {cam.status === "recording" && (
                             <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-red-500 rounded-full px-2.5 py-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                              <span className="text-[8px] font-black text-white uppercase">
+                              <span className="text-[8px] font-black text-foreground uppercase">
                                 REC
                               </span>
                             </div>
                           )}
                           {cam.status === "live" && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-emerald-500 rounded-full px-2.5 py-1">
+                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-success rounded-full px-2.5 py-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                              <span className="text-[8px] font-black text-white uppercase">
+                              <span className="text-[8px] font-black text-foreground uppercase">
                                 Live
                               </span>
                             </div>
                           )}
                         </>
                       ) : (
-                        <div className="flex flex-col items-center gap-1 text-slate-400">
+                        <div className="flex flex-col items-center gap-1 text-muted-foreground">
                           <EyeOff className="w-7 h-7 opacity-30" />
                           <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
                             Feed Unavailable
@@ -558,10 +558,10 @@ const DeviceControlCenter = () => {
                     <CardContent className="p-5 space-y-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="text-sm font-black italic tracking-tighter text-slate-900">
+                          <div className="text-sm font-black italic tracking-tighter text-foreground">
                             {cam.name}
                           </div>
-                          <div className="text-[9px] text-slate-400 font-mono uppercase">
+                          <div className="text-[9px] text-muted-foreground font-mono uppercase">
                             {cam.provider}
                             {cam.model ? ` · ${cam.model}` : ""}
                           </div>
@@ -572,7 +572,7 @@ const DeviceControlCenter = () => {
                           {cam.status}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                         {cam.location && (
                           <span>
                             <Eye className="w-3 h-3 inline mr-1" />
@@ -587,7 +587,7 @@ const DeviceControlCenter = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="flex-1 h-9 rounded-xl bg-slate-50 hover:bg-slate-900 hover:text-white text-slate-500 font-black italic uppercase text-[9px] tracking-widest transition-all"
+                          className="flex-1 h-9 rounded-xl bg-secondary/5 hover:bg-secondary hover:text-foreground text-muted-foreground font-black italic uppercase text-[9px] tracking-widest transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             // Open setup directly if needed
@@ -603,10 +603,10 @@ const DeviceControlCenter = () => {
               ))}
               <button
                 onClick={() => setShowCctvReg(true)}
-                className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-10 gap-3 group min-h-[200px]"
+                className="rounded-3xl border-2 border-dashed border-slate-200 bg-secondary/5/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-10 gap-3 group min-h-[200px]"
               >
-                <PlusCircle className="w-9 h-9 text-slate-300 group-hover:text-slate-600 group-hover:scale-110 transition-all" />
-                <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 group-hover:text-slate-700">
+                <PlusCircle className="w-9 h-9 text-muted-foreground/60 group-hover:text-muted-foreground group-hover:scale-110 transition-all" />
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
                   Register Camera
                 </div>
               </button>
@@ -649,7 +649,7 @@ const DeviceControlCenter = () => {
                       <CardContent className="p-5 space-y-3">
                         <div className="flex items-start justify-between">
                           <div
-                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-emerald-600" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-slate-100 text-slate-400"}`}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-success" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-secondary/10 text-muted-foreground"}`}
                           >
                             <SIcon type={sensor.type} cls="w-5 h-5" />
                           </div>
@@ -663,21 +663,21 @@ const DeviceControlCenter = () => {
                           </Badge>
                         </div>
                         <div>
-                          <div className="text-sm font-black italic tracking-tighter text-slate-900 leading-tight">
+                          <div className="text-sm font-black italic tracking-tighter text-foreground leading-tight">
                             {sensor.name}
                           </div>
                           {sensor.model && (
-                            <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                            <div className="text-[10px] text-muted-foreground font-semibold mt-0.5">
                               {sensor.model}
                             </div>
                           )}
                         </div>
                         {sensor.currentValue !== undefined && (
                           <div
-                            className={`rounded-2xl px-4 py-3 flex items-center justify-between ${sensor.status === "warning" ? "bg-amber-50" : sensor.status === "critical" ? "bg-red-50" : "bg-slate-50"}`}
+                            className={`rounded-2xl px-4 py-3 flex items-center justify-between ${sensor.status === "warning" ? "bg-amber-50" : sensor.status === "critical" ? "bg-red-50" : "bg-secondary/5"}`}
                           >
                             <span
-                              className={`text-2xl font-black italic tracking-tighter ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-emerald-600"}`}
+                              className={`text-2xl font-black italic tracking-tighter ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-success"}`}
                             >
                               {sensor.currentValue}
                               <span className="text-xs ml-0.5 opacity-60">
@@ -686,7 +686,7 @@ const DeviceControlCenter = () => {
                             </span>
                             {(sensor.thresholdMin !== undefined ||
                               sensor.thresholdMax !== undefined) && (
-                              <div className="text-[10px] text-slate-400 font-medium text-right">
+                              <div className="text-[10px] text-muted-foreground font-medium text-right">
                                 {sensor.thresholdMin !== undefined && (
                                   <div>
                                     Min {sensor.thresholdMin}
@@ -703,7 +703,7 @@ const DeviceControlCenter = () => {
                             )}
                           </div>
                         )}
-                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400">
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                           {sensor.placement && <span>{sensor.placement}</span>}
                           {sensor.lastReading && (
                             <span>
@@ -722,19 +722,19 @@ const DeviceControlCenter = () => {
                 <div className="flex flex-col gap-4 col-span-1 min-h-[160px]">
                   <button
                     onClick={() => setShowReg(true)}
-                    className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
+                    className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-secondary/5/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
                   >
-                    <PlusCircle className="w-6 h-6 text-slate-300 group-hover:text-slate-600 transition-all" />
-                    <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 group-hover:text-slate-700">
+                    <PlusCircle className="w-6 h-6 text-muted-foreground/60 group-hover:text-muted-foreground transition-all" />
+                    <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
                       Register Sensor
                     </div>
                   </button>
                   <button
                     onClick={handleScan}
-                    className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
+                    className="flex-1 rounded-3xl border-2 border-dashed border-slate-200 bg-secondary/5/50 hover:border-slate-400 hover:bg-white transition-all flex flex-col items-center justify-center py-4 gap-2 group"
                   >
-                    <RefreshCw className="w-6 h-6 text-slate-300 group-hover:text-blue-500 transition-all" />
-                    <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 group-hover:text-blue-600">
+                    <RefreshCw className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary transition-all" />
+                    <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-primary">
                       Scan Network
                     </div>
                   </button>

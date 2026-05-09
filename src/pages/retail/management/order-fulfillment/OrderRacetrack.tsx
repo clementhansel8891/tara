@@ -49,22 +49,22 @@ const TABS: { key: string; label: string; statuses: OrderStatus[] }[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STATUS_META: Record<OrderStatus, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "bg-slate-100 text-slate-400" },
+  draft: { label: "Draft", className: "bg-secondary/10 text-muted-foreground" },
   pending_payment: {
     label: "Pending Payment",
     className: "bg-yellow-50 text-yellow-700",
   },
-  reserved: { label: "Reserved", className: "bg-indigo-50 text-indigo-700" },
-  paid: { label: "Paid", className: "bg-blue-50 text-blue-700" },
+  reserved: { label: "Reserved", className: "bg-primary/5 text-primary" },
+  paid: { label: "Paid", className: "bg-primary/5 text-blue-700" },
   processing: {
     label: "Processing",
     className: "bg-violet-50 text-violet-700",
   },
   ready_for_pickup: { label: "Ready", className: "bg-amber-50 text-amber-700" },
   shipped: { label: "Shipped", className: "bg-cyan-50 text-cyan-700" },
-  complete: { label: "Complete", className: "bg-emerald-50 text-emerald-700" },
+  complete: { label: "Complete", className: "bg-emerald-50 text-success" },
   cancelled: { label: "Cancelled", className: "bg-red-50 text-red-600" },
-  refunded: { label: "Refunded", className: "bg-rose-50 text-rose-600" },
+  refunded: { label: "Refunded", className: "bg-rose-50 text-destructive" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -198,8 +198,8 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                     className={cn(
                       "ml-1 rounded-full px-1.5 py-0.5 text-[8px] font-black",
                       activeQueue === tab.key
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-100 text-slate-500",
+                        ? "bg-secondary text-foreground"
+                        : "bg-secondary/10 text-muted-foreground",
                     )}
                   >
                     {tabCount[tab.key]}
@@ -210,9 +210,9 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
           </TabsList>
 
           <div className="relative w-64 flex-shrink-0 ml-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              className="pl-12 h-11 bg-white border-slate-200 rounded-xl text-xs font-bold italic placeholder:text-slate-300"
+              className="pl-12 h-11 bg-white border-slate-200 rounded-xl text-xs font-bold italic placeholder:text-muted-foreground/60"
               placeholder="Search Order, Customer, or AWB..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -222,20 +222,20 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
         <TabsContent value={activeQueue} className="m-0">
           {filteredOrders.length === 0 ? (
-            <Card className="rounded-[2.5rem] shadow-2xl border-none bg-white overflow-hidden">
+            <Card className="rounded-2xl shadow-2xl border-none bg-white overflow-hidden">
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Package className="w-12 h-12 text-slate-200" />
-                <p className="text-xs font-black italic uppercase tracking-widest text-slate-300">
+                <p className="text-xs font-black italic uppercase tracking-widest text-muted-foreground/60">
                   No orders in this queue
                 </p>
               </div>
             </Card>
           ) : (
-            <Card className="rounded-[2.5rem] shadow-2xl border-none bg-white overflow-hidden">
+            <Card className="rounded-2xl shadow-2xl border-none bg-white overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-slate-50 text-[10px] uppercase font-black tracking-widest text-slate-400 italic">
+                    <tr className="border-b bg-secondary/5 text-[10px] uppercase font-black tracking-widest text-muted-foreground italic">
                       <th className="px-6 py-5 text-left">Order Token</th>
                       <th className="px-6 py-5 text-left">Channel</th>
                       <th className="px-6 py-5 text-center">Payload Cost</th>
@@ -266,7 +266,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                         <tr
                           key={order.id}
                           className={cn(
-                            "group hover:bg-slate-50/80 transition-all cursor-pointer",
+                            "group hover:bg-secondary/5/80 transition-all cursor-pointer",
                             isCompleted && "opacity-60",
                           )}
                           onClick={() => onOrderClick(order)}
@@ -279,16 +279,16 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                                   "w-10 h-10 rounded-2xl flex items-center justify-center font-black italic text-[10px] shadow-inner",
                                   (order.totalAmount || 0) > 1000000
                                     ? "bg-amber-50 text-amber-600"
-                                    : "bg-slate-50 text-slate-400",
+                                    : "bg-secondary/5 text-muted-foreground",
                                 )}
                               >
                                 #{order.id.split("-").pop()?.substring(0, 4)}
                               </div>
                               <div>
-                                <div className="text-xs font-black tracking-tight text-slate-900">
+                                <div className="text-xs font-black tracking-tight text-foreground">
                                   {(order.id || "").split("-")[0].toUpperCase()}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                <div className="text-[10px] text-muted-foreground font-bold uppercase mt-0.5">
                                   {order.customerName || "Walk-in"}
                                 </div>
                               </div>
@@ -298,14 +298,14 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                           {/* Channel */}
                           <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-xl bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-all">
+                              <div className="p-2 rounded-xl bg-secondary/10 text-muted-foreground group-hover:bg-secondary group-hover:text-foreground transition-all">
                                 <ChannelIcon className="w-4 h-4" />
                               </div>
                               <div>
-                                <div className="text-xs font-black text-slate-700 italic leading-tight uppercase">
+                                <div className="text-xs font-black text-muted-foreground italic leading-tight uppercase">
                                   {channel.source}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">
                                   Loc:{" "}
                                   {(order.storeId ?? "").substring?.(0, 8) ||
                                     "N/A"}
@@ -316,11 +316,11 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
                           {/* Payload Cost */}
                           <td className="px-6 py-5 text-center">
-                            <div className="text-sm font-black italic tracking-tighter text-slate-900">
+                            <div className="text-sm font-black italic tracking-tighter text-foreground">
                               Rp{" "}
                               {(order.totalAmount || 0).toLocaleString("id-ID")}
                             </div>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase">
+                            <div className="text-[10px] font-bold text-muted-foreground uppercase">
                               {order.items?.length ?? 0} item
                               {(order.items?.length ?? 0) !== 1 ? "s" : ""}
                             </div>
@@ -344,7 +344,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                             onClick={(e) => e.stopPropagation()}
                           >
                             {order.status === "complete" ? (
-                              <div className="flex items-center gap-2 text-emerald-600">
+                              <div className="flex items-center gap-2 text-success">
                                 <CheckCircle className="w-3.5 h-3.5" />
                                 <span className="text-[10px] font-black italic uppercase">
                                   Delivered
@@ -353,13 +353,13 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                             ) : channel.source === "POS" ||
                               order.status === "ready_for_pickup" ? (
                               <div className="flex items-center gap-2">
-                                <Badge className="bg-emerald-50 text-emerald-700 border-none text-[9px] font-black italic uppercase">
+                                <Badge className="bg-emerald-50 text-success border-none text-[9px] font-black italic uppercase">
                                   Ready for Pickup
                                 </Badge>
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-6 w-6 text-slate-400 hover:text-slate-900 rounded bg-slate-100"
+                                  className="h-6 w-6 text-muted-foreground hover:text-foreground rounded bg-secondary/10"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     console.log(
@@ -372,12 +372,12 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                                 </Button>
                               </div>
                             ) : existingAwb ? (
-                              <div className="text-[10px] font-black text-slate-600 uppercase">
+                              <div className="text-[10px] font-black text-muted-foreground uppercase">
                                 AWB: {existingAwb}
                               </div>
                             ) : order.status === "cancelled" ||
                               order.status === "refunded" ? (
-                              <span className="text-[10px] font-bold italic text-slate-300 uppercase">
+                              <span className="text-[10px] font-bold italic text-muted-foreground/60 uppercase">
                                 N/A
                               </span>
                             ) : (
@@ -423,7 +423,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
                                 <Button
                                   size="sm"
-                                  className="h-8 bg-slate-900 text-white font-black italic text-xs px-3 rounded-md uppercase hover:bg-slate-800 disabled:opacity-40"
+                                  className="h-8 bg-secondary text-foreground font-black italic text-xs px-3 rounded-md uppercase hover:bg-secondary/60 disabled:opacity-40"
                                   disabled={!tempInput.awb.trim()}
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -444,10 +444,10 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
                           {/* Gate Entry */}
                           <td className="px-6 py-5 text-right">
-                            <div className="text-[10px] font-black italic text-slate-600 uppercase mb-0.5">
+                            <div className="text-[10px] font-black italic text-muted-foreground uppercase mb-0.5">
                               Ingested
                             </div>
-                            <div className="text-[9px] font-bold text-slate-400 uppercase">
+                            <div className="text-[9px] font-bold text-muted-foreground uppercase">
                               {order.createdAt
                                 ? new Date(order.createdAt).toLocaleTimeString(
                                     "id-ID",
@@ -462,7 +462,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
 
                           {/* Chevron */}
                           <td className="px-6 py-5 text-right cursor-pointer">
-                            <ChevronRight className="w-4 h-4 text-slate-400 inline-block group-hover:text-slate-900 transition-colors" />
+                            <ChevronRight className="w-4 h-4 text-muted-foreground inline-block group-hover:text-foreground transition-colors" />
                           </td>
                         </tr>
                       );

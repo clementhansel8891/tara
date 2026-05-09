@@ -95,9 +95,9 @@ const WEBHOOK_EVENTS: WebhookEvent[] = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  order: "bg-blue-50 text-blue-600",
+  order: "bg-primary/5 text-primary",
   inventory: "bg-amber-50 text-amber-600",
-  payment: "bg-emerald-50 text-emerald-600",
+  payment: "bg-emerald-50 text-success",
   customer: "bg-purple-50 text-purple-600",
 };
 
@@ -188,12 +188,12 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
   const CopyBtn = ({ value, field }: { value: string; field: string }) => (
     <button
       onClick={() => copy(value, field)}
-      className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+      className="p-1.5 rounded-lg hover:bg-secondary/10 transition-colors"
     >
       {copiedField === field ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+        <CheckCircle2 className="w-4 h-4 text-success" />
       ) : (
-        <Copy className="w-4 h-4 text-slate-400" />
+        <Copy className="w-4 h-4 text-muted-foreground" />
       )}
     </button>
   );
@@ -204,13 +204,13 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-            <ArrowDownToLine className="w-4 h-4 text-blue-600" />
+            <ArrowDownToLine className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h3 className="font-black italic text-slate-900 text-sm">
+            <h3 className="font-black italic text-foreground text-sm">
               Inbound Webhook
             </h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Zenvix receives events
             </p>
           </div>
@@ -219,16 +219,16 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
         <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-100">
           {/* Inbound URL */}
           <div className="p-4 space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Listening Endpoint
             </Label>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 truncate text-slate-700">
+              <code className="flex-1 text-xs font-mono bg-secondary/5 border border-slate-200 rounded-xl px-4 py-3 truncate text-muted-foreground">
                 {inboundUrl}
               </code>
               <CopyBtn value={inboundUrl} field="inbound" />
             </div>
-            <p className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 italic">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground italic">
               <Info className="w-3 h-3 shrink-0" />
               Point your external platform to this URL to send events to Zenvix.
               All requests must be POST with JSON body.
@@ -237,13 +237,13 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
 
           {/* HMAC Key */}
           <div className="p-4 space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               HMAC Signing Key
             </Label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                <Key className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <code className="text-xs font-mono text-slate-600 truncate">
+              <div className="flex-1 flex items-center gap-2 bg-secondary/5 border border-slate-200 rounded-xl px-4 py-3">
+                <Key className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <code className="text-xs font-mono text-muted-foreground truncate">
                   {hmacKey}
                 </code>
               </div>
@@ -261,10 +261,10 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
                 {isRotating ? "Rotating…" : "Rotate"}
               </Button>
             </div>
-            <p className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 italic">
+            <p className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground italic">
               <Info className="w-3 h-3 shrink-0" />
               Zenvix will include an{" "}
-              <code className="bg-slate-100 px-1 rounded">
+              <code className="bg-secondary/10 px-1 rounded">
                 X-Zenvix-Signature
               </code>{" "}
               header with every inbound event for HMAC-SHA256 verification.
@@ -276,14 +276,14 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
       {/* ── Outbound Section ── */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <ArrowUpFromLine className="w-4 h-4 text-emerald-600" />
+          <div className="w-7 h-7 rounded-lg bg-success/10 flex items-center justify-center">
+            <ArrowUpFromLine className="w-4 h-4 text-success" />
           </div>
           <div>
-            <h3 className="font-black italic text-slate-900 text-sm">
+            <h3 className="font-black italic text-foreground text-sm">
               Outbound Webhook
             </h3>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               Zenvix sends events to you
             </p>
           </div>
@@ -291,7 +291,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Target URL
             </Label>
             <Input
@@ -304,7 +304,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Authorization Header
               </Label>
               <Input
@@ -316,7 +316,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Retry Policy
               </Label>
               <Select value={retryPolicy} onValueChange={setRetryPolicy}>
@@ -344,14 +344,14 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
 
           {/* Event Toggles */}
           <div className="space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Events to Forward
             </Label>
             <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
               {(Array.isArray(WEBHOOK_EVENTS) ? WEBHOOK_EVENTS : []).map((ev) => (
                 <div
                   key={ev.key}
-                  className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
+                  className="flex items-center justify-between px-4 py-3 hover:bg-secondary/5 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Badge
@@ -366,7 +366,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
                       <div className="font-black italic text-slate-800 text-xs">
                         {ev.label}
                       </div>
-                      <div className="text-[10px] text-slate-400 font-bold">
+                      <div className="text-[10px] text-muted-foreground font-bold">
                         {ev.description}
                       </div>
                     </div>
@@ -386,7 +386,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
       <Button
         onClick={handleSave}
         disabled={isSaving}
-        className="w-full h-11 rounded-xl font-black italic bg-slate-900 gap-2"
+        className="w-full h-11 rounded-xl font-black italic bg-secondary gap-2"
       >
         {isSaving ? (
           <RefreshCw className="w-4 h-4 animate-spin" />

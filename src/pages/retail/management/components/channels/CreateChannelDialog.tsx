@@ -270,20 +270,20 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 className={cn(
                   "flex-1 py-3 text-center text-[9px] font-black uppercase tracking-[0.2em] transition-colors border-b-2",
                   step === s
-                    ? "bg-white text-slate-900 border-slate-900"
+                    ? "bg-white text-foreground border-slate-900"
                     : step > s
-                      ? "bg-white text-emerald-600 border-emerald-400"
-                      : "bg-slate-50 text-slate-400 border-transparent",
+                      ? "bg-white text-success border-emerald-400"
+                      : "bg-secondary/5 text-muted-foreground border-transparent",
                 )}
               >
                 <span
                   className={cn(
                     "inline-flex items-center justify-center w-4 h-4 rounded-full text-[8px] font-black mr-1.5 border",
                     step === s
-                      ? "bg-slate-900 text-white border-slate-900"
+                      ? "bg-secondary text-foreground border-slate-900"
                       : step > s
-                        ? "bg-emerald-100 text-emerald-600 border-emerald-300"
-                        : "bg-slate-100 text-slate-400 border-slate-200",
+                        ? "bg-success/10 text-success border-emerald-300"
+                        : "bg-secondary/10 text-muted-foreground border-slate-200",
                   )}
                 >
                   {step > s ? "✓" : s}
@@ -302,7 +302,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 <DialogTitle className="text-xl font-black italic tracking-tight">
                   Connect a Channel
                 </DialogTitle>
-                <DialogDescription className="font-bold italic text-xs text-slate-400 uppercase tracking-widest">
+                <DialogDescription className="font-bold italic text-xs text-muted-foreground uppercase tracking-widest">
                   Select the integration type to get started
                 </DialogDescription>
               </DialogHeader>
@@ -314,8 +314,8 @@ export const CreateChannelDialog: React.FC<Props> = ({
                     className={cn(
                       "w-full text-left flex items-start gap-4 p-5 rounded-2xl border-2 transition-all",
                       selectedType === t.id
-                        ? "border-slate-900 bg-slate-50 shadow-sm"
-                        : "border-slate-100 hover:border-slate-300 bg-white hover:bg-slate-50",
+                        ? "border-slate-900 bg-secondary/5 shadow-sm"
+                        : "border-slate-100 hover:border-slate-300 bg-white hover:bg-secondary/5",
                     )}
                   >
                     <div
@@ -327,20 +327,20 @@ export const CreateChannelDialog: React.FC<Props> = ({
                       <t.icon className={`w-5 h-5 text-${t.color}-600`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-black italic text-slate-900 text-sm">
+                      <div className="font-black italic text-foreground text-sm">
                         {t.label}
                       </div>
-                      <div className="text-xs font-bold text-slate-500 mt-0.5 leading-relaxed">
+                      <div className="text-xs font-bold text-muted-foreground mt-0.5 leading-relaxed">
                         {t.desc}
                       </div>
                       {selectedType === t.id && (
-                        <div className="flex items-start gap-1.5 mt-2 text-[10px] font-bold text-slate-500 italic">
+                        <div className="flex items-start gap-1.5 mt-2 text-[10px] font-bold text-muted-foreground italic">
                           <Info className="w-3 h-3 shrink-0 mt-0.5" /> {t.hint}
                         </div>
                       )}
                     </div>
                     {selectedType === t.id && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                     )}
                   </button>
                 ))}
@@ -356,7 +356,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 <Button
                   disabled={!selectedType}
                   onClick={() => setStep(2)}
-                  className="rounded-xl font-black italic gap-2 bg-slate-900"
+                  className="rounded-xl font-black italic gap-2 bg-secondary"
                 >
                   Continue <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -371,13 +371,13 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 <DialogTitle className="text-xl font-black italic tracking-tight">
                   {selectedChannelType?.label ?? "Channel"} Config
                 </DialogTitle>
-                <DialogDescription className="font-bold italic text-xs text-slate-400 uppercase tracking-widest">
+                <DialogDescription className="font-bold italic text-xs text-muted-foreground uppercase tracking-widest">
                   Step 2 of 3 — Basic setup
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     Channel Name *
                   </Label>
                   <Input
@@ -398,7 +398,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       Platform *
                     </Label>
                     <Select
@@ -425,7 +425,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       Sync Frequency
                     </Label>
                     <Select
@@ -460,8 +460,8 @@ export const CreateChannelDialog: React.FC<Props> = ({
 
                 {/* Platform hint */}
                 {selectedPlatform?.hint && (
-                  <div className="flex items-start gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
-                    <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-blue-100">
+                    <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-[11px] font-bold text-blue-700 leading-relaxed">
                       {selectedPlatform.hint}
                     </p>
@@ -471,8 +471,8 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 {/* Webhook type notice */}
                 {selectedType === "WEBHOOK" && (
                   <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-                    <Info className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <p className="text-[11px] font-bold text-emerald-700 leading-relaxed">
+                    <Info className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                    <p className="text-[11px] font-bold text-success leading-relaxed">
                       After creation, go to <strong>Settings → Webhooks</strong>{" "}
                       to configure your target URL, auth headers, and event
                       forwarding rules.
@@ -492,7 +492,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 <Button
                   disabled={!valid2 || isSaving}
                   onClick={handleCreate}
-                  className="rounded-xl font-black italic bg-slate-900"
+                  className="rounded-xl font-black italic bg-secondary"
                 >
                   {isSaving ? "Creating…" : "Create Channel"}
                 </Button>
@@ -505,12 +505,12 @@ export const CreateChannelDialog: React.FC<Props> = ({
             <>
               <DialogHeader className="mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                  <CheckCircle2 className="w-6 h-6 text-success" />
                 </div>
                 <DialogTitle className="text-xl font-black italic tracking-tight">
                   Channel Created!
                 </DialogTitle>
-                <DialogDescription className="font-bold italic text-xs text-slate-400 uppercase tracking-widest">
+                <DialogDescription className="font-bold italic text-xs text-muted-foreground uppercase tracking-widest">
                   Copy credentials now — they won't be shown again
                 </DialogDescription>
               </DialogHeader>
@@ -528,11 +528,11 @@ export const CreateChannelDialog: React.FC<Props> = ({
                   },
                 ].map((item) => (
                   <div key={item.field} className="space-y-1.5">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       {item.label}
                     </Label>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 truncate text-slate-700">
+                      <code className="flex-1 text-xs font-mono bg-secondary/5 border border-slate-200 rounded-xl px-4 py-3 truncate text-muted-foreground">
                         {item.value}
                       </code>
                       <Button
@@ -542,7 +542,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                         className="rounded-xl shrink-0"
                       >
                         {copiedField === item.field ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <CheckCircle2 className="w-4 h-4 text-success" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
@@ -558,7 +558,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                 >
                   {copiedField === "all" ? (
                     <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />{" "}
+                      <CheckCircle2 className="w-4 h-4 text-success" />{" "}
                       Copied All!
                     </>
                   ) : (
@@ -577,7 +577,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
               <DialogFooter className="mt-6">
                 <Button
                   onClick={handleClose}
-                  className="w-full rounded-xl font-black italic bg-slate-900"
+                  className="w-full rounded-xl font-black italic bg-secondary"
                 >
                   Done — View Channel Settings
                 </Button>

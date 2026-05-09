@@ -29,11 +29,11 @@ export const FiltersBar: React.FC<Props> = ({
   onManageCategories,
 }) => {
   return (
-    <div className="flex items-center gap-3 bg-white rounded-[1.5rem] p-3 border border-slate-100 shadow-lg">
+    <div className="flex items-center gap-3 bg-white rounded-xl p-3 border border-slate-100 shadow-lg">
       <div className="relative flex-1">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
         <Input
-          className="pl-12 h-11 bg-slate-50 border-none rounded-xl font-bold italic placeholder:text-slate-300"
+          className="pl-12 h-11 bg-secondary/5 border-none rounded-xl font-bold italic placeholder:text-muted-foreground/60"
           placeholder="Search SKU, name or category..."
           value={filters.search}
           onChange={(e) => onFiltersChange({ search: e.target.value })}
@@ -101,14 +101,14 @@ export const FiltersBar: React.FC<Props> = ({
         </SelectContent>
       </Select>
 
-      <div className="flex items-center gap-2 border border-slate-100 rounded-xl px-2 h-11 bg-slate-50/50">
-        <span className="text-[10px] font-black italic text-slate-400 uppercase">
+      <div className="flex items-center gap-2 border border-slate-100 rounded-xl px-2 h-11 bg-secondary/5/50">
+        <span className="text-[10px] font-black italic text-muted-foreground uppercase">
           Price
         </span>
         <Input
           type="number"
           placeholder="Min"
-          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-slate-300"
+          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-muted-foreground/60"
           value={filters.minPrice ?? ""}
           onChange={(e) =>
             onFiltersChange({
@@ -116,11 +116,11 @@ export const FiltersBar: React.FC<Props> = ({
             })
           }
         />
-        <span className="text-slate-300">-</span>
+        <span className="text-muted-foreground/60">-</span>
         <Input
           type="number"
           placeholder="Max"
-          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-slate-300"
+          className="w-16 h-7 text-xs font-bold italic border-none bg-transparent p-0 placeholder:text-muted-foreground/60"
           value={filters.maxPrice ?? ""}
           onChange={(e) =>
             onFiltersChange({
@@ -156,7 +156,7 @@ export const FiltersBar: React.FC<Props> = ({
           </Button>
           <Button
             onClick={onAddSku}
-            className="h-11 px-5 rounded-xl bg-slate-900 text-white font-black italic text-xs uppercase tracking-widest gap-2"
+            className="h-11 px-5 rounded-xl bg-secondary text-foreground font-black italic text-xs uppercase tracking-widest gap-2"
           >
             <Plus className="w-4 h-4" /> Add SKU
           </Button>

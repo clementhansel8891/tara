@@ -21,22 +21,22 @@ export const ScannerSearchHeader: React.FC<ScannerSearchHeaderProps> = ({
 
       {/* Barcode Input Support */}
       <div className="relative group w-72 h-full">
-        <ScanLine className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400 group-focus-within:animate-pulse z-10" />
+        <ScanLine className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary group-focus-within:animate-pulse z-10" />
         <Input
-          className="pl-14 h-12 bg-slate-900 text-white border-none rounded-xl text-[10px] font-black italic placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-indigo-500/50 select-all shadow-xl transition-all group-hover:scale-[1.01] relative z-0"
+          className="pl-14 h-12 bg-secondary text-foreground border-none rounded-xl text-[10px] font-black italic placeholder:text-muted-foreground/30 focus-visible:ring-2 focus-visible:ring-primary/50 select-all shadow-xl transition-all group-hover:scale-[1.01] relative z-0"
           placeholder="SCAN BUFFER READY..."
           value={barcodeValue}
           onChange={(e) => onBarcodeChange(e.target.value)}
           autoFocus
         />
-        <div className="absolute inset-0 bg-indigo-500/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity -z-10" />
+        <div className="absolute inset-0 bg-primary/10 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity -z-10" />
       </div>
 
       {/* Search Input */}
       <div className="relative flex-1 group h-full">
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors z-10" />
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors z-10" />
         <Input
-          className="pl-14 h-12 bg-white/40 backdrop-blur-md border border-white/40 rounded-xl text-xs font-bold italic placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-indigo-500/30 shadow-inner group-hover:bg-white/60 transition-all relative z-0"
+          className="pl-14 h-12 bg-white/40 backdrop-blur-md border border-white/40 rounded-xl text-xs font-bold italic placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-indigo-500/30 shadow-inner group-hover:bg-white/60 transition-all relative z-0"
           placeholder="SEARCH SECTOR INVENTORY..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}

@@ -272,10 +272,10 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
     <div className="space-y-6">
       {/* Framework header */}
       <div className="space-y-1">
-        <h3 className="font-black italic text-slate-900 text-base">
+        <h3 className="font-black italic text-foreground text-base">
           {config.label} Integration
         </h3>
-        <p className="text-[11px] font-bold text-slate-500 leading-relaxed">
+        <p className="text-[11px] font-bold text-muted-foreground leading-relaxed">
           {config.description}
         </p>
       </div>
@@ -284,7 +284,7 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
       <div className="space-y-4">
         {(Array.isArray(config.fields) ? config.fields : []).map((f) => (
           <div key={f.key} className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {f.label}
             </Label>
             <Input
@@ -295,11 +295,11 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
               readOnly={f.readOnly}
               className={cn(
                 "h-11 rounded-xl font-bold text-sm",
-                f.readOnly && "bg-slate-50 text-slate-500 cursor-not-allowed",
+                f.readOnly && "bg-secondary/5 text-muted-foreground cursor-not-allowed",
               )}
             />
             {f.hint && (
-              <p className="flex items-center gap-1 text-[10px] font-bold text-slate-400 italic">
+              <p className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground italic">
                 <Info className="w-3 h-3 shrink-0" /> {f.hint}
               </p>
             )}
@@ -310,7 +310,7 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
       <Button
         onClick={handleSave}
         disabled={isSaving}
-        className="w-full h-11 rounded-xl font-black italic bg-slate-900 gap-2"
+        className="w-full h-11 rounded-xl font-black italic bg-secondary gap-2"
       >
         {isSaving ? (
           <RefreshCw className="w-4 h-4 animate-spin" />
@@ -324,16 +324,16 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
       {(showSnippet || Object.keys(fields).length > 0) && snippet && (
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               <Code2 className="w-3.5 h-3.5" /> Integration Snippet
             </div>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Copied!
+                  <CheckCircle2 className="w-3 h-3 text-success" /> Copied!
                 </>
               ) : (
                 <>
@@ -342,7 +342,7 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
               )}
             </button>
           </div>
-          <pre className="rounded-xl bg-slate-900 text-emerald-400 text-[10px] font-mono p-4 overflow-x-auto whitespace-pre leading-relaxed">
+          <pre className="rounded-xl bg-secondary text-success text-[10px] font-mono p-4 overflow-x-auto whitespace-pre leading-relaxed">
             {snippet}
           </pre>
         </div>

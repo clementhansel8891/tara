@@ -35,23 +35,23 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-slate-900 border-slate-800 p-8 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-white">
+      <DialogContent className="max-w-md bg-secondary border-slate-800 p-8 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-foreground">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-indigo-500/20 text-indigo-400">
+            <div className="p-2.5 rounded-2xl bg-primary/20 text-primary">
               <ShieldAlert className="w-6 h-6" />
             </div>
             PUBLISH SCHEDULE
           </DialogTitle>
-          <div className="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest mt-2 pl-14">
+          <div className="text-[10px] font-black text-primary/80 uppercase tracking-widest mt-2 pl-14">
             Core HR Synchronization
           </div>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="p-4 rounded-3xl bg-indigo-950/20 border border-indigo-500/20 flex gap-4">
-            <AlertTriangle className="w-6 h-6 text-indigo-400 shrink-0" />
-            <div className="text-[10px] font-bold italic text-indigo-300 uppercase leading-relaxed">
+          <div className="p-4 rounded-3xl bg-primary/20/20 border border-indigo-500/20 flex gap-4">
+            <AlertTriangle className="w-6 h-6 text-primary shrink-0" />
+            <div className="text-[10px] font-bold italic text-primary/70 uppercase leading-relaxed">
               You are about to publish {affectedShiftsCount} shift assignments
               to the Zenvix Core HR module. Once published, devices will enforce
               these schedules for clock-in/out protocols.
@@ -60,11 +60,11 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground block mb-2">
                 Mandatory: Publication Justification
               </label>
               <textarea
-                className="w-full h-24 bg-slate-800 border-slate-700 text-white rounded-xl p-4 font-bold italic text-sm placeholder:text-slate-600 focus:border-indigo-500 outline-none resize-none transition-colors"
+                className="w-full h-24 bg-secondary/60 border-slate-700 text-foreground rounded-xl p-4 font-bold italic text-sm placeholder:text-muted-foreground focus:border-indigo-500 outline-none resize-none transition-colors"
                 placeholder="E.g., Weekly Schedule generation approved by..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -72,7 +72,7 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-slate-500">
+          <div className="flex items-center gap-3 text-muted-foreground">
             <Fingerprint className="w-4 h-4" />
             <span className="text-[9px] font-black italic uppercase tracking-widest">
               Superadmin Audit Subsystem Auto-Attached
@@ -84,14 +84,14 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
           <Button
             variant="ghost"
             onClick={onClose}
-            className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-11"
+            className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary/60 rounded-xl h-11"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!reason || isSubmitting}
-            className="text-[10px] font-black italic uppercase tracking-widest bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+            className="text-[10px] font-black italic uppercase tracking-widest bg-primary hover:bg-primary text-foreground rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
           >
             Commit payload
           </Button>

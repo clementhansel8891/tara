@@ -22,30 +22,30 @@ const COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#3b82f6"];
 
 export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-4 gap-10">
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
       {/* Revenue Trend Area */}
-      <div className="xl:col-span-3 bg-white/[0.03] backdrop-blur-3xl p-10 rounded-[3rem] border border-white/5 shadow-2xl hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[130px] -mr-[15%] -mt-[15%] group-hover:bg-indigo-500/20 transition-all duration-1000" />
+      <div className="xl:col-span-3 bg-white/[0.03] backdrop-blur-3xl p-6 rounded-[2rem] border border-white/5 shadow-2xl hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-primary/10 rounded-full blur-[130px] -mr-[15%] -mt-[15%] group-hover:bg-primary/20 transition-all duration-1000" />
 
         <div className="flex items-center justify-between mb-12 relative z-10">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-600/20 group-hover:rotate-6 transition-transform duration-500">
+            <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-foreground shadow-xl shadow-indigo-600/20 group-hover:rotate-6 transition-transform duration-500">
               <TrendingUp className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
                 Revenue Flow Matrix
               </h3>
-              <p className="text-4xl font-black italic text-white tracking-tighter">
+              <p className="text-2xl font-black italic text-foreground tracking-tighter">
                 Live Performance
               </p>
             </div>
           </div>
-          <div className="bg-emerald-500/10 backdrop-blur-3xl px-8 py-4 rounded-2xl border border-emerald-500/20 text-right group/growth shadow-xl">
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 italic">
+          <div className="bg-success/10 backdrop-blur-3xl px-8 py-4 rounded-2xl border border-emerald-500/20 text-right group/growth shadow-xl">
+            <p className="text-[10px] font-black uppercase tracking-widest text-success mb-1 italic">
               Velocity Uptick
             </p>
-            <p className="text-3xl font-black italic text-emerald-500 leading-none group-hover/growth:scale-110 transition-transform origin-right tracking-tighter">
+            <p className="text-3xl font-black italic text-success leading-none group-hover/growth:scale-110 transition-transform origin-right tracking-tighter">
               +{data.growthPercentage}%
             </p>
           </div>
@@ -90,9 +90,9 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
                 content={({ active, payload, label }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-slate-900/90 backdrop-blur-3xl border border-white/10 p-6 rounded-[2rem] shadow-3xl">
-                        <p className="text-[10px] font-black italic text-slate-500 uppercase tracking-widest mb-2">{label}</p>
-                        <p className="text-2xl font-black italic text-white tracking-tighter">
+                      <div className="bg-secondary/90 backdrop-blur-3xl border border-border p-6 rounded-[2rem] shadow-3xl">
+                        <p className="text-[10px] font-black italic text-muted-foreground uppercase tracking-widest mb-2">{label}</p>
+                        <p className="text-2xl font-black italic text-foreground tracking-tighter">
                           Rp {payload[0].value?.toLocaleString()}
                         </p>
                       </div>
@@ -119,12 +119,12 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
       {/* Side Insights */}
       <div className="space-y-10 flex flex-col">
         {/* Payment Mix Widget */}
-        <div className="bg-white/[0.03] backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl flex-1 flex flex-col hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 group">
+        <div className="bg-white/[0.03] backdrop-blur-3xl p-8 rounded-[2rem] border border-white/5 shadow-2xl flex-1 flex flex-col hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 group">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
               Payment Typology
             </h3>
-            <Wallet className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+            <Wallet className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
 
           <div className="flex-1 flex flex-col justify-center">
@@ -152,10 +152,10 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1">
                   Active
                 </span>
-                <span className="text-2xl font-black italic text-white leading-none tracking-tighter">
+                <span className="text-2xl font-black italic text-foreground leading-none tracking-tighter">
                   {data.paymentMethodDistribution.length}
                 </span>
               </div>
@@ -172,11 +172,11 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
                       className="w-3 h-3 rounded-full transition-all shadow-[0_0_8px_rgba(255,255,255,0.1)]"
                       style={{ backgroundColor: COLORS[idx % COLORS.length] }}
                     />
-                    <span className="text-[11px] font-bold text-slate-400 group-hover/item:text-white transition-colors uppercase tracking-widest italic">
+                    <span className="text-[11px] font-bold text-muted-foreground group-hover/item:text-foreground transition-colors uppercase tracking-widest italic">
                       {item.method}
                     </span>
                   </div>
-                  <span className="text-[11px] font-black text-white bg-white/5 px-3 py-1 rounded-xl group-hover/item:bg-indigo-600 transition-all shadow-inner">
+                  <span className="text-[11px] font-black text-foreground bg-secondary/40 px-3 py-1 rounded-xl group-hover/item:bg-primary transition-all shadow-inner">
                     {item.percentage}%
                   </span>
                 </div>
@@ -186,22 +186,22 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
         </div>
 
         {/* Refund & Anomaly Card */}
-        <div className="bg-indigo-600 p-8 rounded-[3rem] text-white shadow-3xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-700 border-none">
+        <div className="bg-primary p-8 rounded-[2rem] text-foreground shadow-3xl relative overflow-hidden group hover:-translate-y-1 transition-all duration-700 border-none">
           <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 blur-[90px] -mr-20 -mt-20 group-hover:scale-150 transition-all duration-1000" />
-          <div className="absolute bottom-[-20%] left-[-10%] w-32 h-32 bg-emerald-500/20 blur-[70px] pointer-events-none" />
+          <div className="absolute bottom-[-20%] left-[-10%] w-32 h-32 bg-success/20 blur-[70px] pointer-events-none" />
 
           <div className="flex items-center justify-between mb-6 relative z-10">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 italic">
               Loss Prevention
             </h3>
-            <Receipt className="w-6 h-6 text-white opacity-50 group-hover:rotate-12 transition-transform duration-500" />
+            <Receipt className="w-6 h-6 text-foreground opacity-50 group-hover:rotate-12 transition-transform duration-500" />
           </div>
 
           <div className="flex items-baseline gap-3 relative z-10">
-            <p className="text-6xl font-black italic tracking-tighter text-white">
+            <p className="text-6xl font-black italic tracking-tighter text-foreground">
               {data.refundRatio}
             </p>
-            <p className="text-2xl font-black text-white/40 tracking-tighter">%</p>
+            <p className="text-2xl font-black text-foreground/40 tracking-tighter">%</p>
           </div>
 
           <div className="mt-12 relative z-10">
@@ -209,7 +209,7 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
               <span className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] italic">
                 Refund Ratio
               </span>
-              <span className="px-4 py-1.5 rounded-xl bg-white/10 border border-white/20 text-[9px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+              <span className="px-4 py-1.5 rounded-xl bg-white/10 border border-white/20 text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />{" "}
                 NOMINAL
               </span>

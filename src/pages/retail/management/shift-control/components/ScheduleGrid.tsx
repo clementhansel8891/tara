@@ -248,7 +248,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
             {(Array.isArray(SHORT_DAYS) ? SHORT_DAYS : []).map((d) => (
               <div
                 key={d}
-                className="font-bold text-center text-slate-400 text-xs mb-2 uppercase"
+                className="font-bold text-center text-muted-foreground text-xs mb-2 uppercase"
               >
                 {d}
               </div>
@@ -268,14 +268,14 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     "min-h-[100px] rounded-2xl border p-2 flex flex-col items-start justify-start relative cursor-pointer transition-all group overflow-hidden",
                     !isCurrentMonth && "opacity-30 grayscale",
                     isToday
-                      ? "bg-blue-50 border-blue-200"
+                      ? "bg-primary/5 border-blue-200"
                       : "bg-white border-slate-100 hover:border-blue-200 hover:shadow-sm",
                   )}
                 >
                   <span
                     className={cn(
                       "text-xs font-bold mb-1",
-                      isToday ? "text-blue-700" : "text-slate-400",
+                      isToday ? "text-blue-700" : "text-muted-foreground",
                     )}
                   >
                     {format(d, "d")}
@@ -288,10 +288,10 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                           "h-1.5 w-full rounded-full transition-all hover:h-3 group/bar relative",
                           s.status === "draft"
                             ? "bg-amber-400 group-hover/bar:bg-amber-500"
-                            : "bg-blue-500 group-hover/bar:bg-blue-600",
+                            : "bg-primary group-hover/bar:bg-primary",
                         )}
                       >
-                        <div className="absolute inset-0 opacity-0 group-hover/bar:opacity-100 flex items-center px-1 text-[6px] font-black text-white uppercase truncate whitespace-nowrap pointer-events-none">
+                        <div className="absolute inset-0 opacity-0 group-hover/bar:opacity-100 flex items-center px-1 text-[6px] font-black text-foreground uppercase truncate whitespace-nowrap pointer-events-none">
                           {s.startTime} - {s.name}
                         </div>
                       </div>
@@ -317,12 +317,12 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         onDateChange={setCurrentDate}
       />
 
-      <div className="w-full flex-1 bg-slate-50/50">
+      <div className="w-full flex-1 bg-secondary/5/50">
         <div className="flex flex-col w-full relative">
           {/* Days Header */}
           <div className="flex border-b border-slate-200 bg-white sticky top-0 z-30">
-            <div className="w-20 shrink-0 border-r border-slate-200 flex items-center justify-center bg-slate-50/50">
-              <Clock className="w-4 h-4 text-slate-400" />
+            <div className="w-20 shrink-0 border-r border-slate-200 flex items-center justify-center bg-secondary/5/50">
+              <Clock className="w-4 h-4 text-muted-foreground" />
             </div>
             {(Array.isArray(visibleDates) ? visibleDates : []).map((date, idx) => {
               const isToday = isSameDay(date, new Date());
@@ -334,7 +334,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   <div
                     className={cn(
                       "text-[10px] font-bold uppercase tracking-widest mb-1",
-                      isToday ? "text-blue-600" : "text-slate-400",
+                      isToday ? "text-primary" : "text-muted-foreground",
                     )}
                   >
                     {format(date, "EEEE")}
@@ -342,7 +342,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   <div
                     className={cn(
                       "text-xl font-black italic tracking-tighter",
-                      isToday ? "text-blue-700" : "text-slate-900",
+                      isToday ? "text-blue-700" : "text-foreground",
                     )}
                   >
                     {format(date, "MMM d")}
@@ -351,7 +351,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     onClick={() => onShiftCreate(date.getDay(), 8, date)}
                     size="icon"
                     variant="ghost"
-                    className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-primary/5 text-primary hover:bg-blue-100"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -362,13 +362,13 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 
           <div className="flex relative">
             {/* Time Axis */}
-            <div className="w-20 shrink-0 border-r border-slate-200 bg-slate-50/50 flex flex-col pt-2">
+            <div className="w-20 shrink-0 border-r border-slate-200 bg-secondary/5/50 flex flex-col pt-2">
               {(Array.isArray(HOURS) ? HOURS : []).map((hour) => (
                 <div
                   key={hour}
                   className="h-20 border-b border-slate-100 flex items-start justify-center pt-2"
                 >
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">
                     {hour.toString().padStart(2, "0")}:00
                   </span>
                 </div>
@@ -376,7 +376,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
             </div>
 
             {/* Grid Cells */}
-            <div className="flex-1 flex pt-2 bg-white/50">
+            <div className="flex-1 flex pt-2 bg-secondary/400">
               {(Array.isArray(visibleDates) ? visibleDates : []).map((date, dayIdx) => (
                 <div
                   key={dayIdx}
@@ -386,7 +386,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   {(Array.isArray(HOURS) ? HOURS : []).map((hour) => (
                     <div
                       key={hour}
-                      className="h-20 border-b border-slate-50 relative hover:bg-blue-50/30 transition-colors"
+                      className="h-20 border-b border-slate-50 relative hover:bg-primary/5/30 transition-colors"
                       onDrop={(e) => handleDrop(e, date.getDay(), hour)}
                       onClick={(e) => {
                         if (e.target === e.currentTarget)
@@ -410,7 +410,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                             "absolute rounded-2xl shadow-sm border-2 transition-all z-20 overflow-hidden group/shift backdrop-blur-sm",
                             shift.status === "draft"
                               ? "bg-amber-50/90 border-amber-200 hover:border-amber-400"
-                              : "bg-blue-50/90 border-blue-200 hover:border-blue-400",
+                              : "bg-primary/5/90 border-blue-200 hover:border-blue-400",
                             isInteracting && "opacity-50 scale-95",
                           )}
                           style={style}
@@ -438,7 +438,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                                 e.stopPropagation();
                                 onShiftDelete(shift.id);
                               }}
-                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/50 text-slate-400 opacity-0 group-hover/shift:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all z-40"
+                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-secondary/400 text-muted-foreground opacity-0 group-hover/shift:opacity-100 hover:text-red-600 hover:bg-red-50 transition-all z-40"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -449,17 +449,17 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                                   "text-[10px] font-black uppercase tracking-wider",
                                   shift.status === "draft"
                                     ? "text-amber-600"
-                                    : "text-blue-600",
+                                    : "text-primary",
                                 )}
                               >
                                 {shift.startTime} - {shift.endTime}
                               </span>
                             </div>
 
-                            <div className="font-black italic text-sm text-slate-900 leading-tight truncate mb-0.5">
+                            <div className="font-black italic text-sm text-foreground leading-tight truncate mb-0.5">
                               {shift.name}
                             </div>
-                            <div className="text-[10px] font-bold text-slate-500 uppercase truncate mt-auto">
+                            <div className="text-[10px] font-bold text-muted-foreground uppercase truncate mt-auto">
                               {shift.role}
                             </div>
                           </div>
@@ -489,7 +489,7 @@ const ViewControls = ({
 }) => {
   return (
     <div className="p-6 border-b border-slate-100 flex flex-col lg:flex-row items-center justify-between gap-6 bg-white sticky top-0 z-40">
-      <div className="flex items-center gap-4 bg-slate-50 p-1 rounded-2xl border border-slate-100">
+      <div className="flex items-center gap-4 bg-secondary/5 p-1 rounded-2xl border border-slate-100">
         <Button
           variant="ghost"
           size="icon"
@@ -512,7 +512,7 @@ const ViewControls = ({
               variant="ghost"
               className="h-9 px-4 font-black italic uppercase text-xs tracking-widest gap-2"
             >
-              <CalendarIcon className="w-4 h-4 text-blue-500" />
+              <CalendarIcon className="w-4 h-4 text-primary" />
               {viewMode === "daily"
                 ? format(currentDate, "MMMM d, yyyy")
                 : viewMode === "weekly"
@@ -551,7 +551,7 @@ const ViewControls = ({
         </Button>
       </div>
 
-      <div className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-[1.25rem]">
+      <div className="flex items-center gap-1.5 bg-secondary/10 p-1.5 rounded-[1.25rem]">
         {(["daily", "weekly", "monthly"] as const).map((mode) => (
           <Button
             key={mode}
@@ -560,8 +560,8 @@ const ViewControls = ({
             className={cn(
               "h-10 px-6 rounded-xl font-black italic uppercase text-[10px] tracking-widest transition-all",
               viewMode === mode
-                ? "bg-white text-blue-600 shadow-md scale-105"
-                : "text-slate-500 hover:text-slate-900",
+                ? "bg-white text-primary shadow-md scale-105"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {mode === "daily" && <LayoutGrid className="w-3.5 h-3.5 mr-2" />}
@@ -576,11 +576,11 @@ const ViewControls = ({
 
       <div className="hidden sm:flex gap-4">
         <div className="flex flex-col items-end">
-          <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
             Security Node
           </div>
-          <div className="text-[10px] font-bold text-blue-600 flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+          <div className="text-[10px] font-bold text-primary flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             ACTIVE_ENFORCEMENT
           </div>
         </div>

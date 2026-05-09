@@ -20,9 +20,9 @@ export const ActionableExceptions: React.FC<ActionableExceptionsProps> = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="rounded-[2.5rem] bg-white border-slate-200 shadow-xl overflow-hidden">
-      <div className="p-8 pb-4 flex items-center justify-between border-b bg-slate-50/50">
-        <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest italic">
+    <Card className="rounded-2xl bg-white border-slate-200 shadow-xl overflow-hidden">
+      <div className="p-8 pb-4 flex items-center justify-between border-b bg-secondary/5/50">
+        <div className="text-[10px] font-black uppercase text-muted-foreground tracking-widest italic">
           Actionable Exceptions
         </div>
         <Badge
@@ -37,17 +37,17 @@ export const ActionableExceptions: React.FC<ActionableExceptionsProps> = ({
           <div
             key={i}
             onClick={() => navigate(err.link)}
-            className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition-all"
+            className="p-4 rounded-2xl bg-secondary/5 border border-slate-100 flex items-center justify-between group cursor-pointer hover:bg-primary/5 hover:border-blue-200 transition-all"
           >
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
                 <AlertCircle className="w-4 h-4 text-amber-500" />
               </div>
-              <div className="text-[10px] font-black italic text-slate-600 uppercase tracking-tighter">
+              <div className="text-[10px] font-black italic text-muted-foreground uppercase tracking-tighter">
                 {err.msg}
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </div>
         ))}
       </div>

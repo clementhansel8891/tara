@@ -36,8 +36,8 @@ export const RetailModeSwitchControl = ({ variant = "default" }: { variant?: "de
     <div className={cn(
       "flex items-center p-1 rounded-xl transition-all",
       isTactical 
-        ? "bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl" 
-        : "bg-slate-100 border border-slate-200 shadow-inner"
+        ? "bg-secondary/40 border border-border backdrop-blur-xl shadow-2xl" 
+        : "bg-secondary/10 border border-slate-200 shadow-inner"
     )}>
       <Button
         variant="ghost"
@@ -45,8 +45,8 @@ export const RetailModeSwitchControl = ({ variant = "default" }: { variant?: "de
         className={cn(
           "h-8 px-4 font-black text-[10px] uppercase tracking-widest gap-2 rounded-lg transition-all",
           mode === "management"
-            ? isTactical ? "bg-white/10 text-white shadow-sm shadow-indigo-500/20" : "bg-white text-blue-600 shadow-sm"
-            : isTactical ? "text-white/40 hover:text-white" : "text-slate-500 hover:text-blue-600",
+            ? isTactical ? "bg-white/10 text-white shadow-sm shadow-indigo-500/20" : "bg-white text-primary shadow-sm"
+            : isTactical ? "text-white/40 hover:text-white" : "text-muted-foreground hover:text-primary",
         )}
         onClick={() => handleSwitch("management")}
       >
@@ -59,8 +59,8 @@ export const RetailModeSwitchControl = ({ variant = "default" }: { variant?: "de
         className={cn(
           "h-8 px-4 font-black text-[10px] uppercase tracking-widest gap-2 rounded-lg transition-all",
           mode === "operational"
-            ? isTactical ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/40" : "bg-white text-indigo-600 shadow-sm"
-            : isTactical ? "text-white/40 hover:text-white" : "text-slate-500 hover:text-indigo-600",
+            ? isTactical ? "bg-primary text-white shadow-lg shadow-indigo-600/40" : "bg-white text-primary shadow-sm"
+            : isTactical ? "text-white/40 hover:text-white" : "text-muted-foreground hover:text-primary",
         )}
         onClick={() => handleSwitch("operational")}
       >

@@ -60,13 +60,13 @@ const PLATFORM_ICONS: Record<string, React.ElementType> = {
 };
 
 const PLATFORM_BG: Record<string, string> = {
-  HEADLESS: "bg-slate-700",
+  HEADLESS: "bg-secondary",
   PRESET: "bg-blue-700",
   PREMADE: "bg-emerald-700",
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: "Active", color: "bg-emerald-50 text-emerald-600" },
+  active: { label: "Active", color: "bg-emerald-50 text-success" },
   inactive: { label: "Suspended", color: "bg-amber-50 text-amber-600" },
   warning: { label: "Warning", color: "bg-red-50 text-red-600" },
 };
@@ -125,11 +125,11 @@ export const ChannelProfilePanel: React.FC<Props> = ({
 
   if (!channel) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-center p-16 text-slate-400">
-        <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center mb-4">
-          <ShoppingBag className="w-8 h-8 text-slate-300" />
+      <div className="flex-1 flex flex-col items-center justify-center text-center p-16 text-muted-foreground">
+        <div className="w-16 h-16 rounded-3xl bg-secondary/10 flex items-center justify-center mb-4">
+          <ShoppingBag className="w-8 h-8 text-muted-foreground/60" />
         </div>
-        <h3 className="font-black italic text-slate-700 text-lg">
+        <h3 className="font-black italic text-muted-foreground text-lg">
           Select a Channel
         </h3>
         <p className="text-sm font-bold mt-2 max-w-xs">
@@ -142,7 +142,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
 
   const PlatformIcon =
     PLATFORM_ICONS[channel.integrationCategory] ?? ShoppingBag;
-  const platformBg = PLATFORM_BG[channel.integrationCategory] ?? "bg-slate-700";
+  const platformBg = PLATFORM_BG[channel.integrationCategory] ?? "bg-secondary";
   const statusCfg =
     STATUS_CONFIG[channel.status ?? "active"] ?? STATUS_CONFIG.active;
 
@@ -280,16 +280,16 @@ export const ChannelProfilePanel: React.FC<Props> = ({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Panel Header ── */}
-      <div className={cn("p-6 text-white shrink-0", platformBg)}>
+      <div className={cn("p-6 text-foreground shrink-0", platformBg)}>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-            <PlatformIcon className="w-6 h-6 text-white" />
+            <PlatformIcon className="w-6 h-6 text-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="font-black italic text-xl tracking-tight truncate text-white">
+            <h2 className="font-black italic text-xl tracking-tight truncate text-foreground">
               {channel.name}
             </h2>
-            <div className="text-[10px] font-black uppercase tracking-widest text-white/50 mt-0.5">
+            <div className="text-[10px] font-black uppercase tracking-widest text-foreground/50 mt-0.5">
               {channel.adapterType ?? channel.integrationCategory} ·{" "}
               {channel.syncFrequency ?? "No sync"}
             </div>
@@ -318,8 +318,8 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                   activeTab === tab.id
                     ? tab.id === "danger"
                       ? "border-red-500 text-red-500"
-                      : "border-slate-900 text-slate-900"
-                    : "border-transparent text-slate-400 hover:text-slate-600",
+                      : "border-slate-900 text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-muted-foreground",
                 )}
               >
                 <tab.icon className="w-3.5 h-3.5" />
@@ -337,7 +337,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
           <TabsContent value="overview" className="p-6 space-y-6 mt-0">
             {/* Identity */}
             <div className="space-y-2">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Channel Identity
               </h3>
               <div className="rounded-2xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
@@ -365,17 +365,17 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                     key={row.label}
                     className="flex items-center justify-between px-4 py-3"
                   >
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       {row.label}
                     </span>
-                    <span className="font-mono text-xs font-bold text-slate-700 flex items-center gap-1.5 truncate max-w-[60%]">
+                    <span className="font-mono text-xs font-bold text-muted-foreground flex items-center gap-1.5 truncate max-w-[60%]">
                       <span className="truncate">{row.value}</span>
                       {row.copyKey && (
                         <button onClick={() => copy(row.value, row.copyKey!)}>
                           {copiedField === row.copyKey ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
                           ) : (
-                            <Copy className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 shrink-0" />
+                            <Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-muted-foreground shrink-0" />
                           )}
                         </button>
                       )}
@@ -387,11 +387,11 @@ export const ChannelProfilePanel: React.FC<Props> = ({
 
             {/* Sync frequency */}
             <div className="space-y-2">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Sync Configuration
               </h3>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Sync Frequency
                 </Label>
                 <Select value={syncFreq} onValueChange={setSyncFreq}>
@@ -419,7 +419,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                 <Button
                   onClick={handleSaveOverview}
                   disabled={isSaving}
-                  className="w-full h-11 rounded-xl font-black italic bg-slate-900 gap-2"
+                  className="w-full h-11 rounded-xl font-black italic bg-secondary gap-2"
                 >
                   {isSaving ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -446,13 +446,13 @@ export const ChannelProfilePanel: React.FC<Props> = ({
             <div className="space-y-4">
                <div>
                   <h3 className="text-sm font-black italic uppercase text-slate-800">Branch Fulfilment Matrix</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Map physical nodes to this digital channel</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Map physical nodes to this digital channel</p>
                </div>
 
                <div className="space-y-3">
                   {branches.length === 0 && (
-                     <div className="p-12 text-center border-2 border-dashed border-slate-100 rounded-3xl">
-                        <p className="text-[10px] font-black uppercase text-slate-400">No physical branches found</p>
+                     <div className="p-6 text-center border-2 border-dashed border-slate-100 rounded-3xl">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground">No physical branches found</p>
                      </div>
                   )}
                   {branches.map(branch => (
@@ -461,7 +461,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                         className={cn(
                            "p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group",
                            linkedBranchIds.includes(branch.id) 
-                              ? "bg-indigo-50 border-indigo-200" 
+                              ? "bg-primary/5 border-indigo-200" 
                               : "bg-white border-slate-100 hover:border-slate-200"
                         )}
                         onClick={() => {
@@ -475,17 +475,17 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                         <div className="flex items-center gap-4">
                            <div className={cn(
                               "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                              linkedBranchIds.includes(branch.id) ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                              linkedBranchIds.includes(branch.id) ? "bg-primary text-foreground" : "bg-secondary/10 text-muted-foreground group-hover:bg-muted/20"
                            )}>
                               <Building2 className="w-5 h-5" />
                            </div>
                            <div>
-                              <div className="text-xs font-black uppercase italic text-slate-700">{branch.name}</div>
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{branch.type} • {branch.code}</div>
+                              <div className="text-xs font-black uppercase italic text-muted-foreground">{branch.name}</div>
+                              <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{branch.type} • {branch.code}</div>
                            </div>
                         </div>
                         {linkedBranchIds.includes(branch.id) && (
-                           <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                           <CheckCircle2 className="w-5 h-5 text-primary" />
                         )}
                      </div>
                   ))}
@@ -507,7 +507,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                      }
                   }}
                   disabled={isLinking}
-                  className="w-full h-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black italic uppercase text-xs tracking-widest gap-3 shadow-lg shadow-indigo-200"
+                  className="w-full h-12 rounded-2xl bg-primary hover:bg-primary/90 font-black italic uppercase text-xs tracking-widest gap-3 shadow-lg shadow-indigo-200"
                >
                   {isLinking ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   {isLinking ? "Synchronizing..." : "Establish Branch Uplinks"}
@@ -541,7 +541,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                 <div className="font-black italic text-slate-800 text-sm">
                   Rotate API Credentials
                 </div>
-                <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
                   Generates new Client ID and Secret. Old credentials are
                   immediately invalidated.
                 </p>
@@ -577,14 +577,14 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                     },
                   ].map((c) => (
                     <div key={c.key} className="space-y-1">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         {c.label}
                       </Label>
                       <div className="flex items-center gap-2">
                         <Input
                           readOnly
                           value={c.value}
-                          className="font-mono text-xs h-10 rounded-xl bg-slate-50"
+                          className="font-mono text-xs h-10 rounded-xl bg-secondary/5"
                         />
                         <Button
                           size="sm"
@@ -593,7 +593,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                           className="rounded-xl shrink-0"
                         >
                           {copiedField === c.key ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <CheckCircle2 className="w-4 h-4 text-success" />
                           ) : (
                             <Copy className="w-4 h-4" />
                           )}
@@ -613,7 +613,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                     ? "Suspend Channel"
                     : "Reactivate Channel"}
                 </div>
-                <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
                   {channel.status === "active"
                     ? "Pauses all syncs. Credentials remain valid."
                     : "Resumes syncing with existing credentials."}
@@ -622,7 +622,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
               <div className="px-5 pb-4">
                 <Button
                   variant="outline"
-                  className="w-full h-11 rounded-xl font-black italic gap-2 border-slate-200 text-slate-600 hover:bg-slate-50"
+                  className="w-full h-11 rounded-xl font-black italic gap-2 border-slate-200 text-muted-foreground hover:bg-secondary/5"
                   onClick={handleToggleSuspend}
                 >
                   {channel.status === "active" ? (

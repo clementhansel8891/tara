@@ -77,17 +77,17 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-2xl">
+      <DialogContent className="max-w-md bg-white rounded-2xl p-8 border border-slate-100 shadow-2xl">
         <DialogHeader className="mb-6">
-          <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3 text-slate-900">
-            <div className="p-2.5 rounded-2xl bg-blue-50 text-blue-600">
+          <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3 text-foreground">
+            <div className="p-2.5 rounded-2xl bg-primary/5 text-primary">
               <User className="w-5 h-5" />
             </div>
             {formData.name === "Unassigned"
               ? "ASSIGN SHIFT"
               : "EDIT ASSIGNMENT"}
           </DialogTitle>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-14">
+          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-14">
             {formData.dayOfWeek === 1
               ? "Monday"
               : formData.dayOfWeek === 2
@@ -107,7 +107,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500">
+            <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
               Personnel
             </label>
             <Select
@@ -118,13 +118,13 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
               }
               onValueChange={handleEmployeeChange}
             >
-              <SelectTrigger className="w-full h-12 bg-slate-50 border-slate-200 text-slate-900 font-bold italic rounded-xl">
+              <SelectTrigger className="w-full h-12 bg-secondary/5 border-slate-200 text-foreground font-bold italic rounded-xl">
                 <SelectValue placeholder="Select Employee..." />
               </SelectTrigger>
               <SelectContent className="bg-white border-slate-200 rounded-xl">
                 <SelectItem
                   value="UNASSIGNED"
-                  className="font-bold italic text-slate-400"
+                  className="font-bold italic text-muted-foreground"
                 >
                   Unassigned
                 </SelectItem>
@@ -132,10 +132,10 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
                   <SelectItem
                     key={emp.id}
                     value={emp.id}
-                    className="font-bold cursor-pointer italic text-xs hover:bg-slate-50"
+                    className="font-bold cursor-pointer italic text-xs hover:bg-secondary/5"
                   >
                     {emp.name}{" "}
-                    <span className="text-[9px] text-slate-400 ml-2 uppercase">
+                    <span className="text-[9px] text-muted-foreground ml-2 uppercase">
                       {emp.role}
                     </span>
                   </SelectItem>
@@ -146,7 +146,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3 h-3" /> Start Time
               </label>
               <Input
@@ -155,11 +155,11 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
                 }
-                className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold italic"
+                className="h-12 bg-secondary/5 border-slate-200 rounded-xl font-bold italic"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                 <Clock className="w-3 h-3" /> End Time
               </label>
               <Input
@@ -168,13 +168,13 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
                 onChange={(e) =>
                   setFormData({ ...formData, endTime: e.target.value })
                 }
-                className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold italic"
+                className="h-12 bg-secondary/5 border-slate-200 rounded-xl font-bold italic"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500">
+            <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
               Assigned Role
             </label>
             <Input
@@ -182,7 +182,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value })
               }
-              className="h-12 bg-slate-50 border-slate-200 rounded-xl font-bold italic text-slate-900"
+              className="h-12 bg-secondary/5 border-slate-200 rounded-xl font-bold italic text-foreground"
             />
           </div>
         </div>
@@ -205,7 +205,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
             </Button>
             <Button
               onClick={handleSave}
-              className="text-[10px] font-black italic uppercase tracking-widest bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-6 shadow-md"
+              className="text-[10px] font-black italic uppercase tracking-widest bg-primary hover:bg-blue-700 text-foreground rounded-xl h-11 px-6 shadow-md"
             >
               Confirm
             </Button>

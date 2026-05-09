@@ -103,8 +103,8 @@ interface Props {
 // ─── Empty-state helper ───────────────────────────────────────────────────────
 
 const EmptyDropdownNote: React.FC<{ message: string }> = ({ message }) => (
-  <div className="flex items-center gap-2 h-10 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200">
-    <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+  <div className="flex items-center gap-2 h-10 px-3 rounded-xl bg-secondary/5 border border-dashed border-slate-200">
+    <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
       {message}
     </span>
   </div>
@@ -373,7 +373,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             setSearch(e.target.value);
             setCurrentPage(1);
           }}
-          className="h-10 rounded-xl font-bold bg-slate-50 border-none shadow-inner text-xs"
+          className="h-10 rounded-xl font-bold bg-secondary/5 border-none shadow-inner text-xs"
         />
         <Select
           value={categoryFilter}
@@ -382,7 +382,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             setCurrentPage(1);
           }}
         >
-          <SelectTrigger className="h-10 rounded-xl font-bold bg-slate-50 border-none shadow-inner text-xs">
+          <SelectTrigger className="h-10 rounded-xl font-bold bg-secondary/5 border-none shadow-inner text-xs">
             <SelectValue placeholder="All Category" />
           </SelectTrigger>
           <SelectContent className="rounded-xl font-bold italic">
@@ -397,15 +397,15 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         </Select>
       </div>
 
-      <div className="rounded-[1.5rem] border-2 border-slate-50 overflow-hidden shadow-sm bg-white flex flex-col min-h-[320px]">
-        <div className="grid grid-cols-12 bg-slate-50 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 py-3">
+      <div className="rounded-xl border-2 border-slate-50 overflow-hidden shadow-sm bg-white flex flex-col min-h-[320px]">
+        <div className="grid grid-cols-12 bg-secondary/5 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 py-3">
           <div className="col-span-8 italic">Item SKU &amp; Name</div>
           <div className="col-span-2 italic">Stock</div>
           <div className="col-span-2 text-right italic">Add</div>
         </div>
         <div className="flex-1 divide-y divide-slate-50 overflow-y-auto max-h-[280px]">
           {isFetchingItems && (
-            <div className="h-full flex items-center justify-center py-16 text-slate-300">
+            <div className="h-full flex items-center justify-center py-16 text-muted-foreground/60">
               <div className="text-xs font-black italic uppercase tracking-widest animate-pulse">
                 Loading…
               </div>
@@ -415,24 +415,24 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             (Array.isArray(paginatedItems) ? paginatedItems : []).map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-slate-50/50 transition-colors group"
+                className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5/50 transition-colors group"
               >
                 <div className="col-span-8">
                   <div className="font-black italic text-slate-800 truncate text-[12px]">
                     {item.name}
                   </div>
-                  <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tighter">
+                  <div className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-tighter">
                     {item.sku}
                   </div>
                 </div>
-                <div className="col-span-2 text-[11px] font-black text-blue-600 italic">
+                <div className="col-span-2 text-[11px] font-black text-primary italic">
                   {item.available ?? 0}
                 </div>
                 <div className="col-span-2 flex justify-end">
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-8 w-8 p-0 rounded-lg hover:bg-blue-600 hover:text-white transition-all group-hover:scale-110"
+                    className="h-8 w-8 p-0 rounded-lg hover:bg-primary hover:text-foreground transition-all group-hover:scale-110"
                     onClick={() => addLine(item)}
                   >
                     <Plus className="w-4 h-4" />
@@ -441,7 +441,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               </div>
             ))}
           {!isFetchingItems && filteredItems.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center py-16 text-slate-300">
+            <div className="h-full flex flex-col items-center justify-center py-16 text-muted-foreground/60">
               <div className="text-xs font-black italic uppercase tracking-widest opacity-50">
                 No items match your search
               </div>
@@ -449,8 +449,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
           )}
         </div>
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-slate-50 bg-slate-50/30 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shrink-0">
-          <span className="text-[9px] font-black italic uppercase tracking-widest text-slate-400">
+        <div className="px-4 py-3 border-t border-slate-50 bg-secondary/5/30 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shrink-0">
+          <span className="text-[9px] font-black italic uppercase tracking-widest text-muted-foreground">
             Page {currentPage} of {Math.max(1, totalPages)} •{" "}
             {filteredItems.length} items
           </span>
@@ -499,22 +499,22 @@ export const InventoryMovementDialog: React.FC<Props> = ({
   const renderNewProductPanel = () => (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-black uppercase tracking-widest text-emerald-700 italic flex items-center gap-2">
+        <h3 className="text-xs font-black uppercase tracking-widest text-success italic flex items-center gap-2">
           <PackagePlus className="w-4 h-4" /> New Products
         </h3>
         <Button
           size="sm"
           variant="outline"
-          className="h-7 gap-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+          className="h-7 gap-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border-emerald-200 text-success hover:bg-emerald-50"
           onClick={addNewProductLine}
         >
           <Plus className="w-3 h-3" /> Add Item
         </Button>
       </div>
       {newProductLines.length === 0 ? (
-        <div className="rounded-[1.5rem] border-2 border-dashed border-emerald-100 bg-emerald-50/30 flex flex-col items-center justify-center py-10 text-center gap-2">
+        <div className="rounded-xl border-2 border-dashed border-emerald-100 bg-emerald-50/30 flex flex-col items-center justify-center py-10 text-center gap-2">
           <PackagePlus className="w-8 h-8 text-emerald-300" />
-          <p className="text-[10px] font-black italic uppercase tracking-widest text-emerald-400">
+          <p className="text-[10px] font-black italic uppercase tracking-widest text-success">
             No new products added yet.
             <br />
             Click "Add Item" to begin.
@@ -589,8 +589,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                     className={cn(
                       "mb-2",
                       purchaseMode === m.key
-                        ? "text-emerald-600"
-                        : "text-slate-400",
+                        ? "text-success"
+                        : "text-muted-foreground",
                     )}
                   >
                     {m.icon}
@@ -599,13 +599,13 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                     className={cn(
                       "font-black italic text-[11px] uppercase tracking-widest",
                       purchaseMode === m.key
-                        ? "text-emerald-700"
-                        : "text-slate-700",
+                        ? "text-success"
+                        : "text-muted-foreground",
                     )}
                   >
                     {m.label}
                   </div>
-                  <div className="text-[9px] font-bold text-slate-400 mt-0.5 leading-tight">
+                  <div className="text-[9px] font-bold text-muted-foreground mt-0.5 leading-tight">
                     {m.desc}
                   </div>
                 </button>
@@ -617,7 +617,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
           {(purchaseMode === "restock" || purchaseMode === "mixed") && (
             <div>
               {purchaseMode === "mixed" && (
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-600 italic mb-3 flex items-center gap-1.5">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-primary italic mb-3 flex items-center gap-1.5">
                   <PackageCheck className="w-3.5 h-3.5" /> Existing Items
                   (Restock)
                 </h4>
@@ -648,14 +648,14 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Stock Transfer → Destination location
     if (isTransferOut) {
       return (
-        <div className="bg-indigo-50/50 rounded-[1.5rem] p-5 border border-indigo-100 space-y-3">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-indigo-600 flex items-center gap-2">
+        <div className="bg-primary/5/50 rounded-xl p-5 border border-indigo-100 space-y-3">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5" /> Transfer Destination *
           </Label>
           {otherStores.length === 0 ? (
             <>
               <EmptyDropdownNote message="No other locations registered" />
-              <p className="text-[9px] italic text-slate-400 font-bold">
+              <p className="text-[9px] italic text-muted-foreground font-bold">
                 Register additional store locations to enable inter-store
                 transfers.
               </p>
@@ -673,7 +673,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                   <SelectItem key={s.id} value={s.id}>
                     <span className="font-black">{s.name}</span>
                     {s.address && (
-                      <span className="text-slate-400 ml-2 text-[10px]">
+                      <span className="text-muted-foreground ml-2 text-[10px]">
                         {s.address}
                       </span>
                     )}
@@ -689,14 +689,14 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Receive from PO → Supplier
     if (type === "receive_po") {
       return (
-        <div className="bg-emerald-50/50 rounded-[1.5rem] p-5 border border-emerald-100 space-y-3">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2">
+        <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 space-y-3">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-2">
             <Building2 className="w-3.5 h-3.5" /> Supplier *
           </Label>
           {suppliers.length === 0 ? (
             <>
               <EmptyDropdownNote message="No suppliers registered" />
-              <p className="text-[9px] italic text-slate-400 font-bold">
+              <p className="text-[9px] italic text-muted-foreground font-bold">
                 Register suppliers in Procurement → Supplier Desk to populate
                 this list.
               </p>
@@ -722,14 +722,14 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Receive Transfer → Source location
     if (isReceiveTransfer) {
       return (
-        <div className="bg-emerald-50/50 rounded-[1.5rem] p-5 border border-emerald-100 space-y-3">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2">
+        <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 space-y-3">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5" /> Transferring From *
           </Label>
           {otherStores.length === 0 ? (
             <>
               <EmptyDropdownNote message="No other locations registered" />
-              <p className="text-[9px] italic text-slate-400 font-bold">
+              <p className="text-[9px] italic text-muted-foreground font-bold">
                 Register additional store locations to enable inter-store
                 transfers.
               </p>
@@ -744,7 +744,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                   <SelectItem key={s.id} value={s.id}>
                     <span className="font-black">{s.name}</span>
                     {s.address && (
-                      <span className="text-slate-400 ml-2 text-[10px]">
+                      <span className="text-muted-foreground ml-2 text-[10px]">
                         {s.address}
                       </span>
                     )}
@@ -773,7 +773,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     return (
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             {showNewProductSummary && showRestockLines
               ? `Selected (${selectedLines.length + newProductLines.length})`
               : `Selected Items (${showNewProductSummary ? newProductLines.length : selectedLines.length})`}
@@ -790,8 +790,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             </button>
           )}
         </div>
-        <div className="rounded-[1.5rem] border-2 border-slate-50 overflow-hidden shadow-sm flex flex-col bg-slate-50/10 min-h-[160px] max-h-[260px]">
-          <div className="grid grid-cols-12 bg-slate-50 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 px-4 py-3">
+        <div className="rounded-xl border-2 border-slate-50 overflow-hidden shadow-sm flex flex-col bg-secondary/5/10 min-h-[160px] max-h-[260px]">
+          <div className="grid grid-cols-12 bg-secondary/5 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 py-3">
             <div className="col-span-8 italic">Item Info</div>
             <div className="col-span-4 text-right italic pr-4">Qty</div>
           </div>
@@ -801,7 +801,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               (Array.isArray(selectedLines) ? selectedLines : []).map((line) => (
                 <div
                   key={line.id}
-                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-slate-50/50 transition-colors"
+                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5/50 transition-colors"
                 >
                   <div className="col-span-8 flex items-center gap-3">
                     <button
@@ -814,7 +814,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                       <div className="font-black italic text-slate-800 truncate text-[11px]">
                         {line.name}
                       </div>
-                      <div className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-tighter">
+                      <div className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-tighter">
                         {line.sku}
                       </div>
                     </div>
@@ -829,7 +829,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                           qty: Math.max(1, Number(e.target.value) || 1),
                         })
                       }
-                      className="h-8 rounded-lg font-black italic border-slate-100 text-center text-blue-600 text-[11px] px-1"
+                      className="h-8 rounded-lg font-black italic border-slate-100 text-center text-primary text-[11px] px-1"
                     />
                   </div>
                 </div>
@@ -850,12 +850,12 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                     </button>
                     <div>
                       <div className="flex items-center gap-1">
-                        <PackagePlus className="w-3 h-3 text-emerald-500" />
+                        <PackagePlus className="w-3 h-3 text-success" />
                         <div className="font-black italic text-slate-800 truncate text-[11px]">
                           {line.name || "(unnamed)"}
                         </div>
                       </div>
-                      <div className="text-[9px] font-mono font-bold text-emerald-400 uppercase tracking-tighter">
+                      <div className="text-[9px] font-mono font-bold text-success uppercase tracking-tighter">
                         {line.sku || "—"}
                       </div>
                     </div>
@@ -870,14 +870,14 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                           qty: Math.max(1, parseInt(e.target.value) || 1),
                         })
                       }
-                      className="h-8 rounded-lg font-black italic border-slate-100 text-center text-emerald-600 text-[11px] px-1"
+                      className="h-8 rounded-lg font-black italic border-slate-100 text-center text-success text-[11px] px-1"
                     />
                   </div>
                 </div>
               ))}
             {/* Empty state */}
             {selectedLines.length === 0 && newProductLines.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center py-10 text-slate-300 px-6 text-center">
+              <div className="h-full flex flex-col items-center justify-center py-10 text-muted-foreground/60 px-6 text-center">
                 <div className="text-[9px] font-black italic uppercase tracking-widest opacity-50 leading-relaxed">
                   Initial list is empty.
                   <br />
@@ -914,9 +914,9 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 <DialogTitle className="text-2xl font-black italic tracking-tighter">
                   {meta.label}
                 </DialogTitle>
-                <DialogDescription className="font-bold italic text-[10px] uppercase tracking-[0.2em] text-blue-600">
+                <DialogDescription className="font-bold italic text-[10px] uppercase tracking-[0.2em] text-primary">
                   {currentStore?.name} •{" "}
-                  <span className="text-slate-400">
+                  <span className="text-muted-foreground">
                     {currentStore?.address || "No Address Set"}
                   </span>
                 </DialogDescription>
@@ -935,7 +935,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
 
             {/* Right Column */}
             <div className="col-span-12 lg:col-span-5 space-y-6 border-l pl-8">
-              <h3 className="text-xs font-black uppercase tracking-widest text-blue-600 italic">
+              <h3 className="text-xs font-black uppercase tracking-widest text-primary italic">
                 2. Request Configuration
               </h3>
 
@@ -950,23 +950,23 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 <div className="grid grid-cols-2 gap-4">
                   {meta.dir === "in" && (
                     <div className="space-y-1.5">
-                      <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-bold italic">
+                      <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground font-bold italic">
                         Expected Date *
                       </Label>
                       <Input
                         type="date"
                         value={expectedDate}
                         onChange={(e) => setExpectedDate(e.target.value)}
-                        className="h-10 rounded-xl font-bold bg-slate-50 border-none text-[11px]"
+                        className="h-10 rounded-xl font-bold bg-secondary/5 border-none text-[11px]"
                       />
                     </div>
                   )}
                   <div className="space-y-1.5">
-                    <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-bold italic">
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground font-bold italic">
                       Unit Measure
                     </Label>
                     <Select value={uom} onValueChange={setUom}>
-                      <SelectTrigger className="h-10 rounded-xl font-bold bg-slate-50 border-none text-[11px]">
+                      <SelectTrigger className="h-10 rounded-xl font-bold bg-secondary/5 border-none text-[11px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl font-bold italic">
@@ -981,14 +981,14 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 font-bold italic">
+                  <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground font-bold italic">
                     Note / Justification *
                   </Label>
                   <Textarea
                     placeholder="Why is this movement required?"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="rounded-xl font-bold resize-none bg-slate-50 border-none text-xs min-h-[60px]"
+                    className="rounded-xl font-bold resize-none bg-secondary/5 border-none text-xs min-h-[60px]"
                     rows={2}
                   />
                 </div>
@@ -1009,7 +1009,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t bg-slate-50/80 shrink-0">
+        <div className="px-8 py-6 border-t bg-secondary/5/80 shrink-0">
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"
@@ -1024,8 +1024,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               className={cn(
                 "rounded-xl font-black italic uppercase tracking-widest text-xs h-12 px-8 gap-2 shadow-lg transition-all",
                 valid
-                  ? "bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 active:scale-95 shadow-slate-200"
-                  : "bg-slate-100 text-slate-400",
+                  ? "bg-secondary text-foreground hover:bg-secondary/60 hover:scale-105 active:scale-95 shadow-slate-200"
+                  : "bg-secondary/10 text-muted-foreground",
               )}
             >
               <Send className="w-4 h-4" /> Send Request

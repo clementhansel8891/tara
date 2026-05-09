@@ -220,10 +220,10 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
       {/* ── Connection Config ── */}
       <div className="space-y-4">
         <div>
-          <h3 className="font-black italic text-slate-900 text-sm">
+          <h3 className="font-black italic text-foreground text-sm">
             SaaS Connection
           </h3>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
             Configure the target SaaS endpoint
           </p>
         </div>
@@ -231,7 +231,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
         <div className="space-y-4">
           {/* Target URL */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Target URL *
             </Label>
             <div className="flex gap-2">
@@ -248,7 +248,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                 className={cn(
                   "h-11 px-4 rounded-xl font-black italic text-xs gap-1.5 shrink-0 border-2 transition-all",
                   testResult?.success === true &&
-                    "border-emerald-300 text-emerald-600 bg-emerald-50",
+                    "border-emerald-300 text-success bg-emerald-50",
                   testResult?.success === false &&
                     "border-red-300 text-red-600 bg-red-50",
                   !testResult && "border-slate-200",
@@ -271,7 +271,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold",
                   testResult.success
-                    ? "bg-emerald-50 text-emerald-700"
+                    ? "bg-emerald-50 text-success"
                     : "bg-red-50 text-red-700",
                 )}
               >
@@ -293,7 +293,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
           {/* Auth */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Auth Type
               </Label>
               <Select
@@ -317,7 +317,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 {authLabel[authType]}
               </Label>
               <Input
@@ -332,7 +332,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Custom Header Name (optional)
               </Label>
               <Input
@@ -343,7 +343,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Retry Policy
               </Label>
               <Select value={retryPolicy} onValueChange={setRetryPolicy}>
@@ -370,10 +370,10 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
       {/* ── Event Map ── */}
       <div className="space-y-3">
         <div>
-          <h3 className="font-black italic text-slate-900 text-sm">
+          <h3 className="font-black italic text-foreground text-sm">
             Event Forwarding Map
           </h3>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
             Select which Zenvix events are forwarded to your SaaS
           </p>
         </div>
@@ -381,13 +381,13 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
           {(Array.isArray(BRIDGE_EVENTS) ? BRIDGE_EVENTS : []).map((ev) => (
             <div
               key={ev.key}
-              className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
+              className="flex items-center justify-between px-4 py-3 hover:bg-secondary/5 transition-colors"
             >
               <div>
                 <div className="font-black italic text-slate-800 text-xs">
                   {ev.label}
                 </div>
-                <code className="text-[10px] text-slate-400 font-mono">
+                <code className="text-[10px] text-muted-foreground font-mono">
                   {ev.key}
                 </code>
               </div>
@@ -399,7 +399,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
             </div>
           ))}
         </div>
-        <p className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 italic">
+        <p className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground italic">
           <Info className="w-3 h-3 shrink-0" />
           {enabledEvents.size} of {BRIDGE_EVENTS.length} events will be
           forwarded to your SaaS endpoint.
@@ -409,7 +409,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
       <Button
         onClick={handleSave}
         disabled={isSaving}
-        className="w-full h-11 rounded-xl font-black italic bg-slate-900 gap-2"
+        className="w-full h-11 rounded-xl font-black italic bg-secondary gap-2"
       >
         {isSaving ? (
           <RefreshCw className="w-4 h-4 animate-spin" />
@@ -422,10 +422,10 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
       {/* ── Delivery Log ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-black italic text-slate-900 text-sm">
+          <h3 className="font-black italic text-foreground text-sm">
             Delivery Log
           </h3>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Last 5 deliveries
           </span>
         </div>
@@ -433,7 +433,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
           {(Array.isArray(MOCK_LOGS) ? MOCK_LOGS : []).map((log) => (
             <div
               key={log.id}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/5 transition-colors"
             >
               <div
                 className={cn(
@@ -442,21 +442,21 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                 )}
               >
                 {log.success ? (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 ) : (
                   <AlertCircle className="w-3.5 h-3.5 text-red-500" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <code className="text-[10px] font-mono font-bold text-slate-700">
+                  <code className="text-[10px] font-mono font-bold text-muted-foreground">
                     {log.event}
                   </code>
                   <Badge
                     className={cn(
                       "text-[9px] font-black border-none px-1.5 py-0",
                       log.success
-                        ? "bg-emerald-50 text-emerald-600"
+                        ? "bg-emerald-50 text-success"
                         : "bg-red-50 text-red-600",
                     )}
                   >
@@ -464,15 +464,15 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                  <span className="text-[10px] text-slate-400 font-bold">
+                  <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] text-muted-foreground font-bold">
                     {log.timestamp}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-bold">
+                  <span className="text-[10px] text-muted-foreground font-bold">
                     ·
                   </span>
-                  <ArrowUpRight className="w-3 h-3 text-slate-400 shrink-0" />
-                  <span className="text-[10px] text-slate-400 font-bold">
+                  <ArrowUpRight className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] text-muted-foreground font-bold">
                     {log.latencyMs}ms
                   </span>
                 </div>

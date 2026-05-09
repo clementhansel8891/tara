@@ -28,7 +28,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
   statusBadge,
 }) => {
   return (
-    <div className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
+    <div className="rounded-2xl border-none shadow-xl overflow-hidden bg-white">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -44,7 +44,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
               ].map((h, i) => (
                 <th
                   key={i}
-                  className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                  className="px-6 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic"
                 >
                   {h}
                 </th>
@@ -56,8 +56,8 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
               <tr>
                 <td colSpan={7} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
-                    <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400">
+                    <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                    <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                       Syncing Inventory State...
                     </span>
                   </div>
@@ -67,8 +67,8 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
               <tr>
                 <td colSpan={7} className="px-6 py-24 text-center">
                   <div className="flex flex-col items-center gap-4 opacity-30">
-                    <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center">
-                      <ScanLine className="w-8 h-8 text-slate-400" />
+                    <div className="w-16 h-16 rounded-3xl bg-secondary/10 flex items-center justify-center">
+                      <ScanLine className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <div>
                       <div className="text-sm font-black italic uppercase tracking-tighter">
@@ -90,20 +90,20 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                 return (
                   <tr
                     key={entry.id || i}
-                    className="group border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"
+                    className="group border-b border-slate-50 last:border-none hover:bg-secondary/5/50 transition-colors"
                   >
-                    <td className="px-6 py-4 text-[11px] text-slate-400 font-bold">
+                    <td className="px-6 py-4 text-[11px] text-muted-foreground font-bold">
                       {i + 1}
                     </td>
-                    <td className="px-6 py-4 font-mono text-[11px] text-slate-500 font-bold">
+                    <td className="px-6 py-4 font-mono text-[11px] text-muted-foreground font-bold">
                       {entry.sku}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-black italic text-sm text-slate-900">
+                      <div className="font-black italic text-sm text-foreground">
                         {entry.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-bold italic text-slate-600">
+                    <td className="px-6 py-4 font-bold italic text-muted-foreground">
                       {entry.expected}
                     </td>
                     <td className="px-6 py-4">
@@ -112,7 +112,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                         min="0"
                         value={entry.counted}
                         onChange={(e) => onCountChange(i, e.target.value)}
-                        className="w-24 h-10 rounded-xl font-black italic text-center border-slate-200 focus:ring-blue-600 bg-slate-50/50"
+                        className="w-24 h-10 rounded-xl font-black italic text-center border-slate-200 focus:ring-blue-600 bg-secondary/5/50"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -121,9 +121,9 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                           className={cn(
                             "font-black italic text-sm",
                             variance === 0
-                              ? "text-emerald-600"
+                              ? "text-success"
                               : variance > 0
-                                ? "text-blue-600"
+                                ? "text-primary"
                                 : "text-red-600",
                           )}
                         >
@@ -131,7 +131,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                           {variance}
                         </span>
                       ) : (
-                        <span className="text-slate-300 font-bold italic text-sm">
+                        <span className="text-muted-foreground/60 font-bold italic text-sm">
                           —
                         </span>
                       )}

@@ -452,24 +452,22 @@ const CashierPOS = () => {
     }
   };
 
-  if (isLoading) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-400 font-black italic uppercase tracking-[0.25em]">
+      <div className="h-screen flex flex-col items-center justify-center bg-background text-muted-foreground font-black italic uppercase tracking-[0.25em]">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-[50%] h-[50%] bg-indigo-500/20 blur-[150px] rounded-full animate-pulse" />
+          <div className="absolute top-1/4 left-1/4 w-[50%] h-[50%] bg-primary/20 blur-[150px] rounded-full animate-pulse" />
         </div>
-        <RefreshCw className="w-16 h-16 mb-8 animate-spin text-indigo-500 relative z-10" />
-        <span className="relative z-10 text-white">Syncing POS Environment...</span>
+        <RefreshCw className="w-16 h-16 mb-8 animate-spin text-primary relative z-10" />
+        <span className="relative z-10 text-foreground">Syncing POS Environment...</span>
       </div>
     );
-  }
 
   return (
-    <div className="flex-1 relative flex selection:bg-indigo-500 selection:text-white">
+    <div className="flex-1 relative flex selection:bg-primary/30 selection:text-primary-foreground">
       {/* Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-indigo-500/10 blur-[130px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-blue-500/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-primary/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-info/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
       {/* Main Container: Full height, flex row */}
@@ -478,23 +476,23 @@ const CashierPOS = () => {
         <div className="flex-[2.8] flex flex-col gap-6 overflow-hidden min-h-0">
           
           {/* TACTICAL HEADER */}
-          <div className="flex items-center justify-between bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group shrink-0">
+          <div className="flex items-center justify-between glass-morphism p-6 rounded-[2rem] relative overflow-hidden group shrink-0">
             <div className="flex items-center gap-6 relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-slate-950 flex items-center justify-center text-indigo-500 shadow-2xl ring-4 ring-white/10 group-hover:scale-105 transition-transform duration-500">
+              <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center text-primary shadow-2xl ring-4 ring-primary/10 group-hover:scale-105 transition-transform duration-500">
                 <Store className="w-8 h-8" />
               </div>
               <div>
-                <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase leading-none mb-2">
+                <h1 className="text-3xl font-black italic tracking-tighter text-foreground uppercase leading-none mb-2">
                   {activeStore?.name || "RETAIL_TERMINAL"}
                 </h1>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">
+                  <div className="flex items-center gap-1.5 px-3 py-1 bg-success/10 rounded-lg border border-success/20">
+                    <div className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_10px_hsl(var(--success)/0.5)]" />
+                    <span className="text-[10px] font-black uppercase text-success tracking-widest">
                       Session Active
                     </span>
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] italic">
+                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] italic">
                     Node: {session.user_id.slice(0, 8)}
                   </span>
                 </div>
@@ -506,7 +504,7 @@ const CashierPOS = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => fetchProducts(activeCategory?.id)}
-                className="h-12 rounded-xl bg-white/5 border-white/10 text-white hover:bg-white/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
+                className="h-12 rounded-xl bg-primary/5 border-primary/10 text-foreground hover:bg-primary/10 font-black italic uppercase text-[10px] tracking-widest gap-2"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isProductsLoading ? 'animate-spin' : ''}`} /> Sync Catalog
               </Button>
@@ -514,7 +512,7 @@ const CashierPOS = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/20 text-white transition-all"
+                className="w-12 h-12 rounded-2xl bg-secondary hover:bg-accent hover:text-accent-foreground text-foreground transition-all"
                 onClick={() => window.location.href = "/"}
                 title="Return to Core"
               >
@@ -522,9 +520,9 @@ const CashierPOS = () => {
               </Button>
 
               {activeShift && (
-                <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-2 h-12">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] font-black italic uppercase text-emerald-500 tracking-widest">
+                <div className="px-4 py-2 bg-success/10 border border-success/20 rounded-xl flex items-center gap-2 h-12">
+                  <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  <span className="text-[10px] font-black italic uppercase text-success tracking-widest">
                     Shift Active: {activeShift.id.slice(-6).toUpperCase()}
                   </span>
                 </div>
@@ -533,7 +531,7 @@ const CashierPOS = () => {
           </div>
 
           {/* IN-PLANE COMMAND BAR (Scan, Search, Filter) */}
-          <div className="flex items-center gap-4 bg-white/5 backdrop-blur-2xl p-4 rounded-[2rem] border border-white/10 shadow-2xl shrink-0">
+          <div className="flex items-center gap-4 bg-card/40 backdrop-blur-2xl p-4 rounded-[2rem] border border-border shadow-2xl shrink-0">
             <div className="flex-1">
               <ScannerSearchHeader
                 searchTerm={searchTerm}
@@ -543,22 +541,22 @@ const CashierPOS = () => {
               />
             </div>
 
-            <div className="h-10 w-px bg-white/10" />
+            <div className="h-10 w-px bg-border" />
 
             {/* Touch-Friendly Category Selector */}
-            <div className="flex items-center gap-3 px-5 py-3 bg-white/5 border border-white/10 rounded-2xl min-w-[240px] h-14 transition-all hover:border-indigo-500/50">
-              <Filter className="w-4 h-4 text-indigo-400 shrink-0" />
+            <div className="flex items-center gap-3 px-5 py-3 bg-secondary/50 border border-border rounded-2xl min-w-[240px] h-14 transition-all hover:border-primary/50">
+              <Filter className="w-4 h-4 text-primary shrink-0" />
               <select
-                className="flex-1 bg-transparent text-[11px] font-black uppercase tracking-widest outline-none text-white cursor-pointer h-full appearance-none"
+                className="flex-1 bg-transparent text-[11px] font-black uppercase tracking-widest outline-none text-foreground cursor-pointer h-full appearance-none"
                 value={activeCategory?.id || ""}
                 onChange={(e) => {
                   const cat = categories.find((c) => c.id === e.target.value);
                   setActiveCategory(cat || null);
                 }}
               >
-                <option value="" className="bg-slate-900">All Categories</option>
+                <option value="" className="bg-background">All Categories</option>
                 {(Array.isArray(categories) ? categories : []).map((cat) => (
-                  <option key={cat.id} value={cat.id} className="bg-slate-900">
+                  <option key={cat.id} value={cat.id} className="bg-background">
                     {cat.name}
                   </option>
                 ))}
@@ -574,8 +572,8 @@ const CashierPOS = () => {
               title="Show all products"
               className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all border shrink-0 ${
                 !activeCategory && !searchTerm
-                  ? "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20"
-                  : "bg-white/5 text-slate-400 border-white/10 hover:text-white hover:border-white/20"
+                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
+                  : "bg-secondary text-muted-foreground border-border hover:text-foreground hover:border-primary/30"
               }`}
             >
               <LayoutGrid className="w-6 h-6" />
@@ -584,10 +582,10 @@ const CashierPOS = () => {
 
           {/* Section Label — always visible, never scrolls */}
           <div className="flex items-center gap-4 shrink-0 px-2">
-            <div className="h-px flex-1 bg-white/5" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic flex items-center gap-3">
+            <div className="h-px flex-1 bg-border/30" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic flex items-center gap-3">
               {isProductsLoading && (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
               )}
               {searchTerm
                 ? "SEARCH DATASET"
@@ -595,19 +593,19 @@ const CashierPOS = () => {
                   ? activeCategory.name
                   : "ROOT INVENTORY"}
               {!isProductsLoading && (
-                <span className="text-indigo-500">
+                <span className="text-primary">
                   [{filteredProducts.length} ASSETS]
                 </span>
               )}
             </span>
-            <div className="h-px flex-1 bg-white/5" />
+            <div className="h-px flex-1 bg-border/30" />
           </div>
 
           {/* Product Grid — this is the only scrollable area */}
           <div className="flex-1 overflow-y-auto min-h-0 pr-2 -mr-2 custom-scrollbar">
             {isProductsLoading ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
-                <div className="w-16 h-16 rounded-full border-t-2 border-indigo-500 animate-spin" />
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-4">
+                <div className="w-16 h-16 rounded-full border-t-2 border-primary animate-spin" />
                 <p className="text-[11px] font-black uppercase tracking-[0.3em]">
                   Hydrating Catalog...
                 </p>
@@ -618,9 +616,9 @@ const CashierPOS = () => {
           </div>
 
           {/* Pagination Bar — always visible, pinned to bottom of left pane */}
-          <div className="shrink-0 bg-white/5 backdrop-blur-2xl rounded-[1.5rem] border border-white/10 shadow-2xl px-6 py-4 flex items-center justify-between">
+          <div className="shrink-0 bg-card/40 backdrop-blur-2xl rounded-[1.5rem] border border-border shadow-2xl px-6 py-4 flex items-center justify-between">
             {/* Range Label */}
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] italic">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] italic">
               {filteredProducts.length === 0
                 ? "No entries found"
                 : `Range: ${(currentPage - 1) * PAGE_SIZE + 1} – ${Math.min(currentPage * PAGE_SIZE, filteredProducts.length)} / ${filteredProducts.length}`}
@@ -631,7 +629,7 @@ const CashierPOS = () => {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1 || isProductsLoading}
-                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95"
+                className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-20 transition-all active:scale-95"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -649,8 +647,8 @@ const CashierPOS = () => {
                         onClick={() => setCurrentPage(i)}
                         className={`w-10 h-10 rounded-xl text-[11px] font-black transition-all active:scale-95 ${
                           i === currentPage
-                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                            : "bg-white/5 border border-white/10 text-slate-400 hover:text-white"
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                            : "bg-secondary border border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                         }`}
                       >
                         {i}
@@ -666,7 +664,7 @@ const CashierPOS = () => {
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages || isProductsLoading}
-                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 disabled:opacity-20 transition-all active:scale-95"
+                className="w-10 h-10 rounded-xl bg-secondary border border-border flex items-center justify-center text-foreground hover:bg-accent hover:text-accent-foreground disabled:opacity-20 transition-all active:scale-95"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -724,18 +722,18 @@ const CashierPOS = () => {
 
       {/* TRANSACTION SUCCESS MODAL - Thermal Preview */}
       <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-        <DialogContent className="max-w-md bg-slate-900 border-white/10 p-0 overflow-hidden rounded-[2rem]">
-          <div className="p-8 bg-indigo-600 flex flex-col items-center text-center gap-4">
-             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-xl animate-bounce">
-                <CheckCircle2 className="w-10 h-10 text-white" />
+        <DialogContent className="max-w-md bg-background border-border p-0 overflow-hidden rounded-[2rem]">
+          <div className="p-8 bg-primary flex flex-col items-center text-center gap-4">
+             <div className="w-20 h-20 bg-primary-foreground/20 rounded-full flex items-center justify-center backdrop-blur-xl animate-bounce">
+                <CheckCircle2 className="w-10 h-10 text-primary-foreground" />
              </div>
              <div>
-                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Payment Received</h2>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200">Order Synchronized to Vault</p>
+                <h2 className="text-2xl font-black italic uppercase tracking-tighter text-primary-foreground">Payment Received</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground/70">Order Synchronized to Vault</p>
              </div>
           </div>
 
-          <div className="p-8 bg-slate-950 flex flex-col items-center">
+          <div className="p-8 bg-secondary/50 flex flex-col items-center">
              <div className="w-full bg-white p-6 shadow-2xl space-y-4 font-mono text-[10px] text-black leading-tight uppercase relative mb-8">
                 <div className="text-center space-y-1 py-2">
                    <p className="text-xs font-bold tracking-tighter">{lastTransaction?.storeName}</p>
@@ -756,10 +754,10 @@ const CashierPOS = () => {
                 </div>
                 <div className="py-2 border-t border-dashed border-slate-300 space-y-1 font-bold">
                    <div className="flex justify-between"><span>TOTAL</span><span>{formatCurrency(lastTransaction?.grandTotal)}</span></div>
-                   <div className="flex justify-between text-indigo-600"><span>METHOD</span><span>{lastTransaction?.paymentMethod}</span></div>
+                   <div className="flex justify-between text-primary"><span>METHOD</span><span>{lastTransaction?.paymentMethod}</span></div>
                 </div>
                 {lastTransaction?.changeAmount > 0 && (
-                   <div className="p-3 bg-emerald-50 rounded-lg flex justify-between items-center text-emerald-600">
+                   <div className="p-3 bg-success/10 rounded-lg flex justify-between items-center text-success">
                       <span className="font-black">CHANGE DUE:</span>
                       <span className="text-sm font-black tracking-tighter">{formatCurrency(lastTransaction.changeAmount)}</span>
                    </div>
@@ -777,10 +775,10 @@ const CashierPOS = () => {
              </div>
 
              <div className="w-full grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-12 rounded-xl bg-white/5 border-white/10 text-white font-black italic uppercase text-[10px] tracking-widest gap-2" onClick={() => printerService.printReceipt(session.tenant_id, session, lastTransaction)}>
+                <Button variant="outline" className="h-12 rounded-xl bg-secondary border-border text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2" onClick={() => printerService.printReceipt(session.tenant_id, session, lastTransaction)}>
                    <PrinterIcon className="w-4 h-4" /> Reprint
                 </Button>
-                <Button className="h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-indigo-600/20" onClick={() => setIsSuccessModalOpen(false)}>
+                <Button className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-primary/20" onClick={() => setIsSuccessModalOpen(false)}>
                    Next Customer
                 </Button>
              </div>

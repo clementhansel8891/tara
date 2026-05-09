@@ -98,27 +98,27 @@ export default function RetailManagement() {
 
   if (!isAuthorized) {
     return (
-      <div className="flex h-[calc(100vh-100px)] items-center justify-center p-6 bg-slate-950 overflow-hidden relative">
+      <div className="flex h-[calc(100vh-100px)] items-center justify-center p-6 bg-background overflow-hidden relative">
         {/* Animated Background Shield */}
         <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.15)_0%,transparent_70%)] animate-pulse" />
         </div>
 
-        <Card className="max-w-md w-full rounded-[3.5rem] border border-white/5 shadow-2xl bg-white/[0.03] backdrop-blur-3xl p-14 text-center space-y-10 relative overflow-hidden">
-          <div className="mx-auto w-28 h-28 rounded-[2.5rem] bg-rose-500/10 flex items-center justify-center border border-rose-500/20 shadow-[0_0_50px_rgba(244,63,94,0.2)] group hover:scale-110 transition-transform duration-500">
-            <Lock className="w-12 h-12 text-rose-500 group-hover:rotate-12 transition-transform" />
+        <Card className="max-w-md w-full rounded-[2rem] border border-white/5 shadow-2xl bg-white/[0.03] backdrop-blur-3xl p-8 text-center space-y-10 relative overflow-hidden">
+          <div className="mx-auto w-28 h-28 rounded-2xl bg-destructive/10 flex items-center justify-center border border-rose-500/20 shadow-[0_0_50px_rgba(244,63,94,0.2)] group hover:scale-110 transition-transform duration-500">
+            <Lock className="w-12 h-12 text-destructive group-hover:rotate-12 transition-transform" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white leading-none">
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground leading-none">
               Restricted <br /> Access
             </h2>
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] leading-relaxed italic">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-relaxed italic">
               Genesis Command requires Dept Head clearance (HOD) or Executive
               authorization to access global oversight assets.
             </p>
           </div>
           <Button
-            className="w-full h-16 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 font-black italic uppercase text-[12px] tracking-[0.3em] group gap-4 shadow-[0_20px_40px_rgba(79,70,229,0.3)] transition-all hover:scale-105"
+            className="w-full h-16 rounded-2xl bg-primary text-foreground hover:bg-primary/90 font-black italic uppercase text-[12px] tracking-[0.3em] group gap-4 shadow-[0_20px_40px_rgba(79,70,229,0.3)] transition-all hover:scale-105"
             onClick={() => window.history.back()}
           >
             Terminal Return{" "}
@@ -132,13 +132,13 @@ export default function RetailManagement() {
   const totalSales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
 
   return (
-    <div className="min-h-screen bg-slate-950 selection:bg-indigo-600 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-background selection:bg-primary selection:text-foreground relative overflow-hidden">
 
       {/* Background Atmosphere */}
-      <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-violet-600/5 rounded-full blur-[100px] pointer-events-none" />
       
-      <div className="max-w-[1920px] mx-auto p-10 md:p-14 lg:p-20 space-y-20 relative z-10">
+      <div className="max-w-[1920px] mx-auto p-6 md:p-8 lg:p-10 space-y-20 relative z-10">
         {/* Header Tier */}
         <CommandCenterHeader
           locationName={session.location_id}
@@ -156,10 +156,10 @@ export default function RetailManagement() {
         />
 
         {/* Mission Critical Deck */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-14">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3 space-y-16">
             {/* Split Tier: AI Insights & Node Health */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <AIInsightEngine onExpansionRequest={triggerExpansion} />
               <NodeConnectivityGrid 
                 stores={stores} 
@@ -175,22 +175,22 @@ export default function RetailManagement() {
             />
 
             {/* Performance Visualizer & Multi-Module Hub */}
-            <Card className="rounded-[4rem] border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden group">
-              <CardHeader className="p-14 border-b border-white/5 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
+            <Card className="rounded-2xl border border-white/5 bg-white/[0.03] backdrop-blur-3xl shadow-2xl overflow-hidden group">
+              <CardHeader className="p-8 border-b border-white/5 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
                 <div className="space-y-3">
                   <div className="flex items-center gap-4">
-                    <div className="p-4 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-600/20">
+                    <div className="p-4 rounded-2xl bg-primary text-foreground shadow-xl shadow-indigo-600/20">
                       <TrendingUp className="w-8 h-8" />
                     </div>
-                    <CardTitle className="text-4xl font-black italic uppercase tracking-tighter text-white">
+                    <CardTitle className="text-2xl font-black italic uppercase tracking-tighter text-foreground">
                       {activeTab === 'fleet' ? 'Fleet Revenue Matrix' : activeTab === 'customers' ? 'Customer Activity' : 'Ecommerce Intelligence'}
                     </CardTitle>
                   </div>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.3em] mt-3 ml-20 italic">
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-3 ml-20 italic">
                     {activeTab === 'fleet' ? 'Global multi-channel performance synchronization' : activeTab === 'customers' ? 'Identity and engagement telemetry' : 'Real-time digital storefront analytics'}
                   </p>
                 </div>
-                <div className="flex gap-3 p-3 bg-white/[0.03] backdrop-blur-3xl rounded-[2.5rem] self-start xl:self-center border border-white/5">
+                <div className="flex gap-3 p-3 bg-white/[0.03] backdrop-blur-3xl rounded-2xl self-start xl:self-center border border-white/5">
                   {[
                     { id: "fleet", label: "Fleet Matrix" },
                     { id: "customers", label: "Customer Activity" },
@@ -203,8 +203,8 @@ export default function RetailManagement() {
                       onClick={() => setActiveTab(tab.id)}
                       className={
                         activeTab === tab.id
-                          ? "bg-white/[0.08] shadow-2xl font-black italic text-[12px] uppercase h-14 px-10 rounded-[1.5rem] text-white border border-white/10"
-                          : "font-black italic text-[12px] uppercase h-14 px-10 text-slate-500 hover:text-white transition-all"
+                          ? "bg-white/[0.08] shadow-2xl font-black italic text-[12px] uppercase h-14 px-10 rounded-xl text-foreground border border-border"
+                          : "font-black italic text-[12px] uppercase h-14 px-10 text-muted-foreground hover:text-foreground transition-all"
                       }
                     >
                       {tab.label}
@@ -212,7 +212,7 @@ export default function RetailManagement() {
                   ))}
                 </div>
               </CardHeader>
-              <CardContent className="p-14">
+              <CardContent className="p-8">
                 {activeTab === 'fleet' && (
                   <FleetRevenueMatrix 
                     orders={orders} 
@@ -241,23 +241,23 @@ export default function RetailManagement() {
         </div>
 
         {/* Security / System Footer */}
-        <div className="pt-20 border-t border-white/5 flex flex-col lg:flex-row items-center justify-between gap-12 text-[11px] font-black italic text-slate-500 uppercase tracking-[0.4em]">
+        <div className="pt-20 border-t border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 text-[11px] font-black italic text-muted-foreground uppercase tracking-[0.4em]">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-3">
-              <ShieldAlert className="w-5 h-5 text-emerald-500" />
-              <span className="text-white">
+              <ShieldAlert className="w-5 h-5 text-success" />
+              <span className="text-foreground">
                 Audit-First Integrity Protocol
               </span>
             </div>
-            <div className="h-5 w-px bg-white/5" />
+            <div className="h-5 w-px bg-secondary/40" />
             <span>RLS Context: {session.tenant_id}</span>
-            <div className="h-5 w-px bg-white/5" />
+            <div className="h-5 w-px bg-secondary/40" />
             <span>Node: {session.location_id || "ROOT_CONTEXT"}</span>
           </div>
-          <div className="flex items-center gap-12">
+          <div className="flex items-center gap-6">
             <span 
               onClick={() => navigate("/m/retail/management/infrastructure-map")}
-              className="hover:text-indigo-400 cursor-pointer transition-colors border-b border-transparent hover:border-indigo-400"
+              className="hover:text-primary cursor-pointer transition-colors border-b border-transparent hover:border-indigo-400"
             >
               Infrastructure Map
             </span>
@@ -267,7 +267,7 @@ export default function RetailManagement() {
             >
               Access Logs
             </span>
-            <span className="hover:text-white cursor-pointer transition-colors font-bold">
+            <span className="hover:text-foreground cursor-pointer transition-colors font-bold">
               Zenvix OS Cloud v2.4.9
             </span>
           </div>

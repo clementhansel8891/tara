@@ -61,10 +61,10 @@ export const InventoryKpiBar: React.FC<Props> = ({ stats, isAggregating }) => {
           >
             {k.label}
           </div>
-          <div className="text-2xl font-black italic tracking-tighter text-slate-900">
+          <div className="text-2xl font-black italic tracking-tighter text-foreground">
             {k.val}
           </div>
-          <div className="text-[9px] text-slate-400 font-bold uppercase italic">
+          <div className="text-[9px] text-muted-foreground font-bold uppercase italic">
             {k.sub}
           </div>
         </Card>

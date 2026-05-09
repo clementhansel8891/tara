@@ -181,14 +181,14 @@ const DeveloperConsole = ({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
       {/* Request Panel */}
       <div className="space-y-4 flex flex-col h-full">
-        <div className="space-y-4 bg-slate-50 p-6 rounded-3xl border border-slate-200 flex-1">
+        <div className="space-y-4 bg-secondary/5 p-6 rounded-3xl border border-slate-200 flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <Server className="w-5 h-5 text-slate-400" />
-            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Request Configuration</span>
+            <Server className="w-5 h-5 text-muted-foreground" />
+            <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Request Configuration</span>
           </div>
 
           <div className="grid grid-cols-[100px_1fr] gap-2">
-            <div className="bg-slate-200 rounded-xl flex items-center justify-center font-black text-slate-600">
+            <div className="bg-muted/20 rounded-xl flex items-center justify-center font-black text-muted-foreground">
                {method}
             </div>
             <Select value={endpoint} onValueChange={handleEndpointChange}>
@@ -199,7 +199,7 @@ const DeveloperConsole = ({
                  {(Array.isArray(endpoints) ? endpoints : []).map(ep => (
                    <SelectItem key={ep.value} value={ep.value}>
                       <span className="font-mono">{ep.value}</span> 
-                      <span className="text-slate-400 ml-2 text-[10px] uppercase">({ep.label})</span>
+                      <span className="text-muted-foreground ml-2 text-[10px] uppercase">({ep.label})</span>
                    </SelectItem>
                  ))}
               </SelectContent>
@@ -208,7 +208,7 @@ const DeveloperConsole = ({
 
           <div className="space-y-3">
              <div className="flex justify-between">
-                <Label className="text-[10px] font-black uppercase text-slate-400">Client Credentials</Label>
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Client Credentials</Label>
              </div>
              <div className="grid grid-cols-1 gap-2">
                <Input
@@ -230,11 +230,11 @@ const DeveloperConsole = ({
           {method === "POST" && (
             <div className="flex-1 flex flex-col min-h-[200px]">
               <div className="flex justify-between mb-2">
-                 <Label className="text-[10px] font-black uppercase text-slate-400">Request Body (JSON)</Label>
-                 <Braces className="w-3 h-3 text-slate-400" />
+                 <Label className="text-[10px] font-black uppercase text-muted-foreground">Request Body (JSON)</Label>
+                 <Braces className="w-3 h-3 text-muted-foreground" />
               </div>
               <textarea
-                className="flex-1 w-full bg-slate-900 text-green-400 font-mono text-xs p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 w-full bg-secondary text-green-400 font-mono text-xs p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={requestBody}
                 onChange={e => setRequestBody(e.target.value)}
                 spellCheck={false}
@@ -246,7 +246,7 @@ const DeveloperConsole = ({
         <Button 
           onClick={executeRequest}
           disabled={isLoading}
-          className="h-14 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black italic uppercase tracking-widest shadow-xl"
+          className="h-14 bg-primary hover:bg-primary text-foreground rounded-2xl font-black italic uppercase tracking-widest shadow-xl"
         >
            {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Play className="w-5 h-5 mr-2 fill-current" />}
            Send Request
@@ -254,14 +254,14 @@ const DeveloperConsole = ({
       </div>
 
       {/* Response Panel */}
-      <div className="bg-slate-900 rounded-3xl border border-slate-800 text-white p-6 flex flex-col h-full overflow-hidden">
+      <div className="bg-secondary rounded-3xl border border-slate-800 text-foreground p-6 flex flex-col h-full overflow-hidden">
          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-               <Code2 className="w-5 h-5 text-indigo-400" />
-               <span className="text-xs font-black uppercase tracking-widest text-slate-500">Response Output</span>
+               <Code2 className="w-5 h-5 text-primary" />
+               <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Response Output</span>
             </div>
             {status && (
-               <div className={`px-2 py-1 rounded-md text-[10px] font-black ${status >= 200 && status < 300 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+               <div className={`px-2 py-1 rounded-md text-[10px] font-black ${status >= 200 && status < 300 ? 'bg-success/20 text-success' : 'bg-red-500/20 text-red-400'}`}>
                   HTTP {status}
                </div>
             )}
@@ -279,7 +279,7 @@ const DeveloperConsole = ({
                 }
               }}
             >
-               <Copy className="w-4 h-4 text-slate-500" />
+               <Copy className="w-4 h-4 text-muted-foreground" />
             </Button>
             
             {response ? (
@@ -287,7 +287,7 @@ const DeveloperConsole = ({
                   {JSON.stringify(response, null, 2)}
                </pre>
             ) : (
-               <div className="h-full flex flex-col items-center justify-center text-slate-600">
+               <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                   <Server className="w-12 h-12 mb-4 opacity-20" />
                   <div className="font-bold uppercase text-[10px] tracking-widest">Awaiting Request</div>
                </div>
@@ -296,8 +296,8 @@ const DeveloperConsole = ({
          
          {status === 200 && (
             <div className="mt-4 p-3 bg-emerald-900/20 border border-emerald-900/50 rounded-lg flex items-start gap-3">
-               <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5" />
-               <div className="text-[10px] text-emerald-400">
+               <CheckCircle2 className="w-4 h-4 text-success mt-0.5" />
+               <div className="text-[10px] text-success">
                   <span className="font-bold">Success:</span> Logic executed successfully. Inventory/Orders have been updated in the internal system.
                </div>
             </div>

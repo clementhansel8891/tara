@@ -29,15 +29,15 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
           <DialogHeader>
             <div className="flex items-center gap-4">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-emerald-600" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-slate-100 text-slate-400"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-success" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-secondary/10 text-muted-foreground"}`}
               >
                 <DeviceIcon type={dev.type} cls="w-6 h-6" />
               </div>
               <div>
-                <DialogTitle className="text-base font-black italic tracking-tighter text-slate-900">
+                <DialogTitle className="text-base font-black italic tracking-tighter text-foreground">
                   {dev.name}
                 </DialogTitle>
-                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
                   {dev.type.replace(/_/g, " ").toUpperCase()}
                 </div>
               </div>
@@ -74,8 +74,8 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
               ]
                 .filter((r) => r.v)
                 .map((r, i) => (
-                  <div key={i} className="bg-slate-50 rounded-2xl p-3">
-                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                  <div key={i} className="bg-secondary/5 rounded-2xl p-3">
+                    <div className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">
                       {r.l}
                     </div>
                     <div className="flex items-center gap-1.5 font-semibold text-slate-800 font-mono">
@@ -86,7 +86,7 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
                 ))}
             </div>
             {dev.notes && (
-              <div className="bg-slate-50 rounded-2xl p-3 text-[11px] text-slate-600">
+              <div className="bg-secondary/5 rounded-2xl p-3 text-[11px] text-muted-foreground">
                 {dev.notes}
               </div>
             )}
@@ -95,14 +95,14 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
                 onClick={() => {
                   alert(`Configuring ${dev.name}. This will open the device parameter tuning interface.`);
                 }}
-                className="flex-1 h-10 rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
+                className="flex-1 h-10 rounded-xl bg-secondary text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2"
               >
                 <Settings2 className="w-3.5 h-3.5" /> Configure
               </Button>
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="h-10 w-10 rounded-xl border-slate-100 text-slate-400 flex items-center justify-center"
+                className="h-10 w-10 rounded-xl border-slate-100 text-muted-foreground flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </Button>

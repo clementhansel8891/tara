@@ -49,11 +49,11 @@ export default function NexusCommand() {
                <div className="flex flex-col items-end">
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Grid Stability</span>
                   <div className="flex items-center gap-2">
-                     <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                     <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                      <span className="text-xl font-black italic tracking-tighter">{pulse}%</span>
                   </div>
                </div>
-               <Button className="h-12 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-[10px] uppercase tracking-widest gap-3 shadow-xl shadow-indigo-500/20">
+               <Button className="h-12 px-8 rounded-2xl bg-primary hover:bg-primary/90 font-black text-[10px] uppercase tracking-widest gap-3 shadow-xl shadow-indigo-500/20">
                   <RefreshCw className="h-4 w-4" /> RE-SYNC GRID
                </Button>
             </div>
@@ -63,9 +63,9 @@ export default function NexusCommand() {
     >
       <div className="space-y-12 pb-24">
         {/* Core Tactical Hubs */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-           <Card className="glass-card p-10 rounded-[3.5rem] card-premium flex flex-col gap-6">
-              <div className="h-16 w-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center shadow-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           <Card className="glass-card p-6 rounded-[2rem] card-premium flex flex-col gap-6">
+              <div className="h-16 w-16 rounded-3xl bg-primary text-foreground flex items-center justify-center shadow-2xl">
                  <Cpu className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -83,8 +83,8 @@ export default function NexusCommand() {
               </div>
            </Card>
 
-           <Card className="glass-card p-10 rounded-[3.5rem] card-premium flex flex-col gap-6">
-              <div className="h-16 w-16 rounded-3xl bg-emerald-600 text-white flex items-center justify-center shadow-2xl">
+           <Card className="glass-card p-6 rounded-[2rem] card-premium flex flex-col gap-6">
+              <div className="h-16 w-16 rounded-3xl bg-success text-foreground flex items-center justify-center shadow-2xl">
                  <Users className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -96,14 +96,14 @@ export default function NexusCommand() {
                     <p className="text-[9px] font-black uppercase text-muted-foreground">Active Personnel</p>
                     <p className="text-lg font-black italic">840 Active</p>
                  </div>
-                 <Button onClick={() => handleDeploy("Staff")} className="h-12 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[9px] gap-2">
+                 <Button onClick={() => handleDeploy("Staff")} className="h-12 px-6 rounded-xl bg-success hover:bg-emerald-700 text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
                     DEPLOY STAFF <ChevronRight className="h-4 w-4" />
                  </Button>
               </div>
            </Card>
 
-           <Card className="glass-card p-10 rounded-[3.5rem] card-premium flex flex-col gap-6">
-              <div className="h-16 w-16 rounded-3xl bg-amber-600 text-white flex items-center justify-center shadow-2xl">
+           <Card className="glass-card p-6 rounded-[2rem] card-premium flex flex-col gap-6">
+              <div className="h-16 w-16 rounded-3xl bg-amber-600 text-foreground flex items-center justify-center shadow-2xl">
                  <Box className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -115,7 +115,7 @@ export default function NexusCommand() {
                     <p className="text-[9px] font-black uppercase text-muted-foreground">Replenishment Status</p>
                     <p className="text-lg font-black italic">AUTO-ACTIVE</p>
                  </div>
-                 <Button onClick={() => handleDeploy("Inventory")} className="h-12 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black uppercase tracking-widest text-[9px] gap-2">
+                 <Button onClick={() => handleDeploy("Inventory")} className="h-12 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
                     SYNC STOCKS <ChevronRight className="h-4 w-4" />
                  </Button>
               </div>
@@ -123,17 +123,17 @@ export default function NexusCommand() {
         </div>
 
         {/* Live Incident Stream */}
-        <div className="grid grid-cols-12 gap-10">
-           <Card className="col-span-12 xl:col-span-8 rounded-[4rem] border-none shadow-2xl bg-white dark:bg-slate-900/40 p-12 overflow-hidden flex flex-col group">
+        <div className="grid grid-cols-12 gap-6">
+           <Card className="col-span-12 xl:col-span-8 rounded-2xl border-none shadow-2xl bg-white dark:bg-secondary/40 p-6 overflow-hidden flex flex-col group">
               <div className="flex items-center justify-between mb-10">
                  <div className="space-y-2">
                     <h3 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-                       <ShieldCheck className="h-8 w-8 text-emerald-500" />
+                       <ShieldCheck className="h-8 w-8 text-success" />
                        Incident Resolution Desk
                     </h3>
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">Resolve critical deviations in real-time</p>
                  </div>
-                 <Badge className="bg-emerald-500/10 text-emerald-500 border-none px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">
+                 <Badge className="bg-success/10 text-success border-none px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">
                     SYSTEM SECURE
                  </Badge>
               </div>
@@ -144,11 +144,11 @@ export default function NexusCommand() {
                     { id: "INC-943", type: "CAPACITY", node: "Surabaya East", message: "Transaction volume reaching 85% of node capacity.", severity: "MEDIUM" },
                     { id: "INC-944", type: "SECURITY", node: "Bali Resort", message: "Unauthorized login attempt blocked by RLS protocol.", severity: "HIGH" },
                  ].map((inc) => (
-                    <div key={inc.id} className="p-8 rounded-[2.5rem] bg-secondary/30 border border-border flex items-center justify-between group/inc hover:bg-secondary/50 transition-all">
+                    <div key={inc.id} className="p-8 rounded-2xl bg-secondary/30 border border-border flex items-center justify-between group/inc hover:bg-secondary/50 transition-all">
                        <div className="flex items-center gap-8">
                           <div className={cn(
                              "h-12 w-12 rounded-2xl flex items-center justify-center",
-                             inc.severity === "HIGH" ? "bg-rose-500/10 text-rose-500" : inc.severity === "MEDIUM" ? "bg-amber-500/10 text-amber-500" : "bg-primary/10 text-primary"
+                             inc.severity === "HIGH" ? "bg-destructive/10 text-destructive" : inc.severity === "MEDIUM" ? "bg-amber-500/10 text-amber-500" : "bg-primary/10 text-primary"
                           )}>
                              <AlertTriangle className="h-6 w-6" />
                           </div>
@@ -168,26 +168,26 @@ export default function NexusCommand() {
               </div>
            </Card>
 
-           <Card className="col-span-12 xl:col-span-4 rounded-[4rem] border-none shadow-2xl bg-indigo-950 text-white p-12 relative overflow-hidden flex flex-col justify-between">
-              <div className="absolute top-0 right-0 h-64 w-64 bg-indigo-600/20 rounded-full blur-[100px] -mr-32 -mt-32" />
+           <Card className="col-span-12 xl:col-span-4 rounded-2xl border-none shadow-2xl bg-primary/20 text-foreground p-6 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-0 right-0 h-64 w-64 bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32" />
               <div className="space-y-6 relative z-10">
                  <div className="h-16 w-16 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-xl">
-                    <Rocket className="h-8 w-8 text-indigo-300" />
+                    <Rocket className="h-8 w-8 text-primary/70" />
                  </div>
-                 <h3 className="text-4xl font-black italic tracking-tighter uppercase leading-none">Strategic <br /> Force Multiplier</h3>
+                 <h3 className="text-2xl font-black italic tracking-tighter uppercase leading-none">Strategic <br /> Force Multiplier</h3>
                  <p className="text-sm font-medium opacity-60 italic italic leading-relaxed">
                     Deploy executive resources across global subsidiaries to maximize operational yield and minimize risk.
                  </p>
               </div>
               <div className="space-y-4 pt-10 relative z-10">
-                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-2">
+                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-primary/70 mb-2">
                     <span>Force Velocity</span>
                     <span>88%</span>
                  </div>
                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full w-[88%] bg-indigo-500 rounded-full" />
+                    <div className="h-full w-[88%] bg-primary rounded-full" />
                  </div>
-                 <Button className="w-full h-14 rounded-2xl bg-white text-indigo-950 hover:bg-indigo-50 font-black uppercase tracking-widest text-xs mt-6">
+                 <Button className="w-full h-14 rounded-2xl bg-white text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs mt-6">
                     AUTHORIZE FORCE SCALING
                  </Button>
               </div>

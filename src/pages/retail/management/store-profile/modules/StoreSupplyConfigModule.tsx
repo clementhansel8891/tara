@@ -17,7 +17,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <PackageCheck className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           GLOBAL SUPPLY ROUTING
@@ -43,14 +43,14 @@ export const StoreSupplyConfigModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-emerald-100/50 rounded-xl text-emerald-600">
+        <div className="p-2 bg-success/10/50 rounded-xl text-success">
           <PackageCheck className="w-5 h-5" />
         </div>
         <div>
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Logistics & Routing
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Inventory flow, replenishment rules, and fulfillment policies
           </p>
         </div>
@@ -60,12 +60,12 @@ export const StoreSupplyConfigModule: React.FC = () => {
         {/* Inbound Supply */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Truck className="w-4 h-4 text-slate-400" /> Inbound Logistics
+            <Truck className="w-4 h-4 text-muted-foreground" /> Inbound Logistics
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Default Inbound Warehouse
               </Label>
               <Input
@@ -80,7 +80,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Stock Transfer Priority
               </Label>
               <Select
@@ -108,7 +108,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Replenishment Rule Set
               </Label>
               <Select
@@ -140,13 +140,13 @@ export const StoreSupplyConfigModule: React.FC = () => {
         {/* Outbound & Fulfillment */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <ArrowRightLeft className="w-4 h-4 text-slate-400" /> Outbound
+            <ArrowRightLeft className="w-4 h-4 text-muted-foreground" /> Outbound
             Routing
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Safety Stock Algorithm
               </Label>
               <Select
@@ -174,7 +174,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Reorder Threshold Template
               </Label>
               <Select
@@ -204,7 +204,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Fallback Nodes (If Stockout)
               </Label>
               <Input
@@ -220,7 +220,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
                 placeholder="STORE-002, WH-01"
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Comma-separated list of secondary fulfillment locations
               </p>
             </div>

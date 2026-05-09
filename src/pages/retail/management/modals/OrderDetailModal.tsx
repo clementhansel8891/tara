@@ -49,23 +49,23 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     switch (status) {
       case "pending_payment":
       case "reserved":
-        return "bg-slate-100 text-slate-700";
+        return "bg-secondary/10 text-muted-foreground";
       case "paid":
         return "bg-blue-100 text-blue-700";
       case "processing":
         return "bg-amber-100 text-amber-700";
       case "ready_for_pickup":
-        return "bg-indigo-100 text-indigo-700";
+        return "bg-primary/10 text-primary";
       case "shipped":
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-success/10 text-success";
       case "complete":
-        return "bg-slate-900 text-white";
+        return "bg-secondary text-foreground";
       case "cancelled":
         return "bg-red-100 text-red-700";
       case "refunded":
         return "bg-orange-100 text-orange-700";
       default:
-        return "bg-slate-100 text-slate-700";
+        return "bg-secondary/10 text-muted-foreground";
     }
   };
 
@@ -78,15 +78,15 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl rounded-[2.5rem] border-none shadow-2xl max-h-[90vh] overflow-y-auto p-0 scrollbar-hide">
+      <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl max-h-[90vh] overflow-y-auto p-0 scrollbar-hide">
         <div className="relative">
           {/* Header Gradient */}
           <div className="h-32 bg-gradient-to-r from-slate-900 to-indigo-950 px-8 flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-black italic tracking-tighter uppercase text-white">
+              <DialogTitle className="text-2xl font-black italic tracking-tighter uppercase text-foreground">
                 Fulfillment Token: {order.id.slice(-8).toUpperCase()}
               </DialogTitle>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-indigo-300 mt-1 flex items-center gap-2">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-primary/70 mt-1 flex items-center gap-2">
                 <Clock className="w-3 h-3" /> Timestamp:{" "}
                 {new Date(order.createdAt).toLocaleString()}
               </div>
@@ -104,29 +104,29 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
           <div className="p-8 space-y-8 bg-white min-h-[400px]">
             {/* Customer & Logistics Logic Block */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 rounded-[2rem] p-6 flex items-center gap-4 border border-slate-100">
+              <div className="bg-secondary/5 rounded-[2rem] p-6 flex items-center gap-4 border border-slate-100">
                 <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-600" />
+                  <User className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                     Carrier Destination
                   </div>
-                  <div className="font-black italic text-slate-900">
+                  <div className="font-black italic text-foreground">
                     {order.customerName || "Walk-in Customer"}
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-[2rem] p-6 flex items-center gap-4 border border-slate-100">
+              <div className="bg-secondary/5 rounded-[2rem] p-6 flex items-center gap-4 border border-slate-100">
                 <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <MapPin className="w-5 h-5 text-success" />
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                  <div className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                     Node Origin
                   </div>
-                  <div className="font-black italic text-slate-900">
+                  <div className="font-black italic text-foreground">
                     {order.storeId.slice(-8).toUpperCase()}
                   </div>
                 </div>
@@ -136,10 +136,10 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             {/* Line Item Payloads */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <Package className="w-4 h-4" /> Pipeline Payloads
                 </div>
-                <Badge className="bg-indigo-50 text-indigo-600 border-none font-black italic text-[9px] uppercase tracking-widest">
+                <Badge className="bg-primary/5 text-primary border-none font-black italic text-[9px] uppercase tracking-widest">
                   {order.items.length} Units
                 </Badge>
               </div>
@@ -154,23 +154,23 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   return (
                     <div
                       key={idx}
-                      className="flex flex-col p-5 bg-white border border-slate-100 rounded-[1.5rem] hover:border-indigo-300 transition-all group"
+                      className="flex flex-col p-5 bg-white border border-slate-100 rounded-xl hover:border-indigo-300 transition-all group"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                            <Package className="w-6 h-6 text-slate-400 group-hover:text-indigo-600" />
+                          <div className="w-12 h-12 bg-secondary/5 rounded-2xl flex items-center justify-center group-hover:bg-primary/5 transition-colors">
+                            <Package className="w-6 h-6 text-muted-foreground group-hover:text-primary" />
                           </div>
                           <div>
-                            <div className="font-black italic text-slate-900">
+                            <div className="font-black italic text-foreground">
                               {item.name}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                            <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
                               Quantity Payload: {item.quantity}
                             </div>
                           </div>
                         </div>
-                        <div className="text-right font-black italic text-slate-900">
+                        <div className="text-right font-black italic text-foreground">
                           Rp {(item.totalPrice || 0).toLocaleString()}
                         </div>
                       </div>
@@ -178,12 +178,12 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       {/* Stock Integrity Telemetry */}
                       <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
                         <div className="flex gap-6 text-[9px] font-black italic uppercase tracking-widest">
-                          <p className="text-slate-400">
-                            SOH: <span className="text-slate-900">{soh}</span>
+                          <p className="text-muted-foreground">
+                            SOH: <span className="text-foreground">{soh}</span>
                           </p>
-                          <p className="text-slate-400">
+                          <p className="text-muted-foreground">
                             Buffer:{" "}
-                            <span className="text-slate-900">
+                            <span className="text-foreground">
                               {safetyBuffer}
                             </span>
                           </p>
@@ -191,7 +191,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                             className={
                               isBufferWarning
                                 ? "text-amber-600"
-                                : "text-emerald-600"
+                                : "text-success"
                             }
                           >
                             ATS: {ats}
@@ -211,15 +211,15 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
             </div>
 
             {/* Financial Ledger Block */}
-            <Card className="rounded-[2rem] bg-slate-950 p-6 border-none text-white shadow-2xl relative overflow-hidden">
-              <DollarSign className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 opacity-20" />
+            <Card className="rounded-[2rem] bg-background p-6 border-none text-foreground shadow-2xl relative overflow-hidden">
+              <DollarSign className="absolute -right-4 -bottom-4 w-24 h-24 text-foreground/5 opacity-20" />
               <div className="relative z-10 space-y-4">
-                <div className="flex justify-between items-center text-[10px] font-black italic uppercase tracking-widest text-indigo-400">
+                <div className="flex justify-between items-center text-[10px] font-black italic uppercase tracking-widest text-primary">
                   <span>Manifest Total</span>
                   <span>{order.paymentMethod?.toUpperCase()}</span>
                 </div>
                 <div className="flex justify-between items-end">
-                  <div className="text-4xl font-black italic tracking-tighter">
+                  <div className="text-2xl font-black italic tracking-tighter">
                     Rp {(order.totalAmount || 0).toLocaleString()}
                   </div>
                   <div className="text-[10px] font-bold italic opacity-40 uppercase">
@@ -234,7 +234,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="h-14 flex-1 rounded-2xl border-slate-200 font-black italic uppercase text-[10px] tracking-widest hover:bg-slate-50"
+                className="h-14 flex-1 rounded-2xl border-slate-200 font-black italic uppercase text-[10px] tracking-widest hover:bg-secondary/5"
               >
                 Cancel View
               </Button>
@@ -242,7 +242,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "paid" && (
                 <Button
                   onClick={() => handleStatusChange("processing")}
-                  className="h-14 flex-[2] bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100"
+                  className="h-14 flex-[2] bg-primary hover:bg-primary/90 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-100"
                 >
                   <Package className="w-4 h-4 mr-2" />
                   Initiate Processing
@@ -262,7 +262,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "ready_for_pickup" && (
                 <Button
                   onClick={() => handleStatusChange("shipped")}
-                  className="h-14 flex-[2] bg-emerald-600 hover:bg-emerald-700 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-100"
+                  className="h-14 flex-[2] bg-success hover:bg-emerald-700 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-100"
                 >
                   <Truck className="w-4 h-4 mr-2" />
                   Dispatch Payload
@@ -272,7 +272,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "shipped" && (
                 <Button
                   onClick={() => handleStatusChange("complete")}
-                  className="h-14 flex-[2] bg-slate-900 hover:bg-slate-800 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-slate-100"
+                  className="h-14 flex-[2] bg-secondary hover:bg-secondary/60 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-slate-100"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   Confirm Receipt

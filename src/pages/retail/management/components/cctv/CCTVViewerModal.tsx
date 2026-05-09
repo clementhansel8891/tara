@@ -86,7 +86,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   dahua: {
     label: "Dahua",
-    color: "bg-blue-600",
+    color: "bg-primary",
     docUrl: "https://partner.dahuasecurity.com",
     authMethod: "Digest Auth – Local IP + Credentials",
     streamProtocol: "RTSP / HLS (LAN)",
@@ -132,7 +132,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   reolink: {
     label: "Reolink",
-    color: "bg-blue-500",
+    color: "bg-primary",
     docUrl: "https://reolink.com/software-and-api/",
     authMethod: "Local IP + Credentials",
     streamProtocol: "RTSP (LAN)",
@@ -178,7 +178,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   custom: {
     label: "Custom",
-    color: "bg-slate-500",
+    color: "bg-secondary/50",
     docUrl: "",
     authMethod: "Direct stream URL",
     streamProtocol: "RTSP or HLS",
@@ -199,7 +199,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   other: {
     label: "Other",
-    color: "bg-slate-500",
+    color: "bg-secondary/50",
     docUrl: "",
     authMethod: "Direct stream URL",
     streamProtocol: "RTSP or HLS",
@@ -223,8 +223,8 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
 // ── Status helpers ────────────────────────────────────────────────
 const cctvStatusColor = (s: CCTVCamera["status"]) =>
   ({
-    live: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    recording: "bg-blue-50 text-blue-700 border-blue-100",
+    live: "bg-emerald-50 text-success border-emerald-100",
+    recording: "bg-primary/5 text-blue-700 border-blue-100",
     offline: "bg-red-50 text-red-600 border-red-100",
     error: "bg-red-50 text-red-700 border-red-100",
     maintenance: "bg-amber-50 text-amber-700 border-amber-100",
@@ -232,12 +232,12 @@ const cctvStatusColor = (s: CCTVCamera["status"]) =>
 
 const integStatusIcon = (s?: CCTVCamera["integrationStatus"]) => {
   if (s === "connected")
-    return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />;
+    return <CheckCircle2 className="w-3.5 h-3.5 text-success" />;
   if (s === "error")
     return <AlertTriangle className="w-3.5 h-3.5 text-red-500" />;
   if (s === "pending")
     return <RefreshCw className="w-3.5 h-3.5 text-amber-500 animate-spin" />;
-  return <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />;
+  return <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />;
 };
 
 // ── Mock timeline events ──────────────────────────────────────────
@@ -310,15 +310,15 @@ const IntegrationSetup: React.FC<{
       {/* Provider header */}
       <div className="flex items-center gap-3">
         <div
-          className={`w-10 h-10 rounded-xl ${info.color} flex items-center justify-center text-white font-black text-xs`}
+          className={`w-10 h-10 rounded-xl ${info.color} flex items-center justify-center text-foreground font-black text-xs`}
         >
           {info.label.slice(0, 3)}
         </div>
         <div>
-          <div className="font-black text-sm text-slate-900">
+          <div className="font-black text-sm text-foreground">
             {info.label} Integration
           </div>
-          <div className="text-[10px] text-slate-400 font-medium">
+          <div className="text-[10px] text-muted-foreground font-medium">
             {info.authMethod}
           </div>
         </div>
@@ -327,14 +327,14 @@ const IntegrationSetup: React.FC<{
             href={info.docUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-[10px] text-blue-500 hover:text-blue-700 flex items-center gap-1 font-semibold"
+            className="ml-auto text-[10px] text-primary hover:text-blue-700 flex items-center gap-1 font-semibold"
           >
             Open Docs <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>
 
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-[11px] text-blue-700 font-medium flex gap-2">
+      <div className="bg-primary/5 border border-blue-100 rounded-2xl px-4 py-3 text-[11px] text-blue-700 font-medium flex gap-2">
         <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         {info.notes}
       </div>
@@ -342,7 +342,7 @@ const IntegrationSetup: React.FC<{
       <div className="space-y-3">
         {(Array.isArray(info.fields) ? info.fields : []).map((field) => (
           <div key={field.key} className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+            <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
               {field.label}
             </Label>
             <div className="relative">
@@ -365,7 +365,7 @@ const IntegrationSetup: React.FC<{
                       [field.key]: !p[field.key],
                     }))
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                 >
                   {showSecrets[field.key] ? (
                     <EyeOff className="w-4 h-4" />
@@ -379,15 +379,15 @@ const IntegrationSetup: React.FC<{
         ))}
       </div>
 
-      <div className="text-[10px] text-slate-400 font-medium">
+      <div className="text-[10px] text-muted-foreground font-medium">
         Stream protocol:{" "}
-        <span className="font-black text-slate-600">{info.streamProtocol}</span>
+        <span className="font-black text-muted-foreground">{info.streamProtocol}</span>
       </div>
 
       <Button
         disabled={!allFilled || saving}
         onClick={handleConnect}
-        className="w-full h-11 rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
+        className="w-full h-11 rounded-xl bg-secondary text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2"
       >
         {saving ? (
           <RefreshCw className="w-4 h-4 animate-spin" />
@@ -411,12 +411,12 @@ const VideoArea: React.FC<{
 
   if (!isActive) {
     return (
-      <div className="w-full aspect-video bg-slate-900 rounded-3xl flex flex-col items-center justify-center gap-3">
-        <WifiOff className="w-10 h-10 text-slate-600" />
-        <div className="text-sm font-black italic tracking-tighter text-slate-500">
+      <div className="w-full aspect-video bg-secondary rounded-3xl flex flex-col items-center justify-center gap-3">
+        <WifiOff className="w-10 h-10 text-muted-foreground" />
+        <div className="text-sm font-black italic tracking-tighter text-muted-foreground">
           Feed Unavailable
         </div>
-        <div className="text-[10px] text-slate-600 font-medium">
+        <div className="text-[10px] text-muted-foreground font-medium">
           Camera is {cam.status}
         </div>
       </div>
@@ -424,7 +424,7 @@ const VideoArea: React.FC<{
   }
 
   return (
-    <div className="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden relative group">
+    <div className="w-full aspect-video bg-secondary rounded-3xl overflow-hidden relative group">
       {/* Simulated feed background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950" />
       <div
@@ -438,26 +438,26 @@ const VideoArea: React.FC<{
 
       {/* Status badge */}
       <div
-        className={`absolute top-4 left-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 ${isLive ? "bg-emerald-500" : "bg-blue-500"}`}
+        className={`absolute top-4 left-4 flex items-center gap-1.5 rounded-full px-3 py-1.5 ${isLive ? "bg-success" : "bg-primary"}`}
       >
         <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-        <span className="text-[9px] font-black text-white uppercase">
+        <span className="text-[9px] font-black text-foreground uppercase">
           {isLive ? "Live" : "Playback"}
         </span>
       </div>
 
       {/* Camera label */}
       <div className="absolute top-4 right-4 bg-black/50 rounded-xl px-3 py-1.5">
-        <span className="text-[10px] font-black text-white italic">
+        <span className="text-[10px] font-black text-foreground italic">
           {cam.name}
         </span>
       </div>
 
       {/* Center play indicator */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-slate-700 text-center">
+        <div className="text-muted-foreground text-center">
           <Camera className="w-16 h-16 mx-auto opacity-10" />
-          <div className="text-[11px] font-bold text-slate-600 mt-2 opacity-40">
+          <div className="text-[11px] font-bold text-muted-foreground mt-2 opacity-40">
             {cam.hlsUrl ? "HLS Stream Active" : "Stream via Branch Agent"}
           </div>
         </div>
@@ -468,7 +468,7 @@ const VideoArea: React.FC<{
         <div className="flex items-center gap-3">
           <button
             onClick={togglePlay}
-            className="text-white hover:text-emerald-400 transition-colors"
+            className="text-foreground hover:text-success transition-colors"
           >
             {isPlaying ? (
               <Pause className="w-5 h-5" />
@@ -478,26 +478,26 @@ const VideoArea: React.FC<{
           </button>
           {!isLive && (
             <>
-              <button className="text-white/70 hover:text-white">
+              <button className="text-foreground/70 hover:text-foreground">
                 <SkipBack className="w-4 h-4" />
               </button>
               <div className="flex-1 bg-white/20 rounded-full h-1">
                 <div className="bg-white rounded-full h-1 w-1/3" />
               </div>
-              <button className="text-white/70 hover:text-white">
+              <button className="text-foreground/70 hover:text-foreground">
                 <SkipForward className="w-4 h-4" />
               </button>
             </>
           )}
-          <button className="text-white/70 hover:text-white ml-auto">
+          <button className="text-foreground/70 hover:text-foreground ml-auto">
             <Volume2 className="w-4 h-4" />
           </button>
           {cam.hasPtz && (
-            <button className="text-white/70 hover:text-white">
+            <button className="text-foreground/70 hover:text-foreground">
               <RotateCcw className="w-4 h-4" />
             </button>
           )}
-          <button className="text-white/70 hover:text-white">
+          <button className="text-foreground/70 hover:text-foreground">
             <Maximize2 className="w-4 h-4" />
           </button>
         </div>
@@ -505,7 +505,7 @@ const VideoArea: React.FC<{
 
       {/* Timestamp */}
       <div className="absolute bottom-4 right-4 bg-black/50 rounded-lg px-2 py-1">
-        <span className="text-[10px] font-mono text-white">
+        <span className="text-[10px] font-mono text-foreground">
           {new Date().toLocaleTimeString()}
         </span>
       </div>
@@ -580,12 +580,12 @@ const CCTVViewerModal: React.FC<Props> = ({
         <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center gap-4">
             <div
-              className={`w-10 h-10 rounded-2xl ${info.color} flex items-center justify-center text-white font-black text-xs shrink-0`}
+              className={`w-10 h-10 rounded-2xl ${info.color} flex items-center justify-center text-foreground font-black text-xs shrink-0`}
             >
               {info.label.slice(0, 3)}
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-base font-black italic tracking-tighter text-slate-900 truncate">
+              <DialogTitle className="text-base font-black italic tracking-tighter text-foreground truncate">
                 {camera.name}
               </DialogTitle>
               <div className="flex items-center gap-2 flex-wrap mt-0.5">
@@ -601,17 +601,17 @@ const CCTVViewerModal: React.FC<Props> = ({
                     camera.status
                   )}
                 </Badge>
-                <span className="text-[10px] text-slate-400 font-medium">
+                <span className="text-[10px] text-muted-foreground font-medium">
                   {info.label} · {camera.model ?? camera.provider}
                 </span>
                 {camera.location && (
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-muted-foreground">
                     {camera.location}
                   </span>
                 )}
                 <div className="flex items-center gap-1 ml-auto text-[10px] font-semibold">
                   {integStatusIcon(camera.integrationStatus)}
-                  <span className="text-slate-500">
+                  <span className="text-muted-foreground">
                     {camera.integrationStatus === "connected"
                       ? "Connected"
                       : "Not configured"}
@@ -621,7 +621,7 @@ const CCTVViewerModal: React.FC<Props> = ({
             </div>
             <button
               onClick={onClose}
-              className="text-slate-300 hover:text-slate-700 transition-colors shrink-0"
+              className="text-muted-foreground/60 hover:text-muted-foreground transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -634,7 +634,7 @@ const CCTVViewerModal: React.FC<Props> = ({
             <button
               key={t.id}
               onClick={() => setViewTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${viewTab === t.id ? "bg-slate-900 text-white shadow-md" : "text-slate-400 hover:text-slate-800 hover:bg-slate-50"}`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${viewTab === t.id ? "bg-secondary text-foreground shadow-md" : "text-muted-foreground hover:text-slate-800 hover:bg-secondary/5"}`}
             >
               {t.icon}
               {t.label}
@@ -674,8 +674,8 @@ const CCTVViewerModal: React.FC<Props> = ({
                   )}
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-slate-50 rounded-2xl p-4 space-y-3 text-[11px]">
-                    <div className="font-black uppercase text-slate-400 tracking-widest text-[9px]">
+                  <div className="bg-secondary/5 rounded-2xl p-4 space-y-3 text-[11px]">
+                    <div className="font-black uppercase text-muted-foreground tracking-widest text-[9px]">
                       Camera Info
                     </div>
                     {[
@@ -703,7 +703,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                       .filter((r) => r.v !== undefined)
                       .map((r, i) => (
                         <div key={i} className="flex justify-between">
-                          <span className="text-slate-400 font-bold">
+                          <span className="text-muted-foreground font-bold">
                             {r.l}
                           </span>
                           <span className="font-black text-slate-800">
@@ -714,8 +714,8 @@ const CCTVViewerModal: React.FC<Props> = ({
                   </div>
 
                   {camera.hasPtz && (
-                    <div className="bg-slate-50 rounded-2xl p-4 space-y-2">
-                      <div className="font-black uppercase text-slate-400 tracking-widest text-[9px] mb-3">
+                    <div className="bg-secondary/5 rounded-2xl p-4 space-y-2">
+                      <div className="font-black uppercase text-muted-foreground tracking-widest text-[9px] mb-3">
                         PTZ Control
                       </div>
                       <div className="grid grid-cols-3 gap-1.5 w-fit mx-auto">
@@ -723,7 +723,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                           (d, i) => (
                             <button
                               key={i}
-                              className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-sm font-bold hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center"
+                              className="w-9 h-9 rounded-xl bg-white border border-slate-200 text-sm font-bold hover:bg-secondary hover:text-foreground transition-all flex items-center justify-center"
                             >
                               {d}
                             </button>
@@ -755,8 +755,8 @@ const CCTVViewerModal: React.FC<Props> = ({
                 <div className="lg:col-span-2 space-y-4">
                   {/* Date + time range */}
                   <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2">
-                      <Calendar className="w-4 h-4 text-slate-500" />
+                    <div className="flex items-center gap-2 bg-secondary/10 rounded-xl px-3 py-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
                       <input
                         type="date"
                         value={selectedDate}
@@ -765,18 +765,18 @@ const CCTVViewerModal: React.FC<Props> = ({
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2">
-                        <Clock className="w-4 h-4 text-slate-500" />
+                      <div className="flex items-center gap-2 bg-secondary/10 rounded-xl px-3 py-2">
+                        <Clock className="w-4 h-4 text-muted-foreground" />
                         <input
                           type="time"
                           defaultValue="08:00"
                           className="bg-transparent text-sm font-black text-slate-800 focus:outline-none"
                         />
                       </div>
-                      <span className="text-slate-400 font-bold text-sm">
+                      <span className="text-muted-foreground font-bold text-sm">
                         →
                       </span>
-                      <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2">
+                      <div className="flex items-center gap-2 bg-secondary/10 rounded-xl px-3 py-2">
                         <input
                           type="time"
                           defaultValue="18:00"
@@ -789,7 +789,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                         toast({ title: "Footage Loading", description: "Requesting archive stream from Branch NVR..." });
                       }}
                       size="sm"
-                      className="h-10 rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
+                      className="h-10 rounded-xl bg-secondary text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2"
                     >
                       <Play className="w-3.5 h-3.5" /> Load Footage
                     </Button>
@@ -804,28 +804,28 @@ const CCTVViewerModal: React.FC<Props> = ({
 
                 {/* Event timeline */}
                 <div className="space-y-3">
-                  <div className="font-black uppercase text-slate-400 tracking-widest text-[9px] px-1">
+                  <div className="font-black uppercase text-muted-foreground tracking-widest text-[9px] px-1">
                     Event Timeline — {selectedDate}
                   </div>
                   <div className="space-y-2">
                     {(Array.isArray(MOCK_EVENTS) ? MOCK_EVENTS : []).map((ev, i) => (
                       <button
                         key={i}
-                        className="w-full text-left bg-slate-50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-sm rounded-2xl px-4 py-3 transition-all group"
+                        className="w-full text-left bg-secondary/5 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-sm rounded-2xl px-4 py-3 transition-all group"
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-2 h-2 rounded-full shrink-0 ${ev.type === "alert" ? "bg-red-500" : ev.type === "ok" ? "bg-emerald-500" : "bg-amber-400"}`}
+                            className={`w-2 h-2 rounded-full shrink-0 ${ev.type === "alert" ? "bg-red-500" : ev.type === "ok" ? "bg-success" : "bg-amber-400"}`}
                           />
                           <div>
                             <div className="text-[11px] font-black text-slate-800">
                               {ev.label}
                             </div>
-                            <div className="text-[9px] text-slate-400 font-mono">
+                            <div className="text-[9px] text-muted-foreground font-mono">
                               {ev.time}
                             </div>
                           </div>
-                          <Play className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 ml-auto transition-colors" />
+                          <Play className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-muted-foreground ml-auto transition-colors" />
                         </div>
                       </button>
                     ))}
@@ -855,11 +855,11 @@ const CCTVViewerModal: React.FC<Props> = ({
             {viewTab === "setup" && canManage && (
               <div className="max-w-lg mx-auto space-y-6">
                 {/* How it works */}
-                <div className="bg-slate-900 text-white rounded-3xl p-6 space-y-4">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="bg-secondary text-foreground rounded-3xl p-6 space-y-4">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     How Integration Works
                   </div>
-                  <div className="space-y-3 text-[11px] text-slate-300">
+                  <div className="space-y-3 text-[11px] text-muted-foreground/60">
                     {[
                       {
                         n: "1",
@@ -879,7 +879,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                       },
                     ].map((s) => (
                       <div key={s.n} className="flex gap-3">
-                        <div className="w-5 h-5 rounded-full bg-white/10 text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-white/10 text-foreground text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
                           {s.n}
                         </div>
                         <span className="font-medium">{s.t}</span>

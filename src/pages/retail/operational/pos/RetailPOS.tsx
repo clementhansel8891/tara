@@ -284,7 +284,7 @@ export default function RetailPOS() {
                   className="cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group overflow-hidden"
                   onClick={() => addToCart(item)}
                 >
-                  <div className="h-24 bg-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-blue-50">
+                  <div className="h-24 bg-secondary/10 flex items-center justify-center text-muted-foreground/60 group-hover:bg-primary/5">
                     <Package className="w-8 h-8" />
                   </div>
                   <CardHeader className="p-4">
@@ -307,7 +307,7 @@ export default function RetailPOS() {
         </div>
 
         <div className="xl:col-span-4">
-          <Card className="h-full flex flex-col border-none shadow-lg bg-slate-50/50 sticky top-6">
+          <Card className="h-full flex flex-col border-none shadow-lg bg-secondary/5/50 sticky top-6">
             <CardHeader className="border-b bg-white rounded-t-lg">
               <CardTitle className="text-xl">Active Cart</CardTitle>
             </CardHeader>
@@ -344,7 +344,7 @@ export default function RetailPOS() {
                   <span>${total.toFixed(2)}</span>
                 </div>
                 <Button
-                  className="w-full mt-6 bg-blue-600"
+                  className="w-full mt-6 bg-primary"
                   size="lg"
                   disabled={cart.length === 0}
                   onClick={processCheckout}

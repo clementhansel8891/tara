@@ -102,36 +102,36 @@ export const ChannelDetailDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
-        <div className="bg-slate-900 p-12 text-white relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 p-12 opacity-10">
+      <DialogContent className="max-w-4xl rounded-[2rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
+        <div className="bg-secondary p-6 text-foreground relative overflow-hidden shrink-0">
+          <div className="absolute top-0 right-0 p-6 opacity-10">
             {selectedChannel.type === "OWNED" ? (
               <Globe className="w-32 h-32 text-blue-400" />
             ) : (
-              <ShoppingBag className="w-32 h-32 text-emerald-400" />
+              <ShoppingBag className="w-32 h-32 text-success" />
             )}
           </div>
 
           <div className="relative z-10 flex items-start justify-between">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge className="bg-blue-500/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1">
+                <Badge className="bg-primary/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1">
                   Channel Configuration
                 </Badge>
                 <Badge
                   className={
                     selectedChannel.status === "active"
-                      ? "bg-emerald-500/20 text-emerald-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
-                      : "bg-slate-700 text-slate-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
+                      ? "bg-success/20 text-success border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
+                      : "bg-secondary text-muted-foreground border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1"
                   }
                 >
                   {selectedChannel.status}
                 </Badge>
               </div>
-              <DialogTitle className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+              <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter leading-none">
                 {selectedChannel.name || "UNNAMED_NODE"}
               </DialogTitle>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">
+              <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">
                 Node {selectedChannel.id} • {selectedChannel.type}
               </div>
             </div>
@@ -140,9 +140,9 @@ export const ChannelDetailDialog = ({
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar controls */}
-          <div className="w-72 border-r border-slate-100 bg-slate-50/50 p-8 space-y-8 flex flex-col justify-between">
+          <div className="w-72 border-r border-slate-100 bg-secondary/5/50 p-8 space-y-8 flex flex-col justify-between">
             <div className="space-y-6">
-              <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">
+              <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">
                 Security Actions
               </div>
               <div className="space-y-3">
@@ -154,7 +154,7 @@ export const ChannelDetailDialog = ({
                     })
                   }
                   disabled={!canEdit || !!rotationLoading}
-                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-slate-600 hover:bg-white hover:text-blue-600 transition-all border border-transparent hover:border-slate-200"
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-muted-foreground hover:bg-white hover:text-primary transition-all border border-transparent hover:border-slate-200"
                 >
                   <RefreshCw
                     className={`w-3.5 h-3.5 ${rotationLoading === selectedChannel.id ? "animate-spin" : ""}`}
@@ -165,12 +165,12 @@ export const ChannelDetailDialog = ({
                   variant="ghost"
                   onClick={() => handleRevokeChannel(selectedChannel.id)}
                   disabled={!canEdit || !!revocationLoading}
-                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-slate-600 hover:bg-white hover:text-red-600 transition-all border border-transparent hover:border-slate-200"
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-muted-foreground hover:bg-white hover:text-red-600 transition-all border border-transparent hover:border-slate-200"
                 >
                   <ShieldOff className="w-3.5 h-3.5" />
                   Revoke Access
                 </Button>
-                <Separator className="bg-slate-200" />
+                <Separator className="bg-muted/20" />
                 <Button
                   variant="ghost"
                   onClick={() => handleDelete(selectedChannel.id)}
@@ -197,7 +197,7 @@ export const ChannelDetailDialog = ({
                 <Button
                   size="sm"
                   onClick={handleRequestApproval}
-                  className="w-full bg-amber-600 text-white font-black italic uppercase text-[8px] h-8 rounded-lg"
+                  className="w-full bg-amber-600 text-foreground font-black italic uppercase text-[8px] h-8 rounded-lg"
                 >
                   Request Unlock
                 </Button>
@@ -206,10 +206,10 @@ export const ChannelDetailDialog = ({
           </div>
 
           {/* Main Content Areas */}
-          <div className="flex-1 overflow-y-auto p-12 pb-24 relative bg-white">
+          <div className="flex-1 overflow-y-auto p-6 pb-24 relative bg-white">
             <Tabs defaultValue="vault" className="space-y-12">
               <div className="px-1">
-                <TabsList className="bg-slate-100 rounded-2xl p-1 h-14 w-full">
+                <TabsList className="bg-secondary/10 rounded-2xl p-1 h-14 w-full">
                   <TabsTrigger
                     value="vault"
                     className="flex-1 rounded-xl font-black italic uppercase text-[10px] tracking-widest"
@@ -235,9 +235,9 @@ export const ChannelDetailDialog = ({
                 value="vault"
                 className="space-y-12 m-0 border-none outline-none"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-8">
-                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic flex items-center gap-3">
                       <Database className="w-3 h-3" /> Core Identity
                     </div>
                     <div className="space-y-4">
@@ -259,7 +259,7 @@ export const ChannelDetailDialog = ({
                     </div>
                   </div>
                   <div className="space-y-8">
-                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic flex items-center gap-3">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-3">
                       <Key className="w-3 h-3" /> Handshake Keys
                     </div>
                     <div className="space-y-4">
@@ -276,8 +276,8 @@ export const ChannelDetailDialog = ({
                         copyable={!!detailClientSecret}
                         isMasked
                       />
-                      <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 mt-6">
-                        <p className="text-[9px] font-black text-slate-400 uppercase leading-relaxed italic uppercase italic tracking-widest">
+                      <div className="p-6 rounded-[2rem] bg-secondary/5 border border-slate-100 mt-6">
+                        <p className="text-[9px] font-black text-muted-foreground uppercase leading-relaxed italic uppercase italic tracking-widest">
                           Keys are rotate-only. Previous secrets are immediately
                           invalidated upon rotation.
                         </p>
@@ -292,7 +292,7 @@ export const ChannelDetailDialog = ({
                 className="space-y-12 m-0 border-none outline-none"
               >
                 <div className="space-y-8">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic flex items-center gap-3">
                     <Activity className="w-3 h-3" /> Propagation Rules
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -320,13 +320,13 @@ export const ChannelDetailDialog = ({
                     ].map((rule) => (
                       <div
                         key={rule.id}
-                        className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white transition-all"
+                        className="p-8 rounded-[2rem] bg-secondary/5 border border-slate-100 flex items-center justify-between group hover:bg-white transition-all"
                       >
                         <div>
-                          <div className="text-sm font-black italic text-slate-900 uppercase italic tracking-tighter">
+                          <div className="text-sm font-black italic text-foreground uppercase italic tracking-tighter">
                             {rule.label}
                           </div>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                             {rule.desc}
                           </div>
                         </div>
@@ -351,7 +351,7 @@ export const ChannelDetailDialog = ({
                 className="space-y-8 m-0 border-none outline-none"
               >
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
                     Identity Mapping
                   </Label>
                   <div className="grid grid-cols-3 gap-6">
@@ -361,7 +361,7 @@ export const ChannelDetailDialog = ({
                         value={detailName}
                         onChange={(e) => setDetailName(e.target.value)}
                         disabled={!canEdit}
-                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-black italic text-lg text-slate-900 shadow-inner"
+                        className="h-16 px-6 rounded-2xl bg-secondary/5 border-none font-black italic text-lg text-foreground shadow-inner"
                       />
                     </div>
                     <Select
@@ -369,7 +369,7 @@ export const ChannelDetailDialog = ({
                       onValueChange={setDetailSyncFreq}
                       disabled={!canEdit}
                     >
-                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black italic uppercase text-[10px] tracking-widest text-slate-900 shadow-inner">
+                      <SelectTrigger className="h-16 rounded-2xl bg-secondary/5 border-none font-black italic uppercase text-[10px] tracking-widest text-foreground shadow-inner">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2 bg-white">
@@ -400,18 +400,18 @@ export const ChannelDetailDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100 flex flex-row items-center justify-end gap-6 shrink-0">
+        <DialogFooter className="p-8 bg-secondary/5 border-t border-slate-100 flex flex-row items-center justify-end gap-6 shrink-0">
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="font-black italic uppercase text-[10px] tracking-[0.2em] text-slate-500"
+            className="font-black italic uppercase text-[10px] tracking-[0.2em] text-muted-foreground"
           >
             CANCEL SESSION
           </Button>
           <Button
             onClick={handleSaveChannel}
             disabled={!canEdit || isSaving}
-            className="h-16 px-12 rounded-2xl bg-slate-900 text-white font-black italic uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl hover:scale-[1.02] transition-transform"
+            className="h-16 px-12 rounded-2xl bg-secondary text-foreground font-black italic uppercase tracking-widest text-[10px] flex items-center gap-3 shadow-xl hover:scale-[1.02] transition-transform"
           >
             {isSaving ? (
               <RefreshCw className="w-4 h-4 animate-spin" />

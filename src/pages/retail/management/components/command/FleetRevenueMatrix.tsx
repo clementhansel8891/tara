@@ -84,40 +84,40 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
 
   return (
     <div className="space-y-10 animate-in fade-in duration-1000">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* REVENUE DISTRIBUTION */}
-        <Card className="lg:col-span-2 border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[3rem] overflow-hidden border border-white/5 group relative">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/10 rounded-full blur-[120px] -mr-40 -mt-40 group-hover:bg-indigo-600/20 transition-all duration-1000" />
-          <CardContent className="p-12 relative z-10">
+        <Card className="lg:col-span-2 border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[2rem] overflow-hidden border border-white/5 group relative">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[120px] -mr-40 -mt-40 group-hover:bg-primary/20 transition-all duration-1000" />
+          <CardContent className="p-6 relative z-10">
             <div className="flex items-center justify-between mb-12">
               <div className="space-y-2">
-                <h3 className="text-[10px] font-black italic uppercase tracking-[0.4em] text-slate-500">
+                <h3 className="text-[10px] font-black italic uppercase tracking-[0.4em] text-muted-foreground">
                   Multi-Node Performance
                 </h3>
                 <div className="flex items-center gap-4">
-                  <Activity className="w-8 h-8 text-indigo-500" />
-                  <p className="text-4xl font-black italic text-white tracking-tighter uppercase">
+                  <Activity className="w-8 h-8 text-primary" />
+                  <p className="text-2xl font-black italic text-foreground tracking-tighter uppercase">
                     Revenue Matrix
                   </p>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-3">
-                 <div className="px-6 py-3 bg-indigo-600/10 border border-indigo-600/20 rounded-2xl flex items-center gap-3 shadow-xl backdrop-blur-xl">
-                  <Target className="w-5 h-5 text-indigo-400" />
-                  <span className="text-[10px] font-black italic uppercase text-indigo-400 tracking-[0.2em]">
+                 <div className="px-6 py-3 bg-primary/10 border border-indigo-600/20 rounded-2xl flex items-center gap-3 shadow-xl backdrop-blur-xl">
+                  <Target className="w-5 h-5 text-primary" />
+                  <span className="text-[10px] font-black italic uppercase text-primary tracking-[0.2em]">
                     LIVE TELEMETRY
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] italic">Fleet Total</p>
-                  <p className="text-2xl font-black italic text-white tracking-tighter">Rp {(totalRevenue / 1000000).toFixed(1)}M</p>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] italic">Fleet Total</p>
+                  <p className="text-2xl font-black italic text-foreground tracking-tighter">Rp {(totalRevenue / 1000000).toFixed(1)}M</p>
                 </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => {
                       alert("Serializing multi-tenant revenue data to CSV. (Simulated)");
                     }}
-                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black italic uppercase text-slate-400 hover:text-white hover:bg-white/10 transition-all tracking-widest"
+                    className="px-4 py-2 bg-secondary/40 border border-border rounded-xl text-[9px] font-black italic uppercase text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all tracking-widest"
                   >
                     Export CSV
                   </button>
@@ -125,7 +125,7 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                     onClick={() => {
                       alert("Requesting strategic yield projections from AI core. (Simulated)");
                     }}
-                    className="px-4 py-2 bg-indigo-600/20 border border-indigo-600/40 rounded-xl text-[9px] font-black italic uppercase text-indigo-400 hover:text-indigo-200 hover:bg-indigo-600/40 transition-all tracking-widest"
+                    className="px-4 py-2 bg-primary/20 border border-indigo-600/40 rounded-xl text-[9px] font-black italic uppercase text-primary hover:text-indigo-200 hover:bg-primary/40 transition-all tracking-widest"
                   >
                     AI Forecast
                   </button>
@@ -151,9 +151,9 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
-                          <div className="bg-slate-950/90 backdrop-blur-3xl border border-white/10 p-6 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-                            <p className="text-[10px] font-black italic text-slate-500 uppercase tracking-widest mb-2">{payload[0].payload.name}</p>
-                            <p className="text-2xl font-black italic text-white tracking-tighter">Rp {payload[0].value?.toLocaleString()}</p>
+                          <div className="bg-background/90 backdrop-blur-3xl border border-border p-6 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                            <p className="text-[10px] font-black italic text-muted-foreground uppercase tracking-widest mb-2">{payload[0].payload.name}</p>
+                            <p className="text-2xl font-black italic text-foreground tracking-tighter">Rp {payload[0].value?.toLocaleString()}</p>
                           </div>
                         );
                       }
@@ -176,27 +176,27 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
         </Card>
 
         {/* GROWTH TERMINAL */}
-        <div className="flex flex-col gap-10">
-          <Card className="border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[3rem] p-12 flex flex-col justify-between group border border-white/5 relative overflow-hidden flex-1">
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[60px] -ml-16 -mb-16 group-hover:bg-emerald-500/10 transition-all duration-1000" />
+        <div className="flex flex-col gap-6">
+          <Card className="border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[2rem] p-6 flex flex-col justify-between group border border-white/5 relative overflow-hidden flex-1">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-success/5 rounded-full blur-[60px] -ml-16 -mb-16 group-hover:bg-success/10 transition-all duration-1000" />
             <div className="space-y-6 relative z-10">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-indigo-600/10 text-indigo-400 border border-indigo-600/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
+              <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary border border-indigo-600/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
                 <Zap className="w-8 h-8" />
               </div>
               <div>
-                <p className="text-[10px] font-black italic uppercase tracking-[0.3em] text-slate-500">Avg Transaction Value</p>
-                <h4 className="text-4xl font-black italic tracking-tighter text-white mt-2">
+                <p className="text-[10px] font-black italic uppercase tracking-[0.3em] text-muted-foreground">Avg Transaction Value</p>
+                <h4 className="text-2xl font-black italic tracking-tighter text-foreground mt-2">
                   Rp {Math.round(avgOrderValue).toLocaleString()}
                 </h4>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-emerald-400 font-black italic mt-6 relative z-10">
+            <div className="flex items-center gap-3 text-success font-black italic mt-6 relative z-10">
               <TrendingUp className="w-5 h-5" />
               <span className="text-[10px] font-black italic uppercase tracking-[0.2em]">+12.4% vs prev shift</span>
             </div>
           </Card>
 
-          <Card className="border-none bg-indigo-600 shadow-[0_30px_60px_-15px_rgba(79,70,229,0.5)] rounded-[3.5rem] p-12 text-white relative overflow-hidden group/velocity flex-1">
+          <Card className="border-none bg-primary shadow-[0_30px_60px_-15px_rgba(79,70,229,0.5)] rounded-[2rem] p-6 text-foreground relative overflow-hidden group/velocity flex-1">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-32 -mt-32 group-hover/velocity:scale-150 transition-transform duration-1000" />
             <div className="relative z-10 flex flex-col h-full justify-between">
               <div>
@@ -214,8 +214,8 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white/95 backdrop-blur-xl p-5 rounded-[1.5rem] shadow-3xl border-none">
-                                 <p className="text-xl font-black italic text-slate-900 tracking-tighter">Rp {payload[0].value?.toLocaleString()}</p>
+                              <div className="bg-white/95 backdrop-blur-xl p-5 rounded-xl shadow-3xl border-none">
+                                 <p className="text-xl font-black italic text-foreground tracking-tighter">Rp {payload[0].value?.toLocaleString()}</p>
                               </div>
                             );
                           }
@@ -235,9 +235,9 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="pt-8 border-t border-white/10 flex items-center justify-between">
+              <div className="pt-8 border-t border-border flex items-center justify-between">
                  <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Strategic Peak Yield</p>
-                 <TrendingUp className="w-5 h-5 text-white/40" />
+                 <TrendingUp className="w-5 h-5 text-foreground/40" />
               </div>
             </div>
           </Card>

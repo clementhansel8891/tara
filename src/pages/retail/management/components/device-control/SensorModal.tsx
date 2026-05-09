@@ -29,7 +29,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
           <DialogHeader>
             <div className="flex items-center gap-4">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-emerald-600" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-slate-100 text-slate-400"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-success" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-secondary/10 text-muted-foreground"}`}
               >
                 <SIcon type={sensor.type} cls="w-6 h-6" />
               </div>
@@ -37,7 +37,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
                 <DialogTitle className="text-base font-black italic tracking-tighter">
                   {sensor.name}
                 </DialogTitle>
-                <div className="text-[10px] text-slate-400 font-mono">
+                <div className="text-[10px] text-muted-foreground font-mono">
                   {sensor.type.replace(/_/g, " ").toUpperCase()}
                 </div>
               </div>
@@ -54,11 +54,11 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
                 className={`rounded-2xl p-5 flex items-center justify-between ${sensor.status === "warning" ? "bg-amber-50" : sensor.status === "critical" ? "bg-red-50" : "bg-emerald-50"}`}
               >
                 <div>
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                     Current Reading
                   </div>
                   <div
-                    className={`text-3xl font-black italic tracking-tighter mt-1 ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-emerald-600"}`}
+                    className={`text-3xl font-black italic tracking-tighter mt-1 ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-success"}`}
                   >
                     {sensor.currentValue}
                     <span className="text-sm ml-1 opacity-60">
@@ -68,7 +68,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
                 </div>
                 {(sensor.thresholdMin !== undefined ||
                   sensor.thresholdMax !== undefined) && (
-                  <div className="text-right text-[11px] text-slate-500 font-semibold space-y-1">
+                  <div className="text-right text-[11px] text-muted-foreground font-semibold space-y-1">
                     {sensor.thresholdMin !== undefined && (
                       <div>
                         Min: {sensor.thresholdMin}
@@ -99,8 +99,8 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
               ]
                 .filter((r) => r.v)
                 .map((r, i) => (
-                  <div key={i} className="bg-slate-50 rounded-2xl p-3">
-                    <div className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">
+                  <div key={i} className="bg-secondary/5 rounded-2xl p-3">
+                    <div className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">
                       {r.l}
                     </div>
                     <div className="font-semibold text-slate-800 font-mono">
@@ -113,7 +113,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
               onClick={() => {
                 alert("This will open a threshold configuration slider. (Simulated for demonstration)");
               }}
-              className="w-full h-10 rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
+              className="w-full h-10 rounded-xl bg-secondary text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2"
             >
               <Settings2 className="w-3.5 h-3.5" /> Configure Threshold
             </Button>

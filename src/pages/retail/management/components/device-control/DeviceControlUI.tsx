@@ -100,16 +100,16 @@ export const connLabel: Record<ConnType, string> = {
 // ── Color Helpers ─────────────────────────────────────────────────
 export const dsc = (s: BranchDevice["status"]) =>
   ({
-    online: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    online: "bg-emerald-50 text-success border-emerald-100",
     offline: "bg-red-50 text-red-600 border-red-100",
     maintenance: "bg-amber-50 text-amber-700 border-amber-100",
-    unknown: "bg-slate-100 text-slate-500 border-slate-100",
+    unknown: "bg-secondary/10 text-muted-foreground border-slate-100",
   })[s];
 
 export const csc = (s: CCTVCamera["status"]) =>
   ({
-    live: "bg-emerald-50 text-emerald-700 border-emerald-100",
-    recording: "bg-blue-50 text-blue-700 border-blue-100",
+    live: "bg-emerald-50 text-success border-emerald-100",
+    recording: "bg-primary/5 text-blue-700 border-blue-100",
     offline: "bg-red-50 text-red-600 border-red-100",
     error: "bg-red-50 text-red-700 border-red-100",
     maintenance: "bg-amber-50 text-amber-700 border-amber-100",
@@ -117,11 +117,11 @@ export const csc = (s: CCTVCamera["status"]) =>
 
 export const ssc = (s: BranchSensor["status"]) =>
   ({
-    normal: "bg-emerald-50 text-emerald-700 border-emerald-100",
+    normal: "bg-emerald-50 text-success border-emerald-100",
     warning: "bg-amber-50 text-amber-700 border-amber-100",
     critical: "bg-red-50 text-red-700 border-red-100",
-    offline: "bg-slate-100 text-slate-500 border-slate-100",
-    unknown: "bg-slate-100 text-slate-500 border-slate-100",
+    offline: "bg-secondary/10 text-muted-foreground border-slate-100",
+    unknown: "bg-secondary/10 text-muted-foreground border-slate-100",
   })[s];
 
 // ── Empty State ──────────────────────────────────────────────────
@@ -134,8 +134,8 @@ export const Empty = ({
   onAdd: () => void;
   onScan?: () => void;
 }) => (
-  <div className="flex flex-col items-center justify-center py-20 gap-4 text-slate-400">
-    <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center">
+  <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
+    <div className="w-16 h-16 rounded-3xl bg-secondary/10 flex items-center justify-center">
       <Monitor className="w-7 h-7 opacity-30" />
     </div>
     <div className="text-sm font-bold">{label}</div>

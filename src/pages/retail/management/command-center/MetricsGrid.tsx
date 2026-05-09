@@ -56,25 +56,25 @@ export const MetricsGrid: React.FC<MetricsGridProps> = ({ stats }) => {
             <div
               className={cn(
                 "p-4 rounded-2xl",
-                m.color === "blue" && "bg-blue-50 text-blue-600",
-                m.color === "indigo" && "bg-indigo-50 text-indigo-600",
-                m.color === "emerald" && "bg-emerald-50 text-emerald-600",
+                m.color === "blue" && "bg-primary/5 text-primary",
+                m.color === "indigo" && "bg-primary/5 text-primary",
+                m.color === "emerald" && "bg-emerald-50 text-success",
                 m.color === "amber" && "bg-amber-50 text-amber-600",
               )}
             >
               <m.icon className="w-5 h-5" />
             </div>
-            <Badge className="bg-slate-50 text-slate-400 font-bold italic text-[8px] uppercase tracking-widest border-none">
+            <Badge className="bg-secondary/5 text-muted-foreground font-bold italic text-[8px] uppercase tracking-widest border-none">
               Vitals
             </Badge>
           </div>
-          <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+          <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
             {m.label}
           </div>
-          <div className="text-3xl font-black italic tracking-tighter text-slate-900 group-hover:text-blue-600 transition-colors uppercase">
+          <div className="text-3xl font-black italic tracking-tighter text-foreground group-hover:text-primary transition-colors uppercase">
             {m.val}
           </div>
-          <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+          <div className="text-[10px] font-bold italic text-muted-foreground mt-2 uppercase">
             {m.sub}
           </div>
         </Card>

@@ -27,12 +27,12 @@ const RootLayoutContent = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-secondary/5">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-1 w-full bg-slate-200 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-600 animate-[loading_1.5s_infinite]" />
+          <div className="w-16 h-1 w-full bg-muted/20 rounded-full overflow-hidden">
+            <div className="h-full bg-primary animate-[loading_1.5s_infinite]" />
           </div>
-          <div className="animate-pulse text-blue-600 font-black italic tracking-tighter text-sm">
+          <div className="animate-pulse text-primary font-black italic tracking-tighter text-sm">
             Zenvix_RETAIL_AUTHORITY_SYNCING...
           </div>
         </div>

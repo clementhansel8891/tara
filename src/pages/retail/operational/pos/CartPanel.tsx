@@ -65,29 +65,29 @@ export const CartPanel: React.FC<CartPanelProps> = ({
   const selectedItem = cart.find((item) => item.id === selectedItemId);
 
   return (
-    <div className="h-full flex flex-col bg-white/30 backdrop-blur-2xl overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-white/40 relative">
+    <div className="h-full flex flex-col glass-morphism overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] rounded-[2.5rem] relative">
       {/* Gloss Effect overlay */}
       <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
       {/* Header */}
-      <div className="p-4 border-b border-white/40 bg-white/20 shrink-0 flex items-center justify-between relative z-10">
+      <div className="p-4 border-b border-border/40 bg-background/20 shrink-0 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white shadow-2xl shadow-indigo-500/40 ring-4 ring-white/50">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-2xl shadow-primary/40 ring-4 ring-primary/10">
             <ShoppingCart className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black italic tracking-tighter uppercase text-slate-900 leading-none mb-1">
+            <h2 className="text-xl font-black italic tracking-tighter uppercase text-foreground leading-none mb-1">
               {activeStoreName || "POS HUB"}
             </h2>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
-              <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+              <div className="w-2 h-2 rounded-full bg-success shadow-[0_0_10px_hsl(var(--success)/0.5)] animate-pulse" />
+              <span className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em]">
                 ACTIVE LINK
               </span>
             </div>
           </div>
         </div>
-        <Badge className="h-8 rounded-xl bg-white border border-slate-100 text-slate-900 px-4 font-black italic shadow-lg shadow-slate-200/50">
+        <Badge className="h-8 rounded-xl bg-background border border-border text-foreground px-4 font-black italic shadow-lg shadow-primary/5">
           {cart.length} SKUS
         </Badge>
       </div>
@@ -95,10 +95,10 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       {/* Cart Content */}
       <ScrollArea className="flex-1 relative z-10">
         {cart.length === 0 ? (
-          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-200">
+          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-muted-foreground">
             <div className="relative mb-6">
-              <ShoppingCart className="w-16 h-16 opacity-5" />
-              <div className="absolute inset-0 bg-indigo-500/10 blur-3xl rounded-full" />
+              <ShoppingCart className="w-16 h-16 opacity-10" />
+              <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full" />
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 italic">
               CART IS EMPTY
@@ -114,8 +114,8 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                   onClick={() => onSelectItem?.(item.id)}
                   className={`group relative flex flex-col gap-3 p-3.5 rounded-[1.5rem] transition-all duration-500 cursor-pointer border ${
                     isActive
-                      ? "bg-indigo-600 shadow-[0_15px_30px_-10px_rgba(79,70,229,0.4)] border-indigo-400 ring-2 ring-white/20 translate-x-1"
-                      : "bg-white/40 border-white/60 hover:bg-white/60 hover:border-indigo-100"
+                      ? "bg-primary shadow-[0_15px_30px_-10px_hsl(var(--primary)/0.4)] border-primary ring-2 ring-primary/20 translate-x-1"
+                      : "bg-background/40 border-border/60 hover:bg-background/60 hover:border-primary/20"
                   }`}
                 >
                   {/* Top Row: Core Item Info */}
@@ -124,15 +124,15 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                       <h4
                         className={`text-[13px] font-black italic truncate tracking-tight transition-colors ${
                           isActive
-                            ? "text-white"
-                            : "text-slate-900 group-hover:text-indigo-600"
+                            ? "text-primary-foreground"
+                            : "text-foreground group-hover:text-primary"
                         }`}
                       >
                         {item.name}
                       </h4>
                       <div
                         className={`mt-1 text-[9px] font-black uppercase tracking-widest opacity-60 ${
-                          isActive ? "text-white" : "text-slate-500"
+                          isActive ? "text-primary-foreground" : "text-muted-foreground"
                         }`}
                       >
                         UNIT: Rp {item.price.toLocaleString()}
@@ -146,7 +146,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                             const val = prompt("Enter Discount Amount (Rp):", "0");
                             if (val) onApplyLineDiscount?.(item.id, parseFloat(val));
                           }}
-                          className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-200 hover:text-white hover:bg-emerald-500 transition-all flex items-center gap-1"
+                          className="p-1.5 rounded-lg bg-success/20 text-success hover:text-success-foreground hover:bg-success transition-all flex items-center gap-1"
                         >
                           <Zap className="w-3.5 h-3.5" />
                           <span className="text-[10px] font-black italic">DISC</span>
@@ -156,7 +156,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                             e.stopPropagation();
                             onRemove(item.id);
                           }}
-                          className="p-1.5 rounded-lg bg-rose-500/20 text-rose-200 hover:text-white hover:bg-rose-500 transition-all"
+                          className="p-1.5 rounded-lg bg-destructive/20 text-destructive hover:text-destructive-foreground hover:bg-destructive transition-all"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -166,7 +166,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                   
                   {item.discount && item.discount > 0 && (
                     <div className="flex items-center gap-2 -mt-2 mb-1">
-                      <Badge variant="outline" className={`text-[9px] font-black italic tracking-tight py-0 px-2 rounded-lg border-emerald-500/30 ${isActive ? 'bg-white text-emerald-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <Badge variant="outline" className={`text-[9px] font-black italic tracking-tight py-0 px-2 rounded-lg border-success/30 ${isActive ? 'bg-primary-foreground text-success' : 'bg-success/10 text-success'}`}>
                         PROMO APPLIED: - Rp {item.discount.toLocaleString()}
                       </Badge>
                     </div>
@@ -177,7 +177,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                     {/* Horizontal Industrial Quantity Controls */}
                     <div
                       className={`flex items-center gap-1 p-1 rounded-xl transition-colors ${
-                        isActive ? "bg-white/10" : "bg-slate-900/5 shadow-inner"
+                        isActive ? "bg-primary-foreground/10" : "bg-foreground/5 shadow-inner"
                       }`}
                     >
                       <button
@@ -187,15 +187,15 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                         }}
                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-90 ${
                           isActive
-                            ? "bg-white text-rose-500 shadow-sm"
-                            : "bg-white shadow-sm text-slate-400 hover:text-rose-500 font-bold"
+                            ? "bg-primary-foreground text-destructive shadow-sm"
+                            : "bg-background shadow-sm text-muted-foreground hover:text-destructive font-bold"
                         }`}
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <div
                         className={`w-9 h-7 flex items-center justify-center text-sm font-black italic ${
-                          isActive ? "text-white" : "text-slate-900"
+                          isActive ? "text-primary-foreground" : "text-foreground"
                         }`}
                       >
                         {item.quantity}
@@ -207,8 +207,8 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                         }}
                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all active:scale-90 ${
                           isActive
-                            ? "bg-white text-indigo-600 shadow-sm"
-                            : "bg-white shadow-sm text-slate-600 hover:text-indigo-600"
+                            ? "bg-primary-foreground text-primary shadow-sm"
+                            : "bg-background shadow-sm text-foreground hover:text-primary"
                         }`}
                       >
                         <Plus className="w-4 h-4" />
@@ -218,7 +218,7 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                     <div className="text-right flex flex-col items-end">
                       <span
                         className={`text-[8px] font-black uppercase tracking-[0.2em] opacity-40 leading-none mb-1 ${
-                          isActive ? "text-white" : "text-slate-400"
+                          isActive ? "text-primary-foreground" : "text-muted-foreground"
                         }`}
                       >
                         LINE TOTAL
@@ -226,8 +226,8 @@ export const CartPanel: React.FC<CartPanelProps> = ({
                       <div
                         className={`text-lg font-black italic tracking-tighter transition-all duration-300 ${
                           isActive
-                            ? "text-white drop-shadow-lg scale-105"
-                            : "text-indigo-600"
+                            ? "text-primary-foreground drop-shadow-lg scale-105"
+                            : "text-primary"
                         }`}
                       >
                         <span className="text-[10px] not-italic opacity-40 mr-0.5">
@@ -247,45 +247,45 @@ export const CartPanel: React.FC<CartPanelProps> = ({
       {/* Totals & Payments Section */}
       <div className="mt-auto shrink-0 relative z-20">
         {/* Totals & Payments Section */}
-        <div className="p-4 bg-slate-950 text-white rounded-t-[2.5rem] shadow-[0_-30px_100px_rgba(0,0,0,0.4)] relative overflow-hidden">
+        <div className="p-4 bg-secondary text-foreground rounded-t-[2.5rem] shadow-[0_-30px_100px_rgba(0,0,0,0.4)] relative overflow-hidden border-t border-border/50">
           {/* Decorative glow */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/30 blur-[120px] -mr-40 -mt-20 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-600/10 blur-[100px] -ml-32 -mb-20 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/20 blur-[120px] -mr-40 -mt-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/10 blur-[100px] -ml-32 -mb-20 pointer-events-none" />
 
           {/* Totals */}
           <div className="space-y-2 mb-4 relative z-10">
-            <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="flex justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <span>Subtotal</span>
               <span>Rp {totals.subtotal.toLocaleString()}</span>
             </div>
 
             {(totals.totalItemDiscount > 0 || totals.cartDiscount > 0) && (
-              <div className="flex justify-between text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+              <div className="flex justify-between text-xs font-semibold text-success uppercase tracking-wider">
                 <span>Discount</span>
                 <span>- Rp {(totals.totalItemDiscount + totals.cartDiscount).toLocaleString()}</span>
               </div>
             )}
 
-            <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="flex justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <span className="flex items-center gap-2">
                 Tax {cartTaxRate > 0 ? `(${cartTaxRate}%)` : "(Item)"}
-                <button onClick={onOpenModifiers} className="text-indigo-400 hover:text-white transition-colors">
+                <button onClick={onOpenModifiers} className="text-primary hover:text-foreground transition-colors">
                   <Settings2 className="w-3 h-3" />
                 </button>
               </span>
               <span>Rp {totals.tax.toLocaleString()}</span>
             </div>
 
-            <Separator className="bg-white/10 my-1" />
+            <Separator className="bg-border/20 my-1" />
 
             {/* GRAND TOTAL */}
             <div className="flex justify-between items-end pt-1">
-              <div className="text-sm font-semibold text-indigo-400 uppercase tracking-widest">
+              <div className="text-sm font-semibold text-primary uppercase tracking-widest">
                 Total Due
               </div>
 
               <div className="text-right">
-                <div className="text-3xl font-black tracking-tight text-white leading-none">
+                <div className="text-3xl font-black tracking-tight text-foreground leading-none">
                   Rp {totals.grandTotal.toLocaleString()}
                 </div>
               </div>
@@ -297,16 +297,16 @@ export const CartPanel: React.FC<CartPanelProps> = ({
             <button
               disabled={cart.length === 0 || isProcessing}
               onClick={() => onCheckout("cash")}
-              className="h-12 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold flex items-center justify-center gap-2 rounded-xl uppercase tracking-wide transition-all active:scale-95 disabled:opacity-30"
+              className="h-12 bg-background border border-border hover:bg-accent text-foreground font-semibold flex items-center justify-center gap-2 rounded-xl uppercase tracking-wide transition-all active:scale-95 disabled:opacity-30"
             >
-              <Banknote className="w-4 h-4 text-indigo-400" />
+              <Banknote className="w-4 h-4 text-primary" />
               Cash
             </button>
 
             <button
               disabled={cart.length === 0 || isProcessing}
               onClick={() => onCheckout("card")}
-              className="h-12 bg-gradient-to-br from-indigo-500 to-indigo-700 hover:from-indigo-400 hover:to-indigo-600 text-white font-semibold flex items-center justify-center gap-2 rounded-xl shadow-[0_10px_20px_rgba(79,70,229,0.35)] transition-all active:scale-95 disabled:opacity-30"
+              className="h-12 bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 rounded-xl shadow-[0_10px_20px_hsl(var(--primary)/0.35)] transition-all active:scale-95 disabled:opacity-30"
             >
               {isProcessing ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />

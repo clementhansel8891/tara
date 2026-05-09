@@ -90,8 +90,8 @@ const OrderFulfillment = () => {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <RotateCcw className="w-8 h-8 text-indigo-600 animate-spin" />
-          <p className="text-sm font-black italic uppercase tracking-widest text-slate-400">
+          <RotateCcw className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm font-black italic uppercase tracking-widest text-muted-foreground">
             Syncing Pipeline Data...
           </p>
         </div>
@@ -101,52 +101,52 @@ const OrderFulfillment = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
+      <div className="px-6 py-3 border-b bg-background/40 backdrop-blur-md shrink-0 flex items-center justify-between gap-6">
         <PageHeader
-          title="Multi-Channel Fulfillment Engine"
-          subtitle={`Node: ${session.location_id || "CENTRAL_HUB"} • Velocity: 94.2% • SLA Gaps: MINIMAL`}
+          title="Fulfillment Engine"
+          subtitle={`Node: ${session.location_id || "CENTRAL_HUB"} • Velocity: 94.2%`}
         />
         <div className="flex items-center gap-3">
           <Button 
             onClick={() => {
-              toast({ title: "Archive Generated", description: "Fulfillment manifest has been archived to Zenvix Vault." });
+              toast({ title: "Archive Generated", description: "Fulfillment manifest has been archived." });
             }}
             variant="outline"
-            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2"
+            className="h-10 rounded-xl px-4 font-black italic border-slate-200 text-[10px] uppercase tracking-widest gap-2"
           >
-            <History className="w-3.5 h-3.5" /> Manifest Archive
+            <History className="w-3 h-3" /> MANIFEST
           </Button>
           <Button 
             onClick={() => {
-              toast({ title: "Batch Pick Initialized", description: "Picking manifest broadcasted to warehouse terminals." });
+              toast({ title: "Batch Pick Initialized", description: "Picking manifest broadcasted." });
             }}
-            className="h-11 px-6 rounded-xl bg-slate-900 font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg shadow-slate-900/10 hover:bg-slate-800"
+            className="h-10 px-5 rounded-xl bg-secondary font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-slate-900/10 hover:bg-secondary/60"
           >
-            <Zap className="w-4 h-4 text-amber-400" /> Start Batch Pick
+            <Zap className="w-3 h-3 text-amber-400" /> START BATCH
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 p-8 lg:p-12 bg-slate-50/50">
+      <div className="flex-1 p-8 lg:p-6 bg-secondary/5/50">
         <div className="max-w-7xl mx-auto space-y-12">
           {/* Logistics Pulse Vitals */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-b-4 border-b-slate-100 hover:border-b-blue-600 transition-all">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
                   <PackageCheck className="w-5 h-5" />
                 </div>
-                <Badge className="bg-blue-50 text-blue-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-primary/5 text-blue-700 font-black italic text-[8px] uppercase tracking-widest border-none">
                   Active
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 Queue Depth
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 {stats.pending} Orders
               </div>
-              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase flex items-center gap-1 text-emerald-600">
+              <div className="text-[10px] font-bold italic text-muted-foreground mt-2 uppercase flex items-center gap-1 text-success">
                 <Clock className="w-3 h-3" /> TAT: 12m 45s (Target Met)
               </div>
             </Card>
@@ -160,20 +160,20 @@ const OrderFulfillment = () => {
                   Awaiting
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 Courier Slant
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 12 Pickups
               </div>
-              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+              <div className="text-[10px] font-bold italic text-muted-foreground mt-2 uppercase">
                 Next: JNE Express (5m)
               </div>
             </Card>
 
             <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-b-4 border-b-slate-100 hover:border-b-indigo-600 transition-all">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600">
+                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
                   <Zap className="w-5 h-5" />
                 </div>
                 <Badge
@@ -183,24 +183,24 @@ const OrderFulfillment = () => {
                   Priority
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 High-Value Stream
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 {stats.priority} Orders
               </div>
-              <div className="text-[10px] font-bold italic text-slate-400 mt-2 uppercase">
+              <div className="text-[10px] font-bold italic text-muted-foreground mt-2 uppercase">
                 {">"} Rp 1.0M Allocation
               </div>
             </Card>
 
-            <Card className="rounded-[2rem] p-6 bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
+            <Card className="rounded-[2rem] p-6 bg-secondary text-foreground shadow-2xl relative overflow-hidden group">
               <ShieldAlert className="absolute -right-8 -bottom-8 w-32 h-32 opacity-10 group-hover:rotate-12 transition-transform" />
               <div className="relative z-10">
-                <div className="text-[10px] font-black italic uppercase tracking-widest text-indigo-400 mb-4">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-primary mb-4">
                   Pipeline Health
                 </div>
-                <div className="text-4xl font-black italic tracking-tighter text-emerald-400">
+                <div className="text-2xl font-black italic tracking-tighter text-success">
                   98.2%
                 </div>
                 <div className="text-[10px] font-bold italic opacity-60 mt-4 uppercase">

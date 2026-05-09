@@ -21,7 +21,7 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
     <Card
       onClick={onClick}
       className={cn(
-        "rounded-[3rem] border-2 cursor-pointer transition-all p-10 group relative overflow-hidden h-[320px] flex flex-col justify-between",
+        "rounded-[2rem] border-2 cursor-pointer transition-all p-6 group relative overflow-hidden h-[320px] flex flex-col justify-between",
         isActive
           ? "border-indigo-600 bg-white shadow-[0_32px_80px_-20px_rgba(79,70,229,0.15)] ring-8 ring-indigo-50"
           : "border-slate-100 bg-white hover:border-indigo-200 hover:shadow-2xl hover:shadow-slate-100 hover:-translate-y-1",
@@ -31,7 +31,7 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
       <div
         className={cn(
           "absolute -right-12 -bottom-12 w-48 h-48 opacity-[0.03] transition-transform duration-1000 group-hover:scale-125 group-hover:-rotate-12",
-          isActive ? "text-indigo-600 opacity-[0.08]" : "text-slate-950",
+          isActive ? "text-primary opacity-[0.08]" : "text-primary-foreground",
         )}
       >
         <Icon className="w-full h-full" />
@@ -42,8 +42,8 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
           className={cn(
             "w-16 h-16 rounded-[2rem] flex items-center justify-center mb-8 transition-all duration-500 group-hover:rotate-12",
             isActive
-              ? "bg-indigo-600 text-white shadow-2xl shadow-indigo-200"
-              : "bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500",
+              ? "bg-primary text-foreground shadow-2xl shadow-indigo-200"
+              : "bg-secondary/5 text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary",
           )}
         >
           <Icon className="w-8 h-8" />
@@ -54,16 +54,16 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
             <h3
               className={cn(
                 "text-2xl font-black italic uppercase tracking-tighter leading-tight",
-                isActive ? "text-slate-950" : "text-slate-800",
+                isActive ? "text-primary-foreground" : "text-slate-800",
               )}
             >
               {template.label}
             </h3>
             {isActive && (
-              <div className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+              <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
             )}
           </div>
-          <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-[90%] italic">
+          <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-[90%] italic">
             {template.description}
           </p>
         </div>
@@ -74,8 +74,8 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
           className={cn(
             "rounded-2xl text-[10px] font-black italic uppercase tracking-widest px-4 py-1.5 border-none shadow-sm transition-all duration-500",
             isActive
-              ? "bg-indigo-600 text-white"
-              : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600",
+              ? "bg-primary text-foreground"
+              : "bg-secondary/10 text-muted-foreground group-hover:bg-primary/5 group-hover:text-primary",
           )}
         >
           {isActive ? "Configuring..." : "Access Report"}
@@ -85,7 +85,7 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-8 h-8 rounded-full border-4 border-white bg-slate-100"
+                className="w-8 h-8 rounded-full border-4 border-white bg-secondary/10"
               />
             ))}
           </div>

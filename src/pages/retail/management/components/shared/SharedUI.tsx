@@ -36,14 +36,14 @@ export const CredentialField = ({
   const isMissing = !value;
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+      <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         <span>{label}</span>
         {tooltip && (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex items-center justify-center cursor-help">
-                  <Info className="w-3 h-3 text-slate-400" />
+                  <Info className="w-3 h-3 text-muted-foreground" />
                 </span>
               </TooltipTrigger>
               <TooltipContent className="text-xs max-w-xs">
@@ -57,8 +57,8 @@ export const CredentialField = ({
         <code
           className={`flex-1 rounded-xl px-4 py-3 text-sm font-mono font-bold truncate ${
             isMissing
-              ? "bg-slate-100 text-slate-400"
-              : "bg-slate-900 text-slate-100"
+              ? "bg-secondary/10 text-muted-foreground"
+              : "bg-secondary text-slate-100"
           }`}
         >
           {displayValue}
@@ -67,7 +67,7 @@ export const CredentialField = ({
           <Button
             variant="outline"
             size="icon"
-            className="border-slate-700 text-slate-200 hover:text-white shrink-0"
+            className="border-slate-700 text-slate-200 hover:text-foreground shrink-0"
             onClick={onCopy}
           >
             <Copy className="w-4 h-4" />
@@ -75,7 +75,7 @@ export const CredentialField = ({
         )}
       </div>
       {helperText && (
-        <p className="text-[10px] text-slate-500 font-semibold">{helperText}</p>
+        <p className="text-[10px] text-muted-foreground font-semibold">{helperText}</p>
       )}
     </div>
   );
@@ -91,7 +91,7 @@ export const CopyPill = ({ label, value, onClick }: CopyPillProps) => (
   <Button
     size="sm"
     variant="outline"
-    className="h-8 rounded-full border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600"
+    className="h-8 rounded-full border-slate-200 text-[10px] font-black uppercase tracking-widest text-muted-foreground"
     onClick={onClick}
     disabled={!value}
     type="button"

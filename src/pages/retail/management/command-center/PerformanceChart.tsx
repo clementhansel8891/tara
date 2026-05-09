@@ -23,17 +23,17 @@ interface PerformanceChartProps {
 
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
   return (
-    <Card className="lg:col-span-2 rounded-[3rem] shadow-2xl border-none overflow-hidden bg-white">
+    <Card className="lg:col-span-2 rounded-[2rem] shadow-2xl border-none overflow-hidden bg-white">
       <div className="p-8 border-b flex items-center justify-between">
         <div>
           <h3 className="text-xl font-black italic uppercase tracking-tighter">
             Intra-Day Performance
           </h3>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
             Real-time revenue stream tracking
           </div>
         </div>
-        <div className="flex gap-2 p-1 bg-slate-50 rounded-xl">
+        <div className="flex gap-2 p-1 bg-secondary/5 rounded-xl">
           <Button disabled title="Not available yet"
             variant="ghost"
             size="sm"
@@ -44,13 +44,13 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ data }) => {
           <Button disabled title="Not available yet"
             variant="ghost"
             size="sm"
-            className="h-8 px-4 rounded-lg font-black italic text-[10px] text-slate-400 uppercase"
+            className="h-8 px-4 rounded-lg font-black italic text-[10px] text-muted-foreground uppercase"
           >
             Hour
           </Button>
         </div>
       </div>
-      <div className="p-10">
+      <div className="p-6">
         <div className="h-[320px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>

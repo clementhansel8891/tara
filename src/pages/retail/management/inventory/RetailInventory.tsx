@@ -52,7 +52,7 @@ export default function RetailInventory() {
           <Button 
             onClick={() => handleAdjust("STOCK_COUNT")} 
             disabled={loading}
-            className="rounded-xl bg-slate-900 text-white font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-xl"
+            className="rounded-xl bg-secondary text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-xl"
           >
             {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />} 
             New Stock Count
@@ -68,9 +68,9 @@ export default function RetailInventory() {
                 { id: "ship-901", from: "Central Whse", items: 24, status: "in-transit" },
                 { id: "ship-904", from: "Regional Hub", items: 12, status: "pending" },
               ].map(ship => (
-                <div key={ship.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <div key={ship.id} className="p-4 flex items-center justify-between hover:bg-secondary/5 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-primary/5 text-primary rounded-lg flex items-center justify-center">
                       <Truck className="w-5 h-5" />
                     </div>
                     <div>
@@ -97,7 +97,7 @@ export default function RetailInventory() {
 
           <WorkspacePanel title="Stock Opname Activity" description="Operational counting schedules">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Card className="border-none shadow-sm bg-slate-50">
+               <Card className="border-none shadow-sm bg-secondary/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-black italic uppercase">Weekly Coffee Count</CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase">Target: Store Shelf A1-A4</CardDescription>
@@ -109,14 +109,14 @@ export default function RetailInventory() {
                         onClick={() => handleAdjust("OPNAME_START")} 
                         disabled={loading}
                         size="sm"
-                        className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black italic uppercase text-[9px] tracking-widest"
+                        className="rounded-xl bg-primary hover:bg-blue-700 text-foreground font-black italic uppercase text-[9px] tracking-widest"
                       >
                         Start Count
                       </Button>
                     </div>
                   </CardContent>
                </Card>
-               <Card className="border-none shadow-sm bg-slate-50">
+               <Card className="border-none shadow-sm bg-secondary/5">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm">Monthly Merchandise Audit</CardTitle>
                     <CardDescription>Target: Total Inventory</CardDescription>
@@ -153,9 +153,9 @@ export default function RetailInventory() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm bg-blue-600 text-white">
+          <Card className="border-none shadow-sm bg-primary text-foreground">
             <CardHeader>
-              <CardTitle className="text-white flex items-center"><BoxSelect className="w-4 h-4 mr-2" /> Rapid Intake</CardTitle>
+              <CardTitle className="text-foreground flex items-center"><BoxSelect className="w-4 h-4 mr-2" /> Rapid Intake</CardTitle>
               <CardDescription className="text-blue-100">Quickly add local stock</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

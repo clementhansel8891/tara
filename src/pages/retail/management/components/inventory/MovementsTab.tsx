@@ -51,7 +51,7 @@ export const MovementsTab: React.FC<Props> = ({
                 <Truck className={`w-7 h-7 text-${meta.color}-600`} />
               )}
             </div>
-            <div className="font-black italic text-base tracking-tight text-slate-900 uppercase">
+            <div className="font-black italic text-base tracking-tight text-foreground uppercase">
               {meta.label}
             </div>
             <div
@@ -69,9 +69,9 @@ export const MovementsTab: React.FC<Props> = ({
       </div>
 
       {/* Movement audit log */}
-      <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
+      <Card className="rounded-2xl border-none shadow-xl overflow-hidden bg-white">
         <CardHeader className="p-7 border-b border-slate-50">
-          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2">
+          <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic flex items-center gap-2">
             <History className="w-4 h-4" /> Movement Audit Log
           </CardTitle>
         </CardHeader>
@@ -89,7 +89,7 @@ export const MovementsTab: React.FC<Props> = ({
                 ].map((h, i) => (
                   <th
                     key={i}
-                    className="px-7 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 italic"
+                    className="px-7 py-4 text-left text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic"
                   >
                     {h}
                   </th>
@@ -100,23 +100,23 @@ export const MovementsTab: React.FC<Props> = ({
               {(Array.isArray(auditLog) ? auditLog : []).map((log, i) => (
                 <tr
                   key={i}
-                  className="border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"
+                  className="border-b border-slate-50 last:border-none hover:bg-secondary/5/50 transition-colors"
                 >
-                  <td className="px-7 py-4 font-mono text-[10px] text-slate-400">
+                  <td className="px-7 py-4 font-mono text-[10px] text-muted-foreground">
                     {log.ts}
                   </td>
-                  <td className="px-7 py-4 font-black italic text-sm text-slate-700">
+                  <td className="px-7 py-4 font-black italic text-sm text-muted-foreground">
                     {log.actor}
                   </td>
                   <td className="px-7 py-4">
-                    <Badge className="bg-slate-100 text-slate-700 border-none font-black italic text-[9px]">
+                    <Badge className="bg-secondary/10 text-muted-foreground border-none font-black italic text-[9px]">
                       {log.action}
                     </Badge>
                   </td>
                   <td className="px-7 py-4 font-bold italic text-sm">
                     {log.sku ? `${log.sku} × ${log.qty}` : "—"}
                   </td>
-                  <td className="px-7 py-4 text-[11px] text-slate-500 font-medium italic max-w-xs truncate">
+                  <td className="px-7 py-4 text-[11px] text-muted-foreground font-medium italic max-w-xs truncate">
                     {log.reason}
                   </td>
                   <td className="px-7 py-4">
@@ -124,7 +124,7 @@ export const MovementsTab: React.FC<Props> = ({
                       className={cn(
                         "border-none font-black italic text-[9px] uppercase",
                         log.status === "approved"
-                          ? "bg-emerald-50 text-emerald-700"
+                          ? "bg-emerald-50 text-success"
                           : log.status === "pending"
                             ? "bg-amber-50 text-amber-700"
                             : "bg-red-50 text-red-700",

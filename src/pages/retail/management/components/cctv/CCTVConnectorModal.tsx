@@ -156,10 +156,10 @@ export default function CCTVConnectorModal({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md p-0 overflow-hidden border-slate-100 rounded-[28px]">
-        <DialogHeader className="p-6 bg-slate-50/50 border-b border-slate-100">
+        <DialogHeader className="p-6 bg-secondary/5/50 border-b border-slate-100">
           <DialogTitle className="text-xl font-black italic tracking-tighter text-slate-800 flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-              <Camera className="w-5 h-5 text-blue-500" />
+              <Camera className="w-5 h-5 text-primary" />
             </div>
             Connect CCTV
           </DialogTitle>
@@ -168,7 +168,7 @@ export default function CCTVConnectorModal({
         <div className="p-6 space-y-6">
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                 Protocol & Provider
               </Label>
               <Select
@@ -192,7 +192,7 @@ export default function CCTVConnectorModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+              <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                 Camera Name
               </Label>
               <Input
@@ -205,7 +205,7 @@ export default function CCTVConnectorModal({
 
             {pConfig?.req.includes("ipAddress") && (
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                   IP Address
                 </Label>
                 <Input
@@ -220,7 +220,7 @@ export default function CCTVConnectorModal({
             {pConfig?.req.includes("username") && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                     Username
                   </Label>
                   <Input
@@ -231,7 +231,7 @@ export default function CCTVConnectorModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                     Password
                   </Label>
                   <Input
@@ -247,7 +247,7 @@ export default function CCTVConnectorModal({
 
             {pConfig?.req.includes("cloudAccountId") && (
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                   Cloud Account ID
                 </Label>
                 <Input
@@ -261,7 +261,7 @@ export default function CCTVConnectorModal({
 
             {pConfig?.req.includes("verificationCode") && (
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                   Verification Code
                 </Label>
                 <Input
@@ -271,7 +271,7 @@ export default function CCTVConnectorModal({
                   onChange={(e) => update("verificationCode", e.target.value)}
                   className="rounded-xl border-slate-200 font-mono text-sm"
                 />
-                <p className="text-[10px] text-slate-400 font-medium">
+                <p className="text-[10px] text-muted-foreground font-medium">
                   Found on the camera sticker
                 </p>
               </div>
@@ -279,7 +279,7 @@ export default function CCTVConnectorModal({
 
             {pConfig?.req.includes("rtspUrl") && (
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                   RTSP URL
                 </Label>
                 <Input
@@ -293,12 +293,12 @@ export default function CCTVConnectorModal({
           </div>
         </div>
 
-        <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+        <div className="p-6 bg-secondary/5/50 border-t border-slate-100 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={handleTest}
             disabled={!f.name || loading}
-            className={`rounded-xl h-10 px-5 text-xs font-bold transition-all ${validated ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800" : "border-slate-200 text-slate-600"} gap-2`}
+            className={`rounded-xl h-10 px-5 text-xs font-bold transition-all ${validated ? "border-emerald-200 bg-emerald-50 text-success hover:bg-success/10 hover:text-emerald-800" : "border-slate-200 text-muted-foreground"} gap-2`}
           >
             {validated ? (
               <CheckCircle2 className="w-4 h-4" />
@@ -311,7 +311,7 @@ export default function CCTVConnectorModal({
           <Button
             onClick={handleRegister}
             disabled={!validated || loading}
-            className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black italic uppercase text-[10px] tracking-widest h-10 px-6 gap-2"
+            className="rounded-xl bg-primary hover:bg-blue-700 text-foreground font-black italic uppercase text-[10px] tracking-widest h-10 px-6 gap-2"
           >
             Connect <Server className="w-3.5 h-3.5" />
           </Button>

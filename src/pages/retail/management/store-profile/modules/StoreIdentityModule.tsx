@@ -17,7 +17,7 @@ export const StoreIdentityModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <Building2 className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           GLOBAL IDENTITY ENFORCEMENT
@@ -35,14 +35,14 @@ export const StoreIdentityModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-100/50 rounded-xl text-blue-600">
+        <div className="p-2 bg-blue-100/50 rounded-xl text-primary">
           <Building2 className="w-5 h-5" />
         </div>
         <div>
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Node Identity & Registration
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Authoritative naming and regional classification
           </p>
         </div>
@@ -52,35 +52,35 @@ export const StoreIdentityModule: React.FC = () => {
         {/* Core Identity */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Building2 className="w-4 h-4 text-slate-400" /> Core Identity
+            <Building2 className="w-4 h-4 text-muted-foreground" /> Core Identity
           </h3>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Node Name
               </Label>
               <Input
                 value={selectedStore.name || ""}
                 onChange={(e) => updateLocalConfig({ name: e.target.value })}
                 disabled={!canEditStore}
-                className="font-bold border-slate-200 bg-slate-50/50"
+                className="font-bold border-slate-200 bg-secondary/5/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Registry Code (Locked)
               </Label>
               <Input
                 value={selectedStore.code || ""}
                 disabled
-                className="font-mono bg-slate-100 text-slate-500"
+                className="font-mono bg-secondary/10 text-muted-foreground"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Classification Tier
               </Label>
               <Select
@@ -90,7 +90,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ type: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-slate-50/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -108,7 +108,7 @@ export const StoreIdentityModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Lifecycle Status
               </Label>
               <Select
@@ -118,19 +118,19 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ status: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-slate-50/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem
                     value="active"
-                    className="font-bold text-emerald-600"
+                    className="font-bold text-success"
                   >
                     Active (Production)
                   </SelectItem>
                   <SelectItem
                     value="frozen"
-                    className="font-bold text-blue-600"
+                    className="font-bold text-primary"
                   >
                     Frozen (Maintenance)
                   </SelectItem>
@@ -155,12 +155,12 @@ export const StoreIdentityModule: React.FC = () => {
         {/* Regional Parameters */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <MapPin className="w-4 h-4 text-slate-400" /> Regional Parameters
+            <MapPin className="w-4 h-4 text-muted-foreground" /> Regional Parameters
           </h3>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Location ID (Physical Binding)
               </Label>
               <Input
@@ -175,7 +175,7 @@ export const StoreIdentityModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <Clock className="w-3 h-3" /> Operational Timezone
               </Label>
               <Select
@@ -185,7 +185,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ timezone: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-slate-50/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,7 +205,7 @@ export const StoreIdentityModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <DollarSign className="w-3 h-3" /> Settlement Currency
               </Label>
               <Select
@@ -215,7 +215,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ currency: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-slate-50/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -233,14 +233,14 @@ export const StoreIdentityModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Fiscal Tax Zone
               </Label>
               <Input
                 value={selectedStore.taxZone || "STANDARD"}
                 onChange={(e) => updateLocalConfig({ taxZone: e.target.value })}
                 disabled={!canEditStore}
-                className="font-mono border-slate-200 bg-slate-50/50 uppercase"
+                className="font-mono border-slate-200 bg-secondary/5/50 uppercase"
               />
             </div>
           </div>

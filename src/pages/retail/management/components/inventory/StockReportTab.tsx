@@ -21,16 +21,16 @@ type Props = {
 // --- Hub Header Component ---
 const HubHeader: React.FC = () => (
   <div className="flex flex-col items-center text-center space-y-6 max-w-3xl mx-auto">
-    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 mb-2">
-      <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
-      <span className="text-[11px] font-black uppercase tracking-[0.25em] text-indigo-700">
+    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-indigo-100 mb-2">
+      <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+      <span className="text-[11px] font-black uppercase tracking-[0.25em] text-primary">
         Analytics Engine v2.0
       </span>
     </div>
-    <h2 className="text-5xl md:text-7xl font-black italic tracking-tighter text-slate-950 uppercase leading-[0.9] text-center">
+    <h2 className="text-3xl md:text-7xl font-black italic tracking-tighter text-primary-foreground uppercase leading-[0.9] text-center">
       Retail Reporting Hub
     </h2>
-    <p className="text-slate-500 font-medium text-lg italic max-w-2xl leading-relaxed">
+    <p className="text-muted-foreground font-medium text-lg italic max-w-2xl leading-relaxed">
       Select a specialized report template below to configure your deployment
       parameters and initiate data extraction.
     </p>

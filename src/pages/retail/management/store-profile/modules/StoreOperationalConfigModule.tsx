@@ -18,7 +18,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <Zap className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           GLOBAL CAPABILITIES
@@ -51,7 +51,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Operational Capabilities
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Rules of execution, shift boundaries, and functional modules
           </p>
         </div>
@@ -61,12 +61,12 @@ export const StoreOperationalConfigModule: React.FC = () => {
         {/* Core Execution Rules */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Clock className="w-4 h-4 text-slate-400" /> Boundary Conditions
+            <Clock className="w-4 h-4 text-muted-foreground" /> Boundary Conditions
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Business Hours Template
               </Label>
               <Select
@@ -92,7 +92,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Shift Rotation Model
               </Label>
               <Select
@@ -119,12 +119,12 @@ export const StoreOperationalConfigModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-slate-700">
+                <Label className="text-sm font-bold text-muted-foreground">
                   Auto-Close Orphaned Shifts
                 </Label>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Automatically seal cash drawers at EOD
                 </p>
               </div>
@@ -142,13 +142,13 @@ export const StoreOperationalConfigModule: React.FC = () => {
         {/* Sales & POS Policies */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <MonitorSmartphone className="w-4 h-4 text-slate-400" /> Sales &
+            <MonitorSmartphone className="w-4 h-4 text-muted-foreground" /> Sales &
             Execution Policies
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Authorized POS Pool Limit
               </Label>
               <Input
@@ -162,13 +162,13 @@ export const StoreOperationalConfigModule: React.FC = () => {
                 }
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Max concurrent active terminal sessions
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <ShieldAlert className="w-3 h-3" /> Refund Authorization
                 Constraint
               </Label>
@@ -196,12 +196,12 @@ export const StoreOperationalConfigModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-slate-700">
+                <Label className="text-sm font-bold text-muted-foreground">
                   Enable Self-Checkout Engine
                 </Label>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Allow SCO topology and scanner pools
                 </p>
               </div>
@@ -219,12 +219,12 @@ export const StoreOperationalConfigModule: React.FC = () => {
         {/* Taxation & Fiscal Policy */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm md:col-span-2">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <ShieldAlert className="w-4 h-4 text-rose-500" /> Taxation & Fiscal Policy
+            <ShieldAlert className="w-4 h-4 text-destructive" /> Taxation & Fiscal Policy
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Default POS Sales Tax Rate (%)
               </Label>
               <div className="relative">
@@ -240,19 +240,19 @@ export const StoreOperationalConfigModule: React.FC = () => {
                   }
                   className="font-mono border-slate-200 pr-10"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">%</span>
               </div>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Standard rate applied to all POS transactions unless overridden
               </p>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-slate-700">
+                <Label className="text-sm font-bold text-muted-foreground">
                   Tax Inclusive Pricing
                 </Label>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Shelf prices already include VAT/Sales Tax
                 </p>
               </div>

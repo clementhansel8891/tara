@@ -76,7 +76,7 @@ const initialReorderRequests: ReorderRequest[] = [
 
 const statusColors = {
   pending: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  ordered: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  ordered: "bg-primary/10 text-primary border-blue-500/20",
   received: "bg-green-500/10 text-green-500 border-green-500/20",
 };
 
@@ -548,8 +548,8 @@ export default function RetailInventory() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Truck className="h-5 w-5 text-blue-500" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Truck className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending Orders</p>

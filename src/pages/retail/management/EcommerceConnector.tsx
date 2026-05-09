@@ -33,9 +33,9 @@ const PLATFORM_ICON: Record<string, React.ElementType> = {
 };
 
 const PLATFORM_COLOR: Record<string, string> = {
-  HEADLESS: "bg-slate-100 text-slate-600",
-  PRESET: "bg-blue-100 text-blue-600",
-  PREMADE: "bg-emerald-100 text-emerald-600",
+  HEADLESS: "bg-secondary/10 text-muted-foreground",
+  PRESET: "bg-blue-100 text-primary",
+  PREMADE: "bg-success/10 text-success",
 };
 
 const PLATFORM_ACCENT: Record<string, string> = {
@@ -45,7 +45,7 @@ const PLATFORM_ACCENT: Record<string, string> = {
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  active: "bg-emerald-50 text-emerald-600",
+  active: "bg-emerald-50 text-success",
   inactive: "bg-amber-50 text-amber-600",
   warning: "bg-red-50 text-red-600",
 };
@@ -121,19 +121,19 @@ const EcommerceConnector = () => {
       label: "Total",
       value: stats.total,
       icon: Zap,
-      color: "bg-slate-900 text-white",
+      color: "bg-secondary text-foreground",
     },
     {
       label: "Active",
       value: stats.active,
       icon: Activity,
-      color: "bg-emerald-600 text-white",
+      color: "bg-success text-foreground",
     },
     {
       label: "Suspended",
       value: stats.suspended,
       icon: PauseCircle,
-      color: "bg-white text-slate-700 border border-slate-100",
+      color: "bg-white text-muted-foreground border border-slate-100",
     },
   ];
 
@@ -155,10 +155,10 @@ const EcommerceConnector = () => {
             Refresh
           </Button>
           <Button
-            className="h-10 px-6 rounded-2xl bg-slate-900 text-white font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-lg"
+            className="h-10 px-6 rounded-2xl bg-secondary text-foreground font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-lg"
             onClick={() => setCreateOpen(true)}
           >
-            <Plus className="w-4 h-4 text-emerald-400" /> Connect Channel
+            <Plus className="w-4 h-4 text-success" /> Connect Channel
           </Button>
         </div>
       </div>
@@ -166,7 +166,7 @@ const EcommerceConnector = () => {
       {/* -- Body: Two-column layout -- */}
       <div className="flex-1 flex overflow-hidden">
         {/* -- LEFT: Channel List -- */}
-        <div className="w-80 shrink-0 flex flex-col border-r bg-slate-50/60 overflow-hidden">
+        <div className="w-80 shrink-0 flex flex-col border-r bg-secondary/5/60 overflow-hidden">
           {/* KPI strip */}
           <div className="grid grid-cols-3 gap-2 p-4 shrink-0">
             {(Array.isArray(kpis) ? kpis : []).map((k) => (
@@ -193,18 +193,18 @@ const EcommerceConnector = () => {
               [1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-20 rounded-2xl bg-slate-200 animate-pulse"
+                  className="h-20 rounded-2xl bg-muted/20 animate-pulse"
                 />
               ))
             ) : channels.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
-                  <ShoppingBag className="w-7 h-7 text-slate-300" />
+                <div className="w-14 h-14 rounded-2xl bg-secondary/10 flex items-center justify-center mb-3">
+                  <ShoppingBag className="w-7 h-7 text-muted-foreground/60" />
                 </div>
-                <div className="font-black italic text-slate-500 text-sm">
+                <div className="font-black italic text-muted-foreground text-sm">
                   No channels yet
                 </div>
-                <p className="text-xs font-bold text-slate-400 mt-1">
+                <p className="text-xs font-bold text-muted-foreground mt-1">
                   Connect a marketplace, headless storefront, or webhook bridge
                   to get started.
                 </p>
@@ -215,13 +215,13 @@ const EcommerceConnector = () => {
                   PLATFORM_ICON[ch.integrationCategory] ?? ShoppingBag;
                 const iconColor =
                   PLATFORM_COLOR[ch.integrationCategory] ??
-                  "bg-slate-100 text-slate-600";
+                  "bg-secondary/10 text-muted-foreground";
                 const accent =
                   PLATFORM_ACCENT[ch.integrationCategory] ??
                   "border-slate-200 hover:border-slate-400";
                 const statusBadge =
                   STATUS_BADGE[ch.status ?? "active"] ??
-                  "bg-slate-100 text-slate-600";
+                  "bg-secondary/10 text-muted-foreground";
                 const StatusIcon =
                   STATUS_ICON[ch.status ?? "active"] ?? CheckCircle2;
                 const isSelected = selectedChannel?.id === ch.id;
@@ -247,17 +247,17 @@ const EcommerceConnector = () => {
                         <Icon className="w-4 h-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-black italic text-slate-900 text-sm truncate">
+                        <div className="font-black italic text-foreground text-sm truncate">
                           {ch.name}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 truncate">
+                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground truncate">
                             {ch.adapterType ?? ch.integrationCategory}
                           </div>
                           {(ch as any).branchIds && (ch as any).branchIds.length > 0 && (
                             <>
-                              <span className="w-1 h-1 rounded-full bg-slate-200" />
-                              <div className="flex items-center gap-1 text-[9px] font-black uppercase text-indigo-500 italic">
+                              <span className="w-1 h-1 rounded-full bg-muted/20" />
+                              <div className="flex items-center gap-1 text-[9px] font-black uppercase text-primary italic">
                                 {(ch as any).branchIds.length} Nodes
                               </div>
                             </>
@@ -284,10 +284,10 @@ const EcommerceConnector = () => {
                 onClick={() => setCreateOpen(true)}
                 className="w-full rounded-2xl border-2 border-dashed border-slate-200 hover:border-slate-400 bg-transparent hover:bg-white transition-all p-4 flex items-center gap-3 group"
               >
-                <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Plus className="w-4 h-4 text-slate-400" />
+                <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Plus className="w-4 h-4 text-muted-foreground" />
                 </div>
-                <span className="font-black italic text-slate-400 text-sm uppercase tracking-widest">
+                <span className="font-black italic text-muted-foreground text-sm uppercase tracking-widest">
                   Connect Channel
                 </span>
               </button>
@@ -300,9 +300,9 @@ const EcommerceConnector = () => {
           {selectedChannel && (
             <button
               onClick={() => setSelectedChannel(null)}
-              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-sm"
+              className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur border border-slate-200 flex items-center justify-center hover:bg-secondary/10 transition-colors shadow-sm"
             >
-              <X className="w-4 h-4 text-slate-500" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
           <div className="flex-1 overflow-hidden">

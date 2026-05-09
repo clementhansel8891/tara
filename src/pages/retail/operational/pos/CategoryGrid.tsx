@@ -44,12 +44,12 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
         onClick={() => onSelect(null)}
         className={`group relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-300 active:scale-95 ${
           !activeCategoryId
-            ? "bg-slate-900 border-slate-900 text-white shadow-2xl shadow-slate-900/30 scale-105 z-10"
-            : "bg-white/30 backdrop-blur-xl border-white/40 text-slate-500 hover:border-slate-300 hover:bg-white/50"
+            ? "bg-primary border-slate-900 text-primary-foreground shadow-2xl shadow-slate-900/30 scale-105 z-10"
+            : "bg-secondary/30 backdrop-blur-xl border-border text-muted-foreground hover:border-slate-300 hover:bg-secondary/50"
         }`}
       >
         <div
-          className={`p-3.5 rounded-xl mb-3 transition-all duration-300 ${!activeCategoryId ? "bg-white/10" : "bg-slate-100/50 group-hover:bg-white shadow-sm"}`}
+          className={`p-3.5 rounded-xl mb-3 transition-all duration-300 ${!activeCategoryId ? "bg-white/10" : "bg-secondary/20 group-hover:bg-white shadow-sm"}`}
         >
           <LayoutGrid className="w-7 h-7" />
         </div>
@@ -68,8 +68,8 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
             onClick={() => onSelect(cat)}
             className={`group relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 ${
               isActive
-                ? "bg-indigo-600 border-indigo-600 text-white shadow-2xl shadow-indigo-500/30 scale-105 z-10"
-                : "bg-white/30 backdrop-blur-xl border-white/40 text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-white/50"
+                ? "bg-primary border-indigo-600 text-primary-foreground shadow-2xl shadow-indigo-500/30 scale-105 z-10"
+                : "bg-secondary/30 backdrop-blur-xl border-border text-muted-foreground hover:border-indigo-200 hover:text-primary hover:bg-secondary/50"
             }`}
             style={{ transitionDelay: `${i * 50}ms` }}
           >
@@ -77,7 +77,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               className={`p-3.5 rounded-xl mb-3 transition-all duration-300 ${
                 isActive
                   ? "bg-white/20"
-                  : "bg-slate-100/50 group-hover:bg-indigo-50 group-hover:text-indigo-600 shadow-sm"
+                  : "bg-secondary/20 group-hover:bg-primary/5 group-hover:text-primary shadow-sm"
               }`}
             >
               <Icon className="w-7 h-7" />
@@ -86,7 +86,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               {cat.name}
             </span>
             {isActive && (
-              <div className="absolute -inset-1 bg-indigo-400/20 blur-xl -z-10 rounded-full animate-pulse" />
+              <div className="absolute -inset-1 bg-primary/20 blur-xl -z-10 rounded-full animate-pulse" />
             )}
           </button>
         );

@@ -179,29 +179,29 @@ const SelfServiceKiosk = () => {
 
   if (step === "success") {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-950 p-8 space-y-12 animate-in zoom-in-95 duration-500 overflow-hidden selection:bg-emerald-500/30">
+      <div className="h-screen flex flex-col items-center justify-center bg-background p-8 space-y-12 animate-in zoom-in-95 duration-500 overflow-hidden selection:bg-success/30">
         <div className="relative">
-          <div className="absolute inset-0 bg-emerald-500/20 blur-3xl animate-pulse rounded-full" />
-          <div className="relative w-48 h-48 bg-emerald-600 rounded-[3rem] flex items-center justify-center shadow-2xl shadow-emerald-500/40 transform rotate-12 transition-transform hover:rotate-0 duration-500">
-            <CheckCircle className="w-24 h-24 text-white" />
+          <div className="absolute inset-0 bg-success/10 blur-3xl animate-pulse rounded-full" />
+          <div className="relative w-48 h-48 bg-success rounded-[3rem] flex items-center justify-center shadow-2xl shadow-emerald-500/40 transform rotate-12 transition-transform hover:rotate-0 duration-500">
+            <CheckCircle className="w-24 h-24 text-foreground" />
           </div>
         </div>
         <div className="text-center space-y-6">
-          <h1 className="text-6xl font-black italic tracking-tighter text-white uppercase">
+          <h1 className="text-6xl font-black italic tracking-tighter text-foreground uppercase">
             Transaction Sealed
           </h1>
-          <p className="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs italic">
+          <p className="text-success font-black uppercase tracking-[0.4em] text-xs italic">
             Vault Hash: ZVX-KIOSK-{(activeStore?.id || "").slice(-8).toUpperCase()} • PCI Verified
           </p>
         </div>
         <div className="flex flex-col gap-6 w-full max-w-md">
            <Button
-             className="h-28 bg-white text-slate-950 hover:bg-slate-100 font-black italic rounded-[2.5rem] text-2xl shadow-2xl transition-all uppercase tracking-widest active:scale-95"
+             className="h-28 bg-white text-primary-foreground hover:bg-secondary/10 font-black italic rounded-[2.5rem] text-2xl shadow-2xl transition-all uppercase tracking-widest active:scale-95"
              onClick={() => setStep("scanning")}
            >
              New Customer
            </Button>
-           <p className="text-center text-slate-500 font-bold uppercase tracking-[0.2em] text-[9px] italic">
+           <p className="text-center text-muted-foreground font-bold uppercase tracking-[0.2em] text-[9px] italic">
               Please collect your items and printed receipt below.
            </p>
         </div>
@@ -210,25 +210,25 @@ const SelfServiceKiosk = () => {
   }
 
   return (
-    <div className="flex-1 relative flex selection:bg-blue-500 selection:text-white">
+    <div className="flex-1 relative flex selection:bg-primary/50 selection:text-foreground">
       {/* Dynamic Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-blue-500/10 blur-[130px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-indigo-500/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-primary/50/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
       <div className="flex-1 overflow-hidden relative z-10 flex flex-col p-8 gap-8">
         {/* TACTICAL KIOSK HEADER */}
-        <div className="flex justify-between items-center bg-white/5 p-8 rounded-[2.5rem] border border-white/10 backdrop-blur-3xl shrink-0">
+        <div className="flex justify-between items-center bg-secondary/40 p-8 rounded-[2.5rem] border border-border backdrop-blur-3xl shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40">
-              <Monitor className="w-9 h-9 text-white" />
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40">
+              <Monitor className="w-9 h-9 text-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl font-black italic tracking-tighter text-white uppercase">
+              <h1 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">
                 {activeStore?.name || "Zenvix Self-Checkout"}
               </h1>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1 italic">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 italic">
                 Node Context: [KIOSK_ALPHA_9] • {activeStore?.location || "Main Terminal"}
               </p>
             </div>
@@ -239,8 +239,8 @@ const SelfServiceKiosk = () => {
                 Infrastructure Link
               </div>
               <div className="flex items-center gap-2 justify-end">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black italic uppercase text-emerald-500 tracking-widest">
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-[10px] font-black italic uppercase text-success tracking-widest">
                   EDGE_VAULT: CONNECTED
                 </span>
               </div>
@@ -248,7 +248,7 @@ const SelfServiceKiosk = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all"
+              className="h-14 w-14 rounded-2xl bg-secondary/40 hover:bg-secondary/60 text-foreground border border-border transition-all"
               onClick={() =>
                 toast({
                   title: "Station Telemetry",
@@ -262,7 +262,7 @@ const SelfServiceKiosk = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="h-14 w-14 rounded-2xl bg-white/5 hover:bg-white/20 text-white border border-white/10 transition-all"
+              className="h-14 w-14 rounded-2xl bg-secondary/40 hover:bg-white/20 text-foreground border border-border transition-all"
               onClick={() => navigate("/m/retail/operational/gateway")}
               title="Exit to Gateway"
             >
@@ -274,7 +274,7 @@ const SelfServiceKiosk = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 overflow-hidden">
           {/* LEFT: SCANNING & PRODUCT GRID */}
           <div className="lg:col-span-8 flex flex-col gap-8 overflow-hidden">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-3xl rounded-[3rem] overflow-hidden shadow-2xl shrink-0">
+            <Card className="bg-secondary/40 border-border backdrop-blur-3xl rounded-[3rem] overflow-hidden shadow-2xl shrink-0">
               <CardContent className="p-10">
                 <form onSubmit={handleScan} className="relative group">
                   <Scan className="absolute left-10 top-1/2 -translate-y-1/2 w-10 h-10 text-blue-500 group-focus-within:scale-110 transition-transform" />
@@ -283,7 +283,7 @@ const SelfServiceKiosk = () => {
                     value={scanInput}
                     onChange={(e) => setScanInput(e.target.value)}
                     placeholder="PLACE BARCODE UNDER SCANNER..."
-                    className="h-28 pl-24 text-3xl font-black bg-white/5 border-2 border-white/10 focus:border-blue-500/50 rounded-[2rem] shadow-inner text-white italic uppercase tracking-[0.2em] placeholder:text-slate-800 transition-all"
+                    className="h-28 pl-24 text-3xl font-black bg-secondary/40 border-2 border-border focus:border-primary/50 rounded-[2rem] shadow-inner text-foreground italic uppercase tracking-[0.2em] placeholder:text-muted-foreground/30 transition-all"
                     autoFocus
                   />
                 </form>
@@ -293,12 +293,12 @@ const SelfServiceKiosk = () => {
                     <button
                       key={p.id}
                       onClick={() => addToCart(p)}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/10 hover:border-blue-500/50 transition-all group flex flex-col items-center"
+                      className="p-6 bg-secondary/40 border border-border rounded-[2.5rem] hover:bg-secondary/60 hover:border-blue-500/50 transition-all group flex flex-col items-center"
                     >
-                      <div className="w-full aspect-square bg-white/5 rounded-3xl mb-6 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                        <ShoppingBag className="w-12 h-12 text-slate-700 group-hover:text-blue-500 transition-colors" />
+                      <div className="w-full aspect-square bg-secondary/40 rounded-3xl mb-6 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                        <ShoppingBag className="w-12 h-12 text-muted-foreground group-hover:text-blue-500 transition-colors" />
                       </div>
-                      <div className="text-[11px] font-black italic text-white truncate uppercase tracking-tighter w-full text-center">
+                      <div className="text-[11px] font-black italic text-foreground truncate uppercase tracking-tighter w-full text-center">
                         {p.name}
                       </div>
                       <div className="text-[10px] font-black text-blue-500 mt-2 italic tracking-widest">
@@ -311,16 +311,16 @@ const SelfServiceKiosk = () => {
             </Card>
 
             {/* SELECTION VAULT / CART */}
-            <Card className="bg-white/5 border-white/10 backdrop-blur-3xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col flex-1">
+            <Card className="bg-secondary/40 border-border backdrop-blur-3xl rounded-[3rem] overflow-hidden shadow-2xl flex flex-col flex-1">
               <CardHeader className="p-10 border-b border-white/5 bg-black/20">
-                <CardTitle className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] italic flex items-center gap-4">
+                <CardTitle className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em] italic flex items-center gap-4">
                    <ShoppingBag className="w-5 h-5" /> Active Tray Consolidations
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0 flex-1 overflow-hidden">
                 <ScrollArea className="h-full">
                   {cart.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center py-32 text-slate-800 opacity-20">
+                    <div className="h-full flex flex-col items-center justify-center py-32 text-muted-foreground/30 opacity-20">
                       <ShoppingBag className="w-32 h-32 mb-8" />
                       <p className="text-sm font-black italic uppercase tracking-[0.4em]">Tray Is Empty</p>
                     </div>
@@ -332,23 +332,23 @@ const SelfServiceKiosk = () => {
                           className="p-10 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
                         >
                           <div className="flex gap-8">
-                            <div className="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center shadow-inner border border-white/5">
-                              <ShoppingBag className="w-12 h-12 text-slate-700" />
+                            <div className="w-24 h-24 bg-secondary/40 rounded-3xl flex items-center justify-center shadow-inner border border-white/5">
+                              <ShoppingBag className="w-12 h-12 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col justify-center">
-                              <div className="text-2xl font-black italic text-white uppercase tracking-tighter">
+                              <div className="text-2xl font-black italic text-foreground uppercase tracking-tighter">
                                 {item.name}
                               </div>
-                              <div className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mt-2 italic">
+                              <div className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mt-2 italic">
                                 SKU: {item.sku}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-16">
-                            <div className="flex items-center gap-6 bg-black/40 border-2 border-white/10 p-3 rounded-[1.5rem] shadow-xl">
+                            <div className="flex items-center gap-6 bg-black/40 border-2 border-border p-3 rounded-[1.5rem] shadow-xl">
                               <Button
                                 variant="ghost"
-                                className="h-12 w-12 p-0 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black"
+                                className="h-12 w-12 p-0 rounded-xl bg-secondary/40 hover:bg-secondary/60 text-foreground font-black"
                                 onClick={() =>
                                   setCart((prev) =>
                                     (Array.isArray(prev) ? prev : []).map((i) =>
@@ -361,12 +361,12 @@ const SelfServiceKiosk = () => {
                               >
                                 <Minus className="w-6 h-6" />
                               </Button>
-                              <div className="w-12 text-center text-3xl font-black italic text-white tracking-tighter">
+                              <div className="w-12 text-center text-3xl font-black italic text-foreground tracking-tighter">
                                 {item.quantity}
                               </div>
                               <Button
                                 variant="ghost"
-                                className="h-12 w-12 p-0 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black"
+                                className="h-12 w-12 p-0 rounded-xl bg-secondary/40 hover:bg-secondary/60 text-foreground font-black"
                                 onClick={() =>
                                   setCart((prev) =>
                                     (Array.isArray(prev) ? prev : []).map((i) =>
@@ -381,7 +381,7 @@ const SelfServiceKiosk = () => {
                               </Button>
                             </div>
                             <div className="text-right min-w-[160px]">
-                              <div className="text-4xl font-black italic text-white tracking-tighter">
+                              <div className="text-4xl font-black italic text-foreground tracking-tighter">
                                 Rp {(item.price * item.quantity).toLocaleString()}
                               </div>
                               <button
@@ -403,18 +403,18 @@ const SelfServiceKiosk = () => {
 
           {/* RIGHT: SETTLEMENT PANEL */}
           <div className="lg:col-span-4 flex flex-col gap-8 overflow-hidden">
-            <Card className="bg-slate-900 border-none shadow-3xl text-white rounded-[3.5rem] overflow-hidden flex flex-col shrink-0">
+            <Card className="bg-secondary border-none shadow-3xl text-foreground rounded-[3.5rem] overflow-hidden flex flex-col shrink-0">
               <CardContent className="p-12 space-y-12">
                 <div className="space-y-6">
                   <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] italic">
                     Final Assessment Total
                   </div>
-                  <div className="text-7xl font-black italic tracking-tighter text-white">
+                  <div className="text-7xl font-black italic tracking-tighter text-foreground">
                     Rp {total.toLocaleString()}
                   </div>
-                  <div className="flex items-center gap-4 p-5 bg-white/5 rounded-3xl border border-white/10 shadow-inner">
-                    <ShieldCheck className="w-6 h-6 text-emerald-500" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+                  <div className="flex items-center gap-4 p-5 bg-secondary/40 rounded-3xl border border-border shadow-inner">
+                    <ShieldCheck className="w-6 h-6 text-success" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">
                       Hardware Encryption Hash: [SECURE]
                     </span>
                   </div>
@@ -426,11 +426,11 @@ const SelfServiceKiosk = () => {
                       onClick={() => setPaymentMethod("card")}
                       className={`p-10 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-6 ${
                         paymentMethod === "card"
-                          ? "bg-blue-600 border-blue-400 shadow-2xl shadow-blue-500/40"
-                          : "bg-white/5 border-white/10 hover:bg-white/10"
+                          ? "bg-primary border-blue-400 shadow-2xl shadow-blue-500/40"
+                          : "bg-secondary/40 border-border hover:bg-secondary/60"
                       }`}
                     >
-                      <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-secondary/60 flex items-center justify-center">
                          <CreditCard className="w-9 h-9" />
                       </div>
                       <span className="text-[11px] font-black uppercase tracking-widest italic">Electronic Card</span>
@@ -440,10 +440,10 @@ const SelfServiceKiosk = () => {
                       className={`p-10 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-6 ${
                         paymentMethod === "qr"
                           ? "bg-amber-600 border-amber-400 shadow-2xl shadow-amber-500/40"
-                          : "bg-white/5 border-white/10 hover:bg-white/10"
+                          : "bg-secondary/40 border-border hover:bg-secondary/60"
                       }`}
                     >
-                      <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-secondary/60 flex items-center justify-center">
                          <QrCode className="w-9 h-9" />
                       </div>
                       <span className="text-[11px] font-black uppercase tracking-widest italic">QR / E-Wallet</span>
@@ -451,7 +451,7 @@ const SelfServiceKiosk = () => {
                   </div>
 
                   <Button
-                    className="w-full h-32 bg-white text-slate-950 hover:bg-slate-100 font-black italic rounded-[2.5rem] text-3xl shadow-2xl uppercase tracking-[0.2em] transition-all disabled:opacity-20 active:scale-[0.98]"
+                    className="w-full h-32 bg-white text-primary-foreground hover:bg-secondary/10 font-black italic rounded-[2.5rem] text-3xl shadow-2xl uppercase tracking-[0.2em] transition-all disabled:opacity-20 active:scale-[0.98]"
                     disabled={cart.length === 0 || !paymentMethod || isProcessing}
                     onClick={handleCheckout}
                   >
@@ -466,23 +466,23 @@ const SelfServiceKiosk = () => {
                   </Button>
                 </div>
 
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest text-center leading-relaxed italic">
+                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-center leading-relaxed italic">
                    Transaction is processed through the **Zenvix Fiscal Gateway**. <br />
                    Receipt issued on successful vault clearance.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border border-white/10 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl overflow-hidden shrink-0">
+            <Card className="bg-secondary/40 border border-border backdrop-blur-3xl rounded-[2.5rem] shadow-2xl overflow-hidden shrink-0">
               <CardContent className="p-8 flex gap-6 items-center">
-                <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border-2 border-white/10">
+                <div className="w-16 h-16 bg-secondary/40 rounded-3xl flex items-center justify-center border-2 border-border">
                   <Monitor className="w-8 h-8 text-blue-400" />
                 </div>
                 <div>
-                  <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic mb-1">
+                  <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic mb-1">
                     Node Telemetry
                   </div>
-                  <div className="text-base font-black italic text-white uppercase tracking-tighter">
+                  <div className="text-base font-black italic text-foreground uppercase tracking-tighter">
                     Printer Status: [SYNCED]
                   </div>
                 </div>

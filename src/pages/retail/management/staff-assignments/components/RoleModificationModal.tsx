@@ -54,7 +54,7 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-slate-900 border-slate-800 p-8 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-white">
+      <DialogContent className="max-w-md bg-secondary border-slate-800 p-8 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-foreground">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-500">
@@ -78,28 +78,28 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
 
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground block mb-2">
                 Target Personnel
               </label>
-              <div className="h-12 bg-slate-800/50 rounded-xl border border-white/5 flex items-center px-4 font-bold text-sm text-slate-300">
+              <div className="h-12 bg-secondary/60/50 rounded-xl border border-white/5 flex items-center px-4 font-bold text-sm text-muted-foreground/60">
                 {staff.fullName} ({staff.roleTitle})
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground block mb-2">
                 New Assignable Role
               </label>
               <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger className="w-full h-12 bg-slate-800 border-slate-700 text-white font-bold italic rounded-xl">
+                <SelectTrigger className="w-full h-12 bg-secondary/60 border-slate-700 text-foreground font-bold italic rounded-xl">
                   <SelectValue placeholder="Select Governance Role..." />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white rounded-xl">
+                <SelectContent className="bg-secondary/60 border-slate-700 text-foreground rounded-xl">
                   {(Array.isArray(AVAILABLE_ROLES) ? AVAILABLE_ROLES : []).map((role) => (
                     <SelectItem
                       key={role}
                       value={role}
-                      className="font-bold cursor-pointer italic text-xs hover:bg-slate-700"
+                      className="font-bold cursor-pointer italic text-xs hover:bg-secondary"
                     >
                       {role}
                     </SelectItem>
@@ -109,11 +109,11 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
             </div>
 
             <div>
-              <label className="text-[10px] font-black italic uppercase tracking-widest text-slate-500 block mb-2">
+              <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground block mb-2">
                 Required: Justification
               </label>
               <textarea
-                className="w-full h-24 bg-slate-800 border-slate-700 text-white rounded-xl p-4 font-bold italic text-sm placeholder:text-slate-600 focus:border-amber-500 outline-none resize-none transition-colors"
+                className="w-full h-24 bg-secondary/60 border-slate-700 text-foreground rounded-xl p-4 font-bold italic text-sm placeholder:text-muted-foreground focus:border-amber-500 outline-none resize-none transition-colors"
                 placeholder="Enter cryptographic audit reason..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -126,14 +126,14 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
           <Button
             variant="ghost"
             onClick={onClose}
-            className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl h-11"
+            className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground hover:text-foreground hover:bg-secondary/60 rounded-xl h-11"
           >
             Cancel Protocol
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!newRole || !reason || isSubmitting}
-            className="text-[10px] font-black italic uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+            className="text-[10px] font-black italic uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-foreground rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
           >
             <Lock className="w-3.5 h-3.5 mr-2" /> Sign & Modify
           </Button>

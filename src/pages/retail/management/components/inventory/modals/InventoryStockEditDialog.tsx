@@ -120,7 +120,7 @@ export const InventoryStockEditDialog: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
-            <div className="text-xs font-bold text-slate-600">
+            <div className="text-xs font-bold text-muted-foreground">
               Notify procurement / replenish
             </div>
             <Switch
@@ -142,7 +142,7 @@ export const InventoryStockEditDialog: React.FC<Props> = ({
             onClick={handleSubmit}
             className={cn(
               "rounded-xl font-black italic gap-2",
-              canWrite ? "bg-slate-900" : "bg-amber-600 hover:bg-amber-700",
+              canWrite ? "bg-secondary" : "bg-amber-600 hover:bg-amber-700",
             )}
           >
             {canWrite ? "Save Changes" : "Request Changes"}

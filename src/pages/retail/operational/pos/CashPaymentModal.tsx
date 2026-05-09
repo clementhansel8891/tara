@@ -60,9 +60,9 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
         w-[95vw]
         h-[90vh]
         border-none
-        bg-slate-950/95
+        bg-background/95
         backdrop-blur-xl
-        text-white
+        text-foreground
         rounded-[2rem]
         shadow-2xl
         p-0
@@ -74,16 +74,16 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
           {/* HEADER */}
           <DialogHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div className="w-12 h-12 rounded-2xl bg-success/10 flex items-center justify-center text-success">
                 <Banknote className="w-6 h-6" />
               </div>
 
               <div>
-                <DialogTitle className="text-xl font-black uppercase tracking-widest italic">
+                <DialogTitle className="text-xl font-black uppercase tracking-widest italic text-foreground">
                   Cash Payment
                 </DialogTitle>
 
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                   Process physical tender
                 </p>
               </div>
@@ -93,7 +93,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
           {/* TOTAL + CHANGE */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">
+              <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em] italic">
                 Total Due
               </span>
 
@@ -103,13 +103,13 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             </div>
 
             <div className="text-right">
-              <span className="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] italic">
+              <span className="text-[9px] font-black text-success uppercase tracking-[0.2em] italic">
                 Change
               </span>
 
               <div
                 className={`text-2xl font-black italic tracking-tighter ${
-                  change > 0 ? "text-emerald-400" : "text-white/20"
+                  change > 0 ? "text-success" : "text-foreground/20"
                 }`}
               >
                 Rp {change.toLocaleString()}
@@ -118,12 +118,12 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
           </div>
 
           {/* RECEIVED DISPLAY */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl py-6 flex flex-col items-center justify-center">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+          <div className="bg-secondary/50 border border-border rounded-2xl py-6 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               Amount Received
             </span>
 
-            <div className="text-5xl font-black italic tracking-tighter text-emerald-400">
+            <div className="text-5xl font-black italic tracking-tighter text-success">
               Rp {receivedAmount.toLocaleString()}
             </div>
           </div>
@@ -137,7 +137,7 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                   key={amt}
                   variant="outline"
                   onClick={() => setReceived(amt.toString())}
-                  className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-[11px] font-black tracking-widest rounded-xl active:scale-95"
+                  className="flex-1 bg-secondary/50 border-border hover:bg-secondary text-[11px] font-black tracking-widest rounded-xl active:scale-95 text-foreground"
                 >
                   {amt / 1000}K
                 </Button>
@@ -155,8 +155,9 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                     h-full
                     text-2xl
                     font-black
-                    bg-white/5
-                    hover:bg-white/10
+                    bg-secondary/50
+                    hover:bg-secondary
+                    text-foreground
                     rounded-2xl
                     active:scale-90
                   "
@@ -170,9 +171,9 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
                 onClick={handleBackspace}
                 className="
                   h-full
-                  bg-white/5
-                  hover:bg-rose-500/20
-                  text-rose-500
+                  bg-secondary/50
+                  hover:bg-destructive/20
+                  text-destructive
                   rounded-2xl
                   active:scale-90
                 "
@@ -184,14 +185,14 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
 
           {/* TRANSACTION NOTES */}
           <div className="flex flex-col gap-2">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-2">
               Transaction Notes
             </span>
             <Textarea 
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add optional notes for this order..."
-              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl resize-none h-16 font-bold italic text-sm focus-visible:ring-emerald-500/50"
+              className="bg-secondary/50 border-border text-foreground placeholder:text-muted-foreground rounded-xl resize-none h-16 font-bold italic text-sm focus-visible:ring-success/20 focus-visible:border-success"
             />
           </div>
 
@@ -201,8 +202,8 @@ export const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             disabled={isInsufficient}
             className={`h-16 rounded-[1.25rem] flex items-center justify-center gap-3 transition-all active:scale-95 ${
               isInsufficient
-                ? "bg-slate-800 text-slate-500"
-                : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_20px_50px_-10px_rgba(16,185,129,0.3)]"
+                ? "bg-muted text-muted-foreground"
+                : "bg-success hover:bg-success/90 text-success-foreground shadow-[0_20px_50px_-10px_hsl(var(--success)/0.3)]"
             }`}
           >
             {isInsufficient ? (

@@ -144,18 +144,18 @@ export const ChannelProductWizard: React.FC<Props> = ({
         <div key={s} className="flex items-center gap-2">
           <div className={cn(
             "w-8 h-8 rounded-full flex items-center justify-center font-black italic transition-all",
-            step === s ? "bg-slate-900 text-white scale-110 shadow-lg" : 
-            step > s ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"
+            step === s ? "bg-secondary text-foreground scale-110 shadow-lg" : 
+            step > s ? "bg-success text-foreground" : "bg-secondary/10 text-muted-foreground"
           )}>
             {step > s ? <CheckCircle2 className="w-4 h-4" /> : s}
           </div>
           <span className={cn(
             "text-[10px] font-black uppercase tracking-widest",
-            step === s ? "text-slate-900" : "text-slate-400"
+            step === s ? "text-foreground" : "text-muted-foreground"
           )}>
             {s === 1 ? "Categories" : s === 2 ? "Items" : "Parameters"}
           </span>
-          {s < 3 && <ChevronRight className="w-4 h-4 text-slate-300" />}
+          {s < 3 && <ChevronRight className="w-4 h-4 text-muted-foreground/60" />}
         </div>
       ))}
     </div>
@@ -163,9 +163,9 @@ export const ChannelProductWizard: React.FC<Props> = ({
 
   if (loading) {
     return (
-      <div className="p-12 flex flex-col items-center justify-center space-y-4">
-        <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-        <p className="text-xs font-black italic text-slate-400 uppercase tracking-widest">
+      <div className="p-6 flex flex-col items-center justify-center space-y-4">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-xs font-black italic text-muted-foreground uppercase tracking-widest">
           Synchronizing Global Ledger...
         </p>
       </div>
@@ -174,15 +174,15 @@ export const ChannelProductWizard: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-8 border-b bg-slate-50/50">
+      <div className="p-8 border-b bg-secondary/5/50">
         <StepIndicator />
         <div className="space-y-1">
-          <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900">
+          <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">
             {step === 1 ? "Select Channel Categories" : 
              step === 2 ? "Refine Product Selection" : 
              "Configure Sync Parameters"}
           </h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
             {step === 1 ? "Choose which product families are available for this website." : 
              step === 2 ? "Select specific items to publish or keep private." : 
              "Assign stock levels and finalize warehouse assignments."}
@@ -199,19 +199,19 @@ export const ChannelProductWizard: React.FC<Props> = ({
                 key={cat.id} 
                 className={cn(
                   "cursor-pointer transition-all rounded-[2rem] border-2 flex items-center p-6 gap-4",
-                  selectedCats.includes(cat.id) ? "border-slate-900 bg-slate-50" : "border-slate-100 hover:border-slate-200"
+                  selectedCats.includes(cat.id) ? "border-slate-900 bg-secondary/5" : "border-slate-100 hover:border-slate-200"
                 )}
                 onClick={() => toggleStep1(cat.id)}
               >
                 <div className={cn(
                   "w-12 h-12 rounded-2xl flex items-center justify-center",
-                  selectedCats.includes(cat.id) ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"
+                  selectedCats.includes(cat.id) ? "bg-secondary text-foreground" : "bg-secondary/10 text-muted-foreground"
                 )}>
                   <Layers className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-black italic uppercase text-slate-900">{cat.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{(Array.isArray(products) ? products : []).filter(p => p.category_id === cat.id).length} Items Available</p>
+                  <p className="text-sm font-black italic uppercase text-foreground">{cat.name}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{(Array.isArray(products) ? products : []).filter(p => p.category_id === cat.id).length} Items Available</p>
                 </div>
                 <Checkbox checked={selectedCats.includes(cat.id)} className="rounded-full h-5 w-5" />
               </Card>
@@ -223,7 +223,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
         {step === 2 && (
           <div className="space-y-6">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="SEARCH SKU OR NAME..." 
                 className="pl-12 h-14 rounded-2xl font-bold uppercase text-xs"
@@ -234,14 +234,14 @@ export const ChannelProductWizard: React.FC<Props> = ({
 
             <div className="space-y-3">
               {(Array.isArray(filteredProducts) ? filteredProducts : []).map((p) => (
-                <Card key={p.id} className="rounded-2xl border-slate-100 p-4 hover:bg-slate-50 transition-colors group">
+                <Card key={p.id} className="rounded-2xl border-slate-100 p-4 hover:bg-secondary/5 transition-colors group">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
-                      <Package className="w-5 h-5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+                      <Package className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-black italic uppercase truncate">{p.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.sku}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{p.sku}</p>
                     </div>
                     <div className="text-right mr-4">
                       <Badge variant="outline" className="text-[10px] font-black">{p.categoryName || "Uncategorized"}</Badge>
@@ -251,7 +251,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
                       variant={selectedProds[p.id]?.visible ? "default" : "outline"}
                       className={cn(
                         "rounded-xl font-black italic uppercase text-[10px] px-6 h-10 transition-all",
-                        selectedProds[p.id]?.visible ? "bg-emerald-500 hover:bg-emerald-600 border-none" : ""
+                        selectedProds[p.id]?.visible ? "bg-success hover:bg-success border-none" : ""
                       )}
                       onClick={() => toggleProduct(p.id)}
                     >
@@ -261,9 +261,9 @@ export const ChannelProductWizard: React.FC<Props> = ({
                 </Card>
               ))}
               {filteredProducts.length === 0 && (
-                <div className="text-center p-12 space-y-4">
+                <div className="text-center p-6 space-y-4">
                   <AlertCircle className="w-12 h-12 text-slate-200 mx-auto" />
-                  <p className="text-xs font-black italic text-slate-400 uppercase tracking-widest">No matching assets found in selected categories</p>
+                  <p className="text-xs font-black italic text-muted-foreground uppercase tracking-widest">No matching assets found in selected categories</p>
                 </div>
               )}
             </div>
@@ -273,8 +273,8 @@ export const ChannelProductWizard: React.FC<Props> = ({
         {/* Step 3: Stock Assignment */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100 flex gap-4">
-              <Settings2 className="w-10 h-10 text-blue-500" />
+            <div className="p-6 bg-primary/5 rounded-3xl border border-blue-100 flex gap-4">
+              <Settings2 className="w-10 h-10 text-primary" />
               <div>
                 <h4 className="font-black italic text-blue-900 text-sm">Sync Logic Override</h4>
                 <p className="text-[11px] font-bold text-blue-700 leading-relaxed max-w-xl">
@@ -291,11 +291,11 @@ export const ChannelProductWizard: React.FC<Props> = ({
                     <p className="text-sm font-black italic uppercase">{p.name}</p>
                     <div className="flex items-center gap-3">
                       <Badge variant="secondary" className="text-[9px] font-black uppercase">SOH: {p.stock}</Badge>
-                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 text-[9px] font-black border-none uppercase">Published</Badge>
+                      <Badge className="bg-success/10 text-success hover:bg-success/10 text-[9px] font-black border-none uppercase">Published</Badge>
                     </div>
                   </div>
                   <div className="w-48 space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Website Stock</label>
+                    <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Website Stock</label>
                     <Input 
                       type="number"
                       className="h-12 rounded-xl font-black italic text-sm text-center"
@@ -307,7 +307,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
               ))}
               {(Array.isArray(filteredProducts) ? filteredProducts : []).filter(p => selectedProds[p.id]?.visible).length === 0 && (
                 <div className="text-center py-12">
-                   <p className="text-xs font-black italic text-slate-400 uppercase tracking-widest">No items selected for visibility</p>
+                   <p className="text-xs font-black italic text-muted-foreground uppercase tracking-widest">No items selected for visibility</p>
                 </div>
               )}
             </div>
@@ -315,10 +315,10 @@ export const ChannelProductWizard: React.FC<Props> = ({
         )}
       </div>
 
-      <div className="p-8 border-t flex justify-between items-center bg-slate-50/50">
+      <div className="p-8 border-t flex justify-between items-center bg-secondary/5/50">
         <Button 
           variant="ghost" 
-          className="h-14 px-8 rounded-2xl font-black italic uppercase text-xs text-slate-400 hover:text-red-500 transition-colors"
+          className="h-14 px-8 rounded-2xl font-black italic uppercase text-xs text-muted-foreground hover:text-red-500 transition-colors"
           onClick={onFinished}
         >
           {step === 1 ? "Exit Wizard" : "Back"}
@@ -336,7 +336,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
           <Button 
             className={cn(
               "h-14 px-12 rounded-2xl font-black italic uppercase text-xs gap-3 shadow-xl",
-              step === 3 ? "bg-emerald-600 hover:bg-emerald-700" : "bg-slate-900 hover:bg-slate-800"
+              step === 3 ? "bg-success hover:bg-emerald-700" : "bg-secondary hover:bg-secondary/60"
             )}
             onClick={step === 3 ? handleFinish : () => setStep(step + 1)}
             disabled={saving || (step === 1 && selectedCats.length === 0)}

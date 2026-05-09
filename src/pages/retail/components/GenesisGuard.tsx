@@ -30,7 +30,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-500 font-bold italic animate-pulse uppercase tracking-widest text-xs">
+        <p className="text-muted-foreground font-bold italic animate-pulse uppercase tracking-widest text-xs">
           Synchronizing Zenvix State...
         </p>
       </div>
@@ -44,12 +44,12 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
           <Badge className="bg-orange-500 hover:bg-orange-600 px-4 py-1 font-black italic tracking-widest">
             CORE_REQUIREMENT_MISSING
           </Badge>
-          <h1 className="text-5xl font-black italic tracking-tighter text-slate-900 leading-none">
+          <h1 className="text-5xl font-black italic tracking-tighter text-foreground leading-none">
             WORKSPACE GENESIS
             <br />
             REQUIRED
           </h1>
-          <p className="text-slate-500 font-medium max-w-lg mx-auto italic">
+          <p className="text-muted-foreground font-medium max-w-lg mx-auto italic">
             A Retail Workspace cannot exist in a vacuum. You must establish at
             least one Physical Branch or E-commerce Channel to activate
             governance.
@@ -59,18 +59,18 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="border-2 border-slate-100 hover:border-blue-500 transition-all group overflow-hidden bg-white rounded-[2rem] shadow-xl">
             <CardHeader className="p-8">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                 <Store className="w-8 h-8" />
               </div>
               <CardTitle className="text-2xl font-black italic tracking-tighter mt-4">
                 PHYSICAL BRANCH
               </CardTitle>
-              <CardDescription className="font-bold italic text-xs uppercase tracking-widest text-slate-400">
+              <CardDescription className="font-bold italic text-xs uppercase tracking-widest text-muted-foreground">
                 Brick & Mortar Establishment
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0 space-y-6">
-              <p className="text-slate-500 text-sm font-medium italic">
+              <p className="text-muted-foreground text-sm font-medium italic">
                 Connect a retail warehouse or storefront. This activates Shift
                 Control, POS Registry, and Local Inventory ATS.
               </p>
@@ -84,7 +84,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
                   }
                 }}
                 trigger={
-                  <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-blue-600 font-black italic tracking-widest gap-2">
+                  <Button className="w-full h-14 rounded-2xl bg-secondary hover:bg-primary font-black italic tracking-widest gap-2">
                     ESTABLISH BRANCH
                     <PlusCircle className="w-5 h-5" />
                   </Button>
@@ -101,12 +101,12 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
               <CardTitle className="text-2xl font-black italic tracking-tighter mt-4">
                 COMMERCE CHANNEL
               </CardTitle>
-              <CardDescription className="font-bold italic text-xs uppercase tracking-widest text-slate-400">
+              <CardDescription className="font-bold italic text-xs uppercase tracking-widest text-muted-foreground">
                 Headless / Marketplace Sync
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0 space-y-6">
-              <p className="text-slate-500 text-sm font-medium italic">
+              <p className="text-muted-foreground text-sm font-medium italic">
                 Link a Shopify, WooCommerce, or Custom Headless instance.
                 Activates Fulfillment Hub and API Key rotation.
               </p>
@@ -122,7 +122,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
           </Card>
         </div>
 
-        <div className="flex items-center justify-center gap-2 text-slate-400">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
           <ShieldAlert className="w-4 h-4" />
           <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">
             Governance Protocol 15.0 - Strict Context Enforcement

@@ -10,7 +10,7 @@ export const StoreInfrastructureModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <Monitor className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           HARDWARE GRID OVERVIEW
@@ -36,14 +36,14 @@ export const StoreInfrastructureModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-slate-100/50 rounded-xl text-slate-600">
+        <div className="p-2 bg-secondary/10/50 rounded-xl text-muted-foreground">
           <Monitor className="w-5 h-5" />
         </div>
         <div>
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Infrastructure Registry
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Hardware arrays, local computing nodes, and continuity rules
           </p>
         </div>
@@ -53,12 +53,12 @@ export const StoreInfrastructureModule: React.FC = () => {
         {/* Hardware Topologies */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <HardDrive className="w-4 h-4 text-slate-400" /> Computing Arrays
+            <HardDrive className="w-4 h-4 text-muted-foreground" /> Computing Arrays
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Local Edge Server Binding
               </Label>
               <Input
@@ -70,13 +70,13 @@ export const StoreInfrastructureModule: React.FC = () => {
                 placeholder="SRV-EDGE-01"
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 ID of the physical gateway node located at this branch
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Approved POS Clusters
               </Label>
               <Input
@@ -95,7 +95,7 @@ export const StoreInfrastructureModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Registered Scanner Pools
               </Label>
               <Input
@@ -118,13 +118,13 @@ export const StoreInfrastructureModule: React.FC = () => {
         {/* Resilience & Continuity */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
-            <WifiOff className="w-4 h-4 text-slate-400" /> Continuity &
+            <WifiOff className="w-4 h-4 text-muted-foreground" /> Continuity &
             Resilience
           </h3>
 
           <div className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Cloud Sync Interval (Seconds)
               </Label>
               <Input
@@ -136,13 +136,13 @@ export const StoreInfrastructureModule: React.FC = () => {
                 }
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Frequency for edge-to-cloud telemetry sync
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Offline Tolerance Threshold (Transactions)
               </Label>
               <Input
@@ -156,7 +156,7 @@ export const StoreInfrastructureModule: React.FC = () => {
                 }
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Max offline transaction cache before forced lockout
               </p>
             </div>

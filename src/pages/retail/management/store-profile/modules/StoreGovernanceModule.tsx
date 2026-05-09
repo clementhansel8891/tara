@@ -18,7 +18,7 @@ export const StoreGovernanceModule: React.FC = () => {
 
   if (selectedStoreId === "all_stores") {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
         <ShieldCheck className="w-16 h-16 mb-4 opacity-20" />
         <h3 className="text-xl font-black italic tracking-wider">
           GLOBAL COMPLIANCE PROTOCOL
@@ -56,7 +56,7 @@ export const StoreGovernanceModule: React.FC = () => {
           <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
             Governance & Risk Control
           </h2>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             License enforcement, compliance scoring, and system freeze
             parameters
           </p>
@@ -68,13 +68,13 @@ export const StoreGovernanceModule: React.FC = () => {
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
           <div className="absolute -top-4 -right-4 w-24 h-24 bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
-            <Fingerprint className="w-4 h-4 text-slate-400" /> Digital
+            <Fingerprint className="w-4 h-4 text-muted-foreground" /> Digital
             Entitlements
           </h3>
 
           <div className="space-y-6 relative z-10">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Platform License Status
               </Label>
               <Select
@@ -90,13 +90,13 @@ export const StoreGovernanceModule: React.FC = () => {
                 <SelectContent>
                   <SelectItem
                     value="active"
-                    className="text-emerald-600 font-bold"
+                    className="text-success font-bold"
                   >
                     Valid & Active
                   </SelectItem>
                   <SelectItem
                     value="frozen"
-                    className="text-blue-600 font-bold"
+                    className="text-primary font-bold"
                   >
                     Suspended (Billing)
                   </SelectItem>
@@ -111,7 +111,7 @@ export const StoreGovernanceModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Activation Source Vector
               </Label>
               <Select
@@ -136,7 +136,7 @@ export const StoreGovernanceModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Activation Date (UTC)
               </Label>
               <Input
@@ -162,14 +162,14 @@ export const StoreGovernanceModule: React.FC = () => {
 
         {/* Security & Audit Parameters */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-slate-100 rounded-full blur-3xl opacity-50 pointer-events-none" />
+          <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
           <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
-            <Lock className="w-4 h-4 text-slate-400" /> Security & Compliance
+            <Lock className="w-4 h-4 text-muted-foreground" /> Security & Compliance
           </h3>
 
           <div className="space-y-6 relative z-10">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Compliance Layer (Tier 1-5)
               </Label>
               <Select
@@ -197,7 +197,7 @@ export const StoreGovernanceModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Auditory Sweep Frequency
               </Label>
               <Select
@@ -225,7 +225,7 @@ export const StoreGovernanceModule: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Decommission Trigger Webhook
               </Label>
               <Input
@@ -237,7 +237,7 @@ export const StoreGovernanceModule: React.FC = () => {
                 placeholder="https://api.internal/webhooks/wipe-node"
                 className="font-mono border-slate-200"
               />
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">
                 Endpoint to hit when this node is permanently closed and data
                 needs wiping
               </p>

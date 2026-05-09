@@ -109,10 +109,10 @@ const PricingPromoDesk = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[400px] items-center justify-center bg-slate-50/50">
+      <div className="flex h-[400px] items-center justify-center bg-secondary/5/50">
         <div className="flex flex-col items-center gap-4">
-          <RotateCcw className="w-8 h-8 text-blue-600 animate-spin" />
-          <p className="text-sm font-black italic uppercase tracking-widest text-slate-400">
+          <RotateCcw className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm font-black italic uppercase tracking-widest text-muted-foreground">
             Calibrating Governance Ledger...
           </p>
         </div>
@@ -121,8 +121,8 @@ const PricingPromoDesk = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] overflow-hidden bg-slate-50">
-      <div className="px-8 py-6 border-b bg-white shrink-0 flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-secondary/5">
+      <div className="px-6 py-3 border-b bg-background/40 backdrop-blur-md shrink-0 flex items-center justify-between gap-6">
         <PageHeader
           title="Revenue Control Desk"
           subtitle={`Governance Layer: SECURED • Margin Integrity: ${stats.marginImpact > -3 ? "OPTIMAL" : "CRITICAL"}`}
@@ -132,41 +132,41 @@ const PricingPromoDesk = () => {
             variant="outline"
             onClick={() => setIsAuditModalOpen(true)}
             disabled={!focusedPromoId}
-            className="h-11 rounded-xl px-4 font-black italic border-slate-200 text-xs uppercase tracking-widest gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700"
+            className="h-10 rounded-xl px-4 font-black italic border-slate-200 text-[10px] uppercase tracking-widest gap-2 bg-secondary/5 hover:bg-secondary/10 text-muted-foreground"
           >
-            <FileText className="w-4 h-4 text-blue-600" /> View Immutable Ledger
+            <FileText className="w-3.5 h-3.5 text-primary" /> IMMUTABLE LEDGER
           </Button>
           <Button 
-            className="h-11 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black italic uppercase text-xs tracking-widest gap-2 shadow-lg transition-all active:scale-95"
+            className="h-10 px-5 rounded-xl bg-secondary hover:bg-secondary/60 text-foreground font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-lg transition-all active:scale-95"
             onClick={() => setIsCreateModalOpen(true)}
           >
-            <Plus className="w-4 h-4" /> Issue Proposal
+            <Plus className="w-3.5 h-3.5" /> ISSUE PROPOSAL
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 lg:p-12">
+      <div className="flex-1 overflow-y-auto p-8 lg:p-6">
         <div className="max-w-[1400px] mx-auto space-y-10">
           {/* Top KPI row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="rounded-[2.5rem] p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-blue-600">
+            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-blue-600">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-blue-50 text-blue-600">
+                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
                   <Percent className="w-5 h-5" />
                 </div>
-                <Badge className="bg-emerald-50 text-emerald-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-emerald-50 text-success font-black italic text-[8px] uppercase tracking-widest border-none">
                   LIVE
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 Active Tactical Pricing
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 {stats.active} Promos
               </div>
             </Card>
 
-            <Card className="rounded-[2.5rem] p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-amber-500">
+            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-amber-500">
               <div className="flex justify-between items-start mb-6">
                 <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
                   <Zap className="w-5 h-5" />
@@ -178,38 +178,38 @@ const PricingPromoDesk = () => {
                   URGENT
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 Pending Governance
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 {stats.pending} Requests
               </div>
             </Card>
 
-            <Card className="rounded-[2.5rem] p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-indigo-600">
+            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-indigo-600">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600">
+                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
                   <BarChart3 className="w-5 h-5" />
                 </div>
-                <Badge className="bg-indigo-50 text-indigo-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-primary/5 text-primary font-black italic text-[8px] uppercase tracking-widest border-none">
                   AGGREGATE
                 </Badge>
               </div>
-              <div className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 mb-1">
+              <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground mb-1">
                 Margin Erosion Base
               </div>
-              <div className="text-3xl font-black italic tracking-tighter text-slate-900">
+              <div className="text-3xl font-black italic tracking-tighter text-foreground">
                 {stats.marginImpact}%
               </div>
             </Card>
 
-            <Card className="rounded-[2.5rem] p-6 bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
+            <Card className="rounded-2xl p-6 bg-secondary text-foreground shadow-2xl relative overflow-hidden group">
               <ShieldCheck className="absolute -right-8 -bottom-8 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
               <div className="relative z-10">
                 <div className="text-[10px] font-black italic uppercase tracking-widest text-blue-400 mb-4">
                   Guardrail Status
                 </div>
-                <div className="text-4xl font-black italic tracking-tighter">
+                <div className="text-2xl font-black italic tracking-tighter">
                   SECURED
                 </div>
                 <div className="text-[10px] font-bold italic opacity-60 mt-4 uppercase">
@@ -222,15 +222,15 @@ const PricingPromoDesk = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Promotion List */}
             <div className="lg:col-span-4 flex flex-col gap-6">
-              <Card className="rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.05)] border-none bg-white flex flex-col flex-1 h-[600px]">
+              <Card className="rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.05)] border-none bg-white flex flex-col flex-1 h-[600px]">
                 <div className="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
-                  <h3 className="text-xs font-black italic uppercase tracking-widest text-slate-500">
+                  <h3 className="text-xs font-black italic uppercase tracking-widest text-muted-foreground">
                     Registry
                   </h3>
                 </div>
-                <div className="p-4 shrink-0 bg-slate-50">
+                <div className="p-4 shrink-0 bg-secondary/5">
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       className="pl-12 h-11 bg-white border-slate-200 rounded-2xl text-xs font-bold italic"
                       placeholder="Search Strategy..."
@@ -245,8 +245,8 @@ const PricingPromoDesk = () => {
                       className={cn(
                         "group p-6 flex flex-col md:flex-row items-start md:items-center justify-between transition-all cursor-pointer",
                         focusedPromoId === promo.id
-                          ? "bg-blue-50/80"
-                          : "hover:bg-slate-50/80",
+                          ? "bg-primary/5/80"
+                          : "hover:bg-secondary/5/80",
                       )}
                     >
                       <div className="flex items-center gap-4 w-full">
@@ -254,22 +254,22 @@ const PricingPromoDesk = () => {
                           className={cn(
                             "w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 transition-transform",
                             focusedPromoId === promo.id
-                              ? "bg-blue-600 border-blue-600 text-white scale-105 shadow-lg"
-                              : "bg-white border-slate-200 text-blue-600 shadow-sm",
+                              ? "bg-primary border-blue-600 text-foreground scale-105 shadow-lg"
+                              : "bg-white border-slate-200 text-primary shadow-sm",
                           )}
                         >
                           <Tag className="w-5 h-5" />
                         </div>
                         <div className="flex-1 truncate">
-                          <div className="text-sm font-black italic tracking-tight text-slate-900 truncate">
+                          <div className="text-sm font-black italic tracking-tight text-foreground truncate">
                             {promo.title}
                           </div>
-                          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                          <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                             {promo.id.substring(0, 8)} • {promo.status}
                           </div>
                         </div>
                         {focusedPromoId === promo.id && (
-                          <ChevronRight className="w-4 h-4 text-blue-600 animate-pulse shrink-0" />
+                          <ChevronRight className="w-4 h-4 text-primary animate-pulse shrink-0" />
                         )}
                       </div>
                     </div>
@@ -282,17 +282,17 @@ const PricingPromoDesk = () => {
             <div className="lg:col-span-8 flex flex-col gap-8 h-full">
               {focusedPromo ? (
                 <>
-                  <div className="flex items-center justify-between bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                  <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <div>
-                      <h2 className="text-2xl font-black italic tracking-tighter text-slate-900">
+                      <h2 className="text-2xl font-black italic tracking-tighter text-foreground">
                         {focusedPromo.title}
                       </h2>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1 flex gap-3">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1 flex gap-3">
                         <span>Target: {focusedPromo.target || "GENERAL"}</span>
                         <span
                           className={
                             focusedPromo.status === "active"
-                              ? "text-emerald-500"
+                              ? "text-success"
                               : "text-amber-500"
                           }
                         >
@@ -301,12 +301,12 @@ const PricingPromoDesk = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-3xl font-black italic tracking-tighter text-slate-900">
+                      <span className="text-3xl font-black italic tracking-tighter text-foreground">
                         {focusedPromo.type === "percentage"
                           ? `${focusedPromo.value}%`
                           : `Rp ${focusedPromo.value.toLocaleString()}`}
                       </span>
-                      <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">
+                      <div className="text-[10px] uppercase font-bold text-muted-foreground mt-1">
                         Markdown Value
                       </div>
                     </div>
@@ -330,7 +330,7 @@ const PricingPromoDesk = () => {
                       ecommerceBufferConfig={100} // Mocked context
                     />
 
-                    <Card className="rounded-[2.5rem] bg-indigo-600 text-white p-8 group overflow-hidden relative border-none">
+                    <Card className="rounded-2xl bg-primary text-foreground p-8 group overflow-hidden relative border-none">
                       <Target className="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 group-hover:scale-110 transition-transform" />
                       <div className="relative flex flex-col h-full justify-between">
                         <div className="space-y-4">
@@ -347,10 +347,10 @@ const PricingPromoDesk = () => {
                           </p>
                         </div>
                         <div className="mt-6 flex gap-2">
-                          <Badge className="bg-indigo-500/50 hover:bg-indigo-500/50 border-none font-black text-[9px] uppercase">
+                          <Badge className="bg-primary/50 hover:bg-primary/50 border-none font-black text-[9px] uppercase">
                             Low Risk
                           </Badge>
-                          <Badge className="bg-indigo-500/50 hover:bg-indigo-500/50 border-none font-black text-[9px] uppercase">
+                          <Badge className="bg-primary/50 hover:bg-primary/50 border-none font-black text-[9px] uppercase">
                             High Volume
                           </Badge>
                         </div>
@@ -359,11 +359,11 @@ const PricingPromoDesk = () => {
                   </div>
 
                   {/* Execution Action Bar */}
-                  <div className="mt-4 flex items-center justify-end bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl sticky bottom-4 z-40 relative overflow-hidden group">
+                  <div className="mt-4 flex items-center justify-end bg-secondary p-6 rounded-2xl shadow-2xl sticky bottom-4 z-40 relative overflow-hidden group">
                     {/* Glow effect on hover */}
-                    <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex items-center gap-6 relative z-10 w-full justify-between md:justify-end">
-                      <span className="text-[10px] font-black italic uppercase tracking-widest text-slate-400 hidden md:block">
+                      <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground hidden md:block">
                         Action Requires Ledger Update
                       </span>
                       <Button
@@ -377,10 +377,10 @@ const PricingPromoDesk = () => {
                           "h-14 px-8 rounded-2xl font-black italic text-xs uppercase tracking-widest gap-3 w-full md:w-auto shadow-lg transition-all",
                           govState.phase === "Executed" ||
                             focusedPromo.status === "active"
-                            ? "bg-slate-800 text-slate-500"
+                            ? "bg-secondary/60 text-muted-foreground"
                             : govState.isBypassMode
-                              ? "bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(239,68,68,0.4)]"
-                              : "bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]",
+                              ? "bg-red-600 hover:bg-red-700 text-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                              : "bg-success hover:bg-success text-foreground shadow-[0_0_20px_rgba(16,185,129,0.3)]",
                         )}
                       >
                         {focusedPromo.status === "active" ||
@@ -397,8 +397,8 @@ const PricingPromoDesk = () => {
                   </div>
                 </>
               ) : (
-                <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-white/50">
-                  <div className="text-center text-slate-400 space-y-3">
+                <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-secondary/400">
+                  <div className="text-center text-muted-foreground space-y-3">
                     <Target className="w-12 h-12 mx-auto opacity-20" />
                     <div className="font-black italic uppercase tracking-widest text-xs">
                       Awaiting Focus

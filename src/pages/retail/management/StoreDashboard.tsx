@@ -154,45 +154,45 @@ const StoreDashboard = () => {
       <div className="absolute top-[20%] right-[5%] w-[30%] h-[30%] bg-info/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Glassmorphic Command Header */}
-      <div className="px-10 py-6 glass-header flex items-center justify-between sticky top-0 z-50 shadow-2xl">
-        <div className="flex items-center gap-8">
-          <div className="w-14 h-14 bg-card border border-border rounded-2xl flex items-center justify-center text-foreground shadow-2xl group hover:rotate-3 transition-all duration-500">
-            <LayoutDashboard className="w-7 h-7" />
+      <div className="px-6 py-3 glass-header flex items-center justify-between sticky top-0 z-50 shadow-xl">
+        <div className="flex items-center gap-6">
+          <div className="w-10 h-10 bg-card border border-border rounded-xl flex items-center justify-center text-foreground shadow-lg group hover:rotate-3 transition-all duration-500">
+            <LayoutDashboard className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-foreground">
+            <h1 className="text-xl font-black italic uppercase tracking-tighter text-foreground">
               Operational Command Center
             </h1>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-1">
-               Node: {scopedLocationId || "GLOBAL_ROOT"} • Security: {permissions.length} Grants • {rawRole}
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-0.5">
+               Node: {scopedLocationId || "GLOBAL_ROOT"} • Security: {permissions.length} Grants
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 relative z-10">
-          <div className="p-2 bg-muted/20 rounded-[1.5rem] flex items-center gap-4 border border-border backdrop-blur-3xl">
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="p-1.5 bg-muted/20 rounded-2xl flex items-center gap-3 border border-border backdrop-blur-3xl">
             <LocationSwitcher
               currentLocationId={scopedLocationId}
               onLocationChange={(id) => setStore(id || null)}
             />
-            <div className="h-8 w-[1px] bg-border" />
+            <div className="h-6 w-px bg-border/40" />
             <TimeRangeFilter value={timeRange} onChange={setTimeRange} />
           </div>
 
           <Button
             variant="ghost"
-            className="w-12 h-12 rounded-2xl p-0 border border-border bg-card text-foreground hover:bg-muted transition-all"
+            className="w-10 h-10 rounded-xl p-0 border border-border bg-card text-foreground hover:bg-muted transition-all"
             onClick={fetchAnalytics}
           >
             <RefreshCw
-              className={`w-5 h-5 ${isLoading ? "animate-spin text-primary" : "text-muted-foreground"}`}
+              className={`w-4 h-4 ${isLoading ? "animate-spin text-primary" : "text-muted-foreground"}`}
             />
           </Button>
         </div>
       </div>
 
       {/* Main Command Surface */}
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-6">
         <div className="max-w-[1920px] mx-auto space-y-12">
           {/* TIER 1: KPI Overview */}
           {data && <GlobalKpiRow kpis={data.kpis} />}
@@ -214,15 +214,15 @@ const StoreDashboard = () => {
 
             <Suspense
               fallback={
-                <div className="h-[450px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[450px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {canViewFinancials ? (
                 data && <RevenueAnalytics data={data.revenue} />
               ) : (
-                <div className="h-[250px] bg-white/5 rounded-[3rem] flex flex-col items-center justify-center border-2 border-dashed border-white/10 gap-4">
-                  <ShieldCheck className="w-10 h-10 text-slate-700" />
-                  <p className="text-[11px] font-black italic uppercase tracking-[0.2em] text-slate-500">
+                <div className="h-[250px] bg-secondary/40 rounded-[2rem] flex flex-col items-center justify-center border-2 border-dashed border-border gap-4">
+                  <ShieldCheck className="w-10 h-10 text-muted-foreground" />
+                  <p className="text-[11px] font-black italic uppercase tracking-[0.2em] text-muted-foreground">
                     Financial Access Restricted
                   </p>
                 </div>
@@ -231,7 +231,7 @@ const StoreDashboard = () => {
 
             <Suspense
               fallback={
-                <div className="h-[450px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[450px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {data && <OperationalEfficiency data={data.efficiency} />}
@@ -239,17 +239,17 @@ const StoreDashboard = () => {
           </div>
 
           {/* TIER 3: Specialized Intelligence Nodes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Suspense
               fallback={
-                <div className="h-[350px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[350px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {canViewInventory ? (
                 data && <InventoryIntelligence data={data.inventory} />
               ) : (
-                <div className="h-[350px] bg-white/5 rounded-[3rem] flex items-center justify-center border border-white/5">
-                  <p className="text-[10px] font-black italic uppercase tracking-widest text-slate-600">
+                <div className="h-[350px] bg-secondary/40 rounded-[2rem] flex items-center justify-center border border-white/5">
+                  <p className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                     Inventory Stream Restricted
                   </p>
                 </div>
@@ -258,14 +258,14 @@ const StoreDashboard = () => {
 
             <Suspense
               fallback={
-                <div className="h-[350px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[350px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {canViewHR ? (
                 data && <WorkforceAnalytics data={data.workforce} />
               ) : (
-                <div className="h-[350px] bg-white/5 rounded-[3rem] flex items-center justify-center border border-white/5">
-                  <p className="text-[10px] font-black italic uppercase tracking-widest text-slate-600">
+                <div className="h-[350px] bg-secondary/40 rounded-[2rem] flex items-center justify-center border border-white/5">
+                  <p className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                     Workforce Analytics Restricted
                   </p>
                 </div>
@@ -274,14 +274,14 @@ const StoreDashboard = () => {
 
             <Suspense
               fallback={
-                <div className="h-[350px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[350px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {canViewDevices ? (
                 data && <InfrastructureHealth data={data.infrastructure} />
               ) : (
-                <div className="h-[350px] bg-white/5 rounded-[3rem] flex items-center justify-center border border-white/5">
-                  <p className="text-[10px] font-black italic uppercase tracking-widest text-slate-600">
+                <div className="h-[350px] bg-secondary/40 rounded-[2rem] flex items-center justify-center border border-white/5">
+                  <p className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                     Infrastructure Telemetry Restricted
                   </p>
                 </div>
@@ -290,14 +290,14 @@ const StoreDashboard = () => {
 
             <Suspense
               fallback={
-                <div className="h-[350px] bg-white/5 border border-white/5 rounded-[3rem] animate-pulse" />
+                <div className="h-[350px] bg-secondary/40 border border-white/5 rounded-[2rem] animate-pulse" />
               }
             >
               {canViewRisk ? (
                 data && <RiskCompliancePanel data={data.risk} />
               ) : (
-                <div className="h-[350px] bg-white/5 rounded-[3rem] flex items-center justify-center border border-white/5">
-                  <p className="text-[10px] font-black italic uppercase tracking-widest text-slate-600">
+                <div className="h-[350px] bg-secondary/40 rounded-[2rem] flex items-center justify-center border border-white/5">
+                  <p className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
                     Risk Assessment Restricted
                   </p>
                 </div>

@@ -122,7 +122,7 @@ export default function RetailVerification() {
                     <h3 className="text-xl font-bold uppercase tracking-tight">{result.status} {result.type}</h3>
                     <p className="text-muted-foreground text-sm">Verified against Retail Core Ledger</p>
                  </div>
-                 <div className="bg-white/50 p-4 rounded-lg text-sm grid grid-cols-2 gap-2 text-left">
+                 <div className="bg-secondary/400 p-4 rounded-lg text-sm grid grid-cols-2 gap-2 text-left">
                     <span className="text-muted-foreground">Issued:</span><span className="font-medium">{new Date(result.issuedAt).toLocaleDateString()}</span>
                     <span className="text-muted-foreground">Value:</span><span className="font-bold text-green-700">{result.balance}</span>
                  </div>
@@ -143,7 +143,7 @@ export default function RetailVerification() {
 
             </Card>
           ) : (
-            <div className="h-full bg-slate-50 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+            <div className="h-full bg-secondary/5 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
               <ShieldCheck className="w-12 h-12 mb-4 opacity-20" />
               <p>Waiting for verification input...</p>
               <p className="text-xs max-w-[200px] mt-2">Validate e-vouchers, member QR codes, or physical receipts.</p>
@@ -153,7 +153,7 @@ export default function RetailVerification() {
       </div>
 
       <WorkspacePanel title="Validation History" description="Recent verification attempts at this desk">
-        <div className="p-8 text-center text-muted-foreground italic bg-slate-50/50 rounded-lg">
+        <div className="p-8 text-center text-muted-foreground italic bg-secondary/5/50 rounded-lg">
           No verification history available in this session.
         </div>
       </WorkspacePanel>

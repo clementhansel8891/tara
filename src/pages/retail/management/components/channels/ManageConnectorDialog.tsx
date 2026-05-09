@@ -153,18 +153,18 @@ export const ManageConnectorDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="max-w-3xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
-        <div className="bg-slate-900 p-12 text-white relative overflow-hidden shrink-0">
-          <Zap className="absolute -right-12 -top-12 w-64 h-64 opacity-10 text-blue-400" />
+      <DialogContent className="max-w-3xl rounded-[2rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
+        <div className="bg-secondary p-6 text-foreground relative overflow-hidden shrink-0">
+          <Zap className="absolute -right-12 -top-6 w-64 h-64 opacity-10 text-blue-400" />
           <div className="relative z-10 flex items-center justify-between">
             <div className="space-y-2">
-              <Badge className="bg-blue-500/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1 mb-4">
+              <Badge className="bg-primary/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1 mb-4">
                 Secure Channel Provisioning
               </Badge>
-              <DialogTitle className="text-4xl font-black italic uppercase tracking-tighter leading-none">
+              <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter leading-none">
                 {step === "CONFIG" ? "New Digital Node" : "Deployment Status"}
               </DialogTitle>
-              <DialogDescription className="text-sm font-bold text-slate-400 italic">
+              <DialogDescription className="text-sm font-bold text-muted-foreground italic">
                 {step === "CONFIG"
                   ? "Initialize a secure handshake between Zenvix and your external commerce storefront."
                   : "All secure keys have been issued. Critical data is now active in your vault."}
@@ -173,26 +173,26 @@ export const ManageConnectorDialog = ({
           </div>
         </div>
 
-        <div className="p-12 space-y-12 flex-1 overflow-y-auto bg-white">
+        <div className="p-6 space-y-12 flex-1 overflow-y-auto bg-white">
           {step === "SUCCESS" && generatedCreds ? (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
               <div className="bg-emerald-50 border-2 border-emerald-100 rounded-[2rem] p-8 flex items-center gap-6">
-                <div className="w-16 h-16 bg-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-900/10">
-                  <CheckCircle2 className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-success rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-900/10">
+                  <CheckCircle2 className="w-8 h-8 text-foreground" />
                 </div>
                 <div>
                   <div className="text-xl font-black italic text-emerald-900 uppercase italic">
                     Handshake Successful
                   </div>
-                  <div className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mt-1">
+                  <div className="text-[11px] font-bold text-success uppercase tracking-widest mt-1">
                     Credentials Issued • Vault Update Complete
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-8">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic flex items-center gap-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic flex items-center gap-3">
                     <Globe className="w-3 h-3" /> Gateway Identity
                   </div>
                   <div className="space-y-4">
@@ -220,7 +220,7 @@ export const ManageConnectorDialog = ({
                   </div>
                 </div>
                 <div className="space-y-8">
-                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-500 italic flex items-center gap-3">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic flex items-center gap-3">
                     <Key className="w-3 h-3" /> Storefront Secrets
                   </div>
                   <div className="space-y-4">
@@ -236,12 +236,12 @@ export const ManageConnectorDialog = ({
                       isMasked
                     />
                     <Separator className="my-4" />
-                    <div className="p-6 rounded-[2rem] bg-indigo-50 border border-indigo-100 space-y-3">
-                      <div className="flex items-center gap-2 text-[10px] font-black text-indigo-900 uppercase tracking-widest">
-                        <AlertCircle className="w-4 h-4 text-indigo-500" />{" "}
+                    <div className="p-6 rounded-[2rem] bg-primary/5 border border-indigo-100 space-y-3">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest">
+                        <AlertCircle className="w-4 h-4 text-primary" />{" "}
                         Security Notice
                       </div>
-                      <p className="text-[10px] font-bold text-indigo-600 leading-relaxed italic uppercase italic tracking-tighter">
+                      <p className="text-[10px] font-bold text-primary leading-relaxed italic uppercase italic tracking-tighter">
                         Client secrets are only visible once. Ensure they are
                         safely stored in your application vault.
                       </p>
@@ -252,7 +252,7 @@ export const ManageConnectorDialog = ({
 
               <Button
                 onClick={handleClose}
-                className="w-full h-20 rounded-[2rem] bg-slate-900 text-white font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-[0.98] transition-transform"
+                className="w-full h-20 rounded-[2rem] bg-secondary text-foreground font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-[0.98] transition-transform"
               >
                 CLOSE SESSION & HANDOVER
               </Button>
@@ -262,33 +262,33 @@ export const ManageConnectorDialog = ({
               <div className="grid grid-cols-2 gap-8">
                 <div
                   onClick={() => setChannelType("OWNED")}
-                  className={`p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer group ${channelType === "OWNED" ? "border-blue-600 bg-blue-50/30" : "border-slate-100 hover:border-slate-200"}`}
+                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "OWNED" ? "border-blue-600 bg-primary/5/30" : "border-slate-100 hover:border-slate-200"}`}
                 >
                   <Globe
-                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "OWNED" ? "text-blue-600 scale-110" : "text-slate-300"}`}
+                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "OWNED" ? "text-primary scale-110" : "text-muted-foreground/60"}`}
                   />
                   <div
-                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "OWNED" ? "text-blue-900" : "text-slate-400"}`}
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "OWNED" ? "text-blue-900" : "text-muted-foreground"}`}
                   >
                     Headless API
                   </div>
-                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                  <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-2">
                     Next.js / Custom App
                   </div>
                 </div>
                 <div
                   onClick={() => setChannelType("MARKETPLACE")}
-                  className={`p-8 rounded-[2.5rem] border-2 transition-all cursor-pointer group ${channelType === "MARKETPLACE" ? "border-emerald-600 bg-emerald-50/30" : "border-slate-100 hover:border-slate-200"}`}
+                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "MARKETPLACE" ? "border-emerald-600 bg-emerald-50/30" : "border-slate-100 hover:border-slate-200"}`}
                 >
                   <ShoppingBag
-                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "MARKETPLACE" ? "text-emerald-600 scale-110" : "text-slate-300"}`}
+                    className={`w-10 h-10 mb-6 transition-transform ${channelType === "MARKETPLACE" ? "text-success scale-110" : "text-muted-foreground/60"}`}
                   />
                   <div
-                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "MARKETPLACE" ? "text-emerald-900" : "text-slate-400"}`}
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "MARKETPLACE" ? "text-emerald-900" : "text-muted-foreground"}`}
                   >
                     Marketplace Hub
                   </div>
-                  <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                  <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-2">
                     Shopee / Tokopedia
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export const ManageConnectorDialog = ({
 
               <div className="space-y-8">
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
                     Core Specifications
                   </Label>
                   <div className="grid grid-cols-3 gap-6">
@@ -305,11 +305,11 @@ export const ManageConnectorDialog = ({
                         placeholder="Deployment Name (e.g. Flagship Store)"
                         value={channelName}
                         onChange={(e) => setChannelName(e.target.value)}
-                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-black italic text-lg text-slate-900 placeholder:text-slate-300 shadow-inner"
+                        className="h-16 px-6 rounded-2xl bg-secondary/5 border-none font-black italic text-lg text-foreground placeholder:text-muted-foreground/60 shadow-inner"
                       />
                     </div>
                     <Select value={syncFreq} onValueChange={setSyncFreq}>
-                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none font-black italic uppercase text-[10px] tracking-widest text-slate-900 shadow-inner">
+                      <SelectTrigger className="h-16 rounded-2xl bg-secondary/5 border-none font-black italic uppercase text-[10px] tracking-widest text-foreground shadow-inner">
                         <SelectValue placeholder="Sync Pulse" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2 bg-white">
@@ -351,7 +351,7 @@ export const ManageConnectorDialog = ({
                         placeholder="Marketplace API Key"
                         value={marketplaceApiKey}
                         onChange={(e) => setMarketplaceApiKey(e.target.value)}
-                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-mono text-sm text-slate-700 shadow-inner"
+                        className="h-16 px-6 rounded-2xl bg-secondary/5 border-none font-mono text-sm text-muted-foreground shadow-inner"
                       />
                       <Input
                         type="password"
@@ -360,7 +360,7 @@ export const ManageConnectorDialog = ({
                         onChange={(e) =>
                           setMarketplaceApiSecret(e.target.value)
                         }
-                        className="h-16 px-6 rounded-2xl bg-slate-50 border-none font-mono text-sm text-slate-700 shadow-inner"
+                        className="h-16 px-6 rounded-2xl bg-secondary/5 border-none font-mono text-sm text-muted-foreground shadow-inner"
                       />
                     </div>
                   </div>
@@ -370,7 +370,7 @@ export const ManageConnectorDialog = ({
               <Button
                 onClick={handleCreate}
                 disabled={isProcessing || !channelName}
-                className="w-full h-20 rounded-[2rem] bg-blue-600 text-white font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:bg-blue-700 hover:scale-[0.98] transition-all"
+                className="w-full h-20 rounded-[2rem] bg-primary text-foreground font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:bg-blue-700 hover:scale-[0.98] transition-all"
               >
                 {isProcessing ? (
                   <RefreshCw className="w-6 h-6 animate-spin" />
