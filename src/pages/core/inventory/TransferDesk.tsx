@@ -83,8 +83,20 @@ export default function InventoryTransferDesk() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiRequest<TransferRecord[]>("/inventory/transfers", "GET", session);
-      setTransfers(data || []);
+      const response = await apiRequest<any[]>("/inventory/stock-transfers", "GET", session);
+      
+      // Map backend response to frontend interface
+      const mappedTransfers: TransferRecord[] = (Array.isArray(response) ? response : []).map(t => ({
+        id: t.id,
+        transferNo: t.id.split('-')[0].toUpperCase(), // Fallback if transfer_no is missing
+        fromLocation: t.from_location?.name || t.from_location_id || "Unknown Source",
+        toLocation: t.to_location?.name || t.to_location_id || "Unknown Dest",
+        status: t.status,
+        createdAt: t.created_at || t.requested_at,
+        itemCount: Number(t.quantity) || 1
+      }));
+
+      setTransfers(mappedTransfers);
     } catch (error: any) {
       toast({
         title: "Sync Failed",
