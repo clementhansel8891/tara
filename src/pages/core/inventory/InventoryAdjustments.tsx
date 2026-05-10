@@ -50,9 +50,9 @@ export default function InventoryAdjustments() {
   
   const [adjustments, setAdjustments] = useState<InventoryAdjustmentRequest[]>([]);
   const [items, setItems] = useState<InventoryItemMaster[]>([]);
-  const [locations, setLocations] = useState<any[]>([]);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [locations, setLocations] = useState<Record<string, unknown>[]>([]);
+  const [departments, setDepartments] = useState<Record<string, unknown>[]>([]);
+  const [employees, setEmployees] = useState<Record<string, unknown>[]>([]);
   
   const [selectedAdj, setSelectedAdj] = useState<InventoryAdjustmentRequest | null>(null);
 
@@ -80,7 +80,7 @@ export default function InventoryAdjustments() {
     } finally {
       setLoading(false);
     }
-  }, [session.tenant_id, session]);
+  }, [session]);
 
   useEffect(() => {
     refresh();
@@ -131,10 +131,10 @@ export default function InventoryAdjustments() {
       setReason("");
       setDelta("0");
       refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Request Failed",
-        description: err.message || "Could not submit adjustment request.",
+        description: err instanceof Error ? err.message : "Could not submit adjustment request.",
         variant: "destructive"
       });
     } finally {
@@ -155,10 +155,10 @@ export default function InventoryAdjustments() {
       });
       setSelectedAdj(null);
       refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "Approval Failed",
-        description: err.message || "Could not approve adjustment.",
+        description: err instanceof Error ? err.message : "Could not approve adjustment.",
         variant: "destructive"
       });
     }
@@ -379,12 +379,13 @@ export default function InventoryAdjustments() {
         <DialogContent className="max-w-xl bg-slate-950 border-slate-800 rounded-[2.5rem] p-0 overflow-hidden shadow-2xl">
           {selectedAdj && (
             <>
-              <div className="h-24 bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border-b border-slate-800 p-8 flex items-end">
+              <DialogHeader className="h-24 bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border-b border-slate-800 p-8 flex flex-row items-end justify-between m-0 space-y-0 rounded-t-[2.5rem]">
                 <div>
-                  <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">Adjustment Analysis</h2>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Request ID #{selectedAdj.id.slice(0, 8)}</p>
+                  <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-white">Adjustment Analysis</DialogTitle>
+                  <DialogDescription className="sr-only">Detailed analysis of the requested inventory adjustment.</DialogDescription>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-1">Request ID #{selectedAdj.id.slice(0, 8)}</p>
                 </div>
-              </div>
+              </DialogHeader>
               
               <div className="p-8 space-y-8">
                 <div className="grid grid-cols-2 gap-8">
@@ -491,6 +492,6 @@ export default function InventoryAdjustments() {
   );
 }
 
-function cn(...classes: any[]) {
+function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(" ");
 }
