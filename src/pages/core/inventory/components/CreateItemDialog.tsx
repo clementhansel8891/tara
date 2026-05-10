@@ -164,13 +164,13 @@ export function CreateItemDialog({
                 >
                   <UISelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold">
                     <UISelectValue />
-                  </SelectTrigger>
+                  </UISelectTrigger>
                   <UISelectContent className="rounded-2xl border-none shadow-2xl">
-                    <UISelectItem value="pcs" className="font-bold">Pieces (pcs)</SelectItem>
-                    <UISelectItem value="kg" className="font-bold">Kilograms (kg)</SelectItem>
-                    <UISelectItem value="units" className="font-bold">Units</SelectItem>
-                    <UISelectItem value="box" className="font-bold">Boxes</SelectItem>
-                  </SelectContent>
+                    <UISelectItem value="pcs" className="font-bold">Pieces (pcs)</UISelectItem>
+                    <UISelectItem value="kg" className="font-bold">Kilograms (kg)</UISelectItem>
+                    <UISelectItem value="units" className="font-bold">Units</UISelectItem>
+                    <UISelectItem value="box" className="font-bold">Boxes</UISelectItem>
+                  </UISelectContent>
                 </UISelect>
               </div>
             </div>
