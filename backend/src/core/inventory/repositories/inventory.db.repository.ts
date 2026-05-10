@@ -171,7 +171,14 @@ export class InventoryDbRepository implements IInventoryRepository {
       
       const products = await this.prisma.item_masters.findMany({
         where: { id: { in: orderedIds.map(p => p.id) } },
-        include: { product_categories: true, item_images: true },
+        include: { 
+          product_categories: true, 
+          item_images: true,
+          stock_levels: {
+            where: location_id ? { location_id } : undefined,
+            select: { on_hand: true }
+          }
+        },
       });
       
       // Map results back to maintain order
@@ -187,6 +194,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         product_categories: true, 
         item_images: true,
         stock_levels: {
+          where: location_id ? { location_id } : undefined,
           select: { on_hand: true }
         }
       },
