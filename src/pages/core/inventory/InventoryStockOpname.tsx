@@ -132,9 +132,17 @@ export default function InventoryStockOpname() {
         scope: "LOCATION"
       });
       setActiveCycleId(cycle.id || "temp-cycle");
-      toast({ title: "Audit Session Active", description: "Terminal initialized and ready for scanning." });
-    } catch (err) {
-      toast({ title: "Initialization Failed", description: "Could not start audit cycle.", variant: "destructive" });
+      toast({ 
+        title: "Audit Session Active", 
+        description: "Terminal initialized and ready for scanning." 
+      });
+    } catch (err: any) {
+      console.error("Audit initialization failed", err);
+      toast({ 
+        title: "Initialization Failed", 
+        description: err.message || "The server encountered an error during initialization. Please check backend logs.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -144,20 +152,23 @@ export default function InventoryStockOpname() {
     if (!activeCycleId) return;
     setIsSubmitting(true);
     try {
-      // In a real implementation, we would send the full delta
-      // For now, we use the simple update method
       const totalCounted = history.reduce((a, b) => a + b.actualCount, 0);
       
       await inventoryService.closeAuditCycle(session.tenant_id, session, activeCycleId, {
         counted_value: totalCounted,
-        variance_value: 0 // Backend usually calculates this based on system snap
+        variance_value: 0
       });
 
       toast({ title: "Audit Committed", description: "Physical counts synchronized with core ledger." });
       setHistory([]);
       setActiveCycleId(null);
-    } catch (err) {
-      toast({ title: "Commit Failed", description: "Check connectivity to the edge server.", variant: "destructive" });
+    } catch (err: any) {
+      console.error("Audit commit failed", err);
+      toast({ 
+        title: "Commit Failed", 
+        description: err.message || "Failed to synchronize audit data. Check connectivity.", 
+        variant: "destructive" 
+      });
     } finally {
       setIsSubmitting(false);
     }

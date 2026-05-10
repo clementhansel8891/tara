@@ -776,7 +776,34 @@ export class InventoryService {
   }
 
   async createAuditCycle(ctx: TenantContext, data: any) {
-    return this.repository.createAuditCycle(ctx, data);
+    // Phase 5: Resolve ID-to-Code mapping for Audit Cycles (Schema compatibility)
+    const { location_id, department_id, scope, createdBy } = data;
+    
+    let location_code = location_id;
+    if (location_id && location_id.length > 20) { // Likely a UUID
+      const loc = await this.prisma.locations.findFirst({
+        where: { id: location_id, tenant_id: ctx.tenant_id }
+      });
+      if (loc) location_code = loc.code;
+    }
+
+    let department_code = department_id;
+    if (department_id && department_id.length > 20) {
+      const dept = await this.prisma.departments.findFirst({
+        where: { id: department_id, tenant_id: ctx.tenant_id }
+      });
+      if (dept) department_code = dept.code;
+    }
+
+    const finalData = {
+      location_code: location_code || 'HQ',
+      department_code: department_code || null,
+      scope: scope || 'LOCATION',
+      opened_by: createdBy || 'system',
+      status: 'OPEN',
+    };
+
+    return this.repository.createAuditCycle(ctx, finalData);
   }
 
   async updateAuditCycle(ctx: TenantContext, id: string, data: any) {
