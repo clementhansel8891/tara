@@ -15,6 +15,7 @@ import {
   UseInterceptors,
   UseGuards,
 } from "@nestjs/common";
+import { UserRole } from "../../shared/roles";
 import { Request, Response } from "express";
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
@@ -864,7 +865,7 @@ export class InventoryController {
     @Req() request: RequestWithTenant,
     @Body() dto: CreateAdjustmentDto,
   ) {
-    const { tenant_id: tenant_id, user_id } = request.tenantContext;
+    const { tenant_id: tenant_id, user_id, role } = request.tenantContext;
     const data = await this.inventoryService.createAdjustment(
       request.tenantContext,
       dto,
@@ -879,6 +880,22 @@ export class InventoryController {
       entity_id: (data as any).id || "new",
       metadata: { delta: dto.requested_delta, reason: dto.reason },
     });
+
+    // AUTO-APPROVAL for OWNERS & SUPERADMINS
+    if (role === UserRole.OWNER || role === UserRole.SUPERADMIN) {
+      try {
+        await this.inventoryService.approveAdjustment(
+          request.tenantContext,
+          (data as any).id,
+          user_id || "system"
+        );
+        return { success: true, tenant_id, message: "Adjustment auto-approved by high-privilege identity", data };
+      } catch (err) {
+        // Fallback to pending if auto-approval fails for some reason
+        return { success: true, tenant_id, message: "Adjustment submitted (Auto-approval bypass failed)", data };
+      }
+    }
+
     return { success: true, tenant_id, message: "Adjustment request submitted", data };
   }
 
