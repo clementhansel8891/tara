@@ -353,7 +353,7 @@ export function ItemDetailsModal({
                       <UISelectValue placeholder="Select Location" />
                     </UISelectTrigger>
                     <UISelectContent className="rounded-2xl border-indigo-100">
-                      {balances.map(b => (
+                      {aggregatedBalances.map(b => (
                         <UISelectItem key={b.location_id} value={b.location_id}>
                           {b.location_name} (Current: {b.quantity})
                         </UISelectItem>

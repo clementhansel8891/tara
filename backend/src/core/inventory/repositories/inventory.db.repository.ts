@@ -352,6 +352,8 @@ export class InventoryDbRepository implements IInventoryRepository {
         safety_stock: Number(l.min_buffer || 0),
         updated_at: l.updated_at,
         item: l.item_masters,
+        location: l.locations,
+        department: l.departments,
       }),
     );
   }
