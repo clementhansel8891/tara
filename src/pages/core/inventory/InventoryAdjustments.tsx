@@ -86,17 +86,27 @@ export default function InventoryAdjustments() {
     refresh();
   }, [refresh]);
 
-  const filtered = useMemo(
-    () =>
-      (Array.isArray(adjustments) ? adjustments : []).filter((item) =>
-        search
-          ? `${item.id} ${item.reason} ${item.status}`
-              .toLowerCase()
-              .includes(search.toLowerCase())
-          : true,
-      ),
-    [adjustments, search],
+  const filtered = useMemo(() => {
+    const list = Array.isArray(adjustments) ? adjustments : [];
+    return list.filter((item) =>
+      search
+        ? `${item.id} ${item.reason} ${item.status}`
+            .toLowerCase()
+            .includes(search.toLowerCase())
+        : true
+    );
+  }, [adjustments, search]);
+
+  const pendingAdjustments = useMemo(
+    () => filtered.filter(a => a.status.toUpperCase() === "PENDING_APPROVAL"),
+    [filtered]
   );
+
+  const processedAdjustments = useMemo(
+    () => filtered.filter(a => ["APPROVED", "REJECTED"].includes(a.status.toUpperCase())),
+    [filtered]
+  );
+
 
   const handleRequest = async () => {
     if (!itemId || !locationId || !delta || !reason) {
@@ -193,10 +203,14 @@ export default function InventoryAdjustments() {
       />
 
       <Tabs defaultValue="queue" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 rounded-2xl bg-slate-900/50 p-1 mb-8 border border-slate-800">
+        <TabsList className="grid w-full max-w-lg grid-cols-3 rounded-2xl bg-slate-900/50 p-1 mb-8 border border-slate-800">
           <TabsTrigger value="queue" className="rounded-xl flex items-center gap-2">
             <LayoutList className="h-4 w-4" />
             Adjustment Queue
+          </TabsTrigger>
+          <TabsTrigger value="history" className="rounded-xl flex items-center gap-2">
+            <History className="h-4 w-4" />
+            History
           </TabsTrigger>
           <TabsTrigger value="create" className="rounded-xl flex items-center gap-2">
             <PlusCircle className="h-4 w-4" />
@@ -204,13 +218,15 @@ export default function InventoryAdjustments() {
           </TabsTrigger>
         </TabsList>
 
+
         <TabsContent value="queue">
           <WorkspacePanel
             title="Active Queue"
             description="View and manage pending stock correction requests."
-            icon={History}
+            icon={Activity}
           >
-            <DataTableShell total={filtered.length} page={1} pageSize={10}>
+            <DataTableShell total={pendingAdjustments.length} page={1} pageSize={10}>
+
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-800">
@@ -222,14 +238,15 @@ export default function InventoryAdjustments() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
-                  {filtered.length === 0 ? (
+                  {pendingAdjustments.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="p-20 text-center text-muted-foreground font-bold italic">
-                        No adjustment records found.
+                        No pending adjustment requests.
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((item) => (
+                    pendingAdjustments.map((item) => (
+
                       <tr 
                         key={item.id} 
                         onClick={() => setSelectedAdj(item)}
@@ -282,6 +299,85 @@ export default function InventoryAdjustments() {
             </DataTableShell>
           </WorkspacePanel>
         </TabsContent>
+
+        <TabsContent value="history">
+          <WorkspacePanel
+            title="Processed History"
+            description="Archive of approved and rejected stock corrections."
+            icon={History}
+          >
+            <DataTableShell total={processedAdjustments.length} page={1} pageSize={10}>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-800">
+                    <th className="p-4 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Reference</th>
+                    <th className="p-4 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Item Info</th>
+                    <th className="p-4 text-left text-[10px] font-black uppercase tracking-widest text-muted-foreground">Storage Node</th>
+                    <th className="p-4 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground">Delta Impact</th>
+                    <th className="p-4 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {processedAdjustments.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-20 text-center text-muted-foreground font-bold italic">
+                        No historical records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    processedAdjustments.map((item) => (
+                      <tr 
+                        key={item.id} 
+                        onClick={() => setSelectedAdj(item)}
+                        className="group hover:bg-slate-900/40 cursor-pointer transition-all border-l-2 border-l-transparent hover:border-l-emerald-500/50"
+                      >
+                        <td className="p-4">
+                          <div className="font-mono text-[11px] font-bold text-slate-400">
+                            #{item.id.slice(0, 8)}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="font-bold text-slate-200">
+                            {items.find(i => i.id === item.item_id)?.name || item.item_id}
+                          </div>
+                          <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-tighter">
+                            {items.find(i => i.id === item.item_id)?.sku || "N/A"}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-3 w-3 text-emerald-500/50" />
+                            <span className="font-bold text-slate-300 text-xs">
+                              {locations.find(l => l.id === item.location_id)?.name || item.location_id}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-right">
+                          <span className={cn(
+                            "font-black text-sm",
+                            item.requested_delta > 0 ? "text-emerald-400/80" : "text-rose-400/80"
+                          )}>
+                            {item.requested_delta > 0 ? "+" : ""}{item.requested_delta} Units
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <Badge variant="outline" className={cn(
+                            "font-black text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full border-none shadow-sm",
+                            item.status.toUpperCase() === "APPROVED" ? "bg-emerald-500/10 text-emerald-500" :
+                            "bg-rose-500/10 text-rose-500"
+                          )}>
+                            {item.status.replace("_", " ")}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </DataTableShell>
+          </WorkspacePanel>
+        </TabsContent>
+
 
         <TabsContent value="create">
           <WorkspacePanel
