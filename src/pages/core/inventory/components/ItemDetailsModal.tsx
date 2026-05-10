@@ -81,7 +81,7 @@ export function ItemDetailsModal({
       ]);
       setMovements(moveData || []);
       setBalances(balanceData || []);
-      setAllLocations(locData.data || []);
+      setAllLocations(locData || []);
     } catch (error: any) {
       console.error("Failed to fetch details", error);
     } finally {
@@ -354,19 +354,19 @@ export function ItemDetailsModal({
             </TabsContent>
 
             <TabsContent value="adjustment" className="space-y-8">
-              <div className="p-8 rounded-[2.5rem] bg-indigo-50/30 border border-indigo-100/50 space-y-6">
+              <div className="p-8 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 space-y-6">
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Target Storage Node</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-500 dark:text-indigo-400">Target Storage Node</h4>
                   <UISelect 
                     value={adjustmentData.location_id} 
                     onValueChange={val => setAdjustmentData({...adjustmentData, location_id: val})}
                   >
-                    <UISelectTrigger className="w-full h-12 rounded-xl bg-white font-bold border-indigo-100">
+                    <UISelectTrigger className="w-full h-12 rounded-xl bg-white dark:bg-slate-950 font-bold border-slate-200 dark:border-slate-800">
                       <UISelectValue placeholder="Select Location" />
                     </UISelectTrigger>
-                    <UISelectContent className="rounded-2xl border-indigo-100">
+                    <UISelectContent className="rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
                       {adjustmentLocations.map((loc) => (
-                        <UISelectItem key={loc.id} value={loc.id}>
+                        <UISelectItem key={loc.id} value={loc.id} className="font-bold">
                           {loc.name} (Current: {loc.current})
                         </UISelectItem>
                       ))}
@@ -388,7 +388,7 @@ export function ItemDetailsModal({
                       type="number"
                       value={adjustmentData.requested_delta}
                       onChange={e => setAdjustmentData({...adjustmentData, requested_delta: parseInt(e.target.value) || 0})}
-                      className="h-12 text-center font-black text-xl bg-white rounded-xl border-indigo-100"
+                      className="h-12 text-center font-black text-xl bg-white dark:bg-slate-950 rounded-xl border-slate-200 dark:border-slate-800"
                     />
                     <Button 
                       variant="outline" 
@@ -407,7 +407,7 @@ export function ItemDetailsModal({
                     value={adjustmentData.reason}
                     onChange={e => setAdjustmentData({...adjustmentData, reason: e.target.value})}
                     placeholder="e.g., Damaged during transit, Manual correction, etc."
-                    className="w-full bg-white border border-indigo-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-24"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-24"
                   />
                 </div>
 
