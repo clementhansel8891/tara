@@ -76,6 +76,7 @@ import InventoryInsights from "@/pages/core/inventory/InventoryInsights";
 import WarehouseManagement from "@/pages/core/inventory/WarehouseManagement";
 import IotEventFeed from "@/pages/core/inventory/IotEventFeed";
 import TransferDesk from "@/pages/core/inventory/TransferDesk";
+import InventoryStockOpname from "@/pages/core/inventory/InventoryStockOpname";
 import ITWorkspaceLayout from "@/pages/core/it/ITWorkspaceLayout";
 import ITDashboard from "@/pages/core/it/ITDashboard";
 import SystemHealth from "@/pages/core/it/SystemHealth";
@@ -517,6 +518,14 @@ export function buildCoreRoutes(): JSX.Element[] {
         element={
           <ProtectedRoute permission="core.tools.access" scope="COMPANY">
             <TransferDesk />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="opname"
+        element={
+          <ProtectedRoute permission="core.tools.access" scope="COMPANY">
+            <InventoryStockOpname />
           </ProtectedRoute>
         }
       />
