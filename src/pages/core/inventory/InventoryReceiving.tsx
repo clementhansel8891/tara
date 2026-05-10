@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -181,7 +181,7 @@ export default function InventoryReceiving() {
           </Button>
         }
         secondaryActions={
-          <Input
+          <UIInput
             placeholder="Search by title, supplier, or status"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -285,7 +285,7 @@ export default function InventoryReceiving() {
               <Label htmlFor="recv-location">
                 Target Location ID <span className="text-destructive">*</span>
               </Label>
-              <Input
+              <UIInput
                 id="recv-location"
                 placeholder="e.g. loc-uuid or WH-01"
                 value={receiveLocationId}
@@ -308,7 +308,7 @@ export default function InventoryReceiving() {
               </div>
               {(Array.isArray(receiveItems) ? receiveItems : []).map((item, idx) => (
                 <div key={idx} className="grid grid-cols-3 gap-2">
-                  <Input
+                  <UIInput
                     placeholder="SKU"
                     value={item.sku}
                     onChange={(e) =>
@@ -317,7 +317,7 @@ export default function InventoryReceiving() {
                       )
                     }
                   />
-                  <Input
+                  <UIInput
                     type="number"
                     placeholder="Qty"
                     value={item.quantity}
@@ -330,7 +330,7 @@ export default function InventoryReceiving() {
                       )
                     }
                   />
-                  <Input
+                  <UIInput
                     type="number"
                     placeholder="Unit Cost"
                     value={item.unit_cost}

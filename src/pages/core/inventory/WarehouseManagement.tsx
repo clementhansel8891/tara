@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/core/security/session";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
@@ -72,7 +72,7 @@ export default function WarehouseManagement() {
           <div className="mb-4 flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
+              <UIInput
                 placeholder="Search bin code..."
                 className="pl-8"
               />

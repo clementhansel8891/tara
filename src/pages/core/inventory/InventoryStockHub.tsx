@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "@/core/security/session";
 import { apiRequest } from "@/core/api/apiClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -305,8 +305,8 @@ export default function InventoryStockHub() {
             locations={locations}
             status={activeStatus}
             onStatusChange={setActiveStatus}
-            type={sortConfig}
-            onTypeChange={setSortConfig}
+            sortBy={sortConfig}
+            onSortChange={setSortConfig}
             advancedActions={
               <Button 
                 onClick={() => setIsAnalyticsOpen(true)}

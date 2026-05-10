@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
@@ -118,7 +118,7 @@ export function AdjustmentDialog({
               Quantity Delta{" "}
               <span className="text-muted-foreground text-xs">(+/- amount)</span>
             </Label>
-            <Input
+            <UIInput
               id="delta"
               type="number"
               value={delta}
@@ -142,7 +142,7 @@ export function AdjustmentDialog({
             <Label htmlFor="adj-reason">
               Reason <span className="text-destructive">*</span>
             </Label>
-            <Input
+            <UIInput
               id="adj-reason"
               placeholder="e.g. Damage write-off, Cycle count correction"
               value={reason}

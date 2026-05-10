@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
@@ -72,7 +72,7 @@ export default function InventoryAdjustments() {
         title="Adjustments"
         subtitle="Approval-gated stock adjustments for high-risk corrections and reconciliation."
         secondaryActions={
-          <Input
+          <UIInput
             placeholder="Search adjustments"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -86,26 +86,26 @@ export default function InventoryAdjustments() {
         description="Submit stock correction with reason and approval trace."
       >
         <div className="grid gap-3 md:grid-cols-5">
-          <Input
+          <UIInput
             placeholder={`Item ID (default ${items[0]?.id ?? "N/A"})`}
             value={itemId}
             onChange={(event) => setItemId(event.target.value)}
           />
-          <Input
+          <UIInput
             placeholder="Location"
             value={locationCode}
             onChange={(event) =>
               setLocationCode(event.target.value.toUpperCase())
             }
           />
-          <Input
+          <UIInput
             placeholder="Department"
             value={departmentCode}
             onChange={(event) =>
               setDepartmentCode(event.target.value.toUpperCase())
             }
           />
-          <Input
+          <UIInput
             type="number"
             placeholder="Delta (+/-)"
             value={delta}

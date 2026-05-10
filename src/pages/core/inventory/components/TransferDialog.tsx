@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
@@ -122,7 +122,7 @@ export function TransferDialog({
               <Label htmlFor="to-location">
                 Destination Location <span className="text-destructive">*</span>
               </Label>
-              <Input
+              <UIInput
                 id="to-location"
                 placeholder="e.g. JKT-WH-B"
                 value={toLocation}
@@ -131,7 +131,7 @@ export function TransferDialog({
             </div>
             <div className="space-y-1">
               <Label htmlFor="to-dept">Destination Dept</Label>
-              <Input
+              <UIInput
                 id="to-dept"
                 placeholder="e.g. PRODUCTION"
                 value={toDepartment}
@@ -144,7 +144,7 @@ export function TransferDialog({
             <Label htmlFor="qty">
               Quantity <span className="text-destructive">*</span>
             </Label>
-            <Input
+            <UIInput
               id="qty"
               type="number"
               min={1}
@@ -155,7 +155,7 @@ export function TransferDialog({
 
           <div className="space-y-1">
             <Label htmlFor="reason">Reason</Label>
-            <Input
+            <UIInput
               id="reason"
               placeholder="e.g. Replenishment, Rebalancing"
               value={reason}

@@ -9,13 +9,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import { 
+  Select as UISelect,
+  SelectContent as UISelectContent,
+  SelectItem as UISelectItem,
+  SelectTrigger as UISelectTrigger,
+  SelectValue as UISelectValue,
 } from "@/components/ui/select";
+import { Input as UIInput } from "@/components/ui/input";
 import { 
   Package, 
   TrendingUp, 
@@ -129,19 +130,19 @@ export function ItemDetailsModal({
 
   // Aggregate balances by location to avoid redundancy
   const aggregatedBalances = balances.reduce((acc: any[], curr: any) => {
-    const locId = curr.location_id;
-    const existing = acc.find(b => b.location_id === locId);
+    const locId = String(curr.location_id);
+    const existing = acc.find(b => String(b.location_id) === locId);
     if (existing) {
-      existing.quantity += curr.quantity;
-      existing.reserved += curr.reserved_quantity || 0;
-      existing.in_transit += curr.in_transit_quantity || 0;
+      existing.quantity += (curr.quantity || 0);
+      existing.reserved += (curr.reserved_quantity || 0);
+      existing.in_transit += (curr.in_transit_quantity || 0);
     } else {
       acc.push({ 
         location_id: locId,
-        location_name: curr.location?.name || `Storage Node #${locId.slice(0,4)}`,
-        quantity: curr.quantity,
-        reserved: curr.reserved_quantity || 0,
-        in_transit: curr.in_transit_quantity || 0
+        location_name: curr.location?.name || curr.location_name || `Storage Node #${locId.slice(0,4)}`,
+        quantity: (curr.quantity || 0),
+        reserved: (curr.reserved_quantity || 0),
+        in_transit: (curr.in_transit_quantity || 0)
       });
     }
     return acc;
@@ -203,7 +204,7 @@ export function ItemDetailsModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Item Name</label>
-                    <input 
+                    <UIInput 
                       value={editData.name} 
                       onChange={e => setEditData({...editData, name: e.target.value})}
                       className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -211,22 +212,22 @@ export function ItemDetailsModal({
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Global Status</label>
-                    <Select
+                    <UISelect
                       value={editData.status}
                       onValueChange={(val) => setEditData({ ...editData, status: val })}
                     >
-                      <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 font-bold italic text-white">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                        <SelectItem value="active">ACTIVE</SelectItem>
-                        <SelectItem value="REPAIR">REPAIR</SelectItem>
-                        <SelectItem value="REJECT">REJECT</SelectItem>
-                        <SelectItem value="DISCONTINUED">DISCONTINUED</SelectItem>
-                        <SelectItem value="DRAFT">DRAFT</SelectItem>
-                        <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <UISelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 font-bold italic text-white">
+                        <UISelectValue placeholder="Status" />
+                      </UISelectTrigger>
+                      <UISelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
+                        <UISelectItem value="active">ACTIVE</UISelectItem>
+                        <UISelectItem value="REPAIR">REPAIR</UISelectItem>
+                        <UISelectItem value="REJECT">REJECT</UISelectItem>
+                        <UISelectItem value="DISCONTINUED">DISCONTINUED</UISelectItem>
+                        <UISelectItem value="DRAFT">DRAFT</UISelectItem>
+                        <UISelectItem value="INACTIVE">INACTIVE</UISelectItem>
+                      </UISelectContent>
+                    </UISelect>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -240,19 +241,19 @@ export function ItemDetailsModal({
                 </div>
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category Allocation</h4>
-                  <Select 
+                  <UISelect 
                     value={editData.category_id || item.category_id} 
                     onValueChange={val => setEditData({...editData, category_id: val})}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-xl bg-white dark:bg-slate-950 font-bold border-slate-200 dark:border-slate-800">
-                      <SelectValue placeholder="Assign Category" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-slate-200">
+                    <UISelectTrigger className="w-full h-12 rounded-xl bg-white dark:bg-slate-950 font-bold border-slate-200 dark:border-slate-800">
+                      <UISelectValue placeholder="Assign Category" />
+                    </UISelectTrigger>
+                    <UISelectContent className="rounded-2xl border-slate-200">
                       {categories.map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                        <UISelectItem key={cat.id} value={cat.id}>{cat.name}</UISelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </UISelectContent>
+                  </UISelect>
                 </div>
               </div>
             ) : null}
@@ -344,21 +345,21 @@ export function ItemDetailsModal({
               <div className="p-8 rounded-[2.5rem] bg-indigo-50/30 border border-indigo-100/50 space-y-6">
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Target Storage Node</h4>
-                  <Select 
+                  <UISelect 
                     value={adjustmentData.location_id} 
                     onValueChange={val => setAdjustmentData({...adjustmentData, location_id: val})}
                   >
-                    <SelectTrigger className="w-full h-12 rounded-xl bg-white font-bold border-indigo-100">
-                      <SelectValue placeholder="Select Location" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-indigo-100">
+                    <UISelectTrigger className="w-full h-12 rounded-xl bg-white font-bold border-indigo-100">
+                      <UISelectValue placeholder="Select Location" />
+                    </UISelectTrigger>
+                    <UISelectContent className="rounded-2xl border-indigo-100">
                       {balances.map(b => (
-                        <SelectItem key={b.location_id} value={b.location_id}>
+                        <UISelectItem key={b.location_id} value={b.location_id}>
                           {b.location_name} (Current: {b.quantity})
-                        </SelectItem>
+                        </UISelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </UISelectContent>
+                  </UISelect>
                 </div>
 
                 <div className="space-y-4">
@@ -371,7 +372,7 @@ export function ItemDetailsModal({
                     >
                       -
                     </Button>
-                    <Input 
+                    <UIInput 
                       type="number"
                       value={adjustmentData.requested_delta}
                       onChange={e => setAdjustmentData({...adjustmentData, requested_delta: parseInt(e.target.value) || 0})}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
@@ -167,7 +167,7 @@ export default function InventoryInsights() {
         title="Inventory Insights"
         subtitle="Operational analytics for stock health, turnover, and cross-module sync reliability."
         secondaryActions={
-          <Input
+          <UIInput
             placeholder="Search inventory metrics"
             value={search}
             onChange={(event) => setSearch(event.target.value)}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
@@ -83,7 +83,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="batch-to-loc">Destination Location <span className="text-destructive">*</span></Label>
-              <Input
+              <UIInput
                 id="batch-to-loc"
                 placeholder="Loc Code"
                 value={toLocation}
@@ -92,7 +92,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="batch-to-dept">Destination Dept</Label>
-              <Input
+              <UIInput
                 id="batch-to-dept"
                 placeholder="Dept Code"
                 value={toDepartment}
@@ -102,7 +102,7 @@ export function BatchTransferDialog({ open, onOpenChange, selectedIds, balances,
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="batch-reason">Reason</Label>
-            <Input
+            <UIInput
               id="batch-reason"
               placeholder="e.g. Consolidation"
               value={reason}

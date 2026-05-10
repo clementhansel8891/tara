@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "@/core/security/session";
 import { apiRequest } from "@/core/api/apiClient";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -175,7 +175,7 @@ export default function InventoryTransferDesk() {
         <div className="p-8 border-b flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="relative flex-1 w-full max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
+            <UIInput
               placeholder="Search by Transfer No or Location..."
               className="pl-12 h-14 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl text-sm font-bold shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20"
               value={search}

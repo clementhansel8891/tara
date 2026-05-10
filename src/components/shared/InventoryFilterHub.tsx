@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, ChevronDown, ChevronUp, X } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select as UISelect,
+  SelectContent as UISelectContent,
+  SelectItem as UISelectItem,
+  SelectTrigger as UISelectTrigger,
+  SelectValue as UISelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export interface InventoryFilterHubProps {
@@ -32,6 +32,8 @@ export interface InventoryFilterHubProps {
   maxPrice?: number;
   onPriceRangeChange?: (min?: number, max?: number) => void;
   advancedActions?: React.ReactNode;
+  sortBy?: string;
+  onSortChange?: (val: string) => void;
 }
 
 export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
@@ -54,6 +56,8 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
   maxPrice,
   onPriceRangeChange,
   advancedActions,
+  sortBy = "created_at-desc",
+  onSortChange,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -72,7 +76,7 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
         {/* Main Search Bar */}
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-          <Input
+          <UIInput
             className="pl-12 h-14 bg-slate-900/40 backdrop-blur-md border-white/10 shadow-xl rounded-2xl font-bold italic placeholder:text-slate-600 focus:ring-2 focus:ring-indigo-500/20 transition-all text-white"
             placeholder="Quick search SKU, item name..."
             value={search}
@@ -114,78 +118,79 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
               {/* Category Filter (Moved Inside) */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Category</label>
-                <Select value={category || "all"} onValueChange={onCategoryChange}>
-                  <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                    <SelectItem value="all">All Categories</SelectItem>
+                <UISelect value={category || "all"} onValueChange={onCategoryChange}>
+                  <UISelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
+                    <UISelectValue placeholder="All Categories" />
+                  </UISelectTrigger>
+                  <UISelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
+                    <UISelectItem value="all">All Categories</UISelectItem>
                     {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <UISelectItem key={c.id} value={c.id}>{c.name}</UISelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </UISelectContent>
+                </UISelect>
               </div>
 
               {/* Status Filter */}
               {onStatusChange && (
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Item Status</label>
-                  <Select value={status || "all"} onValueChange={onStatusChange}>
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">ACTIVE</SelectItem>
-                      <SelectItem value="REPAIR">REPAIR</SelectItem>
-                      <SelectItem value="REJECT">REJECT</SelectItem>
-                      <SelectItem value="DISCONTINUED">DISCONTINUED</SelectItem>
-                      <SelectItem value="DRAFT">DRAFT</SelectItem>
-                      <SelectItem value="INACTIVE">INACTIVE</SelectItem>
-                      <SelectItem value="low">STOCK: LOW</SelectItem>
-                      <SelectItem value="critical">STOCK: CRITICAL</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <UISelect value={status || "all"} onValueChange={onStatusChange}>
+                    <UISelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
+                      <UISelectValue placeholder="All Status" />
+                    </UISelectTrigger>
+                    <UISelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
+                      <UISelectItem value="all">All Status</UISelectItem>
+                      <UISelectItem value="active">ACTIVE</UISelectItem>
+                      <UISelectItem value="REPAIR">REPAIR</UISelectItem>
+                      <UISelectItem value="REJECT">REJECT</UISelectItem>
+                      <UISelectItem value="DISCONTINUED">DISCONTINUED</UISelectItem>
+                      <UISelectItem value="DRAFT">DRAFT</UISelectItem>
+                      <UISelectItem value="INACTIVE">INACTIVE</UISelectItem>
+                      <UISelectItem value="low">STOCK: LOW</UISelectItem>
+                      <UISelectItem value="critical">STOCK: CRITICAL</UISelectItem>
+                    </UISelectContent>
+                  </UISelect>
                 </div>
               )}
-
               {/* Advanced Sorting */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Sort By</label>
-                <Select 
-                  value={type || "created_at-desc"} 
-                  onValueChange={onTypeChange}
-                >
-                  <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
-                    <SelectValue placeholder="Newest First" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                    <SelectItem value="created_at-desc">Newest First</SelectItem>
-                    <SelectItem value="created_at-asc">Oldest First</SelectItem>
-                    <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                    <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                    <SelectItem value="quantity-desc">Quantity (High-Low)</SelectItem>
-                    <SelectItem value="quantity-asc">Quantity (Low-High)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {onSortChange && (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Sort By</label>
+                  <UISelect 
+                    value={sortBy} 
+                    onValueChange={onSortChange}
+                  >
+                    <UISelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
+                      <UISelectValue placeholder="Newest First" />
+                    </UISelectTrigger>
+                    <UISelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
+                      <UISelectItem value="created_at-desc">Newest First</UISelectItem>
+                      <UISelectItem value="created_at-asc">Oldest First</UISelectItem>
+                      <UISelectItem value="name-asc">Name (A-Z)</UISelectItem>
+                      <UISelectItem value="name-desc">Name (Z-A)</UISelectItem>
+                      <UISelectItem value="quantity-desc">Highest Quantity</UISelectItem>
+                      <UISelectItem value="quantity-asc">Lowest Quantity</UISelectItem>
+                    </UISelectContent>
+                  </UISelect>
+                </div>
+              )}
 
               {/* Location Filter */}
               {onLocationChange && locations && (
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">{locationLabel}</label>
-                  <Select value={location || "all"} onValueChange={onLocationChange}>
-                    <SelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
-                      <SelectValue placeholder={`All ${locationLabel}s`} />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
-                      <SelectItem value="all">All {locationLabel}s</SelectItem>
+                  <UISelect value={location || "all"} onValueChange={onLocationChange}>
+                    <UISelectTrigger className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white">
+                      <UISelectValue placeholder={`All ${locationLabel}s`} />
+                    </UISelectTrigger>
+                    <UISelectContent className="rounded-xl bg-slate-900 border-white/10 text-white">
+                      <UISelectItem value="all">All {locationLabel}s</UISelectItem>
                       {locations.map(loc => (
-                        <SelectItem key={loc.id} value={loc.id} className="font-bold italic">{loc.name}</SelectItem>
+                        <UISelectItem key={loc.id} value={loc.id} className="font-bold italic">{loc.name}</UISelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </UISelectContent>
+                  </UISelect>
                 </div>
               )}
 
@@ -193,7 +198,7 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
               {onModuleTagChange && (
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Context Tag</label>
-                  <Input 
+                  <UIInput 
                     placeholder="e.g. RETAIL"
                     className="h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm font-bold italic text-xs text-white placeholder:text-slate-700"
                     value={moduleTag || ""}
@@ -207,7 +212,7 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
                 <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Price Range</label>
                   <div className="flex items-center gap-2 h-12 rounded-xl bg-slate-950/50 border-white/5 shadow-sm px-4">
-                    <Input 
+                    <UIInput 
                       type="number"
                       placeholder="Min"
                       className="h-7 border-none bg-transparent font-bold italic text-xs p-0 focus-visible:ring-0 text-white placeholder:text-slate-700"
@@ -215,7 +220,7 @@ export const InventoryFilterHub: React.FC<InventoryFilterHubProps> = ({
                       onChange={(e) => onPriceRangeChange(e.target.value ? parseFloat(e.target.value) : undefined, maxPrice)}
                     />
                     <span className="text-slate-700">/</span>
-                    <Input 
+                    <UIInput 
                       type="number"
                       placeholder="Max"
                       className="h-7 border-none bg-transparent font-bold italic text-xs p-0 focus-visible:ring-0 text-right text-white placeholder:text-slate-700"

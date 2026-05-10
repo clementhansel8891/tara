@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { PageHeader } from "@/core/ui/PageHeader";
 import { WorkspacePanel } from "@/core/ui/WorkspacePanel";
 import { DataTableShell } from "@/core/tools/DataTableShell";
@@ -87,7 +87,7 @@ export default function InventoryAuditLog() {
           </Button>
         }
         secondaryActions={
-          <Input
+          <UIInput
             placeholder="Search audit trail"
             value={search}
             onChange={(event) => setSearch(event.target.value)}

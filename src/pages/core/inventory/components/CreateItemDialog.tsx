@@ -8,15 +8,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input as UIInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select as UISelect,
+  SelectContent as UISelectContent,
+  SelectItem as UISelectItem,
+  SelectTrigger as UISelectTrigger,
+  SelectValue as UISelectValue,
 } from "@/components/ui/select";
 import { apiRequest } from "@/core/api/apiClient";
 import { useSession } from "@/core/security/session";
@@ -104,7 +104,7 @@ export function CreateItemDialog({
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Unique SKU</Label>
                 <div className="relative">
                   <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
+                  <UIInput
                     required
                     className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
                     placeholder="e.g. ELE-MAC-001"
@@ -117,7 +117,7 @@ export function CreateItemDialog({
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</Label>
                 <div className="relative">
                   <Tags className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
+                  <UIInput
                     required
                     className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
                     placeholder="e.g. Electronics"
@@ -132,7 +132,7 @@ export function CreateItemDialog({
               <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Item Identity (Name)</Label>
               <div className="relative">
                 <Box className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
+                <UIInput
                   required
                   className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
                   placeholder="e.g. Macbook Pro M3 14-inch"
@@ -147,7 +147,7 @@ export function CreateItemDialog({
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Base Cost ($)</Label>
                 <div className="relative">
                   <BarChart3 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
+                  <UIInput
                     type="number"
                     step="0.01"
                     className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
@@ -158,20 +158,20 @@ export function CreateItemDialog({
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Unit of Measure</Label>
-                <Select 
+                <UISelect 
                   value={formData.uom} 
                   onValueChange={(val) => setFormData({ ...formData, uom: val })}
                 >
-                  <SelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold">
-                    <SelectValue />
+                  <UISelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold">
+                    <UISelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl">
-                    <SelectItem value="pcs" className="font-bold">Pieces (pcs)</SelectItem>
-                    <SelectItem value="kg" className="font-bold">Kilograms (kg)</SelectItem>
-                    <SelectItem value="units" className="font-bold">Units</SelectItem>
-                    <SelectItem value="box" className="font-bold">Boxes</SelectItem>
+                  <UISelectContent className="rounded-2xl border-none shadow-2xl">
+                    <UISelectItem value="pcs" className="font-bold">Pieces (pcs)</SelectItem>
+                    <UISelectItem value="kg" className="font-bold">Kilograms (kg)</SelectItem>
+                    <UISelectItem value="units" className="font-bold">Units</SelectItem>
+                    <UISelectItem value="box" className="font-bold">Boxes</SelectItem>
                   </SelectContent>
-                </Select>
+                </UISelect>
               </div>
             </div>
 
