@@ -446,7 +446,7 @@ export class InventoryDbRepository implements IInventoryRepository {
             tenant_id: ctx.tenant_id,
             location_id: data.location_id,
             product_id: data.item_id,
-            department_id: data.department_id || "DEFAULT",
+            department_id: (data.department_id || null) as any,
           },
         },
         create: {
@@ -454,7 +454,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           updated_at: new Date(),
           ...MultiTenancyUtil.getScope(ctx),
           location_id: data.location_id,
-          department_id: data.department_id || "DEFAULT",
+          department_id: data.department_id || null,
           product_id: data.item_id,
           on_hand: data.quantity,
           available: data.quantity,
@@ -568,7 +568,7 @@ export class InventoryDbRepository implements IInventoryRepository {
             tenant_id: ctx.tenant_id,
             location_id: data.to_location_id,
             product_id: data.item_id,
-            department_id: data.to_department_id || "DEFAULT",
+            department_id: (data.to_department_id || null) as any,
           },
         },
         create: {
@@ -704,13 +704,13 @@ export class InventoryDbRepository implements IInventoryRepository {
             tenant_id: ctx.tenant_id,
             location_id: adj.location_id,
             product_id: adj.item_id,
-            department_id: adj.department_id || "DEFAULT",
+            department_id: (adj.department_id || null) as any,
           },
         },
         create: {
           ...MultiTenancyUtil.getScope(ctx),
           location_id: adj.location_id,
-          department_id: adj.department_id || "DEFAULT",
+          department_id: adj.department_id || null,
           product_id: adj.item_id,
           on_hand: adj.requested_delta,
           available: adj.requested_delta,
@@ -1011,7 +1011,7 @@ export class InventoryDbRepository implements IInventoryRepository {
                   tenant_id: ctx.tenant_id,
                   location_id: locationId,
                   product_id: product.id,
-                  department_id: itemData.departmentId || "DEFAULT",
+                  department_id: (itemData.departmentId || null) as any,
                 }
               },
               update: {
@@ -1024,7 +1024,7 @@ export class InventoryDbRepository implements IInventoryRepository {
                 ...scope,
                 location_id: locationId,
                 product_id: product.id,
-                department_id: itemData.departmentId || "DEFAULT",
+                department_id: itemData.departmentId || null,
                 on_hand: Number(itemData.quantity),
                 available: Number(itemData.quantity),
               },
@@ -1379,7 +1379,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           location_id_product_id_department_id: {
             location_id: toLocationId,
             product_id: product_id,
-            department_id: "DEFAULT", // Consistent with consumeStock
+            department_id: null, // Consistent with consumeStock
           },
         },
         create: {
@@ -1388,7 +1388,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           ...MultiTenancyUtil.getScope(ctx),
           location_id: toLocationId,
           product_id: product_id,
-          department_id: "DEFAULT",
+          department_id: null,
           on_hand: 0,
           in_transit: quantity,
           available: 0,
@@ -1836,5 +1836,27 @@ export class InventoryDbRepository implements IInventoryRepository {
       total: Number(line.total_cost),
       final_po: line.procurement_draft_pos.procurement_final_pos?.[0]?.id
     }));
+  }
+
+  // --- Audit Anomaly Methods ---
+  async createAuditAnomaly(ctx: TenantContext, data: any): Promise<any> {
+    return this.prisma.inventory_audit_anomalies.create({
+      data: {
+        id: uuidv4(),
+        tenant_id: ctx.tenant_id,
+        audit_cycle_id: data.audit_cycle_id,
+        barcode: data.barcode,
+        metadata: data.metadata || {},
+      },
+    });
+  }
+
+  async getAuditAnomalies(ctx: TenantContext, cycleId: string): Promise<any[]> {
+    return this.prisma.inventory_audit_anomalies.findMany({
+      where: {
+        tenant_id: ctx.tenant_id,
+        audit_cycle_id: cycleId,
+      },
+    });
   }
 }

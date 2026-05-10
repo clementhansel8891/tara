@@ -3303,8 +3303,26 @@ model inventory_audit_cycles {
   // @@map("inventory_audit_cycles") - standardized
   tenants         tenants    @relation(fields: [tenant_id], references: [id])
 
+  anomalies       inventory_audit_anomalies[]
+  audit_items     item_masters[]
+
   @@index([tenant_id])
   @@index([company_id])
+}
+
+model inventory_audit_anomalies {
+  id              String               @id @default(uuid())
+  tenant_id       String
+  company_id      String?
+  audit_cycle_id  String
+  barcode         String
+  scanned_at      DateTime             @default(now())
+  metadata        Json?
+  
+  audit_cycle     inventory_audit_cycles @relation(fields: [audit_cycle_id], references: [id])
+  
+  @@index([tenant_id])
+  @@index([audit_cycle_id])
 }
 
 model inventory_integration_events {
@@ -3539,6 +3557,8 @@ model item_masters {
   created_at                  DateTime                      @default(now())
   updated_at                  DateTime                      @default(now())
   department_id               String?
+  audit_cycle_id              String?
+  audit_cycle                 inventory_audit_cycles?       @relation(fields: [audit_cycle_id], references: [id])
   inventory_adjustments       inventory_adjustments[]
   inventory_transfers         inventory_transfers[]
   inventory_movement_requests inventory_movement_requests[]

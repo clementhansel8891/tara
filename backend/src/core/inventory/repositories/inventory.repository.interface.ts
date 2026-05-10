@@ -257,4 +257,8 @@ export abstract class IInventoryRepository {
   abstract updateItem(ctx: TenantContext, itemId: string, data: any): Promise<any>;
   abstract getSalesHistory(ctx: TenantContext, itemId: string): Promise<any[]>;
   abstract getProcurementHistory(ctx: TenantContext, itemId: string): Promise<any[]>;
+
+  // --- Audit Anomaly Methods ---
+  abstract createAuditAnomaly(ctx: TenantContext, data: any): Promise<any>;
+  abstract getAuditAnomalies(ctx: TenantContext, cycleId: string): Promise<any[]>;
 }

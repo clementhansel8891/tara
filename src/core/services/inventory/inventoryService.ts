@@ -282,7 +282,12 @@ export const inventoryService = {
     tenantId: string,
     session: SessionContext,
     cycle_id: string,
-    results: { counted_value: number; variance_value: number },
+    results: { 
+      counted_value: number; 
+      variance_value: number; 
+      anomalies?: string[]; 
+      newItems?: any[] 
+    },
   ) {
     return apiRequest<any>(
       `/v1/inventory/audit-cycles/${cycle_id}`,
@@ -293,6 +298,20 @@ export const inventoryService = {
         status: "COMPLETED",
         closed_by: session.user_id,
       },
+    );
+  },
+
+  async createAuditItem(
+    tenantId: string,
+    session: SessionContext,
+    cycleId: string,
+    payload: any,
+  ) {
+    return apiRequest<any>(
+      `/v1/inventory/audit/${cycleId}/items`,
+      "POST",
+      session,
+      payload,
     );
   },
 

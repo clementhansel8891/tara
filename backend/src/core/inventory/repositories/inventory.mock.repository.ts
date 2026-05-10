@@ -214,6 +214,8 @@ export class InventoryMockRepository extends IInventoryRepository {
   async getAuditCycles(ctx: TenantContext): Promise<any[]> { return []; }
   async createAuditCycle(ctx: TenantContext, data: any): Promise<any> { return {}; }
   async updateAuditCycle(ctx: TenantContext, id: string, data: any): Promise<any> { return {}; }
+  async createAuditAnomaly(ctx: TenantContext, data: any): Promise<any> { return {}; }
+  async getAuditAnomalies(ctx: TenantContext, cycleId: string): Promise<any[]> { return []; }
   async getIntegrationEvents(ctx: TenantContext): Promise<any[]> { return []; }
   async createIntegrationEvent(ctx: TenantContext, data: any): Promise<any> { return {}; }
   async consumeStock(ctx: TenantContext, data: any, tx?: any): Promise<any> { return {}; }

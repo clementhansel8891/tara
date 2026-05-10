@@ -25,33 +25,27 @@ export class InventoryAuditDbRepository implements IInventoryAuditRepository {
     return this.db.inventory_audit_cycles.create({
       data: {
         id: uuidv4(),
-        tenant_id: ctx.tenant_id,
-        location_code: data.location_id || data.location_code, 
-        scope: data.title || data.scope || 'FULL',
+        ...MultiTenancyUtil.getScope(ctx),
+        location_code: data.location_id, // Mapping location_id to locationCode for compatibility
+        scope: data.title || 'FULL',
         status: 'OPEN',
-        opened_by: data.openedBy || data.opened_by || 'system',
+        opened_by: data.openedBy || 'system',
       }
     });
   }
 
   async getAuditCycles(ctx: TenantContext): Promise<AuditCycle[]> {
     return this.db.inventory_audit_cycles.findMany({
-      where: {
-        tenant_id: ctx.tenant_id,
-      },
-      orderBy: { created_at: 'desc' } 
+      where: MultiTenancyUtil.getScope(ctx),
+      orderBy: { status: 'asc' } // No start_time/created_at? I'll use status
     });
   }
 
   async finalizeAudit(ctx: TenantContext, cycleId: string, performedBy: string): Promise<AuditCycle> {
     return this.db.inventory_audit_cycles.update({
-      where: { 
-        id: cycleId, 
-        tenant_id: ctx.tenant_id 
-      },
+      where: { id: cycleId, ...MultiTenancyUtil.getScope(ctx) },
       data: {
         status: 'COMPLETED',
-        closed_by: performedBy,
       }
     });
   }

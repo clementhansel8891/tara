@@ -20,6 +20,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { UnknownBarcodeDialog } from "@/components/shared/UnknownBarcodeDialog";
+
 
 interface OpnameEntry {
   id: string;
@@ -40,7 +42,12 @@ export default function InventoryStockOpname() {
   const [locations, setLocations] = useState<any[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<string>(session.location_id || "");
   const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [anomalies, setAnomalies] = useState<string[]>([]);
+  const [newItems, setNewItems] = useState<any[]>([]);
+  const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
 
   // Fetch locations on mount
   useEffect(() => {
@@ -56,7 +63,18 @@ export default function InventoryStockOpname() {
       }
     };
     fetchLocations();
+
+    const fetchCategories = async () => {
+      try {
+        const cats = await inventoryService.listCategories(session.tenant_id, session);
+        setCategories(cats);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
   }, [session, selectedLocation]);
+
 
   // Global Barcode Scanner Integration
   useBarcodeScanner((barcode) => {
@@ -73,11 +91,7 @@ export default function InventoryStockOpname() {
       const item = await inventoryService.lookupItemByBarcode(session.tenant_id, session, barcode);
       
       if (!item) {
-        toast({
-          title: "Unknown Item",
-          description: `Barcode ${barcode} not recognized in catalog.`,
-          variant: "destructive",
-        });
+        setUnknownBarcode(barcode);
         return;
       }
 
@@ -132,17 +146,9 @@ export default function InventoryStockOpname() {
         scope: "LOCATION"
       });
       setActiveCycleId(cycle.id || "temp-cycle");
-      toast({ 
-        title: "Audit Session Active", 
-        description: "Terminal initialized and ready for scanning." 
-      });
-    } catch (err: any) {
-      console.error("Audit initialization failed", err);
-      toast({ 
-        title: "Initialization Failed", 
-        description: err.message || "The server encountered an error during initialization. Please check backend logs.", 
-        variant: "destructive" 
-      });
+      toast({ title: "Audit Session Active", description: "Terminal initialized and ready for scanning." });
+    } catch (err) {
+      toast({ title: "Initialization Failed", description: "Could not start audit cycle.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -152,27 +158,59 @@ export default function InventoryStockOpname() {
     if (!activeCycleId) return;
     setIsSubmitting(true);
     try {
+      // In a real implementation, we would send the full delta
+      // For now, we use the simple update method
       const totalCounted = history.reduce((a, b) => a + b.actualCount, 0);
       
       await inventoryService.closeAuditCycle(session.tenant_id, session, activeCycleId, {
         counted_value: totalCounted,
-        variance_value: 0
+        variance_value: 0,
+        anomalies,
+        newItems: newItems.map(item => ({ id: item.id }))
       });
 
-      toast({ title: "Audit Committed", description: "Physical counts synchronized with core ledger." });
+
+      toast({ title: "Audit Committed", description: "Physical counts synchronized and report saved to Explorer." });
       setHistory([]);
+      setAnomalies([]);
+      setNewItems([]);
       setActiveCycleId(null);
-    } catch (err: any) {
-      console.error("Audit commit failed", err);
-      toast({ 
-        title: "Commit Failed", 
-        description: err.message || "Failed to synchronize audit data. Check connectivity.", 
-        variant: "destructive" 
-      });
+    } catch (err) {
+      toast({ title: "Commit Failed", description: "Check connectivity to the edge server.", variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const handleReportAnomaly = (barcode: string) => {
+    setAnomalies(prev => [...prev, barcode]);
+    toast({ title: "Anomaly Recorded", description: `Barcode ${barcode} flagged for review.` });
+  };
+
+  const handleCreateNewItem = async (itemData: any) => {
+    try {
+      const created = await inventoryService.createAuditItem(session.tenant_id, session, activeCycleId!, itemData);
+      setNewItems(prev => [...prev, created]);
+      
+      // Also add to local history so it shows up in the list
+      setHistory(prev => [
+        {
+          id: created.id,
+          sku: created.sku,
+          name: created.name,
+          systemCount: 0,
+          actualCount: 1,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+        ...prev
+      ]);
+
+      toast({ title: "New Item Registered", description: `${created.name} added to audit.` });
+    } catch (err) {
+      toast({ title: "Registration Failed", description: "Could not create item during audit.", variant: "destructive" });
+    }
+  };
+
 
   const totalVariances = history.filter(h => h.actualCount !== h.systemCount).length;
 
@@ -390,6 +428,16 @@ export default function InventoryStockOpname() {
           </div>
         </div>
       )}
+
+      <UnknownBarcodeDialog
+        isOpen={!!unknownBarcode}
+        onClose={() => setUnknownBarcode(null)}
+        barcode={unknownBarcode || ""}
+        onReportAnomaly={handleReportAnomaly}
+        onCreateNew={handleCreateNewItem}
+        categoryOptions={categories}
+      />
     </div>
   );
 }
+

@@ -1003,6 +1003,25 @@ export class InventoryController {
     return this.createAuditCycle(request, body);
   }
 
+  @Post("audit/:id/items")
+  @RequireInventoryRole(InventoryRole.SUPERVISOR)
+  async createAuditItem(
+    @Req() request: RequestWithTenant,
+    @Param("id") cycleId: string,
+    @Body() body: any,
+  ) {
+    const { role } = request.tenantContext;
+    
+    // Auto-approve if OWNER or SUPERADMIN
+    const status = (role === "OWNER" || role === "SUPERADMIN") ? "active" : "pending_audit_approval";
+    
+    return this.inventoryService.createAuditPendingItem(
+      request.tenantContext, 
+      { ...body, status }, 
+      cycleId
+    );
+  }
+
   @Put("audit-cycles/:id")
   @RequireInventoryRole(InventoryRole.SUPERVISOR)
   async updateAuditCycle(

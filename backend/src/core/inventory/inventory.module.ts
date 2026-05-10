@@ -20,13 +20,15 @@ import { ProcurementListener } from "./listeners/procurement.listener";
 import { ITDeviceListener } from "./listeners/it-device.listener";
 import { InventoryEventListener } from "./listeners/inventory-event.listener";
 import { InventoryAgentModule } from "../../agentic/inventory/inventory-agent.module";
+import { ExplorerModule } from "../explorer/explorer.module";
+
 
 import { InventoryCleanupService } from "./inventory-cleanup.service";
 import { InventoryEdgeController } from "./controllers/inventory-edge.controller";
 import { ProcurementModule } from "../procurement/procurement.module";
 
 @Module({
-  imports: [PersistenceModule, FileProcessingModule, AuditModule, InventoryAgentModule, ProcurementModule],
+  imports: [PersistenceModule, FileProcessingModule, AuditModule, InventoryAgentModule, ProcurementModule, ExplorerModule],
   controllers: [InventoryController, WarehouseController, InventoryEdgeController],
   providers: [
     InventoryService,

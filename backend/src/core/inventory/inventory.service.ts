@@ -19,7 +19,9 @@ import * as fsPromises from "fs/promises";
 import { ItemImageService } from "./item-image.service";
 import { ImportItemDto } from "./dto/import-item.dto";
 import { FileProcessingService } from "../../shared/file-processing/file-processing.service";
+import { ExplorerService } from "../explorer/explorer.service";
 import * as ExcelJS from "exceljs";
+
 
 @Injectable()
 export class InventoryService {
@@ -32,6 +34,7 @@ export class InventoryService {
     private readonly procurementService: ProcurementService,
     private readonly itemImageService: ItemImageService,
     private readonly fileProcessingService: FileProcessingService,
+    private readonly explorerService: ExplorerService,
   ) {}
 
   private readonly logger = new Logger(InventoryService.name);
@@ -776,39 +779,116 @@ export class InventoryService {
   }
 
   async createAuditCycle(ctx: TenantContext, data: any) {
-    // Phase 5: Resolve ID-to-Code mapping for Audit Cycles (Schema compatibility)
-    const { location_id, department_id, scope, createdBy } = data;
-    
-    let location_code = location_id;
-    if (location_id && location_id.length > 20) { // Likely a UUID
-      const loc = await this.prisma.locations.findFirst({
-        where: { id: location_id, tenant_id: ctx.tenant_id }
-      });
-      if (loc) location_code = loc.code;
-    }
-
-    let department_code = department_id;
-    if (department_id && department_id.length > 20) {
-      const dept = await this.prisma.departments.findFirst({
-        where: { id: department_id, tenant_id: ctx.tenant_id }
-      });
-      if (dept) department_code = dept.code;
-    }
-
-    const finalData = {
-      location_code: location_code || 'HQ',
-      department_code: department_code || null,
-      scope: scope || 'LOCATION',
-      opened_by: createdBy || 'system',
-      status: 'OPEN',
-    };
-
-    return this.repository.createAuditCycle(ctx, finalData);
+    return this.repository.createAuditCycle(ctx, data);
   }
 
   async updateAuditCycle(ctx: TenantContext, id: string, data: any) {
-    return this.repository.updateAuditCycle(ctx, id, data);
+    const { anomalies, newItems, ...results } = data;
+
+    // 1. Process Anomalies
+    if (anomalies && Array.isArray(anomalies)) {
+      for (const barcode of anomalies) {
+        await this.repository.createAuditAnomaly(ctx, {
+          audit_cycle_id: id,
+          barcode,
+          metadata: { source: "SCANNER_TERMINAL" },
+        });
+      }
+    }
+
+    // 2. Link New Items
+    if (newItems && Array.isArray(newItems)) {
+      for (const item of newItems) {
+        await this.prisma.item_masters.update({
+          where: { id: item.id },
+          data: { audit_cycle_id: id }
+        });
+      }
+    }
+
+    // 3. Update Cycle Status
+    const cycle = await this.repository.updateAuditCycle(ctx, id, results);
+
+    // 4. Generate & Save Report to Explorer
+    if (results.status === "COMPLETED") {
+      await this.generateAndSaveAuditReport(ctx, id);
+    }
+
+    return cycle;
   }
+
+  async createAuditPendingItem(ctx: TenantContext, data: any, cycleId: string) {
+    if (!data.sku) data.sku = await this.skuGenerator.generateSku(ctx, data.category);
+    if (!data.barcode) data.barcode = this.skuGenerator.generateBarcode(ctx, data.sku);
+
+    const itemData = {
+      ...data,
+      audit_cycle_id: cycleId,
+      status: data.status || "pending_audit_approval",
+    };
+
+    return this.repository.createItem(ctx, itemData);
+  }
+
+  private async generateAndSaveAuditReport(ctx: TenantContext, cycleId: string) {
+    try {
+      const cycle = await this.prisma.inventory_audit_cycles.findUnique({
+        where: { id: cycleId },
+        include: { 
+          audit_items: true,
+          anomalies: true
+        }
+      });
+
+      if (!cycle) return;
+
+      const reportData = {
+        cycle_id: cycle.id,
+        location: cycle.location_code,
+        scope: cycle.scope,
+        status: cycle.status,
+        expected_value: cycle.expected_value,
+        counted_value: cycle.counted_value,
+        variance: cycle.variance_value,
+        timestamp: new Date().toISOString(),
+        recognized_items: cycle.audit_items.map(i => ({ sku: i.sku, name: i.name, barcode: i.barcode })),
+        anomalies: cycle.anomalies.map(a => ({ barcode: a.barcode, scanned_at: a.scanned_at })),
+      };
+
+      const reportJson = JSON.stringify(reportData, null, 2);
+      const fileName = `AuditReport_${cycle.location_code}_${Date.now()}.json`;
+      
+      // Ensure Audit Reports folder exists
+      const folders = await this.prisma.explorer_folders.findMany({
+        where: { tenant_id: ctx.tenant_id, name: "Audit Reports" }
+      });
+
+      let folderId = folders[0]?.id;
+      if (!folderId) {
+        const folder = await this.explorerService.createFolder(ctx, {
+          name: "Audit Reports",
+        } as any);
+        folderId = folder.id;
+      }
+
+      // Upload via Explorer
+      const mockFile: any = {
+        originalname: fileName,
+        mimetype: "application/json",
+        buffer: Buffer.from(reportJson),
+        size: reportJson.length
+      };
+
+      await this.explorerService.uploadFile(ctx, mockFile, {
+        folder_id: folderId,
+      } as any);
+
+      this.logger.log(`Audit report generated and saved for cycle ${cycleId}`);
+    } catch (err) {
+      this.logger.error(`Failed to generate audit report: ${err.message}`);
+    }
+  }
+
 
   async getIntegrationEvents(ctx: TenantContext) {
     return this.repository.getIntegrationEvents(ctx);
