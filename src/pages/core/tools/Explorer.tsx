@@ -153,6 +153,7 @@ export default function Explorer() {
         session,
         activeFolder === "root" ? undefined : activeFolder
       );
+      console.log("[Explorer] API Result:", { folders, files, activeFolder });
       setFiles(files);
       setFolders(folders);
     } catch (err) {
