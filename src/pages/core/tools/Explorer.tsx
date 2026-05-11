@@ -1,7 +1,7 @@
- import { useMemo, useRef, useState } from "react";
- import type { MouseEvent } from "react";
- import { format } from "date-fns";
- import { cn } from "@/lib/utils";
+import { useMemo, useRef, useState } from "react";
+import type { MouseEvent } from "react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -49,19 +49,19 @@ import {
   Upload,
   Download,
   Settings,
-   MoreVertical,
-   MoreHorizontal,
-   Plus,
-   History,
-   Briefcase,
-   FolderOpen,
-   Activity,
-   FileSearch,
-   Zap,
-   RefreshCcw,
-   HardDrive,
-   Info
- } from "lucide-react";
+  MoreVertical,
+  MoreHorizontal,
+  Plus,
+  History,
+  Briefcase,
+  FolderOpen,
+  Activity,
+  FileSearch,
+  Zap,
+  RefreshCcw,
+  HardDrive,
+  Info
+} from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
@@ -1329,7 +1329,7 @@ export default function Explorer() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold tracking-tight">Stock Opname Report</h3>
-                      <p className="text-sm text-muted-foreground">Location: <span className="text-foreground font-semibold">{selectedFile.metadata.location}</span> • {format(new Date(selectedFile.metadata.timestamp), 'PPpp')}</p>
+                      <p className="text-sm text-muted-foreground">Location: <span className="text-foreground font-semibold">{selectedFile.metadata.location}</span> - {format(new Date(selectedFile.metadata.timestamp), 'PPpp')}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
