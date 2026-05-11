@@ -113,7 +113,7 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
 
         <ScrollArea className="flex-1 p-6">
           <div className="space-y-4">
-            {jobs.length === 0 ? (
+            {!Array.isArray(jobs) || jobs.length === 0 ? (
               <div className="text-center py-12 text-slate-500">
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p>No recent background tasks found</p>
@@ -148,7 +148,7 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
                       </div>
                     </div>
                     
-                    {job.status === 'PROCESSING' && (
+                    {(job.status === 'PROCESSING' || job.status === 'PENDING') && (
                       <Button 
                         size="sm" 
                         variant="destructive" 

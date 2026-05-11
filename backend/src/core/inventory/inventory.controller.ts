@@ -287,6 +287,7 @@ export class InventoryController {
         cb(null, `data-${uniqueSuffix}${path.extname(file.originalname)}`);
       },
     }),
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   }))
   @RequireInventoryRole(InventoryRole.MANAGER)
   async importItems(
@@ -299,6 +300,7 @@ export class InventoryController {
       return { success: false, message: "No file uploaded" };
     }
 
+    console.log(`[Import] Starting DATA import for file: ${file.originalname}, tenant: ${tenant_id}`);
     const job = await this.prisma.inventory_import_jobs.create({
       data: {
         tenant_id,
@@ -335,6 +337,7 @@ export class InventoryController {
         cb(null, `images-${uniqueSuffix}${path.extname(file.originalname)}`);
       },
     }),
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   }))
   @RequireInventoryRole(InventoryRole.MANAGER)
   async importImages(
@@ -346,6 +349,7 @@ export class InventoryController {
       return { success: false, message: "No file uploaded" };
     }
 
+    console.log(`[Import] Starting IMAGES import for file: ${file.originalname}, tenant: ${tenant_id}`);
     const job = await this.prisma.inventory_import_jobs.create({
       data: {
         tenant_id,
