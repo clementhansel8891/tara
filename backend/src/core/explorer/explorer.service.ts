@@ -115,7 +115,7 @@ export class ExplorerService {
         ecommerce_id: toUuid(dto.ecommerce_id) ?? toUuid(ecommerce_id) ?? null,
         owner_id: user_id,
         folder_id: dto.folder_id,
-        access_level: "private", // Default to private
+        access_level: dto.access_level || "private", // Respect DTO if provided
         name: file.originalname,
         type: file.originalname.split(".").pop() || "unknown",
         size: file.size,
@@ -185,10 +185,12 @@ export class ExplorerService {
       ]
     };
 
-    // Override for Admin/Owner to see all in their accessible scope
+    // Override for Admin/Owner to see all in their accessible scope (including global files)
     if (role === "SUPERADMIN" || role === "OWNER") {
-      baseWhere.OR = undefined;
-      baseWhere.company_id = { in: accessibleCompanyIds };
+      baseWhere.OR = [
+        { company_id: { in: accessibleCompanyIds } },
+        { company_id: null } // Allow seeing global/unassigned files (like system reports)
+      ];
     }
 
     const [folders, files] = await Promise.all([
