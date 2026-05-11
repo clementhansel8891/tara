@@ -818,24 +818,27 @@ export class InventoryService {
         for (const item of items) {
           await this.prisma.stock_levels.upsert({
             where: {
-              tenant_id_location_id_item_id: {
+              tenant_id_location_id_product_id_department_id: {
                 tenant_id: ctx.tenant_id,
                 location_id: cycle.location_code,
-                item_id: item.id
+                product_id: item.id,
+                department_id: cycle.department_code || "" // Assuming empty string if no department
               }
             },
             update: {
               on_hand: item.actualCount,
+              available: item.actualCount,
               updated_at: new Date()
             },
             create: {
               tenant_id: ctx.tenant_id,
               location_id: cycle.location_code,
-              item_id: item.id,
+              product_id: item.id,
+              department_id: cycle.department_code || "",
               on_hand: item.actualCount,
-              min_stock: 0,
-              max_stock: 0,
-              reorder_point: 0
+              available: item.actualCount,
+              min_buffer: 0,
+              max_capacity: 0
             }
           });
         }
