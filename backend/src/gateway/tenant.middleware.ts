@@ -32,8 +32,13 @@ export class TenantMiddleware implements NestMiddleware {
        return next();
     }
 
+    // Bypass for public inventory images
+    if (req.originalUrl?.includes("/inventory/images/") || req.url?.includes("/inventory/images/")) {
+       return next();
+    }
+
     console.log(
-      `[V3001] URL: ${req.url}, Tenant: ${tenant_id}, Bypass: ${bypass}`,
+      `[V3001] URL: ${req.url}, OriginalURL: ${req.originalUrl}, Tenant: ${tenant_id}, Bypass: ${bypass}`,
     );
 
     if (!tenant_id) {
