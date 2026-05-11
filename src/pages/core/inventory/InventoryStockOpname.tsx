@@ -193,7 +193,8 @@ export default function InventoryStockOpname() {
         counted_value: totalCounted,
         variance_value: 0,
         anomalies,
-        newItems: newItems.map(item => ({ id: item.id }))
+        newItems: newItems.map(item => ({ id: item.id })),
+        items: history.map(h => ({ id: h.id, sku: h.sku, actualCount: h.actualCount }))
       });
 
 

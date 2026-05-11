@@ -807,10 +807,45 @@ export class InventoryService {
       }
     }
 
-    // 3. Update Cycle Status
+    // 3. Process Item Counts & Update Stock Levels
+    const items = data.items;
+    if (items && Array.isArray(items)) {
+      const cycle = await this.prisma.inventory_audit_cycles.findUnique({
+        where: { id, tenant_id: ctx.tenant_id }
+      });
+      
+      if (cycle) {
+        for (const item of items) {
+          await this.prisma.stock_levels.upsert({
+            where: {
+              tenant_id_location_id_item_id: {
+                tenant_id: ctx.tenant_id,
+                location_id: cycle.location_code,
+                item_id: item.id
+              }
+            },
+            update: {
+              on_hand: item.actualCount,
+              updated_at: new Date()
+            },
+            create: {
+              tenant_id: ctx.tenant_id,
+              location_id: cycle.location_code,
+              item_id: item.id,
+              on_hand: item.actualCount,
+              min_stock: 0,
+              max_stock: 0,
+              reorder_point: 0
+            }
+          });
+        }
+      }
+    }
+
+    // 4. Update Cycle Status
     const cycle = await this.repository.updateAuditCycle(ctx, id, results);
 
-    // 4. Generate & Save Report to Explorer
+    // 5. Generate & Save Report to Explorer
     if (results.status === "COMPLETED") {
       await this.generateAndSaveAuditReport(ctx, id);
     }
@@ -882,6 +917,7 @@ export class InventoryService {
 
       await this.explorerService.uploadFile(ctx, mockFile, {
         folder_id: folderId,
+        access_level: "shared"
       } as any);
 
       this.logger.log(`Audit report generated and saved for cycle ${cycleId}`);
