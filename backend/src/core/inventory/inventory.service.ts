@@ -1578,6 +1578,16 @@ export class InventoryService {
       const results = await this.fileProcessingService.processZipImages(
         job.file_path,
         async (fileName, buffer) => {
+          // Check if job was aborted
+          const currentJob = await this.prisma.inventory_import_jobs.findUnique({
+            where: { id: jobId },
+            select: { status: true }
+          });
+
+          if (currentJob?.status === 'ABORTED') {
+            throw new Error('IMPORT_ABORTED');
+          }
+
           const nameWithoutExt = path.parse(fileName).name;
           const match = nameWithoutExt.match(/^(.*)[_-]\d+$/);
           const sku = match ? match[1] : nameWithoutExt;
@@ -1627,6 +1637,10 @@ export class InventoryService {
       // Cleanup
       await fsPromises.unlink(job.file_path).catch(() => {});
     } catch (err: any) {
+      if (err.message === 'IMPORT_ABORTED') {
+        console.log(`[Import] Image Job ${jobId} aborted by user.`);
+        return;
+      }
       console.error(`[Import] Image job ${jobId} failed:`, err);
       await this.prisma.inventory_import_jobs.update({
         where: { id: jobId },

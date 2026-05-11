@@ -61,6 +61,7 @@ import { InventoryFilterHub } from "@/components/shared/InventoryFilterHub";
 import { ItemDetailsModal } from "./components/ItemDetailsModal";
 import { InventoryAnalyticsDialog } from "./components/InventoryAnalyticsDialog";
 import { CreateItemDialog } from "./components/CreateItemDialog";
+import { JobMonitorDialog } from "./components/JobMonitorDialog";
 
 const SECTIONS = [
   {
@@ -124,6 +125,7 @@ export default function InventoryStockHub() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
+  const [isJobMonitorOpen, setIsJobMonitorOpen] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -227,6 +229,13 @@ export default function InventoryStockHub() {
         className="rounded-xl border-border bg-background/50 backdrop-blur-sm shadow-sm hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-widest h-9 px-4"
       >
         <Download className="h-3 w-3 mr-2" /> Export
+      </Button>
+      <Button
+        onClick={() => setIsJobMonitorOpen(true)}
+        variant="outline"
+        className="rounded-xl border-border bg-background/50 backdrop-blur-sm shadow-sm hover:bg-secondary text-foreground font-black text-[10px] uppercase tracking-widest h-9 px-4"
+      >
+        <Activity className="h-3 w-3 mr-2 text-primary" /> Monitor
       </Button>
       <div className="w-px h-6 bg-border mx-2" />
       <Button
@@ -513,6 +522,10 @@ export default function InventoryStockHub() {
       <InventoryAnalyticsDialog
         isOpen={isAnalyticsOpen}
         onOpenChange={setIsAnalyticsOpen}
+      />
+      <JobMonitorDialog 
+        open={isJobMonitorOpen} 
+        onOpenChange={setIsJobMonitorOpen} 
       />
     </div>
   );

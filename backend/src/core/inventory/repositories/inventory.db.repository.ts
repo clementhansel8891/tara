@@ -447,32 +447,40 @@ export class InventoryDbRepository implements IInventoryRepository {
     providedTx?: any
   ): Promise<StockMovement> {
     const execute = async (tx: any) => {
-      // 1. Atomic Upsert
-      const level = await tx.stock_levels.upsert({
+      // 1. Atomic Upsert (Refactored for nullable department_id)
+      const existingLevel = await tx.stock_levels.findFirst({
         where: {
-          tenant_id_location_id_product_id_department_id: {
-            tenant_id: ctx.tenant_id,
-            location_id: data.location_id,
-            product_id: data.item_id,
-            department_id: (data.department_id || null) as any,
-          },
-        },
-        create: {
-          id: uuidv4(),
-          updated_at: new Date(),
-          ...MultiTenancyUtil.getScope(ctx),
+          tenant_id: ctx.tenant_id,
           location_id: data.location_id,
-          department_id: data.department_id || null,
           product_id: data.item_id,
-          on_hand: data.quantity,
-          available: data.quantity,
-        },
-        update: {
-          on_hand: { increment: data.quantity },
-          available: { increment: data.quantity },
-          updated_at: new Date(),
-        },
+          department_id: data.department_id || null,
+        }
       });
+
+      let level;
+      if (existingLevel) {
+        level = await tx.stock_levels.update({
+          where: { id: existingLevel.id },
+          data: {
+            on_hand: { increment: data.quantity },
+            available: { increment: data.quantity },
+            updated_at: new Date(),
+          },
+        });
+      } else {
+        level = await tx.stock_levels.create({
+          data: {
+            id: uuidv4(),
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
+            location_id: data.location_id,
+            department_id: data.department_id || null,
+            product_id: data.item_id,
+            on_hand: data.quantity,
+            available: data.quantity,
+          },
+        });
+      }
 
       // 2. Create movement
       const movement = await tx.stock_movements.create({
@@ -569,29 +577,40 @@ export class InventoryDbRepository implements IInventoryRepository {
         },
       });
 
-      // 2. Increment dest (standard immediate logic)
-      const dest = await tx.stock_levels.upsert({
+      // 2. Increment dest (standard immediate logic) (Refactored for nullable department_id)
+      const existingDest = await tx.stock_levels.findFirst({
         where: {
-          tenant_id_location_id_product_id_department_id: {
-            tenant_id: ctx.tenant_id,
-            location_id: data.to_location_id,
-            product_id: data.item_id,
-            department_id: (data.to_department_id || null) as any,
-          },
-        },
-        create: {
-          ...MultiTenancyUtil.getScope(ctx),
+          tenant_id: ctx.tenant_id,
           location_id: data.to_location_id,
-          department_id: data.to_department_id || null,
           product_id: data.item_id,
-          on_hand: data.quantity,
-          available: data.quantity,
-        },
-        update: {
-          on_hand: { increment: data.quantity },
-          available: { increment: data.quantity },
-        },
+          department_id: data.to_department_id || null,
+        }
       });
+
+      let dest;
+      if (existingDest) {
+        dest = await tx.stock_levels.update({
+          where: { id: existingDest.id },
+          data: {
+            on_hand: { increment: data.quantity },
+            available: { increment: data.quantity },
+            updated_at: new Date(),
+          },
+        });
+      } else {
+        dest = await tx.stock_levels.create({
+          data: {
+            id: uuidv4(),
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
+            location_id: data.to_location_id,
+            department_id: data.to_department_id || null,
+            product_id: data.item_id,
+            on_hand: data.quantity,
+            available: data.quantity,
+          },
+        });
+      }
 
       // 3. Create movement records
       const outMove = await tx.stock_movements.create({
@@ -1024,30 +1043,39 @@ export class InventoryDbRepository implements IInventoryRepository {
           }
 
           if (locationId) {
-            await tx.stock_levels.upsert({
+            // Refactored for nullable department_id
+            const existingStock = await tx.stock_levels.findFirst({
               where: {
-                tenant_id_location_id_product_id_department_id: {
-                  tenant_id: ctx.tenant_id,
-                  location_id: locationId,
-                  product_id: product.id,
-                  department_id: (itemData.departmentId || null) as any,
-                }
-              },
-              update: {
-                on_hand: Number(itemData.quantity),
-                available: Number(itemData.quantity),
-                updated_at: new Date(),
-              },
-              create: {
-                id: uuidv4(),
-                ...scope,
+                tenant_id: ctx.tenant_id,
                 location_id: locationId,
                 product_id: product.id,
                 department_id: itemData.departmentId || null,
-                on_hand: Number(itemData.quantity),
-                available: Number(itemData.quantity),
-              },
+              }
             });
+
+            if (existingStock) {
+              await tx.stock_levels.update({
+                where: { id: existingStock.id },
+                data: {
+                  on_hand: Number(itemData.quantity),
+                  available: Number(itemData.quantity),
+                  updated_at: new Date(),
+                }
+              });
+            } else {
+              await tx.stock_levels.create({
+                data: {
+                  id: uuidv4(),
+                  updated_at: new Date(),
+                  ...scope,
+                  location_id: locationId,
+                  product_id: product.id,
+                  department_id: itemData.departmentId || null,
+                  on_hand: Number(itemData.quantity),
+                  available: Number(itemData.quantity),
+                },
+              });
+            }
           }
         }
 
