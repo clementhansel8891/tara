@@ -22,7 +22,12 @@ export class InventoryRolesGuard implements CanActivate {
       return true;
     }
 
-    const { tenantContext } = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
+    if (request.url.includes("/inventory/images/")) {
+      return true;
+    }
+
+    const { tenantContext } = request;
     const userRole = tenantContext.role;
 
     // 1. SUPERADMIN/OWNER/COMPANY_ADMIN bypass

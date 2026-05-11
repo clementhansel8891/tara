@@ -17,6 +17,12 @@ import { UserRole } from "../roles";
 export class TenantGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    
+    // Bypass for public inventory images
+    if (request.url.includes("/inventory/images/")) {
+      return true;
+    }
+
     const { tenantContext, user } = request;
 
     if (!tenantContext || !tenantContext.tenant_id) {

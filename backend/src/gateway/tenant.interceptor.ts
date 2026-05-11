@@ -23,6 +23,11 @@ export class TenantInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+    // Bypass for public inventory images
+    if (request.url.includes("/inventory/images/")) {
+       return next.handle();
+    }
+
     // Extract tenant ID from header (required)
     const tenant_id = request.headers["x-tenant-id"];
 
