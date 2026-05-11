@@ -906,7 +906,11 @@ export class InventoryService {
       
       // Ensure Audit Reports folder exists
       const folders = await this.prisma.explorer_folders.findMany({
-        where: { tenant_id: ctx.tenant_id, name: "Audit Reports" }
+        where: { 
+          tenant_id: ctx.tenant_id, 
+          company_id: ctx.company_id,
+          name: "Audit Reports" 
+        }
       });
 
       let folderId = folders[0]?.id;

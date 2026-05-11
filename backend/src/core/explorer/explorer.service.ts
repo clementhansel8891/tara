@@ -197,6 +197,7 @@ export class ExplorerService {
           access_level: { in: ["department", "shared"] }
         },
         {
+          company_id: null,
           access_level: "shared" 
         }
       ]
