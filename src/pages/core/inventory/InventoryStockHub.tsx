@@ -209,7 +209,9 @@ export default function InventoryStockHub() {
 
       (Array.isArray(retailStores) ? retailStores : []).forEach((store: any) => {
         const locationId = store.location_id || store.locationId;
-        if (!locationId || locationMap.has(locationId)) return;
+        if (!locationId) return;
+        
+        // Overwrite location name with store name if available
         locationMap.set(locationId, {
           id: locationId,
           name: store.name || store.code || locationId,

@@ -174,28 +174,84 @@ async function main() {
     },
   });
 
-  const bambuSeminyakLoc = await prisma.locations.upsert({
-    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-BR-01" } },
-    update: {},
+  // --- INDEPENDENT BRANCHES FOR BAMBUSILVER ---
+
+  // A. DOUBLE SIX BRANCH
+  const dsLoc = await prisma.locations.upsert({
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-DS-LOC" } },
+    update: { name: "Double Six - Seminyak" },
     create: {
       tenant_id: bambuTenant.id,
-      name: "Seminyak - Bali",
-      code: "BS-BR-01",
+      name: "Double Six - Seminyak",
+      code: "BS-DS-LOC",
       type: "branch",
       country: "ID",
       currency: "IDR",
     },
   });
 
-  // Create Store for Seminyak Branch
   await prisma.stores.upsert({
-    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-BR-01" } },
-    update: {},
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-DS-01" } },
+    update: { name: "Double Six Branch" },
     create: {
       tenant_id: bambuTenant.id,
-      location_id: bambuSeminyakLoc.id,
-      name: "Seminyak - Bali",
-      code: "BS-BR-01",
+      location_id: dsLoc.id,
+      name: "Double Six Branch",
+      code: "BS-DS-01",
+      type: "boutique",
+      status: "active",
+    },
+  });
+
+  // B. RETAIL BRANCH SS (Pop-up)
+  const ssLoc = await prisma.locations.upsert({
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-SS-LOC" } },
+    update: { name: "Retail Branch SS" },
+    create: {
+      tenant_id: bambuTenant.id,
+      name: "Retail Branch SS",
+      code: "BS-SS-LOC",
+      type: "branch",
+      country: "ID",
+      currency: "IDR",
+    },
+  });
+
+  await prisma.stores.upsert({
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-SS-01" } },
+    update: { name: "Retail Branch SS" },
+    create: {
+      tenant_id: bambuTenant.id,
+      location_id: ssLoc.id,
+      name: "Retail Branch SS",
+      code: "BS-SS-01",
+      type: "pop-up",
+      status: "active",
+    },
+  });
+
+  // C. ANCHOR BRANCH
+  const anchorLoc = await prisma.locations.upsert({
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-ANC-LOC" } },
+    update: { name: "Anchor" },
+    create: {
+      tenant_id: bambuTenant.id,
+      name: "Anchor",
+      code: "BS-ANC-LOC",
+      type: "branch",
+      country: "ID",
+      currency: "IDR",
+    },
+  });
+
+  await prisma.stores.upsert({
+    where: { tenant_id_code: { tenant_id: bambuTenant.id, code: "BS-ANC-01" } },
+    update: { name: "Anchor" },
+    create: {
+      tenant_id: bambuTenant.id,
+      location_id: anchorLoc.id,
+      name: "Anchor",
+      code: "BS-ANC-01",
       type: "boutique",
       status: "active",
     },
