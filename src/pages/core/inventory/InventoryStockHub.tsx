@@ -108,7 +108,15 @@ export default function InventoryStockHub() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
   const [activeLocation, setActiveLocation] = useState<string>("all");
   const [sortConfig, setSortConfig] = useState("created_at-desc");
   const [activeStatus, setActiveStatus] = useState("all");
@@ -143,7 +151,7 @@ export default function InventoryStockHub() {
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: "30",
-        search,
+        search: debouncedSearch,
         category_id: activeCategory !== 'all' ? activeCategory : '',
         location_id: activeLocation !== 'all' ? activeLocation : '',
         sortBy,
@@ -178,7 +186,7 @@ export default function InventoryStockHub() {
     } finally {
       setLoading(false);
     }
-  }, [session, page, search, activeCategory, activeLocation, sortConfig, activeStatus]);
+  }, [session, page, debouncedSearch, activeCategory, activeLocation, sortConfig, activeStatus]);
 
   const fetchLocations = useCallback(async () => {
     try {

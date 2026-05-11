@@ -58,7 +58,7 @@ import { JVReadOnlyGuard } from "./gateway/jv-read-only.guard";
     ThrottlerModule.forRoot([
       {
         ttl: 60000,
-        limit: 100,
+        limit: 300,
       },
     ]),
     EventEmitterModule.forRoot(),
