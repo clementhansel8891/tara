@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Starting Production-Ready Seed (Snake Case Schema)...");
 
-  const passwordHash = bcrypt.hashSync("password123", 10);
+  const passwordHash = await bcrypt.hash("password123", 10);
 
   // 0. SEED TENANTS
   console.log("Seeding Tenants...");
