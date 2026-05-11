@@ -857,6 +857,7 @@ export class InventoryDbRepository implements IInventoryRepository {
         id: uuidv4(),
         updated_at: new Date(),
         tenant_id: ctx.tenant_id,
+        location_code: data.location_id, // Map for compatibility
         ...data,
       },
     });

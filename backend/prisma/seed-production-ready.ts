@@ -10,6 +10,31 @@ async function main() {
 
   // 0. SEED TENANTS
   console.log("Seeding Tenants...");
+  
+  // Find existing Bambu tenant or create if missing
+  let bambuTenant = await prisma.tenants.findFirst({
+    where: { 
+      OR: [
+        { code: "BAMBUSILVER" },
+        { name: { contains: "Bambu", mode: "insensitive" } },
+        { id: "tnt-3rlhko" }
+      ]
+    }
+  });
+
+  if (!bambuTenant) {
+    bambuTenant = await prisma.tenants.upsert({
+      where: { code: "BAMBUSILVER" },
+      update: {},
+      create: {
+        id: "bambu-tenant",
+        name: "BambuSilver",
+        code: "BAMBUSILVER",
+        status: "active",
+      },
+    });
+  }
+
   const zenvixTenant = await prisma.tenants.upsert({
     where: { code: "ZENVIX" },
     update: {},
@@ -17,17 +42,6 @@ async function main() {
       id: "zenvix-tenant",
       name: "Zenvix Core",
       code: "ZENVIX",
-      status: "active",
-    },
-  });
-
-  const bambuTenant = await prisma.tenants.upsert({
-    where: { code: "BAMBUSILVER" },
-    update: {},
-    create: {
-      id: "bambu-tenant",
-      name: "BambuSilver",
-      code: "BAMBUSILVER",
       status: "active",
     },
   });
