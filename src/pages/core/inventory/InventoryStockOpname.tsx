@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
+import { retailService } from "@/core/services/retail/retailService";
 import { useSession } from "@/core/security/session";
 import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 import { InventoryGlassHeader } from "@/components/shared/InventoryGlassHeader";
@@ -53,7 +54,31 @@ export default function InventoryStockOpname() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const locs = await inventoryService.listLocations(session.tenant_id, session);
+        const [coreLocations, retailStores] = await Promise.all([
+          inventoryService.listLocations(session.tenant_id, session),
+          retailService.listStores(session.tenant_id, session).catch(() => []),
+        ]);
+
+        const locationMap = new Map<string, { id: string; name: string }>();
+
+        (Array.isArray(coreLocations) ? coreLocations : []).forEach((loc: any) => {
+          if (!loc?.id) return;
+          locationMap.set(loc.id, {
+            id: loc.id,
+            name: loc.name || loc.code || loc.id,
+          });
+        });
+
+        (Array.isArray(retailStores) ? retailStores : []).forEach((store: any) => {
+          const locationId = store.location_id || store.locationId;
+          if (!locationId || locationMap.has(locationId)) return;
+          locationMap.set(locationId, {
+            id: locationId,
+            name: store.name || store.code || locationId,
+          });
+        });
+
+        const locs = Array.from(locationMap.values()).sort((a, b) => a.name.localeCompare(b.name));
         setLocations(locs);
         if (!selectedLocation && locs.length > 0) {
           setSelectedLocation(locs[0].id);
@@ -73,7 +98,7 @@ export default function InventoryStockOpname() {
       }
     };
     fetchCategories();
-  }, [session, selectedLocation]);
+  }, [session, session.tenant_id]);
 
 
   // Global Barcode Scanner Integration
@@ -440,4 +465,3 @@ export default function InventoryStockOpname() {
     </div>
   );
 }
-
