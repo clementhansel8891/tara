@@ -121,6 +121,7 @@ export class ExplorerService {
         size: file.size,
         mime_type: file.mimetype,
         storage_path: fileName,
+        metadata: dto.metadata || {},
         history: [{ user_id, action: "CREATED", timestamp: new Date().toISOString() }],
       },
     });

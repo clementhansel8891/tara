@@ -24,4 +24,7 @@ export class CreateFileDto {
   @IsOptional()
   @IsString()
   access_level?: string;
+
+  @IsOptional()
+  metadata?: any;
 }

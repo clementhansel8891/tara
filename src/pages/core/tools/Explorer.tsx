@@ -1,5 +1,7 @@
-import { useMemo, useRef, useState } from "react";
-import type { MouseEvent } from "react";
+ import { useMemo, useRef, useState } from "react";
+ import type { MouseEvent } from "react";
+ import { format } from "date-fns";
+ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -47,15 +49,19 @@ import {
   Upload,
   Download,
   Settings,
-  MoreVertical,
-  Plus,
-  History,
-  Briefcase,
-  FolderOpen,
-  Activity,
-  FileSearch,
-  Zap
-} from "lucide-react";
+   MoreVertical,
+   MoreHorizontal,
+   Plus,
+   History,
+   Briefcase,
+   FolderOpen,
+   Activity,
+   FileSearch,
+   Zap,
+   RefreshCcw,
+   HardDrive,
+   Info
+ } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
 import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
@@ -1127,120 +1133,181 @@ export default function Explorer() {
                         <span className="text-[10px] text-muted-foreground uppercase">{groupFiles.length} items</span>
                       </div>
                     )}
-                    <div className={`grid gap-2 ${
-                      viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
-                    }`}>
-                      {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
-                        <ContextMenu key={file.id}>
-                          <ContextMenuTrigger asChild>
-                            <div
-                              data-file-id={file.id}
-                              draggable
-                              onDragStart={(event) => {
-                                const payload = selectedIds.includes(file.id)
-                                  ? JSON.stringify(selectedIds)
-                                  : JSON.stringify([file.id]);
-                                event.dataTransfer.setData("text/plain", payload);
-                              }}
-                              onClick={(event) => {
-                                const now = Date.now();
-                                if (lastClick?.id === file.id && now - lastClick.time < 600) {
-                                  if (!isRecycleView) {
-                                    setEditingId(file.id);
-                                    setEditingValue(file.name);
-                                  }
-                                } else {
-                                  handleSelection(file.id, index, event);
-                                }
-                                setLastClick({ id: file.id, time: now });
-                              }}
-                              className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 ${
-                                selectedIds.includes(file.id) ? "border-primary" : ""
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedIds.includes(file.id)}
-                                  onChange={() => toggleSelect(file.id)}
-                                  onClick={(event) => event.stopPropagation()}
-                                />
-                                {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
-                                <div>
-                                  {editingId === file.id ? (
-                                    <Input
-                                      value={editingValue}
-                                      onChange={(event) => setEditingValue(event.target.value)}
-                                      onBlur={() => {
-                                        renameFile(session.tenant_id, session, file.id, editingValue);
-                                        setEditingId(null);
-                                        setVersion((prev) => prev + 1);
-                                      }}
-                                    />
-                                  ) : (
-                                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                    {folderMap.get(activeFolder) === "Stock Opname Reports" ? (
+                      <table className="w-full text-left">
+                        <thead className="bg-muted/50 border-b">
+                          <tr className="text-left text-xs text-muted-foreground font-semibold">
+                            <th className="p-3">Report Name</th>
+                            <th className="p-3">Generated At</th>
+                            <th className="p-3">Location</th>
+                            <th className="p-3">Performer</th>
+                            <th className="p-3 w-10"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
+                            <ContextMenu key={file.id}>
+                              <ContextMenuTrigger asChild>
+                                <tr
+                                  data-file-id={file.id}
+                                  className={cn(
+                                    "group border-b transition-colors cursor-pointer",
+                                    selectedIds.includes(file.id) ? "bg-primary/10 border-primary/20" : "hover:bg-muted/50"
                                   )}
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-xs text-muted-foreground">
-                                      Folder: {folderMap.get(file.folderId ?? "root") ?? "Root"}
-                                    </p>
-                                    {file.access_level && (
-                                      <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4 px-1 text-[9px] uppercase">
-                                        {file.access_level}
-                                      </Badge>
+                                  onClick={(event) => {
+                                    handleSelection(file.id, index, event);
+                                    setSelectedFileId(file.id);
+                                  }}
+                                >
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-3">
+                                      <FileText className="h-4 w-4 text-primary" />
+                                      <span className="font-medium">{file.name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-sm text-muted-foreground">
+                                    {file.metadata?.timestamp ? format(new Date(file.metadata.timestamp), 'yyyy-MM-dd HH:mm') : "N/A"}
+                                  </td>
+                                  <td className="p-3 text-sm font-medium">
+                                    <Badge variant="outline" className="bg-primary/5 border-primary/20">
+                                      {file.metadata?.location || "N/A"}
+                                    </Badge>
+                                  </td>
+                                  <td className="p-3 text-sm text-muted-foreground italic">
+                                    {file.metadata?.performer || "N/A"}
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  </td>
+                                </tr>
+                              </ContextMenuTrigger>
+                              <ContextMenuContent>
+                                <ContextMenuItem onClick={() => { setSelectedFileId(file.id); setPreviewOpen(true); }}>Preview</ContextMenuItem>
+                              </ContextMenuContent>
+                            </ContextMenu>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className={`grid gap-2 ${
+                        viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
+                      }`}>
+                        {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
+                          <ContextMenu key={file.id}>
+                            <ContextMenuTrigger asChild>
+                              <div
+                                data-file-id={file.id}
+                                draggable
+                                onDragStart={(event) => {
+                                  const payload = selectedIds.includes(file.id)
+                                    ? JSON.stringify(selectedIds)
+                                    : JSON.stringify([file.id]);
+                                  event.dataTransfer.setData("text/plain", payload);
+                                }}
+                                onClick={(event) => {
+                                  const now = Date.now();
+                                  if (lastClick?.id === file.id && now - lastClick.time < 600) {
+                                    const tool = getToolForFile(file);
+                                    if (tool !== "none") {
+                                      navigate(`/tools/${tool}?fileId=${file.id}`);
+                                    } else {
+                                      setSelectedFileId(file.id);
+                                      setPreviewOpen(true);
+                                    }
+                                  } else {
+                                    handleSelection(file.id, index, event);
+                                    setSelectedFileId(file.id);
+                                  }
+                                  setLastClick({ id: file.id, time: now });
+                                }}
+                                className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 ${
+                                  selectedIds.includes(file.id) ? "border-primary" : ""
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(file.id)}
+                                    onChange={() => toggleSelect(file.id)}
+                                    onClick={(event) => event.stopPropagation()}
+                                  />
+                                  {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
+                                  <div>
+                                    {editingId === file.id ? (
+                                      <Input
+                                        value={editingValue}
+                                        onChange={(event) => setEditingValue(event.target.value)}
+                                        onBlur={() => {
+                                          renameFile(session.tenant_id, session, file.id, editingValue);
+                                          setEditingId(null);
+                                          setVersion((prev) => prev + 1);
+                                        }}
+                                      />
+                                    ) : (
+                                      <p className="text-sm font-medium text-foreground">{file.name}</p>
                                     )}
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs text-muted-foreground">
+                                        Folder: {folderMap.get(file.folderId ?? "root") ?? "Root"}
+                                      </p>
+                                      {file.access_level && (
+                                        <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4 px-1 text-[9px] uppercase">
+                                          {file.access_level}
+                                        </Badge>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{typeLabel[file.type]}</Badge>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline">{typeLabel[file.type]}</Badge>
-                              </div>
-                            </div>
-                          </ContextMenuTrigger>
-                          <ContextMenuContent>
-                            <ContextMenuItem
-                              onClick={() => {
-                                setSelectedFileId(file.id);
-                                setPreviewOpen(true);
-                              }}
-                            >
-                              Preview
-                            </ContextMenuItem>
-                            {isRecycleView ? (
-                              <>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem
-                                  onClick={() => {
-                                    restoreFromRecycle(session.tenant_id, session, file.id);
-                                    setVersion((prev) => prev + 1);
-                                  }}
-                                >
-                                  Restore
-                                </ContextMenuItem>
-                              </>
-                            ) : (
-                              <>
-                                <ContextMenuItem onClick={() => {
-                                  setEditingId(file.id);
-                                  setEditingValue(file.name);
-                                }}>
-                                  Rename
-                                </ContextMenuItem>
-                                <ContextMenuSeparator />
-                                <ContextMenuItem
-                                  onClick={() => {
-                                    moveToRecycle(session.tenant_id, session, file.id);
-                                    setVersion((prev) => prev + 1);
-                                  }}
-                                >
-                                  Delete
-                                </ContextMenuItem>
-                              </>
-                            )}
-                          </ContextMenuContent>
-                        </ContextMenu>
-                      ))}
-                    </div>
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                              <ContextMenuItem
+                                onClick={() => {
+                                  setSelectedFileId(file.id);
+                                  setPreviewOpen(true);
+                                }}
+                              >
+                                Preview
+                              </ContextMenuItem>
+                              {isRecycleView ? (
+                                <>
+                                  <ContextMenuSeparator />
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      restoreFromRecycle(session.tenant_id, session, file.id);
+                                      setVersion((prev) => prev + 1);
+                                    }}
+                                  >
+                                    Restore
+                                  </ContextMenuItem>
+                                </>
+                              ) : (
+                                <>
+                                  <ContextMenuItem onClick={() => {
+                                    setEditingId(file.id);
+                                    setEditingValue(file.name);
+                                  }}>
+                                    Rename
+                                  </ContextMenuItem>
+                                  <ContextMenuSeparator />
+                                  <ContextMenuItem
+                                    onClick={() => {
+                                      moveToRecycle(session.tenant_id, session, file.id);
+                                      setVersion((prev) => prev + 1);
+                                    }}
+                                  >
+                                    Delete
+                                  </ContextMenuItem>
+                                </>
+                              )}
+                            </ContextMenuContent>
+                          </ContextMenu>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1251,80 +1318,188 @@ export default function Explorer() {
       </div>
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{selectedFile?.name ?? "File preview"}</DialogTitle>
-          </DialogHeader>
           {selectedFile ? (
-            <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
-              <div className="space-y-3">
-                <div className="rounded-lg border p-4 text-sm text-muted-foreground overflow-auto max-h-[400px] bg-muted/20 font-mono">
-                  {typeof selectedFile.content === 'string' 
-                    ? (selectedFile.content.startsWith('{') || selectedFile.content.startsWith('[')
-                       ? <pre className="whitespace-pre-wrap">{selectedFile.content}</pre>
-                       : selectedFile.content.substring(0, 800))
-                    : (selectedFile.content 
-                       ? <pre className="whitespace-pre-wrap">{JSON.stringify(selectedFile.content, null, 2)}</pre>
-                       : "No preview available.")}
+            <div className="flex flex-col gap-6">
+              {/* Specialized Report Header */}
+              {selectedFile.metadata?.type === "STOCK_OPNAME_REPORT" ? (
+                <div className="flex items-center justify-between border-b pb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <FileSearch className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold tracking-tight">Stock Opname Report</h3>
+                      <p className="text-sm text-muted-foreground">Location: <span className="text-foreground font-semibold">{selectedFile.metadata.location}</span> • {format(new Date(selectedFile.metadata.timestamp), 'PPpp')}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => window.print()}>
+                      <RefreshCcw className="h-4 w-4 mr-2" />
+                      Print
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
+                    <Button size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Docs
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {!isRecycleView ? (
-                    <>
+              ) : (
+                <DialogHeader>
+                  <DialogTitle>{selectedFile?.name ?? "File preview"}</DialogTitle>
+                </DialogHeader>
+              )}
+
+              <div className="grid gap-4 md:grid-cols-[1.6fr_1fr]">
+                <div className="space-y-4">
+                  {selectedFile.metadata?.type === "STOCK_OPNAME_REPORT" ? (
+                    <div className="rounded-xl border bg-muted/5 overflow-hidden">
+                      <div className="bg-muted/20 p-3 text-xs font-bold uppercase tracking-wider border-b flex justify-between">
+                        <span>Report Items</span>
+                        <span>{Array.isArray(selectedFile.content?.items) ? selectedFile.content.items.length : 0} Items</span>
+                      </div>
+                      <div className="max-h-[500px] overflow-y-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-muted/10 sticky top-0">
+                            <tr className="text-left text-xs font-semibold text-muted-foreground border-b">
+                              <th className="p-3">Image</th>
+                              <th className="p-3">Product</th>
+                              <th className="p-3">Expected</th>
+                              <th className="p-3">Actual</th>
+                              <th className="p-3">Variance</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const data = typeof selectedFile.content === 'string' ? JSON.parse(selectedFile.content) : selectedFile.content;
+                              return (Array.isArray(data?.items) ? data.items : []).map((item: any, i: number) => (
+                                <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
+                                  <td className="p-3">
+                                    {item.image ? (
+                                      <img src={item.image} className="h-10 w-10 rounded-md object-cover border bg-white" />
+                                    ) : (
+                                      <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center border">
+                                        <HardDrive className="h-4 w-4 text-muted-foreground" />
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="font-bold">{item.name}</div>
+                                    <div className="text-[10px] text-muted-foreground font-mono">{item.sku}</div>
+                                  </td>
+                                  <td className="p-3 font-medium">{item.expected_quantity}</td>
+                                  <td className="p-3 font-medium">{item.actual_quantity}</td>
+                                  <td className="p-3">
+                                    <Badge variant={item.variance === 0 ? "secondary" : "destructive"} className="text-[10px]">
+                                      {item.variance > 0 ? `+${item.variance}` : item.variance}
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              ));
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border p-4 text-sm text-muted-foreground overflow-auto max-h-[400px] bg-muted/20 font-mono">
+                      {typeof selectedFile.content === 'string' 
+                        ? (selectedFile.content.startsWith('{') || selectedFile.content.startsWith('[')
+                           ? <pre className="whitespace-pre-wrap">{selectedFile.content}</pre>
+                           : selectedFile.content.substring(0, 800))
+                        : (selectedFile.content 
+                           ? <pre className="whitespace-pre-wrap">{JSON.stringify(selectedFile.content, null, 2)}</pre>
+                           : "No preview available.")}
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {!isRecycleView ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingId(selectedFile.id);
+                            setEditingValue(selectedFile.name);
+                          }}
+                        >
+                          Rename
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            moveToRecycle(session.tenant_id, session, selectedFile.id);
+                            setPreviewOpen(false);
+                            setVersion((prev) => prev + 1);
+                          }}
+                        >
+                          Move to recycle bin
+                        </Button>
+                      </>
+                    ) : (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => {
-                          setEditingId(selectedFile.id);
-                          setEditingValue(selectedFile.name);
-                        }}
-                      >
-                        Rename
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          moveToRecycle(session.tenant_id, session, selectedFile.id);
+                          restoreFromRecycle(session.tenant_id, session, selectedFile.id);
                           setPreviewOpen(false);
                           setVersion((prev) => prev + 1);
                         }}
                       >
-                        Move to recycle bin
+                        Restore
                       </Button>
-                    </>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        restoreFromRecycle(session.tenant_id, session, selectedFile.id);
-                        setPreviewOpen(false);
-                        setVersion((prev) => prev + 1);
-                      }}
-                    >
-                      Restore
-                    </Button>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="rounded-lg border p-4">
-                  <div className="text-xs text-muted-foreground">Metadata</div>
-                  <div className="mt-2 space-y-1">
-                    <div>ID: {selectedFile.id}</div>
-                    <div>Type: {typeLabel[selectedFile.type]}</div>
-                    <div className="flex items-center gap-2">
-                      Access: 
-                      <Badge variant={selectedFile.access_level === "private" ? "destructive" : "secondary"}>
-                        {selectedFile.access_level || "private"}
-                      </Badge>
+                
+                <div className="space-y-4 text-sm">
+                  <div className="rounded-xl border p-4 bg-muted/5 shadow-sm">
+                    <div className="text-xs text-muted-foreground uppercase tracking-widest font-bold flex items-center gap-2 mb-3">
+                      <Info className="h-3 w-3" />
+                      Registry Metadata
                     </div>
-                    <div>Owner: {selectedFile.ownerId}</div>
-                    <div>Company: {selectedFile.company_id || "N/A"}</div>
-                    <div>Department: {selectedFile.department_id || "N/A"}</div>
-                    {selectedFile.branch_id && <div>Branch: {selectedFile.branch_id}</div>}
-                    <div>Folder: {folderMap.get(selectedFile.folderId ?? "root")}</div>
-                    <div>Created: {formatSafeDate(selectedFile.createdAt)}</div>
-                    <div>Updated: {formatSafeDate(selectedFile.updatedAt)}</div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">ID</span>
+                        <span className="font-mono text-[10px]">{selectedFile.id.slice(0, 13)}...</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Type</span>
+                        <span className="capitalize">{selectedFile.type}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Access</span>
+                        <Badge variant={selectedFile.access_level === "private" ? "destructive" : "secondary"} className="h-4 px-1 text-[9px]">
+                          {selectedFile.access_level || "private"}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Location</span>
+                        <span className="font-bold">{selectedFile.metadata?.location || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Performer</span>
+                        <span className="italic">{selectedFile.metadata?.performer || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Company</span>
+                        <span>{selectedFile.company_id?.slice(0, 8) || "N/A"}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Folder</span>
+                        <span>{folderMap.get(selectedFile.folderId ?? "root")}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-dashed pb-1">
+                        <span className="text-muted-foreground">Created</span>
+                        <span>{formatSafeDate(selectedFile.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
                     {selectedFile.last_edited_by && (
                       <div className="mt-2 pt-2 border-t font-medium text-primary">
                         Last Editor ID: {selectedFile.last_edited_by}

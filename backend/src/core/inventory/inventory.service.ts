@@ -888,10 +888,16 @@ export class InventoryService {
 
       if (!cycle) return;
 
+      const user = await this.prisma.users.findUnique({
+        where: { id: ctx.user_id },
+        select: { first_name: true, last_name: true }
+      });
+      const performerName = user ? `${user.first_name} ${user.last_name}` : "Unknown System";
+
       const reportData = {
         title: "Stock Opname Report",
         generated_at: new Date().toISOString(),
-        performer_id: ctx.user_id,
+        performer: performerName,
         location: cycle.location_code,
         scope: cycle.scope,
         status: cycle.status,
@@ -900,12 +906,23 @@ export class InventoryService {
         variance: cycle.variance_value,
         total_items: (cycle.audit_items || []).length,
         discrepancies: (cycle.audit_items || []).filter(i => (i as any).variance !== 0).length,
-        items: (cycle.audit_items || []).map(i => ({ sku: i.sku, name: i.name, barcode: i.barcode })),
-        anomalies: (cycle.anomalies || []).map(a => ({ barcode: a.barcode, scanned_at: a.scanned_at })),
+        items: (cycle.audit_items || []).map(i => ({ 
+          sku: i.sku, 
+          name: i.name, 
+          barcode: i.barcode,
+          image: i.image_url,
+          expected_quantity: (i as any).expected_quantity || 0,
+          actual_quantity: (i as any).quantity || 0,
+          variance: (i as any).variance || 0,
+        })),
+        anomalies: (cycle.anomalies || []).map(a => ({ 
+          barcode: a.barcode, 
+          scanned_at: a.scanned_at 
+        })),
       };
 
       const reportJson = JSON.stringify(reportData, null, 2);
-      const fileName = `StockOpname_${cycle.location_code}_${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `Stock Opname ${cycle.location_code}.json`;
       
       // Ensure Stock Opname Reports folder exists
       const folders = await this.prisma.explorer_folders.findMany({
@@ -925,7 +942,7 @@ export class InventoryService {
         folderId = folder.id;
       }
 
-      // Upload via Explorer
+      // Upload via Explorer with metadata
       const mockFile: any = {
         originalname: fileName,
         mimetype: "application/json",
@@ -935,7 +952,13 @@ export class InventoryService {
 
       await this.explorerService.uploadFile(ctx, mockFile, {
         folder_id: folderId,
-        access_level: "shared"
+        access_level: "shared",
+        metadata: {
+          location: cycle.location_code,
+          performer: performerName,
+          timestamp: new Date().toISOString(),
+          type: "STOCK_OPNAME_REPORT"
+        }
       } as any);
 
       this.logger.log(`Audit report generated and saved for cycle ${cycleId}`);
