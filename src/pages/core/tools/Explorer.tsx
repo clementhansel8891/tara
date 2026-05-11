@@ -89,11 +89,23 @@ const typeLabel = {
   json: "JSON",
 } as const;
 
+const formatSafeDate = (d: any) => {
+  if (!d) return "N/A";
+  try {
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "N/A";
+    return format(date, 'yyyy-MM-dd');
+  } catch (e) {
+    return "N/A";
+  }
+};
+
 export default function Explorer() {
   const session = useSession();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [version, setVersion] = useState(0);
+  const UI_VERSION = "2.1.0-robust";
   const [activeFolder, setActiveFolder] = useState("root");
   const [history, setHistory] = useState<string[]>(["root"]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -1244,10 +1256,10 @@ export default function Explorer() {
           {selectedFile ? (
             <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
               <div className="space-y-3">
-                <div className="rounded-lg border p-4 text-sm text-muted-foreground">
+                <div className="rounded-lg border p-4 text-sm text-muted-foreground overflow-auto max-h-[400px]">
                   {typeof selectedFile.content === 'string' 
-                    ? selectedFile.content.slice(0, 400) 
-                    : (selectedFile.content ? JSON.stringify(selectedFile.content).slice(0, 400) : "No preview available.")}
+                    ? selectedFile.content.substring(0, 400) 
+                    : (selectedFile.content ? JSON.stringify(selectedFile.content).substring(0, 400) : "No preview available.")}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {!isRecycleView ? (
@@ -1306,8 +1318,8 @@ export default function Explorer() {
                     <div>Department: {selectedFile.department_id || "N/A"}</div>
                     {selectedFile.branch_id && <div>Branch: {selectedFile.branch_id}</div>}
                     <div>Folder: {folderMap.get(selectedFile.folderId ?? "root")}</div>
-                    <div>Created: {selectedFile.createdAt ? new Date(selectedFile.createdAt).toISOString().slice(0, 10) : "N/A"}</div>
-                    <div>Updated: {selectedFile.updatedAt ? new Date(selectedFile.updatedAt).toISOString().slice(0, 10) : "N/A"}</div>
+                    <div>Created: {formatSafeDate(selectedFile.createdAt)}</div>
+                    <div>Updated: {formatSafeDate(selectedFile.updatedAt)}</div>
                     {selectedFile.last_edited_by && (
                       <div className="mt-2 pt-2 border-t font-medium text-primary">
                         Last Editor ID: {selectedFile.last_edited_by}
