@@ -501,7 +501,9 @@ function ActiveJobsList({
                         {job.filename}
                       </p>
                       <p className="text-[10px] font-medium text-slate-400">
-                        {new Date(job.created_at).toLocaleTimeString()} • {job.status}
+                        {job.created_at && !isNaN(new Date(job.created_at).getTime()) 
+                          ? new Date(job.created_at).toLocaleTimeString() 
+                          : "Pending"} • {job.status}
                       </p>
                     </div>
                   </div>

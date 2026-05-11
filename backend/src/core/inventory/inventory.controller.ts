@@ -287,7 +287,7 @@ export class InventoryController {
         cb(null, `data-${uniqueSuffix}${path.extname(file.originalname)}`);
       },
     }),
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+    limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB
   }))
   @RequireInventoryRole(InventoryRole.MANAGER)
   async importItems(
@@ -337,7 +337,7 @@ export class InventoryController {
         cb(null, `images-${uniqueSuffix}${path.extname(file.originalname)}`);
       },
     }),
-    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+    limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB
   }))
   @RequireInventoryRole(InventoryRole.MANAGER)
   async importImages(
