@@ -898,10 +898,10 @@ export class InventoryService {
         expected_value: cycle.expected_value,
         counted_value: cycle.counted_value,
         variance: cycle.variance_value,
-        total_items: cycle.total_items,
-        discrepancies: cycle.discrepancies,
-        items: cycle.audit_items.map(i => ({ sku: i.sku, name: i.name, barcode: i.barcode })),
-        anomalies: cycle.anomalies.map(a => ({ barcode: a.barcode, scanned_at: a.scanned_at })),
+        total_items: (cycle.audit_items || []).length,
+        discrepancies: (cycle.audit_items || []).filter(i => (i as any).variance !== 0).length,
+        items: (cycle.audit_items || []).map(i => ({ sku: i.sku, name: i.name, barcode: i.barcode })),
+        anomalies: (cycle.anomalies || []).map(a => ({ barcode: a.barcode, scanned_at: a.scanned_at })),
       };
 
       const reportJson = JSON.stringify(reportData, null, 2);
