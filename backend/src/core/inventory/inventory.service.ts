@@ -816,31 +816,38 @@ export class InventoryService {
       
       if (cycle) {
         for (const item of items) {
-          await this.prisma.stock_levels.upsert({
+          const existingLevel = await this.prisma.stock_levels.findFirst({
             where: {
-              tenant_id_location_id_product_id_department_id: {
-                tenant_id: ctx.tenant_id,
-                location_id: cycle.location_code,
-                product_id: item.id,
-                department_id: cycle.department_code || "" // Assuming empty string if no department
-              }
-            },
-            update: {
-              on_hand: item.actualCount,
-              available: item.actualCount,
-              updated_at: new Date()
-            },
-            create: {
               tenant_id: ctx.tenant_id,
               location_id: cycle.location_code,
               product_id: item.id,
-              department_id: cycle.department_code || "",
-              on_hand: item.actualCount,
-              available: item.actualCount,
-              min_buffer: 0,
-              max_capacity: 0
+              department_id: cycle.department_code || null
             }
           });
+
+          if (existingLevel) {
+            await this.prisma.stock_levels.update({
+              where: { id: existingLevel.id },
+              data: {
+                on_hand: item.actualCount,
+                available: item.actualCount,
+                updated_at: new Date()
+              }
+            });
+          } else {
+            await this.prisma.stock_levels.create({
+              data: {
+                tenant_id: ctx.tenant_id,
+                location_id: cycle.location_code,
+                product_id: item.id,
+                department_id: cycle.department_code || null,
+                on_hand: item.actualCount,
+                available: item.actualCount,
+                min_buffer: 0,
+                max_capacity: 0
+              }
+            });
+          }
         }
       }
     }
