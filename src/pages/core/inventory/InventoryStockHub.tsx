@@ -334,7 +334,8 @@ export default function InventoryStockHub() {
             <Table>
               <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
                 <TableRow className="hover:bg-transparent border-none">
-                  <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest pl-8 py-6">SKU</TableHead>
+                  <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-widest pl-8 py-6">Image</TableHead>
+                  <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest py-6">SKU</TableHead>
                   <TableHead className="text-[10px] font-black uppercase tracking-widest py-6">Item Identity</TableHead>
                   <TableHead className="text-[10px] font-black uppercase tracking-widest py-6 text-right">Balance</TableHead>
                   <TableHead className="text-[10px] font-black uppercase tracking-widest py-6 text-center">Status</TableHead>
@@ -345,14 +346,14 @@ export default function InventoryStockHub() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i} className="border-slate-100 dark:border-slate-800">
-                      <TableCell colSpan={5} className="py-6 px-8">
+                      <TableCell colSpan={6} className="py-6 px-8">
                         <Skeleton className="h-12 w-full rounded-xl" />
                       </TableCell>
                     </TableRow>
                   ))
                 ) : filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-64 text-center">
+                    <TableCell colSpan={6} className="h-64 text-center">
                       <div className="flex flex-col items-center justify-center opacity-20">
                         <Archive className="h-16 w-16 mb-4 stroke-[1]" />
                         <h3 className="text-xl font-black uppercase tracking-widest">No Inventory Found</h3>
@@ -366,7 +367,24 @@ export default function InventoryStockHub() {
                       className="border-slate-100 dark:border-slate-800 group hover:bg-primary/[0.02] cursor-pointer transition-all"
                       onClick={() => setSelectedItem(item)}
                     >
-                      <TableCell className="pl-8 py-6">
+                      <TableCell className="pl-8 py-4">
+                        <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                          {(item as any).image_url ? (
+                            <img 
+                              src={(item as any).image_url} 
+                              alt={item.name} 
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                (e.target as any).src = "";
+                                (e.target as any).className = "hidden";
+                              }}
+                            />
+                          ) : (
+                            <ImageIcon className="h-4 w-4 text-slate-300" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-6">
                         <span className="text-xs font-mono font-black text-slate-400 group-hover:text-primary transition-colors">{item.sku}</span>
                       </TableCell>
                       <TableCell className="py-6">

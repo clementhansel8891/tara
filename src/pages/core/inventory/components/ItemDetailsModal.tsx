@@ -53,6 +53,7 @@ export function ItemDetailsModal({
   const session = useSession();
   const [movements, setMovements] = useState<any[]>([]);
   const [balances, setBalances] = useState<any[]>([]);
+  const [images, setImages] = useState<any[]>([]);
   const [allLocations, setAllLocations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isDecommissioning, setIsDecommissioning] = useState(false);
@@ -74,16 +75,67 @@ export function ItemDetailsModal({
   const fetchExtraData = async () => {
     setLoading(true);
     try {
-      const [moveData, balanceData, locData] = await Promise.all([
+      const [moveData, balanceData, locData, imageData] = await Promise.all([
         apiRequest<any[]>(`/inventory/movements?item_id=${item.id}`, "GET", session),
         apiRequest<any[]>(`/inventory/balances?item_id=${item.id}`, "GET", session),
-        apiRequest<any>("/settings/locations", "GET", session),
+        apiRequest<any>("/hr/locations", "GET", session),
+        apiRequest<any[]>(`/inventory/items/${item.id}/images`, "GET", session),
       ]);
       setMovements(moveData || []);
       setBalances(balanceData || []);
-      setAllLocations(locData || []);
+      setAllLocations(Array.isArray(locData) ? locData : locData?.data || []);
+      setImages(imageData || []);
     } catch (error: any) {
       console.error("Failed to fetch details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetPrimary = async (imageId: string) => {
+    try {
+      await apiRequest(`/inventory/items/${item.id}/images/${imageId}/primary`, "PUT", session);
+      toast({ title: "Primary Updated", description: "The selected image is now the primary visual for this item." });
+      fetchExtraData();
+      onUpdated();
+    } catch (error: any) {
+      toast({ title: "Action Failed", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    try {
+      await apiRequest(`/inventory/items/${item.id}/images/${imageId}`, "DELETE", session);
+      toast({ title: "Image Removed", description: "The image has been successfully deleted from the repository." });
+      fetchExtraData();
+      onUpdated();
+    } catch (error: any) {
+      toast({ title: "Action Failed", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setLoading(true);
+      await fetch(`${import.meta.env.VITE_API_URL || ""}/v1/inventory/items/${item.id}/images`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session?.token}`,
+          "x-tenant-id": session?.tenantId || "",
+        },
+        body: formData,
+      });
+      toast({ title: "Image Uploaded", description: "New visual asset has been added to the item gallery." });
+      fetchExtraData();
+      onUpdated();
+    } catch (error: any) {
+      toast({ title: "Upload Failed", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -270,12 +322,81 @@ export function ItemDetailsModal({
               </div>
             ) : null}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 rounded-2xl bg-slate-100 dark:bg-slate-900 p-1 mb-8">
+            <TabsList className="grid w-full grid-cols-5 rounded-2xl bg-slate-100 dark:bg-slate-900 p-1 mb-8">
               <TabsTrigger value="overview" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Overview</TabsTrigger>
+              <TabsTrigger value="images" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Images</TabsTrigger>
               <TabsTrigger value="adjustment" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Adjust Stock</TabsTrigger>
               <TabsTrigger value="movements" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Movements</TabsTrigger>
               <TabsTrigger value="locations" className="rounded-xl font-black text-[10px] uppercase tracking-widest">Storage Nodes</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="images" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-black tracking-tight uppercase">Visual Asset Gallery</h4>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Manage product imagery and storefront displays</p>
+                </div>
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="image-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                  <Button 
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 shadow-lg shadow-indigo-200/50"
+                  >
+                    <Plus className="h-3 w-3 mr-2" /> Upload Visual
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {images.length === 0 ? (
+                  <div className="col-span-full h-48 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-800 opacity-50">
+                    <ImageIcon className="h-8 w-8 text-slate-300 mb-2" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">No Visual Assets Found</p>
+                  </div>
+                ) : (
+                  images.map((img) => (
+                    <div key={img.id} className="group relative aspect-square rounded-[1.5rem] overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                      <img 
+                        src={img.url} 
+                        alt="Product" 
+                        className="h-full w-full object-cover transition-transform group-hover:scale-110" 
+                      />
+                      {img.is_primary && (
+                        <Badge className="absolute top-3 left-3 bg-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-lg border-none">
+                          Primary
+                        </Badge>
+                      )}
+                      <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                        {!img.is_primary && (
+                          <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            className="h-8 rounded-lg font-black text-[8px] uppercase tracking-widest w-24"
+                            onClick={() => handleSetPrimary(img.id)}
+                          >
+                            Set Primary
+                          </Button>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          className="h-8 rounded-lg font-black text-[8px] uppercase tracking-widest w-24"
+                          onClick={() => handleDeleteImage(img.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </TabsContent>
 
             <TabsContent value="overview" className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

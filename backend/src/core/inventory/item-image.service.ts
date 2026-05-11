@@ -126,7 +126,7 @@ export class ItemImageService {
     await fs.writeFile(filePath, file.buffer);
 
     // 4. Save to database (Relative URL for the API to serve)
-    const relativeUrl = path.join("inventory", "images", relativeDir, fileName).replace(/\\/g, "/");
+    const relativeUrl = path.join(relativeDir, fileName).replace(/\\/g, "/");
     const imageUrl = `/v1/inventory/images/${relativeUrl}`;
 
     return await this.prisma.$transaction(async (tx) => {
