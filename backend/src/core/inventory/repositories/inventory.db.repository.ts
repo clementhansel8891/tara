@@ -147,7 +147,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       where.category_id = category_id;
     }
 
-    if (location_id) {
+    if (location_id && !search) {
       where.stock_levels = { some: { location_id } };
     }
 
@@ -1600,8 +1600,11 @@ export class InventoryDbRepository implements IInventoryRepository {
   async lookupByBarcode(ctx: TenantContext, barcode: string): Promise<any | null> {
     return this.prisma.item_masters.findFirst({
       where: {
-        ...MultiTenancyUtil.getScope(ctx),
-        barcode: barcode,
+        tenant_id: ctx.tenant_id,
+        OR: [
+          { barcode: { equals: barcode, mode: 'insensitive' } },
+          { sku: { equals: barcode, mode: 'insensitive' } }
+        ],
         status: 'active',
       },
       include: { product_categories: true },
