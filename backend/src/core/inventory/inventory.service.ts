@@ -784,7 +784,7 @@ export class InventoryService {
   }
 
   async updateAuditCycle(ctx: TenantContext, id: string, data: any) {
-    const { anomalies, newItems, ...results } = data;
+    const { anomalies, newItems, items: itemsInPayload, ...results } = data;
 
     // 1. Process Anomalies
     if (anomalies && Array.isArray(anomalies)) {
@@ -808,7 +808,7 @@ export class InventoryService {
     }
 
     // 3. Process Item Counts & Update Stock Levels
-    const items = data.items;
+    const items = itemsInPayload;
     if (items && Array.isArray(items)) {
       const cycle = await this.prisma.inventory_audit_cycles.findUnique({
         where: { id, tenant_id: ctx.tenant_id }
