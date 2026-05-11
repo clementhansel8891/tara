@@ -58,7 +58,9 @@ export interface Storeconfig_version {
 export class RetailStore {
   id: string;
   tenant_id: string;
+  tenantId?: string;
   location_id: string;
+  locationId?: string;
   name: string;
   code: string;
   type: "flagship" | "satellite" | "warehouse";
@@ -70,13 +72,19 @@ export class RetailStore {
   currency: string;
   tax_zone?: string;
   manager_id?: string;
+  managerId?: string;
   inventory_pool_id?: string;
+  inventoryPoolId?: string;
 
   // Hierarchical Config
   operational_config?: Storeoperational_config;
+  operationalConfig?: Storeoperational_config;
   supply_config?: Storesupply_config;
+  supplyConfig?: Storesupply_config;
   infrastructure_registry?: Storeinfrastructure_registry;
+  infrastructureRegistry?: Storeinfrastructure_registry;
   channel_binding?: Storechannel_binding;
+  channelBinding?: Storechannel_binding;
   governance?: StoreGovernanceData;
 
   // Versioning

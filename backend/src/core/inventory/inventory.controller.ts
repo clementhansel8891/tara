@@ -85,14 +85,16 @@ export class InventoryController {
 
     const moduleContributions: any = {};
     if (await isModuleActive(this.prisma, tenant_id, "retail")) {
-      const activeStores = await this.prisma.locations.findMany({
-        where: { tenant_id: tenant_id, type: "STORE" },
-        select: { id: true },
+      const activeStores = await this.prisma.stores.findMany({
+        where: { tenant_id: tenant_id, deleted_at: null },
+        select: { location_id: true },
       });
-      const storeIds = activeStores.map((s: any) => s.id);
+      const storeLocationIds = activeStores
+        .map((s: any) => s.location_id)
+        .filter(Boolean);
 
       const storeInventoryAgg = await this.prisma.stock_levels.aggregate({
-        where: { tenant_id: tenant_id, location_id: { in: storeIds } },
+        where: { tenant_id: tenant_id, location_id: { in: storeLocationIds } },
         _sum: { on_hand: true },
       });
 
@@ -101,7 +103,7 @@ export class InventoryController {
           where: {
             tenant_id: tenant_id,
             status: "SUBMITTED",
-            department_id: { in: storeIds }, // Using departmentId as store reference since stores are departments or we can just return 0 to fix it simply
+            department_id: { in: storeLocationIds }, // legacy store transfer references location ids
           },
         });
 

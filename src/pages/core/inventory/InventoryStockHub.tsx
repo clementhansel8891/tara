@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSession } from "@/core/security/session";
 import { apiRequest } from "@/core/api/apiClient";
+import { inventoryService } from "@/core/services/inventory/inventoryService";
+import { retailService } from "@/core/services/retail/retailService";
 import { Button } from "@/components/ui/button";
 import { Input as UIInput } from "@/components/ui/input";
 import {
@@ -190,9 +192,31 @@ export default function InventoryStockHub() {
 
   const fetchLocations = useCallback(async () => {
     try {
-      const data = await apiRequest<any>("/hr/locations", "GET", session);
-      const locList = Array.isArray(data) ? data : (data as any)?.data || [];
-      setLocations(locList);
+      const [coreLocations, retailStores] = await Promise.all([
+        inventoryService.listLocations(session.tenant_id, session),
+        retailService.listStores(session.tenant_id, session).catch(() => []),
+      ]);
+
+      const locationMap = new Map<string, { id: string; name: string }>();
+
+      (Array.isArray(coreLocations) ? coreLocations : []).forEach((loc: any) => {
+        if (!loc?.id) return;
+        locationMap.set(loc.id, {
+          id: loc.id,
+          name: loc.name || loc.code || loc.id,
+        });
+      });
+
+      (Array.isArray(retailStores) ? retailStores : []).forEach((store: any) => {
+        const locationId = store.location_id || store.locationId;
+        if (!locationId || locationMap.has(locationId)) return;
+        locationMap.set(locationId, {
+          id: locationId,
+          name: store.name || store.code || locationId,
+        });
+      });
+
+      setLocations(Array.from(locationMap.values()).sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error("Failed to fetch locations", error);
     }
