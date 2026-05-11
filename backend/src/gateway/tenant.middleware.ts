@@ -27,6 +27,11 @@ export class TenantMiddleware implements NestMiddleware {
     const tenant_id = req.headers["x-tenant-id"];
     const bypass = req.headers["x-dev-bypass"];
 
+    // Bypass for public inventory images
+    if (req.url.includes("/inventory/images/") || req.path?.includes("/inventory/images/")) {
+       return next();
+    }
+
     console.log(
       `[V3001] URL: ${req.url}, Tenant: ${tenant_id}, Bypass: ${bypass}`,
     );

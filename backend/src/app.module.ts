@@ -111,7 +111,12 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
-      .exclude("auth/*path", "retail/public/*path", "monitoring/*path")
+      .exclude(
+        "auth/*path", 
+        "retail/public/*path", 
+        "monitoring/*path",
+        "inventory/images/*path"
+      )
       .forRoutes("*path");
   }
 }
