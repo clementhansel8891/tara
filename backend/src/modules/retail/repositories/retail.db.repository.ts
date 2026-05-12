@@ -434,7 +434,7 @@ export class RetailDbRepository implements IRetailRepository {
         take: pageSize,
         include: {
           product_categories: true,
-          stock_levels: true,
+          stock_levels: options?.location_id ? { where: { location_id: options.location_id } } : true,
           product_projections: true,
         },
       }),
@@ -2647,6 +2647,7 @@ export class RetailDbRepository implements IRetailRepository {
         reserved: reserved,
         available: available,
       },
+      stock: soh,
       created_at: p.created_at,
       updated_at: p.updated_at,
     };
