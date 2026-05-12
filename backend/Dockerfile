@@ -37,6 +37,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/*.js ./
+COPY --from=builder /app/scripts ./scripts
 
 # Create professional directory structure for persistent data
 RUN mkdir -p /data/backups /data/logs /app/storage/reports /app/uploads && \
