@@ -540,9 +540,10 @@ export default function Explorer() {
               />
             </div>
             <div className="space-y-2">
+            <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-2 custom-scrollbar">
               <div
                 className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm ${
-                  activeFolder === "root" ? "bg-muted" : "hover:bg-muted/50"
+                  activeFolder === "root" ? "bg-muted font-bold text-primary" : "hover:bg-muted/50"
                 }`}
                 onClick={() => navigateToFolder("root")}
                 onDragOver={(event) => event.preventDefault()}
@@ -571,7 +572,7 @@ export default function Explorer() {
               </div>
               <div
                 className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm ${
-                  activeFolder === "recycle" ? "bg-muted" : "hover:bg-muted/50"
+                  activeFolder === "recycle" ? "bg-muted font-bold text-primary" : "hover:bg-muted/50"
                 }`}
                 onClick={() => navigateToFolder("recycle")}
               >
@@ -580,22 +581,27 @@ export default function Explorer() {
               </div>
               {expanded.root ? renderFolderNode("root", 1) : null}
               {renameFolderId ? (
-                <div className="space-y-2">
+                <div className="space-y-2 mt-2 p-2 border rounded-lg bg-muted/20">
                   <Input
                     value={renameFolderValue}
                     onChange={(event) => setRenameFolderValue(event.target.value)}
+                    placeholder="New name..."
                   />
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      renameFolder(session.tenant_id, session, renameFolderId, renameFolderValue);
-                      setRenameFolderId(null);
-                      setRenameFolderValue("");
-                      setVersion((prev) => prev + 1);
-                    }}
-                  >
-                    Save folder name
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        renameFolder(session.tenant_id, session, renameFolderId, renameFolderValue);
+                        setRenameFolderId(null);
+                        setRenameFolderValue("");
+                        setVersion((prev) => prev + 1);
+                      }}
+                    >
+                      Save
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setRenameFolderId(null)}>Cancel</Button>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -634,8 +640,12 @@ export default function Explorer() {
             </div>
           </WorkspacePanel>
 
-          <WorkspacePanel title="Files" description="Visible files in your scope.">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+          <WorkspacePanel 
+            title={activeFolder === "recycle" ? "Recycle Bin" : folderMap.get(activeFolder) || "Files"} 
+            description={activeFolder === "recycle" ? "Deleted items awaiting restoration." : "Visible files in your scope."}
+          >
+            <div className="h-[calc(100vh-320px)] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
@@ -680,7 +690,7 @@ export default function Explorer() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="root">Root</SelectItem>
-                      {(Array.isArray(folders) ? folders : []).map((folder) => (
+                      {(Array.isArray(allFolders) ? allFolders : []).map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           {folder.name}
                         </SelectItem>
@@ -1334,6 +1344,7 @@ export default function Explorer() {
                 ))}
               </div>
             )}
+            </div>
           </WorkspacePanel>
 
         </div>
