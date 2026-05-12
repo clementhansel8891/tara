@@ -83,7 +83,6 @@ export class ExplorerService {
         access_level: dto.access_level || "private",
         name: dto.name,
         parent_id: dto.parent_id || null,
-        owner_id: user_id
       },
     });
   }
