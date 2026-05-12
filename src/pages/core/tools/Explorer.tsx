@@ -589,6 +589,7 @@ export default function Explorer() {
             </div>
           </WorkspacePanel>
 
+        <div className="space-y-6">
           <WorkspacePanel title="Address" description="Navigate folders like Windows Explorer.">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">
