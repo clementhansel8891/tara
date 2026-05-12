@@ -67,7 +67,8 @@ import {
   User,
   Clock,
   ChevronLeft,
-  Search
+  Search,
+  FileDown
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -478,7 +479,7 @@ export default function Explorer() {
       <Button
         variant="outline"
         size="sm"
-        className="rounded-xl border-slate-200 bg-white shadow-sm hover:bg-slate-50"
+        className="rounded-xl border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm"
         onClick={handleCreateFolder}
       >
         <Plus className="mr-2 h-4 w-4" />
@@ -487,7 +488,7 @@ export default function Explorer() {
       <Button
         variant="outline"
         size="sm"
-        className="rounded-xl border-slate-200 bg-white shadow-sm hover:bg-slate-50"
+        className="rounded-xl border-primary/20 bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm"
         onClick={() => fileInputRef.current?.click()}
       >
         <Upload className="mr-2 h-4 w-4" />
@@ -550,6 +551,7 @@ export default function Explorer() {
                 <Folder className="h-4 w-4" />
                 Root
               </div>
+              {expanded.root ? renderFolderNode("root", 1) : null}
               <div
                 className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-sm ${
                   activeFolder === "recycle" ? "bg-muted font-bold text-primary" : "hover:bg-muted/50"
@@ -559,7 +561,6 @@ export default function Explorer() {
                 <Trash2 className="h-4 w-4" />
                 Recycle Bin
               </div>
-              {expanded.root ? renderFolderNode("root", 1) : null}
               {renameFolderId ? (
                 <div className="space-y-2 mt-2 p-2 border rounded-lg bg-muted/20">
                   <Input
@@ -1251,15 +1252,15 @@ export default function Explorer() {
                                 )}
                               >
                                 <div className={cn("flex gap-4", viewMode === "large" ? "flex-col" : "items-center flex-1 min-w-0")}>
-                                  <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-2.5 flex-shrink-0">
                                     <input
                                       type="checkbox"
                                       checked={selectedIds.includes(file.id)}
                                       onChange={() => toggleSelect(file.id)}
                                       onClick={(event) => event.stopPropagation()}
-                                      className="h-4 w-4 rounded-full border-muted text-primary focus:ring-primary"
+                                      className="h-4 w-4 rounded-full border-muted text-primary focus:ring-primary bg-background shadow-inner"
                                     />
-                                    <div className="p-2 bg-muted/30 rounded-xl group-hover:bg-primary/10 transition-colors">
+                                    <div className="p-2.5 bg-primary/5 rounded-2xl group-hover:bg-primary/10 transition-colors border border-primary/10 shadow-sm">
                                       {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
                                     </div>
                                   </div>
@@ -1279,23 +1280,23 @@ export default function Explorer() {
                                       />
                                     ) : (
                                       <p 
-                                        className="text-sm font-bold text-foreground truncate w-full group-hover:text-primary transition-colors" 
+                                        className="text-sm font-black text-foreground truncate w-full group-hover:text-primary transition-all tracking-tight" 
                                         title={file.name}
                                       >
                                         {file.name}
                                       </p>
                                     )}
                                     
-                                    <div className="flex flex-col gap-2 mt-2">
+                                    <div className="flex flex-col gap-2.5 mt-2.5">
                                       <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1 bg-muted/40 px-2 py-0.5 rounded-full border border-muted-foreground/10">
-                                          <Folder className="h-3 w-3 text-muted-foreground" />
-                                          <p className="text-[10px] text-muted-foreground font-medium truncate max-w-[100px]">
+                                        <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full border border-muted-foreground/5 shadow-sm">
+                                          <Folder className="h-3 w-3 text-muted-foreground/70" />
+                                          <p className="text-[9px] text-muted-foreground font-bold tracking-wide truncate max-w-[80px] uppercase">
                                             {folderMap.get(file.folderId ?? "root") ?? "Root"}
                                           </p>
                                         </div>
                                         {file.access_level && (
-                                          <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4 px-2 text-[9px] uppercase font-bold rounded-full">
+                                          <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4.5 px-2.5 text-[8px] uppercase font-black rounded-full border-none shadow-sm">
                                             {file.access_level}
                                           </Badge>
                                         )}
@@ -1306,19 +1307,19 @@ export default function Explorer() {
                                         if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch(e) {} }
                                         if (meta?.type === "STOCK_OPNAME_REPORT") {
                                           return (
-                                            <div className="pt-2 border-t border-dashed space-y-2">
+                                            <div className="pt-2.5 border-t border-dashed border-primary/20 space-y-2.5">
                                               <div className="flex items-center gap-2 flex-wrap">
-                                                <div className="flex items-center gap-1.5 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full border border-primary/20 font-bold">
-                                                  <Bot className="h-3 w-3" />
+                                                <div className="flex items-center gap-1.5 bg-primary/10 text-primary text-[10px] px-2.5 py-1 rounded-full border border-primary/20 font-black shadow-sm">
+                                                  <Bot className="h-3.5 w-3.5" />
                                                   {meta.ai_name || "Audit AI"}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full border border-slate-200 font-medium">
-                                                  <User className="h-3 w-3" />
+                                                <div className="flex items-center gap-1.5 bg-slate-200/50 text-slate-700 text-[10px] px-2.5 py-1 rounded-full border border-slate-300/50 font-bold shadow-sm">
+                                                  <User className="h-3.5 w-3.5" />
                                                   {meta.performer}
                                                 </div>
                                               </div>
-                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground opacity-80 pl-1">
-                                                <Clock className="h-3 w-3" />
+                                              <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground/80 font-medium pl-1.5">
+                                                <Clock className="h-3.5 w-3.5 opacity-60" />
                                                 {meta.timestamp ? format(new Date(meta.timestamp), 'MMM d, HH:mm') : "N/A"}
                                               </div>
                                             </div>
@@ -1330,8 +1331,10 @@ export default function Explorer() {
                                   </div>
                                 </div>
                                 {viewMode !== "large" && (
-                                  <div className="ml-2 flex items-center gap-2 flex-shrink-0">
-                                    <Badge variant="outline" className="text-[10px] rounded-full px-3 py-0.5 bg-background shadow-sm">{typeLabel[file.type]}</Badge>
+                                  <div className="ml-2 flex items-center gap-2 flex-shrink-0 self-start">
+                                    <Badge variant="outline" className="text-[10px] rounded-full px-3 py-1 bg-primary/5 text-primary border-primary/20 font-black italic shadow-sm uppercase tracking-tighter">
+                                      {typeLabel[file.type]}
+                                    </Badge>
                                   </div>
                                 )}
                               </div>
