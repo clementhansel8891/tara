@@ -105,6 +105,16 @@ export class ExplorerService {
     
     fs.writeFileSync(filePath, file.buffer);
 
+    // Handle metadata parsing if it comes as a string from FormData
+    let metadata = dto.metadata;
+    if (typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (e) {
+        metadata = {};
+      }
+    }
+
     // 3. Persistence with Privacy Defaults
     const record = await this.prisma.explorer_files.create({
       data: {
@@ -121,7 +131,7 @@ export class ExplorerService {
         size: file.size,
         mime_type: file.mimetype,
         storage_path: fileName,
-        metadata: dto.metadata || {},
+        metadata: metadata || {},
         history: [{ user_id, action: "CREATED", timestamp: new Date().toISOString() }],
       },
     });

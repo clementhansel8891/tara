@@ -1136,7 +1136,11 @@ export default function Explorer() {
                         <span className="text-[10px] text-muted-foreground uppercase">{groupFiles.length} items</span>
                       </div>
                     )}
-                    { (Array.isArray(groupFiles) ? groupFiles : []).some(f => f.metadata?.type === "STOCK_OPNAME_REPORT") ? (
+                    { (Array.isArray(groupFiles) ? groupFiles : []).some(f => {
+                      let m = f.metadata;
+                      if (typeof m === 'string') { try { m = JSON.parse(m); } catch(e) {} }
+                      return m?.type === "STOCK_OPNAME_REPORT";
+                    }) ? (
                       <table className="w-full text-left">
                         <thead className="bg-muted/50 border-b">
                           <tr className="text-left text-xs text-muted-foreground font-semibold">
@@ -1148,54 +1152,59 @@ export default function Explorer() {
                           </tr>
                         </thead>
                         <tbody>
-                          {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
-                            <ContextMenu key={file.id}>
-                              <ContextMenuTrigger asChild>
-                                <tr
-                                  data-file-id={file.id}
-                                  className={cn(
-                                    "group border-b transition-colors cursor-pointer",
-                                    selectedIds.includes(file.id) ? "bg-primary/10 border-primary/20" : "hover:bg-muted/50"
-                                  )}
-                                  onClick={(event) => {
-                                    handleSelection(file.id, index, event);
-                                    setSelectedFileId(file.id);
-                                  }}
-                                >
-                                  <td className="p-3">
-                                    <div className="flex items-center gap-3">
-                                      <FileText className="h-4 w-4 text-primary" />
-                                      <span className="font-medium text-sm">{file.name}</span>
-                                    </div>
-                                  </td>
-                                  <td className="p-3 text-sm">
-                                    {file.metadata?.ai_name ? (
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold">
-                                          {file.metadata.ai_name}
-                                        </Badge>
-                                        <span className="text-[10px] text-muted-foreground">{file.metadata.ai_version}</span>
-                                      </div>
-                                    ) : (
-                                      <span className="text-muted-foreground italic">N/A</span>
+                          {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => {
+                            let meta = file.metadata;
+                            if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch(e) {} }
+                            
+                            return (
+                              <ContextMenu key={file.id}>
+                                <ContextMenuTrigger asChild>
+                                  <tr
+                                    data-file-id={file.id}
+                                    className={cn(
+                                      "group border-b transition-colors cursor-pointer",
+                                      selectedIds.includes(file.id) ? "bg-primary/10 border-primary/20" : "hover:bg-muted/50"
                                     )}
-                                  </td>
-                                  <td className="p-3 text-sm text-muted-foreground font-medium">
-                                    {file.metadata?.performer || "N/A"}
-                                  </td>
-                                  <td className="p-3 text-sm text-muted-foreground">
-                                    {file.metadata?.timestamp ? format(new Date(file.metadata.timestamp), 'yyyy-MM-dd HH:mm') : "N/A"}
-                                  </td>
-                                  <td className="p-3 text-right">
-                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                                  </td>
-                                </tr>
-                              </ContextMenuTrigger>
-                              <ContextMenuContent>
-                                <ContextMenuItem onClick={() => { setSelectedFileId(file.id); setPreviewOpen(true); }}>Preview</ContextMenuItem>
-                              </ContextMenuContent>
-                            </ContextMenu>
-                          ))}
+                                    onClick={(event) => {
+                                      handleSelection(file.id, index, event);
+                                      setSelectedFileId(file.id);
+                                    }}
+                                  >
+                                    <td className="p-3">
+                                      <div className="flex items-center gap-3">
+                                        <FileText className="h-4 w-4 text-primary" />
+                                        <span className="font-medium text-sm">{file.name}</span>
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-sm">
+                                      {meta?.ai_name ? (
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold">
+                                            {meta.ai_name}
+                                          </Badge>
+                                          <span className="text-[10px] text-muted-foreground">{meta.ai_version}</span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-muted-foreground italic">N/A</span>
+                                      )}
+                                    </td>
+                                    <td className="p-3 text-sm text-muted-foreground font-medium">
+                                      {meta?.performer || "N/A"}
+                                    </td>
+                                    <td className="p-3 text-sm text-muted-foreground">
+                                      {meta?.timestamp ? format(new Date(meta.timestamp), 'yyyy-MM-dd HH:mm') : "N/A"}
+                                    </td>
+                                    <td className="p-3 text-right">
+                                      <MoreHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </td>
+                                  </tr>
+                                </ContextMenuTrigger>
+                                <ContextMenuContent>
+                                  <ContextMenuItem onClick={() => { setSelectedFileId(file.id); setPreviewOpen(true); }}>Preview</ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
+                            );
+                          })}
                         </tbody>
                       </table>
                     ) : (
