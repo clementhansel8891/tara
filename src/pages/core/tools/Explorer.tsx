@@ -1141,10 +1141,9 @@ export default function Explorer() {
                         <thead className="bg-muted/50 border-b">
                           <tr className="text-left text-xs text-muted-foreground font-semibold">
                             <th className="p-3">Report Name</th>
-                            <th className="p-3">Generated At</th>
-                            <th className="p-3">Location</th>
+                            <th className="p-3">AI (Name and Version)</th>
                             <th className="p-3">Performer</th>
-                            <th className="p-3">AI Engine</th>
+                            <th className="p-3">Timestamp</th>
                             <th className="p-3 w-10"></th>
                           </tr>
                         </thead>
@@ -1166,29 +1165,26 @@ export default function Explorer() {
                                   <td className="p-3">
                                     <div className="flex items-center gap-3">
                                       <FileText className="h-4 w-4 text-primary" />
-                                      <span className="font-medium">{file.name}</span>
+                                      <span className="font-medium text-sm">{file.name}</span>
                                     </div>
-                                  </td>
-                                  <td className="p-3 text-sm text-muted-foreground">
-                                    {file.metadata?.timestamp ? format(new Date(file.metadata.timestamp), 'yyyy-MM-dd HH:mm') : "N/A"}
-                                  </td>
-                                  <td className="p-3 text-sm font-medium">
-                                    <Badge variant="outline" className="bg-primary/5 border-primary/20">
-                                      {file.metadata?.location || "N/A"}
-                                    </Badge>
-                                  </td>
-                                  <td className="p-3 text-sm text-muted-foreground italic">
-                                    {file.metadata?.performer || "N/A"}
                                   </td>
                                   <td className="p-3 text-sm">
                                     {file.metadata?.ai_name ? (
-                                      <div className="flex flex-col">
-                                        <span className="font-semibold text-primary">{file.metadata.ai_name}</span>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-bold">
+                                          {file.metadata.ai_name}
+                                        </Badge>
                                         <span className="text-[10px] text-muted-foreground">{file.metadata.ai_version}</span>
                                       </div>
                                     ) : (
                                       <span className="text-muted-foreground italic">N/A</span>
                                     )}
+                                  </td>
+                                  <td className="p-3 text-sm text-muted-foreground font-medium">
+                                    {file.metadata?.performer || "N/A"}
+                                  </td>
+                                  <td className="p-3 text-sm text-muted-foreground">
+                                    {file.metadata?.timestamp ? format(new Date(file.metadata.timestamp), 'yyyy-MM-dd HH:mm') : "N/A"}
                                   </td>
                                   <td className="p-3 text-right">
                                     <MoreHorizontal className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1347,17 +1343,41 @@ export default function Explorer() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => window.print()}>
-                      <RefreshCcw className="h-4 w-4 mr-2" />
-                      Print
-                    </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        const data = typeof selectedFile.content === 'string' ? JSON.parse(selectedFile.content) : selectedFile.content;
+                        if (!data?.items) return;
+                        
+                        const headers = ["SKU", "Name", "Expected", "Actual", "Variance"];
+                        const rows = data.items.map((item: any) => [
+                          item.sku,
+                          item.name,
+                          item.expected_quantity,
+                          item.actual_quantity,
+                          item.variance
+                        ]);
+                        
+                        const csvContent = [headers, ...rows].map(r => r.join(",")).join("\n");
+                        const blob = new Blob([csvContent], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `Stock_Opname_${selectedFile.metadata.location}_${selectedFile.metadata.timestamp}.csv`;
+                        a.click();
+                      }}
+                    >
                       <Download className="h-4 w-4 mr-2" />
-                      PDF
+                      Export to CSV
                     </Button>
-                    <Button size="sm">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Docs
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => window.print()}
+                    >
+                      <FileDown className="h-4 w-4 mr-2" />
+                      Export to PDF
                     </Button>
                   </div>
                 </div>
@@ -1500,6 +1520,15 @@ export default function Explorer() {
                         <span className="text-muted-foreground">Performer</span>
                         <span className="italic">{selectedFile.metadata?.performer || "N/A"}</span>
                       </div>
+                      {selectedFile.metadata?.ai_name && (
+                        <div className="flex justify-between border-b border-dashed pb-1">
+                          <span className="text-muted-foreground">AI Engine</span>
+                          <span className="text-right">
+                            <div className="font-bold text-primary">{selectedFile.metadata.ai_name}</div>
+                            <div className="text-[10px] text-muted-foreground">{selectedFile.metadata.ai_version}</div>
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between border-b border-dashed pb-1">
                         <span className="text-muted-foreground">Company</span>
                         <span>{selectedFile.company_id?.slice(0, 8) || "N/A"}</span>

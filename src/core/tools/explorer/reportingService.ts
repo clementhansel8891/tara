@@ -54,7 +54,7 @@ export async function saveStockOpnameReport(
   const month = format(now, "MMMM");
   const timestamp = format(now, "yyyy-MM-dd_HH-mm");
   
-  const folderPath = `${locationName}/${year}/${month}`;
+  const folderPath = `Stock Opname/${locationName}/${year}/${month}`;
   const folderId = await ensureFolderPath(session, folderPath);
   
   // Save as .json for specialized Explorer preview
