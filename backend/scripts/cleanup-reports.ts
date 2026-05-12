@@ -33,7 +33,7 @@ async function cleanup() {
     
     // Ensure the folder path exists
     for (const part of pathParts) {
-      let folder = await prisma.explorer_folders.findFirst({
+      const existing = await prisma.explorer_folders.findFirst({
         where: { 
           tenant_id: report.tenant_id, 
           name: part, 
@@ -41,9 +41,10 @@ async function cleanup() {
         }
       });
       
-      if (!folder) {
+      let currentId: string;
+      if (!existing) {
         console.log(`Creating folder: ${part} under parent ${parent_id || 'root'}`);
-        folder = await prisma.explorer_folders.create({
+        const created = await prisma.explorer_folders.create({
           data: { 
             tenant_id: report.tenant_id, 
             name: part, 
@@ -51,8 +52,11 @@ async function cleanup() {
             access_level: 'shared' 
           }
         });
+        currentId = created.id;
+      } else {
+        currentId = existing.id;
       }
-      parent_id = folder.id;
+      parent_id = currentId;
     }
 
     // Move the file if it's not already there
