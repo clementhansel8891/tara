@@ -604,9 +604,10 @@ export default function Explorer() {
                   </div>
                 </div>
               ) : null}
+                </div>
+              </div>
             </div>
-          </div>
-        </WorkspacePanel>
+          </WorkspacePanel>
 
         <div className="space-y-6">
           <WorkspacePanel title="Search" description="Find files in your department scope.">
