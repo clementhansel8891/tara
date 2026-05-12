@@ -93,7 +93,7 @@ export class ExplorerService {
     let parent_id: string | null = null;
 
     for (const part of pathParts) {
-      let folder = await this.prisma.explorer_folders.findFirst({
+      const existing = await this.prisma.explorer_folders.findFirst({
         where: {
           tenant_id,
           name: part,
@@ -101,14 +101,18 @@ export class ExplorerService {
         }
       });
 
-      if (!folder) {
-        folder = await this.createFolder(ctx, {
+      let currentId: string;
+      if (!existing) {
+        const created = await this.createFolder(ctx, {
           name: part,
           parent_id: parent_id || undefined,
           access_level
         } as any);
+        currentId = created.id;
+      } else {
+        currentId = existing.id;
       }
-      parent_id = folder.id;
+      parent_id = currentId;
     }
 
     return parent_id!;
