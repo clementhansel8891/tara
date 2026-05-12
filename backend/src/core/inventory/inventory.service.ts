@@ -816,11 +816,33 @@ export class InventoryService {
       });
       
       if (cycle) {
+        // Resolve location ID properly
+        let locationId = cycle.location_code;
+        
+        // If it's not a UUID, try to find the location by code or name
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-12a-f]{12}$/i.test(locationId);
+        if (!isUuid) {
+           const resolvedLoc = await this.prisma.locations.findFirst({
+              where: {
+                 tenant_id: ctx.tenant_id,
+                 OR: [
+                    { code: locationId },
+                    { name: locationId }
+                 ],
+                 deleted_at: null
+              }
+           });
+           if (resolvedLoc) {
+              locationId = resolvedLoc.id;
+              console.log(`Resolved audit location ${cycle.location_code} -> ${locationId}`);
+           }
+        }
+
         for (const item of items) {
           const existingLevel = await this.prisma.stock_levels.findFirst({
             where: {
               tenant_id: ctx.tenant_id,
-              location_id: cycle.location_code,
+              location_id: locationId,
               product_id: item.id,
               department_id: cycle.department_code || null
             }
@@ -839,7 +861,7 @@ export class InventoryService {
             await this.prisma.stock_levels.create({
               data: {
                 tenant_id: ctx.tenant_id,
-                location_id: cycle.location_code,
+                location_id: locationId,
                 product_id: item.id,
                 department_id: cycle.department_code || null,
                 on_hand: item.actualCount,

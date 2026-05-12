@@ -14,6 +14,12 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -67,8 +73,7 @@ import {
   User,
   Clock,
   ChevronLeft,
-  Search,
-  FileDown
+  Search
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -261,7 +266,11 @@ export default function Explorer() {
 
   const folderTree = useMemo(() => {
     const grouped: Record<string, typeof allFolders> = {};
-    allFolders.forEach((folder) => {
+    // Deduplicate folders by name within same parent to avoid UI clutter
+    const uniqueFolders = (Array.isArray(allFolders) ? allFolders : []).filter((f, i, self) => 
+      i === self.findIndex(t => t.name === f.name && t.parentId === f.parentId)
+    );
+    uniqueFolders.forEach((folder) => {
       const parent = folder.parentId ?? "root";
       if (!grouped[parent]) grouped[parent] = [];
       grouped[parent].push(folder);
@@ -958,7 +967,16 @@ export default function Explorer() {
                                     }}
                                   />
                                 ) : (
-                                  <span>{file.name}</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span className="truncate max-w-[200px] block">{file.name}</span>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="bg-slate-900 border-white/10 text-white font-bold italic">
+                                        {file.name}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 )}
                               </div>
                             </td>
@@ -1214,7 +1232,7 @@ export default function Explorer() {
                         </tbody>
                       </table>
                     ) : (
-                      <div className={`grid gap-4 ${
+                      <div className={`grid gap-6 ${
                         viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
                       }`}>
                         {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
@@ -1279,12 +1297,20 @@ export default function Explorer() {
                                         className="h-8 text-sm rounded-lg"
                                       />
                                     ) : (
-                                      <p 
-                                        className="text-sm font-black text-foreground truncate w-full group-hover:text-primary transition-all tracking-tight" 
-                                        title={file.name}
-                                      >
-                                        {file.name}
-                                      </p>
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <p 
+                                              className="text-sm font-black text-foreground truncate w-full group-hover:text-primary transition-all tracking-tight" 
+                                            >
+                                              {file.name}
+                                            </p>
+                                          </TooltipTrigger>
+                                          <TooltipContent className="bg-slate-900 border-white/10 text-white font-bold italic">
+                                            {file.name}
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
                                     )}
                                     
                                     <div className="flex flex-col gap-2.5 mt-2.5">
@@ -1309,11 +1335,11 @@ export default function Explorer() {
                                           return (
                                             <div className="pt-2.5 border-t border-dashed border-primary/20 space-y-2.5">
                                               <div className="flex items-center gap-2 flex-wrap">
-                                                <div className="flex items-center gap-1.5 bg-primary/10 text-primary text-[10px] px-2.5 py-1 rounded-full border border-primary/20 font-black shadow-sm">
+                                                <div className="flex items-center gap-1.5 bg-gradient-to-r from-primary/20 to-primary/5 text-primary text-[10px] px-3 py-1.5 rounded-full border border-primary/20 font-black shadow-sm backdrop-blur-sm">
                                                   <Bot className="h-3.5 w-3.5" />
                                                   {meta.ai_name || "Audit AI"}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 bg-slate-200/50 text-slate-700 text-[10px] px-2.5 py-1 rounded-full border border-slate-300/50 font-bold shadow-sm">
+                                                <div className="flex items-center gap-1.5 bg-slate-200/50 text-slate-700 text-[10px] px-3 py-1.5 rounded-full border border-slate-300/50 font-bold shadow-sm backdrop-blur-sm">
                                                   <User className="h-3.5 w-3.5" />
                                                   {meta.performer}
                                                 </div>
@@ -1332,7 +1358,7 @@ export default function Explorer() {
                                 </div>
                                 {viewMode !== "large" && (
                                   <div className="ml-2 flex items-center gap-2 flex-shrink-0 self-start">
-                                    <Badge variant="outline" className="text-[10px] rounded-full px-3 py-1 bg-primary/5 text-primary border-primary/20 font-black italic shadow-sm uppercase tracking-tighter">
+                                    <Badge variant="outline" className="text-[10px] rounded-full px-4 py-1.5 bg-primary/5 text-primary border-primary/20 font-black italic shadow-md uppercase tracking-tighter hover:bg-primary/10 transition-colors">
                                       {typeLabel[file.type]}
                                     </Badge>
                                   </div>
@@ -1460,7 +1486,7 @@ export default function Explorer() {
                       size="sm" 
                       onClick={() => window.print()}
                     >
-                      <FileDown className="h-4 w-4 mr-2" />
+                      <Download className="h-4 w-4 mr-2" />
                       Export to PDF
                     </Button>
                   </div>

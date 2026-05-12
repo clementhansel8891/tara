@@ -177,7 +177,8 @@ export default function InventoryStockHub() {
       if (response && response.meta) {
         setTotalCount(response.meta.total || 0);
       } else if (statsResponse) {
-        setTotalCount(statsResponse.totalItems || 0);
+        const statsData = statsResponse.data || statsResponse;
+        setTotalCount(statsData.total_items || statsData.totalItems || 0);
       }
     } catch (error: any) {
       toast({
@@ -218,7 +219,15 @@ export default function InventoryStockHub() {
         });
       });
 
-      setLocations(Array.from(locationMap.values()).sort((a, b) => a.name.localeCompare(b.name)));
+      const locs = Array.from(locationMap.values())
+        .filter((loc, index, self) => 
+          index === self.findIndex((t) => (
+            t.name === loc.name || t.id === loc.id
+          ))
+        )
+        .sort((a, b) => a.name.localeCompare(b.name));
+      
+      setLocations(locs);
     } catch (error) {
       console.error("Failed to fetch locations", error);
     }
