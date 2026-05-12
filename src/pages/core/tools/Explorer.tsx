@@ -1222,7 +1222,7 @@ export default function Explorer() {
                         </tbody>
                       </table>
                     ) : (
-                      <div className={`grid gap-2 ${
+                      <div className={`grid gap-4 ${
                         viewMode === "large" ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2 xl:grid-cols-3"
                       }`}>
                         {(Array.isArray(groupFiles) ? groupFiles : []).map((file, index) => (
@@ -1254,9 +1254,9 @@ export default function Explorer() {
                                   setLastClick({ id: file.id, time: now });
                                 }}
                                 className={cn(
-                                  "flex cursor-pointer rounded-lg border p-3 transition-all",
-                                  viewMode === "large" ? "flex-col gap-3" : "items-center justify-between",
-                                  selectedIds.includes(file.id) ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                                  "flex cursor-pointer rounded-lg border p-4 transition-all shadow-sm",
+                                  viewMode === "large" ? "flex-col gap-4" : "items-center justify-between gap-3",
+                                  selectedIds.includes(file.id) ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "hover:bg-muted/50"
                                 )}
                               >
                                 <div className={cn("flex gap-3", viewMode === "large" ? "flex-col" : "items-center flex-1 min-w-0")}>
@@ -1266,12 +1266,12 @@ export default function Explorer() {
                                       checked={selectedIds.includes(file.id)}
                                       onChange={() => toggleSelect(file.id)}
                                       onClick={(event) => event.stopPropagation()}
-                                      className="h-3 w-3"
+                                      className="h-4 w-4 rounded border-muted"
                                     />
                                     {iconForFile(file.type, viewMode === "large" ? "lg" : "sm")}
                                   </div>
                                   
-                                  <div className="flex-1 min-w-0">
+                                  <div className="flex-1 min-w-0 overflow-hidden">
                                     {editingId === file.id ? (
                                       <Input
                                         value={editingValue}
@@ -1282,12 +1282,18 @@ export default function Explorer() {
                                           setVersion((prev) => prev + 1);
                                         }}
                                         autoFocus
+                                        className="h-7 text-sm"
                                       />
                                     ) : (
-                                      <p className="text-sm font-semibold text-foreground truncate" title={file.name}>{file.name}</p>
+                                      <p 
+                                        className="text-sm font-bold text-foreground truncate w-full" 
+                                        title={file.name}
+                                      >
+                                        {file.name}
+                                      </p>
                                     )}
                                     
-                                    <div className="flex flex-col gap-1 mt-1">
+                                    <div className="flex flex-col gap-1.5 mt-1.5">
                                       <div className="flex items-center gap-2">
                                         <p className="text-[10px] text-muted-foreground truncate">
                                           {folderMap.get(file.folderId ?? "root") ?? "Root"}
