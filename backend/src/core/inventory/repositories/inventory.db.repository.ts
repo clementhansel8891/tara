@@ -44,19 +44,12 @@ export class InventoryDbRepository implements IInventoryRepository {
     let branchTenantId: string | undefined;
     const isLocationFiltered = location_id && location_id !== "all" && location_id !== "";
     if (isLocationFiltered) {
-      const branch = await this.prisma.tenants.findFirst({
-        where: { id: location_id, parent_id: ctx.tenant_id }
-      });
-      if (branch) branchTenantId = location_id;
+      // Branch detection removed
     }
 
     const itemWhere: any = { ...baseScope };
     if (isLocationFiltered) {
-      if (branchTenantId) {
-        itemWhere.stock_levels = { some: { tenant_id: branchTenantId } };
-      } else {
-        itemWhere.stock_levels = { some: { location_id } };
-      }
+      itemWhere.stock_levels = { some: { location_id } };
     }
     
     const totalLocations = await this.prisma.locations.count({
@@ -140,10 +133,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     let branchTenantId: string | undefined;
     const isLocationFiltered = location_id && location_id !== "all" && location_id !== "";
     if (isLocationFiltered) {
-      const branch = await this.prisma.tenants.findFirst({
-        where: { id: location_id, parent_id: ctx.tenant_id }
-      });
-      if (branch) branchTenantId = location_id;
+      // Branch detection removed
     }
 
     // Determine if we need raw SQL (for stock-based filtering or sorting)
@@ -166,12 +156,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       const whereClause = conditions.join(" AND ");
       
       // Location condition for aggregation
-      let locationCondition = "1=1";
-      if (isLocationFiltered) {
-        locationCondition = branchTenantId 
-          ? `s.tenant_id = '${branchTenantId}'` 
-          : `s.location_id = '${location_id}'`;
-      }
+      const locationCondition = isLocationFiltered ? `s.location_id = '${location_id}'` : `1=1`;
 
       // Stock status filters (HAVING clause)
       let havingClause = "";
@@ -205,7 +190,7 @@ export class InventoryDbRepository implements IInventoryRepository {
           product_categories: true, 
           item_images: true,
           stock_levels: {
-            where: isLocationFiltered ? (branchTenantId ? { tenant_id: branchTenantId } : { location_id }) : undefined,
+            where: isLocationFiltered ? { location_id } : undefined,
             select: { on_hand: true, location_id: true, tenant_id: true }
           }
         },

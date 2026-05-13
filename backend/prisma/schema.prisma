@@ -11,9 +11,6 @@ model tenants {
   id                                     String                                   @id @default(uuid())
   name                                   String
   code                                   String                                   @unique
-  parent_id                             String?
-  parent                                tenants?                                 @relation("TenantHierarchy", fields: [parent_id], references: [id])
-  children                              tenants[]                                @relation("TenantHierarchy")
   status                                 String                                   @default("active")
   created_at                             DateTime                                 @default(now())
   updated_at                             DateTime                                 @default(now())
