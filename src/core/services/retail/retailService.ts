@@ -897,6 +897,8 @@ export const retailService = {
     if (options?.maxPrice !== undefined)
       qs.set("maxPrice", String(options.maxPrice));
     if (options?.q) qs.set("q", options.q);
+    if (options?.locationId) qs.set("location_id", options.locationId);
+    
     const path = qs.toString()
       ? `/v1/retail/inventory/stats?${qs.toString()}`
       : "/v1/retail/inventory/stats";
@@ -909,11 +911,11 @@ export const retailService = {
       outOfStock: number;
       totalSOH: number;
       totalATS: number;
-      // Added user requested fields
       totalItems: number;
       lowStockCount: number;
       outOfStockCount: number;
       totalValue: number;
+      currency?: string;
     }>(path, "GET", session);
     return response;
   },

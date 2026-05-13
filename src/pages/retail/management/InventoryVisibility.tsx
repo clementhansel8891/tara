@@ -82,6 +82,7 @@ interface InventoryStats {
   critical: number;
   low: number;
   totalValue?: number;
+  currency?: string;
 }
 
 // Temporary mock suppliers – replace with retailService.listSuppliers() when the endpoint is available
@@ -224,7 +225,9 @@ const InventoryVisibility = () => {
       setInventory(mapped);
       setTotalItems(totalCount);
 
-      const sData = await retailService.getInventoryStats(tenantId, session);
+      const sData = await retailService.getInventoryStats(tenantId, session, {
+        locationId: locationId
+      });
       if (sData) {
         setStats({
           totalSKUs: sData.totalItems ?? 0,
@@ -233,6 +236,7 @@ const InventoryVisibility = () => {
           critical: sData.critical ?? 0,
           low: sData.lowStock ?? 0,
           totalValue: sData.totalValue,
+          currency: sData.currency,
         });
       }
 

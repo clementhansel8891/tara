@@ -7,6 +7,8 @@ type InventoryStats = {
   totalATS: number;
   critical: number;
   low: number;
+  totalValue?: number;
+  currency?: string;
 };
 
 type Props = {
@@ -16,6 +18,25 @@ type Props = {
 };
 
 export const InventoryKpiBar: React.FC<Props> = ({ stats, isAggregating }) => {
+  const formatValue = (val: number | undefined) => {
+    if (val === undefined || val === null) return "0";
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
+  const formatCurrency = (val: number | undefined) => {
+    if (val === undefined || val === null) return "0";
+    const currency = stats.currency || "USD";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
   const kpis = [
     {
       label: "Total SKUs",
@@ -25,27 +46,27 @@ export const InventoryKpiBar: React.FC<Props> = ({ stats, isAggregating }) => {
     },
     {
       label: "Stock On Hand",
-      val: stats.totalSOH?.toLocaleString() ?? "0",
+      val: isAggregating ? "…" : formatValue(stats.totalSOH),
       color: "blue",
       sub: "All units",
     },
     {
       label: "Available-to-Sell",
-      val: stats.totalATS?.toLocaleString() ?? "0",
+      val: isAggregating ? "…" : formatValue(stats.totalATS),
       color: "emerald",
       sub: "Unreserved",
     },
     {
       label: "Low Stock",
-      val: isAggregating ? "…" : (stats.low?.toLocaleString() ?? "0"),
+      val: isAggregating ? "…" : formatValue(stats.low),
       color: "amber",
       sub: "Below buffer",
     },
     {
-      label: "Critical",
-      val: isAggregating ? "…" : (stats.critical?.toLocaleString() ?? "0"),
-      color: "red",
-      sub: "Zero ATS",
+      label: "Total Valuation",
+      val: isAggregating ? "…" : formatCurrency(stats.totalValue),
+      color: "purple",
+      sub: "Branch Value",
     },
   ] as const;
 
@@ -61,7 +82,7 @@ export const InventoryKpiBar: React.FC<Props> = ({ stats, isAggregating }) => {
           >
             {k.label}
           </div>
-          <div className="text-2xl font-black italic tracking-tighter text-foreground">
+          <div className="text-2xl font-black italic tracking-tighter text-foreground truncate">
             {k.val}
           </div>
           <div className="text-[9px] text-muted-foreground font-bold uppercase italic">

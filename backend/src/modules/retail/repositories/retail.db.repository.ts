@@ -410,7 +410,19 @@ export class RetailDbRepository implements IRetailRepository {
           : "name";
     const orderDir = options?.sortDir === "desc" ? "desc" : "asc";
 
-    const where: any = { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }), status: "active" };
+        const scope = MultiTenancyUtil.getScope(ctx);
+    const where: any = { 
+      tenant_id: scope.tenant_id,
+      status: "active" 
+    };
+
+    if (scope.location_id) {
+      where.stock_levels = {
+        some: {
+          location_id: scope.location_id
+        }
+      };
+    }
     if (options?.category_id) where.category_id = options.category_id;
     if (options?.type) where.type = options.type;
 
@@ -468,7 +480,7 @@ export class RetailDbRepository implements IRetailRepository {
     else if (globalConfig) display_labels = globalConfig.labels as any;
 
     return {
-      items: products.map((p: any) => this.mapProduct(p, options?.location_id)),
+      items: products.map((p: any) => this.mapProduct(p, options?.location_id, "USD")), // Default USD for listing, will be refined if needed
       display_labels,
       total,
       page,
@@ -883,7 +895,7 @@ export class RetailDbRepository implements IRetailRepository {
     };
   }
 
-  async getInventoryStats(ctx: TenantContext,
+    async getInventoryStats(ctx: TenantContext,
     options?: { category_id?: string; q?: string },
   ): Promise<{
     total: number;
@@ -897,8 +909,22 @@ export class RetailDbRepository implements IRetailRepository {
     lowStockCount: number;
     outOfStockCount: number;
     totalValue: Prisma.Decimal;
+    currency?: string;
   }> {
-    const where: any = { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }), status: "active" };
+    const scope = MultiTenancyUtil.getScope(ctx);
+    const where: any = { 
+      tenant_id: scope.tenant_id,
+      status: "active" 
+    };
+
+    if (scope.location_id) {
+      where.stock_levels = {
+        some: {
+          location_id: scope.location_id
+        }
+      };
+    }
+
     if (options?.category_id) where.category_id = options.category_id;
     if (options?.q) {
       const q = options.q;
@@ -910,20 +936,28 @@ export class RetailDbRepository implements IRetailRepository {
       ];
     }
 
-    const products = await this.prisma.item_masters.findMany({
-      where,
-      select: {
-        base_price: true,
-        stock_levels: {
-          select: {
-            on_hand: true,
-            available: true,
-            min_buffer: true,
-            max_capacity: true,
+    const [products, company] = await Promise.all([
+      this.prisma.item_masters.findMany({
+        where,
+        select: {
+          base_price: true,
+          stock_levels: {
+            where: scope.location_id ? { location_id: scope.location_id } : undefined,
+            select: {
+              on_hand: true,
+              available: true,
+              reserved: true,
+              min_buffer: true,
+              max_capacity: true,
+            },
           },
         },
-      },
-    });
+      }),
+      this.prisma.companies.findFirst({
+        where: { tenant_id: ctx.tenant_id },
+        select: { currency: true }
+      })
+    ]);
 
     const stats = {
       total: products.length,
@@ -937,50 +971,41 @@ export class RetailDbRepository implements IRetailRepository {
       lowStockCount: 0,
       outOfStockCount: 0,
       totalValue: new Prisma.Decimal(0) as any,
+      currency: company?.currency || "USD"
     };
 
     products.forEach((p: any) => {
-      // Number() conversion is safe here — these are aggregated display stats,
-      // not financial ledger arithmetic. Precision is preserved inside the DB.
       const totalOnHand = p.stock_levels.reduce(
         (sum: Prisma.Decimal, s: any) =>
           sum.add(new Prisma.Decimal(String(s.on_hand || 0) as any)),
         new Prisma.Decimal(0) as any,
       );
-      const totalAvailable = p.stock_levels.reduce(
+
+      const currentATS = p.stock_levels.reduce(
         (sum: Prisma.Decimal, s: any) =>
           sum.add(new Prisma.Decimal(String(s.available || 0) as any)),
         new Prisma.Decimal(0) as any,
       );
+
       const minBuffer = p.stock_levels.reduce(
-        (sum: Prisma.Decimal, s: any) =>
-          sum.add(new Prisma.Decimal(String(s.min_buffer || 0) as any)),
-        new Prisma.Decimal(0) as any,
-      );
-      const maxCapacity = p.stock_levels.reduce(
-        (sum: number, s: any) => sum + Number(s.maxCapacity || 0),
-        0,
+        (sum: number, s: any) => sum + (s.min_buffer || 0),
+        0
       );
 
       stats.totalSOH = stats.totalSOH.add(totalOnHand);
-      stats.totalATS = stats.totalATS.add(totalAvailable);
-      stats.totalValue = stats.totalValue.add(
-        totalOnHand.mul(new Prisma.Decimal(String(p.base_price) as any)),
-      );
+      stats.totalATS = stats.totalATS.add(currentATS);
+      stats.totalValue = stats.totalValue.add(totalOnHand.mul(new Prisma.Decimal(String(p.base_price || 0))));
 
-      if (totalAvailable.lessThanOrEqualTo(0)) {
-        stats.critical++;
-        stats.outOfStock++;
+      if (totalOnHand.lte(0)) {
         stats.outOfStockCount++;
-      } else if (totalAvailable.lessThan(minBuffer)) {
-        stats.lowStock++;
+        stats.outOfStock++;
+        stats.critical++;
+      } else if (minBuffer > 0 && totalOnHand.lte(minBuffer)) {
         stats.lowStockCount++;
-      } else if (
-        totalAvailable.greaterThan(
-          new Prisma.Decimal(String(p.maxCapacity || 0) as any),
-        )
-      ) {
-        stats.overstock++;
+        stats.lowStock++;
+      } else if (minBuffer === 0 && totalOnHand.lte(5)) {
+        stats.lowStockCount++;
+        stats.lowStock++;
       }
     });
 
@@ -2066,6 +2091,20 @@ export class RetailDbRepository implements IRetailRepository {
         // In the scanner, if Serialization Mode is ON, adj.serial_number will be provided.
         
         let productId = adj.product_id;
+
+        // If product_id is missing but SKU is provided, resolve it
+        if (!productId && adj.sku) {
+          const product = await tx.item_masters.findUnique({
+            where: { sku: adj.sku, tenant_id: ctx.tenant_id },
+            select: { id: true }
+          });
+          if (product) productId = product.id;
+        }
+
+        if (!productId) {
+          console.warn(`[RETAIL_OPNAME] Could not resolve item: ${adj.sku || adj.product_id}`);
+          continue;
+        }
         
         // If a serial number is provided, ensure the unit record exists
         if (adj.serial_number) {
@@ -2596,7 +2635,7 @@ export class RetailDbRepository implements IRetailRepository {
     };
   }
 
-  private mapProduct(p: any, location_id?: string): RetailProduct {
+  private mapProduct(p: any, location_id?: string, currency: string = "USD"): RetailProduct {
     const stockLevels = location_id
       ? (p.stock_levels || []).filter((s: any) => s.location_id === location_id)
       : p.stock_levels || [];
@@ -2646,8 +2685,8 @@ export class RetailDbRepository implements IRetailRepository {
       category_id: p.category_id,
       categoryName: p.product_categories?.name,
       base_price: customPrice,
-      currency: "IDR",
-      prices: [{ amount: customPrice, currency: "IDR" }],
+      currency: currency,
+      prices: [{ amount: customPrice, currency: currency }],
       tax_rate: (p.tax_rate as unknown as Prisma.Decimal) || new Prisma.Decimal(0) as any,
       unit: p.unit,
       type: p.type as any,
