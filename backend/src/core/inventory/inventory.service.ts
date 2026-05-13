@@ -870,9 +870,11 @@ export class InventoryService {
     const cycle = await this.repository.updateAuditCycle(ctx, id, results);
 
     // 5. Generate & Save Report to Explorer
+    /*
     if (results.status === "COMPLETED") {
       await this.generateAndSaveAuditReport(ctx, id);
     }
+    */
 
     return cycle;
   }
@@ -890,6 +892,7 @@ export class InventoryService {
     return this.repository.createItem(ctx, itemData);
   }
 
+  /*
   private async generateAndSaveAuditReport(ctx: TenantContext, cycleId: string) {
     try {
       const cycle = await this.prisma.inventory_audit_cycles.findUnique({
