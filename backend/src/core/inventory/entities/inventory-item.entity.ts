@@ -24,7 +24,9 @@ export class InventoryItem {
   pricing_tiers?: any;
   metadata?: any;
   current_stock?: number;
+  currentStock?: number;
   min_stock?: number;
+  minStock?: number;
   created_at: Date;
   updated_at: Date;
 }

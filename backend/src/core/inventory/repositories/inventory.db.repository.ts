@@ -263,7 +263,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       module_tags: p.module_tags || [],
       department_id: p.department_id || undefined,
       active: p.status === "active",
-      status: p.status,
+      status: (p.status || "active").toUpperCase(),
       image_url: p.image_url || undefined,
       images: p.item_images || [],
       selling_price: Number(p.selling_price) || 0,
@@ -272,7 +272,9 @@ export class InventoryDbRepository implements IInventoryRepository {
       pricing_tiers: p.pricing_tiers || {},
       metadata: p.metadata || {},
       current_stock: currentStock,
+      currentStock: currentStock,
       min_stock: minStock,
+      minStock: minStock,
       created_at: p.created_at,
       updated_at: p.updated_at,
     };
