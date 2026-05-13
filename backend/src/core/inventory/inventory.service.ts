@@ -918,8 +918,8 @@ export class InventoryService {
         counted_value: cycle.counted_value,
         variance: cycle.variance_value,
         total_items: (cycle.audit_items || []).length,
-        discrepancies: (cycle.audit_items || []).filter(i => (i as any).variance !== 0).length,
-        items: (cycle.audit_items || []).map(i => ({ 
+        discrepancies: (cycle.audit_items || []).filter((i: any) => (i as any).variance !== 0).length,
+        items: (cycle.audit_items || []).map((i: any) => ({ 
           sku: i.sku, 
           name: i.name, 
           barcode: i.barcode,
