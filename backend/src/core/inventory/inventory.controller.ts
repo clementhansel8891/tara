@@ -1069,7 +1069,6 @@ export class InventoryController {
       status?: string; 
       closed_by?: string;
       items?: any[];
-      anomalies?: any[];
       newItems?: any[];
     },
   ) {

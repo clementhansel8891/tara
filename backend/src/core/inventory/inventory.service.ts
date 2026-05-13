@@ -785,18 +785,7 @@ export class InventoryService {
 
   async updateAuditCycle(ctx: TenantContext, id: string, data: any) {
     console.log(`[AUDIT_RECONCILE] Updating Cycle ${id} for Tenant ${ctx.tenant_id}. Items: ${data.items?.length || 0}`);
-    const { anomalies, newItems, items: itemsInPayload, ...results } = data;
-
-    // 1. Process Anomalies
-    if (anomalies && Array.isArray(anomalies)) {
-      for (const barcode of anomalies) {
-        await this.repository.createAuditAnomaly(ctx, {
-          audit_cycle_id: id,
-          barcode,
-          metadata: { source: "SCANNER_TERMINAL" },
-        });
-      }
-    }
+    const { newItems, items: itemsInPayload, ...results } = data;
 
     // 2. Link New Items
     if (newItems && Array.isArray(newItems)) {
@@ -907,7 +896,6 @@ export class InventoryService {
         where: { id: cycleId },
         include: { 
           audit_items: true,
-          anomalies: true
         }
       });
 
@@ -939,10 +927,6 @@ export class InventoryService {
           expected_quantity: (i as any).expected_quantity || 0,
           actual_quantity: (i as any).quantity || 0,
           variance: (i as any).variance || 0,
-        })),
-        anomalies: (cycle.anomalies || []).map(a => ({ 
-          barcode: a.barcode, 
-          scanned_at: a.scanned_at 
         })),
       };
 
