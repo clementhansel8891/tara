@@ -124,14 +124,13 @@ const InventoryVisibility = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState<InventoryStats | null>(null);
   const [stores, setStores] = useState<RetailStore[]>([]);
-  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAggregating, setIsAggregating] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const selectedStore = useMemo(
-    () => stores.find((s) => s.id === selectedStoreId),
-    [stores, selectedStoreId],
+    () => stores.find((s) => s.locationId === session?.location_id || s.id === session?.location_id),
+    [stores, session?.location_id],
   );
 
   const [page, setPage] = useState(1);
@@ -179,7 +178,7 @@ const InventoryVisibility = () => {
 
   const tenantId = session?.tenant_id;
   const userId = session?.user_id;
-  const locationId = session?.location_id || selectedStore?.locationId;
+  const locationId = session?.location_id;
 
   const isFetchingRef = React.useRef(false);
   const fetchInventory = useCallback(async () => {
@@ -308,7 +307,7 @@ const InventoryVisibility = () => {
           id: c.id,
           name: `${c.name} (Ecommerce)`,
           locationId: c.branchId || c.id,
-          type: "warehouse" as any, // Use warehouse type as fallback for inventory view
+          type: "warehouse" as any,
           status: "active" as any,
           code: c.id,
           tenantId: tenantId,
@@ -322,15 +321,14 @@ const InventoryVisibility = () => {
       const combined = [...storesData, ...ecommerceStores];
       setStores(combined);
       
-      if (combined.length > 0 && !selectedStoreId) {
+      if (combined.length > 0 && !locationId) {
         const firstStore = combined[0];
-        setSelectedStoreId(firstStore.id);
         updateBranch(firstStore.locationId || firstStore.id);
       }
     } catch (error) {
       console.error(error);
     }
-  }, [tenantId, session, selectedStoreId, updateBranch]);
+  }, [tenantId, session, locationId, updateBranch]);
 
   useEffect(() => {
     if (tenantId) {
@@ -354,20 +352,32 @@ const InventoryVisibility = () => {
     filters.category,
     filters.status,
     filters.type,
-    selectedStoreId,
+    locationId,
   ]);
 
-  const handleSync = () => {
-    setIsAggregating(true);
-    setTimeout(() => {
-      fetchInventory();
-      setIsAggregating(false);
-      toast({
-        title: "Sync Complete",
-        description: "Real-time stock updated.",
+  const handleSync = useCallback(async () => {
+    if (!session || !locationId) return;
+    setIsLoading(true);
+    try {
+      await retailService.syncInventory(tenantId!, session, {
+        locationId,
       });
-    }, 1500);
-  };
+      fetchInventory();
+      toast({
+        title: "Inventory Synced",
+        description: "Stock levels updated from ERP.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Sync Failed",
+        description: "Could not fetch latest ERP data.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session, locationId, tenantId, toast, fetchInventory]);
 
   const statusBadge = (status: string) => {
     switch (status.toLowerCase()) {
@@ -479,33 +489,7 @@ const InventoryVisibility = () => {
   );
 
   // ── Opname handlers ───────────────────────────────────────
-  const handleAutoReplenish = useCallback(async (item: InventoryItemView) => {
-    if (!session || !selectedStoreId) return;
-    try {
-      setIsUpdating(true);
-      const res = await crisisManagementService.triggerAutoReplenishment(
-        session,
-        selectedStoreId,
-        [item.sku]
-      );
-      toast({
-        title: "Replenishment Triggered",
-        description: `Autonomous PO issued for ${item.name}. Ref: ${res.orderId}`,
-      });
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "Replenishment Failed",
-        description: "Crisis engine could not issue autonomous PO.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [session, selectedStoreId, toast]);
-
   const startOpname = useCallback(() => {
-    // Audit Requirement: List starts empty, populate via barcode scan only
     setOpnameEntries([]);
     setOpnameActive(true);
     toast({
@@ -522,10 +506,8 @@ const InventoryVisibility = () => {
 
       setBarcodeInput("");
 
-      // 1. Find item in local branch inventory list
       let product = inventory.find((i) => i.sku === sku || i.barcode === sku);
 
-      // 2. If not found in branch list, search in Master Inventory (Tenant-wide)
       if (!product && tenantId && session) {
         setIsUpdating(true);
         try {
@@ -543,7 +525,7 @@ const InventoryVisibility = () => {
               name: masterItem.name,
               category: masterItem.categoryName || "Uncategorized",
               categoryId: masterItem.categoryId || "",
-              onHand: 0, // Not in branch, so expected is 0
+              onHand: 0,
               reserved: 0,
               available: 0,
               minBuffer: 0,
@@ -575,7 +557,6 @@ const InventoryVisibility = () => {
         const idx = prev.findIndex((entry) => entry.sku === product!.sku);
 
         if (idx !== -1) {
-          // Increment existing
           const updated = [...prev];
           updated[idx] = {
             ...updated[idx],
@@ -588,7 +569,6 @@ const InventoryVisibility = () => {
           return updated;
         }
 
-        // Add new entry
         toast({ title: "Item Added", description: product!.name });
         return [
           ...prev,
@@ -617,57 +597,52 @@ const InventoryVisibility = () => {
       return;
     }
 
-    if (!tenantId || !session || !selectedStoreId) {
+    if (!tenantId || !session || !locationId) {
       toast({
         title: "Context Missing",
-        description: "Tenant or Store context not found.",
+        description: "Please select a branch first.",
         variant: "destructive",
       });
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      setIsUpdating(true);
-      const adjustments = (Array.isArray(opnameEntries) ? opnameEntries : []).map((e) => ({
-        sku: e.sku,
-        actualCount: Number(e.counted),
-      }));
-
-      await retailService.submitOpname(
-        tenantId,
-        session,
-        selectedStoreId,
-        adjustments,
-      );
-
-      const variances = (Array.isArray(opnameEntries) ? opnameEntries : []).filter(
-        (e) => Number(e.counted) !== e.expected,
-      );
+      await retailService.submitOpname(tenantId, session, {
+        locationId: locationId!,
+        items: (Array.isArray(opnameEntries) ? opnameEntries : []).map((e: any) => ({
+          productId: e.id,
+          sku: e.sku,
+          countedQty: e.counted,
+          expectedQty: e.expected,
+          notes: e.notes,
+        })),
+      });
 
       toast({
-        title: "Audit Synchronized",
-        description: `Opname submitted. ${variances.length} variance(s) recorded in the ledger.`,
+        title: "Opname Submitted",
+        description: `Logged ${opnameEntries.length} items to stock history.`,
       });
 
       setOpnameActive(false);
       setOpnameEntries([]);
-      fetchInventory(); // Refresh view
+      fetchInventory();
     } catch (err) {
       console.error(err);
       toast({
         title: "Submission Failed",
-        description: "Failed to persist opname data to the edge.",
+        description: "Error saving opname records.",
         variant: "destructive",
       });
     } finally {
-      setIsUpdating(false);
+      setIsSubmitting(false);
     }
   }, [
     opnameEntries,
     toast,
     tenantId,
     session,
-    selectedStoreId,
+    locationId,
     fetchInventory,
   ]);
 
@@ -697,7 +672,6 @@ const InventoryVisibility = () => {
 
   return (
     <div className="p-8 space-y-8 bg-background min-h-screen flex flex-col text-foreground">
-      {/* ── Header ── */}
       <InventoryGlassHeader
         title="Retail Inventory"
         subtitle={`${selectedStore?.name ?? "Select Store"} • Operations Gateway`}
@@ -718,23 +692,6 @@ const InventoryVisibility = () => {
         ]}
         actions={
           <div className="flex items-center gap-3">
-             <Select value={selectedStoreId} onValueChange={(id) => {
-                setSelectedStoreId(id);
-                const store = stores.find((s) => s.id === id);
-                updateBranch(store?.locationId || id);
-             }}>
-              <SelectTrigger className="w-52 h-14 rounded-2xl bg-white/70 backdrop-blur-md border-white shadow-sm font-black italic text-sm">
-                <SelectValue placeholder="Select Store" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl border-white/50 backdrop-blur-xl">
-                {(Array.isArray(stores) ? stores : []).map((s) => (
-                  <SelectItem key={s.id} value={s.id} className="font-bold italic">
-                    {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <Button
               variant="outline"
               size="lg"
@@ -755,7 +712,6 @@ const InventoryVisibility = () => {
         }
       />
 
-      {/* ── Tabs ── */}
       <div className="flex-1">
         <Tabs defaultValue="ledger" className="flex flex-col">
           <div className="max-w-[1600px] mx-auto pt-4 shrink-0">
@@ -827,13 +783,12 @@ const InventoryVisibility = () => {
                   page={page}
                   pageSize={PAGE_SIZE}
                   totalPages={totalPages}
-                  totalItems={total}
+                  totalItems={totalItems}
                   currentCount={inventory.length}
                   onPageChange={setPage}
                   statusBadge={statusBadge}
                   onEdit={(item) => setEditItem(item)}
                   onPrint={(item) => {
-                    // Open the unified Postek print dialog for a single item
                     setPrintItems([
                       {
                         id: item.id,
@@ -875,8 +830,10 @@ const InventoryVisibility = () => {
                 onBarcodeChange={setBarcodeInput}
                 onBarcodeKeyDown={handleBarcodeKeyDown}
                 onCountChange={handleCountChange}
-                isLoading={isLoading}
+                onEntryChange={setOpnameEntries}
+                isLoading={isSubmitting}
                 statusBadge={statusBadge}
+                selectedStoreId={locationId || ""}
               />
             </div>
           </TabsContent>
@@ -885,6 +842,7 @@ const InventoryVisibility = () => {
             <MovementsTab
               canWrite={canWrite}
               auditLog={MOCK_AUDIT_LOG}
+              selectedStoreId={locationId || ""}
               onMovement={(type) => setMovementType(type)}
             />
           </TabsContent>
