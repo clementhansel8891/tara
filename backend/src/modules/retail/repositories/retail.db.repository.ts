@@ -416,23 +416,9 @@ export class RetailDbRepository implements IRetailRepository {
       status: "active" 
     };
 
-    if (scope.location_id) {
-      where.stock_levels = {
-        some: {
-          location_id: scope.location_id
-        }
-      };
-    }
     if (options?.category_id) where.category_id = options.category_id;
     if (options?.type) where.type = options.type;
 
-    if (options?.location_id) {
-      where.stock_levels = {
-        some: {
-          location_id: options.location_id,
-        },
-      };
-    }
 
     if (options?.minPrice !== undefined || options?.maxPrice !== undefined) {
       where.base_price = {};
@@ -916,14 +902,6 @@ export class RetailDbRepository implements IRetailRepository {
       tenant_id: scope.tenant_id,
       status: "active" 
     };
-
-    if (scope.location_id) {
-      where.stock_levels = {
-        some: {
-          location_id: scope.location_id
-        }
-      };
-    }
 
     if (options?.category_id) where.category_id = options.category_id;
     if (options?.q) {
