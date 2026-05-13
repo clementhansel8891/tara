@@ -1009,7 +1009,7 @@ const InventoryVisibility = () => {
               canWrite={canWrite}
               session={session}
               stores={stores}
-              selectedStoreId={selectedStoreId}
+              selectedStoreId={locationId || ""}
             />
           </TabsContent>
         </Tabs>
@@ -1021,7 +1021,7 @@ const InventoryVisibility = () => {
         open={!!movementType}
         onClose={() => setMovementType(null)}
         stores={stores}
-        selectedStoreId={selectedStoreId}
+        selectedStoreId={locationId || ""}
         tenantId={tenantId}
         session={session ?? undefined}
         items={inventory}
