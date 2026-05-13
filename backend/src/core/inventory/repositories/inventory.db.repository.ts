@@ -39,14 +39,26 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getDashboard(ctx: TenantContext, location_id?: string): Promise<any> {
     const baseScope = { ...MultiTenancyUtil.getScope(ctx) };
-    const stockScope = { ...baseScope };
-    if (location_id) stockScope.location_id = location_id;
     
-    const itemWhere = { ...baseScope };
-    if (location_id) {
-      (itemWhere as any).stock_levels = { some: { location_id } };
+    // Detect if location_id is actually a Branch (Tenant) ID
+    let branchTenantId: string | undefined;
+    const isLocationFiltered = location_id && location_id !== "all" && location_id !== "";
+    if (isLocationFiltered) {
+      const branch = await this.prisma.tenants.findFirst({
+        where: { id: location_id, parent_id: ctx.tenant_id }
+      });
+      if (branch) branchTenantId = location_id;
     }
 
+    const itemWhere: any = { ...baseScope };
+    if (isLocationFiltered) {
+      if (branchTenantId) {
+        itemWhere.stock_levels = { some: { tenant_id: branchTenantId } };
+      } else {
+        itemWhere.stock_levels = { some: { location_id } };
+      }
+    }
+    
     const totalLocations = await this.prisma.locations.count({
       where: baseScope,
     });
@@ -59,7 +71,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       where: { ...itemWhere, status: "active" },
       include: {
         stock_levels: {
-          where: location_id ? { location_id } : undefined,
+          where: isLocationFiltered ? (branchTenantId ? { tenant_id: branchTenantId } : { location_id }) : undefined,
         }
       }
     });
@@ -123,66 +135,56 @@ export class InventoryDbRepository implements IInventoryRepository {
   async getItems(ctx: TenantContext, location_id?: string, page: number = 1, limit: number = 100, search?: string, category_id?: string, status?: string, sortBy?: "name" | "quantity" | "created_at", sortOrder?: "asc" | "desc"): Promise<InventoryItem[]> {
     const skip = (page - 1) * limit;
     const scope = MultiTenancyUtil.getScope(ctx);
-    const where: any = { ...scope, status: { not: "deleted" } };
-
-    if (search) {
-      // First, try to find an exact match for SKU or Barcode (optimized for scanners)
-      const exactMatch = await this.prisma.item_masters.findFirst({
-        where: {
-          tenant_id: ctx.tenant_id,
-          OR: [
-            { sku: search },
-            { barcode: search }
-          ],
-          status: { not: "deleted" }
-        },
-        select: { id: true }
+    
+    // Detect if location_id is actually a Branch (Tenant) ID
+    let branchTenantId: string | undefined;
+    const isLocationFiltered = location_id && location_id !== "all" && location_id !== "";
+    if (isLocationFiltered) {
+      const branch = await this.prisma.tenants.findFirst({
+        where: { id: location_id, parent_id: ctx.tenant_id }
       });
-
-      if (exactMatch) {
-        where.id = exactMatch.id;
-      } else {
-        where.OR = [
-          { sku: { contains: search, mode: 'insensitive' } },
-          { name: { contains: search, mode: 'insensitive' } },
-          { barcode: { contains: search, mode: 'insensitive' } },
-        ];
-      }
+      if (branch) branchTenantId = location_id;
     }
 
-    if (category_id && category_id !== "all") {
-      where.category_id = category_id;
-    }
+    // Determine if we need raw SQL (for stock-based filtering or sorting)
+    const isStockStatus = ["low", "critical", "out_of_stock"].includes(status || "");
+    const useRawSql = sortBy === "quantity" || isStockStatus;
 
-    /* 
-    if (location_id && location_id !== "all" && location_id !== "") {
-      where.stock_levels = { some: { location_id } };
-    }
-    */
-
-    if (status && status !== "all") {
-      where.status = status;
-    }
-
-    let orderBy: any = { created_at: "desc" };
-    if (sortBy === "name") {
-      orderBy = { name: sortOrder || "asc" };
-    } else if (sortBy === "created_at") {
-      orderBy = { created_at: sortOrder || "desc" };
-    } else if (sortBy === "quantity") {
-      // For quantity sorting with filters - robust raw query construction
+    if (useRawSql) {
       const conditions = [`p.tenant_id = '${ctx.tenant_id}'`, `p.status != 'deleted'`];
       if (category_id && category_id !== "all") conditions.push(`p.category_id = '${category_id}'`);
-      if (status && status !== "all") conditions.push(`p.status = '${status}'`);
+      
+      // If it's a regular status, apply it to the master table
+      const regularStatus = (status && !isStockStatus && status !== "all") ? status : null;
+      if (regularStatus) conditions.push(`p.status = '${regularStatus}'`);
+
       if (search) {
-        // Sanitize search input for ILIKE
         const s = search.replace(/'/g, "''");
         conditions.push(`(p.name ILIKE '%${s}%' OR p.sku ILIKE '%${s}%' OR p.barcode ILIKE '%${s}%')`);
       }
 
       const whereClause = conditions.join(" AND ");
-      const isLocationFiltered = location_id && location_id !== "all" && location_id !== "";
-      const locationCondition = isLocationFiltered ? `s.location_id = '${location_id}'` : "1=1";
+      
+      // Location condition for aggregation
+      let locationCondition = "1=1";
+      if (isLocationFiltered) {
+        locationCondition = branchTenantId 
+          ? `s.tenant_id = '${branchTenantId}'` 
+          : `s.location_id = '${location_id}'`;
+      }
+
+      // Stock status filters (HAVING clause)
+      let havingClause = "";
+      if (status === "low") {
+        havingClause = `HAVING SUM(CASE WHEN ${locationCondition} THEN COALESCE(s.on_hand, 0) ELSE 0 END) <= COALESCE(CAST(p.metadata->>'min_stock' AS DECIMAL), 5) 
+                        AND SUM(CASE WHEN ${locationCondition} THEN COALESCE(s.on_hand, 0) ELSE 0 END) > 0`;
+      } else if (status === "out_of_stock" || status === "critical") {
+        havingClause = `HAVING SUM(CASE WHEN ${locationCondition} THEN COALESCE(s.on_hand, 0) ELSE 0 END) <= 0`;
+      }
+
+      const sortSql = sortBy === "quantity" 
+        ? `SUM(CASE WHEN ${locationCondition} THEN COALESCE(s.on_hand, 0) ELSE 0 END) ${sortOrder === "asc" ? "ASC" : "DESC"}`
+        : `p.${sortBy || 'created_at'} ${sortOrder || 'desc'}`;
 
       const rawSql = `
         SELECT p.id
@@ -190,13 +192,8 @@ export class InventoryDbRepository implements IInventoryRepository {
         LEFT JOIN stock_levels s ON s.product_id = p.id
         WHERE ${whereClause}
         GROUP BY p.id
-        ORDER BY SUM(
-          CASE 
-            WHEN ${locationCondition} 
-            THEN COALESCE(s.on_hand, 0) 
-            ELSE 0 
-          END
-        ) ${sortOrder === "asc" ? "ASC" : "DESC"}
+        ${havingClause}
+        ORDER BY ${sortSql}
         LIMIT ${limit} OFFSET ${skip}
       `;
       
@@ -208,8 +205,8 @@ export class InventoryDbRepository implements IInventoryRepository {
           product_categories: true, 
           item_images: true,
           stock_levels: {
-            where: isLocationFiltered ? { location_id } : undefined,
-            select: { on_hand: true, location_id: true }
+            where: isLocationFiltered ? (branchTenantId ? { tenant_id: branchTenantId } : { location_id }) : undefined,
+            select: { on_hand: true, location_id: true, tenant_id: true }
           }
         },
       });
@@ -220,17 +217,29 @@ export class InventoryDbRepository implements IInventoryRepository {
       return orderedProducts.map(p => this.mapToInventoryItem(p));
     }
 
+    // Standard Prisma path for simple queries
+    const where: any = { ...scope, status: { not: "deleted" } };
+    if (search) {
+      where.OR = [
+        { sku: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { barcode: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (category_id && category_id !== "all") where.category_id = category_id;
+    if (status && status !== "all") where.status = status;
+
     const products = await this.prisma.item_masters.findMany({
       where,
       include: { 
         product_categories: true, 
         item_images: true,
         stock_levels: {
-          where: location_id ? { location_id } : undefined,
+          where: isLocationFiltered ? (branchTenantId ? { tenant_id: branchTenantId } : { location_id }) : undefined,
           select: { on_hand: true }
         }
       },
-      orderBy,
+      orderBy: sortBy === "name" ? { name: sortOrder || "asc" } : { created_at: sortOrder || "desc" },
       skip,
       take: limit,
     });
@@ -254,6 +263,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       module_tags: p.module_tags || [],
       department_id: p.department_id || undefined,
       active: p.status === "active",
+      status: p.status,
       image_url: p.image_url || undefined,
       images: p.item_images || [],
       selling_price: Number(p.selling_price) || 0,

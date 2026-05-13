@@ -14,6 +14,7 @@ export class InventoryItem {
   qr_code: string;
   module_tags: string[];
   active: boolean;
+  status: string;
   department_id?: string;
   image_url?: string;
   images?: any[];
