@@ -868,7 +868,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   async createAuditCycle(ctx: TenantContext, data: any): Promise<any> {
-    const { location_id, department_id, createdBy, ...rest } = data;
+    const { location_id, department_id, createdBy, description, name, ...rest } = data;
     return this.prisma.inventory_audit_cycles.create({
       data: {
         id: uuidv4(),
