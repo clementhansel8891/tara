@@ -37,7 +37,7 @@ import { MultiTenancyUtil } from "../../../shared/utils/multi-tenancy.util";
 export class InventoryDbRepository implements IInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard(ctx: TenantContext, location_id?: string): Promise<InventoryDashboard> {
+  async getDashboard(ctx: TenantContext, location_id?: string): Promise<any> {
     const baseScope = { ...MultiTenancyUtil.getScope(ctx) };
     const stockScope = { ...baseScope };
     if (location_id) stockScope.location_id = location_id;
@@ -47,9 +47,6 @@ export class InventoryDbRepository implements IInventoryRepository {
       (itemWhere as any).stock_levels = { some: { location_id } };
     }
 
-    const totalItems = await this.prisma.item_masters.count({
-      where: itemWhere,
-    });
     const totalLocations = await this.prisma.locations.count({
       where: baseScope,
     });
@@ -57,38 +54,45 @@ export class InventoryDbRepository implements IInventoryRepository {
       where: baseScope,
     });
 
-    const stockLevels = await this.prisma.stock_levels.findMany({
-      where: stockScope,
+    // Fetch all active products with their stock levels to calculate KPIs dynamically
+    const allProducts = await this.prisma.item_masters.findMany({
+      where: { ...itemWhere, status: "active" },
+      include: {
+        stock_levels: {
+          where: location_id ? { location_id } : undefined,
+        }
+      }
     });
-    const totalOnHandQty = stockLevels.reduce(
-      (sum: number, level: StockLevel) => sum + Number(level.on_hand),
-      0,
-    );
 
-    // Valuation logic would need product cost, using base_price for now
-    const products = await this.prisma.item_masters.findMany({
-      where: {
-        ...baseScope,
-        id: { in: stockLevels.map((s: StockLevel) => s.product_id) },
-      },
-    });
-    const productMap = new Map(products.map((p: ItemMaster) => [p.id, p]));
-    const totalValuation = stockLevels.reduce(
-      (sum: number, level: StockLevel) => {
-        const product = productMap.get(level.product_id);
-        return sum + Number(level.on_hand) * (Number(product?.base_price) || 0);
-      },
-      0,
-    );
+    let totalItems = 0; // Represents "Items Type" - active items
+    let totalOnHandQty = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+    let totalValuation = 0;
+    let capitalValue = 0;
+
+    for (const product of allProducts) {
+      totalItems++;
+      const currentStock = product.stock_levels.reduce((sum, level) => sum + Number(level.on_hand), 0);
+      const minStock = Number((product.metadata as any)?.min_stock) || 0;
+      
+      totalOnHandQty += currentStock;
+      totalValuation += currentStock * (Number(product.selling_price) || 0);
+      capitalValue += currentStock * (Number(product.base_price) || 0);
+
+      if (currentStock <= 0) {
+        outOfStockCount++;
+      } else if (minStock > 0 && currentStock <= minStock) {
+        lowStockCount++;
+      } else if (minStock === 0 && currentStock <= 5) {
+        lowStockCount++; // Fallback if min_stock is not set
+      }
+    }
 
     const pendingAdjustments = await this.prisma.inventory_adjustments.count({
       where: { ...baseScope, status: "PENDING_APPROVAL" },
     });
 
-    // Placeholder checks for now
-    const lowStockCount = await this.prisma.inventory_alerts.count({
-      where: { ...baseScope, type: "LOW_STOCK", status: "OPEN" },
-    });
     const expiryWarningCount = await this.prisma.inventory_alerts.count({
       where: { ...baseScope, type: "EXPIRY_WARNING", status: "OPEN" },
     });
@@ -102,10 +106,13 @@ export class InventoryDbRepository implements IInventoryRepository {
 
     return {
       total_items: totalItems,
+      items_type_count: totalItems, // Same as total_items for now (distinct active products)
       total_locations: totalLocations,
       total_departments: totalDepartments,
       total_on_hand_qty: totalOnHandQty,
       total_valuation: totalValuation,
+      capital_value: capitalValue,
+      out_of_stock_count: outOfStockCount,
       pending_adjustments: pendingAdjustments,
       pending_receipt_syncs: pendingReceiptSyncs,
       low_stock_count: lowStockCount,
