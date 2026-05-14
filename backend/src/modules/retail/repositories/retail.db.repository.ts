@@ -889,8 +889,8 @@ export class RetailDbRepository implements IRetailRepository {
     };
   }
 
-    async getInventoryStats(ctx: TenantContext,
-    options?: { category_id?: string; q?: string },
+  async getInventoryStats(ctx: TenantContext,
+    options?: { category_id?: string; q?: string; location_id?: string },
   ): Promise<{
     total: number;
     critical: number;

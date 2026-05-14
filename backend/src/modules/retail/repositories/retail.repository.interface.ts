@@ -184,7 +184,7 @@ export abstract class IRetailRepository {
   ): Promise<{ available: Prisma.Decimal; on_hand: Prisma.Decimal; reserved: Prisma.Decimal; status: string }>;
 
   abstract getInventoryStats( ctx: TenantContext,
-    options?: { category_id?: string; q?: string },
+    options?: { category_id?: string; q?: string; location_id?: string },
   ): Promise<{
     total: number;
     critical: number;
