@@ -410,7 +410,7 @@ export class RetailDbRepository implements IRetailRepository {
           : "name";
     const orderDir = options?.sortDir === "desc" ? "desc" : "asc";
 
-        const scope = MultiTenancyUtil.getScope(ctx);
+        const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
     const where: any = { 
       tenant_id: scope.tenant_id,
       status: "active" 
@@ -905,7 +905,7 @@ export class RetailDbRepository implements IRetailRepository {
     totalValue: Prisma.Decimal;
     currency?: string;
   }> {
-    const scope = MultiTenancyUtil.getScope(ctx);
+    const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
     const where: any = { 
       tenant_id: scope.tenant_id,
       status: "active" 

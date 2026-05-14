@@ -38,7 +38,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboard(ctx: TenantContext, location_id?: string): Promise<any> {
-    const baseScope = { ...MultiTenancyUtil.getScope(ctx) };
+    const baseScope = { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) };
     
     // Fetch company currency
     const company = await this.prisma.companies.findFirst({
@@ -138,7 +138,7 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getItems(ctx: TenantContext, location_id?: string, page: number = 1, limit: number = 100, search?: string, category_id?: string, status?: string, sortBy?: "name" | "quantity" | "created_at", sortOrder?: "asc" | "desc"): Promise<InventoryItem[]> {
     const skip = (page - 1) * limit;
-    const scope = MultiTenancyUtil.getScope(ctx);
+    const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
     
     // Detect if location_id is actually a Branch (Tenant) ID
     let branchTenantId: string | undefined;
@@ -277,7 +277,7 @@ export class InventoryDbRepository implements IInventoryRepository {
   }
 
   async countItems(ctx: TenantContext, location_id?: string, search?: string, category_id?: string): Promise<number> {
-    const scope = MultiTenancyUtil.getScope(ctx);
+    const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
     const where: any = { ...scope, status: { not: "deleted" } };
 
     if (search) {
@@ -303,7 +303,7 @@ export class InventoryDbRepository implements IInventoryRepository {
     ctx: TenantContext,
     data: CreateItemDto,
   ): Promise<InventoryItem> {
-    const scope = MultiTenancyUtil.getScope(ctx);
+    const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
     // Find or create category
     let category = await this.prisma.product_categories.findFirst({
       where: { ...scope, name: data.category },
@@ -1145,7 +1145,7 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getPendingItems(ctx: TenantContext): Promise<InventoryItem[]> {
     const products = await this.prisma.item_masters.findMany({
-      where: { ...MultiTenancyUtil.getScope(ctx), status: "pending" },
+      where: { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }), status: "pending" },
       include: { product_categories: true },
     });
 
