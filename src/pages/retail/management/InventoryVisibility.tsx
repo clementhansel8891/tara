@@ -136,6 +136,8 @@ const InventoryVisibility = () => {
     setPage(1);
     const store = stores.find((s) => s.id === id);
     const locId = store?.locationId || (store as any)?.location_id || id;
+    // Reset the fetch guard so the new location triggers a fresh load
+    isFetchingRef.current = false;
     setLocationId(locId);
 
     try {
@@ -198,8 +200,8 @@ const InventoryVisibility = () => {
 
   const isFetchingRef = React.useRef(false);
   const fetchInventory = useCallback(async () => {
-    if (!tenantId || !session || isFetchingRef.current) return;
-    
+    if (!tenantId || !session) return;
+    if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     setIsLoading(true);
     try {
@@ -228,7 +230,7 @@ const InventoryVisibility = () => {
         name: p.name,
         category: p.categoryName || "Uncategorized",
         categoryId: p.categoryId || "",
-        onHand: p.metadata?.stock_on_hand ?? p.stock ?? 0,
+        onHand: p.metadata?.stockOnHand ?? p.metadata?.stock_on_hand ?? p.stock ?? 0,
         reserved: p.metadata?.reserved ?? 0,
         available: p.metadata?.available ?? p.stock ?? 0,
         minBuffer: p.metadata?.minBuffer ?? 0,
@@ -238,7 +240,7 @@ const InventoryVisibility = () => {
         unit: p.unit,
         type: p.type,
         description: p.description,
-        imageUrl: p.image_url || p.imageUrl,
+        imageUrl: p.imageUrl || p.image_url || null,
       }));
       setInventory(mapped);
       setTotalItems(totalCount);
@@ -271,6 +273,7 @@ const InventoryVisibility = () => {
     debouncedSearch,
     filters.category,
     filters.type,
+    filters.sortBy,
     locationId,
     page,
   ]);

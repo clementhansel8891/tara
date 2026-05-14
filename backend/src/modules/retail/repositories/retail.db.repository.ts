@@ -469,6 +469,7 @@ export class RetailDbRepository implements IRetailRepository {
           product_categories: true,
           stock_levels: options?.location_id ? { where: { location_id: options.location_id } } : true,
           product_projections: true,
+          item_images: { where: { is_primary: true }, take: 1 },
         },
       });
 
@@ -508,6 +509,7 @@ export class RetailDbRepository implements IRetailRepository {
           product_categories: true,
           stock_levels: options?.location_id ? { where: { location_id: options.location_id } } : true,
           product_projections: true,
+          item_images: { where: { is_primary: true }, take: 1 },
         },
       }),
       this.prisma.label_configs.findMany({
@@ -2751,7 +2753,14 @@ export class RetailDbRepository implements IRetailRepository {
       barcode: p.barcode,
       name: customName,
       description: customDesc,
-      imageUrl: p.image_url ? `/api/v1/inventory/images/${p.image_url}` : null,
+      imageUrl: (() => {
+        // Priority 1: item_images table (primary image)
+        const primaryImg = p.item_images?.find((img: any) => img.is_primary) || p.item_images?.[0];
+        if (primaryImg?.url) return `/api/v1/inventory/images/${primaryImg.url}`;
+        // Priority 2: legacy image_url field
+        if (p.image_url) return `/api/v1/inventory/images/${p.image_url}`;
+        return null;
+      })(),
       category_id: p.category_id,
       categoryName: p.product_categories?.name,
       base_price: customPrice,
