@@ -935,6 +935,7 @@ export class RetailDbRepository implements IRetailRepository {
         where,
         select: {
           base_price: true,
+          selling_price: true,
           product_projections: true,
           stock_levels: {
             where: scope.location_id ? { location_id: scope.location_id } : undefined,
@@ -988,7 +989,7 @@ export class RetailDbRepository implements IRetailRepository {
       );
 
       // Resolve price (branch specific or base)
-      let price = new Prisma.Decimal(p.base_price?.toString() || "0");
+      let price = new Prisma.Decimal(p.selling_price?.toString() || p.base_price?.toString() || "0");
       if (p.product_projections && p.product_projections.length > 0) {
         const locProj = p.product_projections.find(
           (proj: any) =>
@@ -2666,22 +2667,22 @@ export class RetailDbRepository implements IRetailRepository {
 
     let customName = p.name;
     let customDesc = p.description || "";
-    let customPrice = (p.base_price as unknown as Prisma.Decimal);
+    let customPrice = (p.selling_price || p.base_price as unknown as Prisma.Decimal);
 
     if (p.product_projections && p.product_projections.length > 0) {
       const locProj = p.product_projections.find(
         (proj: any) =>
-          proj.location_id === location_id && proj.moduleType === "RETAIL",
+          proj.location_id === location_id && proj.module_type === "RETAIL",
       );
       const globalProj = p.product_projections.find(
-        (proj: any) => proj.location_id === null && proj.moduleType === "RETAIL",
+        (proj: any) => proj.location_id === null && proj.module_type === "RETAIL",
       );
       const activeProj = locProj || globalProj;
 
       if (activeProj) {
-        if (activeProj.customName) customName = activeProj.customName;
-        if (activeProj.customDescription)
-          customDesc = activeProj.customDescription;
+        if (activeProj.custom_name) customName = activeProj.custom_name;
+        if (activeProj.custom_description)
+          customDesc = activeProj.custom_description;
         if (activeProj.price) customPrice = (activeProj.price as unknown as Prisma.Decimal);
       }
     }

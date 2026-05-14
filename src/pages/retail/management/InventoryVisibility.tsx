@@ -136,9 +136,9 @@ const InventoryVisibility = () => {
     setLocationId(locId);
 
     try {
-      updateBranch(locId);
+      updateLocation(locId);
     } catch (e) {
-      console.error(e);
+      console.warn("[InventoryVisibility] Failed to update location context:", e);
     }
   };
 
@@ -191,7 +191,8 @@ const InventoryVisibility = () => {
 
   const tenantId = session?.tenant_id;
   const userId = session?.user_id;
-  const locationId = session?.location_id;
+  // locationId is already managed by state [locationId, setLocationId] 
+  // ensuring UI updates immediately even before session propagates
 
   const isFetchingRef = React.useRef(false);
   const fetchInventory = useCallback(async () => {
@@ -342,13 +343,17 @@ const InventoryVisibility = () => {
       
       if (combined.length > 0 && !locationId) {
         const firstStore = combined[0];
-        updateBranch(firstStore.locationId || firstStore.id);
-        setSelectedStoreId(firstStore.id);
+        if (firstStore) {
+          setSelectedStoreId(firstStore.id);
+          const locId = firstStore.locationId || firstStore.id;
+          setLocationId(locId);
+          updateLocation(locId);
+        }
       }
     } catch (error) {
       console.error(error);
     }
-  }, [tenantId, session, locationId, updateBranch]);
+  }, [tenantId, session, locationId, updateLocation]);
 
   // Sync selectedStoreId with locationId from session
   useEffect(() => {
