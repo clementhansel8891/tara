@@ -66,7 +66,13 @@ export class RetailService {
     // Check if it's already a physical location ID (usually starts with a prefix or is known)
     // Or just try to find a store with this ID and get its location_id
     const stores = await this.listStores(ctx);
+    console.log(`[RetailService] resolveLocationId: Input ID=${id}, Total Stores Found=${stores.length}`);
     const store = stores.find((s: RetailStore) => s.id === id);
+    if (!store) {
+      console.warn(`[RetailService] resolveLocationId: Store not found for ID=${id}. Returning original ID.`);
+    } else {
+      console.log(`[RetailService] resolveLocationId: Resolved ID=${id} -> LocationID=${store.location_id}`);
+    }
     return store?.location_id || id;
   }
 
