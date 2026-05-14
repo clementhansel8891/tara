@@ -24,6 +24,10 @@ export class MultiTenancyUtil {
       scope.branch_id = context.branch_id;
     }
 
+    if (context.location_id && !options.excludeBranch) {
+      scope.location_id = context.location_id;
+    }
+
     if (context.ecommerce_id && !options.excludeEcommerce) {
       scope.ecommerce_id = context.ecommerce_id;
     }

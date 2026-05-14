@@ -126,13 +126,19 @@ const InventoryVisibility = () => {
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [isAggregating, setIsAggregating] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [locationId, setLocationId] = useState<string | undefined>(session?.location_id);
   
   const handleStoreChange = (id: string) => {
     setSelectedStoreId(id);
     setPage(1);
     const store = stores.find((s) => s.id === id);
-    if (store) {
-      updateBranch(store.locationId || store.id);
+    const locId = store?.locationId || (store as any)?.location_id || id;
+    setLocationId(locId);
+
+    try {
+      updateBranch(locId);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -326,7 +332,12 @@ const InventoryVisibility = () => {
           governance: { license_status: "active", activation_source: "Cloud", compliance_level: 1, audit_frequency_tier: "standard" }
         }));
 
-      const combined = [...storesData, ...ecommerceStores];
+      const mappedStores = (Array.isArray(storesData) ? storesData : []).map(s => ({
+        ...s,
+        locationId: s.locationId || s.location_id || s.id,
+      }));
+
+      const combined = [...mappedStores, ...ecommerceStores];
       setStores(combined);
       
       if (combined.length > 0 && !locationId) {
