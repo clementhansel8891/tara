@@ -224,24 +224,34 @@ const InventoryVisibility = () => {
       const items = Array.isArray(data) ? data : (data as any).items || [];
       const totalCount = data.meta?.total ?? items.length;
 
-      const mapped: InventoryItemView[] = items.map((p: any) => ({
-        id: p.id,
-        sku: p.sku,
-        name: p.name,
-        category: p.categoryName || "Uncategorized",
-        categoryId: p.categoryId || "",
-        onHand: p.metadata?.stockOnHand ?? p.metadata?.stock_on_hand ?? p.stock ?? 0,
-        reserved: p.metadata?.reserved ?? 0,
-        available: p.metadata?.available ?? p.stock ?? 0,
-        minBuffer: p.metadata?.minBuffer ?? 0,
-        status: (p.status as InventoryItemView["status"]) || "ok",
-        barcode: p.barcode,
-        price: p.price,
-        unit: p.unit,
-        type: p.type,
-        description: p.description,
-        imageUrl: p.imageUrl || p.image_url || null,
-      }));
+      const mapped: InventoryItemView[] = items.map((p: any) => {
+        const onHandVal  = Number(p.metadata?.stockOnHand ?? p.metadata?.stock_on_hand ?? p.stock ?? 0);
+        const minBufVal  = Number(p.metadata?.minBuffer ?? 0);
+        // Derive display stock status from quantities
+        let stockStatus: InventoryItemView["status"] = (p.status as InventoryItemView["status"]) || "ok";
+        if (onHandVal === 0) stockStatus = "critical" as any;                       // filter value="critical"
+        else if (minBufVal > 0 && onHandVal <= minBufVal) stockStatus = "low" as any; // filter value="low"
+        // else: preserve item's own status (active/inactive/etc.) for those filters
+
+        return {
+          id: p.id,
+          sku: p.sku,
+          name: p.name,
+          category: p.categoryName || "Uncategorized",
+          categoryId: p.categoryId || "",
+          onHand: onHandVal,
+          reserved: Number(p.metadata?.reserved ?? 0),
+          available: Number(p.metadata?.available ?? p.stock ?? 0),
+          minBuffer: minBufVal,
+          status: stockStatus,
+          barcode: p.barcode,
+          price: p.price,
+          unit: p.unit,
+          type: p.type,
+          description: p.description,
+          imageUrl: p.imageUrl || p.image_url || null,
+        };
+      });
       setInventory(mapped);
       setTotalItems(totalCount);
 
