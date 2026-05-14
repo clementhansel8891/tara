@@ -827,7 +827,7 @@ export class InventoryDbRepository implements IInventoryRepository {
 
   async getAlerts(ctx: TenantContext): Promise<InventoryAlert[]> {
     const alerts = await this.prisma.inventory_alerts.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
+      where: MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
       orderBy: { created_at: "desc" },
     });
 
