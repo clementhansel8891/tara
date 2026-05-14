@@ -60,20 +60,29 @@ export class RetailService {
     return this.retailRepository.listStores(ctx, location_id);
   }
 
-  private async resolveLocationId(ctx: TenantContext, id?: string): Promise<string | undefined> {
-    if (!id) return undefined;
+  private async resolveLocationId(ctx: TenantContext, inputId?: string): Promise<string | undefined> {
+    if (!inputId) return undefined;
     
-    // Check if it's already a physical location ID (usually starts with a prefix or is known)
-    // Or just try to find a store with this ID and get its location_id
-    const stores = await this.listStores(ctx);
-    console.log(`[RetailService] resolveLocationId: Input ID=${id}, Total Stores Found=${stores.length}`);
-    const store = stores.find((s: RetailStore) => s.id === id);
-    if (!store) {
-      console.warn(`[RetailService] resolveLocationId: Store not found for ID=${id}. Returning original ID.`);
-    } else {
-      console.log(`[RetailService] resolveLocationId: Resolved ID=${id} -> LocationID=${store.location_id}`);
+    // 1. Attempt to find a store where this input is the Store ID
+    const stores = await this.retailRepository.listStores(ctx);
+    console.log(`[RetailService] resolveLocationId: Checking ${stores.length} stores for tenant ${ctx.tenant_id}`);
+    
+    const storeById = stores.find((s) => s.id === inputId);
+    if (storeById) {
+      const resolved = storeById.location_id || storeById.id;
+      console.log(`[RetailService] RESOLVE: Store ID ${inputId} -> Physical ID ${resolved} (Store: ${storeById.name})`);
+      return resolved;
     }
-    return store?.location_id || id;
+
+    // 2. Fallback: Check if inputId is already a physical location ID
+    const storeByLocation = stores.find((s) => s.location_id === inputId);
+    if (storeByLocation) {
+      console.log(`[RetailService] RESOLVE: Input ${inputId} is already a physical ID for store ${storeByLocation.name}`);
+      return inputId;
+    }
+
+    console.log(`[RetailService] RESOLVE FAILED: Input ${inputId} not found in stores list. Returning as-is.`);
+    return inputId;
   }
 
   async listCategories(ctx: TenantContext): Promise<any[]> {

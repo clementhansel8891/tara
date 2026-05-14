@@ -755,7 +755,11 @@ const InventoryVisibility = () => {
                 status={filters.status}
                 onStatusChange={(v) => setFilters(prev => ({ ...prev, status: v }))}
                 location={locationId || ""}
-                onLocationChange={(v) => updateBranch(v)}
+                onLocationChange={(v) => {
+                  setLocationId(v);
+                  updateLocation(v);
+                  updateBranch(v);
+                }}
                 locations={stores.map(s => ({ id: s.locationId || s.id, name: s.name }))}
                 sortBy={filters.sortBy}
                 onSortChange={(v) => setFilters(prev => ({ ...prev, sortBy: v as any }))}
