@@ -129,7 +129,7 @@ const InventoryVisibility = () => {
   const [isUpdatingBuffer, setIsUpdatingBuffer] = useState(false);
   const [isAggregating, setIsAggregating] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
-  const [locationId, setLocationId] = useState<string | undefined>(session?.location_id);
+  const [locationId, setLocationId] = useState<string | undefined>(undefined);
   
   const handleStoreChange = (id: string) => {
     setSelectedStoreId(id);

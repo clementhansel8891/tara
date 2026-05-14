@@ -438,13 +438,10 @@ export class RetailDbRepository implements IRetailRepository {
       ];
     }
 
-    if (options?.location_id) {
-      where.stock_levels = {
-        some: {
-          location_id: options.location_id
-        }
-      };
-    }
+    // NOTE: Do NOT filter by stock_levels.some here.
+    // All active products should always be returned; the included stock_levels
+    // are filtered per-location inside the include clause, so on_hand shows 0
+    // for branches where the product has no stock record.
 
     // Handle Quantity Sort (Requires Raw SQL or manual reordering)
     if (options?.sortBy === "quantity") {
