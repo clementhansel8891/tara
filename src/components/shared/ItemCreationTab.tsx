@@ -16,7 +16,7 @@ type Props = {
   session?: SessionContext;
   tenantId?: string;
   categoryOptions?: { id: string; name: string }[];
-  onSuccess?: () => void;
+  initialRows?: Partial<NewItemLine>[];
 };
 
 export const ItemCreationTab: React.FC<Props> = ({
@@ -25,13 +25,32 @@ export const ItemCreationTab: React.FC<Props> = ({
   tenantId,
   categoryOptions = [],
   onSuccess,
+  initialRows,
 }) => {
   const { toast } = useToast();
   const csvInputRef = React.useRef<HTMLInputElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
 
-  const [rows, setRows] = useState<NewItemLine[]>([
-    {
+  const [rows, setRows] = useState<NewItemLine[]>(() => {
+    if (initialRows && initialRows.length > 0) {
+      return initialRows.map(r => ({
+        tempId: `row-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        sku: r.sku || "",
+        name: r.name || "",
+        categoryId: r.categoryId || "",
+        barcode: r.barcode || "",
+        price: r.price || 0,
+        qty: r.qty || 1,
+        unit: r.unit || "pcs",
+        type: r.type || "ITEM",
+        status: r.status || "active",
+        description: r.description || "",
+        images: r.images || [],
+        primaryImageIndex: r.primaryImageIndex || 0,
+        ...r
+      }));
+    }
+    return [{
       tempId: "initial-row",
       sku: "",
       name: "",
@@ -45,8 +64,8 @@ export const ItemCreationTab: React.FC<Props> = ({
       description: "",
       images: [],
       primaryImageIndex: 0,
-    },
-  ]);
+    }];
+  });
 
   const [printItems, setPrintItems] = useState<PrintItem[]>([]);
 

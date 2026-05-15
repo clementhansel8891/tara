@@ -21,7 +21,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { UnknownBarcodeDialog } from "@/components/shared/UnknownBarcodeDialog";
+import { UnresolvedBarcodesModal } from "@/components/shared/UnresolvedBarcodesModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { StockOpnameSummaryModal } from "@/components/shared/StockOpnameSummaryModal";
 
@@ -48,7 +48,8 @@ export default function InventoryStockOpname() {
   const [categories, setCategories] = useState<any[]>([]);
   const [anomalies, setAnomalies] = useState<string[]>([]);
   const [newItems, setNewItems] = useState<any[]>([]);
-  const [unknownBarcode, setUnknownBarcode] = useState<string | null>(null);
+  const [unresolvedBarcodes, setUnresolvedBarcodes] = useState<string[]>([]);
+  const [isUnresolvedOpen, setIsUnresolvedOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +146,10 @@ export default function InventoryStockOpname() {
       const item = await inventoryService.lookupItemByBarcode(session.tenant_id, session, barcode);
       
       if (!item) {
-        setUnknownBarcode(barcode);
+        if (!unresolvedBarcodes.includes(barcode) && !anomalies.includes(barcode)) {
+          setUnresolvedBarcodes(prev => [...prev, barcode]);
+          toast({ title: "Unregistered Barcode", description: `Added ${barcode} to unresolved list.` });
+        }
         return;
       }
 
@@ -177,7 +181,7 @@ export default function InventoryStockOpname() {
     } catch (err) {
       console.error("Scan processing failed", err);
     }
-  }, [session]);
+  }, [session, unresolvedBarcodes, anomalies]);
 
   const handleManualScan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,7 +214,11 @@ export default function InventoryStockOpname() {
 
   const commitAudit = async () => {
     if (!activeCycleId) return;
-    setIsSummaryOpen(true);
+    if (unresolvedBarcodes.length > 0) {
+      setIsUnresolvedOpen(true);
+    } else {
+      setIsSummaryOpen(true);
+    }
   };
 
   const handleFinalConfirm = async () => {
@@ -230,6 +238,7 @@ export default function InventoryStockOpname() {
       setHistory([]);
       setAnomalies([]);
       setNewItems([]);
+      setUnresolvedBarcodes([]);
       setActiveCycleId(null);
     } catch (err) {
       console.error("Final commit failed", err);
@@ -239,32 +248,23 @@ export default function InventoryStockOpname() {
     }
   };
 
-  const handleReportAnomaly = (barcode: string) => {
-    setAnomalies(prev => [...prev, barcode]);
-    toast({ title: "Anomaly Recorded", description: `Barcode ${barcode} flagged for review.` });
+  const handleFlagAnomalies = (barcodes: string[]) => {
+    setAnomalies(prev => [...prev, ...barcodes]);
+    setUnresolvedBarcodes(prev => prev.filter(b => !barcodes.includes(b)));
+    toast({ title: "Anomalies Flagged", description: `${barcodes.length} barcodes flagged for review.` });
+    
+    if (unresolvedBarcodes.length - barcodes.length === 0) {
+      setIsUnresolvedOpen(false);
+      setIsSummaryOpen(true);
+    }
   };
 
-  const handleCreateNewItem = async (itemData: any) => {
-    try {
-      const created = await inventoryService.createAuditItem(session.tenant_id, session, activeCycleId!, itemData);
-      setNewItems(prev => [...prev, created]);
-      
-      // Also add to local history so it shows up in the list
-      setHistory(prev => [
-        {
-          id: created.id,
-          sku: created.sku,
-          name: created.name,
-          systemCount: 0,
-          actualCount: 1,
-          timestamp: new Date().toLocaleTimeString(),
-        },
-        ...prev
-      ]);
-
-      toast({ title: "New Item Registered", description: `${created.name} added to audit.` });
-    } catch (err) {
-      toast({ title: "Registration Failed", description: "Could not create item during audit.", variant: "destructive" });
+  const handleItemsRegistered = (barcodes: string[]) => {
+    setUnresolvedBarcodes(prev => prev.filter(b => !barcodes.includes(b)));
+    
+    if (unresolvedBarcodes.length - barcodes.length === 0) {
+      setIsUnresolvedOpen(false);
+      setIsSummaryOpen(true);
     }
   };
 
@@ -486,12 +486,12 @@ export default function InventoryStockOpname() {
         </div>
       )}
 
-      <UnknownBarcodeDialog
-        isOpen={!!unknownBarcode}
-        onClose={() => setUnknownBarcode(null)}
-        barcode={unknownBarcode || ""}
-        onReportAnomaly={handleReportAnomaly}
-        onCreateNew={handleCreateNewItem}
+      <UnresolvedBarcodesModal
+        isOpen={isUnresolvedOpen}
+        onClose={() => setIsUnresolvedOpen(false)}
+        unresolvedBarcodes={unresolvedBarcodes}
+        onFlagAnomalies={handleFlagAnomalies}
+        onItemsRegistered={handleItemsRegistered}
         categoryOptions={categories}
       />
 
