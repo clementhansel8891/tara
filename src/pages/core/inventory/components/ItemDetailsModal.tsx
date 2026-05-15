@@ -289,22 +289,84 @@ export function ItemDetailsModal({
                         <UISelectItem value="active">ACTIVE</UISelectItem>
                         <UISelectItem value="REPAIR">REPAIR</UISelectItem>
                         <UISelectItem value="REJECT">REJECT</UISelectItem>
-                        <UISelectItem value="DISCONTINUED">DISCONTINUED</UISelectItem>
-                        <UISelectItem value="DRAFT">DRAFT</UISelectItem>
-                        <UISelectItem value="INACTIVE">INACTIVE</UISelectItem>
-                      </UISelectContent>
-                    </UISelect>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 mb-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Item Name</label>
+                  <UIInput 
+                    value={editData.name} 
+                    onChange={e => setEditData({...editData, name: e.target.value})}
+                    className="h-12 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 font-bold focus:ring-2 focus:ring-indigo-500"
+                  />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">SKU Identity</label>
+                  <UIInput 
+                    value={editData.sku} 
+                    onChange={e => setEditData({...editData, sku: e.target.value})}
+                    className="h-12 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 font-bold focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-4">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Identity Description</label>
                   <textarea 
                     value={editData.description} 
                     onChange={e => setEditData({...editData, description: e.target.value})}
-                    rows={3}
+                    rows={2}
                     className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 font-bold focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
                   />
                 </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Commercial Strategy</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Base Price</label>
+                      <UIInput 
+                        type="number"
+                        value={editData.base_price} 
+                        onChange={e => setEditData({...editData, base_price: parseFloat(e.target.value) || 0})}
+                        className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg px-3 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Selling Price</label>
+                      <UIInput 
+                        type="number"
+                        value={editData.selling_price} 
+                        onChange={e => setEditData({...editData, selling_price: parseFloat(e.target.value) || 0})}
+                        className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg px-3 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Risk & Inventory Config</h4>
+                   <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Discount (%)</label>
+                      <UIInput 
+                        type="number"
+                        value={editData.discount_rate} 
+                        onChange={e => setEditData({...editData, discount_rate: parseFloat(e.target.value) || 0})}
+                        className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg px-3 font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase text-slate-400">Stock Threshold</label>
+                      <UIInput 
+                        type="number"
+                        value={editData.metadata?.min_stock || 0} 
+                        onChange={e => setEditData({
+                          ...editData, 
+                          metadata: { ...editData.metadata, min_stock: parseInt(e.target.value) || 0 }
+                        })}
+                        className="h-10 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-lg px-3 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category Allocation</h4>
                   <UISelect 
@@ -409,6 +471,17 @@ export function ItemDetailsModal({
                   <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic">
                     {item.description || "No description provided for this item identity."}
                   </p>
+                  
+                  <div className="pt-4 grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                      <p className="text-[8px] font-black uppercase text-slate-400 mb-1">Selling Price</p>
+                      <p className="text-sm font-black text-indigo-600">{Number(item.selling_price || 0).toLocaleString()} <span className="text-[10px] text-slate-400 font-bold uppercase ml-1">IDR</span></p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                      <p className="text-[8px] font-black uppercase text-slate-400 mb-1">Min. Threshold</p>
+                      <p className="text-sm font-black text-rose-500">{Number(item.metadata?.min_stock || 0).toLocaleString()} <span className="text-[10px] text-slate-400 font-bold uppercase ml-1">Units</span></p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -451,7 +524,20 @@ export function ItemDetailsModal({
                     <>
                       <Button 
                         onClick={() => {
-                          setEditData({ name: item.name, description: item.description, status: item.status || 'active' });
+                          setEditData({ 
+                            name: item.name, 
+                            sku: item.sku,
+                            description: item.description, 
+                            status: item.status || 'active',
+                            base_price: Number(item.base_price || 0),
+                            selling_price: Number(item.selling_price || 0),
+                            discount_rate: Number(item.discount_rate || 0),
+                            metadata: {
+                              ...(item.metadata || {}),
+                              min_stock: item.metadata?.min_stock || 0
+                            },
+                            category_id: item.category_id
+                          });
                           setIsEditing(!isEditing);
                         }}
                         variant="outline" 

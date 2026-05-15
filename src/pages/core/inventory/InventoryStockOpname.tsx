@@ -58,9 +58,10 @@ export default function InventoryStockOpname() {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const [coreLocations, retailStores] = await Promise.all([
+        const [coreLocations, retailStores, channels] = await Promise.all([
           inventoryService.listLocations(session.tenant_id, session),
           retailService.listStores(session.tenant_id, session).catch(() => []),
+          retailService.listChannels(session.tenant_id, session).catch(() => []),
         ]);
 
         const locationMap = new Map<string, { id: string; name: string }>();
@@ -82,6 +83,19 @@ export default function InventoryStockOpname() {
             id: locationId,
             name: store.name || store.code || locationId,
           });
+        });
+
+        (Array.isArray(channels) ? channels : []).forEach((channel: any) => {
+          const locationId = channel.branchId || channel.branch_id || channel.id;
+          if (!locationId) return;
+
+          // Add ecommerce channels to the list
+          if (!locationMap.has(locationId)) {
+            locationMap.set(locationId, {
+              id: locationId,
+              name: `${channel.name} (Ecommerce)`,
+            });
+          }
         });
 
         const locs = Array.from(locationMap.values()).sort((a, b) => a.name.localeCompare(b.name));

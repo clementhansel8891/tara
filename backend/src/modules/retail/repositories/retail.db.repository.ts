@@ -449,8 +449,10 @@ export class RetailDbRepository implements IRetailRepository {
       const rawSql = `
         SELECT p.id
         FROM item_masters p
-        LEFT JOIN stock_levels s ON s.product_id = p.id AND s.location_id = '${locationId}'
+        LEFT JOIN stock_levels s ON s.product_id = p.id ${locationId ? `AND s.location_id = '${locationId}'` : ""}
+        LEFT JOIN locations l ON s.location_id = l.id
         WHERE p.tenant_id = '${scope.tenant_id}' AND p.status = 'active'
+        ${!locationId ? "AND (l.type IS NULL OR l.type != 'headquarters')" : ""}
         ${options.category_id ? `AND p.category_id = '${options.category_id}'` : ""}
         ${options.type ? `AND p.type = '${options.type}'` : ""}
         GROUP BY p.id
@@ -464,7 +466,16 @@ export class RetailDbRepository implements IRetailRepository {
         where: { id: { in: (orderedIds || []).map(p => p.id) } },
         include: {
           product_categories: true,
-          stock_levels: options?.location_id ? { where: { location_id: options.location_id } } : true,
+          stock_levels: options?.location_id 
+            ? { where: { location_id: options.location_id } } 
+            : { 
+                where: { 
+                  locations: { 
+                    type: { not: 'headquarters' } 
+                  } 
+                },
+                include: { locations: true } 
+              },
           product_projections: true,
           item_images: { where: { is_primary: true }, take: 1 },
         },
@@ -504,7 +515,16 @@ export class RetailDbRepository implements IRetailRepository {
         take: pageSize,
         include: {
           product_categories: true,
-          stock_levels: options?.location_id ? { where: { location_id: options.location_id } } : true,
+          stock_levels: options?.location_id 
+            ? { where: { location_id: options.location_id } } 
+            : { 
+                where: { 
+                  locations: { 
+                    type: { not: 'headquarters' } 
+                  } 
+                },
+                include: { locations: true } 
+              },
           product_projections: true,
           item_images: { where: { is_primary: true }, take: 1 },
         },
@@ -2706,7 +2726,7 @@ export class RetailDbRepository implements IRetailRepository {
   private mapProduct(p: any, location_id?: string, currency: string = "USD"): RetailProduct {
     const stockLevels = location_id
       ? (p.stock_levels || []).filter((s: any) => s.location_id === location_id)
-      : p.stock_levels || [];
+      : (p.stock_levels || []).filter((s: any) => s.locations?.type !== 'headquarters');
 
     const soh = stockLevels.reduce(
       (sum: Prisma.Decimal, s: any) => sum.add((s.on_hand as unknown as Prisma.Decimal) || 0),

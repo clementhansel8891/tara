@@ -127,6 +127,7 @@ const InventoryVisibility = () => {
   const [isBufferDialogOpen, setIsBufferDialogOpen] = useState(false);
   const [bufferValue, setBufferValue] = useState<number>(0);
   const [isUpdatingBuffer, setIsUpdatingBuffer] = useState(false);
+  const [globalMinStock, setGlobalMinStock] = useState<number>(0);
   const [isAggregating, setIsAggregating] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string | undefined>(undefined);
@@ -230,7 +231,7 @@ const InventoryVisibility = () => {
 
       const mapped: InventoryItemView[] = items.map((p: any) => {
         const onHandVal  = Number(p.metadata?.stockOnHand ?? p.metadata?.stock_on_hand ?? p.stock ?? 0);
-        const minBufVal  = Number(p.metadata?.minBuffer ?? 0);
+        const minBufVal  = Number(p.metadata?.minBuffer ?? p.metadata?.min_stock ?? 0);
         // Derive display stock status from quantities
         let stockStatus: InventoryItemView["status"] = (p.status as InventoryItemView["status"]) || "ok";
         if (onHandVal === 0) stockStatus = "critical" as any;                       // filter value="critical"
@@ -384,48 +385,29 @@ const InventoryVisibility = () => {
   }, [tenantId, session, locationId, updateLocation]);
 
   useEffect(() => {
-    if (locationId && stores.length > 0) {
-      const store = stores.find((s) => (s.locationId || s.id) === locationId);
-      if (store) {
-        setSelectedStoreId(store.id);
+    const init = async () => {
+      if (!tenantId || !session) return;
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchStores(),
+          fetchCategories(),
+          fetchPendingItems()
+        ]);
+      } catch (err) {
+        console.error("[InventoryVisibility] Init failed:", err);
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [locationId, stores]);
-
-  // Sync local locationId when the global branch selector (navbar) changes session.location_id.
-  // IMPORTANT: RetailContext.setStore() calls updateLocation(store.id), so session.location_id
-  // holds the store UUID (e.g. "c2221884-..."), NOT the location UUID (e.g. "ccd6c269-...").
-  // We must map store.id → store.locationId to get the correct location UUID for the API.
-  useEffect(() => {
-    const sessionLoc = session?.location_id;
-    if (!sessionLoc || !stores.length) return;
-    // Match by store.id (set by RetailContext) OR by locationId (set by InventoryFilterHub)
-    const matchedStore =
-      stores.find((s) => s.id === sessionLoc) ||
-      stores.find((s) => (s.locationId || s.id) === sessionLoc);
-    if (matchedStore) {
-      const correctLocId = matchedStore.locationId || matchedStore.id;
-      if (correctLocId !== locationId) {
-        isFetchingRef.current = false; // allow fresh fetch
-        setLocationId(correctLocId);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.location_id, stores.length]);
+    };
+    init();
+  }, [tenantId, session, fetchStores, fetchCategories, fetchPendingItems]);
 
   useEffect(() => {
-    if (tenantId) {
-      fetchStores();
-      fetchCategories();
-    }
-  }, [tenantId, fetchStores, fetchCategories]);
-
-  useEffect(() => {
-    if (tenantId) {
+    if (tenantId && locationId) {
       fetchInventory();
-      fetchPendingItems();
     }
-  }, [fetchInventory, fetchPendingItems, tenantId]);
+  }, [fetchInventory, tenantId, locationId]);
 
   useEffect(() => {
     setPage(1);
@@ -434,7 +416,6 @@ const InventoryVisibility = () => {
     filters.category,
     filters.status,
     filters.type,
-    locationId,
   ]);
 
   const handleFilterChange = (patch: Partial<InventoryFilters>) => {
@@ -446,13 +427,23 @@ const InventoryVisibility = () => {
     if (!selectedItem || !locationId) return;
     setIsUpdatingBuffer(true);
     try {
+      // Update location-specific buffer
       await retailService.updateProduct(tenantId!, session!, selectedItem.id, {
         min_buffer: bufferValue,
         location_id: locationId
       });
+
+      // Update global min_stock metadata
+      await inventoryService.updateItem(session!, selectedItem.id, {
+        metadata: {
+          ...(selectedItem.metadata || {}),
+          min_stock: globalMinStock
+        }
+      });
+
       toast({
         title: "Threshold Updated",
-        description: `Buffer threshold for ${selectedItem.name} set to ${bufferValue}`,
+        description: `Buffer for ${selectedItem.name} synchronized across systems.`,
       });
       setIsBufferDialogOpen(false);
       fetchInventory();
@@ -822,6 +813,9 @@ const InventoryVisibility = () => {
                 onTypeChange={(v) => setFilters(prev => ({ ...prev, type: v }))}
                 status={filters.status}
                 onStatusChange={(v) => setFilters(prev => ({ ...prev, status: v }))}
+                location={locationId}
+                onLocationChange={handleStoreChange}
+                locations={stores.map(s => ({ id: s.id, name: s.name }))}
                 minPrice={filters.minPrice}
                 maxPrice={filters.maxPrice}
                 onPriceRangeChange={(min, max) => setFilters(prev => ({ ...prev, minPrice: min, maxPrice: max }))}
@@ -879,7 +873,8 @@ const InventoryVisibility = () => {
                   statusBadge={statusBadge}
                   onEdit={(item) => {
                     setSelectedItem(item);
-                    setBufferValue(item.minBuffer);
+                    setBufferValue(item.minBuffer || 0);
+                    setGlobalMinStock(Number((item as any).metadata?.min_stock || 0));
                     setIsBufferDialogOpen(true);
                   }}
                   onPrint={(item) => {
@@ -1128,7 +1123,7 @@ const InventoryVisibility = () => {
       />
       <ItemDetailsModal
         item={detailItem}
-        open={!!detailItem}
+        open={!!detailItem?.id || (detailItem && Object.keys(detailItem).length > 0 && !detailItem.id)}
         onOpenChange={(open) => !open && setDetailItem(null)}
         onUpdated={fetchInventory}
         categories={dynamicCategories}
@@ -1167,9 +1162,25 @@ const InventoryVisibility = () => {
                   onChange={(e) => setBufferValue(parseInt(e.target.value) || 0)}
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-slate-600 italic">
-                  Units
+                  Branch
                 </div>
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Global Min Stock (Meta)</Label>
+              <div className="relative">
+                <input
+                  type="number"
+                  className="w-full h-14 bg-slate-950/50 border border-white/5 rounded-2xl px-6 font-black italic text-lg text-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                  value={globalMinStock}
+                  onChange={(e) => setGlobalMinStock(parseInt(e.target.value) || 0)}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-slate-600 italic">
+                  Global
+                </div>
+              </div>
+            </div>
               <p className="text-[10px] text-slate-500 font-bold italic px-2">
                 System will trigger LOW STOCK alert when inventory falls below this level.
               </p>
