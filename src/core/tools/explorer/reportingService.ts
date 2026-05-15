@@ -1,6 +1,7 @@
 import { createFolder, listFileSystem, uploadFile } from "./service";
 import type { SessionContext } from "@/core/security/session";
 import { format } from "date-fns";
+import { apiRequest } from "@/core/api/apiClient";
 
 /**
  * Ensures a nested folder path exists in the Explorer.
