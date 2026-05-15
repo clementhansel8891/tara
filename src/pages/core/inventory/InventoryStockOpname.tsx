@@ -128,8 +128,17 @@ export default function InventoryStockOpname() {
     }
   });
 
+  const lastScanRef = useRef({ barcode: "", time: 0 });
+
   const processScan = useCallback(async (barcode: string) => {
     if (!barcode) return;
+    
+    const now = Date.now();
+    if (lastScanRef.current.barcode === barcode && now - lastScanRef.current.time < 500) {
+      console.log("Ignoring duplicate scan");
+      return;
+    }
+    lastScanRef.current = { barcode, time: now };
     
     try {
       // Lookup item
