@@ -947,7 +947,7 @@ export default function Explorer() {
                               if (lastClick?.id === file.id && now - lastClick.time < 600) {
                                 const tool = getToolForFile(file);
                                 if (tool !== "none") {
-                                  navigate(`/tools/${tool}?fileId=${file.id}`);
+                                  navigate(`/core/tools/${tool}?fileId=${file.id}`);
                                 } else {
                                   setSelectedFileId(file.id);
                                   setPreviewOpen(true);
@@ -1267,7 +1267,7 @@ export default function Explorer() {
                                   if (lastClick?.id === file.id && now - lastClick.time < 600) {
                                     const tool = getToolForFile(file);
                                     if (tool !== "none") {
-                                      navigate(`/tools/${tool}?fileId=${file.id}`);
+                                      navigate(`/core/tools/${tool}?fileId=${file.id}`);
                                     } else {
                                       setSelectedFileId(file.id);
                                       setPreviewOpen(true);
