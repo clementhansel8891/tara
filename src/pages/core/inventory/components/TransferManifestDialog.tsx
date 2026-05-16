@@ -123,19 +123,27 @@ export function TransferManifestDialog({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Requested</div>
-                    <div className="text-[11px] font-bold truncate">{new Date(transfer.requested_at).toLocaleDateString()}</div>
+                    <div className="text-[11px] font-bold truncate">
+                      {transfer.requested_at ? new Date(transfer.requested_at).toLocaleDateString() : "Pending"}
+                    </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Picked</div>
-                    <div className="text-[11px] font-bold truncate">{transfer.picked_at ? new Date(transfer.picked_at).toLocaleDateString() : "Pending"}</div>
+                    <div className="text-[11px] font-bold truncate">
+                      {transfer.picked_at ? new Date(transfer.picked_at).toLocaleDateString() : "Pending"}
+                    </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Shipped</div>
-                    <div className="text-[11px] font-bold truncate">{transfer.shipped_at ? new Date(transfer.shipped_at).toLocaleDateString() : "Pending"}</div>
+                    <div className="text-[11px] font-bold truncate">
+                      {transfer.shipped_at ? new Date(transfer.shipped_at).toLocaleDateString() : "Pending"}
+                    </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Received</div>
-                    <div className="text-[11px] font-bold truncate">{transfer.received_at ? new Date(transfer.received_at).toLocaleDateString() : "Pending"}</div>
+                    <div className="text-[11px] font-bold truncate">
+                      {transfer.received_at ? new Date(transfer.received_at).toLocaleDateString() : "Pending"}
+                    </div>
                   </div>
                 </div>
               </div>

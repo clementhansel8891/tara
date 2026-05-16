@@ -1415,30 +1415,39 @@ export class InventoryDbRepository implements IInventoryRepository {
         throw new Error(`Insufficient stock at source ${fromLocationId} for transfer`);
       }
 
-      // 2. Increment in_transit at Destination
-      await t.stock_levels.upsert({
+      // 2. Increment in_transit at Destination (Refactored to avoid upsert issues with nullable fields)
+      const existingDest = await t.stock_levels.findFirst({
         where: {
-          tenant_id_location_id_product_id_department_id: {
+          tenant_id: ctx.tenant_id,
+          location_id: toLocationId,
+          product_id: product_id,
+          department_id: null,
+        },
+      });
+
+      if (existingDest) {
+        await t.stock_levels.update({
+          where: { id: existingDest.id },
+          data: {
+            in_transit: { increment: quantity },
+            updated_at: new Date(),
+          },
+        });
+      } else {
+        await t.stock_levels.create({
+          data: {
+            id: uuidv4(),
             tenant_id: ctx.tenant_id,
             location_id: toLocationId,
             product_id: product_id,
             department_id: null,
+            on_hand: 0,
+            in_transit: quantity,
+            available: 0,
+            updated_at: new Date(),
           },
-        },
-        create: {
-          id: uuidv4(),
-          updated_at: new Date(),
-          ...MultiTenancyUtil.getScope(ctx),
-          location_id: toLocationId,
-          product_id: product_id,
-          department_id: null,
-          on_hand: 0,
-          in_transit: quantity,
-          available: 0,
-        },
-        update: {
-          in_transit: { increment: quantity },
-        },
+        });
+      }
       });
 
       return t.stock_movements.create({
