@@ -12,6 +12,7 @@ import { useSession } from "@/core/security/session";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Package, MapPin, Calendar, User, FileText, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TransferManifestDialogProps {
   open: boolean;
@@ -27,6 +28,19 @@ export function TransferManifestDialog({
   const session = useSession();
   const [transfer, setTransfer] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  const formatDate = (date: any) => {
+    if (!date) return "Pending";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "Pending";
+    return d.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   useEffect(() => {
     if (open && transferId) {
@@ -49,7 +63,7 @@ export function TransferManifestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-slate-950">
+      <DialogContent className="max-w-4xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-slate-950 max-h-[90vh] flex flex-col">
         <DialogHeader className="p-8 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
@@ -68,7 +82,8 @@ export function TransferManifestDialog({
           </div>
         </DialogHeader>
 
-        <div className="p-8 space-y-8">
+        <ScrollArea className="flex-1">
+          <div className="p-8 space-y-8">
           {loading ? (
             <div className="space-y-4">
               <Skeleton className="h-24 w-full rounded-2xl" />
@@ -124,25 +139,25 @@ export function TransferManifestDialog({
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Requested</div>
                     <div className="text-[11px] font-bold truncate">
-                      {transfer.requested_at || transfer.created_at ? new Date(transfer.requested_at || transfer.created_at).toLocaleDateString() : "Pending"}
+                      {formatDate(transfer.requested_at || transfer.created_at)}
                     </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Picked</div>
                     <div className="text-[11px] font-bold truncate">
-                      {transfer.picked_at ? new Date(transfer.picked_at).toLocaleDateString() : "Pending"}
+                      {formatDate(transfer.picked_at)}
                     </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Shipped</div>
                     <div className="text-[11px] font-bold truncate">
-                      {transfer.shipped_at ? new Date(transfer.shipped_at).toLocaleDateString() : "Pending"}
+                      {formatDate(transfer.shipped_at)}
                     </div>
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
                     <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Received</div>
                     <div className="text-[11px] font-bold truncate">
-                      {transfer.received_at ? new Date(transfer.received_at).toLocaleDateString() : "Pending"}
+                      {formatDate(transfer.received_at)}
                     </div>
                   </div>
                 </div>
@@ -154,7 +169,7 @@ export function TransferManifestDialog({
               <div className="text-xl font-black uppercase tracking-widest">No Protocol Data</div>
             </div>
           )}
-        </div>
+        </ScrollArea>
 
         <DialogFooter className="p-8 bg-slate-900/40 border-t border-slate-800 flex flex-row items-center justify-between">
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
