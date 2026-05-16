@@ -1244,23 +1244,36 @@ export class InventoryDbRepository implements IInventoryRepository {
         },
       });
 
-      // 3. Create movement for audit
-      await t.stock_movements.create({
-        data: {
-          id: uuidv4(),
-          updated_at: new Date(),
-          ...MultiTenancyUtil.getScope(ctx),
-          product_id: product_id,
-          location_id: location_id,
-          to_location_id: location_id,
-          quantity: 0, // Reservation doesn't change on_hand
-          type: "RESERVE",
+      // 3. Create movement for audit if not exists
+      const existingMovement = await t.stock_movements.findFirst({
+        where: {
+          tenant_id: ctx.tenant_id,
           reference_id: referenceId,
           reference_type: referenceType,
-          reservation_id: referenceId,
-          performed_by: "system",
-        },
+          type: "RESERVE",
+          product_id,
+          location_id,
+        }
       });
+
+      if (!existingMovement) {
+        await t.stock_movements.create({
+          data: {
+            id: uuidv4(),
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
+            product_id: product_id,
+            location_id: location_id,
+            to_location_id: location_id,
+            quantity: 0, // Reservation doesn't change on_hand
+            type: "RESERVE",
+            reference_id: referenceId,
+            reference_type: referenceType,
+            reservation_id: referenceId,
+            performed_by: "system",
+          },
+        });
+      }
     };
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
@@ -1304,22 +1317,35 @@ export class InventoryDbRepository implements IInventoryRepository {
         data: { status: "CANCELLED" },
       });
 
-      // 3. Create movement
-      await t.stock_movements.create({
-        data: {
-          id: uuidv4(),
-          updated_at: new Date(),
-          ...MultiTenancyUtil.getScope(ctx),
-          product_id: product_id,
-          location_id: location_id,
-          to_location_id: location_id,
-          quantity: 0,
-          type: "RELEASE",
+      // 3. Create movement if not exists
+      const existingMovement = await t.stock_movements.findFirst({
+        where: {
+          tenant_id: ctx.tenant_id,
           reference_id: referenceId,
           reference_type: referenceType,
-          performed_by: "system",
-        },
+          type: "RELEASE",
+          product_id,
+          location_id,
+        }
       });
+
+      if (!existingMovement) {
+        await t.stock_movements.create({
+          data: {
+            id: uuidv4(),
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
+            product_id: product_id,
+            location_id: location_id,
+            to_location_id: location_id,
+            quantity: 0,
+            type: "RELEASE",
+            reference_id: referenceId,
+            reference_type: referenceType,
+            performed_by: "system",
+          },
+        });
+      }
     };
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
@@ -1449,23 +1475,38 @@ export class InventoryDbRepository implements IInventoryRepository {
         });
       }
 
-      return t.stock_movements.create({
-        data: {
-          id: uuidv4(),
-          updated_at: new Date(),
-          ...MultiTenancyUtil.getScope(ctx),
-          product_id: product_id,
-          location_id: fromLocationId,
-          from_location_id: fromLocationId,
-          to_location_id: toLocationId,
-          quantity: -quantity,
-          type: "TRANSFER_OUT",
+      // 3. Create movement if not exists
+      const existingMovement = await t.stock_movements.findFirst({
+        where: {
+          tenant_id: ctx.tenant_id,
           reference_id: referenceId,
           reference_type: referenceType,
-          transfer_group_id: transferGroupId,
-          performed_by: "system",
-        },
+          type: "TRANSFER_OUT",
+          product_id,
+          location_id: fromLocationId,
+        }
       });
+
+      if (!existingMovement) {
+        return t.stock_movements.create({
+          data: {
+            id: uuidv4(),
+            updated_at: new Date(),
+            ...MultiTenancyUtil.getScope(ctx),
+            product_id: product_id,
+            location_id: fromLocationId,
+            from_location_id: fromLocationId,
+            to_location_id: toLocationId,
+            quantity: -quantity,
+            type: "TRANSFER_OUT",
+            reference_id: referenceId,
+            reference_type: referenceType,
+            transfer_group_id: transferGroupId,
+            performed_by: "system",
+          },
+        });
+      }
+      return existingMovement;
     };
     return tx ? execute(tx) : this.prisma.$transaction(execute);
   }
