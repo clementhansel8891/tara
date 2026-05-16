@@ -169,7 +169,8 @@ export function TransferManifestDialog({
               <div className="text-xl font-black uppercase tracking-widest">No Protocol Data</div>
             </div>
           )}
-        </ScrollArea>
+        </div>
+      </ScrollArea>
 
         <DialogFooter className="p-8 bg-slate-900/40 border-t border-slate-800 flex flex-row items-center justify-between">
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
