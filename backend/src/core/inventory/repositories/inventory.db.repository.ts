@@ -1418,10 +1418,11 @@ export class InventoryDbRepository implements IInventoryRepository {
       // 2. Increment in_transit at Destination
       await t.stock_levels.upsert({
         where: {
-          location_id_product_id_department_id: {
+          tenant_id_location_id_product_id_department_id: {
+            tenant_id: ctx.tenant_id,
             location_id: toLocationId,
             product_id: product_id,
-            department_id: null, // Consistent with consumeStock
+            department_id: null,
           },
         },
         create: {

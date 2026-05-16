@@ -34,7 +34,7 @@ export function TransferManifestDialog({
         setLoading(true);
         try {
           const res = await inventoryService.getStockTransfer(session.tenant_id, session, transferId);
-          setTransfer(res.data);
+          setTransfer(res);
         } catch (err) {
           console.error("Failed to fetch transfer detail:", err);
         } finally {
