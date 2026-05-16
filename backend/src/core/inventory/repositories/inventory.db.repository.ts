@@ -1522,25 +1522,57 @@ export class InventoryDbRepository implements IInventoryRepository {
     tx?: any,
   ): Promise<StockMovement> {
     const execute = async (t: any) => {
-      // 1. Atomic transition: in_transit -> on_hand at Destination
-      const destUpdate = await t.$executeRaw`
+      // 1. Atomic decrement in-transit at transit pool (fromLocationId)
+      const transitUpdate = await t.$executeRaw`
         UPDATE stock_levels 
         SET 
           in_transit = in_transit - ${quantity},
-          on_hand = on_hand + ${quantity},
-          available = available + ${quantity},
           updated_at = NOW()
         WHERE 
           tenant_id = ${ctx.tenant_id} AND 
           product_id = ${product_id} AND 
-          location_id = ${toLocationId} AND 
+          location_id = ${fromLocationId} AND 
           in_transit >= ${quantity}
       `;
 
-      if (destUpdate === 0) {
+      if (transitUpdate === 0) {
         throw new Error(
-          `Insufficient in-transit stock at destination ${toLocationId} for receipt`,
+          `Insufficient in-transit stock at transit pool ${fromLocationId} for receipt`,
         );
+      }
+
+      // 2. Atomic increment on-hand at destination (toLocationId)
+      const existingDest = await t.stock_levels.findFirst({
+        where: {
+          tenant_id: ctx.tenant_id,
+          product_id: product_id,
+          location_id: toLocationId,
+          department_id: null
+        }
+      });
+
+      if (existingDest) {
+        await t.stock_levels.update({
+          where: { id: existingDest.id },
+          data: {
+            on_hand: { increment: quantity },
+            available: { increment: quantity },
+            updated_at: new Date()
+          }
+        });
+      } else {
+        await t.stock_levels.create({
+          data: {
+            id: uuidv4(),
+            tenant_id: ctx.tenant_id,
+            product_id: product_id,
+            location_id: toLocationId,
+            department_id: null,
+            on_hand: quantity,
+            available: quantity,
+            updated_at: new Date()
+          }
+        });
       }
 
       // 3. Create movement if not exists
