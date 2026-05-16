@@ -30,16 +30,22 @@ export function TransferManifestDialog({
   const [loading, setLoading] = useState(false);
 
   const formatDate = (date: any) => {
-    if (!date) return "Pending";
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "Pending";
-    return d.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    try {
+      if (!date) return "Pending";
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return "Pending";
+      return d.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch (e) {
+      console.error("Date formatting error:", e);
+      return "Pending";
+    }
   };
 
   useEffect(() => {
@@ -82,7 +88,7 @@ export function TransferManifestDialog({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto min-h-[400px]">
           <div className="p-8 space-y-8">
           {loading ? (
             <div className="space-y-4">
@@ -170,7 +176,7 @@ export function TransferManifestDialog({
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
         <DialogFooter className="p-8 bg-slate-900/40 border-t border-slate-800 flex flex-row items-center justify-between">
           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
