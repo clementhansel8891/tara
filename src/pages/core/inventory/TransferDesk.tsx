@@ -38,6 +38,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
+import { CreateTransferDialog } from "./components/CreateTransferDialog";
 
 const SECTIONS = [
   {
@@ -79,6 +80,7 @@ export default function InventoryTransferDesk() {
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -121,6 +123,7 @@ export default function InventoryTransferDesk() {
   const headerActions = (
     <div className="flex gap-2">
       <Button
+        onClick={() => setIsCreateModalOpen(true)}
         className="rounded-xl bg-foreground text-background hover:bg-foreground/90 shadow-lg font-black text-[10px] uppercase tracking-widest h-9 px-6"
       >
         <Plus className="h-3 w-3 mr-2" /> New Transfer
@@ -282,6 +285,12 @@ export default function InventoryTransferDesk() {
       </div>
 
       {mainContent}
+
+      <CreateTransferDialog 
+        open={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }
