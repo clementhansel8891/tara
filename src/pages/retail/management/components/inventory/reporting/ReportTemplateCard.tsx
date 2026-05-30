@@ -21,10 +21,10 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
     <Card
       onClick={onClick}
       className={cn(
-        "rounded-[2rem] border-2 cursor-pointer transition-all p-6 group relative overflow-hidden h-[320px] flex flex-col justify-between",
+        "rounded-[2rem] border-2 cursor-pointer transition-all p-6 group relative overflow-hidden h-[320px] flex flex-col justify-between backdrop-blur-xl",
         isActive
-          ? "border-indigo-600 bg-white shadow-[0_32px_80px_-20px_rgba(79,70,229,0.15)] ring-8 ring-indigo-50"
-          : "border-slate-100 bg-white hover:border-indigo-200 hover:shadow-2xl hover:shadow-slate-100 hover:-translate-y-1",
+          ? "border-primary/50 bg-primary/10 shadow-[0_32px_80px_-20px_rgba(99,102,241,0.25)] ring-4 ring-primary/10"
+          : "border-white/10 bg-white/[0.04] hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1",
       )}
     >
       {/* Decorative Elements */}
@@ -54,7 +54,7 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
             <h3
               className={cn(
                 "text-2xl font-black italic uppercase tracking-tighter leading-tight",
-                isActive ? "text-primary-foreground" : "text-slate-800",
+                isActive ? "text-foreground" : "text-foreground/80",
               )}
             >
               {template.label}
@@ -85,7 +85,7 @@ export const ReportTemplateCard: React.FC<ReportTemplateCardProps> = ({
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="w-8 h-8 rounded-full border-4 border-white bg-secondary/10"
+                className="w-8 h-8 rounded-full border-4 border-background bg-white/10"
               />
             ))}
           </div>

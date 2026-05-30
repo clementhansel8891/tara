@@ -132,7 +132,7 @@ const PricingPromoDesk = () => {
             variant="outline"
             onClick={() => setIsAuditModalOpen(true)}
             disabled={!focusedPromoId}
-            className="h-10 rounded-xl px-4 font-black italic border-slate-200 text-[10px] uppercase tracking-widest gap-2 bg-secondary/5 hover:bg-secondary/10 text-muted-foreground"
+            className="h-10 rounded-xl px-4 font-black italic border-white/10 text-[10px] uppercase tracking-widest gap-2 bg-white/[0.04] hover:bg-white/10 text-muted-foreground backdrop-blur-sm"
           >
             <FileText className="w-3.5 h-3.5 text-primary" /> IMMUTABLE LEDGER
           </Button>
@@ -149,12 +149,12 @@ const PricingPromoDesk = () => {
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Top KPI row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-blue-600">
+            <Card className="rounded-2xl p-6 bg-white/[0.04] border border-white/10 border-l-[6px] border-l-blue-500 shadow-xl backdrop-blur-xl">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
+                <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-primary/20">
                   <Percent className="w-5 h-5" />
                 </div>
-                <Badge className="bg-emerald-50 text-success font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-emerald-500/15 text-emerald-400 font-black italic text-[8px] uppercase tracking-widest border border-emerald-500/20">
                   LIVE
                 </Badge>
               </div>
@@ -166,9 +166,9 @@ const PricingPromoDesk = () => {
               </div>
             </Card>
 
-            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-amber-500">
+            <Card className="rounded-2xl p-6 bg-white/[0.04] border border-white/10 border-l-[6px] border-l-amber-500 shadow-xl backdrop-blur-xl">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
+                <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
                   <Zap className="w-5 h-5" />
                 </div>
                 <Badge
@@ -186,12 +186,12 @@ const PricingPromoDesk = () => {
               </div>
             </Card>
 
-            <Card className="rounded-2xl p-6 bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.04)] border-l-[6px] border-l-indigo-600">
+            <Card className="rounded-2xl p-6 bg-white/[0.04] border border-white/10 border-l-[6px] border-l-primary shadow-xl backdrop-blur-xl">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-primary/5 text-primary">
+                <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-primary/20">
                   <BarChart3 className="w-5 h-5" />
                 </div>
-                <Badge className="bg-primary/5 text-primary font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-primary/10 text-primary font-black italic text-[8px] uppercase tracking-widest border border-primary/20">
                   AGGREGATE
                 </Badge>
               </div>
@@ -203,10 +203,10 @@ const PricingPromoDesk = () => {
               </div>
             </Card>
 
-            <Card className="rounded-2xl p-6 bg-secondary text-foreground shadow-2xl relative overflow-hidden group">
+            <Card className="rounded-2xl p-6 bg-primary/10 border border-primary/20 text-foreground shadow-2xl relative overflow-hidden group backdrop-blur-xl">
               <ShieldCheck className="absolute -right-8 -bottom-8 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform" />
               <div className="relative z-10">
-                <div className="text-[10px] font-black italic uppercase tracking-widest text-blue-400 mb-4">
+                <div className="text-[10px] font-black italic uppercase tracking-widest text-primary mb-4">
                   Guardrail Status
                 </div>
                 <div className="text-2xl font-black italic tracking-tighter">
@@ -222,22 +222,22 @@ const PricingPromoDesk = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column: Promotion List */}
             <div className="lg:col-span-4 flex flex-col gap-6">
-              <Card className="rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.05)] border-none bg-white flex flex-col flex-1 h-[600px]">
-                <div className="p-6 md:p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <Card className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl flex flex-col flex-1 h-[600px]">
+                <div className="p-6 md:p-8 border-b border-white/10 flex items-center justify-between shrink-0">
                   <h3 className="text-xs font-black italic uppercase tracking-widest text-muted-foreground">
                     Registry
                   </h3>
                 </div>
-                <div className="p-4 shrink-0 bg-secondary/5">
+                <div className="p-4 shrink-0 bg-white/[0.02]">
                   <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      className="pl-12 h-11 bg-white border-slate-200 rounded-2xl text-xs font-bold italic"
+                      className="pl-12 h-11 bg-white/[0.05] border-white/10 rounded-2xl text-xs font-bold italic text-foreground placeholder:text-muted-foreground"
                       placeholder="Search Strategy..."
                     />
                   </div>
                 </div>
-                <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                <div className="flex-1 overflow-y-auto divide-y divide-white/5">
                   {(Array.isArray(promotions) ? promotions : []).map((promo) => (
                     <div
                       key={promo.id}
@@ -254,8 +254,8 @@ const PricingPromoDesk = () => {
                           className={cn(
                             "w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 transition-transform",
                             focusedPromoId === promo.id
-                              ? "bg-primary border-blue-600 text-foreground scale-105 shadow-lg"
-                              : "bg-white border-slate-200 text-primary shadow-sm",
+                              ? "bg-primary border-primary/50 text-primary-foreground scale-105 shadow-lg"
+                              : "bg-white/[0.05] border-white/15 text-primary shadow-sm",
                           )}
                         >
                           <Tag className="w-5 h-5" />
@@ -282,7 +282,7 @@ const PricingPromoDesk = () => {
             <div className="lg:col-span-8 flex flex-col gap-8 h-full">
               {focusedPromo ? (
                 <>
-                  <div className="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <div className="flex items-center justify-between bg-white/[0.04] p-6 rounded-2xl border border-white/10 backdrop-blur-xl">
                     <div>
                       <h2 className="text-2xl font-black italic tracking-tighter text-foreground">
                         {focusedPromo.title}
@@ -397,7 +397,7 @@ const PricingPromoDesk = () => {
                   </div>
                 </>
               ) : (
-                <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-secondary/400">
+                <div className="h-full flex items-center justify-center border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.02]">
                   <div className="text-center text-muted-foreground space-y-3">
                     <Target className="w-12 h-12 mx-auto opacity-20" />
                     <div className="font-black italic uppercase tracking-widest text-xs">

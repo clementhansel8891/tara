@@ -21,7 +21,7 @@ type Props = {
 // --- Hub Header Component ---
 const HubHeader: React.FC = () => (
   <div className="flex flex-col items-center text-center space-y-6 max-w-3xl mx-auto">
-    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-indigo-100 mb-2">
+    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-2">
       <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
       <span className="text-[11px] font-black uppercase tracking-[0.25em] text-primary">
         Analytics Engine v2.0

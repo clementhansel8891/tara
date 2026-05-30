@@ -281,10 +281,10 @@ export const ItemCreationTab: React.FC<Props> = ({
       {/* ── Page Intro ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black italic tracking-tighter text-slate-900 uppercase">
+          <h2 className="text-3xl font-black italic tracking-tighter text-foreground uppercase">
             Manual Batch Creation
           </h2>
-          <p className="text-slate-500 font-medium mt-2">
+          <p className="text-muted-foreground font-medium mt-2">
             Add new unique products to the global master list.
           </p>
         </div>
@@ -292,7 +292,7 @@ export const ItemCreationTab: React.FC<Props> = ({
           <Button
             onClick={addRow}
             variant="outline"
-            className="rounded-2xl h-12 px-6 font-black italic text-xs uppercase tracking-widest gap-2 bg-white border-slate-200 hover:bg-slate-50 shadow-sm"
+            className="rounded-2xl h-12 px-6 font-black italic text-xs uppercase tracking-widest gap-2 bg-white/[0.04] border-white/15 hover:bg-white/10 text-foreground shadow-sm backdrop-blur-sm"
           >
             <Plus className="w-4 h-4" /> Add Another Item
           </Button>
@@ -330,7 +330,7 @@ export const ItemCreationTab: React.FC<Props> = ({
         <Button
           onClick={handleSubmit}
           disabled={!canWrite || rows.some((r) => !r.name || !r.sku)}
-          className="rounded-[2rem] h-16 px-12 font-black italic uppercase tracking-[0.2em] text-sm gap-4 bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xl shadow-indigo-200 transition-all hover:scale-105"
+          className="rounded-[2rem] h-16 px-12 font-black italic uppercase tracking-[0.2em] text-sm gap-4 bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/20 transition-all hover:scale-105"
         >
           <Send className="w-5 h-5" /> Submit Batch to Core Repository
         </Button>
@@ -338,23 +338,23 @@ export const ItemCreationTab: React.FC<Props> = ({
 
       {/* ── CSV Import (Secondary) ── */}
       <div className="grid md:grid-cols-2 gap-8 mt-12">
-        <Card className="rounded-[3rem] border-none shadow-sm bg-slate-50/50 border border-slate-200/50">
+        <Card className="rounded-[3rem] border border-white/10 shadow-sm bg-white/[0.04] backdrop-blur-xl">
           <CardContent className="p-10 flex flex-col items-center text-center gap-6">
-            <div className="w-20 h-20 rounded-[2rem] bg-indigo-100 flex items-center justify-center shrink-0">
-              <Upload className="w-8 h-8 text-indigo-600" />
+            <div className="w-20 h-20 rounded-[2rem] bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <Upload className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-black italic tracking-tight uppercase">
+              <h3 className="text-lg font-black italic tracking-tight uppercase text-foreground">
                 Bulk Import CSV
               </h3>
-              <p className="text-slate-500 text-[10px] font-medium mt-1 px-4 leading-relaxed">
+              <p className="text-muted-foreground text-[10px] font-medium mt-1 px-4 leading-relaxed">
                 Upload your inventory list in bulk. Standard headers required.
               </p>
               <div className="flex flex-col gap-3 mt-6">
                 <Button
                   variant="outline"
                   onClick={handleDownloadTemplate}
-                  className="rounded-2xl h-11 px-6 font-bold text-xs tracking-tight gap-2 border-slate-200 bg-white"
+                  className="rounded-2xl h-11 px-6 font-bold text-xs tracking-tight gap-2 border-white/15 bg-white/[0.04] text-foreground hover:bg-white/10"
                 >
                   <Download className="w-4 h-4" /> Template
                 </Button>
@@ -367,7 +367,7 @@ export const ItemCreationTab: React.FC<Props> = ({
                 />
                 <Button 
                   onClick={() => csvInputRef.current?.click()}
-                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-slate-900 hover:bg-black text-white"
+                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-foreground hover:bg-foreground/90 text-background"
                 >
                   <Upload className="w-4 h-4" /> Select CSV
                 </Button>
@@ -377,16 +377,16 @@ export const ItemCreationTab: React.FC<Props> = ({
         </Card>
 
         {/* ── Bulk Image Matching (NEW) ── */}
-        <Card className="rounded-[3rem] border-none shadow-sm bg-slate-50/50 border border-slate-200/50">
+        <Card className="rounded-[3rem] border border-white/10 shadow-sm bg-white/[0.04] backdrop-blur-xl">
           <CardContent className="p-10 flex flex-col items-center text-center gap-6">
-            <div className="w-20 h-20 rounded-[2rem] bg-amber-100 flex items-center justify-center shrink-0">
-              <Plus className="w-8 h-8 text-amber-600" />
+            <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <Plus className="w-8 h-8 text-amber-400" />
             </div>
             <div>
-              <h3 className="text-lg font-black italic tracking-tight uppercase">
+              <h3 className="text-lg font-black italic tracking-tight uppercase text-foreground">
                 Bulk Image Match
               </h3>
-              <p className="text-slate-500 text-[10px] font-medium mt-1 px-4 leading-relaxed">
+              <p className="text-muted-foreground text-[10px] font-medium mt-1 px-4 leading-relaxed">
                 Name images as SKUs (e.g. PROD001.jpg) for auto-linking.
               </p>
               <div className="flex flex-col gap-3 mt-6">
@@ -400,11 +400,11 @@ export const ItemCreationTab: React.FC<Props> = ({
                 />
                 <Button 
                   onClick={() => imageInputRef.current?.click()}
-                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-amber-600 hover:bg-amber-700 text-white"
+                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-amber-500/80 hover:bg-amber-500 text-white"
                 >
                   <Upload className="w-4 h-4" /> Drop SKU Images
                 </Button>
-                <p className="text-[10px] text-slate-400 italic mt-1">Supports multiple file selection</p>
+                <p className="text-[10px] text-muted-foreground italic mt-1">Supports multiple file selection</p>
               </div>
             </div>
           </CardContent>
