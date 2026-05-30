@@ -58,7 +58,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border-none shadow-2xl bg-secondary/5">
+      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border border-white/10 shadow-2xl bg-slate-950/98 backdrop-blur-2xl text-foreground">
         <DialogHeader>
           <DialogTitle className="text-xl font-black italic tracking-tighter uppercase flex items-center gap-2 text-foreground">
             <Plus className="w-5 h-5 text-primary" /> Issue Promo Proposal
@@ -72,7 +72,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
               <Input 
                 value={formData.title}
                 onChange={e => setFormData({ ...formData, title: e.target.value })}
-                className="h-12 rounded-xl border-slate-200 font-bold italic bg-white"
+                className="h-12 rounded-xl border-white/10 font-bold italic bg-white/[0.03] text-foreground focus:border-primary/50 placeholder:text-muted-foreground/50"
                 placeholder="e.g. End of Season Sale"
               />
             </div>
@@ -81,12 +81,12 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Promo Type</label>
                 <select 
-                  className="w-full h-12 px-3 rounded-xl border border-slate-200 font-bold italic bg-white text-sm outline-none"
+                  className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-slate-900 text-foreground text-sm outline-none focus:border-primary/50"
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value as RetailPromotion["type"] })}
                 >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="fixed_amount">Fixed Amount (Rp)</option>
+                  <option value="percentage" className="bg-slate-900 text-foreground">Percentage (%)</option>
+                  <option value="fixed_amount" className="bg-slate-900 text-foreground">Fixed Amount (Rp)</option>
                 </select>
               </div>
               <div>
@@ -99,7 +99,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                     type="number"
                     value={formData.value}
                     onChange={e => setFormData({ ...formData, value: e.target.value })}
-                    className="h-12 pl-10 rounded-xl border-slate-200 font-black italic bg-white"
+                    className="h-12 pl-10 rounded-xl border-white/10 font-black italic bg-white/[0.03] text-foreground focus:border-primary/50 placeholder:text-muted-foreground/50"
                     placeholder="0"
                   />
                 </div>
@@ -113,7 +113,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                   type="date"
                   value={formData.startDate}
                   onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                  className="h-12 rounded-xl border-slate-200 font-bold bg-white"
+                  className="h-12 rounded-xl border-white/10 font-bold bg-white/[0.03] text-foreground focus:border-primary/50"
                 />
               </div>
               <div>
@@ -122,7 +122,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                   type="date"
                   value={formData.endDate}
                   onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                  className="h-12 rounded-xl border-slate-200 font-bold bg-white"
+                  className="h-12 rounded-xl border-white/10 font-bold bg-white/[0.03] text-foreground focus:border-primary/50"
                 />
               </div>
             </div>
@@ -132,22 +132,22 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                 <Target className="w-3 h-3" /> Target Scope
               </label>
               <select 
-                className="w-full h-12 px-3 rounded-xl border border-slate-200 font-bold italic bg-white text-sm outline-none"
+                className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-slate-900 text-foreground text-sm outline-none focus:border-primary/50"
                 value={formData.target}
                 onChange={e => setFormData({ ...formData, target: e.target.value as RetailPromotion["target"] })}
               >
-                <option value="all">All Items (Global)</option>
-                <option value="category">Specific Category</option>
-                <option value="specific_items">Specific Items</option>
+                <option value="all" className="bg-slate-900 text-foreground">All Items (Global)</option>
+                <option value="category" className="bg-slate-900 text-foreground">Specific Category</option>
+                <option value="specific_items" className="bg-slate-900 text-foreground">Specific Items</option>
               </select>
             </div>
           </div>
 
           <div className="flex gap-3 pt-2">
-            <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl font-bold uppercase tracking-wider text-xs border-slate-200" onClick={onClose}>
+            <Button type="button" variant="outline" className="flex-1 h-12 rounded-xl font-bold uppercase tracking-wider text-xs border-white/10 hover:bg-white/10 text-muted-foreground hover:text-foreground" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-foreground font-black italic uppercase tracking-wider text-xs shadow-lg shadow-indigo-600/20">
+            <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black italic uppercase tracking-wider text-xs shadow-lg shadow-primary/20">
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Queue Proposal"}
             </Button>
           </div>
