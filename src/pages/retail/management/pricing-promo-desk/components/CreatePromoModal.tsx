@@ -49,8 +49,9 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
       toast({ title: "Proposal Issued", description: "Promotion has been added to the governance queue." });
       onCreated(newPromo);
       onClose();
-    } catch (error: any) {
-      toast({ title: "Failed to issue proposal", description: error.message, variant: "destructive" });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      toast({ title: "Failed to issue proposal", description: errorMessage, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }

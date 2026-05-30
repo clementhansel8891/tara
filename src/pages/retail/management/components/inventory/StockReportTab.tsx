@@ -99,7 +99,7 @@ export const StockReportTab: React.FC<Props> = ({
         dateRange: { from: dateFrom, to: dateTo },
       };
 
-      if (session?.userId) {
+      if (session?.user_id) {
         logAuditAction(session.user_id, "EXPORT_REPORT", payload);
       }
 

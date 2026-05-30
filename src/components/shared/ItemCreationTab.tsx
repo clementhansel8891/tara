@@ -17,7 +17,7 @@ type Props = {
   tenantId?: string;
   categoryOptions?: { id: string; name: string }[];
   initialRows?: Partial<NewItemLine>[];
-  onSuccess?: (createdItems: any[]) => void;
+  onSuccess?: (createdItems?: unknown[]) => void;
 };
 
 export const ItemCreationTab: React.FC<Props> = ({
@@ -157,7 +157,7 @@ export const ItemCreationTab: React.FC<Props> = ({
 
       if (res.success) {
         // --- Image Upload Phase ---
-        const createdItems = res.data as any[];
+        const createdItems = res.data as { sku: string; id: string }[];
         
         for (const row of rows) {
           if (row.images && row.images.length > 0) {
@@ -221,10 +221,11 @@ export const ItemCreationTab: React.FC<Props> = ({
       a.download = "inventory_template.xlsx";
       a.click();
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Could not get template.";
       toast({ 
         title: "Download Failed", 
-        description: err.message || "Could not get template.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -244,10 +245,11 @@ export const ItemCreationTab: React.FC<Props> = ({
       });
       if (onSuccess) onSuccess();
       if (csvInputRef.current) csvInputRef.current.value = "";
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Check your CSV format.";
       toast({ 
         title: "Import Failed", 
-        description: err.message || "Check your CSV format.",
+        description: errorMessage,
         variant: "destructive" 
       });
     }
@@ -267,10 +269,11 @@ export const ItemCreationTab: React.FC<Props> = ({
       });
       if (onSuccess) onSuccess();
       if (imageInputRef.current) imageInputRef.current.value = "";
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Could not process images.";
       toast({ 
         title: "Upload Failed", 
-        description: err.message || "Could not process images.",
+        description: errorMessage,
         variant: "destructive" 
       });
     }
