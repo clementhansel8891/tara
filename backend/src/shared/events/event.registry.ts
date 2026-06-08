@@ -6,16 +6,11 @@ import { z } from 'zod';
  */
 
 export const RetailSaleSchemaV1 = z.object({
-  saleId: z.string(),
-  tenant_id: z.string(),
-  branch_id: z.string(),
-  items: z.array(z.object({
-    product_id: z.string(),
-    quantity: z.number(),
-    unit_price: z.number(),
-  })),
-  total_amount: z.number(),
-  timestamp: z.string(),
+  order_id: z.string(),
+  location_id: z.string(),
+  movements: z.array(z.any()),
+  amount: z.any(),
+  method: z.string(),
 });
 
 export const StockMovementSchemaV1 = z.object({

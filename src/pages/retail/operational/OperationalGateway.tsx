@@ -23,12 +23,12 @@ interface AppItem {
 }
 
 const APPS: AppItem[] = [
-  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-blue-500", bg: "bg-primary/50/10", requireShift: true },
-  { id: "ops-refund", title: "Refund Desk", desc: "Post-Sale Disputes", icon: RotateCcw, route: "/m/retail/operational/refund", color: "text-red-500", bg: "bg-red-500/10", requireShift: true },
-  { id: "ops-cash-movement", title: "Cash Movement", desc: "Petty Cash & Out", icon: Banknote, route: "/m/retail/operational/cash-movement", color: "text-amber-500", bg: "bg-amber-500/10", requireShift: true },
+  { id: "ops-pos", title: "POS Terminal", desc: "Sales Execution", icon: ShoppingCart, route: "/m/retail/operational/pos", color: "text-primary", bg: "bg-primary/10", requireShift: true },
+  { id: "ops-refund", title: "Refund Desk", desc: "Post-Sale Disputes", icon: RotateCcw, route: "/m/retail/operational/refund", color: "text-destructive", bg: "bg-destructive/10", requireShift: true },
+  { id: "ops-cash-movement", title: "Cash Movement", desc: "Petty Cash & Out", icon: Banknote, route: "/m/retail/operational/cash-movement", color: "text-warning", bg: "bg-warning/10", requireShift: true },
   { id: "ops-opname", title: "Stock Opname", desc: "Inventory Audit", icon: ScanLine, route: "/m/retail/operational/opname", color: "text-primary", bg: "bg-primary/10", requireShift: true },
-  { id: "ops-receiving", title: "Stock Intake", desc: "Good Receiving", icon: Truck, route: "/m/retail/operational/receiving", color: "text-orange-500", bg: "bg-orange-500/10", requireShift: true },
-  { id: "ops-kiosk", title: "Self-Service", desc: "Guest Checkout", icon: Monitor, route: "/m/retail/operational/kiosk", color: "text-purple-500", bg: "bg-purple-500/10", requireShift: true },
+  { id: "ops-receiving", title: "Stock Intake", desc: "Good Receiving", icon: Truck, route: "/m/retail/operational/receiving", color: "text-warning", bg: "bg-warning/10", requireShift: true },
+  { id: "ops-kiosk", title: "Self-Service", desc: "Guest Checkout", icon: Monitor, route: "/m/retail/operational/kiosk", color: "text-accent", bg: "bg-accent/10", requireShift: true },
   { id: "ops-shift-open", title: "Shift Open", desc: "Start Session", icon: Power, route: "/m/retail/operational/shift-open", color: "text-success", bg: "bg-success/10" },
   { id: "ops-shift-close", title: "Shift Close", desc: "End Reconciliation", icon: Lock, route: "/m/retail/operational/shift-close", color: "text-muted-foreground", bg: "bg-muted/20" },
 ];

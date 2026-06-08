@@ -61,13 +61,13 @@ async function runPhase5(): Promise<void> {
         },
       );
 
-      posDevice = await (tx as any).pOSDevice.create({
+      posDevice = await (tx as any).pos_devices.create({
         data: {
-          tenantId: company.id,
-          storeId: store.id,
+          tenant_id: company.id,
+          store_id: store.id,
           name: "POS-01",
           type: "terminal",
-          isActive: true,
+          is_active: true,
         },
       });
 
@@ -94,12 +94,12 @@ async function runPhase5(): Promise<void> {
 
       // Initialize Stock
       for (const p of products) {
-        await (tx as any).stockLevel.create({
+        await (tx as any).stock_levels.create({
           data: {
-            tenantId: company.id,
-            locationId: location.id,
-            productId: p.id,
-            onHand: initialStock,
+            tenant_id: company.id,
+            location_id: location.id,
+            product_id: p.id,
+            on_hand: initialStock,
             available: initialStock,
           },
         });
@@ -124,39 +124,41 @@ async function runPhase5(): Promise<void> {
     const paymentRef = `TXN-${testId()}`;
 
     try {
-      order = await (tx as any).retailOrder.create({
+      order = await (tx as any).retail_orders.create({
         data: {
-          tenantId: company.id,
-          storeId: store.id,
-          deviceId: posDevice.id,
-          cashierId: cashier.id,
+          tenant_id: company.id,
+          store_id: store.id,
+          device_id: posDevice.id,
+          cashier_id: cashier.id,
           status: "paid",
           subtotal: subtotal,
           tax: tax,
-          totalAmount: totalAmount,
-          paymentMethod: "cash",
-          paymentReference: paymentRef,
-          items: {
+          total_amount: totalAmount,
+          payment_method: "cash",
+          payment_reference: paymentRef,
+          retail_order_items: {
             create: [
               {
-                tenantId: company.id,
-                productId: products[0].id,
+                tenant_id: company.id,
+                product_id: products[0].id,
                 quantity: 1,
-                unitPrice: 3000000,
-                totalPrice: 3000000,
+                unit_price: 3000000,
+                total_price: 3000000,
               },
               {
-                tenantId: company.id,
-                productId: products[1].id,
+                tenant_id: company.id,
+                product_id: products[1].id,
                 quantity: 1,
-                unitPrice: 200000,
-                totalPrice: 200000,
+                unit_price: 200000,
+                total_price: 200000,
               },
             ],
           },
         },
-        include: { items: true },
+        include: { retail_order_items: true },
       });
+      // Standardize order.items for downstream steps using order.retail_order_items
+      order.items = order.retail_order_items;
       pass(
         "5.2 RetailOrder created",
         `Order ${order.id} generated — Total: ${totalAmount} (${order.items.length} items)`,
@@ -172,34 +174,34 @@ async function runPhase5(): Promise<void> {
     try {
       for (const item of order.items) {
         // Record Movement OUT
-        await (tx as any).stockMovement.create({
+        await (tx as any).stock_movements.create({
           data: {
-            tenantId: company.id,
-            productId: item.productId,
-            fromLocationId: location.id,
-            toLocationId: null, // explicit for clarity
+            tenant_id: company.id,
+            product_id: item.product_id,
+            from_location_id: location.id,
+            to_location_id: null, // explicit for clarity
             quantity: item.quantity,
             type: "RETAIL_SALE",
-            referenceId: order.id,
-            performedBy: cashier.id,
+            reference_id: order.id,
+            performed_by: cashier.id,
+            location_id: location.id,
           },
         });
 
         // Update Level - Find the specific stock level first to get its ID
-        // This avoids Prisma's limitation with null values in composite unique keys
-        const targetStock = await (tx as any).stockLevel.findFirst({
+        const targetStock = await (tx as any).stock_levels.findFirst({
           where: {
-            tenantId: company.id,
-            locationId: location.id,
-            productId: item.productId,
+            tenant_id: company.id,
+            location_id: location.id,
+            product_id: item.product_id,
           },
         });
 
         if (targetStock) {
-          await (tx as any).stockLevel.update({
+          await (tx as any).stock_levels.update({
             where: { id: targetStock.id },
             data: {
-              onHand: { decrement: item.quantity },
+              on_hand: { decrement: item.quantity },
               available: { decrement: item.quantity },
             },
           });
@@ -211,18 +213,17 @@ async function runPhase5(): Promise<void> {
       );
     } catch (e: any) {
       fail("5.3 Inventory deducted", `Inventory update failed: ${e.message}`);
-      // Note: In real app, this should be atomic with order creation
     }
 
     // ────────────────────────────────────────────────────────────────────────
     // STEP 5.4: Verify StockLevels after sale
     // ────────────────────────────────────────────────────────────────────────
     try {
-      const levels = await (tx as any).stockLevel.findMany({
-        where: { tenantId: company.id, locationId: location.id },
+      const levels = await (tx as any).stock_levels.findMany({
+        where: { tenant_id: company.id, location_id: location.id },
       });
       const allCorrect = levels.every(
-        (l: any) => Number(l.onHand) === initialStock - 1,
+        (l: any) => Number(l.on_hand) === initialStock - 1,
       );
       if (allCorrect) {
         pass(
@@ -245,18 +246,18 @@ async function runPhase5(): Promise<void> {
     // ────────────────────────────────────────────────────────────────────────
     let paymentTx: any;
     try {
-      paymentTx = await (tx as any).paymentTransaction.create({
+      paymentTx = await (tx as any).payment_transactions.create({
         data: {
-          tenantId: company.id,
-          externalReference: order.id, // Linking back to order
+          tenant_id: company.id,
+          external_reference: order.id, // Linking back to order
           type: "SALE",
           amount: totalAmount,
           currency: "IDR",
           destination: "MAIN_CASHIER",
           channel: "CASH",
-          idempotencyKey: `PAY-${order.id}`,
+          idempotency_key: `PAY-${order.id}`,
           status: "SETTLED",
-          createdBy: cashier.id,
+          created_by: cashier.id,
         },
       });
       pass(
@@ -275,20 +276,20 @@ async function runPhase5(): Promise<void> {
     // ────────────────────────────────────────────────────────────────────────
     let journalEntry: any;
     try {
-      journalEntry = await (tx as any).journalEntry.create({
+      journalEntry = await (tx as any).finance_journal_entries.create({
         data: {
-          tenantId: company.id,
-          fiscalPeriodId: (fiscalPeriod as any).id,
+          tenant_id: company.id,
+          fiscal_period_id: (fiscalPeriod as any).id,
           ref: order.id,
-          postingDate: new Date(),
+          posting_date: new Date(),
           description: `POS Sale — Order ${order.id.slice(0, 8)}`,
           status: "POSTED",
-          lines: {
+          finance_journal_lines: {
             create: [
               {
-                tenantId: company.id,
-                accountId: accCash.id,
-                accountCode: "1000",
+                tenant_id: company.id,
+                account_id: accCash.id,
+                account_code: "1000",
                 description: `Collections from POS-01`,
                 side: "DEBIT",
                 amount: totalAmount,
@@ -296,9 +297,9 @@ async function runPhase5(): Promise<void> {
                 credit: 0,
               },
               {
-                tenantId: company.id,
-                accountId: accRevenue.id,
-                accountCode: "4000",
+                tenant_id: company.id,
+                account_id: accRevenue.id,
+                account_code: "4000",
                 description: `Retail Sales Revenue`,
                 side: "CREDIT",
                 amount: subtotal,
@@ -306,9 +307,9 @@ async function runPhase5(): Promise<void> {
                 credit: subtotal,
               },
               {
-                tenantId: company.id,
-                accountId: accTax.id,
-                accountCode: "2200",
+                tenant_id: company.id,
+                account_id: accTax.id,
+                account_code: "2200",
                 description: `VAT collections`,
                 side: "CREDIT",
                 amount: tax,
@@ -316,9 +317,9 @@ async function runPhase5(): Promise<void> {
                 credit: tax,
               },
               {
-                tenantId: company.id,
-                accountId: accCogs.id,
-                accountCode: "5100",
+                tenant_id: company.id,
+                account_id: accCogs.id,
+                account_code: "5100",
                 description: `Cost of goods sold`,
                 side: "DEBIT",
                 amount: Number(subtotal) * 0.6,
@@ -326,9 +327,9 @@ async function runPhase5(): Promise<void> {
                 credit: 0,
               },
               {
-                tenantId: company.id,
-                accountId: accInventory.id,
-                accountCode: "1300",
+                tenant_id: company.id,
+                account_id: accInventory.id,
+                account_code: "1300",
                 description: `Inventory reduction`,
                 side: "CREDIT",
                 amount: Number(subtotal) * 0.6,
@@ -338,8 +339,10 @@ async function runPhase5(): Promise<void> {
             ],
           },
         },
-        include: { lines: true },
+        include: { finance_journal_lines: true },
       });
+      // Standardize lines for balance check
+      journalEntry.lines = journalEntry.finance_journal_lines;
       pass(
         "5.6 JournalEntry created",
         `Finance entry ${journalEntry.id} recorded for Order ${order.id}`,
@@ -380,25 +383,24 @@ async function runPhase5(): Promise<void> {
     // STEP 5.7: Verify Relation Gaps (Structural warnings)
     // ────────────────────────────────────────────────────────────────────────
     try {
-      const refOrder = await (tx as any).retailOrder.findUnique({
+      const refOrder = await (tx as any).retail_orders.findUnique({
         where: { id: order.id },
       });
-      if (refOrder && !refOrder.paymentId) {
-        // Checking if a 'paymentId' field even exists in schema
+      if (refOrder && !(refOrder as any).paymentId) {
         warn(
           "5.7 RetailOrder→Payment link",
-          "RetailOrder uses paymentReference string but lacks formal FK to PaymentTransaction table.",
+          "RetailOrder uses payment_reference string but lacks formal FK to PaymentTransaction table.",
         );
       }
 
       // Verify traceability
-      const tracedTx = await (tx as any).paymentTransaction.findFirst({
-        where: { externalReference: order.id },
+      const tracedTx = await (tx as any).payment_transactions.findFirst({
+        where: { external_reference: order.id },
       });
       if (tracedTx) {
         pass(
           "5.7 Traceability POS→Payment",
-          `Can find PaymentTransaction using Order ID as externalReference`,
+          `Can find PaymentTransaction using Order ID as external_reference`,
         );
       } else {
         fail(

@@ -67,13 +67,14 @@ export class JVAllocationService {
       const shadowEntries: any[] = [];
       for (const line of lines) {
         for (const participant of participants) {
-          const allocatedAmt = line.amount.mul(participant.share_pct).div(100);
+          const sharePct = participant.revenue_share_pct || participant.profit_share_pct || 0;
+          const allocatedAmt = line.amount.mul(sharePct).div(100);
           shadowEntries.push({
             tenant_id,
             jv_profile_id: profile.id,
             journal_id: journalEntry.id,
             line_id: line.id,
-            participant_id: participant.participant_id,
+            participant_id: participant.participant_tenant_id,
             allocated_amt: allocatedAmt,
             side: line.side,
             account_code: line.account_code || line.accountCode,

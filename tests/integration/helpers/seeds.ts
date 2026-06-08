@@ -21,7 +21,16 @@ export async function seedTestCompany(
   }> = {},
 ) {
   const id = overrides.id ?? testId("comp");
-  return prisma.company.create({
+  // Seed the corresponding tenant first to satisfy the companies_tenant_id_fkey constraint
+  await (prisma as any).tenants.create({
+    data: {
+      id,
+      name: overrides.name ?? `Test Tenant ${id}`,
+      code: `T-${id.slice(-6)}`,
+      status: "active",
+    },
+  });
+  return (prisma as any).companies.create({
     data: {
       id,
       name: overrides.name ?? `Test Company ${id}`,
@@ -30,6 +39,7 @@ export async function seedTestCompany(
       country: "ID",
       currency: "IDR",
       industry: "retail",
+      tenant_id: id,
     },
   });
 }
@@ -45,10 +55,10 @@ export async function seedTestLocation(
   }> = {},
 ) {
   const id = overrides.id ?? testId("loc");
-  return prisma.location.create({
+  return (prisma as any).locations.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `Test Location ${id}`,
       code: `LOC-${id.slice(-6)}`,
       type: overrides.type ?? "branch",
@@ -70,10 +80,10 @@ export async function seedTestDepartment(
   }> = {},
 ) {
   const id = overrides.id ?? testId("dept");
-  return prisma.department.create({
+  return (prisma as any).departments.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `Test Department ${id}`,
       code: overrides.code ?? `DEPT-${id.slice(-6)}`,
       status: "active",
@@ -98,20 +108,20 @@ export async function seedTestEmployee(
   }> = {},
 ) {
   const id = overrides.id ?? testId("emp");
-  return prisma.employee.create({
+  return (prisma as any).employees.create({
     data: {
       id,
-      tenantId,
-      locationId,
-      departmentId,
-      firstName: overrides.firstName ?? "Test",
-      lastName: overrides.lastName ?? `Employee ${id}`,
+      tenant_id: tenantId,
+      location_id: locationId,
+      department_id: departmentId,
+      first_name: overrides.firstName ?? "Test",
+      last_name: overrides.lastName ?? `Employee ${id}`,
       email: overrides.email ?? `${id}@test.invalid`,
-      position: overrides.position ?? "Test Staff",
-      employeeCode: `EC-${id.slice(-8)}`,
-      employmentType: "full_time",
-      baseSalary: overrides.baseSalary ?? 5000000,
-      hireDate: overrides.hireDate ?? new Date("2024-01-01"),
+      positions: overrides.position ?? "Test Staff",
+      employee_code: `EC-${id.slice(-8)}`,
+      employment_type: "full_time",
+      base_salary: overrides.baseSalary ?? 5000000,
+      hire_date: overrides.hireDate ?? new Date("2024-01-01"),
       status: "active",
     },
   });
@@ -130,18 +140,18 @@ export async function seedTestProduct(
   }> = {},
 ) {
   const id = overrides.id ?? testId("prod");
-  return prisma.product.create({
+  return (prisma as any).item_masters.create({
     data: {
       id,
-      tenantId,
-      categoryId,
+      tenant_id: tenantId,
+      category_id: categoryId,
       name: overrides.name ?? `Test Product ${id}`,
       sku: overrides.sku ?? `SKU-${id.slice(-8)}`,
       barcode: `BAR-${id.slice(-8)}`,
       description: "Integration test product",
       unit: "pcs",
-      basePrice: overrides.basePrice ?? 100000,
-      taxRate: 0.11,
+      base_price: overrides.basePrice ?? 100000,
+      tax_rate: 0.11,
       type: "ITEM",
       status: "active",
     },
@@ -155,10 +165,10 @@ export async function seedTestCategory(
   overrides: Partial<{ id: string; name: string }> = {},
 ) {
   const id = overrides.id ?? testId("cat");
-  return prisma.productCategory.create({
+  return (prisma as any).product_categories.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `Test Category ${id}`,
     },
   });
@@ -172,11 +182,11 @@ export async function seedTestStore(
   overrides: Partial<{ id: string; name: string; code: string }> = {},
 ) {
   const id = overrides.id ?? testId("store");
-  return prisma.store.create({
+  return (prisma as any).stores.create({
     data: {
       id,
-      tenantId,
-      locationId,
+      tenant_id: tenantId,
+      location_id: locationId,
       name: overrides.name ?? `Test Store ${id}`,
       code: overrides.code ?? `ST-${id.slice(-6)}`,
       type: "physical",
@@ -193,15 +203,15 @@ export async function seedTestShift(
   overrides: Partial<{ id: string; name: string }> = {},
 ) {
   const id = overrides.id ?? testId("shift");
-  return prisma.shift.create({
+  return (prisma as any).shifts.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `Morning Shift ${id}`,
-      startTime: "08:00",
-      endTime: "16:00",
-      breakDuration: 60,
-      workDays: [1, 2, 3, 4, 5],
+      start_time: "08:00",
+      end_time: "16:00",
+      break_duration: 60,
+      work_days: [1, 2, 3, 4, 5],
     },
   });
 }
@@ -213,29 +223,29 @@ export async function seedTestSupplier(
   overrides: Partial<{ id: string; name: string }> = {},
 ) {
   const id = overrides.id ?? testId("supp");
-  const supplier = await prisma.supplierMaster.create({
+  const supplier = await (prisma as any).supplier_masters.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `Test Supplier ${id}`,
-      complianceStatus: "APPROVED",
-      globalRating: 80,
-      riskTier: "LOW",
+      compliance_status: "APPROVED",
+      global_rating: 80,
+      risk_tier: "LOW",
       categories: ["general"],
     },
   });
   const branchId = testId("sbranch");
-  const branch = await prisma.supplierBranch.create({
+  const branch = await (prisma as any).supplier_branches.create({
     data: {
       id: branchId,
-      tenantId,
-      supplierId: supplier.id,
-      branchCode: `SB-${branchId.slice(-6)}`,
-      branchName: `${supplier.name} HQ`,
+      tenant_id: tenantId,
+      supplier_id: supplier.id,
+      branch_code: `SB-${branchId.slice(-6)}`,
+      branch_name: `${supplier.name} HQ`,
       location: "Jakarta",
-      leadTimeDays: 3,
-      localRating: 80,
-      riskTier: "LOW",
+      lead_time_days: 3,
+      local_rating: 80,
+      risk_tier: "LOW",
       active: true,
     },
   });
@@ -249,22 +259,23 @@ export async function seedTestFiscalPeriod(
   overrides: Partial<{ id: string; name: string; startDate: Date; endDate: Date }> = {},
 ) {
   const id = overrides.id ?? testId("fp");
-  return prisma.fiscalPeriod.create({
+  return (prisma as any).finance_fiscal_periods.create({
     data: {
       id,
-      tenantId,
+      tenant_id: tenantId,
       name: overrides.name ?? `FY2026-Q1`,
-      startDate: overrides.startDate ?? new Date("2026-01-01"),
-      endDate: overrides.endDate ?? new Date("2026-03-31"),
+      start_date: overrides.startDate ?? new Date("2026-01-01"),
+      end_date: overrides.endDate ?? new Date("2026-03-31"),
       status: "OPEN",
+      fiscal_year_id: "FY-2026",
     },
   });
 }
 
 export async function seedTestAccount(tx: PrismaClient, tenantId: string, code: string, name: string, type: string) {
-  return await (tx as any).chartOfAccount.create({
+  return await (tx as any).finance_chart_of_accounts.create({
     data: {
-      tenantId,
+      tenant_id: tenantId,
       code,
       name,
       type

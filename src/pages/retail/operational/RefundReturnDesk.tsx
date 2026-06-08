@@ -141,7 +141,7 @@ const RefundReturnDesk = () => {
     <div className="flex-1 relative flex selection:bg-primary/30 selection:text-foreground">
       {/* Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-red-500/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-destructive/10 blur-[130px] rounded-full animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
@@ -149,7 +149,7 @@ const RefundReturnDesk = () => {
         {/* TACTICAL HEADER */}
         <div className="flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-destructive flex items-center justify-center text-foreground shadow-lg shadow-red-600/20">
+            <div className="w-14 h-14 rounded-2xl bg-destructive flex items-center justify-center text-foreground shadow-lg shadow-destructive/20">
               <RotateCcw className="w-7 h-7" />
             </div>
             <div>
@@ -163,7 +163,7 @@ const RefundReturnDesk = () => {
           </div>
 
           <div className="flex items-center gap-3">
-             <div className="px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-2">
+             <div className="px-4 py-2 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-destructive" />
                 <span className="text-[10px] font-black italic uppercase text-destructive tracking-widest">
                    Authority: Level 3
@@ -199,14 +199,14 @@ const RefundReturnDesk = () => {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-destructive transition-colors" />
                     <Input
                       placeholder="SCAN RECEIPT OR ENTER INVOICE ID..."
-                      className="h-20 pl-16 bg-secondary/40 border-2 border-border text-2xl font-black text-foreground rounded-[1.5rem] focus:border-red-500/50 transition-all placeholder:text-muted-foreground/30 italic uppercase tracking-tighter"
+                      className="h-20 pl-16 bg-secondary/40 border-2 border-border text-2xl font-black text-foreground rounded-[1.5rem] focus:border-destructive/50 transition-all placeholder:text-muted-foreground/30 italic uppercase tracking-tighter"
                       value={ticketId}
                       onChange={(e) => setTicketId(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleLookup()}
                     />
                   </div>
                   <Button
-                    className="h-20 px-12 bg-destructive hover:bg-red-500 text-foreground font-black italic rounded-[1.5rem] shadow-2xl shadow-red-600/20 transition-all uppercase tracking-widest text-sm"
+                    className="h-20 px-12 bg-destructive hover:bg-destructive/90 text-foreground font-black italic rounded-[1.5rem] shadow-2xl shadow-destructive/20 transition-all uppercase tracking-widest text-sm"
                     onClick={handleLookup}
                     disabled={isSearching}
                   >
@@ -246,7 +246,7 @@ const RefundReturnDesk = () => {
                             key={item.itemId}
                             className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between group cursor-pointer ${
                               isSelected
-                                ? "bg-red-500/10 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.1)]"
+                                ? "bg-destructive/10 border-destructive/30 shadow-[0_0_40px_rgba(239,68,68,0.1)]"
                                 : "bg-secondary/40 border-border hover:border-white/20"
                             }`}
                             onClick={() => toggleItem(item.itemId)}
@@ -297,7 +297,7 @@ const RefundReturnDesk = () => {
                     </div>
                     <Button
                       size="lg"
-                      className="bg-destructive hover:bg-red-500 font-black italic h-20 px-16 rounded-[1.5rem] shadow-2xl shadow-red-600/20 text-xl transition-transform active:scale-95 uppercase tracking-widest"
+                      className="bg-destructive hover:bg-destructive/90 font-black italic h-20 px-16 rounded-[1.5rem] shadow-2xl shadow-destructive/20 text-xl transition-transform active:scale-95 uppercase tracking-widest"
                       onClick={processRefund}
                       disabled={isRefunding || selectedItems.length === 0}
                     >
@@ -311,7 +311,7 @@ const RefundReturnDesk = () => {
 
           <div className="flex flex-col gap-8">
             <Card className="border-none bg-destructive/10 backdrop-blur-3xl shadow-2xl rounded-[2.5rem] overflow-hidden group">
-              <CardHeader className="py-6 px-8 border-b border-red-500/20">
+              <CardHeader className="py-6 px-8 border-b border-destructive/20">
                 <CardTitle className="flex items-center gap-3 text-destructive text-[11px] uppercase font-black tracking-[0.3em] leading-none italic">
                   <ShieldAlert className="w-5 h-5" /> Policy Enforcement
                 </CardTitle>
@@ -320,8 +320,8 @@ const RefundReturnDesk = () => {
                 <p className="text-[11px] text-muted-foreground font-bold leading-relaxed italic uppercase tracking-widest">
                   Returns exceeding <span className="text-destructive">Rp 1,000,000</span> will trigger a supervisor biometric request and zone lockdown.
                 </p>
-                <div className="p-4 bg-black/20 rounded-2xl border border-red-500/10 flex items-center gap-4">
-                   <AlertCircle className="w-5 h-5 text-red-600" />
+                <div className="p-4 bg-black/20 rounded-2xl border border-destructive/10 flex items-center gap-4">
+                   <AlertCircle className="w-5 h-5 text-destructive" />
                    <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest italic">Vault Lock Active</span>
                 </div>
               </CardContent>

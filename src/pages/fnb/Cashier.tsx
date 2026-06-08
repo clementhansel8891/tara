@@ -479,9 +479,9 @@ export default function CafeCashier() {
                   ))}
                 </div>
                 {change > 0 && (
-                  <div className="p-4 bg-green-500/10 rounded-lg text-center">
+                  <div className="p-4 bg-success/10 rounded-lg text-center">
                     <p className="text-sm text-muted-foreground">Change Due</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(change)}</p>
+                    <p className="text-2xl font-bold text-success">{formatCurrency(change)}</p>
                   </div>
                 )}
               </div>

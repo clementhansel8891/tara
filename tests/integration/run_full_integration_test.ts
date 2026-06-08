@@ -10,7 +10,9 @@ import fs from "fs";
 import path from "path";
 
 const phases = [
+  "05_pos_inventory_payment_finance.ts",
   "16_retail_pos_inventory_integration_test.ts",
+  "17_joint_venture_allocation_test.ts",
 ];
 
 console.log("====================================================");

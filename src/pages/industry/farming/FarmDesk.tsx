@@ -33,7 +33,7 @@ export default function FarmDesk() {
           primaryAction={
             <Button 
               onClick={() => alert("Initializing sector activity log. Resource allocation pending...")}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-success hover:bg-success/90"
             >
               <Plus className="h-4 w-4 mr-2" /> Log Activity
             </Button>
@@ -87,13 +87,13 @@ export default function FarmDesk() {
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <WorkspacePanel title="Barn Temp">
                   <div className="flex items-center justify-between">
-                      <Thermometer className="h-8 w-8 text-orange-500" />
+                      <Thermometer className="h-8 w-8 text-warning" />
                       <span className="text-3xl font-black">24.5°C</span>
                   </div>
               </WorkspacePanel>
               <WorkspacePanel title="Soil Moisture">
                   <div className="flex items-center justify-between">
-                      <Activity className="h-8 w-8 text-blue-500" />
+                      <Activity className="h-8 w-8 text-primary" />
                       <span className="text-3xl font-black">68%</span>
                   </div>
               </WorkspacePanel>

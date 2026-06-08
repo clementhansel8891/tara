@@ -182,7 +182,7 @@ const SelfServiceKiosk = () => {
       <div className="h-screen flex flex-col items-center justify-center bg-background p-8 space-y-12 animate-in zoom-in-95 duration-500 overflow-hidden selection:bg-success/30">
         <div className="relative">
           <div className="absolute inset-0 bg-success/10 blur-3xl animate-pulse rounded-full" />
-          <div className="relative w-48 h-48 bg-success rounded-[3rem] flex items-center justify-center shadow-2xl shadow-emerald-500/40 transform rotate-12 transition-transform hover:rotate-0 duration-500">
+          <div className="relative w-48 h-48 bg-success rounded-[3rem] flex items-center justify-center shadow-2xl shadow-success/40 transform rotate-12 transition-transform hover:rotate-0 duration-500">
             <CheckCircle className="w-24 h-24 text-foreground" />
           </div>
         </div>
@@ -213,7 +213,7 @@ const SelfServiceKiosk = () => {
     <div className="flex-1 relative flex selection:bg-primary/50 selection:text-foreground">
       {/* Dynamic Background Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-primary/50/10 blur-[130px] rounded-full animate-pulse" />
+        <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-primary/10 blur-[130px] rounded-full animate-pulse" />
         <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
@@ -221,7 +221,7 @@ const SelfServiceKiosk = () => {
         {/* TACTICAL KIOSK HEADER */}
         <div className="flex justify-between items-center bg-secondary/40 p-8 rounded-[2.5rem] border border-border backdrop-blur-3xl shrink-0">
           <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40">
+            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40">
               <Monitor className="w-9 h-9 text-foreground" />
             </div>
             <div>
@@ -235,7 +235,7 @@ const SelfServiceKiosk = () => {
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:block text-right">
-              <div className="text-[9px] font-black text-blue-500 uppercase tracking-[0.3em] mb-1 italic text-right">
+              <div className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-1 italic text-right">
                 Infrastructure Link
               </div>
               <div className="flex items-center gap-2 justify-end">
@@ -266,7 +266,7 @@ const SelfServiceKiosk = () => {
               onClick={() => navigate("/m/retail/operational/gateway")}
               title="Exit to Gateway"
             >
-              <Home className="w-6 h-6 text-blue-400" />
+              <Home className="w-6 h-6 text-primary" />
             </Button>
           </div>
         </div>
@@ -277,7 +277,7 @@ const SelfServiceKiosk = () => {
             <Card className="bg-secondary/40 border-border backdrop-blur-3xl rounded-[3rem] overflow-hidden shadow-2xl shrink-0">
               <CardContent className="p-10">
                 <form onSubmit={handleScan} className="relative group">
-                  <Scan className="absolute left-10 top-1/2 -translate-y-1/2 w-10 h-10 text-blue-500 group-focus-within:scale-110 transition-transform" />
+                  <Scan className="absolute left-10 top-1/2 -translate-y-1/2 w-10 h-10 text-primary group-focus-within:scale-110 transition-transform" />
                   <Input
                     ref={inputRef}
                     value={scanInput}
@@ -293,15 +293,15 @@ const SelfServiceKiosk = () => {
                     <button
                       key={p.id}
                       onClick={() => addToCart(p)}
-                      className="p-6 bg-secondary/40 border border-border rounded-[2.5rem] hover:bg-secondary/60 hover:border-blue-500/50 transition-all group flex flex-col items-center"
+                      className="p-6 bg-secondary/40 border border-border rounded-[2.5rem] hover:bg-secondary/60 hover:border-primary/50 transition-all group flex flex-col items-center"
                     >
                       <div className="w-full aspect-square bg-secondary/40 rounded-3xl mb-6 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                        <ShoppingBag className="w-12 h-12 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+                        <ShoppingBag className="w-12 h-12 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                       <div className="text-[11px] font-black italic text-foreground truncate uppercase tracking-tighter w-full text-center">
                         {p.name}
                       </div>
-                      <div className="text-[10px] font-black text-blue-500 mt-2 italic tracking-widest">
+                      <div className="text-[10px] font-black text-primary mt-2 italic tracking-widest">
                         Rp {p.price.toLocaleString()}
                       </div>
                     </button>
@@ -386,7 +386,7 @@ const SelfServiceKiosk = () => {
                               </div>
                               <button
                                 onClick={() => removeFromCart(item.id)}
-                                className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors mt-3 italic"
+                                className="text-[10px] font-black text-destructive uppercase tracking-widest hover:text-destructive/70 transition-colors mt-3 italic"
                               >
                                 Remove From Tray
                               </button>
@@ -406,7 +406,7 @@ const SelfServiceKiosk = () => {
             <Card className="bg-secondary border-none shadow-3xl text-foreground rounded-[3.5rem] overflow-hidden flex flex-col shrink-0">
               <CardContent className="p-12 space-y-12">
                 <div className="space-y-6">
-                  <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] italic">
+                  <div className="text-[10px] font-black text-primary uppercase tracking-[0.4em] italic">
                     Final Assessment Total
                   </div>
                   <div className="text-7xl font-black italic tracking-tighter text-foreground">
@@ -426,7 +426,7 @@ const SelfServiceKiosk = () => {
                       onClick={() => setPaymentMethod("card")}
                       className={`p-10 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-6 ${
                         paymentMethod === "card"
-                          ? "bg-primary border-blue-400 shadow-2xl shadow-blue-500/40"
+                          ? "bg-primary border-primary/50 shadow-2xl shadow-primary/40"
                           : "bg-secondary/40 border-border hover:bg-secondary/60"
                       }`}
                     >
@@ -439,7 +439,7 @@ const SelfServiceKiosk = () => {
                       onClick={() => setPaymentMethod("qr")}
                       className={`p-10 rounded-[2.5rem] border-2 transition-all flex flex-col items-center gap-6 ${
                         paymentMethod === "qr"
-                          ? "bg-amber-600 border-amber-400 shadow-2xl shadow-amber-500/40"
+                          ? "bg-warning border-warning/50 shadow-2xl shadow-warning/40"
                           : "bg-secondary/40 border-border hover:bg-secondary/60"
                       }`}
                     >
@@ -476,7 +476,7 @@ const SelfServiceKiosk = () => {
             <Card className="bg-secondary/40 border border-border backdrop-blur-3xl rounded-[2.5rem] shadow-2xl overflow-hidden shrink-0">
               <CardContent className="p-8 flex gap-6 items-center">
                 <div className="w-16 h-16 bg-secondary/40 rounded-3xl flex items-center justify-center border-2 border-border">
-                  <Monitor className="w-8 h-8 text-blue-400" />
+                  <Monitor className="w-8 h-8 text-primary" />
                 </div>
                 <div>
                   <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic mb-1">

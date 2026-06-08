@@ -734,6 +734,7 @@ export class RetailDbRepository implements IRetailRepository {
       include: {
         retail_order_items: { include: { item_masters: true } },
         retail_customers: true,
+        stores: true,
       },
       orderBy: { created_at: "desc" },
       take: 100,
@@ -771,6 +772,7 @@ export class RetailDbRepository implements IRetailRepository {
       include: {
         retail_order_items: { include: { item_masters: true } },
         retail_customers: true,
+        stores: true,
       },
     });
     return order ? this.mapOrder(order) : null;

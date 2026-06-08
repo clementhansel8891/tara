@@ -47,7 +47,7 @@ export class InventoryMovementListener implements OnModuleInit {
       }
 
       // 2. Quantity Sign Enforcement
-      let qty = payload.qty;
+      let qty = payload.quantity !== undefined ? payload.quantity : payload.qty;
       if (entryType === 'INVENTORY_ISSUE' && qty > 0) {
         qty = -qty; // Enforce negative qty for issues
       }
@@ -59,11 +59,11 @@ export class InventoryMovementListener implements OnModuleInit {
         postingRequestId: uuid(),
         entryType,
         status: 'PENDING',
-        skuId: payload.skuId,
+        skuId: payload.product_id || payload.skuId,
         location_id: payload.location_id,
         qty,
-        unitCost: new Prisma.Decimal((payload.provisionalCost || 0).toString()),
-        amount: new Prisma.Decimal((payload.provisionalCost || 0).toString()).mul(Math.abs(qty)),
+        unitCost: new Prisma.Decimal((payload.provisionalCost || payload.unit_cost || 0).toString()),
+        amount: new Prisma.Decimal((payload.provisionalCost || payload.unit_cost || 0).toString()).mul(Math.abs(qty)),
         currency: payload.currency || 'USD',
         accountingPeriodId: 'PERIOD-2026-03', // TODO: Resolve from date
         isSystemGenerated: true,

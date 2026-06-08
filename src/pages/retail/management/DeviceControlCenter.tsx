@@ -273,7 +273,7 @@ const DeviceControlCenter = () => {
   ];
 
   return (
-    <div className="min-h-full bg-secondary/5/50">
+    <div className="min-h-full bg-secondary/5">
       {/* Header */}
       <div className="px-6 py-3 border-b bg-background/40 backdrop-blur-md sticky top-0 z-40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -285,7 +285,7 @@ const DeviceControlCenter = () => {
             <div className="flex items-center gap-2 bg-secondary/10 rounded-xl px-3 py-1.5 border border-border/40">
               <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               <Select value={branch} onValueChange={setBranch}>
-                <SelectTrigger className="border-none bg-transparent shadow-none h-auto p-0 text-[11px] font-black text-slate-800 min-w-[140px] focus:ring-0">
+                <SelectTrigger className="border-none bg-transparent shadow-none h-auto p-0 text-[11px] font-black text-foreground min-w-[140px] focus:ring-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border shadow-2xl">
@@ -307,7 +307,7 @@ const DeviceControlCenter = () => {
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="h-9 rounded-xl border-slate-200 text-muted-foreground font-black italic uppercase text-[9px] tracking-widest gap-2"
+              className="h-9 rounded-xl border-border text-muted-foreground font-black italic uppercase text-[9px] tracking-widest gap-2"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`}
@@ -343,7 +343,7 @@ const DeviceControlCenter = () => {
               c:
                 onlineDevs === devices.length && devices.length > 0
                   ? "text-success"
-                  : "text-amber-600",
+                  : "text-warning",
               icon: <Wifi className="w-5 h-5 text-success" />,
             },
             {
@@ -353,17 +353,17 @@ const DeviceControlCenter = () => {
               c:
                 activeCams === cameras.length && cameras.length > 0
                   ? "text-success"
-                  : "text-amber-600",
-              icon: <Camera className="w-5 h-5 text-blue-400" />,
+                  : "text-warning",
+              icon: <Camera className="w-5 h-5 text-primary" />,
             },
             {
               l: "Sensor Alerts",
               v: String(alertSens),
               s: alertSens > 0 ? "Needs attention" : "All clear",
-              c: alertSens > 0 ? "text-red-600" : "text-success",
+              c: alertSens > 0 ? "text-destructive" : "text-success",
               icon:
                 alertSens > 0 ? (
-                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                  <AlertTriangle className="w-5 h-5 text-destructive" />
                 ) : (
                   <CheckCircle2 className="w-5 h-5 text-success" />
                 ),
@@ -428,11 +428,11 @@ const DeviceControlCenter = () => {
                   onClick={() => setSelDevice(dev)}
                   className="text-left w-full"
                 >
-                  <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-blue-500/30 hover:-translate-y-0.5 transition-all cursor-pointer group h-full backdrop-blur-3xl">
+                  <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-primary/30 hover:-translate-y-0.5 transition-all cursor-pointer group h-full backdrop-blur-3xl">
                     <CardContent className="p-5 space-y-3">
                       <div className="flex items-start justify-between">
                         <div
-                          className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-success" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-secondary/10 text-muted-foreground"}`}
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-success/15 text-success" : dev.status === "maintenance" ? "bg-warning/15 text-warning" : "bg-secondary/10 text-muted-foreground"}`}
                         >
                           <DeviceIcon type={dev.type} cls="w-5 h-5" />
                         </div>
@@ -487,7 +487,7 @@ const DeviceControlCenter = () => {
               <div className="flex flex-col gap-4 col-span-1 min-h-[160px]">
                 <button
                   onClick={() => setShowReg(true)}
-                  className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-blue-500/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
+                  className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-primary/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
                 >
                   <PlusCircle className="w-6 h-6 text-muted-foreground/60 group-hover:text-muted-foreground transition-all" />
                   <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
@@ -496,7 +496,7 @@ const DeviceControlCenter = () => {
                 </button>
                 <button
                   onClick={handleScan}
-                  className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-blue-500/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
+                  className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-primary/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
                 >
                   <RefreshCw className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary transition-all" />
                   <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-primary">
@@ -522,7 +522,7 @@ const DeviceControlCenter = () => {
                   onClick={() => setSelCamForView(cam)}
                   className="text-left w-full focus:outline-none"
                 >
-                  <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-blue-500/30 hover:-translate-y-0.5 transition-all group overflow-hidden h-full backdrop-blur-3xl">
+                  <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-primary/30 hover:-translate-y-0.5 transition-all group overflow-hidden h-full backdrop-blur-3xl">
                     <div
                       className={`h-32 flex items-center justify-center relative ${cam.status === "live" || cam.status === "recording" ? "bg-secondary/60" : "bg-secondary/10"}`}
                     >
@@ -530,7 +530,7 @@ const DeviceControlCenter = () => {
                         <>
                           <Camera className="w-8 h-8 text-muted-foreground opacity-20" />
                           {cam.status === "recording" && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-red-500 rounded-full px-2.5 py-1">
+                            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-destructive rounded-full px-2.5 py-1">
                               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                               <span className="text-[8px] font-black text-foreground uppercase">
                                 REC
@@ -603,7 +603,7 @@ const DeviceControlCenter = () => {
               ))}
               <button
                 onClick={() => setShowCctvReg(true)}
-                className="rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-blue-500/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-10 gap-3 group min-h-[200px] text-foreground"
+                className="rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-primary/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-10 gap-3 group min-h-[200px] text-foreground"
               >
                 <PlusCircle className="w-9 h-9 text-muted-foreground/60 group-hover:text-muted-foreground group-hover:scale-110 transition-all" />
                 <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
@@ -624,14 +624,14 @@ const DeviceControlCenter = () => {
           ) : (
             <div className="space-y-4">
               {alertSens > 0 && (
-                <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-5 py-3.5">
-                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                <div className="flex items-center gap-3 bg-warning/10 border border-warning/20 rounded-2xl px-5 py-3.5">
+                  <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
                   <div>
-                    <div className="text-[11px] font-black text-amber-400">
+                    <div className="text-[11px] font-black text-warning">
                       {alertSens} sensor{alertSens > 1 ? "s" : ""} require
                       attention
                     </div>
-                    <div className="text-[10px] text-amber-400/70 font-medium">
+                    <div className="text-[10px] text-warning/70 font-medium">
                       Thresholds may have been exceeded — click a sensor for
                       details.
                     </div>
@@ -645,11 +645,11 @@ const DeviceControlCenter = () => {
                     onClick={() => setSelSensor(sensor)}
                     className="text-left w-full"
                   >
-                    <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-blue-500/30 hover:-translate-y-0.5 transition-all cursor-pointer h-full backdrop-blur-3xl">
+                    <Card className="rounded-3xl border border-white/5 bg-white/[0.03] shadow-2xl hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] hover:border-primary/30 hover:-translate-y-0.5 transition-all cursor-pointer h-full backdrop-blur-3xl">
                       <CardContent className="p-5 space-y-3">
                         <div className="flex items-start justify-between">
                           <div
-                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-success" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-secondary/10 text-muted-foreground"}`}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-success/15 text-success" : sensor.status === "warning" ? "bg-warning/15 text-warning" : sensor.status === "critical" ? "bg-destructive/15 text-destructive" : "bg-secondary/10 text-muted-foreground"}`}
                           >
                             <SIcon type={sensor.type} cls="w-5 h-5" />
                           </div>
@@ -674,10 +674,10 @@ const DeviceControlCenter = () => {
                         </div>
                         {sensor.currentValue !== undefined && (
                           <div
-                            className={`rounded-2xl px-4 py-3 flex items-center justify-between ${sensor.status === "warning" ? "bg-amber-50" : sensor.status === "critical" ? "bg-red-50" : "bg-secondary/5"}`}
+                            className={`rounded-2xl px-4 py-3 flex items-center justify-between ${sensor.status === "warning" ? "bg-warning/15" : sensor.status === "critical" ? "bg-destructive/15" : "bg-secondary/5"}`}
                           >
                             <span
-                              className={`text-2xl font-black italic tracking-tighter ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-success"}`}
+                              className={`text-2xl font-black italic tracking-tighter ${sensor.status === "warning" ? "text-warning" : sensor.status === "critical" ? "text-destructive" : "text-success"}`}
                             >
                               {sensor.currentValue}
                               <span className="text-xs ml-0.5 opacity-60">
@@ -722,7 +722,7 @@ const DeviceControlCenter = () => {
                 <div className="flex flex-col gap-4 col-span-1 min-h-[160px]">
                   <button
                     onClick={() => setShowReg(true)}
-                    className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-blue-500/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
+                    className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-primary/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
                   >
                     <PlusCircle className="w-6 h-6 text-muted-foreground/60 group-hover:text-muted-foreground transition-all" />
                     <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-muted-foreground">
@@ -731,7 +731,7 @@ const DeviceControlCenter = () => {
                   </button>
                   <button
                     onClick={handleScan}
-                    className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-blue-500/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
+                    className="flex-1 rounded-3xl border-2 border-dashed border-white/10 bg-white/[0.01] hover:border-primary/30 hover:bg-white/[0.04] hover:shadow-lg transition-all flex flex-col items-center justify-center py-4 gap-2 group text-foreground"
                   >
                     <RefreshCw className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary transition-all" />
                     <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground group-hover:text-primary">

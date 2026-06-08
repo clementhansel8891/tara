@@ -70,7 +70,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     const dbEntry = await db.inventory_subledger_entries.create({
       data: {
         id: require('crypto').randomUUID(),
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         source_event_id: data.sourceEventId || `inv-${Date.now()}`,
         entry_type: data.entryType!,
         status: data.status || 'PENDING',
@@ -99,7 +99,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
   async getEntryById(ctx: TenantContext, id: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
     const db = tx ?? this.prisma;
     const dbEntry = await db.inventory_subledger_entries.findFirst({
-      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      where: { id, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
     });
     if (!dbEntry) throw new Error(`Subledger Entry ${id} not found`);
     return this.mapToEntity(dbEntry);
@@ -108,7 +108,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
   async findEntryBySourceEvent(ctx: TenantContext, sourceEventId: string, entryType: string, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry | null> {
     const db = tx ?? this.prisma;
     const dbEntry = await db.inventory_subledger_entries.findFirst({
-      where: { ...MultiTenancyUtil.getScope(ctx), source_event_id: sourceEventId, entry_type: entryType },
+      where: { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }), source_event_id: sourceEventId, entry_type: entryType },
     });
     return dbEntry ? this.mapToEntity(dbEntry) : null;
   }
@@ -116,11 +116,23 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
   async updateEntryStatus(ctx: TenantContext, id: string, status: string, additionalMetadata?: any, tx?: Prisma.TransactionClient): Promise<InventorySubledgerEntry> {
     const db = tx ?? this.prisma;
     
+    // Fetch existing metadata to merge
+    const existing = await db.inventory_subledger_entries.findUnique({
+      where: { id },
+      select: { metadata: true }
+    });
+    const currentMeta = (existing?.metadata as any) || {};
+    const mergedMeta = {
+      ...currentMeta,
+      ...additionalMetadata
+    };
+
     const dbEntry = await db.inventory_subledger_entries.update({
-      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      where: { id, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
       data: {
         status,
         posted_at: status === 'POSTED' ? new Date() : undefined,
+        metadata: mergedMeta,
       },
     });
     return this.mapToEntity(dbEntry);
@@ -134,7 +146,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     const db = tx ?? this.prisma;
     const dbLayers = await db.cost_layers.findMany({
       where: {
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         sku_id: skuId,
         location_id: location_id,
         remaining_qty: { gt: 0 },
@@ -149,7 +161,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     const dbLayer = await db.cost_layers.create({
       data: {
         id: require('crypto').randomUUID(),
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         sku_id: data.skuId!,
         location_id: data.location_id!,
         qty: Number(data.qty?.toString() || '0'),
@@ -166,7 +178,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
   async updateCostLayer(ctx: TenantContext, id: string, data: Partial<CostLayer>, tx?: Prisma.TransactionClient): Promise<CostLayer> {
     const db = tx ?? this.prisma;
     const dbLayer = await db.cost_layers.update({
-      where: { id, ...MultiTenancyUtil.getScope(ctx) },
+      where: { id, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
       data: {
         remaining_qty: data.remainingQty !== undefined ? Number(data.remainingQty.toString()) : undefined,
       },
@@ -179,7 +191,7 @@ export class InventorySubledgerDbRepository implements IInventorySubledgerReposi
     const dbSnapshot = await db.cost_snapshots.create({
       data: {
         id: require('crypto').randomUUID(),
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         sku_id: data.skuId!,
         location_id: data.location_id!,
         total_qty: Number(data.totalQty?.toString() || '0'),

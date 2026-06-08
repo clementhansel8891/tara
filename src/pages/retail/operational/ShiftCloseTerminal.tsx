@@ -161,7 +161,7 @@ const ShiftCloseTerminal = () => {
       <div className="h-[calc(100vh-64px)] flex items-center justify-center bg-background p-8">
         <Card className="max-w-2xl w-full border-none bg-success/5 backdrop-blur-3xl shadow-2xl rounded-[3rem] overflow-hidden">
           <CardContent className="p-16 text-center space-y-10">
-            <div className="w-32 h-32 bg-success rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/30 transform rotate-12 transition-transform hover:rotate-0 duration-500">
+            <div className="w-32 h-32 bg-success rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-success/30 transform rotate-12 transition-transform hover:rotate-0 duration-500">
               <ShieldCheck className="w-16 h-16 text-foreground" />
             </div>
             <div>
@@ -174,7 +174,7 @@ const ShiftCloseTerminal = () => {
             </div>
             <Separator className="bg-success/20" />
             <div className="grid grid-cols-2 gap-8 text-left">
-              <div className="p-8 bg-secondary/40 rounded-[2rem] border border-emerald-500/20 shadow-inner">
+              <div className="p-8 bg-secondary/40 rounded-[2rem] border border-success/20 shadow-inner">
                 <div className="text-[9px] font-black text-success/60 uppercase tracking-widest mb-2 italic">
                   Physical Tender
                 </div>
@@ -182,7 +182,7 @@ const ShiftCloseTerminal = () => {
                   Rp {parseAmountInput(actualCash).toLocaleString()}
                 </div>
               </div>
-              <div className="p-8 bg-secondary/40 rounded-[2rem] border border-emerald-500/20 shadow-inner">
+              <div className="p-8 bg-secondary/40 rounded-[2rem] border border-success/20 shadow-inner">
                 <div className="text-[9px] font-black text-success/60 uppercase tracking-widest mb-2 italic">
                   Ledger Variance
                 </div>
@@ -192,7 +192,7 @@ const ShiftCloseTerminal = () => {
               </div>
             </div>
             <Button
-              className="w-full h-20 bg-success hover:bg-success text-foreground font-black italic gap-4 rounded-2xl shadow-2xl shadow-emerald-600/20 transition-all uppercase tracking-[0.2em] text-sm"
+              className="w-full h-20 bg-success hover:bg-success text-foreground font-black italic gap-4 rounded-2xl shadow-2xl shadow-success/20 transition-all uppercase tracking-[0.2em] text-sm"
               onClick={async () => {
                 await refreshState();
                 window.location.href = "/m/retail/operational/gateway";
@@ -210,14 +210,14 @@ const ShiftCloseTerminal = () => {
     <div className="flex-1 relative flex selection:bg-primary selection:text-foreground">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-5%] w-[45%] h-[45%] bg-primary/10 blur-[130px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-primary/50/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
       </div>
 
       <div className="flex-1 overflow-y-auto p-8 relative z-10 custom-scrollbar">
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="flex items-center justify-between shrink-0">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-foreground shadow-lg shadow-indigo-600/20">
+              <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-foreground shadow-lg shadow-primary/20">
                 <Landmark className="w-7 h-7" />
               </div>
               <div>
@@ -231,7 +231,7 @@ const ShiftCloseTerminal = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-success/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
+              <div className="px-4 py-2 bg-success/10 border border-success/20 rounded-xl flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-success" />
                 <span className="text-[10px] font-black italic uppercase text-success tracking-widest">
                   Compliance: ACTIVE
@@ -298,7 +298,7 @@ const ShiftCloseTerminal = () => {
               </div>
             </CardHeader>
             <CardContent className="p-12 space-y-12">
-              <div className="flex flex-col items-center justify-center p-16 bg-primary/[0.02] rounded-[3.5rem] border-4 border-dashed border-border relative group transition-all hover:bg-primary/[0.04] hover:border-indigo-500/30">
+              <div className="flex flex-col items-center justify-center p-16 bg-primary/[0.02] rounded-[3.5rem] border-4 border-dashed border-border relative group transition-all hover:bg-primary/[0.04] hover:border-primary/30">
                 <div className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-10 italic">
                   Input Final Physical Count (IDR)
                 </div>
@@ -320,7 +320,7 @@ const ShiftCloseTerminal = () => {
                       }
                     }}
                   />
-                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary rounded-full shadow-[0_0_20px_rgba(79,70,229,0.4)]" />
                 </div>
               </div>
 
@@ -351,7 +351,7 @@ const ShiftCloseTerminal = () => {
               </div>
 
               {actualCash && (
-                <div className={`p-10 rounded-[2.5rem] border-2 flex flex-col justify-center transition-all animate-in slide-in-from-bottom-8 duration-700 ${needsExplanation ? "bg-destructive/10 border-rose-500/30 shadow-[0_0_50px_rgba(244,63,94,0.1)]" : "bg-success/10 border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.1)]"}`}>
+                <div className={`p-10 rounded-[2.5rem] border-2 flex flex-col justify-center transition-all animate-in slide-in-from-bottom-8 duration-700 ${needsExplanation ? "bg-destructive/10 border-destructive/30 shadow-[0_0_50px_rgba(244,63,94,0.1)]" : "bg-success/10 border-success/30 shadow-[0_0_50px_rgba(16,185,129,0.1)]"}`}>
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                     <div>
                       <div className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-2 italic">

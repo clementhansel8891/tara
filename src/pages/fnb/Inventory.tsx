@@ -111,8 +111,8 @@ export default function CafeInventory() {
 
   const getStockStatus = (item: InventoryItem) => {
     if (!item.stock || item.stock === 0) return { label: 'Out of Stock', variant: 'destructive' as const, color: 'text-destructive' };
-    if (item.stock <= item.reorderPoint) return { label: 'Low Stock', variant: 'secondary' as const, color: 'text-yellow-500' };
-    return { label: 'In Stock', variant: 'default' as const, color: 'text-green-500' };
+    if (item.stock <= item.reorderPoint) return { label: 'Low Stock', variant: 'secondary' as const, color: 'text-warning' };
+    return { label: 'In Stock', variant: 'default' as const, color: 'text-success' };
   };
 
   const getStockPercent = (item: InventoryItem) => {
@@ -257,8 +257,8 @@ export default function CafeInventory() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <Package className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-lg bg-success/10">
+                <Package className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Value</p>
@@ -270,8 +270,8 @@ export default function CafeInventory() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-500/10">
-                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <AlertTriangle className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Low Stock</p>

@@ -181,7 +181,7 @@ const DeveloperConsole = ({
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
       {/* Request Panel */}
       <div className="space-y-4 flex flex-col h-full">
-        <div className="space-y-4 bg-secondary/5 p-6 rounded-3xl border border-slate-200 flex-1">
+        <div className="space-y-4 bg-secondary/5 p-6 rounded-3xl border border-border flex-1">
           <div className="flex items-center gap-2 mb-2">
             <Server className="w-5 h-5 text-muted-foreground" />
             <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Request Configuration</span>
@@ -234,7 +234,7 @@ const DeveloperConsole = ({
                  <Braces className="w-3 h-3 text-muted-foreground" />
               </div>
               <textarea
-                className="flex-1 w-full bg-secondary text-green-400 font-mono text-xs p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 w-full bg-secondary text-primary/80 font-mono text-xs p-4 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                 value={requestBody}
                 onChange={e => setRequestBody(e.target.value)}
                 spellCheck={false}
@@ -246,7 +246,7 @@ const DeveloperConsole = ({
         <Button 
           onClick={executeRequest}
           disabled={isLoading}
-          className="h-14 bg-primary hover:bg-primary text-foreground rounded-2xl font-black italic uppercase tracking-widest shadow-xl"
+          className="h-14 bg-primary hover:bg-primary/95 text-foreground rounded-2xl font-black italic uppercase tracking-widest shadow-xl"
         >
            {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Play className="w-5 h-5 mr-2 fill-current" />}
            Send Request
@@ -254,14 +254,14 @@ const DeveloperConsole = ({
       </div>
 
       {/* Response Panel */}
-      <div className="bg-secondary rounded-3xl border border-slate-800 text-foreground p-6 flex flex-col h-full overflow-hidden">
+      <div className="bg-secondary rounded-3xl border border-border text-foreground p-6 flex flex-col h-full overflow-hidden">
          <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
                <Code2 className="w-5 h-5 text-primary" />
                <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Response Output</span>
             </div>
             {status && (
-               <div className={`px-2 py-1 rounded-md text-[10px] font-black ${status >= 200 && status < 300 ? 'bg-success/20 text-success' : 'bg-red-500/20 text-red-400'}`}>
+               <div className={`px-2 py-1 rounded-md text-[10px] font-black ${status >= 200 && status < 300 ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'}`}>
                   HTTP {status}
                </div>
             )}
@@ -283,7 +283,7 @@ const DeveloperConsole = ({
             </Button>
             
             {response ? (
-               <pre className="text-xs font-mono text-blue-300 leading-relaxed">
+               <pre className="text-xs font-mono text-primary/90 leading-relaxed">
                   {JSON.stringify(response, null, 2)}
                </pre>
             ) : (
@@ -295,7 +295,7 @@ const DeveloperConsole = ({
          </div>
          
          {status === 200 && (
-            <div className="mt-4 p-3 bg-emerald-900/20 border border-emerald-900/50 rounded-lg flex items-start gap-3">
+            <div className="mt-4 p-3 bg-success/20 border border-success/50 rounded-lg flex items-start gap-3">
                <CheckCircle2 className="w-4 h-4 text-success mt-0.5" />
                <div className="text-[10px] text-success">
                   <span className="font-bold">Success:</span> Logic executed successfully. Inventory/Orders have been updated in the internal system.
@@ -303,9 +303,9 @@ const DeveloperConsole = ({
             </div>
          )}
          {status && status >= 400 && (
-            <div className="mt-4 p-3 bg-red-900/20 border border-red-900/50 rounded-lg flex items-start gap-3">
-               <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
-               <div className="text-[10px] text-red-400">
+            <div className="mt-4 p-3 bg-destructive/20 border border-destructive/50 rounded-lg flex items-start gap-3">
+               <AlertCircle className="w-4 h-4 text-destructive mt-0.5" />
+               <div className="text-[10px] text-destructive">
                   <span className="font-bold">Error:</span> {response?.details || "Request failed"}
                </div>
             </div>

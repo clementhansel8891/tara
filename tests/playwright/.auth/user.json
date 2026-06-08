@@ -1,0 +1,26 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://150.109.15.108:3010",
+      "localStorage": [
+        {
+          "name": "ZENVIX_SESSION",
+          "value": "{\"user_id\":\"3479296d-b03b-4ffa-8790-8e3798760ffb\",\"tenant_id\":\"tnt-pfzurx\",\"location_id\":\"\",\"role\":\"OWNER\",\"department_id\":\"dept-ret\",\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDc5Mjk2ZC1iMDNiLTRmZmEtODc5MC04ZTM3OTg3NjBmZmIiLCJlbWFpbCI6ImhhbnNlbEB6ZW52aXguaWQiLCJpYXQiOjE3ODA5MTAyOTEsImV4cCI6MTc4MDk5NjY5MX0.j5W3egSHPRLJXhcLD_SHb2tOBnvtaEm89V9C5fqxEEE\",\"permissions\":[\"VIEW_FINANCIALS\",\"VIEW_INVENTORY\",\"VIEW_DEVICES\",\"VIEW_HR\",\"VIEW_AUDIT\",\"MANAGE_STORE\"]}"
+        },
+        {
+          "name": "sidebar-collapsed",
+          "value": "false"
+        },
+        {
+          "name": "ZENVIX_TOKEN",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzNDc5Mjk2ZC1iMDNiLTRmZmEtODc5MC04ZTM3OTg3NjBmZmIiLCJlbWFpbCI6ImhhbnNlbEB6ZW52aXguaWQiLCJpYXQiOjE3ODA5MTAyOTEsImV4cCI6MTc4MDk5NjY5MX0.j5W3egSHPRLJXhcLD_SHb2tOBnvtaEm89V9C5fqxEEE"
+        },
+        {
+          "name": "ops_cart",
+          "value": "[]"
+        }
+      ]
+    }
+  ]
+}

@@ -17,25 +17,28 @@ interface GlobalKpiRowProps {
 }
 
 export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
-  const sparklineWrapper = (data: number[] | undefined, color: string) => {
+  const sparklineWrapper = (data: number[] | undefined, colorClass: string) => {
     if (!data) return null;
+    // Recharts Area requires a CSS color string; we derive it from the CSS variable
+    // for the token so no inline hex literals are needed in JSX data fields.
+    const cssVar = `var(--color-chart-${colorClass})`;
     return (
       <div className="h-10 w-full mt-2 opacity-50">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={(Array.isArray(data) ? data : []).map((v) => ({ v }))}>
             <defs>
-              <linearGradient id={`color-${color}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={color} stopOpacity={0}/>
+              <linearGradient id={`color-${colorClass}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={cssVar} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={cssVar} stopOpacity={0}/>
               </linearGradient>
             </defs>
             <Area
               type="monotone"
               dataKey="v"
-              stroke={color}
+              stroke={cssVar}
               strokeWidth={2}
               fillOpacity={1}
-              fill={`url(#color-${color})`}
+              fill={`url(#color-${colorClass})`}
               isAnimationActive={true}
             />
           </AreaChart>
@@ -49,69 +52,77 @@ export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
       label: "Live Revenue",
       value: `Rp ${(kpis.totalRevenueToday / 1000000).toFixed(1)}M`,
       icon: TrendingUp,
-      color: "#10b981", // emerald-500
+      iconClass: "text-success",
+      colorKey: "success",
       accent: "bg-success/20",
-      border: "hover:border-emerald-500/30",
+      border: "hover:border-success/30",
       sparkline: kpis.sparklineData?.revenue,
     },
     {
       label: "Target Velocity",
       value: `${kpis.revenueVsTarget}%`,
       icon: Target,
-      color: "#6366f1", // indigo-500
+      iconClass: "text-primary",
+      colorKey: "primary",
       accent: "bg-primary/20",
-      border: "hover:border-indigo-500/30",
+      border: "hover:border-primary/30",
       sparkline: kpis.sparklineData?.conversion,
     },
     {
       label: "Order Traffic",
       value: kpis.orderCount,
       icon: ShoppingCart,
-      color: "#3b82f6", // blue-500
-      accent: "bg-primary/20",
-      border: "hover:border-blue-500/30",
+      iconClass: "text-secondary",
+      colorKey: "secondary",
+      accent: "bg-secondary/20",
+      border: "hover:border-secondary/30",
       sparkline: kpis.sparklineData?.orders,
     },
     {
       label: "Avg Ticket",
       value: `Rp ${(kpis.avgTicketSize / 1000).toFixed(0)}k`,
       icon: CreditCard,
-      color: "#94a3b8", // slate-400
-      accent: "bg-muted/40/20",
-      border: "hover:border-slate-400/30",
+      iconClass: "text-muted-foreground",
+      colorKey: "muted",
+      accent: "bg-muted/40",
+      border: "hover:border-muted/30",
       sparkline: kpis.sparklineData?.ticket,
     },
     {
       label: "Profit Margin",
       value: `${kpis.grossMarginPercentage}%`,
       icon: Percent,
-      color: "#8b5cf6", // violet-500
-      accent: "bg-violet-500/20",
-      border: "hover:border-violet-500/30",
+      iconClass: "text-accent",
+      colorKey: "accent",
+      accent: "bg-accent/20",
+      border: "hover:border-accent/30",
     },
     {
       label: "Node Health",
       value: kpis.activeDevices,
       icon: Smartphone,
-      color: "#f59e0b", // amber-500
-      accent: "bg-amber-500/20",
-      border: "hover:border-amber-500/30",
+      iconClass: "text-warning",
+      colorKey: "warning",
+      accent: "bg-warning/20",
+      border: "hover:border-warning/30",
     },
     {
       label: "Active Shifts",
       value: kpis.openShifts,
       icon: Users,
-      color: "#0ea5e9", // sky-500
-      accent: "bg-sky-500/20",
-      border: "hover:border-sky-500/30",
+      iconClass: "text-info",
+      colorKey: "info",
+      accent: "bg-info/20",
+      border: "hover:border-info/30",
     },
     {
       label: "System Alerts",
       value: kpis.criticalAlertsCount,
       icon: AlertTriangle,
-      color: "#f43f5e", // rose-500
+      iconClass: "text-destructive",
+      colorKey: "destructive",
       accent: "bg-destructive/20",
-      border: "hover:border-rose-500/30",
+      border: "hover:border-destructive/30",
     },
   ];
 
@@ -131,10 +142,10 @@ export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
             <div
               className={`w-9 h-9 rounded-lg ${item.accent} flex items-center justify-center transition-all duration-500 group-hover:rotate-6 border border-white/5 shadow-lg`}
             >
-              <item.icon className={`w-4 h-4`} style={{ color: item.color }} />
+              <item.icon className={`w-4 h-4 ${item.iconClass}`} />
             </div>
             {idx < 2 && (
-              <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10 border border-emerald-500/20 animate-pulse">
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10 border border-success/20 animate-pulse">
                 <div className="w-1 h-1 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                 <span className="text-[7px] font-black text-success uppercase tracking-widest italic">
                   LIVE
@@ -153,7 +164,7 @@ export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
               </p>
               {item.sparkline && (
                 <div className="flex-1 max-w-[60px]">
-                  {sparklineWrapper(item.sparkline, item.color)}
+                  {sparklineWrapper(item.sparkline, item.colorKey)}
                 </div>
               )}
             </div>
