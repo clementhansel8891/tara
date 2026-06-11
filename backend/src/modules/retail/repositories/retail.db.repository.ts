@@ -2211,8 +2211,10 @@ export class RetailDbRepository implements IRetailRepository {
 
   async submitOpname(ctx: TenantContext,
     data: { store_id: string; adjustments: any[]; shift_id?: string },
-  ): Promise<{ success: boolean; skipped: string[] }> {
+  ): Promise<{ success: boolean; skipped: string[]; created: any[] }> {
     const skipped: string[] = [];
+    const created: any[] = [];
+    let defaultCategoryId: string | null = null;
     // Unique reference per opname session so repeated counts of the same product/location
     // don't collide on the stock_movements unique key (tenant,reference_id,reference_type,
     // type,product_id,location_id). Previously a constant "OPNAME" fallback collided.
@@ -2374,7 +2376,7 @@ export class RetailDbRepository implements IRetailRepository {
       });
     });
 
-    return { success: true, skipped };
+    return { success: true, skipped, created };
   }
 
   async receiveGoods(ctx: TenantContext,

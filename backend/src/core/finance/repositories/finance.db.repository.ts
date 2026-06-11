@@ -62,7 +62,7 @@ export class FinanceDbRepository extends IFinanceRepository {
     // Flatten journal entries into ledger entries
     const ledger: LedgerEntry[] = [];
     for (const entry of journalEntries) {
-      for (const line of (entry as any).financeJournalLines) {
+      for (const line of ((entry as any).finance_journal_lines ?? [])) {
         ledger.push({
           id: line.id,
           tenant_id: entry.tenant_id,
@@ -73,8 +73,8 @@ export class FinanceDbRepository extends IFinanceRepository {
               ? line.debit
               : line.credit,
           type: (line.debit.gt(0) ? "DEBIT" : "CREDIT") as any,
-          account: line.accountCode,
-          category: line.accountCode.startsWith("4") ? "SALES" : "GENERAL",
+          account: line.account_code,
+          category: String(line.account_code ?? "").startsWith("4") ? "SALES" : "GENERAL",
           referenceId: entry.ref || undefined,
           status: entry.status || "POSTED",
           effectiveDate: entry.posting_date,
