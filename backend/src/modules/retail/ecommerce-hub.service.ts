@@ -17,6 +17,9 @@ import {
   CreateRetailChannelDto,
   UpdateRetailChannelDto,
 } from "./dto/ecommerce-hub.dto";
+import { RegisterEcommerceBranchDto } from "./dto/retail.dto";
+import { RetailService } from "./retail.service";
+import { TenantContext } from "../../gateway/tenant-context.interface";
 
 import { AuditService } from "../../shared/audit/audit.service";
 
@@ -25,7 +28,24 @@ export class EcommerceHubService {
   constructor(
     private readonly repo: IEcommerceHubRepository,
     private readonly audit: AuditService,
+    private readonly retailService: RetailService,
   ) {}
+
+  // ── Unified E-Commerce Branch Registration ─────────────────
+
+  /**
+   * Single unified entry point for registering e-commerce presence. Delegates to
+   * {@link RetailService.registerEcommerceBranch}, which creates an `"ecommerce"`
+   * virtual branch inside the hierarchy (optionally binding a sales channel) instead of
+   * a standalone connector/channel that links TO branches.
+   */
+  async registerEcommerceBranch(
+    ctx: TenantContext,
+    dto: RegisterEcommerceBranchDto,
+    user_id: string = "system",
+  ) {
+    return this.retailService.registerEcommerceBranch(ctx, dto, user_id);
+  }
 
   // ── EcommerceConnectors ────────────────────────────────────
 

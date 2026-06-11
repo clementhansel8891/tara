@@ -69,13 +69,26 @@ export interface StoreConfigVersion {
   revisionNumber: number;
 }
 
+/**
+ * Branch type for a {@link RetailStore}. Physical branches are `"flagship"`,
+ * `"satellite"`, and `"warehouse"`. The `"ecommerce"` member represents a virtual
+ * branch — an e-commerce presence that participates in the standard branch hierarchy
+ * with the same configuration capabilities (operationalConfig, supplyConfig,
+ * channelBinding) as a physical branch.
+ */
+export type RetailBranchType =
+  | "flagship"
+  | "satellite"
+  | "warehouse"
+  | "ecommerce";
+
 export interface RetailStore extends HRAuditFields {
   id: string;
   tenantId: string;
   locationId: string;
   name: string;
   code: string;
-  type: "flagship" | "satellite" | "warehouse";
+  type: RetailBranchType;
   status: "active" | "frozen" | "archived" | "decommissioned";
   managerId?: string;
   phone?: string;
@@ -99,6 +112,39 @@ export interface RetailStore extends HRAuditFields {
   operatingHours?: Record<string, unknown>;
   /** @deprecated use hierarchical blocks instead */
   settings?: Record<string, unknown>;
+}
+
+// ============================================================
+// BRANCH TYPE HELPERS
+// ============================================================
+
+/** Human-readable labels for each retail branch type. */
+const RETAIL_BRANCH_TYPE_LABELS: Record<RetailBranchType, string> = {
+  flagship: "Flagship",
+  satellite: "Satellite",
+  warehouse: "Warehouse",
+  ecommerce: "E-Commerce",
+};
+
+/**
+ * Returns true when the given store is a virtual branch (an e-commerce presence that
+ * lives inside the branch hierarchy) rather than a physical location. Accepts either a
+ * full {@link RetailStore} or a partial object carrying a `type` field, so it can be used
+ * for lightweight type-indicator checks in list/hierarchy views.
+ */
+export function isVirtualBranch(
+  store: Pick<RetailStore, "type"> | { type?: string } | null | undefined,
+): boolean {
+  return store?.type === "ecommerce";
+}
+
+/**
+ * Returns a human-readable label for a branch type, used to render a clear
+ * physical-vs-virtual type indicator in the store/branch list. Unknown values fall back
+ * to the raw type string so the UI never renders an empty indicator.
+ */
+export function getStoreTypeLabel(type: RetailBranchType | string): string {
+  return RETAIL_BRANCH_TYPE_LABELS[type as RetailBranchType] ?? String(type);
 }
 
 // ============================================================

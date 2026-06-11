@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSession } from "@/core/security/session";
 import { retailService } from "@/core/services/retail/retailService";
 import type { RetailStore } from "@/core/types/retail/retail";
+import { isVirtualBranch, getStoreTypeLabel } from "@/core/types/retail/retail";
 import {
   Select,
   SelectContent,
@@ -270,6 +271,18 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                         )}
                       />
                       <span>{s.name}</span>
+                      <span
+                        className={cn(
+                          "ml-auto text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded",
+                          isVirtualBranch(s)
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : "bg-secondary/10 text-muted-foreground",
+                        )}
+                      >
+                        {isVirtualBranch(s)
+                          ? "Virtual"
+                          : getStoreTypeLabel(s.type)}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}

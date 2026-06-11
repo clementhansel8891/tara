@@ -3,19 +3,24 @@ import { useStore } from "../StoreProfileLayout";
 import {
   Building2,
   Activity,
-  MapPin,
   MonitorSmartphone,
   Globe,
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  isVirtualBranch,
+  getStoreTypeLabel,
+} from "@/core/types/retail/retail";
+import { RegisterEcommerceBranchDialog } from "../../components/channels/RegisterEcommerceBranchDialog";
 
 export const GlobalFleetDashboard: React.FC = () => {
   const { stores, setSelectedStoreId } = useStore();
 
-  const activeStores = (Array.isArray(stores) ? stores : []).filter((s) => s.status === "active").length;
-  const regions = new Set((Array.isArray(stores) ? stores : []).map((s) => s.timezone)).size;
-  const flagships = (Array.isArray(stores) ? stores : []).filter((s) => s.type === "flagship").length;
+  const storeList = Array.isArray(stores) ? stores : [];
+  const activeStores = storeList.filter((s) => s.status === "active").length;
+  const flagships = storeList.filter((s) => s.type === "flagship").length;
+  const virtualBranches = storeList.filter((s) => isVirtualBranch(s)).length;
 
   // Aggregate operational insights
   const totalPosTerminals = stores.reduce((acc, store) => {
@@ -25,18 +30,24 @@ export const GlobalFleetDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-primary rounded-xl text-primary">
-          <Globe className="w-5 h-5" />
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary rounded-xl text-primary">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
+              Global Fleet Overview
+            </h2>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              {storeList.length} nodes • {virtualBranches} virtual (e-commerce)
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
-            Global Fleet Overview
-          </h2>
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            Aggregate statistics across {stores.length} registered nodes
-          </p>
-        </div>
+        {/* Unified entry point: register e-commerce as a virtual branch in the hierarchy */}
+        <RegisterEcommerceBranchDialog
+          onSuccess={(branch) => branch?.id && setSelectedStoreId(branch.id)}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -73,14 +84,14 @@ export const GlobalFleetDashboard: React.FC = () => {
         <Card className="border-slate-100 shadow-sm rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-black italic text-muted-foreground">
-              Timezones
+              Virtual Branches
             </CardTitle>
-            <MapPin className="h-4 w-4 text-primary" />
+            <Globe className="h-4 w-4 text-emerald-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black">{regions}</div>
+            <div className="text-3xl font-black">{virtualBranches}</div>
             <p className="text-xs text-muted-foreground font-bold mt-1 tracking-widest uppercase">
-              Distinct Regions
+              E-Commerce Presence
             </p>
           </CardContent>
         </Card>
@@ -110,38 +121,76 @@ export const GlobalFleetDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {(Array.isArray(stores) ? stores : []).map((store) => (
-              <div
-                key={store.id}
-                onClick={() => setSelectedStoreId(store.id)}
-                className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-secondary/5 cursor-pointer hover:border-primary hover:shadow-md transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:border-primary transition-colors">
-                    <Building2 className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-muted-foreground">{store.name}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono mt-0.5 font-bold uppercase tracking-widest">
-                      {store.code} • {store.timezone}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <span
-                      className={`text-[10px] font-black italic uppercase tracking-widest px-2 py-1 rounded-md ${store.status === "active" ? "bg-success/10 text-success" : "bg-muted/20 text-muted-foreground"}`}
+            {storeList.map((store) => {
+              const virtual = isVirtualBranch(store);
+              const TypeIcon = virtual ? Globe : Building2;
+              return (
+                <div
+                  key={store.id}
+                  onClick={() => setSelectedStoreId(store.id)}
+                  data-testid="fleet-index-row"
+                  data-branch-kind={virtual ? "virtual" : "physical"}
+                  className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-secondary/5 cursor-pointer hover:border-primary hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-10 h-10 rounded-lg border flex items-center justify-center shadow-sm transition-colors ${
+                        virtual
+                          ? "bg-emerald-50 border-emerald-200 group-hover:border-emerald-400"
+                          : "bg-white border-slate-100 group-hover:border-primary"
+                      }`}
                     >
-                      {store.status}
-                    </span>
-                    <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-1">
-                      {store.type}
-                    </p>
+                      <TypeIcon
+                        className={`w-5 h-5 transition-colors ${
+                          virtual
+                            ? "text-emerald-600"
+                            : "text-muted-foreground group-hover:text-primary"
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-muted-foreground">
+                          {store.name}
+                        </p>
+                        {/* Clear physical-vs-virtual type indicator */}
+                        <span
+                          className={`text-[9px] font-black italic uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                            virtual
+                              ? "bg-emerald-500/10 text-emerald-600"
+                              : "bg-secondary/10 text-muted-foreground"
+                          }`}
+                        >
+                          {virtual ? "Virtual" : "Physical"}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5 font-bold uppercase tracking-widest">
+                        {store.code}
+                        {/* Parent-child relationship: virtual branch anchored to a location */}
+                        {virtual && store.locationId
+                          ? ` • ↳ anchored to ${store.locationId}`
+                          : store.timezone
+                            ? ` • ${store.timezone}`
+                            : ""}
+                      </p>
+                    </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <span
+                        className={`text-[10px] font-black italic uppercase tracking-widest px-2 py-1 rounded-md ${store.status === "active" ? "bg-success/10 text-success" : "bg-muted/20 text-muted-foreground"}`}
+                      >
+                        {store.status}
+                      </span>
+                      <p className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground mt-1">
+                        {getStoreTypeLabel(store.type)}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground/60 group-hover:text-primary transition-colors" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>

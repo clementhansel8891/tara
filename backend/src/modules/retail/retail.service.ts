@@ -21,6 +21,7 @@ import {
   CloseShiftDto,
   CreateEcommerceStoreDto,
   UpdateEcommerceStoreDto,
+  RegisterEcommerceBranchDto,
   CreateInventoryPoolDto,
   UpdateProductDto,
   RegisterBranchDeviceDto,
@@ -229,6 +230,84 @@ export class RetailService {
       metadata: { name: store.name },
     });
     return store;
+  }
+
+  /**
+   * Unified e-commerce registration entry point.
+   *
+   * Creates an `"ecommerce"` {@link RetailStore} — a virtual branch that participates in
+   * the standard branch hierarchy with the same configuration capabilities as a physical
+   * branch — rather than a standalone connector/channel that links TO branches via
+   * `branch_ids[]`. Optionally binds a {@link RetailChannel} to the new virtual branch so
+   * the e-commerce presence enters the hierarchy with its sales channel attached.
+   *
+   * This is the single registration path referenced by Requirements 2.1, 2.2, 2.3.
+   */
+  async registerEcommerceBranch(
+    ctx: TenantContext,
+    data: RegisterEcommerceBranchDto,
+    user_id: string,
+  ): Promise<RetailStore & { boundChannel?: any }> {
+    if (!data.name || !data.location_id) {
+      throw new BadRequestException("name and location_id are required");
+    }
+
+    // Derive a deterministic code when the caller does not supply one.
+    const code =
+      data.code ||
+      `EC-${(data.domain || data.name)
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .slice(0, 12)
+        .toUpperCase()}`;
+
+    // Build the virtual-branch creation payload. The "ecommerce" type places the new
+    // presence INSIDE the hierarchy; channel_binding records the originating platform.
+    const storeDto = {
+      name: data.name,
+      code,
+      location_id: data.location_id,
+      type: "ecommerce",
+      inventory_pool_id: data.inventory_pool_id,
+      manager_id: data.manager_id,
+      channel_binding: data.platform
+        ? { marketplace_integrations: [data.platform] }
+        : undefined,
+    } as unknown as CreateStoreDto;
+
+    const store = await this.createStore(ctx, storeDto, user_id);
+
+    // Optionally bind a sales channel to the new virtual branch (parent-child link).
+    let boundChannel: any | undefined;
+    if (data.channel) {
+      boundChannel = await this.createChannel(
+        ctx,
+        {
+          name: data.channel.name,
+          type: data.channel.type || "OWNED",
+          sync_frequency: data.channel.sync_frequency,
+          integration_category: data.channel.integration_category,
+          branch_id: store.id,
+        },
+        user_id,
+      );
+    }
+
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id,
+      module: "retail",
+      action: "REGISTER_ECOMMERCE_BRANCH",
+      entity_type: "STORE",
+      entity_id: store.id,
+      metadata: {
+        name: store.name,
+        platform: data.platform,
+        domain: data.domain,
+        boundChannelId: boundChannel?.id,
+      },
+    });
+
+    return boundChannel ? { ...store, boundChannel } : store;
   }
 
   async updateEcommerceStore(ctx: TenantContext,
@@ -1725,6 +1804,42 @@ export class RetailService {
     });
 
     return result;
+  }
+
+  async syncInventory(
+    ctx: TenantContext,
+    data: { store_id?: string },
+    user_id: string,
+  ): Promise<{ success: boolean; syncedAt: string; store_id?: string }> {
+    const syncedAt = new Date().toISOString();
+
+    // 1. Emit a sync event so downstream listeners (ERP reconciliation, stock projection)
+    //    can refresh stock levels for the store.
+    await this.eventBus.publish({
+      event_type: "RETAIL_INVENTORY_SYNC_REQUESTED",
+      tenant_id: ctx.tenant_id,
+      entity_id: data.store_id || ctx.tenant_id,
+      entity_type: "STORE",
+      source_module: "retail",
+      payload: {
+        store_id: data.store_id,
+        requested_at: syncedAt,
+      },
+      user_id,
+    });
+
+    // 2. Audit Log so the sync action is persisted and traceable.
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id,
+      module: "retail",
+      action: "INVENTORY_SYNC",
+      entity_type: "STORE",
+      entity_id: data.store_id || ctx.tenant_id,
+      metadata: { syncedAt },
+    });
+
+    return { success: true, syncedAt, store_id: data.store_id };
   }
 
   // --- Public Gateway (Customer, Cart, Wishlist) ---

@@ -445,10 +445,15 @@ export const retailService = {
     session: SessionContext,
     options: { locationId: string },
   ) {
-    // This endpoint will be fully implemented in the backend to trigger ERP sync.
-    // For now, we hit the generic sync or return success to prevent UI errors.
-    console.warn("[retailService] syncInventory called (Location ID:", options.locationId, ") - Backend integration pending.");
-    return { success: true };
+    // Triggers a backend inventory sync (ERP reconciliation) for the given location and
+    // persists the resulting sync timestamp. Resolves to the sync summary so the caller can
+    // surface success/error feedback and refresh stock levels.
+    return apiRequest<{ success: boolean; syncedAt?: string; updatedCount?: number }>(
+      "/v1/retail/inventory/sync",
+      "POST",
+      session,
+      { store_id: options.locationId, location_id: options.locationId },
+    );
   },
 
   // --- 2. Order Processing ---

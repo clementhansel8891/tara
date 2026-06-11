@@ -5,7 +5,9 @@ import {
   ArrowRight,
   TrendingUp,
   Globe,
-  Activity
+  Activity,
+  Store as StoreIcon,
+  Rocket
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@/core/security/session";
@@ -31,6 +33,8 @@ import { GlobalActivityFeed } from "./components/command/GlobalActivityFeed";
 import { FleetRevenueMatrix } from "./components/command/FleetRevenueMatrix";
 import { RetailCustomerActivity } from "./RetailCustomerActivity";
 import { EcommerceAnalytics } from "./EcommerceAnalytics";
+import { shouldShowOnboarding } from "../context/RetailContext";
+import { RegisterEcommerceBranchDialog } from "./components/channels/RegisterEcommerceBranchDialog";
 
 export default function RetailManagement() {
   const navigate = useNavigate();
@@ -130,6 +134,60 @@ export default function RetailManagement() {
   }
 
   const totalSales = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  // Guided onboarding: when no retail locations are configured yet, route the user into a
+  // clear call-to-action to create their first physical or e-commerce location instead of
+  // dropping them into an empty command center. Uses the pure `shouldShowOnboarding` helper
+  // (which mirrors the RetailContext `isConfigured` state) without touching the provider's
+  // ref-based anti-loop logic.
+  if (!loading && shouldShowOnboarding({ stores, channels })) {
+    return (
+      <div className="flex h-[calc(100vh-100px)] items-center justify-center p-6 bg-background overflow-hidden relative">
+        <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.15)_0%,transparent_70%)] animate-pulse" />
+        </div>
+
+        <Card className="max-w-lg w-full rounded-[2rem] border border-white/5 shadow-2xl bg-white/[0.03] backdrop-blur-3xl p-8 text-center space-y-10 relative overflow-hidden">
+          <div className="mx-auto w-28 h-28 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-[0_0_50px_rgba(79,70,229,0.2)]">
+            <Rocket className="w-12 h-12 text-primary" />
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground leading-none">
+              Welcome to <br /> Retail Command
+            </h2>
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] leading-relaxed italic">
+              No retail locations are configured yet. Create your first physical
+              branch or register an e-commerce presence to activate the command
+              center.
+            </p>
+          </div>
+          <div className="space-y-4">
+            <Button
+              className="w-full h-16 rounded-2xl bg-primary text-foreground hover:bg-primary/90 font-black italic uppercase text-[12px] tracking-[0.3em] group gap-4 shadow-[0_20px_40px_rgba(79,70,229,0.3)] transition-all hover:scale-105"
+              onClick={() => navigate("/m/retail/management/profile")}
+              data-testid="onboarding-create-physical"
+            >
+              <StoreIcon className="w-5 h-5" /> Create Physical Location{" "}
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+            </Button>
+            {/* Unified entry point: register e-commerce as a virtual branch in the hierarchy */}
+            <RegisterEcommerceBranchDialog
+              onSuccess={refreshGlobalState}
+              trigger={
+                <Button
+                  variant="ghost"
+                  className="w-full h-16 rounded-2xl bg-white/[0.03] border border-white/5 text-foreground hover:bg-white/[0.08] font-black italic uppercase text-[12px] tracking-[0.3em] gap-4 transition-all"
+                  data-testid="onboarding-register-ecommerce"
+                >
+                  <Globe className="w-5 h-5" /> Register E-Commerce
+                </Button>
+              }
+            />
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background selection:bg-primary selection:text-foreground relative overflow-hidden">

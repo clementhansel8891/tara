@@ -24,6 +24,7 @@ import {
 } from "@/core/services/retail/ecommerceHubService";
 import { CreateChannelDialog } from "./components/channels/CreateChannelDialog";
 import { ChannelProfilePanel } from "./components/channels/ChannelProfilePanel";
+import { RegisterEcommerceBranchDialog } from "./components/channels/RegisterEcommerceBranchDialog";
 import { cn } from "@/lib/utils";
 
 const PLATFORM_ICON: Record<string, React.ElementType> = {
@@ -154,6 +155,8 @@ const EcommerceConnector = () => {
             <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} />
             Refresh
           </Button>
+          {/* Unified entry point: register e-commerce as a virtual branch in the hierarchy */}
+          <RegisterEcommerceBranchDialog onSuccess={fetchChannels} />
           <Button
             className="h-10 px-6 rounded-2xl bg-secondary text-foreground font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-lg"
             onClick={() => setCreateOpen(true)}

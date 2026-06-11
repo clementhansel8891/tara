@@ -63,7 +63,7 @@ export class RetailStore {
   locationId?: string;
   name: string;
   code: string;
-  type: "flagship" | "satellite" | "warehouse";
+  type: "flagship" | "satellite" | "warehouse" | "ecommerce";
   status: "active" | "frozen" | "archived" | "decommissioned";
   address: string;
   phone?: string;

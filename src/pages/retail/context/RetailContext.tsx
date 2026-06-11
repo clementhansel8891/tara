@@ -36,6 +36,38 @@ interface RetailContextType {
 
 const RetailContext = createContext<RetailContextType | undefined>(undefined);
 
+/**
+ * Shape consumed by {@link shouldShowOnboarding}. Intentionally a loose, read-only view of
+ * the retail configuration state so the helper stays a pure function decoupled from the
+ * provider internals (and, critically, from the ref-based anti-loop logic).
+ */
+export interface RetailOnboardingState {
+  stores?: ReadonlyArray<unknown> | null;
+  channels?: ReadonlyArray<unknown> | null;
+  isConfigured?: boolean;
+}
+
+/**
+ * Pure decision helper for guided onboarding of the empty retail state.
+ *
+ * Returns `true` when no retail locations are configured yet (no physical/virtual stores and
+ * no channels), signalling consumers to route the user into a guided wizard / call-to-action
+ * to create their first physical or e-commerce location.
+ *
+ * This is a standalone pure function: it does NOT read context, refs, or component state and
+ * MUST NOT be coupled to the provider's ref-based anti-loop logic (preservation 3.5).
+ */
+export function shouldShowOnboarding(state: RetailOnboardingState | null | undefined): boolean {
+  if (!state) return true;
+  const hasStores = Array.isArray(state.stores) && state.stores.length > 0;
+  const hasChannels = Array.isArray(state.channels) && state.channels.length > 0;
+  const configured =
+    typeof state.isConfigured === "boolean"
+      ? state.isConfigured
+      : hasStores || hasChannels;
+  return !configured && !hasStores && !hasChannels;
+}
+
 export const RetailProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {

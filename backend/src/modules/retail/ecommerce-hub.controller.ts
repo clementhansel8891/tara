@@ -19,6 +19,7 @@ import {
   CreateRetailChannelDto,
   UpdateRetailChannelDto,
 } from "./dto/ecommerce-hub.dto";
+import { RegisterEcommerceBranchDto } from "./dto/retail.dto";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 
@@ -33,6 +34,31 @@ export class EcommerceHubController {
 
   private ok<T>(tenant_id: string, data: T) {
     return { success: true, tenant_id, data };
+  }
+
+  // ════════════════════════════════════════════════
+  // Unified E-Commerce Branch Registration
+  // ════════════════════════════════════════════════
+
+  /**
+   * Single unified entry point: register e-commerce presence AS a virtual branch
+   * (`RetailStore` with `type: "ecommerce"`) inside the branch hierarchy, optionally
+   * binding a sales channel. Supersedes the standalone connector/channel creation paths
+   * for new e-commerce onboarding.
+   */
+  @Post("register-branch")
+  @HttpCode(HttpStatus.CREATED)
+  async registerEcommerceBranch(
+    @Req() req: RequestWithTenant,
+    @Body() dto: RegisterEcommerceBranchDto,
+  ) {
+    const { tenant_id, user_id } = req.tenantContext;
+    const data = await this.hubService.registerEcommerceBranch(
+      req.tenantContext,
+      dto,
+      user_id,
+    );
+    return this.ok(tenant_id, data);
   }
 
   // ════════════════════════════════════════════════

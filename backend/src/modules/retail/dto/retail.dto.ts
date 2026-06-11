@@ -188,7 +188,7 @@ export class CreateStoreDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsEnum(["flagship", "satellite", "warehouse", "express", "kiosk", "pop-up"])
+  @IsEnum(["flagship", "satellite", "warehouse", "express", "kiosk", "pop-up", "ecommerce"])
   type: string;
 
   @IsOptional()
@@ -421,6 +421,85 @@ export class LinkBranchDto {
   @IsString()
   @IsNotEmpty()
   branch_id: string;
+}
+
+// ============================================================
+// UNIFIED E-COMMERCE BRANCH REGISTRATION DTO
+// ============================================================
+
+/**
+ * Optional sales channel to bind to a newly registered e-commerce virtual branch.
+ */
+export class RegisterEcommerceBranchChannelDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @IsString()
+  sync_frequency?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum(["HEADLESS", "PREMADE", "PRESET"])
+  integration_category?: string;
+}
+
+/**
+ * Unified registration payload for creating e-commerce presence as a virtual branch
+ * (`RetailStore` with `type: "ecommerce"`) that participates in the branch hierarchy,
+ * optionally binding a {@link RegisterEcommerceBranchChannelDto} to it.
+ */
+export class RegisterEcommerceBranchDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  code?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  location_id: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEnum([
+    "shopify",
+    "woocommerce",
+    "tokopedia",
+    "shopee",
+    "lazada",
+    "tiktok",
+    "custom",
+  ])
+  platform?: string;
+
+  @IsOptional()
+  @IsString()
+  domain?: string;
+
+  @IsOptional()
+  @IsString()
+  inventory_pool_id?: string;
+
+  @IsOptional()
+  @IsString()
+  manager_id?: string;
+
+  @IsOptional()
+  @IsObject()
+  settings?: Record<string, any>;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => RegisterEcommerceBranchChannelDto)
+  channel?: RegisterEcommerceBranchChannelDto;
 }
 
 // ============================================================

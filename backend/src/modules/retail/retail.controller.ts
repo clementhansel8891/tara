@@ -1283,7 +1283,28 @@ export class RetailController {
     );
     return this.respond(request.tenantContext, result);
   }
-  @Get("returns/export")
+
+  @Post("inventory/sync")
+  async syncInventory(
+    @Req() request: RequestWithTenant,
+    @Body() data: { store_id?: string; location_id?: string },
+  ) {
+    const { user_id, role, location_id } = request.tenantContext;
+
+    // Resolve the effective store: privileged roles may target any store; everyone else is
+    // pinned to their assigned location.
+    const isPrivileged = role === "SUPERADMIN" || role === "OWNER" || role === "ADMIN";
+    const effectiveStoreId = isPrivileged
+      ? data.store_id || data.location_id || location_id
+      : location_id || data.store_id || data.location_id;
+
+    const result = await this.retailService.syncInventory(
+      request.tenantContext,
+      { store_id: effectiveStoreId },
+      user_id!,
+    );
+    return this.respond(request.tenantContext, result);
+  }
   @HttpCode(HttpStatus.OK)
   async exportReturns(@Req() request: RequestWithTenant) {
      const { tenant_id } = request.tenantContext;
