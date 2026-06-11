@@ -1943,12 +1943,44 @@ export class RetailDbRepository implements IRetailRepository {
         });
       }
 
-      const salesAccountId =
-        mappings.find((m: any) => m.system_code === "RETAIL_SALES")
-          ?.account_id || "ACC-4000";
-      const cashAccountId =
-        mappings.find((m: any) => m.system_code === "RETAIL_CASH")
-          ?.account_id || "ACC-1001";
+      // Resolve the GL accounts for the sale. Mappings/accounts may not be seeded for this
+      // tenant yet, and the previous hardcoded fallbacks ("ACC-4000"/"ACC-1001") are not
+      // real finance_chart_of_accounts ids -> journal-line FK violation -> checkout 500.
+      // Resolve-or-create the real accounts (by tenant+code) and persist the system mapping
+      // so subsequent sales reuse them and the GL stays consistent.
+      const resolveGlAccount = async (
+        systemCode: string,
+        accountCode: string,
+        accountName: string,
+        accountType: string,
+      ): Promise<string> => {
+        const scope = MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true });
+        // 1. Existing active mapping pointing at a real account?
+        const mapping = mappings.find((m: any) => m.system_code === systemCode);
+        if (mapping?.account_id) {
+          const acc = await tx.finance_chart_of_accounts.findUnique({ where: { id: mapping.account_id } });
+          if (acc) return acc.id;
+        }
+        // 2. Find-or-create the account by (tenant, code).
+        let account = await tx.finance_chart_of_accounts.findUnique({
+          where: { tenant_id_code: { tenant_id: ctx.tenant_id, code: accountCode } },
+        });
+        if (!account) {
+          account = await tx.finance_chart_of_accounts.create({
+            data: { id: uuidv4(), ...scope, code: accountCode, name: accountName, type: accountType, status: "ACTIVE", updated_at: new Date() },
+          });
+        }
+        // 3. Upsert the system mapping so future sales resolve instantly.
+        await tx.finance_system_mappings.upsert({
+          where: { tenant_id_system_code: { tenant_id: ctx.tenant_id, system_code: systemCode } },
+          update: { account_id: account.id, status: "ACTIVE" },
+          create: { id: uuidv4(), ...scope, system_code: systemCode, account_id: account.id, status: "ACTIVE", updated_at: new Date() },
+        });
+        return account.id;
+      };
+
+      const salesAccountId = await resolveGlAccount("RETAIL_SALES", "4000", "Retail Sales Revenue", "REVENUE");
+      const cashAccountId = await resolveGlAccount("RETAIL_CASH", "1001", "Cash on Hand", "ASSET");
 
       let departmentId = dept?.id;
       if (!departmentId) {
@@ -2097,14 +2129,16 @@ export class RetailDbRepository implements IRetailRepository {
           },
         });
 
-        if (cashIncrement.gt(0)) {
-          // Audit Cash Movement
+        if (cashIncrement.gt(0) && employee?.id) {
+          // Audit Cash Movement. employee_id FKs to employees.id — use the resolved
+          // employee.id (cashier), NOT the auth user_id (which is not an employees.id and
+          // caused a retail_cash_movements_employee_id_fkey violation that 500-ed checkout).
           await tx.retail_cash_movements.create({
             data: {
               tenant_id: ctx.tenant_id,
               store_id: data.store_id,
               shift_id: data.shift_id,
-              employee_id: user_id,
+              employee_id: employee.id,
               amount: cashIncrement,
               type: "CASH_IN",
               reason: `RETAIL_SALE: ${order.id}`,
