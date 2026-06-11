@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, BadRequestException } from "@nestjs/common";
 import { PrismaService } from "../../../persistence/prisma.service";
 import {
   IInventoryRepository,
@@ -712,11 +712,24 @@ export class InventoryDbRepository implements IInventoryRepository {
     providedTx?: any
   ): Promise<InventoryAdjustment> {
     const db = providedTx || this.prisma;
+    // Validate the item exists in the master before creating an adjustment, so an unknown
+    // item_id is rejected with a clear 400 instead of a downstream FK-violation 500.
+    const item = await db.item_masters.findFirst({
+      where: { id: data.item_id, tenant_id: ctx.tenant_id },
+      select: { id: true },
+    });
+    if (!item) {
+      throw new BadRequestException(
+        `Item ${data.item_id} does not exist in the item master for this tenant`,
+      );
+    }
     const adj = await db.inventory_adjustments.create({
       data: {
         id: uuidv4(),
         updated_at: new Date(),
-        ...MultiTenancyUtil.getScope(ctx),
+        // inventory_adjustments has no branch_id/ecommerce_id columns; getScope(ctx)
+        // injected them (-> 500 when ctx.branch_id is set). Set only tenant_id.
+        tenant_id: ctx.tenant_id,
         item_id: data.item_id,
         location_id: data.location_id,
         department_id: data.department_id || null,
@@ -778,7 +791,9 @@ export class InventoryDbRepository implements IInventoryRepository {
         await tx.stock_levels.create({
           data: {
             id: uuidv4(),
-            ...MultiTenancyUtil.getScope(ctx),
+            // stock_levels has no branch_id/ecommerce_id columns; getScope(ctx) injected
+            // them (-> Prisma 500 when ctx.branch_id is set). Set only tenant_id.
+            tenant_id: ctx.tenant_id,
             location_id: adj.location_id,
             department_id: adj.department_id || null,
             product_id: adj.item_id,
@@ -794,7 +809,7 @@ export class InventoryDbRepository implements IInventoryRepository {
       await tx.stock_movements.create({
         data: {
           id: uuidv4(),
-          ...MultiTenancyUtil.getScope(ctx),
+          tenant_id: ctx.tenant_id,
           product_id: adj.item_id,
           location_id: adj.location_id,
           to_location_id: adj.location_id,

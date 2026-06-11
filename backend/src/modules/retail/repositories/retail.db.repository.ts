@@ -2211,7 +2211,8 @@ export class RetailDbRepository implements IRetailRepository {
 
   async submitOpname(ctx: TenantContext,
     data: { store_id: string; adjustments: any[]; shift_id?: string },
-  ): Promise<{ success: boolean }> {
+  ): Promise<{ success: boolean; skipped: string[] }> {
+    const skipped: string[] = [];
     await this.prisma.$transaction(async (tx: any) => {
       const store = await tx.stores.findUnique({
         where: { id: data.store_id },
@@ -2240,6 +2241,7 @@ export class RetailDbRepository implements IRetailRepository {
 
         if (!productId) {
           console.warn(`[RETAIL_OPNAME] Could not resolve item: ${adj.sku || adj.product_id}`);
+          skipped.push(String(adj.sku || adj.product_id || "unknown"));
           continue;
         }
         
@@ -2355,7 +2357,7 @@ export class RetailDbRepository implements IRetailRepository {
       });
     });
 
-    return { success: true };
+    return { success: true, skipped };
   }
 
   async receiveGoods(ctx: TenantContext,
