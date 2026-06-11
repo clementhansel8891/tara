@@ -1372,7 +1372,7 @@ export class RetailDbRepository implements IRetailRepository {
 
     const channel = await this.prisma.retail_channels.create({
       data: {
-        id: "4m6cguof",
+        id: uuidv4(),
         updated_at: new Date(),
         ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         name: data.name,
