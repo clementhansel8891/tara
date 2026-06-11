@@ -70,7 +70,9 @@ export class PaymentDbRepository implements IPaymentRepository {
     await this.prisma.payment_audit_events.create({
       data: {
         id: uuidv4(),
-        ...MultiTenancyUtil.getScope(ctx),
+        // Only tenant_id is valid here; getScope() injected branch_id/location_id (not
+        // columns) which 500-ed the payment audit insert during checkout.
+        tenant_id: ctx.tenant_id,
         actor_id: actor_id,
         action,
         entity_type: entity_type,
