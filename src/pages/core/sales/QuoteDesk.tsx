@@ -151,20 +151,20 @@ export default function QuoteDesk() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-purple-600/10 text-purple-600 border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Financial Modeling</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-primary border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Financial Modeling</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Proposal Stream Active
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent italic">Quote Desk</h1>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Versioned proposal orchestration with automated approval workflows."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic">"Versioned proposal orchestration with automated approval workflows."</p>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+          <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-11 h-14 w-[300px] rounded-[1.5rem] bg-transparent border-none focus-visible:ring-0 text-base font-medium"
                 value={search}
@@ -174,7 +174,7 @@ export default function QuoteDesk() {
             </div>
             <Button
               variant="secondary"
-              className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
               onClick={() => refresh(true)}
               disabled={refreshing}
             >
@@ -184,12 +184,12 @@ export default function QuoteDesk() {
 
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95">
+              <Button className="h-[4.5rem] px-10 rounded-[2rem] bg-primary hover:bg-primary shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95">
                 <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
                 GENERATE PROPOSAL
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-slate-950">
+            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-muted">
               <div className="h-2 bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-500" />
               <div className="p-10 space-y-8">
                 <DialogHeader>
@@ -198,7 +198,7 @@ export default function QuoteDesk() {
                 </DialogHeader>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Opportunity</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Target Opportunity</Label>
                     <Select 
                       value={newQuote.opportunityId} 
                       onValueChange={(val) => {
@@ -206,7 +206,7 @@ export default function QuoteDesk() {
                         setNewQuote({...newQuote, opportunityId: val, amount: opp?.amount.toString() || "0"});
                       }}
                     >
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold">
+                      <SelectTrigger className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold">
                         <SelectValue placeholder="Select deal context" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
@@ -218,28 +218,28 @@ export default function QuoteDesk() {
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nominal Amount</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nominal Amount</Label>
                       <Input 
                         type="number"
-                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-black text-indigo-600"
+                        className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-black text-primary"
                         value={newQuote.amount}
                         onChange={(e) => setNewQuote({...newQuote, amount: e.target.value})}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discount Matrix (%)</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Discount Matrix (%)</Label>
                       <Input 
                         type="number"
-                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-black text-emerald-600"
+                        className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-black text-success"
                         value={newQuote.discountPercent}
                         onChange={(e) => setNewQuote({...newQuote, discountPercent: e.target.value})}
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Strategic Notes</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Strategic Notes</Label>
                     <Input 
-                      className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner"
+                      className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner"
                       value={newQuote.notes}
                       onChange={(e) => setNewQuote({...newQuote, notes: e.target.value})}
                       placeholder="Pricing includes enterprise-tier support..."
@@ -247,7 +247,7 @@ export default function QuoteDesk() {
                   </div>
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button onClick={handleCreateQuote} className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 font-black text-sm">INITIALIZE GENERATION</Button>
+                  <Button onClick={handleCreateQuote} className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary font-black text-sm">INITIALIZE GENERATION</Button>
                 </DialogFooter>
               </div>
             </DialogContent>
@@ -256,21 +256,21 @@ export default function QuoteDesk() {
       </div>
 
       {/* Quote Registry Area */}
-      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden">
         <CardHeader className="p-10 pb-6 border-b border-white/20 dark:border-slate-800/20">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <FileText className="h-6 w-6 text-indigo-600" />
+                <FileText className="h-6 w-6 text-primary" />
                 Proposal Registry Pool
               </CardTitle>
               <CardDescription className="text-sm font-medium">Version-controlled quote lifecycle and approval matrix.</CardDescription>
             </div>
             <div className="flex gap-4">
-               <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] shadow-inner">
-                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("ALL")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "ALL" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400 hover:text-slate-600")}>ALL VERSIONS</Button>
-                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("PENDING_APPROVAL")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "PENDING_APPROVAL" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400 hover:text-slate-600")}>PENDING APPROVAL</Button>
-                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("APPROVED")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "APPROVED" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400 hover:text-slate-600")}>APPROVED</Button>
+               <div className="flex bg-muted dark:bg-muted p-1.5 rounded-[1.5rem] shadow-inner">
+                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("ALL")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "ALL" ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground hover:text-muted-foreground")}>ALL VERSIONS</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("PENDING_APPROVAL")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "PENDING_APPROVAL" ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground hover:text-muted-foreground")}>PENDING APPROVAL</Button>
+                  <Button variant="ghost" size="sm" onClick={() => setStatusFilter("APPROVED")} className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "APPROVED" ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground hover:text-muted-foreground")}>APPROVED</Button>
                </div>
             </div>
           </div>
@@ -278,21 +278,21 @@ export default function QuoteDesk() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+              <thead className="bg-muted dark:bg-muted">
                 <tr>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Protocol Designation</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Account</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Yield Configuration</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Lifecycle Node</th>
-                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Action Matrix</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Protocol Designation</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Account</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Yield Configuration</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Lifecycle Node</th>
+                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Action Matrix</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                 {(Array.isArray(filtered) ? filtered : []).map((item) => (
-                  <tr key={item.id} className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all cursor-default">
+                  <tr key={item.id} className="group hover:bg-primary dark:hover:bg-primary transition-all cursor-default">
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-5">
-                        <div className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center font-black text-sm shadow-xl transition-all group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white">
+                        <div className="h-12 w-12 rounded-2xl bg-white dark:bg-muted flex items-center justify-center font-black text-sm shadow-xl transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                           <Layers className="h-6 w-6" />
                         </div>
                         <div>
@@ -302,12 +302,12 @@ export default function QuoteDesk() {
                       </div>
                     </td>
                     <td className="px-10 py-8">
-                       <p className="text-sm font-black text-slate-700 dark:text-slate-300">{item.accountName}</p>
+                       <p className="text-sm font-black text-muted-foreground dark:text-muted-foreground">{item.accountName}</p>
                     </td>
                     <td className="px-10 py-8">
                        <div className="space-y-1">
-                          <p className="text-sm font-black text-emerald-600">${item.netAmount.toLocaleString()}</p>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase">Gross: ${item.amount.toLocaleString()} ({item.discountPercent}% OFF)</p>
+                          <p className="text-sm font-black text-success">${item.netAmount.toLocaleString()}</p>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">Gross: ${item.amount.toLocaleString()} ({item.discountPercent}% OFF)</p>
                        </div>
                     </td>
                     <td className="px-10 py-8">
@@ -315,9 +315,9 @@ export default function QuoteDesk() {
                         variant={item.status === "PENDING_APPROVAL" ? "destructive" : "outline"}
                         className={cn(
                           "rounded-full font-black text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-widest",
-                          item.status === "APPROVED" ? "bg-emerald-500/10 text-emerald-600" :
-                          item.status === "DRAFT" ? "bg-slate-100 dark:bg-slate-800 text-slate-500" :
-                          item.status === "SENT" ? "bg-indigo-500/10 text-indigo-600" : "bg-rose-500/10 text-rose-600"
+                          item.status === "APPROVED" ? "bg-success text-success" :
+                          item.status === "DRAFT" ? "bg-muted dark:bg-muted text-muted-foreground" :
+                          item.status === "SENT" ? "bg-primary text-primary" : "bg-destructive text-destructive"
                         )}
                        >
                         {item.status.replace('_', ' ')}
@@ -328,15 +328,15 @@ export default function QuoteDesk() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-white transition-all shadow-sm">
-                                <MoreVertical className="h-5 w-5 text-slate-400" />
+                                <MoreVertical className="h-5 w-5 text-muted-foreground" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'submit')} disabled={item.status !== "DRAFT"}><Zap className="h-4 w-4 text-indigo-600" /> Submit for Review</DropdownMenuItem>
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'approve')} disabled={item.status !== "PENDING_APPROVAL"}><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Approve Proposal</DropdownMenuItem>
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'reject')} disabled={item.status !== "PENDING_APPROVAL"}><XCircle className="h-4 w-4 text-rose-500" /> Reject Version</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'submit')} disabled={item.status !== "DRAFT"}><Zap className="h-4 w-4 text-primary" /> Submit for Review</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'approve')} disabled={item.status !== "PENDING_APPROVAL"}><CheckCircle2 className="h-4 w-4 text-success" /> Approve Proposal</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleAction(item.id, 'reject')} disabled={item.status !== "PENDING_APPROVAL"}><XCircle className="h-4 w-4 text-destructive" /> Reject Version</DropdownMenuItem>
                                <DropdownMenuSeparator />
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-black text-indigo-600" onClick={() => handleAction(item.id, 'send')} disabled={item.status !== "APPROVED"}><Send className="h-4 w-4" /> TRANSMIT TO CLIENT</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-black text-primary" onClick={() => handleAction(item.id, 'send')} disabled={item.status !== "APPROVED"}><Send className="h-4 w-4" /> TRANSMIT TO CLIENT</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                        </div>
@@ -351,25 +351,25 @@ export default function QuoteDesk() {
 
       {/* Tactical Insights Overlay */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-8 flex items-center gap-6">
-            <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-               <ShieldCheck className="h-7 w-7 text-indigo-500" />
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white/40 dark:bg-muted backdrop-blur-xl p-8 flex items-center gap-6">
+            <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center">
+               <ShieldCheck className="h-7 w-7 text-primary" />
             </div>
             <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">COMPLIANCE INDEX</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">COMPLIANCE INDEX</p>
                <h4 className="text-2xl font-black">100%</h4>
             </div>
          </Card>
-         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-8 flex items-center gap-6">
-            <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
-               <History className="h-7 w-7 text-emerald-500" />
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-white/40 dark:bg-muted backdrop-blur-xl p-8 flex items-center gap-6">
+            <div className="h-14 w-14 rounded-2xl bg-success flex items-center justify-center">
+               <History className="h-7 w-7 text-success" />
             </div>
             <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">AVG APPROVAL TIME</p>
-               <h4 className="text-2xl font-black text-emerald-500">4.2h</h4>
+               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">AVG APPROVAL TIME</p>
+               <h4 className="text-2xl font-black text-success">4.2h</h4>
             </div>
          </Card>
-         <Card className="rounded-[2.5rem] border-none shadow-xl bg-indigo-600 text-white p-8 flex items-center gap-6 shadow-indigo-600/20">
+         <Card className="rounded-[2.5rem] border-none shadow-xl bg-primary text-white p-8 flex items-center gap-6 shadow-indigo-600/20">
             <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
                <DollarSign className="h-7 w-7" />
             </div>

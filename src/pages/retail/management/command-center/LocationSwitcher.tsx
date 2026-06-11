@@ -14,7 +14,7 @@ export const LocationSwitcher: React.FC<LocationSwitcherProps> = ({
   const { stores } = useRetail();
 
   return (
-    <div className="flex items-center gap-1.5 p-1 bg-secondary/50/5 backdrop-blur-md rounded-2xl border border-slate-200/50 overflow-x-auto max-w-full no-scrollbar">
+    <div className="flex items-center gap-1.5 p-1 bg-secondary/50 backdrop-blur-md rounded-2xl border border-slate-200/50 overflow-x-auto max-w-full no-scrollbar">
       <button
         onClick={() => onLocationChange(undefined)}
         className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-300 whitespace-nowrap ${

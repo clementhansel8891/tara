@@ -93,9 +93,9 @@ export default function StrategyControlDesk() {
           title="Strategy Control Desk"
           subtitle="AI-driven tactical orchestration and budget governance."
           primaryAction={
-            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl">
-              <ShieldCheck className="h-4 w-4 text-emerald-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic">Governance Active</span>
+            <div className="flex items-center gap-2 bg-success border border-emerald-500/20 px-4 py-2 rounded-xl">
+              <ShieldCheck className="h-4 w-4 text-success" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-success italic">Governance Active</span>
             </div>
           }
         />
@@ -117,10 +117,10 @@ export default function StrategyControlDesk() {
           
           <Card className="glass-card p-8 rounded-[2.5rem] card-premium">
             <div className="flex items-start justify-between mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <div className="h-12 w-12 rounded-2xl bg-success flex items-center justify-center text-success">
                 <DollarSign className="h-6 w-6" />
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-500 border-none">TIGHTER ROI</Badge>
+              <Badge className="bg-success text-success border-none">TIGHTER ROI</Badge>
             </div>
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Potential Yield</p>
             <h3 className="text-4xl font-black italic tracking-tighter">+$124.5k</h3>
@@ -128,10 +128,10 @@ export default function StrategyControlDesk() {
 
           <Card className="glass-card p-8 rounded-[2.5rem] card-premium">
             <div className="flex items-start justify-between mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+              <div className="h-12 w-12 rounded-2xl bg-warning flex items-center justify-center text-warning">
                 <Target className="h-6 w-6" />
               </div>
-              <Badge className="bg-amber-500/10 text-amber-500 border-none">SLA COMPLIANT</Badge>
+              <Badge className="bg-warning text-warning border-none">SLA COMPLIANT</Badge>
             </div>
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Strategic Goal</p>
             <h3 className="text-4xl font-black italic tracking-tighter">MAX GROWTH</h3>
@@ -144,7 +144,7 @@ export default function StrategyControlDesk() {
             <div className="flex items-center justify-between mb-12">
               <div className="space-y-2">
                 <h2 className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-                  <Zap className="h-8 w-8 text-amber-500" />
+                  <Zap className="h-8 w-8 text-warning" />
                   Tactical Recommendations
                 </h2>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em]">
@@ -165,15 +165,15 @@ export default function StrategyControlDesk() {
                     rec.status === "PENDING" 
                       ? "bg-secondary/30 border-border hover:border-primary/50" 
                       : rec.status === "AUTHORIZED"
-                      ? "bg-emerald-500/5 border-emerald-500/20"
-                      : "bg-rose-500/5 border-rose-500/20 opacity-60"
+                      ? "bg-success border-emerald-500/20"
+                      : "bg-destructive border-rose-500/20 opacity-60"
                   )}
                 >
                   <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-start gap-6">
                       <div className={cn(
                         "h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg transition-transform duration-500 group-hover:rotate-12",
-                        rec.type === "REALLOCATION" ? "bg-indigo-600 text-white" : "bg-primary/20 text-primary"
+                        rec.type === "REALLOCATION" ? "bg-primary text-white" : "bg-primary/20 text-primary"
                       )}>
                         <TrendingUp className="h-7 w-7" />
                       </div>
@@ -184,7 +184,7 @@ export default function StrategyControlDesk() {
                         </div>
                         <p className="text-[13px] font-medium text-muted-foreground leading-relaxed italic italic">"{rec.description}"</p>
                         <div className="flex items-center gap-6 pt-2">
-                          <div className="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                          <div className="flex items-center gap-2 text-[10px] font-black text-success uppercase tracking-widest">
                             <ArrowUpRight className="h-3 w-3" /> {rec.impact}
                           </div>
                           <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest">
@@ -200,7 +200,7 @@ export default function StrategyControlDesk() {
                           <Button 
                             onClick={() => handleAction(rec.id, "REJECTED")}
                             variant="ghost" 
-                            className="h-14 w-14 rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                            className="h-14 w-14 rounded-2xl hover:bg-destructive hover:text-white transition-all shadow-sm"
                           >
                             <XCircle className="h-6 w-6" />
                           </Button>
@@ -214,9 +214,9 @@ export default function StrategyControlDesk() {
                       ) : (
                         <div className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-card border border-border">
                           {rec.status === "AUTHORIZED" ? (
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                            <CheckCircle2 className="h-5 w-5 text-success" />
                           ) : (
-                            <XCircle className="h-5 w-5 text-rose-500" />
+                            <XCircle className="h-5 w-5 text-destructive" />
                           )}
                           <span className="text-[10px] font-black uppercase tracking-widest italic">{rec.status}</span>
                         </div>
@@ -230,10 +230,10 @@ export default function StrategyControlDesk() {
         </div>
 
         {/* Information Callout */}
-        <div className="p-10 rounded-[3rem] bg-indigo-950 text-white flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 h-48 w-48 bg-indigo-600/20 rounded-full blur-[80px] -mr-24 -mt-24" />
+        <div className="p-10 rounded-[3rem] bg-primary text-white flex flex-col md:flex-row items-center gap-10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 h-48 w-48 bg-primary rounded-full blur-[80px] -mr-24 -mt-24" />
           <div className="h-20 w-20 rounded-[1.5rem] bg-white/10 flex items-center justify-center border border-white/10 backdrop-blur-xl group-hover:rotate-12 transition-transform duration-700">
-             <AlertCircle className="h-10 w-10 text-indigo-300" />
+             <AlertCircle className="h-10 w-10 text-primary" />
           </div>
           <div className="flex-1 space-y-2">
              <h4 className="text-2xl font-black italic uppercase tracking-tight">Governance Intelligence Protocol</h4>

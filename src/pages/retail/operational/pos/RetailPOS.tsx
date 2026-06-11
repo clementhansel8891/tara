@@ -281,7 +281,7 @@ export default function RetailPOS() {
               {(Array.isArray(filteredInventory) ? filteredInventory : []).map((item) => (
                 <Card
                   key={item.id}
-                  className="cursor-pointer hover:border-blue-500 hover:shadow-md transition-all group overflow-hidden"
+                  className="cursor-pointer hover:border-primary hover:shadow-md transition-all group overflow-hidden"
                   onClick={() => addToCart(item)}
                 >
                   <div className="h-24 bg-secondary/10 flex items-center justify-center text-muted-foreground/60 group-hover:bg-primary/5">
@@ -307,7 +307,7 @@ export default function RetailPOS() {
         </div>
 
         <div className="xl:col-span-4">
-          <Card className="h-full flex flex-col border-none shadow-lg bg-secondary/5/50 sticky top-6">
+          <Card className="h-full flex flex-col border-none shadow-lg bg-secondary/5 sticky top-6">
             <CardHeader className="border-b bg-white rounded-t-lg">
               <CardTitle className="text-xl">Active Cart</CardTitle>
             </CardHeader>

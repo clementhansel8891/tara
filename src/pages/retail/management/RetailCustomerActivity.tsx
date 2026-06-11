@@ -111,7 +111,7 @@ export function RetailCustomerActivity({
       <CardContent className="p-0">
         {loading ? (
           <div className="p-40 text-center space-y-6">
-            <div className="w-20 h-20 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-8 shadow-[0_0_50px_rgba(79,70,229,0.3)]" />
+            <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-8 shadow-[0_0_50px_rgba(79,70,229,0.3)]" />
             <p className="text-sm font-black italic text-muted-foreground uppercase tracking-[0.4em] animate-pulse">Synchronizing Registry...</p>
           </div>
         ) : (
@@ -213,7 +213,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
               {/* Compliance Vault */}
               <div className="p-8 rounded-2xl bg-destructive/5 border border-rose-500/10 space-y-6">
                 <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-black text-rose-400 uppercase tracking-[0.3em] italic">Compliance Vault</p>
+                  <p className="text-[10px] font-black text-destructive uppercase tracking-[0.3em] italic">Compliance Vault</p>
                   <Lock className="w-4 h-4 text-destructive" />
                 </div>
                 <div className="space-y-3">
@@ -226,7 +226,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                   </Button>
                   <Button 
                     variant="outline"
-                    className="w-full h-12 rounded-xl bg-destructive/10 border-rose-500/20 text-[9px] font-black uppercase tracking-widest text-rose-400 hover:bg-destructive/20 gap-3"
+                    className="w-full h-12 rounded-xl bg-destructive/10 border-rose-500/20 text-[9px] font-black uppercase tracking-widest text-destructive hover:bg-destructive/20 gap-3"
                     onClick={() => onExpansionRequest?.(`Identity Anonymization: ${customer.name}`)}
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Anonymize Identity
@@ -234,7 +234,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                 </div>
               </div>
 
-              <div className="p-8 rounded-[2rem] bg-primary/10 border border-indigo-600/20 text-center shadow-inner">
+              <div className="p-8 rounded-[2rem] bg-primary/10 border border-primary text-center shadow-inner">
                 <p className="text-[11px] font-black text-primary uppercase tracking-[0.4em] mb-2 italic">Loyalty Ledger</p>
                 <p className="text-3xl font-black italic text-foreground tracking-tighter italic">{customer.points || 0}</p>
               </div>
@@ -288,7 +288,7 @@ function CustomerDetailDialog({ isOpen, onOpenChange, customer, onExpansionReque
                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.3em] italic">Establish secure real-time channel with {customer.name}</p>
                       </div>
                       <Button 
-                        className="bg-success hover:bg-emerald-700 text-foreground rounded-2xl h-20 px-14 text-[12px] font-black uppercase tracking-[0.4em] shadow-[0_20px_40px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95 gap-4 italic"
+                        className="bg-success hover:bg-success text-foreground rounded-2xl h-20 px-14 text-[12px] font-black uppercase tracking-[0.4em] shadow-[0_20px_40px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95 gap-4 italic"
                         onClick={() => {
                           const phone = customer.phone?.replace(/[^0-9]/g, "");
                           const text = encodeURIComponent(`Hi ${customer.name}, this is Zenvix Support. How can we help you today?`);
@@ -339,7 +339,7 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
 
   if (loading) return (
     <div className="p-24 text-center space-y-6">
-       <div className="w-12 h-12 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto shadow-2xl" />
+       <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-2xl" />
        <p className="text-[10px] font-black italic text-muted-foreground uppercase tracking-[0.4em] animate-pulse">Scanning Global Ledger...</p>
     </div>
   );
@@ -353,7 +353,7 @@ function OrderHistoryList({ customerId }: { customerId: string }) {
           </div>
         ) : (
           (Array.isArray(orders) ? orders : []).map((order) => (
-            <div key={order.id} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.04] transition-all duration-500 space-y-6 group/order shadow-xl">
+            <div key={order.id} className="p-8 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-primary hover:bg-white/[0.04] transition-all duration-500 space-y-6 group/order shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] italic">Order Context</p>
@@ -387,7 +387,7 @@ function CustomerCartView({ cart }: any) {
           </div>
         ) : (
           (Array.isArray(items) ? items : []).map((item: any) => (
-            <div key={item.id} className="flex items-center justify-between p-8 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-indigo-500/20 transition-all duration-500 group/cart shadow-xl">
+            <div key={item.id} className="flex items-center justify-between p-8 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-primary transition-all duration-500 group/cart shadow-xl">
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-2xl bg-secondary/40 border border-border flex items-center justify-center shadow-2xl group-hover/cart:scale-110 transition-transform">
                   <ShoppingCart className="w-7 h-7 text-primary" />
@@ -420,7 +420,7 @@ function CustomerWishlistView({ wishlist, onExpansionRequest }: any) {
           (Array.isArray(items) ? items : []).map((item: any) => (
             <div key={item.id} className="p-6 bg-white/[0.02] border border-white/5 rounded-[2rem] flex flex-col items-center text-center space-y-6 hover:bg-white/[0.04] hover:border-rose-500/20 transition-all duration-500 group/wish shadow-xl">
               <div className="w-24 h-24 rounded-[2rem] bg-destructive/10 border border-rose-500/20 flex items-center justify-center shadow-3xl group-hover/wish:scale-110 group-hover/wish:rotate-6 transition-all duration-500">
-                <Heart className="w-10 h-10 text-rose-400 fill-rose-400/10" />
+                <Heart className="w-10 h-10 text-destructive fill-rose-400/10" />
               </div>
               <div className="space-y-2">
                  <p className="text-xl font-black italic text-foreground tracking-tight">{item.product_id}</p>
@@ -429,7 +429,7 @@ function CustomerWishlistView({ wishlist, onExpansionRequest }: any) {
               <Button 
                 variant="outline" 
                 onClick={() => onExpansionRequest?.(`Asset Inspection: ${item.product_id}`)}
-                className="w-full h-14 rounded-2xl border-border bg-secondary/40 text-foreground font-black italic text-[11px] uppercase tracking-[0.3em] hover:bg-primary hover:border-indigo-600 transition-all shadow-2xl"
+                className="w-full h-14 rounded-2xl border-border bg-secondary/40 text-foreground font-black italic text-[11px] uppercase tracking-[0.3em] hover:bg-primary hover:border-primary transition-all shadow-2xl"
               >
                 Inspect Strategic Asset
               </Button>

@@ -89,21 +89,21 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
   const getStatusBadge = (status: Job['status']) => {
     switch (status) {
       case 'COMPLETED':
-        return <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Completed</Badge>;
+        return <Badge className="bg-success text-success border-emerald-500/20"><CheckCircle2 className="w-3 h-3 mr-1" /> Completed</Badge>;
       case 'PROCESSING':
-        return <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20"><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</Badge>;
+        return <Badge className="bg-primary text-primary border-primary"><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</Badge>;
       case 'FAILED':
-        return <Badge className="bg-red-500/10 text-red-500 border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Failed</Badge>;
+        return <Badge className="bg-destructive text-destructive border-red-500/20"><XCircle className="w-3 h-3 mr-1" /> Failed</Badge>;
       case 'ABORTED':
-        return <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20"><StopCircle className="w-3 h-3 mr-1" /> Aborted</Badge>;
+        return <Badge className="bg-warning text-warning border-amber-500/20"><StopCircle className="w-3 h-3 mr-1" /> Aborted</Badge>;
       default:
-        return <Badge variant="outline" className="text-slate-400"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return <Badge variant="outline" className="text-muted-foreground"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-slate-950 border-slate-800">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-muted border-slate-800">
         <DialogHeader className="p-6 border-b border-slate-800">
           <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
             <Activity className="w-5 h-5 text-primary" />
@@ -114,13 +114,13 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
         <ScrollArea className="flex-1 p-6">
           <div className="space-y-4">
             {!Array.isArray(jobs) || jobs.length === 0 ? (
-              <div className="text-center py-12 text-slate-500">
+              <div className="text-center py-12 text-muted-foreground">
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p>No recent background tasks found</p>
               </div>
             ) : (
               jobs.map((job) => (
-                <div key={job.id} className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 space-y-4">
+                <div key={job.id} className="p-4 rounded-xl bg-muted border border-slate-800 space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
                         </span>
                         {getStatusBadge(job.status)}
                       </div>
-                      <div className="flex items-center gap-4 text-[10px] text-slate-500">
+                      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {job.created_at && !isNaN(new Date(job.created_at).getTime()) 
@@ -163,48 +163,48 @@ export function JobMonitorDialog({ open, onOpenChange }: JobMonitorDialogProps) 
 
                   {job.status === 'PROCESSING' && (
                     <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] text-slate-400">
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
                         <span>Progress: {Math.round((job.processed_items / (job.total_items || 1)) * 100)}%</span>
                         <span>{job.processed_items} / {job.total_items || '?'} items</span>
                       </div>
                       <Progress 
                         value={(job.processed_items / (job.total_items || 1)) * 100} 
-                        className="h-1.5 bg-slate-800"
+                        className="h-1.5 bg-muted"
                       />
                     </div>
                   )}
 
                   {(job.status === 'COMPLETED' || job.status === 'FAILED' || job.status === 'ABORTED') && (
                     <div className="grid grid-cols-3 gap-2 py-1">
-                      <div className="px-2 py-1.5 rounded-lg bg-slate-800/30 border border-slate-700/50">
-                        <div className="text-[9px] text-slate-500 uppercase tracking-wider">Total</div>
+                      <div className="px-2 py-1.5 rounded-lg bg-muted border border-slate-700/50">
+                        <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Total</div>
                         <div className="text-sm font-semibold text-white">{job.total_items}</div>
                       </div>
-                      <div className="px-2 py-1.5 rounded-lg bg-slate-800/30 border border-slate-700/50">
-                        <div className="text-[9px] text-slate-500 uppercase tracking-wider">Success</div>
-                        <div className="text-sm font-semibold text-emerald-500">{job.processed_items}</div>
+                      <div className="px-2 py-1.5 rounded-lg bg-muted border border-slate-700/50">
+                        <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Success</div>
+                        <div className="text-sm font-semibold text-success">{job.processed_items}</div>
                       </div>
-                      <div className="px-2 py-1.5 rounded-lg bg-slate-800/30 border border-slate-700/50">
-                        <div className="text-[9px] text-slate-500 uppercase tracking-wider">Errors</div>
-                        <div className="text-sm font-semibold text-red-500">{job.error_count}</div>
+                      <div className="px-2 py-1.5 rounded-lg bg-muted border border-slate-700/50">
+                        <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Errors</div>
+                        <div className="text-sm font-semibold text-destructive">{job.error_count}</div>
                       </div>
                     </div>
                   )}
 
                   {job.errors && job.errors.length > 0 && (
-                    <div className="p-3 rounded-lg bg-red-500/5 border border-red-500/10 space-y-2">
-                      <div className="flex items-center gap-2 text-[10px] font-semibold text-red-400">
+                    <div className="p-3 rounded-lg bg-destructive border border-red-500/10 space-y-2">
+                      <div className="flex items-center gap-2 text-[10px] font-semibold text-destructive">
                         <AlertCircle className="w-3 h-3" />
                         LATEST ERRORS
                       </div>
                       <div className="space-y-1">
                         {job.errors.slice(-2).map((err, idx) => (
-                          <div key={idx} className="text-[10px] text-red-300/80 font-mono truncate">
+                          <div key={idx} className="text-[10px] text-destructive font-mono truncate">
                             {err.identifier ? `[${err.identifier}] ` : ''}{err.message}
                           </div>
                         ))}
                         {job.errors.length > 2 && (
-                          <div className="text-[9px] text-red-400/50 italic">
+                          <div className="text-[9px] text-destructive italic">
                             + {job.errors.length - 2} more errors
                           </div>
                         )}

@@ -170,8 +170,8 @@ export default function TalentFlow() {
         <FilterBar searchValue={search} onSearchChange={setSearch} />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           {(Array.isArray(stages) ? stages : []).map((stage) => (
-            <div key={stage} className={`rounded-lg border bg-card p-3 ${stage === "rejected" ? "border-red-100 bg-red-50/10" : ""}`}>
-              <p className={`text-sm font-semibold capitalize ${stage === "rejected" ? "text-red-600" : "text-foreground"}`}>{stage}</p>
+            <div key={stage} className={`rounded-lg border bg-card p-3 ${stage === "rejected" ? "border-red-100 bg-destructive" : ""}`}>
+              <p className={`text-sm font-semibold capitalize ${stage === "rejected" ? "text-destructive" : "text-foreground"}`}>{stage}</p>
               <div className="mt-3 space-y-2">
                 {(Array.isArray(filteredCandidates) ? filteredCandidates : []).filter((candidate) => candidate.stage === stage)
                   .map((candidate) => (
@@ -318,8 +318,8 @@ export default function TalentFlow() {
                 <div className="text-right">
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${
                     selectedCandidateData.stage === "rejected" 
-                      ? "bg-red-50 text-red-700" 
-                      : "bg-blue-50 text-blue-700"
+                      ? "bg-destructive text-destructive" 
+                      : "bg-primary text-primary"
                   }`}>
                     {selectedCandidateData.stage}
                   </span>
@@ -338,7 +338,7 @@ export default function TalentFlow() {
                   {(Array.isArray(candidateProfile.documents) ? candidateProfile.documents : []).map(doc => (
                     <div key={doc.id} className="flex items-center justify-between border rounded-md p-2 text-sm bg-card">
                       <span>{doc.name} ({doc.size})</span>
-                      <Button onClick={(e) => { e.preventDefault(); alert("Detailed View:\n\nMetadata: " + (typeof window !== "undefined" ? window.location.pathname : "N/A")); }} variant="ghost" size="sm" className="text-blue-600 hover:text-blue-800">View</Button>
+                      <Button onClick={(e) => { e.preventDefault(); alert("Detailed View:\n\nMetadata: " + (typeof window !== "undefined" ? window.location.pathname : "N/A")); }} variant="ghost" size="sm" className="text-primary hover:text-primary">View</Button>
                     </div>
                   ))}
                 </div>
@@ -349,7 +349,7 @@ export default function TalentFlow() {
                   Move to Next Stage
                 </Button>
                 {selectedCandidateData.stage === "offer" && (
-                  <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={handleHire}>
+                  <Button className="flex-1 bg-success hover:bg-success" onClick={handleHire}>
                     Hire Candidate
                   </Button>
                 )}

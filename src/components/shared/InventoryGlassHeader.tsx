@@ -28,25 +28,25 @@ export const InventoryGlassHeader: React.FC<InventoryGlassHeaderProps> = ({
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative p-6 mb-8 rounded-[2.5rem] bg-slate-900/40 backdrop-blur-3xl border border-white/10 shadow-2xl overflow-hidden group"
+      className="relative p-6 mb-8 rounded-[2.5rem] bg-muted backdrop-blur-3xl border border-white/10 shadow-2xl overflow-hidden group"
     >
       {/* Background Gradients */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-indigo-500/15 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px]" />
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-primary rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-success rounded-full blur-[100px]" />
 
       <div className="relative z-10 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           {/* Title Section */}
           <div className="flex items-center gap-6">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 shadow-xl border border-white/5 text-white group-hover:scale-105 transition-transform duration-500">
-              <Icon className="w-7 h-7 text-indigo-400" />
+              <Icon className="w-7 h-7 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-black tracking-tighter text-white uppercase italic leading-none">
                 {title}
               </h1>
               {subtitle && (
-                <p className="text-[10px] font-bold tracking-widest text-slate-500 mt-2 uppercase">
+                <p className="text-[10px] font-bold tracking-widest text-muted-foreground mt-2 uppercase">
                   {subtitle}
                 </p>
               )}
@@ -55,10 +55,10 @@ export const InventoryGlassHeader: React.FC<InventoryGlassHeaderProps> = ({
 
           {/* Stats Row */}
           {stats && stats.length > 0 && (
-            <div className="flex flex-wrap items-center gap-4 bg-slate-950/40 p-4 rounded-2xl border border-white/5 backdrop-blur-md shadow-inner">
+            <div className="flex flex-wrap items-center gap-4 bg-muted p-4 rounded-2xl border border-white/5 backdrop-blur-md shadow-inner">
               {stats.map((stat, i) => (
                 <div key={i} className="flex flex-col gap-0.5 px-4 border-r border-white/5 last:border-none">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                     {stat.label}
                   </span>
                   <div className="flex items-baseline gap-2">

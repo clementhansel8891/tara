@@ -77,7 +77,7 @@ export default function RetailInventory() {
         subtitle="Operational Stock Management & Receiving"
       />
 
-      <div className="p-4 bg-slate-950/40 border-b border-white/5">
+      <div className="p-4 bg-muted border-b border-white/5">
         <InventoryFilterHub 
           search={searchTerm}
           onSearchChange={setSearchTerm}
@@ -92,7 +92,7 @@ export default function RetailInventory() {
             <div className="flex gap-3">
               <Button 
                 variant="outline" 
-                className="h-14 px-6 rounded-2xl bg-slate-900/40 border-white/10 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
+                className="h-14 px-6 rounded-2xl bg-muted border-white/10 text-white font-black italic uppercase text-[10px] tracking-widest gap-2"
                 onClick={() => {}}
               >
                 <Plus className="w-4 h-4" />
@@ -154,12 +154,12 @@ export default function RetailInventory() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-orange-100 text-orange-700 font-black italic text-[8px] uppercase tracking-widest border-none">DUE TODAY</Badge>
+                      <Badge className="bg-warning text-warning font-black italic text-[8px] uppercase tracking-widest border-none">DUE TODAY</Badge>
                       <Button 
                         onClick={() => handleAdjust("OPNAME_START")} 
                         disabled={loading}
                         size="sm"
-                        className="rounded-xl bg-primary hover:bg-blue-700 text-foreground font-black italic uppercase text-[9px] tracking-widest"
+                        className="rounded-xl bg-primary hover:bg-primary text-foreground font-black italic uppercase text-[9px] tracking-widest"
                       >
                         Start Count
                       </Button>
@@ -198,7 +198,7 @@ export default function RetailInventory() {
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Warehouse TTL</span>
-                <span className="font-mono text-green-600">Active</span>
+                <span className="font-mono text-success">Active</span>
               </div>
             </CardContent>
           </Card>
@@ -206,13 +206,13 @@ export default function RetailInventory() {
           <Card className="border-none shadow-sm bg-primary text-foreground">
             <CardHeader>
               <CardTitle className="text-foreground flex items-center"><BoxSelect className="w-4 h-4 mr-2" /> Rapid Intake</CardTitle>
-              <CardDescription className="text-blue-100">Quickly add local stock</CardDescription>
+              <CardDescription className="text-primary">Quickly add local stock</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-xs opacity-80 leading-relaxed">
                 Use the operational scanner to intake local courier shipments not tracked via Enterprise Logistics.
               </p>
-               <Button onClick={() => navigate("/core/inventory/stock")} variant="secondary" className="w-full text-blue-700">Open Scanner</Button>
+               <Button onClick={() => navigate("/core/inventory/stock")} variant="secondary" className="w-full text-primary">Open Scanner</Button>
             </CardContent>
           </Card>
         </div>

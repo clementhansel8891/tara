@@ -320,78 +320,78 @@ export default function InventoryStockHub() {
   const mainContent = (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden group">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden group">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Items Type</CardTitle>
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Items Type</CardTitle>
             <Layers className="h-4 w-4 text-primary opacity-50" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black tracking-tighter">{stats.itemsType}</div>
-            <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Active Models</p>
+            <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest">Active Models</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden group">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden group">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Items On-Hand</CardTitle>
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Items On-Hand</CardTitle>
             <Package className="h-4 w-4 text-primary opacity-50" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black tracking-tighter">{stats.totalOnHand}</div>
-            <p className="text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">Available units</p>
+            <p className="text-[10px] font-bold text-success mt-1 uppercase tracking-widest">Available units</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Low Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-amber-500 opacity-50" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Low Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-warning opacity-50" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black tracking-tighter text-amber-600">{stats.lowStock}</div>
-            <p className="text-[10px] font-bold text-amber-500 mt-1 uppercase tracking-widest">Refinement Required</p>
+            <div className="text-3xl font-black tracking-tighter text-warning">{stats.lowStock}</div>
+            <p className="text-[10px] font-bold text-warning mt-1 uppercase tracking-widest">Refinement Required</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Out of Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-rose-500 opacity-50" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Out of Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-destructive opacity-50" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black tracking-tighter text-rose-600">{stats.outOfStock}</div>
-            <p className="text-[10px] font-bold text-rose-500 mt-1 uppercase tracking-widest">Critical Shortage</p>
+            <div className="text-3xl font-black tracking-tighter text-destructive">{stats.outOfStock}</div>
+            <p className="text-[10px] font-bold text-destructive mt-1 uppercase tracking-widest">Critical Shortage</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Item Capital Value</CardTitle>
-            <Archive className="h-4 w-4 text-indigo-500 opacity-50" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Item Capital Value</CardTitle>
+            <Archive className="h-4 w-4 text-primary opacity-50" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black tracking-tighter text-indigo-600">
+            <div className="text-3xl font-black tracking-tighter text-primary">
               {formatCurrency(stats.capitalValue, stats.currency)}
             </div>
-            <p className="text-[10px] font-bold text-indigo-500 mt-1 uppercase tracking-widest">Initial Investment</p>
+            <p className="text-[10px] font-bold text-primary mt-1 uppercase tracking-widest">Initial Investment</p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[2.5rem] overflow-hidden">
+        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[2.5rem] overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Inventory Value</CardTitle>
-            <BarChart3 className="h-4 w-4 text-emerald-500 opacity-50" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Inventory Value</CardTitle>
+            <BarChart3 className="h-4 w-4 text-success opacity-50" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black tracking-tighter text-emerald-600">
+            <div className="text-3xl font-black tracking-tighter text-success">
               {formatCurrency(stats.totalValue, stats.currency)}
             </div>
-            <p className="text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">Financial Asset Value</p>
+            <p className="text-[10px] font-bold text-success mt-1 uppercase tracking-widest">Financial Asset Value</p>
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 rounded-[3rem] overflow-hidden">
+      <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted rounded-[3rem] overflow-hidden">
         <div className="p-8 border-b">
           <InventoryFilterHub 
             search={search}
@@ -410,7 +410,7 @@ export default function InventoryStockHub() {
               <Button 
                 onClick={() => setIsAnalyticsOpen(true)}
                 variant="outline" 
-                className="h-14 px-6 rounded-2xl border-white/10 bg-slate-900/40 backdrop-blur-md text-xs font-black uppercase tracking-widest hover:bg-slate-800 text-slate-400"
+                className="h-14 px-6 rounded-2xl border-white/10 bg-muted backdrop-blur-md text-xs font-black uppercase tracking-widest hover:bg-muted text-muted-foreground"
               >
                 <BarChart2 className="h-4 w-4 mr-2" /> Analytics
               </Button>
@@ -421,7 +421,7 @@ export default function InventoryStockHub() {
         <CardContent className="p-0">
           <ScrollArea className="h-[600px]">
             <Table>
-              <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+              <TableHeader className="bg-muted dark:bg-muted">
                 <TableRow className="hover:bg-transparent border-none">
                   <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-widest pl-8 py-6">Image</TableHead>
                   <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest py-6">SKU</TableHead>
@@ -458,7 +458,7 @@ export default function InventoryStockHub() {
                       onClick={() => setSelectedItem(item)}
                     >
                       <TableCell className="pl-8 py-4">
-                        <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted dark:bg-muted border border-slate-200 dark:border-slate-800 flex items-center justify-center">
                           {(item as any).image_url ? (
                             <img 
                               src={(item as any).image_url} 
@@ -470,37 +470,37 @@ export default function InventoryStockHub() {
                               }}
                             />
                           ) : (
-                            <ImageIcon className="h-4 w-4 text-slate-300" />
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
                           )}
                         </div>
                       </TableCell>
                       <TableCell className="py-6">
-                        <span className="text-xs font-mono font-black text-slate-400 group-hover:text-primary transition-colors">{item.sku}</span>
+                        <span className="text-xs font-mono font-black text-muted-foreground group-hover:text-primary transition-colors">{item.sku}</span>
                       </TableCell>
                       <TableCell className="py-6">
                         <div className="flex flex-col gap-1">
                           <span className="text-sm font-black tracking-tight">{item.name}</span>
-                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-widest">{item.category || "General"}</span>
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">{item.category || "General"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="py-6 text-right font-black italic text-indigo-600">
+                      <TableCell className="py-6 text-right font-black italic text-primary">
                         Rp {(item.selling_price || 0).toLocaleString()}
                       </TableCell>
                       <TableCell className="py-6 text-right">
                         <div className="flex flex-col items-end">
-                          <span className={`text-sm font-black ${item.currentStock <= item.minStock ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
+                          <span className={`text-sm font-black ${item.currentStock <= item.minStock ? 'text-destructive' : 'text-muted-foreground dark:text-white'}`}>
                             {item.currentStock?.toLocaleString() ?? "0"} {item.unit || 'units'}
                           </span>
                           {item.currentStock <= item.minStock && (
-                            <span className="text-[9px] font-black uppercase tracking-tighter text-rose-500 mt-0.5">Threshold Alert</span>
+                            <span className="text-[9px] font-black uppercase tracking-tighter text-destructive mt-0.5">Threshold Alert</span>
                           )}
                         </div>
                       </TableCell>
                       <TableCell className="py-6 text-center">
                         <Badge variant="outline" className={`text-[9px] font-black tracking-[0.2em] rounded-lg border-none uppercase ${
-                          item.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500' : 
-                          item.status === 'DRAFT' ? 'bg-amber-500/10 text-amber-500' : 
-                          'bg-slate-500/10 text-slate-500'
+                          item.status === 'ACTIVE' ? 'bg-success text-success' : 
+                          item.status === 'DRAFT' ? 'bg-warning text-warning' : 
+                          'bg-muted text-muted-foreground'
                         }`}>
                           {item.status}
                         </Badge>
@@ -512,13 +512,13 @@ export default function InventoryStockHub() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56 rounded-2xl border-none shadow-2xl p-2 bg-white dark:bg-slate-900">
+                          <DropdownMenuContent align="end" className="w-56 rounded-2xl border-none shadow-2xl p-2 bg-white dark:bg-muted">
                             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-40 px-4 py-3">Operations</DropdownMenuLabel>
                             <DropdownMenuItem className="rounded-xl px-4 py-3 text-xs font-bold cursor-pointer"><TrendingUp className="h-4 w-4 mr-3" /> Quick Adjustment</DropdownMenuItem>
                             <DropdownMenuItem className="rounded-xl px-4 py-3 text-xs font-bold cursor-pointer"><ArrowRightLeft className="h-4 w-4 mr-3" /> Execute Transfer</DropdownMenuItem>
                             <DropdownMenuItem className="rounded-xl px-4 py-3 text-xs font-bold cursor-pointer"><History className="h-4 w-4 mr-3" /> Movement Logs</DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800 my-2 mx-2" />
-                            <DropdownMenuItem className="rounded-xl px-4 py-3 text-xs font-bold cursor-pointer text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"><Settings className="h-4 w-4 mr-3" /> Discontinue Item</DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-muted dark:bg-muted my-2 mx-2" />
+                            <DropdownMenuItem className="rounded-xl px-4 py-3 text-xs font-bold cursor-pointer text-destructive hover:bg-destructive dark:hover:bg-destructive transition-colors"><Settings className="h-4 w-4 mr-3" /> Discontinue Item</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -530,10 +530,10 @@ export default function InventoryStockHub() {
           </ScrollArea>
 
           {/* Pagination Controls */}
-          <div className="p-6 border-t flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="p-6 border-t flex items-center justify-between bg-muted dark:bg-muted">
             <div className="flex items-center gap-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                Showing <span className="text-slate-900 dark:text-white">{items.length}</span> of <span className="text-slate-900 dark:text-white">{totalCount.toLocaleString()}</span> Items
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Showing <span className="text-muted-foreground dark:text-white">{items.length}</span> of <span className="text-muted-foreground dark:text-white">{totalCount.toLocaleString()}</span> Items
               </p>
             </div>
             
@@ -551,7 +551,7 @@ export default function InventoryStockHub() {
               <div className="flex items-center gap-1 mx-2">
                 <span className="text-[10px] font-black text-primary uppercase">Page</span>
                 <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">{page}</span>
-                <span className="text-[10px] font-black text-slate-400 uppercase">of {Math.ceil(totalCount / 30) || 1}</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase">of {Math.ceil(totalCount / 30) || 1}</span>
               </div>
 
               <Button
@@ -571,17 +571,17 @@ export default function InventoryStockHub() {
   );
 
   return (
-    <div className="min-h-full p-8 space-y-10 bg-slate-50/50 dark:bg-slate-950/50">
+    <div className="min-h-full p-8 space-y-10 bg-muted dark:bg-muted">
       {/* Tactical Header */}
       <div className="flex items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-8">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
             <Layers className="h-3 w-3" /> LOGISTICS_ENGINE
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-muted-foreground dark:text-white">
             Stock Hub
           </h1>
-          <p className="text-sm text-slate-500 font-medium italic">Strategic inventory visibility and logistics command.</p>
+          <p className="text-sm text-muted-foreground font-medium italic">Strategic inventory visibility and logistics command.</p>
         </div>
         {headerActions}
       </div>

@@ -51,18 +51,18 @@ export function NavWidget({
           </div>
           <ChevronRight
             className={cn(
-              "h-5 w-5 text-slate-200 transition-all",
-              "group-hover:text-slate-400 group-hover:translate-x-0.5",
+              "h-5 w-5 text-muted-foreground transition-all",
+              "group-hover:text-muted-foreground group-hover:translate-x-0.5",
             )}
           />
         </div>
 
         {/* Content */}
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400 mb-1">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground mb-1">
             {label}
           </p>
-          <p className="text-3xl font-black tracking-tighter text-slate-900 leading-none">
+          <p className="text-3xl font-black tracking-tighter text-muted-foreground leading-none">
             {value}
           </p>
 
@@ -73,8 +73,8 @@ export function NavWidget({
                   className={cn(
                     "inline-flex items-center gap-1 text-[10px] font-black uppercase rounded-full px-2.5 py-1",
                     trendUp
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-rose-50 text-rose-500",
+                      ? "bg-success text-success"
+                      : "bg-destructive text-destructive",
                   )}
                 >
                   {trendUp ? (
@@ -86,7 +86,7 @@ export function NavWidget({
                 </span>
               )}
               {sub && (
-                <span className="text-[11px] text-slate-400 font-medium">
+                <span className="text-[11px] text-muted-foreground font-medium">
                   {sub}
                 </span>
               )}
@@ -109,11 +109,11 @@ export function SectionLabel({
   return (
     <div className="mb-5 flex items-end gap-3">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
           {label}
         </p>
         {sub && (
-          <p className="text-xs text-slate-400/70 font-medium mt-0.5">{sub}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">{sub}</p>
         )}
       </div>
       <div className="flex-1 h-px bg-gradient-to-r from-slate-200/80 to-transparent" />
@@ -125,7 +125,7 @@ export function SectionLabel({
 export function SimpleKpi({
   label,
   value,
-  color = "text-slate-900",
+  color = "text-muted-foreground",
 }: {
   label: string;
   value: string;
@@ -136,7 +136,7 @@ export function SimpleKpi({
       <p className={cn("text-xl font-black tracking-tighter", color)}>
         {value}
       </p>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
         {label}
       </p>
     </div>
@@ -158,7 +158,7 @@ export function EmptyState({
   desc: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 text-center border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/50">
+    <div className="flex flex-col items-center justify-center py-14 text-center border-2 border-dashed border-slate-100 rounded-3xl bg-muted">
       <div
         className={cn(
           "h-16 w-16 rounded-2xl flex items-center justify-center mb-4 border border-white shadow-sm",
@@ -167,10 +167,10 @@ export function EmptyState({
       >
         <Icon className={cn("h-8 w-8", color)} />
       </div>
-      <h3 className="text-base font-black tracking-tight text-slate-800">
+      <h3 className="text-base font-black tracking-tight text-muted-foreground">
         {title}
       </h3>
-      <p className="text-sm font-medium text-slate-400 mt-1 max-w-xs">
+      <p className="text-sm font-medium text-muted-foreground mt-1 max-w-xs">
         {desc}
       </p>
     </div>

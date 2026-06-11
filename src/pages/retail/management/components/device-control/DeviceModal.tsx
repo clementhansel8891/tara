@@ -29,7 +29,7 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
           <DialogHeader>
             <div className="flex items-center gap-4">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-emerald-50 text-success" : dev.status === "maintenance" ? "bg-amber-50 text-amber-500" : "bg-secondary/10 text-muted-foreground"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${dev.status === "online" ? "bg-success text-success" : dev.status === "maintenance" ? "bg-warning text-warning" : "bg-secondary/10 text-muted-foreground"}`}
               >
                 <DeviceIcon type={dev.type} cls="w-6 h-6" />
               </div>
@@ -78,7 +78,7 @@ const DeviceModal = ({ dev, onClose }: DeviceModalProps) => (
                     <div className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">
                       {r.l}
                     </div>
-                    <div className="flex items-center gap-1.5 font-semibold text-slate-800 font-mono">
+                    <div className="flex items-center gap-1.5 font-semibold text-muted-foreground font-mono">
                       {r.icon}
                       {r.v}
                     </div>

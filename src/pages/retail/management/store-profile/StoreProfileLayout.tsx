@@ -297,7 +297,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                 disabled={isSaving || !isDirty}
                 className={cn(
                   "h-10 px-6 rounded-xl font-black italic uppercase tracking-widest text-[9px] gap-2 shadow-xl transition-all active:scale-95",
-                  isDirty ? "bg-primary hover:bg-blue-700" : "bg-secondary",
+                  isDirty ? "bg-primary hover:bg-primary" : "bg-secondary",
                 )}
               >
                 {isSaving ? (
@@ -306,7 +306,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                   <Save
                     className={cn(
                       "w-3.5 h-3.5",
-                      isDirty ? "text-foreground" : "text-blue-400",
+                      isDirty ? "text-foreground" : "text-primary",
                     )}
                   />
                 )}
@@ -328,7 +328,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
                     className={cn(
                       "data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-4 font-black italic uppercase tracking-[0.2em] text-[9px] py-3 px-0 flex items-center gap-2 transition-all whitespace-nowrap",
                       activeTab === tab.id
-                        ? "border-blue-600 text-primary"
+                        ? "border-primary text-primary"
                         : "border-transparent text-muted-foreground hover:text-muted-foreground",
                     )}
                   >
@@ -341,7 +341,7 @@ export const StoreProfileLayout: React.FC<{ children: React.ReactNode }> = ({
         )}
 
         {/* Content Area */}
-        <div className="bg-secondary/5/50 p-8 lg:p-6">
+        <div className="bg-secondary/5 p-8 lg:p-6">
           <div className="max-w-7xl mx-auto">
             {selectedStoreId === "all_stores" ? (
               <GlobalFleetDashboard />

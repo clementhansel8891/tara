@@ -64,7 +64,7 @@ interface ProviderInfo {
 const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   ezviz: {
     label: "EZVIZ",
-    color: "bg-orange-500",
+    color: "bg-warning",
     docUrl: "https://open.ezviz.com",
     authMethod: "EZVIZ Cloud – Account ID + Verification Code",
     streamProtocol: "EZOPEN / HLS (cloud relay)",
@@ -109,7 +109,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   hikvision: {
     label: "HikVision",
-    color: "bg-red-600",
+    color: "bg-destructive",
     docUrl: "https://open.hikvision.com",
     authMethod: "ISAPI – Local IP + Credentials",
     streamProtocol: "RTSP / HLS (LAN)",
@@ -155,7 +155,7 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
   },
   axis: {
     label: "Axis",
-    color: "bg-slate-600",
+    color: "bg-muted",
     docUrl: "https://www.axis.com/vapix-library",
     authMethod: "Basic Auth – VAPIX API",
     streamProtocol: "MJPEG / RTSP (LAN)",
@@ -223,20 +223,20 @@ const PROVIDERS: Record<CCTVProvider, ProviderInfo> = {
 // ── Status helpers ────────────────────────────────────────────────
 const cctvStatusColor = (s: CCTVCamera["status"]) =>
   ({
-    live: "bg-emerald-50 text-success border-emerald-100",
-    recording: "bg-primary/5 text-blue-700 border-blue-100",
-    offline: "bg-red-50 text-red-600 border-red-100",
-    error: "bg-red-50 text-red-700 border-red-100",
-    maintenance: "bg-amber-50 text-amber-700 border-amber-100",
+    live: "bg-success text-success border-emerald-100",
+    recording: "bg-primary/5 text-primary border-primary",
+    offline: "bg-destructive text-destructive border-red-100",
+    error: "bg-destructive text-destructive border-red-100",
+    maintenance: "bg-warning text-warning border-amber-100",
   })[s];
 
 const integStatusIcon = (s?: CCTVCamera["integrationStatus"]) => {
   if (s === "connected")
     return <CheckCircle2 className="w-3.5 h-3.5 text-success" />;
   if (s === "error")
-    return <AlertTriangle className="w-3.5 h-3.5 text-red-500" />;
+    return <AlertTriangle className="w-3.5 h-3.5 text-destructive" />;
   if (s === "pending")
-    return <RefreshCw className="w-3.5 h-3.5 text-amber-500 animate-spin" />;
+    return <RefreshCw className="w-3.5 h-3.5 text-warning animate-spin" />;
   return <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />;
 };
 
@@ -327,14 +327,14 @@ const IntegrationSetup: React.FC<{
             href={info.docUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-[10px] text-primary hover:text-blue-700 flex items-center gap-1 font-semibold"
+            className="ml-auto text-[10px] text-primary hover:text-primary flex items-center gap-1 font-semibold"
           >
             Open Docs <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>
 
-      <div className="bg-primary/5 border border-blue-100 rounded-2xl px-4 py-3 text-[11px] text-blue-700 font-medium flex gap-2">
+      <div className="bg-primary/5 border border-primary rounded-2xl px-4 py-3 text-[11px] text-primary font-medium flex gap-2">
         <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         {info.notes}
       </div>
@@ -634,14 +634,14 @@ const CCTVViewerModal: React.FC<Props> = ({
             <button
               key={t.id}
               onClick={() => setViewTab(t.id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${viewTab === t.id ? "bg-secondary text-foreground shadow-md" : "text-muted-foreground hover:text-slate-800 hover:bg-secondary/5"}`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-black italic uppercase tracking-widest transition-all ${viewTab === t.id ? "bg-secondary text-foreground shadow-md" : "text-muted-foreground hover:text-muted-foreground hover:bg-secondary/5"}`}
             >
               {t.icon}
               {t.label}
             </button>
           ))}
           {isNotConfigured && viewTab !== "setup" && (
-            <div className="ml-auto flex items-center gap-1.5 text-[10px] text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-1.5 font-semibold">
+            <div className="ml-auto flex items-center gap-1.5 text-[10px] text-warning bg-warning border border-amber-100 rounded-xl px-3 py-1.5 font-semibold">
               <AlertTriangle className="w-3.5 h-3.5" />
               {canManage
                 ? "Integration not set up — click Integration tab"
@@ -664,7 +664,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                     togglePlay={() => setIsPlaying((p) => !p)}
                   />
                   {isNotConfigured && (
-                    <div className="mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-[11px] text-amber-700 font-medium flex gap-2 items-start">
+                    <div className="mt-3 bg-warning border border-amber-200 rounded-2xl px-4 py-3 text-[11px] text-warning font-medium flex gap-2 items-start">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       Stream not connected.{" "}
                       {canManage
@@ -706,7 +706,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                           <span className="text-muted-foreground font-bold">
                             {r.l}
                           </span>
-                          <span className="font-black text-slate-800">
+                          <span className="font-black text-muted-foreground">
                             {r.v}
                           </span>
                         </div>
@@ -761,7 +761,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="bg-transparent text-sm font-black text-slate-800 focus:outline-none"
+                        className="bg-transparent text-sm font-black text-muted-foreground focus:outline-none"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -770,7 +770,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                         <input
                           type="time"
                           defaultValue="08:00"
-                          className="bg-transparent text-sm font-black text-slate-800 focus:outline-none"
+                          className="bg-transparent text-sm font-black text-muted-foreground focus:outline-none"
                         />
                       </div>
                       <span className="text-muted-foreground font-bold text-sm">
@@ -780,7 +780,7 @@ const CCTVViewerModal: React.FC<Props> = ({
                         <input
                           type="time"
                           defaultValue="18:00"
-                          className="bg-transparent text-sm font-black text-slate-800 focus:outline-none"
+                          className="bg-transparent text-sm font-black text-muted-foreground focus:outline-none"
                         />
                       </div>
                     </div>
@@ -815,10 +815,10 @@ const CCTVViewerModal: React.FC<Props> = ({
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-2 h-2 rounded-full shrink-0 ${ev.type === "alert" ? "bg-red-500" : ev.type === "ok" ? "bg-success" : "bg-amber-400"}`}
+                            className={`w-2 h-2 rounded-full shrink-0 ${ev.type === "alert" ? "bg-destructive" : ev.type === "ok" ? "bg-success" : "bg-warning"}`}
                           />
                           <div>
-                            <div className="text-[11px] font-black text-slate-800">
+                            <div className="text-[11px] font-black text-muted-foreground">
                               {ev.label}
                             </div>
                             <div className="text-[9px] text-muted-foreground font-mono">

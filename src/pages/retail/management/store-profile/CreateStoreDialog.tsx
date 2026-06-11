@@ -166,7 +166,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="h-11 px-6 rounded-2xl bg-primary hover:bg-blue-700 text-foreground font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-xl transition-all active:scale-95">
+          <Button className="h-11 px-6 rounded-2xl bg-primary hover:bg-primary text-foreground font-black italic uppercase tracking-widest text-[10px] gap-2 shadow-xl transition-all active:scale-95">
             <PlusCircle className="w-4 h-4" /> Provision New Node
           </Button>
         )}
@@ -176,10 +176,10 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
 
         <DialogHeader className="p-8 pb-4">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-100/50 rounded-xl text-primary">
+            <div className="p-2 bg-primary rounded-xl text-primary">
               <Building2 className="w-5 h-5" />
             </div>
-            <DialogTitle className="font-black italic text-2xl uppercase tracking-tighter text-slate-800">
+            <DialogTitle className="font-black italic text-2xl uppercase tracking-tighter text-muted-foreground">
               Establish New Retail Node
             </DialogTitle>
           </div>
@@ -205,7 +205,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                     type="text"
                     name="name"
                     required
-                    className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5 px-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all"
                     placeholder="e.g. Ubud Flagship"
                     autoFocus
                   />
@@ -220,7 +220,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                   type="text"
                   name="code"
                   required
-                  className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5 px-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all"
                   placeholder="e.g. UBX-01"
                 />
               </div>
@@ -232,7 +232,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                 <select
                   name="type"
                   defaultValue="flagship"
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-secondary/5 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all appearance-none cursor-pointer"
                 >
                   <option value="flagship">Flagship Node</option>
                   <option value="satellite">Satellite Branch</option>
@@ -253,7 +253,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                       <input
                         type="tel"
                         name="phone"
-                        className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5/50 pl-11 pr-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5 pl-11 pr-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all"
                         placeholder="Registry Phone Line"
                       />
                     </div>
@@ -262,7 +262,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                       <input
                         type="email"
                         name="email"
-                        className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5/50 pl-11 pr-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        className="flex h-12 w-full rounded-2xl border border-slate-200 bg-secondary/5 pl-11 pr-4 py-2 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all"
                         placeholder="Node Email Alias"
                       />
                     </div>
@@ -281,7 +281,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                   required
                   value={selectedLocationId}
                   onChange={(e) => setSelectedLocationId(e.target.value)}
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-secondary/5 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all appearance-none cursor-pointer"
                 >
                   <option value="" disabled>
                     Select Bound Location...
@@ -330,15 +330,15 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                   }
                   onChange={(e) => setManualAddress(e.target.value)}
                   disabled={useOfficeAddress}
-                  className="flex min-h-[100px] w-full rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 py-3 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50 resize-none"
+                  className="flex min-h-[100px] w-full rounded-2xl border border-slate-200 bg-secondary/5 px-4 py-3 font-bold italic text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all disabled:opacity-50 resize-none"
                   placeholder="Street, City, Building, Floor..."
                 />
               </div>
 
               {/* Geospatial Section */}
-              <div className="p-4 bg-primary/5/50 rounded-2xl border border-blue-100/50 space-y-4">
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                     <Globe className="w-3.5 h-3.5" /> Geospatial Anchoring
                   </label>
                 </div>
@@ -375,7 +375,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                     step="50"
                     name="geofence_radius"
                     defaultValue="200"
-                    className="w-full h-1.5 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-primary rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                 </div>
               </div>
@@ -387,7 +387,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                   </Label>
                   <select
                     name="managerId"
-                    className="w-full h-11 rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                    className="w-full h-11 rounded-2xl border border-slate-200 bg-secondary/5 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all appearance-none cursor-pointer"
                   >
                     <option value="">Unassigned</option>
                     {(Array.isArray(managers) ? managers : []).map((m) => (
@@ -403,7 +403,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
                   </Label>
                   <select
                     name="inventoryPoolId"
-                    className="w-full h-11 rounded-2xl border border-slate-200 bg-secondary/5/50 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                    className="w-full h-11 rounded-2xl border border-slate-200 bg-secondary/5 px-4 font-bold italic text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-primary transition-all appearance-none cursor-pointer"
                   >
                     <option value="">Private Local Pool</option>
                     {(Array.isArray(pools) ? pools : []).map((p) => (
@@ -417,7 +417,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
             </div>
           </div>
 
-          <DialogFooter className="mt-12 sticky bottom-0 bg-secondary/400 backdrop-blur-md pb-8 -mx-8 px-8 border-t border-slate-100 pt-6">
+          <DialogFooter className="mt-12 sticky bottom-0 bg-background/80 backdrop-blur-md pb-8 -mx-8 px-8 border-t border-slate-100 pt-6">
             <div className="flex w-full gap-4">
               <Button
                 type="button"
@@ -430,7 +430,7 @@ export const CreateStoreDialog: React.FC<CreateStoreDialogProps> = ({
               <Button
                 type="submit"
                 disabled={isRegistering || isLoadingData}
-                className="flex-[2] h-14 bg-primary hover:bg-blue-700 text-foreground font-black italic rounded-2xl shadow-xl shadow-blue-500/20 uppercase tracking-[0.2em] text-[10px] group transition-all active:scale-95"
+                className="flex-[2] h-14 bg-primary hover:bg-primary text-foreground font-black italic rounded-2xl shadow-xl shadow-blue-500/20 uppercase tracking-[0.2em] text-[10px] group transition-all active:scale-95"
               >
                 {isRegistering ? (
                   <RefreshCw className="w-5 h-5 animate-spin" />

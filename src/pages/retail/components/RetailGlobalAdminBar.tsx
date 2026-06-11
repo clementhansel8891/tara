@@ -34,7 +34,7 @@ export const RetailGlobalAdminBar = () => {
   return (
     <div className="bg-secondary text-white h-10 px-4 flex items-center justify-between text-[10px] font-black uppercase tracking-widest border-b border-border z-[60]">
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 text-blue-400">
+        <div className="flex items-center gap-2 text-primary">
           <ShieldCheck className="w-3.5 h-3.5" />
           Zenvix Superadmin control
         </div>
@@ -81,7 +81,7 @@ export const RetailGlobalAdminBar = () => {
                   <Store className="w-4 h-4 text-primary" />
                   <span className="font-bold text-foreground">{store.name}</span>
                   {activeStore?.id === store.id && (
-                    <ShieldCheck className="w-3 h-3 ml-auto text-green-500" />
+                    <ShieldCheck className="w-3 h-3 ml-auto text-success" />
                   )}
                 </DropdownMenuItem>
               ))}
@@ -109,7 +109,7 @@ export const RetailGlobalAdminBar = () => {
                     {channel.name}
                   </span>
                   {activeChannel?.id === channel.id && (
-                    <ShieldCheck className="w-3 h-3 ml-auto text-green-500" />
+                    <ShieldCheck className="w-3 h-3 ml-auto text-success" />
                   )}
                 </DropdownMenuItem>
               ))}
@@ -134,7 +134,7 @@ export const RetailGlobalAdminBar = () => {
           <span className="text-muted-foreground">Mode:</span>
           <span
             className={
-              mode === "management" ? "text-blue-400" : "text-primary"
+              mode === "management" ? "text-primary" : "text-primary"
             }
           >
             {mode} plane
@@ -142,7 +142,7 @@ export const RetailGlobalAdminBar = () => {
         </div>
         <Separator orientation="vertical" className="h-4 bg-white/20" />
         <div className="flex items-center gap-2 bg-secondary/40 px-2 py-0.5 rounded-md border border-border">
-          <Globe className="w-3 h-3 text-green-500" />
+          <Globe className="w-3 h-3 text-success" />
           Authority: Operational
         </div>
       </div>

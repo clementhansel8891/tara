@@ -83,7 +83,7 @@ export default function JVDesk() {
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Participants</p>
           <p className="text-3xl font-black text-primary mt-1">{profiles.length || 0}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600 font-medium">
+          <div className="mt-4 flex items-center gap-2 text-xs text-success font-medium">
             <ArrowUpRight className="h-3 w-3" />
             <span>2 new this month</span>
           </div>
@@ -91,11 +91,11 @@ export default function JVDesk() {
 
         <div className="glass-panel p-5 rounded-2xl border bg-white/50 backdrop-blur-sm shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <HandCoins className="h-12 w-12 text-blue-600" />
+            <HandCoins className="h-12 w-12 text-primary" />
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">MTD Allocated Revenue</p>
-          <p className="text-3xl font-black text-blue-700 mt-1">Rp 1.2B</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-blue-600 font-medium">
+          <p className="text-3xl font-black text-primary mt-1">Rp 1.2B</p>
+          <div className="mt-4 flex items-center gap-2 text-xs text-primary font-medium">
             <History className="h-3 w-3" />
             <span>Last sync: 10m ago</span>
           </div>
@@ -103,11 +103,11 @@ export default function JVDesk() {
 
         <div className="glass-panel p-5 rounded-2xl border bg-white/50 backdrop-blur-sm shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Scale className="h-12 w-12 text-rose-600" />
+            <Scale className="h-12 w-12 text-destructive" />
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pending Cost Burden</p>
-          <p className="text-3xl font-black text-rose-700 mt-1">Rp 450M</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-rose-600 font-medium">
+          <p className="text-3xl font-black text-destructive mt-1">Rp 450M</p>
+          <div className="mt-4 flex items-center gap-2 text-xs text-destructive font-medium">
             <ArrowDownRight className="h-3 w-3" />
             <span>Category: Marketing (55%)</span>
           </div>
@@ -147,11 +147,11 @@ export default function JVDesk() {
                     (Array.isArray(settlement) ? settlement : []).map((s, idx) => (
                       <tr key={idx} className="border-t hover:bg-muted/50 transition-colors">
                         <td className="p-3 font-medium text-primary">{s.participant_name}</td>
-                        <td className="p-3 text-emerald-600 font-medium">Rp {s.gross_revenue?.toLocaleString()}</td>
-                        <td className="p-3 text-rose-600 font-medium">Rp {s.cost_burden?.toLocaleString()}</td>
+                        <td className="p-3 text-success font-medium">Rp {s.gross_revenue?.toLocaleString()}</td>
+                        <td className="p-3 text-destructive font-medium">Rp {s.cost_burden?.toLocaleString()}</td>
                         <td className="p-3">
                           <Badge className={cn(
-                            s.net_payable > 0 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                            s.net_payable > 0 ? "bg-success text-success border-emerald-200" : "bg-destructive text-destructive border-rose-200"
                           )}>
                             Rp {s.net_payable?.toLocaleString()}
                           </Badge>
@@ -214,7 +214,7 @@ export default function JVDesk() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <h4 className="font-bold text-primary">{p.name}</h4>
-                      {p.is_active && <Badge className="bg-emerald-500 hover:bg-emerald-600 text-[10px] h-4 px-1">ACTIVE</Badge>}
+                      {p.is_active && <Badge className="bg-success hover:bg-success text-[10px] h-4 px-1">ACTIVE</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1">{p.description || "No description provided."}</p>
                     <div className="mt-3 flex items-center gap-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">

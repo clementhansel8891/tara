@@ -38,14 +38,14 @@ export const DraggableBlock = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group border border-transparent hover:border-blue-400 transition-colors bg-white/10",
+        "group border border-transparent hover:border-primary transition-colors bg-white/10",
         isDragging && "opacity-50 ring-2 ring-blue-500 shadow-xl",
       )}
     >
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-6 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-blue-500 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute -left-6 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <GripVertical className="w-4 h-4" />
       </div>

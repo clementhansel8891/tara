@@ -52,7 +52,7 @@ export const RetailContextSwitcher = () => {
 
   if (!canSwitch || isLocked) {
     return (
-      <div className={`flex items-center gap-2 px-4 py-2 ${isLocked ? "bg-primary/5 border border-indigo-100" : "bg-secondary/10"} rounded-xl`}>
+      <div className={`flex items-center gap-2 px-4 py-2 ${isLocked ? "bg-primary/5 border border-primary" : "bg-secondary/10"} rounded-xl`}>
         {isChannel ? (
           <Globe className={`w-4 h-4 ${isLocked ? "text-primary" : "text-muted-foreground"}`} />
         ) : (
@@ -78,10 +78,10 @@ export const RetailContextSwitcher = () => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="h-12 border-2 border-slate-200 rounded-2xl flex items-center gap-3 px-4 hover:bg-secondary/5 hover:border-blue-400 transition-all shadow-sm"
+          className="h-12 border-2 border-slate-200 rounded-2xl flex items-center gap-3 px-4 hover:bg-secondary/5 hover:border-primary transition-all shadow-sm"
         >
           <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${isChannel ? "bg-primary/10 text-primary" : "bg-blue-100 text-primary"}`}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center ${isChannel ? "bg-primary/10 text-primary" : "bg-primary text-primary"}`}
           >
             {isChannel ? (
               <Globe className="w-5 h-5" />

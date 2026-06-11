@@ -12,7 +12,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "audit": "tsx scripts/audit/run-full-audit.ts",
+    "audit:static": "tsx scripts/audit/run-full-audit.ts --phase static",
+    "audit:e2e": "npx playwright test tests/playwright/audit/",
+    "audit:report": "tsx scripts/audit/run-full-audit.ts --phase report",
+    "test:audit-props": "vitest run --testPathPattern=audit.*\\.pbt\\.test"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

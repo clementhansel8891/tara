@@ -75,7 +75,7 @@ export default function InfrastructureMap() {
                   <div className={cn(
                     "h-6 w-6 rounded-full flex items-center justify-center animate-pulse",
                     node.status === "ONLINE" ? "bg-success shadow-[0_0_20px_rgba(16,185,129,0.5)]" : 
-                    node.status === "OFFLINE" ? "bg-destructive shadow-[0_0_20px_rgba(244,63,94,0.5)]" : "bg-amber-500"
+                    node.status === "OFFLINE" ? "bg-destructive shadow-[0_0_20px_rgba(244,63,94,0.5)]" : "bg-warning"
                   )}>
                     <MapPin className="h-3 w-3 text-foreground" />
                   </div>
@@ -165,10 +165,10 @@ export default function InfrastructureMap() {
                       <p className="text-xs font-medium italic italic">Node Bali_01 disconnected from grid.</p>
                    </div>
                 </div>
-                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-start gap-4">
-                   <Server className="h-5 w-5 text-amber-500 shrink-0" />
+                <div className="p-4 rounded-2xl bg-warning border border-amber-500/10 flex items-start gap-4">
+                   <Server className="h-5 w-5 text-warning shrink-0" />
                    <div>
-                      <p className="text-[10px] font-black uppercase text-amber-500">Maintenance</p>
+                      <p className="text-[10px] font-black uppercase text-warning">Maintenance</p>
                       <p className="text-xs font-medium italic italic">Bandung Node: Scheduled patch L4.2</p>
                    </div>
                 </div>

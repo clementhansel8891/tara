@@ -21,20 +21,20 @@ export const ShiftStatusCard: React.FC<ShiftStatusCardProps> = ({
       className={cn(
         "lg:col-span-2 rounded-2xl border-4 transition-all shadow-2xl relative overflow-hidden group min-h-[220px] flex items-center p-6",
         activeShift
-          ? "bg-secondary border-blue-600/20 text-foreground"
+          ? "bg-secondary border-primary text-foreground"
           : "bg-white border-red-500/20 text-foreground",
       )}
     >
       {activeShift && (
-        <Activity className="absolute -right-12 -top-6 w-64 h-64 opacity-5 text-blue-400 group-hover:rotate-12 transition-transform duration-1000" />
+        <Activity className="absolute -right-12 -top-6 w-64 h-64 opacity-5 text-primary group-hover:rotate-12 transition-transform duration-1000" />
       )}
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full">
         <div
           className={cn(
             "w-24 h-24 rounded-[2rem] flex items-center justify-center shrink-0 border-2",
             activeShift
-              ? "bg-primary border-blue-400/50 shadow-[0_0_30px_rgba(37,99,235,0.3)]"
-              : "bg-red-50 border-red-200 text-red-500",
+              ? "bg-primary border-primary shadow-[0_0_30px_rgba(37,99,235,0.3)]"
+              : "bg-destructive border-red-200 text-destructive",
           )}
         >
           {activeShift ? (
@@ -57,7 +57,7 @@ export const ShiftStatusCard: React.FC<ShiftStatusCardProps> = ({
           <p
             className={cn(
               "text-xs font-bold uppercase tracking-widest italic opacity-60",
-              activeShift ? "text-blue-200" : "text-muted-foreground",
+              activeShift ? "text-primary" : "text-muted-foreground",
             )}
           >
             {activeShift
@@ -71,7 +71,7 @@ export const ShiftStatusCard: React.FC<ShiftStatusCardProps> = ({
             "h-14 px-10 rounded-2xl font-black italic uppercase tracking-widest text-xs shadow-xl transition-all",
             activeShift
               ? "bg-white text-foreground hover:bg-secondary/10"
-              : "bg-red-600 text-foreground hover:bg-red-700",
+              : "bg-destructive text-foreground hover:bg-destructive",
           )}
         >
           {activeShift ? "Manage Session" : "Go to Shift Control"}

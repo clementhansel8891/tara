@@ -99,10 +99,10 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
   };
 
   return (
-    <div className="w-2/3 bg-slate-100 flex flex-col h-full relative">
+    <div className="w-2/3 bg-muted flex flex-col h-full relative">
       {/* Header */}
       <div className="p-4 border-b bg-white/80 shrink-0 text-center relative z-10 flex justify-between items-center px-8">
-        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
           Postek Engine Preview Layout (Physical Mode)
         </span>
         <Badge variant="outline" className="bg-white/50 text-[10px] font-bold">
@@ -113,10 +113,10 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
       <div className="flex-1 overflow-y-auto p-12 flex flex-col items-center justify-center gap-8">
         {/* Direction Indicator */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-bold uppercase text-slate-400">
+          <span className="text-[10px] font-bold uppercase text-muted-foreground">
             Direction 1
           </span>
-          <div className="h-[1px] w-12 bg-slate-300" />
+          <div className="h-[1px] w-12 bg-muted" />
           <div className="w-2 h-2 rounded-full border border-slate-400 bg-white" />
         </div>
 
@@ -125,13 +125,13 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
             {/* Vertical Gap Feed */}
             {gap > 0 && (
               <div
-                className="bg-slate-200/30 border border-slate-300 flex items-center justify-center"
+                className="bg-muted border border-slate-300 flex items-center justify-center"
                 style={{
                   height: `${gap * PREVIEW_SCALE}px`,
                   width: `${paperWidth * PREVIEW_SCALE}px`,
                 }}
               >
-                <span className="text-[8px] font-bold text-slate-400/50 uppercase">
+                <span className="text-[8px] font-bold text-muted-foreground uppercase">
                   Vertical Gap {gap}mm
                 </span>
               </div>
@@ -200,13 +200,13 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
                     {/* Horizontal Gap Between Stickers */}
                     {columnIndex < columns - 1 && horizontalGap > 0 && (
                       <div
-                        className="bg-slate-200/20 border-y border-slate-200 flex items-center justify-center"
+                        className="bg-muted border-y border-slate-200 flex items-center justify-center"
                         style={{
                           width: `${horizontalGap * PREVIEW_SCALE}px`,
                           height: `${paperHeight * PREVIEW_SCALE}px`,
                         }}
                       >
-                        <span className="rotate-90 text-[8px] font-bold text-slate-300">
+                        <span className="rotate-90 text-[8px] font-bold text-muted-foreground">
                           Gap {horizontalGap}mm
                         </span>
                       </div>
@@ -219,7 +219,7 @@ export const PostekPreviewPane: React.FC<PostekPreviewPaneProps> = ({
         </DndContext>
 
         {/* Info Box */}
-        <div className="mt-4 flex items-center gap-2 text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 max-w-lg text-center font-medium">
+        <div className="mt-4 flex items-center gap-2 text-primary bg-primary px-4 py-2 rounded-lg border border-primary max-w-lg text-center font-medium">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
           <span className="text-[11px]">
             Each sticker is rendered as a true physical die-cut label. Layout

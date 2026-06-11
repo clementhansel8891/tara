@@ -17,15 +17,15 @@ export function FeedbackAlert({ message, error, onClear }: FeedbackAlertProps) {
   return (
     <div className="mb-6 animate-in fade-in slide-in-from-top-4 duration-300">
       {message && (
-        <Alert className="border-emerald-500/50 bg-emerald-500/5 text-emerald-600 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-400">
-          <CheckCircle2 className="h-4 w-4 !text-emerald-600 dark:!text-emerald-400" />
+        <Alert className="border-emerald-500/50 bg-success text-success dark:border-emerald-500/50 dark:bg-success dark:text-success">
+          <CheckCircle2 className="h-4 w-4 !text-success dark:!text-success" />
           <AlertTitle>Success</AlertTitle>
           <AlertDescription className="flex items-center justify-between">
             <span>{message}</span>
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 ml-2 text-emerald-600 hover:bg-emerald-500/20 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/20"
+              className="h-6 w-6 ml-2 text-success hover:bg-success hover:text-success dark:text-success dark:hover:bg-success"
               onClick={onClear}
             >
               <X className="h-4 w-4" />

@@ -111,12 +111,12 @@ export default function RetailVerification() {
 
         <div className="space-y-6">
           {result ? (
-            <Card className={`border-none ${result.status === 'valid' ? 'bg-green-50' : 'bg-red-50'}`}>
+            <Card className={`border-none ${result.status === 'valid' ? 'bg-success' : 'bg-destructive'}`}>
               <CardContent className="p-8 text-center space-y-4">
                  {result.status === 'valid' ? (
-                   <CheckCircle2 className="w-16 h-16 mx-auto text-green-600" />
+                   <CheckCircle2 className="w-16 h-16 mx-auto text-success" />
                  ) : (
-                   <AlertCircle className="w-16 h-16 mx-auto text-red-600" />
+                   <AlertCircle className="w-16 h-16 mx-auto text-destructive" />
                  )}
                  <div>
                     <h3 className="text-xl font-bold uppercase tracking-tight">{result.status} {result.type}</h3>
@@ -124,7 +124,7 @@ export default function RetailVerification() {
                  </div>
                  <div className="bg-secondary/400 p-4 rounded-lg text-sm grid grid-cols-2 gap-2 text-left">
                     <span className="text-muted-foreground">Issued:</span><span className="font-medium">{new Date(result.issuedAt).toLocaleDateString()}</span>
-                    <span className="text-muted-foreground">Value:</span><span className="font-bold text-green-700">{result.balance}</span>
+                    <span className="text-muted-foreground">Value:</span><span className="font-bold text-success">{result.balance}</span>
                  </div>
                  <Button 
                    onClick={(e) => { 
@@ -134,7 +134,7 @@ export default function RetailVerification() {
                        description: "Voucher/Receipt usage has been marked as consumed.",
                      }); 
                    }} 
-                   className="w-full bg-green-600 hover:bg-green-700 font-bold uppercase tracking-wider h-12 rounded-xl"
+                   className="w-full bg-success hover:bg-success font-bold uppercase tracking-wider h-12 rounded-xl"
                    disabled={result.status !== 'valid'}
                  >
                    Approve Usage
@@ -153,7 +153,7 @@ export default function RetailVerification() {
       </div>
 
       <WorkspacePanel title="Validation History" description="Recent verification attempts at this desk">
-        <div className="p-8 text-center text-muted-foreground italic bg-secondary/5/50 rounded-lg">
+        <div className="p-8 text-center text-muted-foreground italic bg-secondary/5 rounded-lg">
           No verification history available in this session.
         </div>
       </WorkspacePanel>

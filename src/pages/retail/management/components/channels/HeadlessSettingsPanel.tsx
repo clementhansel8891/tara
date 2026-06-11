@@ -329,7 +329,7 @@ export const HeadlessSettingsPanel: React.FC<Props> = ({
             </div>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
+              className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors"
             >
               {copied ? (
                 <>

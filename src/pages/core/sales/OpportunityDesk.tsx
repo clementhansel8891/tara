@@ -67,13 +67,13 @@ const STAGES: OpportunityStage[] = [
 ];
 
 const STAGE_COLORS: Record<string, string> = {
-  NEW: "bg-slate-500",
-  CONTACTED: "bg-blue-500",
-  QUALIFIED: "bg-indigo-500",
-  PROPOSAL: "bg-purple-500",
-  NEGOTIATION: "bg-orange-500",
-  CLOSED_WON: "bg-emerald-500",
-  CLOSED_LOST: "bg-rose-500",
+  NEW: "bg-muted",
+  CONTACTED: "bg-primary",
+  QUALIFIED: "bg-primary",
+  PROPOSAL: "bg-primary",
+  NEGOTIATION: "bg-destructive",
+  CLOSED_WON: "bg-success",
+  CLOSED_LOST: "bg-destructive",
 };
 
 export default function OpportunityDesk() {
@@ -172,20 +172,20 @@ export default function OpportunityDesk() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600/10 text-indigo-600 border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Deal Intelligence</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-primary border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Deal Intelligence</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Opportunity Flux Active
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent italic">Strategic Deals</h1>
 
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed">High-fidelity deal lifecycle execution and probability orchestration.</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed">High-fidelity deal lifecycle execution and probability orchestration.</p>
         </div>
         
-        <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+        <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-11 h-14 w-[300px] rounded-[1.5rem] bg-transparent border-none focus-visible:ring-0 text-base font-medium"
               value={search}
@@ -195,7 +195,7 @@ export default function OpportunityDesk() {
           </div>
           <Button
             variant="secondary"
-            className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+            className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
             onClick={() => refresh(true)}
             disabled={refreshing}
           >
@@ -205,36 +205,36 @@ export default function OpportunityDesk() {
       </div>
 
       {/* Main Table Area */}
-      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden">
         <CardHeader className="p-10 pb-6 border-b border-white/20 dark:border-slate-800/20">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <Target className="h-6 w-6 text-indigo-600" />
+                <Target className="h-6 w-6 text-primary" />
                 Active Opportunity Board
               </CardTitle>
               <CardDescription className="text-sm font-medium">Stage-aware deal board with integrated probability and risk matrix.</CardDescription>
             </div>
             <div className="flex gap-4">
-                <div className="flex bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] shadow-inner">
+                <div className="flex bg-muted dark:bg-muted p-1.5 rounded-[1.5rem] shadow-inner">
                   <Button 
                     variant="ghost" size="sm" 
                     onClick={() => setStatusFilter(null)}
-                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", !statusFilter ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400")}
+                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", !statusFilter ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground")}
                   >
                     ACTIVE DEALS
                   </Button>
                   <Button 
                     variant="ghost" size="sm" 
                     onClick={() => setStatusFilter("WON")}
-                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "WON" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400")}
+                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "WON" ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground")}
                   >
                     WON
                   </Button>
                   <Button 
                     variant="ghost" size="sm" 
                     onClick={() => setStatusFilter("AT_RISK")}
-                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "AT_RISK" ? "bg-white dark:bg-slate-700 shadow-md text-indigo-600" : "text-slate-400")}
+                    className={cn("h-10 rounded-xl px-4 font-black text-[10px] tracking-widest transition-all", statusFilter === "AT_RISK" ? "bg-white dark:bg-muted shadow-md text-primary" : "text-muted-foreground")}
                   >
                     AT RISK
                   </Button>
@@ -245,44 +245,44 @@ export default function OpportunityDesk() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+              <thead className="bg-muted dark:bg-muted">
                 <tr>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Opportunity Designation</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Owner</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nominal Value</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Lifecycle Node</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Probability Matrix</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Health Index</th>
-                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Actions</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Opportunity Designation</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Owner</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nominal Value</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Lifecycle Node</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Probability Matrix</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Health Index</th>
+                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                 {(Array.isArray(filtered) ? filtered : []).map((op) => (
                   <tr 
                     key={op.id} 
-                    className="group hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-all cursor-pointer"
+                    className="group hover:bg-primary dark:hover:bg-primary transition-all cursor-pointer"
                     onClick={() => setSelectedOpp(op)}
                   >
                     <td className="px-10 py-8">
                       <div className="flex items-center gap-5">
-                        <div className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center font-black text-sm shadow-xl transition-all group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white">
+                        <div className="h-12 w-12 rounded-2xl bg-white dark:bg-muted flex items-center justify-center font-black text-sm shadow-xl transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                           <Layers className="h-6 w-6" />
                         </div>
                         <div>
                           <p className="font-black text-base">{op.accountName}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight italic">DEAL ID: {op.id.slice(-6)}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight italic">DEAL ID: {op.id.slice(-6)}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-10 py-8">
                        <div className="flex items-center gap-2 pt-1">
-                          <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 border border-slate-200 dark:border-slate-800">
+                          <div className="h-6 w-6 rounded-full bg-muted dark:bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground border border-slate-200 dark:border-slate-800">
                              {op.ownerName.charAt(0)}
                           </div>
                           <span className="text-xs font-black uppercase tracking-tight">{op.ownerName}</span>
                        </div>
                     </td>
-                    <td className="px-10 py-8 text-indigo-600 font-black text-base">
+                    <td className="px-10 py-8 text-primary font-black text-base">
                        ${op.amount.toLocaleString()}
                     </td>
                     <td className="px-10 py-8">
@@ -291,7 +291,7 @@ export default function OpportunityDesk() {
                             value={op.stage}
                             onValueChange={(value: OpportunityStage) => moveStage(op.id, value)}
                           >
-                            <SelectTrigger className="h-10 rounded-xl border-slate-100 bg-slate-50/50 hover:bg-slate-100 transition-all text-[9px] font-black uppercase tracking-[0.2em] w-[140px]">
+                            <SelectTrigger className="h-10 rounded-xl border-slate-100 bg-muted hover:bg-muted transition-all text-[9px] font-black uppercase tracking-[0.2em] w-[140px]">
                               <SelectValue placeholder="Stage" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-none shadow-2xl p-2">
@@ -306,11 +306,11 @@ export default function OpportunityDesk() {
                     </td>
                     <td className="px-10 py-8">
                        <div className="space-y-2 w-32">
-                          <div className="flex justify-between text-[9px] font-black uppercase text-slate-400">
+                          <div className="flex justify-between text-[9px] font-black uppercase text-muted-foreground">
                              <span>Likelihood</span>
-                             <span className="text-indigo-600">{op.probability}%</span>
+                             <span className="text-primary">{op.probability}%</span>
                           </div>
-                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                          <div className="h-1.5 w-full bg-muted dark:bg-muted rounded-full overflow-hidden shadow-inner">
                              <div 
                                className={cn("h-full transition-all duration-1000", STAGE_COLORS[op.stage])} 
                                style={{ width: `${op.probability}%` }} 
@@ -323,9 +323,9 @@ export default function OpportunityDesk() {
                         variant={op.health === "HIGH_RISK" ? "destructive" : "outline"}
                         className={cn(
                           "rounded-full font-black text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-widest",
-                          op.health === "HEALTHY" ? "bg-emerald-500/10 text-emerald-600" :
-                          op.health === "STALLED" ? "bg-orange-500/10 text-orange-600" :
-                          "bg-rose-500/10 text-rose-600"
+                          op.health === "HEALTHY" ? "bg-success text-success" :
+                          op.health === "STALLED" ? "bg-destructive text-destructive" :
+                          "bg-destructive text-destructive"
                         )}
                        >
                         {op.health.replace('_', ' ')}
@@ -336,15 +336,15 @@ export default function OpportunityDesk() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-white transition-all shadow-sm">
-                                <MoreVertical className="h-5 w-5 text-slate-400" />
+                                <MoreVertical className="h-5 w-5 text-muted-foreground" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-2xl border-none">
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleCloseWon(op.id)} disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Close Won</DropdownMenuItem>
-                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleCloseLost(op.id)} disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}><XCircle className="h-4 w-4 text-rose-500" /> Close Lost</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleCloseWon(op.id)} disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}><CheckCircle2 className="h-4 w-4 text-success" /> Close Won</DropdownMenuItem>
+                               <DropdownMenuItem className="gap-3 py-3 rounded-xl font-bold" onClick={() => handleCloseLost(op.id)} disabled={op.stage === "CLOSED_WON" || op.stage === "CLOSED_LOST"}><XCircle className="h-4 w-4 text-destructive" /> Close Lost</DropdownMenuItem>
                                <DropdownMenuSeparator />
                                <DropdownMenuItem 
-                                 className="gap-3 py-3 rounded-xl font-black text-indigo-600"
+                                 className="gap-3 py-3 rounded-xl font-black text-primary"
                                  onClick={() => navigate("/core/sales/intelligence")}
                                >
                                  <FileText className="h-4 w-4" /> GENERATE QUOTE
@@ -363,9 +363,9 @@ export default function OpportunityDesk() {
 
       {/* Opportunity Detail Modal */}
       <Dialog open={!!selectedOpp} onOpenChange={() => setSelectedOpp(null)}>
-        <DialogContent className="max-w-4xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-slate-950">
+        <DialogContent className="max-w-4xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-muted">
           <div className="grid md:grid-cols-[1.5fr_2.5fr]">
-            <div className="bg-indigo-600 p-12 text-white relative overflow-hidden flex flex-col justify-between">
+            <div className="bg-primary p-12 text-white relative overflow-hidden flex flex-col justify-between">
                <div className="absolute top-0 right-0 h-64 w-64 -mr-20 -mt-20 bg-white/10 rounded-full blur-3xl" />
                <div className="space-y-8 relative z-10">
                   <div className="h-20 w-20 rounded-[2rem] bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl">
@@ -395,45 +395,45 @@ export default function OpportunityDesk() {
             <div className="p-12 space-y-10">
                <div className="grid grid-cols-2 gap-x-12 gap-y-8">
                   <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Projected Revenue</p>
-                     <p className="text-2xl font-black text-indigo-600">${selectedOpp?.amount.toLocaleString()}</p>
-                     <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{selectedOpp?.currency} Nominal Value</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Projected Revenue</p>
+                     <p className="text-2xl font-black text-primary">${selectedOpp?.amount.toLocaleString()}</p>
+                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-tighter">{selectedOpp?.currency} Nominal Value</p>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Expected Closing</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Expected Closing</p>
                      <p className="text-xl font-black">{selectedOpp?.expected_close_date ? new Date(selectedOpp.expected_close_date).toLocaleDateString() : "TBD"}</p>
-                     <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                     <p className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
                         <Calendar className="h-3 w-3" /> Q2 Tactical Horizon
                      </p>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Deal Custodian</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Deal Custodian</p>
                      <div className="flex items-center gap-2 pt-1">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-400 border border-slate-200">
+                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-black text-muted-foreground border border-slate-200">
                            {selectedOpp?.ownerName.charAt(0)}
                         </div>
                         <span className="text-sm font-black uppercase tracking-tight">{selectedOpp?.ownerName}</span>
                      </div>
                   </div>
                   <div className="space-y-1">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Associated Quotes</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Associated Quotes</p>
                      <div className="flex items-center gap-3 pt-1">
                         <p className="text-xl font-black">{(Array.isArray(quotes) ? quotes : []).filter(q => q.opportunityId === selectedOpp?.id).length}</p>
-                        <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-none font-black text-[8px] uppercase tracking-widest">VALID RECORDS</Badge>
+                        <Badge variant="secondary" className="bg-success text-success border-none font-black text-[8px] uppercase tracking-widest">VALID RECORDS</Badge>
                      </div>
                   </div>
                </div>
                
                <div className="space-y-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                     <Zap className="h-3 w-3 text-indigo-600" /> NEXT STRATEGIC ACTION
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                     <Zap className="h-3 w-3 text-primary" /> NEXT STRATEGIC ACTION
                   </p>
-                  <div className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border-none shadow-inner group">
-                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 italic">"{selectedOpp?.nextAction || "Initiate discovery node and evaluate stakeholder alignment."}"</p>
+                  <div className="p-6 rounded-[2rem] bg-muted dark:bg-muted border-none shadow-inner group">
+                     <p className="text-sm font-bold text-muted-foreground dark:text-muted-foreground italic">"{selectedOpp?.nextAction || "Initiate discovery node and evaluate stakeholder alignment."}"</p>
                      <Button 
                         variant="link" 
                         onClick={() => navigate("/core/sales/intelligence")}
-                        className="text-[9px] font-black uppercase tracking-widest text-indigo-600 h-auto p-0 mt-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-[9px] font-black uppercase tracking-widest text-primary h-auto p-0 mt-4 gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                          Log Activity Protocol <ArrowUpRight className="h-3 w-3" />
                       </Button>
@@ -443,7 +443,7 @@ export default function OpportunityDesk() {
                <div className="flex gap-4 pt-6">
                   <Button 
                      onClick={() => navigate("/core/sales/intelligence")}
-                     className="flex-1 h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 group"
+                     className="flex-1 h-16 rounded-[1.5rem] bg-primary hover:bg-primary font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 group"
                    >
                      <FileText className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" /> INITIALIZE QUOTE GEN
                    </Button>

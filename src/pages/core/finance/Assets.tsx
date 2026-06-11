@@ -830,9 +830,9 @@ export default function Assets() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Available</span>
-                          <span className="font-medium text-emerald-600">{formatAmount(selectedDeptBudget.availableBudget)}</span>
+                          <span className="font-medium text-success">{formatAmount(selectedDeptBudget.availableBudget)}</span>
                         </div>
-                        <div className="flex justify-between items-center text-rose-600 font-medium">
+                        <div className="flex justify-between items-center text-destructive font-medium">
                           <span>Requested</span>
                           <span>- {formatAmount(capexForm.requestedAmount)}</span>
                         </div>
@@ -1178,7 +1178,7 @@ export default function Assets() {
               <span className="text-muted-foreground">Method:</span>
               <span>{selectedDepreciationDetail?.method}</span>
               <span className="text-muted-foreground">Depreciation Amount:</span>
-              <span className="font-bold text-rose-600">({formatAmount(selectedDepreciationDetail?.amount)})</span>
+              <span className="font-bold text-destructive">({formatAmount(selectedDepreciationDetail?.amount)})</span>
               <span className="text-muted-foreground">Carrying Value After:</span>
               <span className="font-bold">{formatAmount(selectedDepreciationDetail?.carryingValue)}</span>
             </div>
@@ -1242,9 +1242,9 @@ export default function Assets() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Carrying Value Breakdown</p>
               <div className="grid grid-cols-2 text-xs gap-y-1">
                 <span className="text-muted-foreground">Accumulated Depreciation:</span>
-                <span className="text-rose-600">({formatAmount(selectedAssetDetail?.accumulatedDepreciation ?? 0)})</span>
+                <span className="text-destructive">({formatAmount(selectedAssetDetail?.accumulatedDepreciation ?? 0)})</span>
                 <span className="text-muted-foreground">Revaluation Reserve:</span>
-                <span className="text-emerald-600">{formatAmount(selectedAssetDetail?.revaluationReserve ?? 0)}</span>
+                <span className="text-success">{formatAmount(selectedAssetDetail?.revaluationReserve ?? 0)}</span>
                 <span className="font-semibold">Net Carrying Value:</span>
                 <span className="font-bold">{formatAmount(selectedAssetDetail?.carryingValue)}</span>
               </div>

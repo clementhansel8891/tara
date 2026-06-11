@@ -113,8 +113,8 @@ export default function Index() {
 
   const demoAccounts = [
     { email: 'admin@opscore.com', password: 'admin123', label: 'Core Admin', icon: Building2, color: 'bg-primary' },
-    { email: 'retail@opscore.com', password: 'retail123', label: 'POS Retail', icon: ShoppingBag, color: 'bg-orange-500' },
-    { email: 'cafe@opscore.com', password: 'cafe123', label: 'POS Cafe', icon: Coffee, color: 'bg-amber-600' },
+    { email: 'retail@opscore.com', password: 'retail123', label: 'POS Retail', icon: ShoppingBag, color: 'bg-warning' },
+    { email: 'cafe@opscore.com', password: 'cafe123', label: 'POS Cafe', icon: Coffee, color: 'bg-warning' },
   ];
 
   return (
@@ -161,8 +161,8 @@ export default function Index() {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 rounded-lg bg-card border">
-                <div className="p-2 rounded-lg bg-orange-500/10">
-                  <ShoppingBag className="h-5 w-5 text-orange-500" />
+                <div className="p-2 rounded-lg bg-warning">
+                  <ShoppingBag className="h-5 w-5 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">POS Retail</h3>
@@ -170,8 +170,8 @@ export default function Index() {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 rounded-lg bg-card border">
-                <div className="p-2 rounded-lg bg-amber-600/10">
-                  <Coffee className="h-5 w-5 text-amber-600" />
+                <div className="p-2 rounded-lg bg-warning">
+                  <Coffee className="h-5 w-5 text-warning" />
                 </div>
                 <div>
                   <h3 className="font-semibold">POS Cafe</h3>
@@ -179,8 +179,8 @@ export default function Index() {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 rounded-lg bg-card border">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <Shield className="h-5 w-5 text-green-500" />
+                <div className="p-2 rounded-lg bg-success">
+                  <Shield className="h-5 w-5 text-success" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Enterprise Modules</h3>

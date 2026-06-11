@@ -22,7 +22,7 @@ export default function ClinicDesk() {
           title="Clinic Operations"
           subtitle="Patient management, clinical records, and medical billing."
           primaryAction={
-            <Button disabled title="Not available yet" className="bg-blue-600 hover:bg-blue-700">
+            <Button disabled title="Not available yet" className="bg-primary hover:bg-primary">
               <Plus className="h-4 w-4 mr-2" /> New Patient
             </Button>
           }
@@ -80,7 +80,7 @@ export default function ClinicDesk() {
                 </div>
                 <div className="p-4 bg-muted/20 border rounded-xl">
                     <p className="text-xs text-muted-foreground uppercase font-bold">Day Revenue</p>
-                    <p className="text-2xl font-black italic text-emerald-500">$0.00</p>
+                    <p className="text-2xl font-black italic text-success">$0.00</p>
                 </div>
              </div>
              <DataTableShell

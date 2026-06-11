@@ -460,9 +460,9 @@ export const CreateChannelDialog: React.FC<Props> = ({
 
                 {/* Platform hint */}
                 {selectedPlatform?.hint && (
-                  <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-blue-100">
+                  <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-primary">
                     <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <p className="text-[11px] font-bold text-blue-700 leading-relaxed">
+                    <p className="text-[11px] font-bold text-primary leading-relaxed">
                       {selectedPlatform.hint}
                     </p>
                   </div>
@@ -470,7 +470,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
 
                 {/* Webhook type notice */}
                 {selectedType === "WEBHOOK" && (
-                  <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                  <div className="flex items-start gap-2 p-3 rounded-xl bg-success border border-emerald-100">
                     <Info className="w-4 h-4 text-success shrink-0 mt-0.5" />
                     <p className="text-[11px] font-bold text-success leading-relaxed">
                       After creation, go to <strong>Settings → Webhooks</strong>{" "}
@@ -504,7 +504,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
           {step === 3 && result && (
             <>
               <DialogHeader className="mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-success flex items-center justify-center mb-4">
                   <CheckCircle2 className="w-6 h-6 text-success" />
                 </div>
                 <DialogTitle className="text-xl font-black italic tracking-tight">
@@ -568,7 +568,7 @@ export const CreateChannelDialog: React.FC<Props> = ({
                   )}
                 </Button>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-[11px] font-bold italic text-amber-700 leading-relaxed">
+                <div className="bg-warning border border-amber-200 rounded-xl p-4 text-[11px] font-bold italic text-warning leading-relaxed">
                   ⚠ Store these credentials securely (e.g. in your .env file).
                   They cannot be retrieved after closing this dialog. You can
                   rotate them later in <strong>Danger Zone</strong>.

@@ -27,30 +27,30 @@ export const CommandCenterSidebar = ({
       <Card className="rounded-[2rem] border border-white/5 shadow-2xl bg-white/[0.03] backdrop-blur-3xl overflow-hidden group/inventory">
         <CardHeader className="p-8 border-b border-white/5 bg-white/[0.01]">
           <CardTitle className="text-[11px] font-black italic uppercase tracking-[0.3em] flex items-center gap-3 text-foreground italic">
-            <Package className="w-5 h-5 text-amber-500 shadow-xl" />
+            <Package className="w-5 h-5 text-warning shadow-xl" />
             Inventory Health
           </CardTitle>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
           <div className="flex justify-between items-center p-5 rounded-2xl bg-destructive/10 border border-rose-500/20 shadow-xl group/critical hover:scale-[1.02] transition-transform">
             <div className="flex items-center gap-4">
-              <AlertCircle className="w-5 h-5 text-rose-400" />
-              <span className="text-[10px] font-black italic text-rose-400 uppercase tracking-widest italic">
+              <AlertCircle className="w-5 h-5 text-destructive" />
+              <span className="text-[10px] font-black italic text-destructive uppercase tracking-widest italic">
                 Critical Depletion
               </span>
             </div>
-            <Badge className="bg-destructive/20 text-rose-400 border border-rose-500/30 font-black italic text-[11px] px-3 h-6 rounded-lg">
+            <Badge className="bg-destructive/20 text-destructive border border-rose-500/30 font-black italic text-[11px] px-3 h-6 rounded-lg">
               {inventoryStats?.outOfStockCount || 0}
             </Badge>
           </div>
-          <div className="flex justify-between items-center p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 shadow-xl group/low hover:scale-[1.02] transition-transform">
+          <div className="flex justify-between items-center p-5 rounded-2xl bg-warning border border-amber-500/20 shadow-xl group/low hover:scale-[1.02] transition-transform">
             <div className="flex items-center gap-4">
-              <AlertCircle className="w-5 h-5 text-amber-400" />
-              <span className="text-[10px] font-black italic text-amber-400 uppercase tracking-widest italic">
+              <AlertCircle className="w-5 h-5 text-warning" />
+              <span className="text-[10px] font-black italic text-warning uppercase tracking-widest italic">
                 Low Stock Threshold
               </span>
             </div>
-            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 font-black italic text-[11px] px-3 h-6 rounded-lg">
+            <Badge className="bg-warning text-warning border border-amber-500/30 font-black italic text-[11px] px-3 h-6 rounded-lg">
               {inventoryStats?.lowStockCount || 0}
             </Badge>
           </div>
@@ -68,7 +68,7 @@ export const CommandCenterSidebar = ({
         <CardContent className="p-8 space-y-5">
           {[
             { label: "Finance (Ledger)", status: "LOCKED", color: "text-primary", dot: "bg-primary/40" },
-            { label: "HR (Coverage)", status: "ACTIVE", color: "text-success", dot: "bg-emerald-400" },
+            { label: "HR (Coverage)", status: "ACTIVE", color: "text-success", dot: "bg-success" },
             { label: "IT (Security)", status: "OPTIMAL", color: "text-sky-400", dot: "bg-sky-400" },
           ].map((item, i) => (
             <div

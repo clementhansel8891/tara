@@ -26,20 +26,20 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
   };
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-muted p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
             <Radio className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Edge Infrastructure</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Live status of hardware nodes & IoT network</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Live status of hardware nodes & IoT network</p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
-           <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
-           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{data.length} Nodes Online</span>
+           <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+           <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">{data.length} Nodes Online</span>
         </div>
       </div>
 
@@ -47,10 +47,10 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
         <table className="w-full text-left border-separate border-spacing-y-4">
           <thead>
             <tr>
-              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Hardware Node</th>
-              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Deployment</th>
-              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Connectivity</th>
-              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-right">Telemetry</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Hardware Node</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Deployment</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Connectivity</th>
+              <th className="px-4 pb-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-right">Telemetry</th>
             </tr>
           </thead>
           <tbody>
@@ -60,27 +60,27 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
                 <tr key={i} className="group/row">
                   <td className="px-4 py-4 bg-white/2 rounded-l-[1.25rem] border-y border-l border-white/5 group-hover/row:bg-white/5 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 border border-white/5 text-slate-500 group-hover/row:text-indigo-400 group-hover/row:border-indigo-500/30 transition-all">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted border border-white/5 text-muted-foreground group-hover/row:text-primary group-hover/row:border-primary transition-all">
                         <Icon className="h-5 w-5" />
                       </div>
                       <div>
                         <p className="text-xs font-black text-white">{device.name}</p>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{device.type}</p>
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">{device.type}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4 bg-white/2 border-y border-white/5 group-hover/row:bg-white/5 transition-colors">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover/row:text-slate-300 transition-colors">{device.location}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover/row:text-muted-foreground transition-colors">{device.location}</span>
                   </td>
                   <td className="px-4 py-4 bg-white/2 border-y border-white/5 group-hover/row:bg-white/5 transition-colors">
                     <div className="flex items-center gap-2.5">
                       {device.status === 'ONLINE' ? (
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-success border border-emerald-500/20 text-success">
                            <Wifi className="h-3 w-3" />
                            <span className="text-[9px] font-black uppercase tracking-[0.1em]">Signal Active</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-500">
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive border border-rose-500/20 text-destructive">
                            <WifiOff className="h-3 w-3" />
                            <span className="text-[9px] font-black uppercase tracking-[0.1em]">Signal Lost</span>
                         </div>
@@ -92,17 +92,17 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
                       <div className="flex items-center justify-end gap-2">
                         <span className={cn(
                           "text-[10px] font-black",
-                          device.battery < 20 ? 'text-rose-500' : 'text-slate-400'
+                          device.battery < 20 ? 'text-destructive' : 'text-muted-foreground'
                         )}>{device.battery}%</span>
                         <div className="relative w-6 h-3 border border-slate-700 rounded-[2px] p-[1px]">
                            <div 
                              className={cn(
                                "h-full rounded-[1px]",
-                               device.battery < 20 ? 'bg-rose-500' : 'bg-emerald-500'
+                               device.battery < 20 ? 'bg-destructive' : 'bg-success'
                              )} 
                              style={{ width: `${device.battery}%` }} 
                            />
-                           <div className="absolute -right-[3px] top-1/2 -translate-y-1/2 w-[2px] h-1 bg-slate-700 rounded-r-sm" />
+                           <div className="absolute -right-[3px] top-1/2 -translate-y-1/2 w-[2px] h-1 bg-muted rounded-r-sm" />
                         </div>
                       </div>
                     )}
@@ -115,7 +115,7 @@ export const DeviceNetworkTable: React.FC<DeviceNetworkTableProps> = ({ data = [
       </div>
       
       {/* Subtle background glow */}
-      <div className="absolute -bottom-20 -left-20 h-48 w-48 bg-indigo-500/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute -bottom-20 -left-20 h-48 w-48 bg-primary blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 };

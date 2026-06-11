@@ -102,7 +102,7 @@ export default function LogisticsControlCenter() {
           title="Logistics Control Center"
           subtitle="Real-time global tracking, node scaling, and fulfillment intelligence."
           primaryAction={
-            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
+            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-primary hover:bg-primary shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
               <Zap className="h-4 w-4" /> OPTIMIZE ROUTES
             </Button>
           }
@@ -129,9 +129,9 @@ export default function LogisticsControlCenter() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Transit Nodes</div>
               <div className="text-3xl font-black italic tracking-tighter flex items-end gap-2">
-                12 <span className="text-sm font-bold text-emerald-500 mb-1">ACTIVE</span>
+                12 <span className="text-sm font-bold text-success mb-1">ACTIVE</span>
               </div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <TrendingUp className="w-3 h-3" />
                 Global Handshake Stable
               </div>
@@ -150,7 +150,7 @@ export default function LogisticsControlCenter() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Avg. Dispatch</div>
               <div className="text-3xl font-black italic tracking-tighter">1.4h</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-blue-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Zap className="w-3 h-3" />
                 Sub-2h Threshold Met
               </div>
@@ -161,7 +161,7 @@ export default function LogisticsControlCenter() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">System Health</div>
               <div className="text-3xl font-black italic tracking-tighter">NOMINAL</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <ShieldCheck className="w-3 h-3" />
                 No Anomalies Detected
               </div>
@@ -208,7 +208,7 @@ export default function LogisticsControlCenter() {
                          <Navigation className="h-6 w-6 text-primary" />
                          <h3 className="font-black italic uppercase tracking-tighter text-xl">Active Shipments Matrix</h3>
                       </div>
-                      <Badge className="bg-emerald-500/10 text-emerald-500 border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">LIVE DATA</Badge>
+                      <Badge className="bg-success text-success border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">LIVE DATA</Badge>
                    </div>
                    <div className="p-0 overflow-x-auto">
                       <table className="w-full">
@@ -242,7 +242,7 @@ export default function LogisticsControlCenter() {
                                      </div>
                                   </td>
                                   <td className="px-8 py-6">
-                                     <Badge className="rounded-full bg-emerald-500/10 text-emerald-500 border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">
+                                     <Badge className="rounded-full bg-success text-success border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">
                                         {order.status}
                                      </Badge>
                                   </td>
@@ -263,7 +263,7 @@ export default function LogisticsControlCenter() {
              </div>
 
              <div className="space-y-8">
-                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-indigo-900 text-white relative overflow-hidden group">
+                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-primary text-white relative overflow-hidden group">
                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                    <div className="relative z-10 space-y-8">
                       <div className="flex items-center gap-4">
@@ -278,7 +278,7 @@ export default function LogisticsControlCenter() {
                       <p className="text-sm font-medium italic opacity-70 leading-relaxed italic">
                         "Route optimization engine is currently operating at <strong>98% efficiency</strong>. Global latency is within 200ms threshold."
                       </p>
-                      <Button className="w-full h-16 bg-white text-indigo-900 hover:bg-slate-100 border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
+                      <Button className="w-full h-16 bg-white text-primary hover:bg-muted border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
                          VIEW GLOBAL HEATMAP
                       </Button>
                    </div>
@@ -302,7 +302,7 @@ export default function LogisticsControlCenter() {
                                     <p className="text-[8px] font-medium text-muted-foreground uppercase">Processing...</p>
                                  </div>
                               </div>
-                              <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                              <div className="h-2 w-2 rounded-full bg-warning animate-pulse" />
                            </div>
                          ))}
                       </div>
@@ -322,7 +322,7 @@ export default function LogisticsControlCenter() {
                      </div>
                      <Badge className={cn(
                        "rounded-full font-black text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-widest",
-                       node.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-500" : "bg-orange-500/10 text-orange-500"
+                       node.status === "ACTIVE" ? "bg-success text-success" : "bg-warning text-warning"
                      )}>
                        {node.status}
                      </Badge>
@@ -341,7 +341,7 @@ export default function LogisticsControlCenter() {
                      </div>
                      <div className="grid grid-cols-2 gap-4 pt-4">
                         <Button variant="outline" className="rounded-xl h-10 font-black text-[9px] uppercase tracking-widest">MAINTENANCE</Button>
-                        <Button className="rounded-xl h-10 font-black text-[9px] uppercase tracking-widest bg-indigo-600">SCALE NODE</Button>
+                        <Button className="rounded-xl h-10 font-black text-[9px] uppercase tracking-widest bg-primary">SCALE NODE</Button>
                      </div>
                   </div>
                </Card>

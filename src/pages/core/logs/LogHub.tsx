@@ -161,7 +161,7 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
       case "FATAL":
         return <Badge variant="destructive">{level}</Badge>;
       case "WARN":
-        return <Badge className="bg-amber-500 hover:bg-amber-600">WARN</Badge>;
+        return <Badge className="bg-warning hover:bg-warning">WARN</Badge>;
       case "DEBUG":
         return <Badge variant="outline">DEBUG</Badge>;
       default:
@@ -178,11 +178,11 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
           description="Blockchain-sealed audit log verification."
         >
           {integrityStatus ? (
-            <div className={`p-4 rounded-lg flex items-center gap-4 ${integrityStatus.status === 'HEALTHY' ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-rose-500/10 border border-rose-500/20'}`}>
+            <div className={`p-4 rounded-lg flex items-center gap-4 ${integrityStatus.status === 'HEALTHY' ? 'bg-success border border-emerald-500/20' : 'bg-destructive border border-rose-500/20'}`}>
               {integrityStatus.status === 'HEALTHY' ? (
-                <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                <CheckCircle2 className="h-8 w-8 text-success" />
               ) : (
-                <AlertCircle className="h-8 w-8 text-rose-500" />
+                <AlertCircle className="h-8 w-8 text-destructive" />
               )}
               <div>
                 <p className="font-semibold text-sm">
@@ -210,17 +210,17 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-muted/50 border">
               <div className="flex items-center gap-2 mb-2">
-                <Activity className="h-4 w-4 text-blue-500" />
+                <Activity className="h-4 w-4 text-primary" />
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Stuck (Processing)</span>
               </div>
               <p className="text-2xl font-bold">{stuckEvents?.processing ?? 0}</p>
             </div>
             <div className="p-4 rounded-lg bg-muted/50 border">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="h-4 w-4 text-rose-500" />
+                <AlertCircle className="h-4 w-4 text-destructive" />
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Deadlocked (Failed)</span>
               </div>
-              <p className="text-2xl font-bold text-rose-500">{stuckEvents?.failed ?? 0}</p>
+              <p className="text-2xl font-bold text-destructive">{stuckEvents?.failed ?? 0}</p>
             </div>
           </div>
         </WorkspacePanel>
@@ -418,7 +418,7 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
               {selectedLog.payload && (
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground block">Payload</label>
-                  <div className="bg-slate-950 text-slate-50 p-3 rounded-md text-xs font-mono overflow-x-auto">
+                  <div className="bg-muted text-muted-foreground p-3 rounded-md text-xs font-mono overflow-x-auto">
                     <pre>{JSON.stringify(selectedLog.payload, null, 2)}</pre>
                   </div>
                 </div>
@@ -427,7 +427,7 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
               {(selectedLog.errorStack || selectedLog.error_stack) && (
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground block">Error Stack</label>
-                  <div className="bg-red-950/20 border border-red-500/20 text-red-100 p-3 rounded-md text-[10px] font-mono whitespace-pre overflow-x-auto leading-tight">
+                  <div className="bg-destructive border border-red-500/20 text-destructive p-3 rounded-md text-[10px] font-mono whitespace-pre overflow-x-auto leading-tight">
                     {selectedLog.errorStack || selectedLog.error_stack}
                   </div>
                 </div>

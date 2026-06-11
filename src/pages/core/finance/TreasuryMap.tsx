@@ -474,7 +474,7 @@ export default function TreasuryMap() {
               <span className="text-muted-foreground">To Account:</span>
               <span>{selectedTransferDetail?.toSourceId}</span>
               <span className="text-muted-foreground">Amount:</span>
-              <span className="font-bold text-blue-600">
+              <span className="font-bold text-primary">
                 {selectedTransferDetail?.amount.toLocaleString()}
               </span>
               <span className="text-muted-foreground">Status:</span>

@@ -230,7 +230,7 @@ export default function SupplierPortalDesk() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="OUTBOUND"><div className="flex items-center gap-2"><ArrowUpRight className="w-3 h-3 text-primary" />Office → Supplier</div></SelectItem>
-                        <SelectItem value="INBOUND"><div className="flex items-center gap-2"><ArrowDownLeft className="w-3 h-3 text-amber-600" />Supplier → Office</div></SelectItem>
+                        <SelectItem value="INBOUND"><div className="flex items-center gap-2"><ArrowDownLeft className="w-3 h-3 text-warning" />Supplier → Office</div></SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

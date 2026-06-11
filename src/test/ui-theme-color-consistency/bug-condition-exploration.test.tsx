@@ -63,7 +63,7 @@ const INVALID_CLASS_FILES: string[] = [
 
 // ── Bug-condition detectors (static, operate on raw source text) ────────────────
 
-/** e.g. `bg-primary/50/10`, `bg-muted/40/20`, `bg-secondary/5/50`, `bg-primary/20/20` */
+/** e.g. `bg-primary/50`, `bg-muted/40`, `bg-secondary/5`, `bg-primary/20` */
 const INVALID_DOUBLE_OPACITY = /\b(?:bg|text|border|ring|from|to|via)-[a-z]+(?:-\d+)?\/\d+\/\d+/g;
 
 /** Raw Tailwind palette utilities that bypass the theme tokens. */

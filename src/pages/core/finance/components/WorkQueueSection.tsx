@@ -48,7 +48,7 @@ export function WorkQueueSection({
       >
         <Tabs value={tab} onValueChange={(v) => onTabChange(v as typeof tab)}>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6 mt-2">
-            <TabsList className="h-12 bg-slate-50 p-1 border border-slate-200/80 rounded-2xl w-fit">
+            <TabsList className="h-12 bg-muted p-1 border border-slate-200/80 rounded-2xl w-fit">
               <TabsTrigger value="approvals" className="rounded-xl px-5 font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
                 Approvals
                 {approvals.length > 0 && (
@@ -100,12 +100,12 @@ export function WorkQueueSection({
                     footer={
                       <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <Button size="sm"
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold"
+                          className="bg-success hover:bg-success text-white rounded-xl text-xs font-bold"
                           onClick={() => onApprove(flow.id)}>
                           Approve
                         </Button>
                         <Button size="sm"
-                          className="rounded-xl text-xs font-bold border border-rose-200 bg-rose-50 text-rose-500 hover:bg-rose-100 shadow-none"
+                          className="rounded-xl text-xs font-bold border border-rose-200 bg-destructive text-destructive hover:bg-destructive shadow-none"
                           onClick={() => onReject(flow.id)}>
                           Reject
                         </Button>
@@ -126,15 +126,15 @@ export function WorkQueueSection({
               <div className="grid gap-3">
                 {(Array.isArray(alerts) ? alerts : []).map((alert) => (
                   <button key={alert.id}
-                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 text-left"
+                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-muted hover:shadow-md hover:-translate-y-0.5 text-left"
                     onClick={() => onSelectAlert(alert)}>
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-100">
-                        <AlertTriangle className="h-5 w-5 text-rose-500" />
+                      <div className="h-12 w-12 rounded-2xl bg-destructive flex items-center justify-center border border-rose-100">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900">{alert.title}</p>
-                        <p className="text-xs font-medium text-slate-400 mt-0.5">{alert.description}</p>
+                        <p className="font-bold text-muted-foreground">{alert.title}</p>
+                        <p className="text-xs font-medium text-muted-foreground mt-0.5">{alert.description}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -147,7 +147,7 @@ export function WorkQueueSection({
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Activity} color="text-emerald-500" bg="bg-emerald-50"
+              <EmptyState icon={Activity} color="text-success" bg="bg-success"
                 title="No Critical Alerts" desc="All systems nominal — no active financial breach alerts." />
             )}
           </TabsContent>
@@ -158,15 +158,15 @@ export function WorkQueueSection({
               <div className="grid gap-3">
                 {(Array.isArray(tasks) ? tasks : []).map((task) => (
                   <button key={task.id}
-                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5 text-left"
+                    className="flex w-full cursor-pointer items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-muted hover:shadow-md hover:-translate-y-0.5 text-left"
                     onClick={() => onSelectWorkflow(task)}>
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100">
-                        <Activity className="h-5 w-5 text-indigo-500" />
+                      <div className="h-12 w-12 rounded-2xl bg-primary flex items-center justify-center border border-primary">
+                        <Activity className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900">{task.entityType} | {task.entityId}</p>
-                        <p className="text-xs font-medium text-slate-400 mt-0.5">Routed → {task.destinationDept}</p>
+                        <p className="font-bold text-muted-foreground">{task.entityType} | {task.entityId}</p>
+                        <p className="text-xs font-medium text-muted-foreground mt-0.5">Routed → {task.destinationDept}</p>
                       </div>
                     </div>
                     <ApprovalStatusBadge status={task.status} />
@@ -174,7 +174,7 @@ export function WorkQueueSection({
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Clock} color="text-slate-400" bg="bg-slate-100"
+              <EmptyState icon={Clock} color="text-muted-foreground" bg="bg-muted"
                 title="Zero Routings" desc="Nothing has been dispatched to the Finance layer." />
             )}
           </TabsContent>
@@ -185,16 +185,16 @@ export function WorkQueueSection({
               <div className="grid gap-3">
                 {(Array.isArray(payments) ? payments : []).map((p) => (
                   <div key={p.id}
-                    className="flex items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md cursor-pointer">
+                    className="flex items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all hover:bg-muted hover:shadow-md cursor-pointer">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10">
                         <Wallet className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900">{p.beneficiary}</p>
-                        <p className="text-xs font-medium text-slate-400 mt-0.5">
+                        <p className="font-bold text-muted-foreground">{p.beneficiary}</p>
+                        <p className="text-xs font-medium text-muted-foreground mt-0.5">
                           {p.currency}{" "}
-                          <span className="font-black text-slate-700">{p.amount.toLocaleString()}</span>
+                          <span className="font-black text-muted-foreground">{p.amount.toLocaleString()}</span>
                           {" · "}
                           {new Date(p.scheduledDate || "").toLocaleDateString()}
                         </p>
@@ -208,7 +208,7 @@ export function WorkQueueSection({
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Wallet} color="text-slate-400" bg="bg-slate-100"
+              <EmptyState icon={Wallet} color="text-muted-foreground" bg="bg-muted"
                 title="Empty Logs" desc="No payment records exist for the active tenant context." />
             )}
           </TabsContent>
@@ -224,11 +224,11 @@ export function WorkQueueSection({
         <DataTableShell total={payments.length} page={1} pageSize={10}>
           <div className="rounded-2xl overflow-hidden border border-slate-100 mt-4">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50/80">
+              <thead className="bg-muted">
                 <tr>
                   {["Beneficiary", "Amount", "Method", "Status", "Date"].map((h) => (
                     <th key={h}
-                      className="p-4 text-left text-[11px] font-black uppercase tracking-widest text-slate-400">
+                      className="p-4 text-left text-[11px] font-black uppercase tracking-widest text-muted-foreground">
                       {h}
                     </th>
                   ))}
@@ -237,23 +237,23 @@ export function WorkQueueSection({
               <tbody className="bg-white divide-y divide-slate-50">
                 {payments.length > 0 ? (
                   (Array.isArray(payments) ? payments : []).map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/60 transition-colors cursor-pointer">
-                      <td className="p-4 font-bold text-slate-900">{p.beneficiary}</td>
-                      <td className="p-4 font-bold text-slate-700">
+                    <tr key={p.id} className="hover:bg-muted transition-colors cursor-pointer">
+                      <td className="p-4 font-bold text-muted-foreground">{p.beneficiary}</td>
+                      <td className="p-4 font-bold text-muted-foreground">
                         {p.currency} {p.amount.toLocaleString()}
                       </td>
                       <td className="p-4">
                         <Badge variant="outline" className="rounded-xl text-xs font-bold">{p.method}</Badge>
                       </td>
                       <td className="p-4"><ApprovalStatusBadge status={p.status} /></td>
-                      <td className="p-4 text-slate-400 font-medium text-xs">
+                      <td className="p-4 text-muted-foreground font-medium text-xs">
                         {p.scheduledDate ? new Date(p.scheduledDate).toLocaleDateString() : "—"}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center text-slate-400 font-medium">
+                    <td colSpan={5} className="p-10 text-center text-muted-foreground font-medium">
                       No payment records found.
                     </td>
                   </tr>

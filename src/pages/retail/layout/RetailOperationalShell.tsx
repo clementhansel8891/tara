@@ -34,7 +34,7 @@ export const RetailOperationalShell: React.FC<{ children: React.ReactNode }> = (
             className="h-10 px-4 rounded-xl font-black italic tracking-widest uppercase gap-2 shadow-lg border border-border bg-secondary/40 hover:bg-white/10 text-white group backdrop-blur-xl"
             onClick={() => setIsLauncherOpen(true)}
           >
-            <Menu className="w-4 h-4 text-blue-400 group-hover:rotate-90 transition-transform" />
+            <Menu className="w-4 h-4 text-primary group-hover:rotate-90 transition-transform" />
             Apps
           </Button>
 
@@ -55,7 +55,7 @@ export const RetailOperationalShell: React.FC<{ children: React.ReactNode }> = (
             onClick={toggleFullscreen}
             title="Toggle Fullscreen"
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4 text-blue-400" /> : <Maximize2 className="w-4 h-4 text-blue-400" />}
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-primary" /> : <Maximize2 className="w-4 h-4 text-primary" />}
           </Button>
         </div>
       )}

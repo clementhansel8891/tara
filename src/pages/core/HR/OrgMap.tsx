@@ -287,7 +287,7 @@ export default function OrgMap() {
               <span className="text-muted-foreground">Openings:</span>
               <span>{selectedDept?.openRequisitions}</span>
               <span className="text-muted-foreground">Attendance Risk:</span>
-              <span className={Number(selectedDept?.attendanceRisk) > 15 ? "text-rose-600 font-bold" : ""}>
+              <span className={Number(selectedDept?.attendanceRisk) > 15 ? "text-destructive font-bold" : ""}>
                 {selectedDept?.attendanceRisk}%
               </span>
               <span className="text-muted-foreground">Status:</span>

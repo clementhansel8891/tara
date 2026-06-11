@@ -104,10 +104,10 @@ export function DeptAdmin({
               { id: 2, name: "Geofenced Access", desc: "Restrict sensitive data access to corporate LAN.", enabled: false },
               { id: 3, name: "Encryption-at-Rest", desc: "Force AES-256 for all departmental document storage.", enabled: true },
             ].map((policy) => (
-              <div key={policy.id} className="flex items-start justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/30">
+              <div key={policy.id} className="flex items-start justify-between p-4 rounded-xl border border-slate-100 bg-muted">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Lock className="h-3.5 w-3.5 text-slate-400" />
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                     <p className="text-sm font-bold">{policy.name}</p>
                   </div>
                   <p className="text-xs text-muted-foreground">{policy.desc}</p>

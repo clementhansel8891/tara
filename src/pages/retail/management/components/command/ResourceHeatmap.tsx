@@ -21,7 +21,7 @@ const HeatmapItem = ({
   online: boolean;
   onExpansionRequest: (feature: string) => void;
 }) => (
-  <div className="p-8 rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/5 shadow-2xl hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group relative overflow-hidden">
+  <div className="p-8 rounded-2xl bg-white/[0.03] backdrop-blur-3xl border border-white/5 shadow-2xl hover:border-primary hover:bg-white/[0.05] transition-all duration-500 group relative overflow-hidden">
     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-[60px] -mr-16 -mt-16 group-hover:bg-primary/10 transition-all duration-1000" />
     <div className="flex items-center justify-between mb-8 relative z-10">
       <div className="flex items-center gap-4">
@@ -29,7 +29,7 @@ const HeatmapItem = ({
           className={cn(
             "w-12 h-12 rounded-[1.25rem] flex items-center justify-center border transition-all duration-500 group-hover:scale-110 shadow-2xl",
             online
-              ? "bg-primary/10 border-indigo-500/20 text-primary"
+              ? "bg-primary/10 border-primary text-primary"
               : "bg-secondary/40 border-border text-muted-foreground",
           )}
         >
@@ -48,9 +48,9 @@ const HeatmapItem = ({
         className={cn(
           "text-[9px] font-black italic tracking-[0.2em] border-none px-3 h-6 rounded-lg uppercase",
           load > 85
-            ? "bg-destructive/20 text-rose-400"
+            ? "bg-destructive/20 text-destructive"
             : load > 60
-              ? "bg-amber-500/20 text-amber-400"
+              ? "bg-warning text-warning"
               : "bg-success/20 text-success",
         )}
       >

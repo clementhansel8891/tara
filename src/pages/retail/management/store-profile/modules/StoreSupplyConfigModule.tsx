@@ -43,11 +43,11 @@ export const StoreSupplyConfigModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-success/10/50 rounded-xl text-success">
+        <div className="p-2 bg-success/10 rounded-xl text-success">
           <PackageCheck className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Logistics & Routing
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -59,7 +59,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Inbound Supply */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <Truck className="w-4 h-4 text-muted-foreground" /> Inbound Logistics
           </h3>
 
@@ -139,7 +139,7 @@ export const StoreSupplyConfigModule: React.FC = () => {
 
         {/* Outbound & Fulfillment */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <ArrowRightLeft className="w-4 h-4 text-muted-foreground" /> Outbound
             Routing
           </h3>

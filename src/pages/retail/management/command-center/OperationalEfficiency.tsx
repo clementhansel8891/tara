@@ -22,11 +22,11 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       {/* Backlog Trend Area */}
       <div className="xl:col-span-2 bg-white/[0.03] backdrop-blur-3xl p-5 rounded-2xl border border-white/5 shadow-2xl hover:bg-white/[0.05] hover:-translate-y-0.5 transition-all duration-700 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-violet-500/10 rounded-full blur-[130px] -mr-[15%] -mt-[15%] group-hover:bg-violet-500/20 transition-all duration-1000" />
+        <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-primary rounded-full blur-[130px] -mr-[15%] -mt-[15%] group-hover:bg-primary transition-all duration-1000" />
 
         <div className="flex items-center justify-between mb-6 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-violet-600 flex items-center justify-center text-foreground shadow-xl shadow-violet-600/20 group-hover:rotate-6 transition-transform duration-500">
+            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-foreground shadow-xl shadow-violet-600/20 group-hover:rotate-6 transition-transform duration-500">
               <Activity className="w-6 h-6" />
             </div>
             <div>
@@ -117,7 +117,7 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
           <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">
             Efficiency Latency
           </h3>
-          <Box className="w-5 h-5 text-muted-foreground group-hover/efficiency:text-amber-400 transition-colors" />
+          <Box className="w-5 h-5 text-muted-foreground group-hover/efficiency:text-warning transition-colors" />
         </div>
 
         <div className="space-y-5 flex-1">
@@ -126,7 +126,7 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
               key={idx}
               className="group/item flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-white/[0.04] transition-all duration-500 cursor-default shadow-lg"
             >
-              <div className="w-12 h-12 rounded-xl bg-secondary/50 flex items-center justify-center shrink-0 group-hover/item:scale-110 group-hover/item:text-amber-400 transition-all border border-white/5 shadow-inner">
+              <div className="w-12 h-12 rounded-xl bg-secondary/50 flex items-center justify-center shrink-0 group-hover/item:scale-110 group-hover/item:text-warning transition-all border border-white/5 shadow-inner">
                 <Clock className="w-6 h-6 opacity-40 group-hover/item:opacity-100 transition-opacity" />
               </div>
               <div className="flex-1">
@@ -134,16 +134,16 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
                   <p className="text-[9px] font-black uppercase tracking-[0.1em] text-muted-foreground italic">
                     {sku.sku}
                   </p>
-                  <p className="text-xs font-black text-amber-500 italic tracking-tighter">
+                  <p className="text-xs font-black text-warning italic tracking-tighter">
                     {sku.avgTime}m
                   </p>
                 </div>
-                <p className="text-base font-black italic text-foreground leading-tight tracking-tighter group-hover/item:text-amber-400 transition-colors">
+                <p className="text-base font-black italic text-foreground leading-tight tracking-tighter group-hover/item:text-warning transition-colors">
                   {sku.name}
                 </p>
                 <div className="mt-4 w-full bg-secondary/40 h-2 rounded-full overflow-hidden p-[1px] border border-white/5">
                   <div
-                    className="h-full bg-amber-500 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.6)] transition-all duration-2000 ease-out"
+                    className="h-full bg-warning rounded-full shadow-[0_0_12px_rgba(245,158,11,0.6)] transition-all duration-2000 ease-out"
                     style={{
                       width: `${Math.min(100, (sku.avgTime / 15) * 100)}%`,
                     }}
@@ -166,7 +166,7 @@ export const OperationalEfficiency: React.FC<OperationalEfficiencyProps> = ({
               AI Prediction Engine
             </p>
           </div>
-          <p className="text-sm font-black italic relative z-10 leading-relaxed text-indigo-50 tracking-tight">
+          <p className="text-sm font-black italic relative z-10 leading-relaxed text-primary tracking-tight">
             Peak processing latency detected between 12:00 - 14:00. Recommend
             dynamic scaling of fulfillment protocols.
           </p>

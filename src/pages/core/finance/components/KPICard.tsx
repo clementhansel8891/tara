@@ -25,8 +25,8 @@ export const KPICard: React.FC<KPICardProps> = ({ title, value, trend, inverseCo
         <CardTitle className="text-xs font-bold uppercase text-muted-foreground">
           {title}
         </CardTitle>
-        {trend === "UP" && <TrendingUp size={16} className={cn(isPositive ? "text-emerald-500" : "text-destructive")} />}
-        {trend === "DOWN" && <TrendingDown size={16} className={cn(isNegative ? "text-destructive" : "text-emerald-500")} />}
+        {trend === "UP" && <TrendingUp size={16} className={cn(isPositive ? "text-success" : "text-destructive")} />}
+        {trend === "DOWN" && <TrendingDown size={16} className={cn(isNegative ? "text-destructive" : "text-success")} />}
         {trend === "NEUTRAL" && <Minus size={16} className="text-muted-foreground" />}
       </CardHeader>
       <CardContent>

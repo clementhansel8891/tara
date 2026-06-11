@@ -28,15 +28,15 @@ export default function WorkflowInbox({ noShell = false }: { noShell?: boolean }
           {canAccessWorkspace(session, "WORKFLOW") ? (
             <ApprovalInbox tenantId={session.tenant_id} session={session} />
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-12 text-center bg-slate-50/50 dark:bg-slate-900/20">
-              <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <Search className="h-6 w-6 text-slate-400" />
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed p-12 text-center bg-muted dark:bg-muted">
+              <div className="h-12 w-12 rounded-full bg-muted dark:bg-muted flex items-center justify-center">
+                <Search className="h-6 w-6 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                   No Approvals Assigned
                 </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1">
                   You are currently clear of any pending workflow actions.
                 </p>
               </div>

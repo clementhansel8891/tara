@@ -34,7 +34,7 @@ export default function ToolsHome() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="p-6 hover:shadow-lg transition-all border-slate-100 group">
             <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+              <div className="p-3 rounded-2xl bg-primary text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                 <FolderOpen className="h-6 w-6" />
               </div>
               <div>
@@ -67,7 +67,7 @@ export default function ToolsHome() {
             return (
               <Card key={tool.id} className="p-6 hover:shadow-lg transition-all border-slate-100 group">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                  <div className="p-3 rounded-2xl bg-primary text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                     <Icon className="h-6 w-6" />
                   </div>
                   <div>

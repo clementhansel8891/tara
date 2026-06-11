@@ -75,7 +75,7 @@ export const TransferTrackingModal: React.FC<TransferTrackingModalProps> = ({
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200">
               <div>
                 <div className="text-xs text-muted-foreground font-bold">Status</div>
-                <Badge className="bg-blue-100 text-blue-700 font-black italic mt-1">
+                <Badge className="bg-primary text-primary font-black italic mt-1">
                   {transfer.status}
                 </Badge>
               </div>
@@ -124,7 +124,7 @@ export const TransferTrackingModal: React.FC<TransferTrackingModalProps> = ({
                       <div className="text-xs text-muted-foreground font-bold">{event.time}</div>
                     </div>
                     <Badge className={`text-xs font-black italic ${
-                      event.completed ? 'bg-emerald-50 text-success' : 'bg-secondary/10 text-muted-foreground'
+                      event.completed ? 'bg-success text-success' : 'bg-secondary/10 text-muted-foreground'
                     }`}>
                       {event.status}
                     </Badge>

@@ -26,11 +26,11 @@ export const GlobalFleetDashboard: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-100/50 rounded-xl text-primary">
+        <div className="p-2 bg-primary rounded-xl text-primary">
           <Globe className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Global Fleet Overview
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -90,7 +90,7 @@ export const GlobalFleetDashboard: React.FC = () => {
             <CardTitle className="text-sm font-black italic text-muted-foreground">
               Max POS Capacity
             </CardTitle>
-            <MonitorSmartphone className="h-4 w-4 text-purple-500" />
+            <MonitorSmartphone className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black">{totalPosTerminals}</div>
@@ -114,14 +114,14 @@ export const GlobalFleetDashboard: React.FC = () => {
               <div
                 key={store.id}
                 onClick={() => setSelectedStoreId(store.id)}
-                className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-secondary/5/50 cursor-pointer hover:border-blue-200 hover:shadow-md transition-all group"
+                className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-secondary/5 cursor-pointer hover:border-primary hover:shadow-md transition-all group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:border-blue-200 transition-colors">
+                  <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center shadow-sm group-hover:border-primary transition-colors">
                     <Building2 className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800">{store.name}</p>
+                    <p className="font-bold text-muted-foreground">{store.name}</p>
                     <p className="text-[10px] text-muted-foreground font-mono mt-0.5 font-bold uppercase tracking-widest">
                       {store.code} • {store.timezone}
                     </p>

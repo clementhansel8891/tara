@@ -18,7 +18,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
       {(Array.isArray(products) ? products : []).map((p) => (
         <Card
           key={p.id}
-          className="group cursor-pointer border-2 border-white/40 backdrop-blur-xl bg-white/30 hover:bg-white/60 hover:border-indigo-500/50 hover:shadow-[0_20px_60px_-15px_rgba(79,70,229,0.15)] hover:-translate-y-1.5 transition-all duration-500 active:scale-95 overflow-hidden rounded-[2rem] relative"
+          className="group cursor-pointer border-2 border-white/40 backdrop-blur-xl bg-white/30 hover:bg-white/60 hover:border-primary hover:shadow-[0_20px_60px_-15px_rgba(79,70,229,0.15)] hover:-translate-y-1.5 transition-all duration-500 active:scale-95 overflow-hidden rounded-[2rem] relative"
           onClick={() => onAddToCart(p)}
         >
           <div className="aspect-square bg-secondary/20 flex items-center justify-center p-10 group-hover:bg-primary/10 transition-colors relative overflow-hidden">
@@ -62,7 +62,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
               </div>
               <Badge
                 variant="outline"
-                className="text-[9px] font-black uppercase py-0.5 px-2.5 border-slate-100 text-muted-foreground bg-secondary/5/30 shrink-0"
+                className="text-[9px] font-black uppercase py-0.5 px-2.5 border-slate-100 text-muted-foreground bg-secondary/5 shrink-0"
               >
                 {p.stock}
               </Badge>

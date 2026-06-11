@@ -32,7 +32,7 @@ const FeedItem: React.FC<FeedItemProps> = ({
   priority,
   isVerified = true,
 }) => (
-  <div className="flex items-start gap-5 p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg relative overflow-hidden">
+  <div className="flex items-start gap-5 p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-primary hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg relative overflow-hidden">
     <div className="absolute top-0 right-0 w-16 h-16 bg-secondary/40 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
     <div
       className={cn(
@@ -40,10 +40,10 @@ const FeedItem: React.FC<FeedItemProps> = ({
         type === "FINANCE"
           ? "bg-success/10 border-emerald-500/20 text-success"
           : type === "INFRA"
-            ? "bg-primary/10 border-indigo-500/20 text-primary"
+            ? "bg-primary/10 border-primary text-primary"
             : type === "SECURITY"
-              ? "bg-destructive/10 border-rose-500/20 text-rose-400"
-              : "bg-amber-500/10 border-amber-500/20 text-amber-400",
+              ? "bg-destructive/10 border-rose-500/20 text-destructive"
+              : "bg-warning border-amber-500/20 text-warning",
       )}
     >
       {type === "FINANCE" ? (
@@ -64,16 +64,16 @@ const FeedItem: React.FC<FeedItemProps> = ({
             className={cn(
               "text-[9px] font-black italic tracking-[0.2em] border-none px-2.5 h-5 rounded-lg uppercase",
               priority === "HIGH"
-                ? "bg-destructive/20 text-rose-400"
+                ? "bg-destructive/20 text-destructive"
                 : priority === "MEDIUM"
-                  ? "bg-amber-500/20 text-amber-400"
-                  : "bg-secondary/50/20 text-muted-foreground",
+                  ? "bg-warning text-warning"
+                  : "bg-secondary/50 text-muted-foreground",
             )}
           >
             {priority}
           </Badge>
           {isVerified && (
-            <div className="flex items-center gap-1.5 px-2 h-5 rounded-lg bg-primary/10 border border-indigo-500/20">
+            <div className="flex items-center gap-1.5 px-2 h-5 rounded-lg bg-primary/10 border border-primary">
               <Lock className="w-2.5 h-2.5 text-primary" />
               <span className="text-[8px] font-black italic text-primary uppercase tracking-tighter">IMMU</span>
             </div>
@@ -174,7 +174,7 @@ export const GlobalActivityFeed = ({
               className={cn(
                 "flex items-center gap-3 px-6 h-14 border rounded-2xl shadow-xl transition-all",
                 verifyResult 
-                  ? verifyResult.valid ? "bg-success/10 border-emerald-500/20 text-success" : "bg-destructive/10 border-rose-500/20 text-rose-400"
+                  ? verifyResult.valid ? "bg-success/10 border-emerald-500/20 text-success" : "bg-destructive/10 border-rose-500/20 text-destructive"
                   : "bg-secondary/40 border-border text-muted-foreground hover:bg-white/10 hover:text-foreground"
               )}
             >

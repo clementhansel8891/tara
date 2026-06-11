@@ -28,12 +28,12 @@ export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
       <DialogContent className="max-w-2xl bg-secondary border-slate-800 p-8 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
         <DialogHeader className="mb-8">
           <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3 text-foreground">
-            <div className="p-2.5 rounded-2xl bg-primary/20 text-blue-400">
+            <div className="p-2.5 rounded-2xl bg-primary/20 text-primary">
               <ShieldCheck className="w-6 h-6" />
             </div>
             IMMUTABLE LEDGER: {promoTitle.toUpperCase()}
           </DialogTitle>
-          <div className="text-[10px] font-black text-blue-400/80 uppercase tracking-widest mt-2 pl-14">
+          <div className="text-[10px] font-black text-primary uppercase tracking-widest mt-2 pl-14">
             Cryptographic Version History
           </div>
         </DialogHeader>
@@ -59,7 +59,7 @@ export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
                           {entry.action}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest bg-secondary/60/50 px-3 py-1 rounded-full">
+                      <div className="flex items-center gap-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest bg-secondary/60 px-3 py-1 rounded-full">
                         <Clock className="w-3 h-3 text-muted-foreground" />
                         {new Date(entry.timestamp).toLocaleString(undefined, {
                           month: "short",
@@ -71,7 +71,7 @@ export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="bg-secondary/60/30 hover:bg-secondary/60/60 transition-colors p-5 rounded-xl border border-white/5 space-y-4">
+                    <div className="bg-secondary/60 hover:bg-secondary/60 transition-colors p-5 rounded-xl border border-white/5 space-y-4">
                       <p className="text-[11px] font-medium text-muted-foreground/60 leading-relaxed italic">
                         "{entry.details}"
                       </p>
@@ -84,8 +84,8 @@ export const AuditTrailModal: React.FC<AuditTrailModalProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-2 bg-secondary/50 px-3 py-1.5 rounded-lg">
-                          <ShieldCheck className="w-3 h-3 text-blue-400" />
-                          <span className="text-blue-400/80">{entry.role}</span>
+                          <ShieldCheck className="w-3 h-3 text-primary" />
+                          <span className="text-primary">{entry.role}</span>
                         </div>
                       </div>
                     </div>

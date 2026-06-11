@@ -31,7 +31,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4">
       {/* Dynamic Background Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px] animate-pulse pointer-events-none" />
 
       <div className="max-w-md w-full glass-morphism rounded-3xl shadow-2xl border border-white/20 dark:border-white/5 overflow-hidden relative z-10 p-1">
         <div className="bg-background/40 backdrop-blur-md rounded-[1.4rem] p-8 sm:p-10">

@@ -61,14 +61,14 @@ const PLATFORM_ICONS: Record<string, React.ElementType> = {
 
 const PLATFORM_BG: Record<string, string> = {
   HEADLESS: "bg-secondary",
-  PRESET: "bg-blue-700",
-  PREMADE: "bg-emerald-700",
+  PRESET: "bg-primary",
+  PREMADE: "bg-success",
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  active: { label: "Active", color: "bg-emerald-50 text-success" },
-  inactive: { label: "Suspended", color: "bg-amber-50 text-amber-600" },
-  warning: { label: "Warning", color: "bg-red-50 text-red-600" },
+  active: { label: "Active", color: "bg-success text-success" },
+  inactive: { label: "Suspended", color: "bg-warning text-warning" },
+  warning: { label: "Warning", color: "bg-destructive text-destructive" },
 };
 
 interface Props {
@@ -253,7 +253,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
   const renderWebhookPanel = () => {
     if (channel.integrationCategory === "PREMADE") {
       return (
-        <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100 text-sm font-bold text-amber-700 italic">
+        <div className="p-6 bg-warning rounded-2xl border border-amber-100 text-sm font-bold text-warning italic">
           Webhook Bridge channels use the Bridge Settings tab for all event
           forwarding configuration.
         </div>
@@ -317,7 +317,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                   "data-[state=active]:bg-transparent data-[state=active]:shadow-none rounded-none border-b-2 font-black italic uppercase tracking-widest text-[9px] py-3 px-0 flex items-center gap-1.5 transition-all",
                   activeTab === tab.id
                     ? tab.id === "danger"
-                      ? "border-red-500 text-red-500"
+                      ? "border-red-500 text-destructive"
                       : "border-slate-900 text-foreground"
                     : "border-transparent text-muted-foreground hover:text-muted-foreground",
                 )}
@@ -445,7 +445,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
           <TabsContent value="branches" className="p-6 space-y-6 mt-0">
             <div className="space-y-4">
                <div>
-                  <h3 className="text-sm font-black italic uppercase text-slate-800">Branch Fulfilment Matrix</h3>
+                  <h3 className="text-sm font-black italic uppercase text-muted-foreground">Branch Fulfilment Matrix</h3>
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Map physical nodes to this digital channel</p>
                </div>
 
@@ -461,7 +461,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                         className={cn(
                            "p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group",
                            linkedBranchIds.includes(branch.id) 
-                              ? "bg-primary/5 border-indigo-200" 
+                              ? "bg-primary/5 border-primary" 
                               : "bg-white border-slate-100 hover:border-slate-200"
                         )}
                         onClick={() => {
@@ -527,8 +527,8 @@ export const ChannelProfilePanel: React.FC<Props> = ({
 
           {/* ── Danger Zone Tab ── */}
           <TabsContent value="danger" className="p-6 space-y-4 mt-0">
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-[11px] font-bold italic text-red-700 space-y-0.5">
-              <div className="font-black not-italic text-red-800 text-sm">
+            <div className="p-4 rounded-2xl bg-destructive border border-red-100 text-[11px] font-bold italic text-destructive space-y-0.5">
+              <div className="font-black not-italic text-destructive text-sm">
                 ⚠ Danger Zone
               </div>
               Actions in this section are irreversible or will break active
@@ -538,7 +538,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
             {/* Rotate credentials */}
             <div className="rounded-2xl border border-amber-100 overflow-hidden">
               <div className="px-5 py-4">
-                <div className="font-black italic text-slate-800 text-sm">
+                <div className="font-black italic text-muted-foreground text-sm">
                   Rotate API Credentials
                 </div>
                 <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
@@ -549,7 +549,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
               <div className="px-5 pb-4">
                 <Button
                   variant="outline"
-                  className="w-full h-11 rounded-xl font-black italic gap-2 border-amber-200 text-amber-600 hover:bg-amber-50"
+                  className="w-full h-11 rounded-xl font-black italic gap-2 border-amber-200 text-warning hover:bg-warning"
                   onClick={handleRotate}
                   disabled={isRotating}
                 >
@@ -561,7 +561,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
               </div>
               {rotatedCreds && (
                 <div className="px-5 pb-4 space-y-2">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] font-bold italic text-amber-700 mb-2">
+                  <div className="bg-warning border border-amber-200 rounded-xl p-3 text-[11px] font-bold italic text-warning mb-2">
                     ⚠ Copy these now — they won't be shown again.
                   </div>
                   {[
@@ -608,7 +608,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
             {/* Suspend / Reactivate */}
             <div className="rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-4">
-                <div className="font-black italic text-slate-800 text-sm">
+                <div className="font-black italic text-muted-foreground text-sm">
                   {channel.status === "active"
                     ? "Suspend Channel"
                     : "Reactivate Channel"}
@@ -643,10 +643,10 @@ export const ChannelProfilePanel: React.FC<Props> = ({
               <AlertDialogTrigger asChild>
                 <div className="rounded-2xl border border-red-200 overflow-hidden">
                   <div className="px-5 py-4">
-                    <div className="font-black italic text-red-800 text-sm">
+                    <div className="font-black italic text-destructive text-sm">
                       Delete Channel
                     </div>
-                    <p className="text-[11px] font-bold text-red-400 mt-0.5">
+                    <p className="text-[11px] font-bold text-destructive mt-0.5">
                       Permanently removes this channel and revokes all
                       credentials. Cannot be undone.
                     </p>
@@ -654,7 +654,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                   <div className="px-5 pb-4">
                     <Button disabled title="Not available yet"
                       variant="outline"
-                      className="w-full h-11 rounded-xl font-black italic gap-2 border-red-200 text-red-600 hover:bg-red-50"
+                      className="w-full h-11 rounded-xl font-black italic gap-2 border-red-200 text-destructive hover:bg-destructive"
                     >
                       <Trash2 className="w-4 h-4" /> Delete Channel
                     </Button>
@@ -677,7 +677,7 @@ export const ChannelProfilePanel: React.FC<Props> = ({
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDelete}
-                    className="rounded-xl font-black italic bg-red-600 hover:bg-red-700"
+                    className="rounded-xl font-black italic bg-destructive hover:bg-destructive"
                   >
                     Delete
                   </AlertDialogAction>

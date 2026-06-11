@@ -65,8 +65,8 @@ export function OperationsCommandGrid({
             value={payMetrics ? `${payMetrics.settlementPending} bills` : "—"}
             sub="Outstanding liabilities"
             icon={Banknote}
-            color="text-amber-500"
-            iconBg="bg-amber-500/10"
+            color="text-warning"
+            iconBg="bg-warning"
             href="/core/finance/payables"
             trend={payMetrics && payMetrics.refundPending > 0 ? `${payMetrics.refundPending} refunds` : "Healthy"}
             trendUp={payMetrics ? payMetrics.refundPending === 0 : true}
@@ -76,8 +76,8 @@ export function OperationsCommandGrid({
             value={pendingApprovals > 0 ? `${pendingApprovals} awaiting` : "Clear"}
             sub="AR inbox status"
             icon={Receipt}
-            color="text-indigo-500"
-            iconBg="bg-indigo-500/10"
+            color="text-primary"
+            iconBg="bg-primary"
             href="/core/finance/receivables"
             trend={pendingApprovals > 0 ? `${pendingApprovals} due` : "Optimal"}
             trendUp={pendingApprovals === 0}
@@ -87,8 +87,8 @@ export function OperationsCommandGrid({
             value="87%"
             sub="Q1 utilization rate"
             icon={BarChart3}
-            color="text-emerald-500"
-            iconBg="bg-emerald-500/10"
+            color="text-success"
+            iconBg="bg-success"
             href="/core/finance/budget"
             trend="+1.4%"
             trendUp
@@ -98,8 +98,8 @@ export function OperationsCommandGrid({
             value="Q1 2026"
             sub="In progress — T-14 days"
             icon={Lock}
-            color="text-rose-500"
-            iconBg="bg-rose-500/10"
+            color="text-destructive"
+            iconBg="bg-destructive"
             href="/core/finance/close"
             trend="T-14d"
             trendUp={false}
@@ -141,8 +141,8 @@ export function OperationsCommandGrid({
             value={`${onlineDevices}/${devices.length}`}
             sub="Online terminals"
             icon={CreditCard}
-            color="text-blue-500"
-            iconBg="bg-blue-500/10"
+            color="text-primary"
+            iconBg="bg-primary"
             href="/core/payment/devices"
             trend={onlineDevices === devices.length ? "All Online" : `${devices.length - onlineDevices} offline`}
             trendUp={onlineDevices === devices.length}
@@ -152,8 +152,8 @@ export function OperationsCommandGrid({
             value={liveSettledLabel}
             sub={payMetrics ? `${payMetrics.settlementPending} pending` : "—"}
             icon={Target}
-            color="text-violet-500"
-            iconBg="bg-violet-500/10"
+            color="text-primary"
+            iconBg="bg-primary"
             href="/core/payment/execution"
             trend={payMetrics && payMetrics.failedTransactions > 0 ? `${payMetrics.failedTransactions} failed` : "On Track"}
             trendUp={payMetrics ? payMetrics.failedTransactions === 0 : true}
@@ -173,8 +173,8 @@ export function OperationsCommandGrid({
             value="24 Active"
             sub="3 pending review"
             icon={ShieldCheck}
-            color="text-violet-500"
-            iconBg="bg-violet-500/10"
+            color="text-primary"
+            iconBg="bg-primary"
             href="/core/finance/policy"
             trend="Review"
             trendUp={false}
@@ -184,8 +184,8 @@ export function OperationsCommandGrid({
             value={`${processedPayments} processed`}
             sub="Payment ledger"
             icon={FileText}
-            color="text-blue-500"
-            iconBg="bg-blue-500/10"
+            color="text-primary"
+            iconBg="bg-primary"
             href="/core/finance/invoices"
             trend={processedPayments > 0 ? "+Active" : "Empty"}
             trendUp={processedPayments > 0}
@@ -206,8 +206,8 @@ export function OperationsCommandGrid({
             value="IDR Ready"
             sub="Q1 2026 filing"
             icon={Target}
-            color="text-orange-500"
-            iconBg="bg-orange-500/10"
+            color="text-warning"
+            iconBg="bg-warning"
             href="/core/finance/tax"
             trend="On Track"
             trendUp

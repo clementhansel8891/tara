@@ -108,7 +108,7 @@ export const AIInsightEngine = ({
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <CardTitle className="text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4 text-foreground">
-              <Zap className="w-8 h-8 text-amber-500 shadow-2xl" />
+              <Zap className="w-8 h-8 text-warning shadow-2xl" />
               Intelligence Nexus
             </CardTitle>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] italic">
@@ -123,7 +123,7 @@ export const AIInsightEngine = ({
             >
               <RefreshCw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
             </button>
-            <Badge className="bg-primary/10 text-primary border border-indigo-500/20 font-black italic text-[10px] px-4 py-2 tracking-[0.2em] uppercase rounded-xl">
+            <Badge className="bg-primary/10 text-primary border border-primary font-black italic text-[10px] px-4 py-2 tracking-[0.2em] uppercase rounded-xl">
               v4.2-NEURAL-READY
             </Badge>
           </div>
@@ -146,7 +146,7 @@ export const AIInsightEngine = ({
           <InsightMarker
             label="Personnel Density"
             value={`${stats.staff} Active`}
-            color="bg-amber-500"
+            color="bg-warning"
           />
         </div>
 
@@ -182,7 +182,7 @@ export const AIInsightEngine = ({
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-6">
                 <div className="w-16 h-16 rounded-xl bg-white/15 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-2xl group-hover/anomaly:rotate-12 transition-transform">
-                  <UserCheck className="w-8 h-8 text-emerald-300" />
+                  <UserCheck className="w-8 h-8 text-success" />
                 </div>
                 <div>
                   <h4 className="text-lg font-black italic uppercase tracking-tight">
@@ -222,7 +222,7 @@ export const AIInsightEngine = ({
               <div
                 key={i}
                 onClick={() => onExpansionRequest?.(`Recommendation Execution: ${rec}`)}
-                className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group/rec cursor-pointer"
+                className="flex items-start gap-6 p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:border-primary hover:bg-white/[0.05] transition-all duration-500 group/rec cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-xl bg-secondary border border-white/5 flex items-center justify-center shrink-0 shadow-inner group-hover/rec:bg-primary transition-colors">
                   <ArrowUpRight className="w-5 h-5 text-primary group-hover/rec:text-foreground group-hover/rec:rotate-45 transition-all duration-500" />

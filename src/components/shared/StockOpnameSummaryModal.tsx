@@ -150,14 +150,14 @@ export const StockOpnameSummaryModal = ({
         handleFinalCommit();
       }
     }}>
-      <DialogContent className="max-w-5xl rounded-[2.5rem] p-0 overflow-hidden bg-slate-50 dark:bg-slate-950 border-none shadow-2xl">
+      <DialogContent className="max-w-5xl rounded-[2.5rem] p-0 overflow-hidden bg-muted dark:bg-muted border-none shadow-2xl">
         <div className="flex h-[80vh]">
           {/* Left Panel: Summary & Actions */}
-          <div className="w-1/3 bg-slate-900 flex flex-col text-white">
+          <div className="w-1/3 bg-muted flex flex-col text-white">
             <ScrollArea className="flex-1">
               <div className="p-10 space-y-8">
                 <div className="space-y-2">
-                  <Badge className="bg-blue-500/20 text-blue-400 border-none font-black italic uppercase tracking-widest text-[9px]">
+                  <Badge className="bg-primary text-primary border-none font-black italic uppercase tracking-widest text-[9px]">
                     Audit Protocol v2.4
                   </Badge>
                   <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">
@@ -167,29 +167,29 @@ export const StockOpnameSummaryModal = ({
 
                 <div className="space-y-4">
                   <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Auditor</div>
+                    <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Auditor</div>
                     <div className="font-bold italic text-lg">{auditorName}</div>
                   </div>
                   <div className="p-6 bg-white/5 rounded-2xl border border-white/10">
-                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Location</div>
+                    <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Location</div>
                     <div className="font-bold italic text-lg">{locationName}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                    <div className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1">Units</div>
+                  <div className="p-4 bg-success rounded-2xl border border-emerald-500/20">
+                    <div className="text-[8px] font-black text-success uppercase tracking-widest mb-1">Units</div>
                     <div className="text-2xl font-black italic">{totalItemsCount}</div>
                   </div>
-                  <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-500/20">
-                    <div className="text-[8px] font-black text-rose-500 uppercase tracking-widest mb-1">Variances</div>
+                  <div className="p-4 bg-destructive rounded-2xl border border-rose-500/20">
+                    <div className="text-[8px] font-black text-destructive uppercase tracking-widest mb-1">Variances</div>
                     <div className="text-2xl font-black italic">{variances}</div>
                   </div>
                 </div>
               </div>
             </ScrollArea>
 
-            <div className="p-10 pt-0 space-y-4 bg-slate-900/80 backdrop-blur-md border-t border-white/5">
+            <div className="p-10 pt-0 space-y-4 bg-muted backdrop-blur-md border-t border-white/5">
               <Button 
                 onClick={handleFinalCommit}
                 disabled={isSaving}
@@ -217,10 +217,10 @@ export const StockOpnameSummaryModal = ({
           {/* Right Panel: Item List */}
           <div className="flex-1 flex flex-col">
             <div className="p-8 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white/50 dark:bg-black/50 backdrop-blur-xl">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
                 Final Audit Manifest
               </div>
-              <Button variant="ghost" size="icon" onClick={() => !hasActioned && handleFinalCommit()} className="rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">
+              <Button variant="ghost" size="icon" onClick={() => !hasActioned && handleFinalCommit()} className="rounded-xl hover:bg-muted dark:hover:bg-muted transition-all">
                 <X className="w-5 h-5" />
               </Button>
             </div>
@@ -229,37 +229,37 @@ export const StockOpnameSummaryModal = ({
               <Table>
                 <TableHeader>
                   <TableRow className="border-none hover:bg-transparent">
-                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Item</TableHead>
-                    <TableHead className="text-center text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Expected</TableHead>
-                    <TableHead className="text-center text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Actual</TableHead>
-                    <TableHead className="text-right text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Variance</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Item</TableHead>
+                    <TableHead className="text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Expected</TableHead>
+                    <TableHead className="text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Actual</TableHead>
+                    <TableHead className="text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Variance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {items.map((item, idx) => {
                     const variance = item.actualCount - (item.systemCount || 0);
                     return (
-                      <TableRow key={idx} className="border-slate-100 dark:border-slate-800 hover:bg-slate-100/50 dark:hover:bg-slate-900/50 transition-all group">
+                      <TableRow key={idx} className="border-slate-100 dark:border-slate-800 hover:bg-muted dark:hover:bg-muted transition-all group">
                         <TableCell className="py-6">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-sm overflow-hidden flex items-center justify-center border border-slate-100 dark:border-slate-800">
+                            <div className="w-16 h-16 rounded-2xl bg-white dark:bg-muted shadow-sm overflow-hidden flex items-center justify-center border border-slate-100 dark:border-slate-800">
                               {item.id && itemImages[item.id] ? (
                                 <img src={itemImages[item.id]} alt={item.name} className="w-full h-full object-cover" />
                               ) : (
-                                <Package className="w-6 h-6 text-slate-300" />
+                                <Package className="w-6 h-6 text-muted-foreground" />
                               )}
                             </div>
                             <div>
-                              <div className="text-sm font-black italic text-slate-900 dark:text-white uppercase tracking-tight">{item.name}</div>
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.sku}</div>
+                              <div className="text-sm font-black italic text-muted-foreground dark:text-white uppercase tracking-tight">{item.name}</div>
+                              <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.sku}</div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center font-bold text-slate-400">
+                        <TableCell className="text-center font-bold text-muted-foreground">
                           {item.systemCount || 0}
                         </TableCell>
                         <TableCell className="text-center">
-                          <div className="inline-flex h-10 w-16 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-black italic">
+                          <div className="inline-flex h-10 w-16 items-center justify-center rounded-xl bg-muted dark:bg-muted text-sm font-black italic">
                             {item.actualCount}
                           </div>
                         </TableCell>
@@ -268,8 +268,8 @@ export const StockOpnameSummaryModal = ({
                             variant="outline"
                             className={cn(
                               "rounded-lg px-3 py-1 font-black italic border-none uppercase text-[10px] tracking-widest",
-                              variance === 0 ? "bg-emerald-500/10 text-emerald-500" : 
-                              variance > 0 ? "bg-blue-500/10 text-blue-500" : "bg-rose-500/10 text-rose-500"
+                              variance === 0 ? "bg-success text-success" : 
+                              variance > 0 ? "bg-primary text-primary" : "bg-destructive text-destructive"
                             )}
                           >
                             {variance === 0 ? "IN-SYNC" : variance > 0 ? `+${variance}` : variance}
@@ -282,9 +282,9 @@ export const StockOpnameSummaryModal = ({
               </Table>
             </ScrollArea>
             
-            <div className="p-8 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-4 text-slate-400">
-                <AlertCircle className="w-5 h-5 text-blue-500 animate-pulse" />
+            <div className="p-8 bg-muted dark:bg-muted border-t border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-4 text-muted-foreground">
+                <AlertCircle className="w-5 h-5 text-primary animate-pulse" />
                 <p className="text-[10px] font-bold italic uppercase tracking-tight">
                   Final commitment will reconcile all stock variances and update the enterprise ledger.
                 </p>

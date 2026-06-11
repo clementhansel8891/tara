@@ -46,10 +46,10 @@ export default function CoreAdmin() {
 
   if (loading || !data) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-indigo-500" />
-          <p className="text-xs font-black uppercase tracking-widest text-slate-500 italic">Accessing Governance Mainframe...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground italic">Accessing Governance Mainframe...</p>
         </div>
       </div>
     );
@@ -138,11 +138,11 @@ export default function CoreAdmin() {
           description="High-level visibility into the active Retail branch network."
         >
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border p-5 border-emerald-500/20 bg-emerald-500/5">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+            <div className="rounded-xl border p-5 border-emerald-500/20 bg-success">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                 Active Physical Stores
               </p>
-              <p className="text-3xl font-black italic text-emerald-600 dark:text-emerald-400">
+              <p className="text-3xl font-black italic text-success dark:text-success">
                   {moduleContributions?.retail?.activeStores || 0}
               </p>
             </div>
@@ -156,21 +156,21 @@ export default function CoreAdmin() {
           description="Platform-wide security and governance settings."
         >
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-2xl border p-5 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="flex items-center justify-between rounded-2xl border p-5 bg-white dark:bg-muted shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center">
-                  <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                <div className="h-10 w-10 rounded-xl bg-primary dark:bg-primary flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-sm font-black uppercase tracking-widest leading-none">
                   Global MFA enforcement
                 </p>
               </div>
-              <Badge variant="outline" className="rounded-full px-4 border-emerald-200 text-emerald-500 bg-emerald-50 font-black text-[9px] tracking-widest uppercase">Enabled</Badge>
+              <Badge variant="outline" className="rounded-full px-4 border-emerald-200 text-success bg-success font-black text-[9px] tracking-widest uppercase">Enabled</Badge>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-dashed p-6 text-sm bg-slate-50/50 dark:bg-slate-800/20">
+            <div className="flex items-center justify-between rounded-2xl border border-dashed p-6 text-sm bg-muted dark:bg-muted">
               <div className="flex items-center gap-3">
-                <KeyRound className="h-5 w-5 text-slate-400" />
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Configure advanced access policies</span>
+                <KeyRound className="h-5 w-5 text-muted-foreground" />
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Configure advanced access policies</span>
               </div>
               <Button size="sm" variant="outline" className="rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest" onClick={() => toast({ title: "Policy Configuration", description: "Opening advanced access policy editor..." })}>
                 Open
@@ -187,17 +187,17 @@ export default function CoreAdmin() {
             {(Array.isArray(recentActivity) ? recentActivity : []).slice(0, 5).map((log: any) => (
               <div
                 key={log.id || log.title}
-                className="rounded-2xl border p-4 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow"
+                className="rounded-2xl border p-4 bg-white dark:bg-muted shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white italic">
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground dark:text-white italic">
                     {log.action || log.title}
                   </p>
-                  <span className="text-[9px] font-mono text-slate-400">
+                  <span className="text-[9px] font-mono text-muted-foreground">
                     {log.time || (log.createdAt ? new Date(log.createdAt).toLocaleTimeString() : "")}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                   {log.detail}
                 </p>
               </div>
@@ -221,10 +221,10 @@ export default function CoreAdmin() {
           ].map((action) => (
             <div
               key={action}
-              className="flex items-center justify-between rounded-2xl border border-dashed p-5 bg-rose-50/20 dark:bg-rose-950/5"
+              className="flex items-center justify-between rounded-2xl border border-dashed p-5 bg-destructive dark:bg-destructive"
             >
-              <div className="flex items-center gap-3 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                <AlertTriangle className="h-4 w-4 text-rose-500" />
+              <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
                 {action}
               </div>
               <Button size="sm" variant="outline" disabled className="rounded-xl opacity-40">
@@ -232,12 +232,12 @@ export default function CoreAdmin() {
               </Button>
             </div>
           ))}
-          <div className="flex items-center justify-between rounded-2xl border p-5 bg-white dark:bg-slate-900 shadow-sm border-indigo-100">
+          <div className="flex items-center justify-between rounded-2xl border p-5 bg-white dark:bg-muted shadow-sm border-primary">
             <div className="flex items-center gap-3">
-              <Database className="h-5 w-5 text-indigo-600" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Emergency Authorization Required</span>
+              <Database className="h-5 w-5 text-primary" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Emergency Authorization Required</span>
             </div>
-            <Button size="sm" variant="outline" className="rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest border-indigo-200 text-indigo-600" onClick={() => setIsModalOpen(true)}>
+            <Button size="sm" variant="outline" className="rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest border-primary text-primary" onClick={() => setIsModalOpen(true)}>
               Request access
             </Button>
           </div>
@@ -279,7 +279,7 @@ export default function CoreAdmin() {
           </Button>
           <Button 
             onClick={handleInvite}
-            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/20"
+            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-primary hover:bg-primary shadow-xl shadow-indigo-500/20"
           >
             <Plus className="h-3 w-3 mr-2" /> Invite admin
           </Button>

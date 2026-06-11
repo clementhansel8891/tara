@@ -10,14 +10,14 @@
 
 @layer base {
   :root {
-    /* Core Palette - Ultra Clean Light Tactical */
-    --background: 210 50% 98%;
+    /* Core Palette — Warm Amber/Coral Light Mode */
+    --background: 40 30% 98%;
     --foreground: 224 71% 4%;
 
-    /* Surface Layers - Light Mode Depth (Vibrant) */
-    --surface-1: 210 50% 98%;
+    /* Surface Layers — Light Mode Depth */
+    --surface-1: 40 25% 98%;
     --surface-2: 0 0% 100%;
-    --surface-3: 215 25% 95%;
+    --surface-3: 40 20% 94%;
 
     --card: 0 0% 100%;
     --card-foreground: 224 71% 4%;
@@ -25,121 +25,160 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    /* Primary - Electric Indigo Vibrant (More Saturated for Light Mode) */
-    --primary: 243 85% 55%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary — Warm Amber/Coral (Req 1.1) */
+    --primary: 38 95% 54%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Professional Slate */
-    --secondary: 215 20% 94%;
+    /* Secondary — Warm Light Tint (Req 1.7) */
+    --secondary: 40 20% 93%;
     --secondary-foreground: 224 71% 4%;
 
-    /* Text Contrast Tokens (Strict Readability) */
-    --muted: 215 20% 94%;
-    --muted-foreground: 215 16% 35%; /* Sharper for light mode */
-    --label-foreground: 215 16% 25%; /* Stronger labels */
+    /* Text Contrast Tokens */
+    --muted: 40 20% 93%;
+    --muted-foreground: 40 10% 40%;
+    --label-foreground: 215 16% 25%;
 
-    --accent: 243 85% 55%;
+    --accent: 40 20% 93%;
     --accent-foreground: 224 71% 4%;
 
-    /* Semantic Colors (Tactical High-Contrast) */
+    /* Semantic Colors */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 142 76% 36%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 210 40% 98%;
+    --warning-foreground: 0 0% 100%;
 
     --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+    --info-foreground: 0 0% 100%;
 
-    /* Borders & Inputs */
-    --border: 215 20% 90%;
-    --input: 215 20% 90%;
-    --ring: 243 85% 55%;
+    /* Borders & Inputs (Req 1.6) */
+    --border: 40 20% 89%;
+    --input: 40 20% 89%;
+    --ring: 38 95% 54%;
 
-    --radius: 1.25rem;
+    /* POS Specific (Req 7.1) */
+    --pos-background: 40 25% 97%;
+    --pos-card: 0 0% 100%;
+    --pos-accent: 38 95% 54%;
 
-    /* Sidebar - High Contrast Slate */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 243 85% 55%;
+    /* Status Colors — FNB Tables (Req 8.1) */
+    --status-empty: 40 20% 89%;
+    --status-ordering: 38 92% 50%;
+    --status-served: 142 76% 36%;
+    --status-billed: 199 89% 48%;
+    --status-occupied: 38 95% 68%;
+
+    /* License Colors (Req 12.1) */
+    --license-active: 142 76% 36%;
+    --license-trial: 38 92% 50%;
+    --license-expired: 0 84% 60%;
+
+    /* Sidebar — Warm Light (Req 5.2) */
+    --sidebar-background: 40 25% 98%;
+    --sidebar-foreground: 224 71% 4%;
+    --sidebar-primary: 38 95% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 243 85% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 243 85% 55%;
+    --sidebar-accent: 40 20% 93%;
+    --sidebar-accent-foreground: 224 71% 4%;
+    --sidebar-border: 40 20% 89%;
+    --sidebar-ring: 38 95% 54%;
 
-    /* Chart Colors - Vibrant */
-    --chart-1: 243 85% 55%;
+    /* Chart Colors — HSL aligned to CHART_COLORS hex (Req 9.5) */
+    --chart-1: 243 75% 59%;
     --chart-2: 142 76% 36%;
     --chart-3: 38 92% 50%;
-    --chart-4: 280 68% 60%;
+    --chart-4: 271 81% 56%;
     --chart-5: 199 89% 48%;
+
+    --radius: 1.25rem;
   }
 
   .dark {
-    /* Core Palette - Deep Space Dark Premium */
-    --background: 225 60% 3%;
+    /* Core Palette — Deep Navy Dark Premium (Req 2.1) */
+    --background: 224 47% 5%;
     --foreground: 210 40% 98%;
 
-    /* Surface Layers - Dark Mode Depth */
-    --surface-1: 225 60% 3%;
-    --surface-2: 224 71% 6%;
-    --surface-3: 224 71% 10%;
+    /* Surface Layers — Dark Mode Depth (Req 2.3) */
+    --surface-1: 224 47% 5%;
+    --surface-2: 224 47% 9%;
+    --surface-3: 224 47% 13%;
 
-    --card: 224 71% 6%;
+    --card: 224 47% 9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 224 71% 6%;
+    --popover: 224 47% 9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 243 75% 65%;
+    /* Primary — Cool Blue-Purple (Req 2.2) */
+    --primary: 245 75% 65%;
     --primary-foreground: 210 40% 98%;
 
+    /* Secondary — Dark Navy Tint (Req 2.7) */
     --secondary: 217 33% 12%;
     --secondary-foreground: 210 40% 98%;
 
-    /* Text Contrast Tokens - Dark Mode */
+    /* Text Contrast Tokens — Dark Mode */
     --muted: 217 33% 12%;
-    --muted-foreground: 215 15% 75%;
+    --muted-foreground: 215 20% 70%;
     --label-foreground: 215 15% 85%;
 
-    --accent: 243 75% 65%;
+    --accent: 217 33% 14%;
     --accent-foreground: 210 40% 98%;
 
+    /* Semantic Colors — Dark Mode (Req 3.1–3.7) */
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --success: 142 70% 50%;
-    --success-foreground: 224 71% 4%;
+    --success-foreground: 0 0% 0%;
 
     --warning: 38 92% 60%;
-    --warning-foreground: 224 71% 4%;
+    --warning-foreground: 0 0% 0%;
 
     --info: 199 89% 60%;
-    --info-foreground: 224 71% 4%;
+    --info-foreground: 0 0% 0%;
 
-    --border: 217 33% 15%;
-    --input: 217 33% 15%;
-    --ring: 243 75% 65%;
+    /* Borders & Inputs (Req 2.6) */
+    --border: 217 33% 16%;
+    --input: 217 33% 16%;
+    --ring: 245 75% 65%;
 
-    --sidebar-background: 224 71% 2%;
+    /* POS Specific — Dark Mode (Req 7.1) */
+    --pos-background: 224 47% 5%;
+    --pos-card: 224 47% 9%;
+    --pos-accent: 245 75% 65%;
+
+    /* Status Colors — Dark Mode (Req 8.1) */
+    --status-empty: 217 33% 16%;
+    --status-ordering: 38 92% 60%;
+    --status-served: 142 70% 45%;
+    --status-billed: 199 89% 55%;
+    --status-occupied: 245 75% 60%;
+
+    /* License Colors — Dark Mode (Req 12.1) */
+    --license-active: 142 70% 45%;
+    --license-trial: 38 92% 60%;
+    --license-expired: 0 72% 51%;
+
+    /* Sidebar — Dark Mode (Req 5.2) */
+    --sidebar-background: 224 47% 5%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 243 75% 65%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 10%;
+    --sidebar-primary: 245 75% 65%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217 33% 14%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 10%;
-    --sidebar-ring: 243 75% 65%;
+    --sidebar-border: 217 33% 16%;
+    --sidebar-ring: 245 75% 65%;
 
-    /* Chart Colors - Dark */
-    --chart-1: 243 75% 65%;
-    --chart-2: 142 70% 55%;
-    --chart-3: 38 92% 65%;
-    --chart-4: 280 68% 70%;
-    --chart-5: 199 89% 65%;
+    /* Chart Colors — Dark (Req 9.5) aligned to CHART_COLORS_DARK hex */
+    --chart-1: 235 78% 75%;
+    --chart-2: 142 69% 58%;
+    --chart-3: 45 93% 56%;
+    --chart-4: 270 75% 75%;
+    --chart-5: 198 93% 60%;
   }
 }
 

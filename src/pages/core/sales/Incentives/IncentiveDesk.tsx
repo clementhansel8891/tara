@@ -146,12 +146,12 @@ export default function IncentiveDesk() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted dark:bg-muted">
         <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+          <div className="h-20 w-20 bg-primary rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
             <DollarSign className="h-10 w-10 text-white" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Initializing Yield Engine...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Initializing Yield Engine...</p>
         </div>
       </div>
     );
@@ -163,21 +163,21 @@ export default function IncentiveDesk() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Revenue Acceleration</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Revenue Acceleration</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Yield Stream Live
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Incentive Desk</h1>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Reward excellence, and excellence becomes the standard."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic">"Reward excellence, and excellence becomes the standard."</p>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+          <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
             <Button
               variant="secondary"
-              className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
               onClick={() => refresh(true)}
               disabled={refreshing}
             >
@@ -185,7 +185,7 @@ export default function IncentiveDesk() {
             </Button>
           </div>
           <Button 
-            className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
+            className="h-[4.5rem] px-10 rounded-[2rem] bg-primary hover:bg-primary shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95"
             onClick={() => {}}
           >
             <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
@@ -196,27 +196,27 @@ export default function IncentiveDesk() {
 
       {/* Yield Metrics Grid */}
       <div className="grid gap-8 md:grid-cols-3">
-         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-indigo-500/10 transition-all">
-            <div className="h-14 w-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-               <Settings2 className="h-7 w-7 text-indigo-600" />
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted p-8 space-y-4 group hover:shadow-indigo-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+               <Settings2 className="h-7 w-7 text-primary" />
             </div>
             <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">ACTIVE PROTOCOLS</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ACTIVE PROTOCOLS</p>
                <h4 className="text-3xl font-black">{activePlans.length}</h4>
-               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Strategically Mapped</p>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 italic">Strategically Mapped</p>
             </div>
          </Card>
-         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 p-8 space-y-4 group hover:shadow-emerald-500/10 transition-all">
-            <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-               <TrendingUp className="h-7 w-7 text-emerald-600" />
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted p-8 space-y-4 group hover:shadow-emerald-500/10 transition-all">
+            <div className="h-14 w-14 rounded-2xl bg-success flex items-center justify-center group-hover:scale-110 transition-transform">
+               <TrendingUp className="h-7 w-7 text-success" />
             </div>
             <div>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">ACCRUED INCENTIVES</p>
-               <h4 className="text-3xl font-black text-emerald-600">${pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
-               <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 italic">Pending Handoff</p>
+               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ACCRUED INCENTIVES</p>
+               <h4 className="text-3xl font-black text-success">${pendingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h4>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase mt-1 italic">Pending Handoff</p>
             </div>
          </Card>
-         <Card className="rounded-[3rem] border-none shadow-2xl bg-indigo-600 text-white p-8 space-y-4 group hover:shadow-indigo-500/30 transition-all">
+         <Card className="rounded-[3rem] border-none shadow-2xl bg-primary text-white p-8 space-y-4 group hover:shadow-indigo-500/30 transition-all">
             <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center group-hover:scale-110 transition-transform border border-white/20">
                <Zap className="h-7 w-7 text-white" />
             </div>
@@ -231,48 +231,48 @@ export default function IncentiveDesk() {
       {/* Analytics Section */}
       {analytics && (
         <div className="grid gap-10 md:grid-cols-2">
-            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden">
                <CardHeader className="p-10 pb-4">
-                  <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3 text-slate-900 dark:text-white">
-                     <Target className="h-6 w-6 text-indigo-600" />
+                  <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3 text-muted-foreground dark:text-white">
+                     <Target className="h-6 w-6 text-primary" />
                      Performance Leaders
                   </CardTitle>
                   <CardDescription className="text-sm font-medium">Highest strategic incentive contributions for the active period.</CardDescription>
                </CardHeader>
                <CardContent className="p-10 pt-0 space-y-6">
                   {(Array.isArray(analytics.topEarners) ? analytics.topEarners : []).map((earner: any, i: number) => (
-                    <div key={earner.employee_id} className="flex items-center justify-between p-4 rounded-3xl bg-white/80 dark:bg-slate-800/80 hover:scale-[1.02] transition-transform shadow-sm border border-white/20">
+                    <div key={earner.employee_id} className="flex items-center justify-between p-4 rounded-3xl bg-white/80 dark:bg-muted hover:scale-[1.02] transition-transform shadow-sm border border-white/20">
                        <div className="flex items-center gap-5">
-                          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center font-black text-xs shadow-inner", i === 0 ? "bg-amber-500/20 text-amber-600" : "bg-slate-100 text-slate-400")}>
+                          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center font-black text-xs shadow-inner", i === 0 ? "bg-warning text-warning" : "bg-muted text-muted-foreground")}>
                              #{i+1}
                           </div>
                           <div>
                              <p className="font-black text-sm uppercase">Custodian {earner.employee_id.slice(0, 8)}</p>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">ID: {earner.employee_id}</p>
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">ID: {earner.employee_id}</p>
                           </div>
                        </div>
-                       <p className="text-lg font-black text-emerald-600">${earner.amount.toFixed(2)}</p>
+                       <p className="text-lg font-black text-success">${earner.amount.toFixed(2)}</p>
                     </div>
                   ))}
                </CardContent>
             </Card>
 
-            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden p-10 space-y-8">
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden p-10 space-y-8">
                <div className="space-y-2">
                   <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                     <PieChart className="h-6 w-6 text-indigo-600" />
+                     <PieChart className="h-6 w-6 text-primary" />
                      Efficiency Matrix
                   </h3>
-                  <p className="text-sm font-medium text-slate-500">Platform-wide incentive utilization vs. revenue yield.</p>
+                  <p className="text-sm font-medium text-muted-foreground">Platform-wide incentive utilization vs. revenue yield.</p>
                </div>
                
                <div className="space-y-10 pt-4">
                   <div className="space-y-4">
                      <div className="flex justify-between items-end">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Incentive to Revenue Ratio</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Incentive to Revenue Ratio</p>
                         <p className="text-xl font-black">{((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0).toFixed(1)}%</p>
                      </div>
-                     <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                     <div className="h-3 w-full bg-muted dark:bg-muted rounded-full overflow-hidden shadow-inner">
                         <div 
                            className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full shadow-lg" 
                            style={{ width: `${Math.min((analytics.totalIncentive / analytics.totalRevenue) * 100 || 0, 100)}%` }}
@@ -281,12 +281,12 @@ export default function IncentiveDesk() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-8">
-                     <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-indigo-600 opacity-60">Total Accruals</p>
+                     <div className="p-6 rounded-[2rem] bg-primary border border-primary space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary opacity-60">Total Accruals</p>
                         <h4 className="text-2xl font-black">${analytics.totalIncentive?.toLocaleString()}</h4>
                      </div>
-                     <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 opacity-60">Revenue Impact</p>
+                     <div className="p-6 rounded-[2rem] bg-success border border-emerald-500/10 space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-success opacity-60">Revenue Impact</p>
                         <h4 className="text-2xl font-black">${analytics.totalRevenue?.toLocaleString()}</h4>
                      </div>
                   </div>
@@ -296,16 +296,16 @@ export default function IncentiveDesk() {
       )}
 
       {/* Main Configuration Desk */}
-      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden">
         <Tabs defaultValue="plans" className="w-full">
           <CardHeader className="p-10 pb-0">
              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-                <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl shadow-inner border-none">
-                  <TabsTrigger value="plans" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">
+                <TabsList className="bg-muted dark:bg-muted p-1.5 rounded-2xl shadow-inner border-none">
+                  <TabsTrigger value="plans" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg h-10 border-none transition-all">
                     <Settings2 className="h-4 w-4 mr-2" />
                     Incentive Plans
                   </TabsTrigger>
-                  <TabsTrigger value="attributions" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg h-10 border-none transition-all">
+                  <TabsTrigger value="attributions" className="rounded-xl px-6 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-lg h-10 border-none transition-all">
                     <Activity className="h-4 w-4 mr-2" />
                     Live Attributions
                   </TabsTrigger>
@@ -314,13 +314,13 @@ export default function IncentiveDesk() {
                 <div className="flex items-center gap-3">
                    <Button 
                       variant="ghost" 
-                      className="rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 gap-2"
+                      className="rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary gap-2"
                       onClick={() => setIsRecalcOpen(true)}
                    >
                       <History className="h-4 w-4" /> CORRECTION ENGINE
                    </Button>
                    <Button 
-                      className="rounded-2xl h-12 px-8 bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 gap-2"
+                      className="rounded-2xl h-12 px-8 bg-success hover:bg-success font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 gap-2"
                       onClick={handleProcessPayouts}
                       disabled={processing || pendingAmount === 0}
                    >
@@ -333,25 +333,25 @@ export default function IncentiveDesk() {
           <TabsContent value="plans" className="mt-0 outline-none">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                <thead className="bg-muted dark:bg-muted">
                   <tr>
-                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Plan Designation</th>
-                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Node Status</th>
-                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tactical Horizon</th>
-                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Action Matrix</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Plan Designation</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Node Status</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Tactical Horizon</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Action Matrix</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                   {(Array.isArray(plans) ? plans : []).map((plan) => (
-                    <tr key={plan.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                    <tr key={plan.id} className="group hover:bg-white/60 dark:hover:bg-muted transition-all cursor-default">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-5">
-                           <div className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center font-black text-sm shadow-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors border border-slate-100 dark:border-slate-800">
+                           <div className="h-12 w-12 rounded-2xl bg-white dark:bg-muted flex items-center justify-center font-black text-sm shadow-xl group-hover:bg-primary group-hover:text-white transition-colors border border-slate-100 dark:border-slate-800">
                               <Layers className="h-6 w-6" />
                            </div>
                            <div>
                               <p className="font-black text-base">{plan.name}</p>
-                              <p className="text-[10px] font-medium text-slate-400 italic max-w-md truncate">{plan.description || "Incentive protocol with no supplementary metadata."}</p>
+                              <p className="text-[10px] font-medium text-muted-foreground italic max-w-md truncate">{plan.description || "Incentive protocol with no supplementary metadata."}</p>
                            </div>
                         </div>
                       </td>
@@ -360,16 +360,16 @@ export default function IncentiveDesk() {
                           <Switch 
                             checked={plan.is_active} 
                             onCheckedChange={() => togglePlanStatus(plan)}
-                            className="data-[state=checked]:bg-indigo-600"
+                            className="data-[state=checked]:bg-primary"
                           />
-                          <Badge variant={plan.is_active ? "default" : "secondary"} className={cn("rounded-full font-black text-[8px] uppercase tracking-widest", plan.is_active ? "bg-indigo-600" : "bg-slate-100 dark:bg-slate-800 text-slate-400")}>
+                          <Badge variant={plan.is_active ? "default" : "secondary"} className={cn("rounded-full font-black text-[8px] uppercase tracking-widest", plan.is_active ? "bg-primary" : "bg-muted dark:bg-muted text-muted-foreground")}>
                             {plan.is_active ? "ACTIVE" : "INACTIVE"}
                           </Badge>
                         </div>
                       </td>
                       <td className="px-10 py-8">
-                        <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-tighter">
-                           <Calendar className="h-3 w-3 text-indigo-600" />
+                        <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-tighter">
+                           <Calendar className="h-3 w-3 text-primary" />
                            {new Date(plan.start_date).toLocaleDateString()} — {plan.end_date ? new Date(plan.end_date).toLocaleDateString() : "ONGOING"}
                         </div>
                       </td>
@@ -391,26 +391,26 @@ export default function IncentiveDesk() {
           <TabsContent value="attributions" className="mt-0 outline-none">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                <thead className="bg-muted dark:bg-muted">
                   <tr>
-                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Staff Node</th>
-                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Entity Link</th>
-                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Yield Amount</th>
-                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Staff Node</th>
+                    <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Entity Link</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Yield Amount</th>
+                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                   {(Array.isArray(attributions) ? attributions : []).map((attr) => (
-                    <tr key={attr.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                    <tr key={attr.id} className="group hover:bg-white/60 dark:hover:bg-muted transition-all cursor-default">
                       <td className="px-10 py-8">
                         <div className="flex items-center gap-4">
-                           <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                           <div className="h-10 w-10 rounded-xl bg-muted dark:bg-muted flex items-center justify-center font-black text-xs group-hover:bg-primary group-hover:text-white transition-colors">
                               {attr.employee_id.charAt(0)}
                            </div>
                            <div>
                               <p className="font-black text-sm uppercase">Custodian {attr.employee_id.slice(0, 8)}</p>
                               {attr.share_percent < 100 && (
-                                <div className="flex items-center gap-1.5 text-[9px] text-indigo-600 font-black uppercase mt-0.5">
+                                <div className="flex items-center gap-1.5 text-[9px] text-primary font-black uppercase mt-0.5">
                                   <Split className="h-3 w-3" /> {attr.share_percent}% Split
                                 </div>
                               )}
@@ -418,15 +418,15 @@ export default function IncentiveDesk() {
                         </div>
                       </td>
                       <td className="px-10 py-8">
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-tighter italic">TXID: {attr.entity_id.slice(-12)}</p>
+                        <p className="text-xs font-black text-muted-foreground uppercase tracking-tighter italic">TXID: {attr.entity_id.slice(-12)}</p>
                       </td>
-                      <td className="px-10 py-8 text-right font-black text-base text-emerald-600">
+                      <td className="px-10 py-8 text-right font-black text-base text-success">
                         ${Number(attr.incentive_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-10 py-8 text-right">
                         <Badge variant="outline" className={cn(
                           "rounded-full font-black text-[8px] px-3 py-1 border-none shadow-sm uppercase tracking-widest",
-                          attr.status === "PENDING" ? "bg-amber-500/10 text-amber-600" : "bg-emerald-500/10 text-emerald-600"
+                          attr.status === "PENDING" ? "bg-warning text-warning" : "bg-success text-success"
                         )}>
                           {attr.status}
                         </Badge>
@@ -442,12 +442,12 @@ export default function IncentiveDesk() {
 
       {/* Slide-out Sheets */}
       <Sheet open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
-        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-slate-950 p-0 shadow-2xl">
-          <div className="h-2 bg-indigo-600" />
+        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-muted p-0 shadow-2xl">
+          <div className="h-2 bg-primary" />
           <div className="p-10 space-y-8">
              <SheetHeader>
                <SheetTitle className="text-3xl font-black tracking-tight flex items-center gap-3">
-                 <History className="h-7 w-7 text-indigo-600" />
+                 <History className="h-7 w-7 text-primary" />
                  Audit History
                </SheetTitle>
                <SheetDescription className="font-medium">Technical change logs and lifecycle events for the active protocol.</SheetDescription>
@@ -463,21 +463,21 @@ export default function IncentiveDesk() {
                    ) : (
                      (Array.isArray(auditLogs) ? auditLogs : []).map((log) => (
                        <div key={log.id} className="relative pl-8 pb-8 border-l-2 border-slate-100 dark:border-slate-800 last:pb-0">
-                         <div className="absolute -left-[9px] top-0 h-4 w-4 bg-white dark:bg-slate-950 border-4 border-indigo-600 rounded-full shadow-lg shadow-indigo-500/30" />
-                         <Card className="rounded-[1.5rem] border-none bg-slate-50 dark:bg-slate-900 p-5 space-y-3">
+                         <div className="absolute -left-[9px] top-0 h-4 w-4 bg-white dark:bg-muted border-4 border-primary rounded-full shadow-lg shadow-indigo-500/30" />
+                         <Card className="rounded-[1.5rem] border-none bg-muted dark:bg-muted p-5 space-y-3">
                             <div className="flex items-center justify-between">
-                               <Badge className="rounded-full bg-indigo-600 text-white font-black text-[8px] uppercase tracking-widest">{log.action}</Badge>
-                               <span className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1.5">
+                               <Badge className="rounded-full bg-primary text-white font-black text-[8px] uppercase tracking-widest">{log.action}</Badge>
+                               <span className="text-[9px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
                                  <Calendar className="h-3 w-3" /> {new Date(log.timestamp).toLocaleString()}
                                </span>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                            <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-tighter">
                                <User className="h-3.5 w-3.5" /> Custodian: {log.actor_id.slice(0, 8)}
                             </div>
                             {log.changes?.before?.is_active !== log.changes?.after?.is_active && (
                               <div className="flex items-center gap-3 mt-1">
                                 <Badge variant={log.changes.before?.is_active ? "default" : "secondary"} className="text-[7px] font-black uppercase tracking-widest">{log.changes.before?.is_active ? "ACTIVE" : "INACTIVE"}</Badge>
-                                <ArrowRight className="h-3 w-3 text-slate-400" />
+                                <ArrowRight className="h-3 w-3 text-muted-foreground" />
                                 <Badge variant={log.changes.after?.is_active ? "default" : "secondary"} className="text-[7px] font-black uppercase tracking-widest">{log.changes.after?.is_active ? "ACTIVE" : "INACTIVE"}</Badge>
                               </div>
                             )}
@@ -492,11 +492,11 @@ export default function IncentiveDesk() {
       </Sheet>
 
       <Sheet open={isRecalcOpen} onOpenChange={setIsRecalcOpen}>
-        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-slate-950 p-0 shadow-2xl">
-          <div className="h-2 bg-orange-500" />
+        <SheetContent side="right" className="sm:max-w-md border-none bg-white dark:bg-muted p-0 shadow-2xl">
+          <div className="h-2 bg-warning" />
           <div className="p-10 space-y-10">
              <SheetHeader>
-               <SheetTitle className="text-3xl font-black tracking-tight flex items-center gap-3 text-orange-600">
+               <SheetTitle className="text-3xl font-black tracking-tight flex items-center gap-3 text-warning">
                  <History className="h-7 w-7" />
                  Correction Engine
                </SheetTitle>
@@ -505,35 +505,35 @@ export default function IncentiveDesk() {
 
              <div className="space-y-6">
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical Start Date</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tactical Start Date</label>
                     <Input 
                         type="date" 
-                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold"
+                        className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold"
                         value={recalcDates.start}
                         onChange={(e) => setRecalcDates(prev => ({ ...prev, start: e.target.value }))}
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tactical End Date</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tactical End Date</label>
                     <Input 
                         type="date" 
-                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold"
+                        className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold"
                         value={recalcDates.end}
                         onChange={(e) => setRecalcDates(prev => ({ ...prev, end: e.target.value }))}
                     />
                 </div>
-                <div className="p-6 bg-orange-500/5 border border-orange-500/10 rounded-3xl space-y-3">
-                   <p className="text-[10px] font-black uppercase text-orange-600 flex items-center gap-2">
+                <div className="p-6 bg-warning border border-orange-500/10 rounded-3xl space-y-3">
+                   <p className="text-[10px] font-black uppercase text-warning flex items-center gap-2">
                       <Zap className="h-3 w-3" /> Idempotent Guard Active
                    </p>
-                   <p className="text-xs font-medium text-orange-600/70 leading-relaxed italic">
+                   <p className="text-xs font-medium text-warning leading-relaxed italic">
                       This operation will re-evaluate all orders but will NOT affect attributions already processed into payouts or ledger entries.
                    </p>
                 </div>
              </div>
 
              <Button 
-                className="w-full h-16 rounded-[1.5rem] bg-orange-500 hover:bg-orange-600 font-black text-sm shadow-2xl shadow-orange-500/20"
+                className="w-full h-16 rounded-[1.5rem] bg-warning hover:bg-warning font-black text-sm shadow-2xl shadow-orange-500/20"
                 onClick={handleRecalculate}
                 disabled={processing || !recalcDates.start || !recalcDates.end}
              >

@@ -371,7 +371,7 @@ export default function PolicyManager() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Change History</p>
               <div className="space-y-3">
                 <div className="flex gap-3 text-xs">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary">
                     <span className="font-bold">v2</span>
                   </div>
                   <div>

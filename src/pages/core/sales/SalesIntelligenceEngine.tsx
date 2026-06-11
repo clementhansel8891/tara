@@ -95,7 +95,7 @@ export default function SalesIntelligenceEngine() {
           title="Sales Intelligence Engine"
           subtitle="AI-driven lead scoring, win probability forecasting, and predictive analytics."
           primaryAction={
-            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
+            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-primary hover:bg-primary shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
               <Sparkles className="h-4 w-4" /> GENERATE INSIGHTS
             </Button>
           }
@@ -117,14 +117,14 @@ export default function SalesIntelligenceEngine() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-               <Brain className="w-16 h-16 text-indigo-500" />
+               <Brain className="w-16 h-16 text-primary" />
             </div>
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">AI Prediction Accuracy</div>
               <div className="text-3xl font-black italic tracking-tighter flex items-end gap-2">
-                92.4% <span className="text-sm font-bold text-indigo-500 mb-1">L7 MODEL</span>
+                92.4% <span className="text-sm font-bold text-primary mb-1">L7 MODEL</span>
               </div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-indigo-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Cpu className="w-3 h-3" />
                 Neural Engine Optimizing
               </div>
@@ -134,7 +134,7 @@ export default function SalesIntelligenceEngine() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Win Probability Avg.</div>
-              <div className="text-3xl font-black italic tracking-tighter text-emerald-500">68.5%</div>
+              <div className="text-3xl font-black italic tracking-tighter text-success">68.5%</div>
               <Progress value={68.5} className="h-1.5 mt-4" />
             </CardContent>
           </Card>
@@ -142,8 +142,8 @@ export default function SalesIntelligenceEngine() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Lead Conversion Velocity</div>
-              <div className="text-3xl font-black italic tracking-tighter text-blue-500">4.2 Days</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-blue-500 uppercase">
+              <div className="text-3xl font-black italic tracking-tighter text-primary">4.2 Days</div>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Zap className="w-3 h-3" />
                 28% Speed Increase
               </div>
@@ -153,8 +153,8 @@ export default function SalesIntelligenceEngine() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Pipeline Health</div>
-              <div className="text-3xl font-black italic tracking-tighter text-indigo-500">STABLE</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-indigo-500 uppercase">
+              <div className="text-3xl font-black italic tracking-tighter text-primary">STABLE</div>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <ShieldCheck className="w-3 h-3" />
                 Risk Matrix Verified
               </div>
@@ -201,7 +201,7 @@ export default function SalesIntelligenceEngine() {
                          <Target className="h-6 w-6 text-primary" />
                          <h3 className="font-black italic uppercase tracking-tighter text-xl">High-Probability Lead Scoring</h3>
                       </div>
-                      <Badge className="bg-indigo-500/10 text-indigo-500 border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">AI EVALUATED</Badge>
+                      <Badge className="bg-primary text-primary border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">AI EVALUATED</Badge>
                    </div>
                    <div className="p-0 overflow-x-auto">
                       <table className="w-full text-sm">
@@ -241,7 +241,7 @@ export default function SalesIntelligenceEngine() {
                                   <td className="px-8 py-6 text-right">
                                      <div className="flex flex-col items-end">
                                         <span className="text-xl font-black italic text-primary tracking-tighter">842</span>
-                                        <span className="text-[8px] font-black uppercase text-emerald-500 tracking-widest">ALPHA TIER</span>
+                                        <span className="text-[8px] font-black uppercase text-success tracking-widest">ALPHA TIER</span>
                                      </div>
                                   </td>
                                </tr>
@@ -253,7 +253,7 @@ export default function SalesIntelligenceEngine() {
              </div>
 
              <div className="space-y-8">
-                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-slate-950 text-white relative overflow-hidden group border border-white/5">
+                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-muted text-white relative overflow-hidden group border border-white/5">
                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                    <div className="relative z-10 space-y-8">
                       <div className="flex items-center gap-4">
@@ -277,17 +277,17 @@ export default function SalesIntelligenceEngine() {
                 <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-8">
                    <div className="space-y-6">
                       <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground italic flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        <TrendingUp className="h-4 w-4 text-success" />
                         Engagement Momentum
                       </h4>
                       <div className="space-y-5">
                          {[1, 2, 3].map(i => (
                            <div key={i} className="flex items-center gap-4">
-                              <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50" />
+                              <div className="h-2 w-2 rounded-full bg-success shadow-lg shadow-emerald-500/50" />
                               <div className="flex-1 space-y-1">
                                  <div className="flex justify-between text-[10px] font-black italic uppercase">
                                     <span>Strategic Account A-{i}</span>
-                                    <span className="text-emerald-500">+12%</span>
+                                    <span className="text-success">+12%</span>
                                  </div>
                                  <Progress value={70 + (i * 10)} className="h-0.5" />
                               </div>
@@ -335,13 +335,13 @@ export default function SalesIntelligenceEngine() {
                 </Card>
 
                 <div className="grid grid-cols-2 gap-8">
-                   <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-8 text-center bg-emerald-500/5">
+                   <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-8 text-center bg-success">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Avg. Deal Value</p>
-                      <p className="text-3xl font-black italic text-emerald-600">$42.8K</p>
+                      <p className="text-3xl font-black italic text-success">$42.8K</p>
                    </Card>
-                   <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-8 text-center bg-indigo-500/5">
+                   <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-8 text-center bg-primary">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Churn Index</p>
-                      <p className="text-3xl font-black italic text-indigo-600">0.8%</p>
+                      <p className="text-3xl font-black italic text-primary">0.8%</p>
                    </Card>
                 </div>
              </div>
@@ -363,7 +363,7 @@ export default function SalesIntelligenceEngine() {
                 </p>
              </div>
              <div className="flex gap-6">
-                <Button className="h-16 px-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3 group">
+                <Button className="h-16 px-12 rounded-2xl bg-primary hover:bg-primary font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3 group">
                    <PlusIcon className="h-5 w-5" />
                    INITIALIZE DRAFT
                 </Button>

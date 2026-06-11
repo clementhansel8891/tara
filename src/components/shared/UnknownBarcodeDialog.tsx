@@ -72,7 +72,7 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
         <div className="relative h-32 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-[-10%] left-[-10%] w-40 h-40 bg-white rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-60 h-60 bg-amber-200 rounded-full blur-3xl" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-60 h-60 bg-warning rounded-full blur-3xl" />
           </div>
           <div className="relative z-10 flex flex-col items-center text-white">
             <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl mb-2">
@@ -86,25 +86,25 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
           {step === "choice" ? (
             <div className="space-y-6">
               <div className="text-center space-y-2">
-                <p className="text-slate-500 font-medium text-sm">
-                  The barcode <span className="font-mono font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{barcode}</span> was not found in the master list.
+                <p className="text-muted-foreground font-medium text-sm">
+                  The barcode <span className="font-mono font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-md">{barcode}</span> was not found in the master list.
                 </p>
-                <p className="text-[10px] uppercase font-black tracking-tighter text-amber-600">Action Required to Proceed</p>
+                <p className="text-[10px] uppercase font-black tracking-tighter text-warning">Action Required to Proceed</p>
               </div>
 
               <div className="grid grid-cols-1 gap-4">
                 <button
                   onClick={() => setStep("create")}
-                  className="group relative flex items-center gap-4 p-5 rounded-[1.5rem] border-2 border-slate-100 bg-white hover:border-indigo-500 hover:shadow-xl hover:shadow-indigo-50 transition-all text-left"
+                  className="group relative flex items-center gap-4 p-5 rounded-[1.5rem] border-2 border-slate-100 bg-white hover:border-primary hover:shadow-xl hover:shadow-indigo-50 transition-all text-left"
                 >
-                  <div className="bg-indigo-50 p-3 rounded-xl group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                  <div className="bg-primary p-3 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
                     <PackagePlus className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-slate-900 text-sm italic uppercase">Add as New Item</h3>
-                    <p className="text-xs text-slate-400 font-medium leading-tight">Register this item immediately for future tracking.</p>
+                    <h3 className="font-black text-muted-foreground text-sm italic uppercase">Add as New Item</h3>
+                    <p className="text-xs text-muted-foreground font-medium leading-tight">Register this item immediately for future tracking.</p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-slate-200 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </button>
 
                 <button
@@ -114,14 +114,14 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
                   }}
                   className="group relative flex items-center gap-4 p-5 rounded-[1.5rem] border-2 border-slate-100 bg-white hover:border-amber-500 hover:shadow-xl hover:shadow-amber-50 transition-all text-left"
                 >
-                  <div className="bg-amber-50 p-3 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  <div className="bg-warning p-3 rounded-xl group-hover:bg-warning group-hover:text-white transition-colors">
                     <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-black text-slate-900 text-sm italic uppercase">Report Anomaly</h3>
-                    <p className="text-xs text-slate-400 font-medium leading-tight">Flag this barcode as unrecognized for manual review.</p>
+                    <h3 className="font-black text-muted-foreground text-sm italic uppercase">Report Anomaly</h3>
+                    <p className="text-xs text-muted-foreground font-medium leading-tight">Flag this barcode as unrecognized for manual review.</p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-slate-200 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-warning group-hover:translate-x-1 transition-all" />
                 </button>
               </div>
             </div>
@@ -129,7 +129,7 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Item Name</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Item Name</Label>
                   <Input 
                     autoFocus
                     placeholder="e.g. Red Bull 250ml"
@@ -140,7 +140,7 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</Label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
@@ -153,9 +153,9 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
                   </select>
                 </div>
 
-                <div className="p-4 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-500 shrink-0" />
-                  <p className="text-[10px] font-bold text-indigo-700 leading-tight">
+                <div className="p-4 rounded-xl bg-primary border border-primary flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                  <p className="text-[10px] font-bold text-primary leading-tight">
                     This item will be saved with barcode <span className="font-mono">{barcode}</span> and submitted for approval after audit.
                   </p>
                 </div>
@@ -170,7 +170,7 @@ export const UnknownBarcodeDialog: React.FC<UnknownBarcodeDialogProps> = ({
                   Back
                 </Button>
                 <Button 
-                  className="flex-[2] rounded-xl font-black italic uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100"
+                  className="flex-[2] rounded-xl font-black italic uppercase tracking-widest bg-primary hover:bg-primary shadow-lg shadow-indigo-100"
                   disabled={!name || !categoryId}
                   onClick={handleCreate}
                 >

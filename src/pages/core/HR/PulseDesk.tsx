@@ -50,30 +50,30 @@ export default function PulseDesk() {
   ];
 
   return (
-    <div className="min-h-full p-8 space-y-10 bg-slate-50/50 dark:bg-slate-950/50">
+    <div className="min-h-full p-8 space-y-10 bg-muted dark:bg-muted">
       {/* Tactical Header */}
       <div className="flex items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-8">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-rose-600 font-black text-[10px] uppercase tracking-[0.3em]">
+          <div className="flex items-center gap-2 text-destructive font-black text-[10px] uppercase tracking-[0.3em]">
             <BrainCircuit className="h-3 w-3" /> Human Capital Intelligence Node
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-muted-foreground dark:text-white">
             Pulse Desk
           </h1>
-          <p className="text-sm text-slate-500 font-medium">Real-time organizational health, culture metrics, and workforce telemetry.</p>
+          <p className="text-sm text-muted-foreground font-medium">Real-time organizational health, culture metrics, and workforce telemetry.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-rose-500 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-destructive transition-colors" />
             <Input 
               placeholder="Query Culture Data..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 w-64 rounded-xl focus:ring-rose-500/20"
+              className="pl-10 bg-white dark:bg-muted border-slate-200 dark:border-slate-800 w-64 rounded-xl focus:ring-rose-500/20"
             />
           </div>
           <Button 
-            className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20 gap-2"
+            className="rounded-xl bg-destructive hover:bg-destructive text-white shadow-lg shadow-rose-600/20 gap-2"
           >
             <Plus className="h-4 w-4" />
             New Pulse
@@ -86,28 +86,28 @@ export default function PulseDesk() {
         {(Array.isArray(stats) ? stats : []).map((stat, i) => {
           const Icon = stat.icon;
           return (
-            <div key={i} className="group relative p-8 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-              <div className="absolute top-0 right-0 h-32 w-32 bg-slate-50 dark:bg-slate-800/50 rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150" />
+            <div key={i} className="group relative p-8 rounded-[2.5rem] bg-white dark:bg-muted border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+              <div className="absolute top-0 right-0 h-32 w-32 bg-muted dark:bg-muted rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150" />
               <div className="relative z-10 space-y-6">
                 <div className={cn(
                   "h-12 w-12 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:rotate-12",
-                  stat.color === 'rose' ? "bg-rose-600 text-white shadow-rose-500/20" :
-                  stat.color === 'blue' ? "bg-blue-600 text-white shadow-blue-500/20" :
-                  stat.color === 'amber' ? "bg-amber-600 text-white shadow-amber-500/20" :
-                  "bg-emerald-600 text-white shadow-emerald-500/20"
+                  stat.color === 'rose' ? "bg-destructive text-white shadow-rose-500/20" :
+                  stat.color === 'blue' ? "bg-primary text-white shadow-blue-500/20" :
+                  stat.color === 'amber' ? "bg-warning text-white shadow-amber-500/20" :
+                  "bg-success text-white shadow-emerald-500/20"
                 )}>
                   <Icon className="h-6 w-6" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{stat.label}</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{stat.label}</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white leading-none">{stat.value}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.unit}</span>
+                    <span className="text-4xl font-black tracking-tighter text-muted-foreground dark:text-white leading-none">{stat.value}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.unit}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-3 w-3 text-emerald-500" />
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{stat.trend}</span>
+                  <TrendingUp className="h-3 w-3 text-success" />
+                  <span className="text-[10px] font-black text-success uppercase tracking-widest">{stat.trend}</span>
                 </div>
               </div>
             </div>
@@ -120,34 +120,34 @@ export default function PulseDesk() {
         {/* Workforce Health Map */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-             <h3 className="text-xl font-black tracking-tight uppercase italic text-slate-800 dark:text-slate-200 flex items-center gap-3">
-               <Activity className="h-6 w-6 text-rose-600" /> Organizational Health Map
+             <h3 className="text-xl font-black tracking-tight uppercase italic text-muted-foreground dark:text-muted-foreground flex items-center gap-3">
+               <Activity className="h-6 w-6 text-destructive" /> Organizational Health Map
              </h3>
-             <Badge className="bg-rose-500/10 text-rose-600 border-none px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full">Active Monitoring</Badge>
+             <Badge className="bg-destructive text-destructive border-none px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full">Active Monitoring</Badge>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
             {(Array.isArray(workforceHealth) ? workforceHealth : []).map((item, i) => (
-              <div key={i} className="group p-8 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-500">
+              <div key={i} className="group p-8 rounded-[2rem] bg-white dark:bg-muted border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-500">
                 <div className="flex items-center justify-between mb-6">
                   <div className="space-y-1">
-                    <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight italic">{item.label}</p>
+                    <p className="text-sm font-black text-muted-foreground dark:text-white uppercase tracking-tight italic">{item.label}</p>
                     <p className={cn(
                       "text-[9px] font-black uppercase tracking-[0.2em]",
-                      item.status === 'Healthy' ? "text-emerald-500" : 
-                      item.status === 'Monitor' ? "text-amber-500" : "text-rose-500"
+                      item.status === 'Healthy' ? "text-success" : 
+                      item.status === 'Monitor' ? "text-warning" : "text-destructive"
                     )}>{item.status}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white">{item.score}%</span>
+                    <span className="text-2xl font-black tracking-tighter text-muted-foreground dark:text-white">{item.score}%</span>
                   </div>
                 </div>
-                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-muted dark:bg-muted rounded-full overflow-hidden">
                   <div 
                     className={cn(
                       "h-full rounded-full transition-all duration-1000 group-hover:opacity-80",
-                      item.score > 85 ? "bg-emerald-500" :
-                      item.score > 75 ? "bg-amber-500" : "bg-rose-500"
+                      item.score > 85 ? "bg-success" :
+                      item.score > 75 ? "bg-warning" : "bg-destructive"
                     )}
                     style={{ width: `${item.score}%` }}
                   />
@@ -160,25 +160,25 @@ export default function PulseDesk() {
         {/* Tactical Pulse Panel */}
         <div className="space-y-6">
            <div className="flex items-center gap-3">
-             <h3 className="text-xl font-black tracking-tight uppercase italic text-slate-800 dark:text-slate-200 flex items-center gap-3">
-               <Zap className="h-6 w-6 text-amber-500" /> Tactical Insights
+             <h3 className="text-xl font-black tracking-tight uppercase italic text-muted-foreground dark:text-muted-foreground flex items-center gap-3">
+               <Zap className="h-6 w-6 text-warning" /> Tactical Insights
              </h3>
            </div>
 
-           <div className="p-8 rounded-[3rem] bg-slate-900 dark:bg-slate-800 text-white relative overflow-hidden group shadow-2xl shadow-slate-900/20">
+           <div className="p-8 rounded-[3rem] bg-muted dark:bg-muted text-white relative overflow-hidden group shadow-2xl shadow-slate-900/20">
               <div className="absolute top-0 right-0 h-40 w-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-150 transition-transform duration-1000" />
               <div className="relative z-10 space-y-8">
                  <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 italic">Culture Pulse Sync</p>
-                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
                  </div>
 
                  <div className="space-y-2">
                     <div className="flex items-center justify-between text-4xl font-black tracking-tighter uppercase italic leading-none">
                        <span>Positive</span>
-                       <Smile className="h-10 w-10 text-emerald-400" />
+                       <Smile className="h-10 w-10 text-success" />
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sentiment Hub Verification</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Sentiment Hub Verification</p>
                  </div>
 
                  <div className="space-y-4 pt-6 border-t border-white/10">
@@ -189,12 +189,12 @@ export default function PulseDesk() {
                     ].map((row) => (
                       <div key={row.label} className="flex items-center justify-between">
                          <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{row.label}</span>
-                         <span className="text-[10px] font-black tracking-widest text-emerald-400">{row.score}</span>
+                         <span className="text-[10px] font-black tracking-widest text-success">{row.score}</span>
                       </div>
                     ))}
                  </div>
 
-                 <Button className="w-full bg-white text-slate-900 hover:bg-slate-100 text-[10px] font-black uppercase tracking-[0.2em] py-8 rounded-[2rem] shadow-xl group">
+                 <Button className="w-full bg-white text-muted-foreground hover:bg-muted text-[10px] font-black uppercase tracking-[0.2em] py-8 rounded-[2rem] shadow-xl group">
                     View Talent Heatmap
                     <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                  </Button>
@@ -202,12 +202,12 @@ export default function PulseDesk() {
            </div>
 
            {/* Alerts */}
-           <div className="p-8 rounded-[2.5rem] bg-amber-500/10 border border-amber-500/20 space-y-4">
-              <div className="flex items-center gap-3 text-amber-600">
+           <div className="p-8 rounded-[2.5rem] bg-warning border border-amber-500/20 space-y-4">
+              <div className="flex items-center gap-3 text-warning">
                  <AlertCircle className="h-6 w-6" />
                  <span className="text-xs font-black uppercase tracking-widest italic">Node Alert: Performance Gap</span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+              <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
                 Growth velocity in the Logistics department has dropped 4.2% below baseline. Recommend tactical intervention via Skill Track module.
               </p>
            </div>

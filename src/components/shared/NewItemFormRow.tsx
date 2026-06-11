@@ -60,7 +60,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
     <div className="rounded-[1.5rem] border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md transition-all space-y-4">
       {/* Row header */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black italic uppercase tracking-widest text-indigo-600">
+        <span className="text-[10px] font-black italic uppercase tracking-widest text-primary">
           New Item
         </span>
         <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
               size="sm"
               variant="ghost"
               title="Print Barcode"
-              className="h-8 w-8 p-0 rounded-lg hover:bg-indigo-50 hover:text-indigo-700"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-primary hover:text-primary"
               onClick={() => onPrint(line)}
               disabled={!line.name || !line.sku}
             >
@@ -80,7 +80,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
             size="sm"
             variant="ghost"
             title="Remove Item"
-            className="h-8 w-8 p-0 rounded-lg hover:bg-red-50 hover:text-red-500"
+            className="h-8 w-8 p-0 rounded-lg hover:bg-destructive hover:text-destructive"
             onClick={() => onRemove(line.tempId)}
           >
             <Trash2 className="w-4 h-4" />
@@ -96,21 +96,21 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
             showExtended ? "md:col-span-8" : "md:col-span-12",
           )}
         >
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Product Name *
           </Label>
           <Input
             placeholder="e.g. Arabica Coffee 250g"
             value={line.name}
             onChange={(e) => onChange(line.tempId, { name: e.target.value })}
-            className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
+            className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
           />
         </div>
 
         {/* 2. Category, Price, Qty/Unit */}
         <div className="md:col-span-12 grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="space-y-1.5 sm:col-span-1">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Category *
             </Label>
             <Select
@@ -126,7 +126,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 });
               }}
             >
-              <SelectTrigger className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm">
+              <SelectTrigger className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
@@ -141,7 +141,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
           </div>
 
           <div className="space-y-1.5 sm:col-span-1">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               Base Price
             </Label>
             <Input
@@ -154,13 +154,13 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                   price: parseFloat(e.target.value) || 0,
                 })
               }
-              className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
+              className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
             />
           </div>
 
           {showQty && (
             <div className="space-y-1.5 sm:col-span-1">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Quantity *
               </Label>
               <Input
@@ -172,14 +172,14 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                     qty: Math.max(1, parseInt(e.target.value) || 1),
                   })
                 }
-                className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm text-center text-indigo-600 focus:bg-white transition-all shadow-inner"
+                className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm text-center text-primary focus:bg-white transition-all shadow-inner"
               />
             </div>
           )}
 
           {showExtended && (
             <div className="space-y-1.5 sm:col-span-1">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Unit (UoM)
               </Label>
               <Input
@@ -188,7 +188,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 onChange={(e) =>
                   onChange(line.tempId, { unit: e.target.value })
                 }
-                className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
+                className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm focus:bg-white transition-all shadow-inner"
               />
             </div>
           )}
@@ -197,12 +197,12 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
         {/* 3. SKU & Barcode */}
         <div className="md:col-span-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Barcode className="w-3.5 h-3.5" /> SKU
               </div>
               {line.categoryId && (
-                <span className="text-[9px] text-emerald-500 italic font-black">
+                <span className="text-[9px] text-success italic font-black">
                   AUTO-GENERATED
                 </span>
               )}
@@ -225,8 +225,8 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 className={cn(
                   "h-11 rounded-xl font-mono font-bold border-slate-100 text-xs pr-10",
                   line.categoryId
-                    ? "bg-slate-50/50 focus:bg-white"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed",
+                    ? "bg-muted focus:bg-white"
+                    : "bg-muted text-muted-foreground cursor-not-allowed",
                 )}
               />
               {line.categoryId && (
@@ -241,7 +241,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                       barcode: generateBarcode(sku),
                     });
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-indigo-600 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
                   title="Regenerate SKU"
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -251,10 +251,10 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-between">
               <div>Barcode</div>
               {line.sku && (
-                <span className="text-[9px] text-emerald-500 italic font-black">
+                <span className="text-[9px] text-success italic font-black">
                   SYNCED WITH SKU
                 </span>
               )}
@@ -265,7 +265,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
               onChange={(e) =>
                 onChange(line.tempId, { barcode: e.target.value })
               }
-              className="h-11 rounded-xl font-mono font-bold bg-slate-50/50 border-slate-100 text-xs focus:bg-white transition-all shadow-inner"
+              className="h-11 rounded-xl font-mono font-bold bg-muted border-slate-100 text-xs focus:bg-white transition-all shadow-inner"
             />
           </div>
         </div>
@@ -274,7 +274,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
         {showExtended && (
           <div className="md:col-span-12 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Description
               </Label>
               <textarea
@@ -283,13 +283,13 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                   onChange(line.tempId, { description: e.target.value })
                 }
                 placeholder="Item details, specifications, etc..."
-                className="w-full min-h-[80px] rounded-xl font-bold bg-slate-50/50 border border-slate-100 p-4 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner resize-none"
+                className="w-full min-h-[80px] rounded-xl font-bold bg-muted border border-slate-100 p-4 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner resize-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Item Type
                 </Label>
                 <Select
@@ -298,7 +298,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                     onChange(line.tempId, { type: v })
                   }
                 >
-                  <SelectTrigger className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm">
+                  <SelectTrigger className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl font-bold italic">
@@ -310,7 +310,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                   Default Status
                 </Label>
                 <Select
@@ -319,7 +319,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                     onChange(line.tempId, { status: v })
                   }
                 >
-                  <SelectTrigger className="h-11 rounded-xl font-bold bg-slate-50/50 border-slate-100 text-sm">
+                  <SelectTrigger className="h-11 rounded-xl font-bold bg-muted border-slate-100 text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl font-bold italic">
@@ -336,7 +336,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
 
         {/* 5. Image Upload Section */}
         <div className="md:col-span-12 space-y-3 pt-2 border-t border-slate-50">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <ImageIcon className="w-3.5 h-3.5" /> Product Images
           </Label>
           
@@ -347,7 +347,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 key={idx} 
                 className={cn(
                   "relative w-24 h-24 rounded-2xl overflow-hidden border-2 transition-all group",
-                  line.primaryImageIndex === idx ? "border-indigo-500 shadow-lg shadow-indigo-100" : "border-slate-100"
+                  line.primaryImageIndex === idx ? "border-primary shadow-lg shadow-indigo-100" : "border-slate-100"
                 )}
               >
                 <img 
@@ -365,7 +365,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                     if (newPrimary >= newImages.length) newPrimary = Math.max(0, newImages.length - 1);
                     onChange(line.tempId, { images: newImages, primaryImageIndex: newPrimary });
                   }}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -376,8 +376,8 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                   className={cn(
                     "absolute bottom-1 right-1 w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm",
                     line.primaryImageIndex === idx 
-                      ? "bg-amber-400 text-white opacity-100" 
-                      : "bg-white/80 text-slate-400 opacity-0 group-hover:opacity-100 hover:text-amber-500"
+                      ? "bg-warning text-white opacity-100" 
+                      : "bg-white/80 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-warning"
                   )}
                   title={line.primaryImageIndex === idx ? "Main Image" : "Set as Main"}
                 >
@@ -385,7 +385,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
                 </button>
 
                 {line.primaryImageIndex === idx && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-indigo-500 text-[8px] font-black text-white rounded-md uppercase tracking-tighter">
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-primary text-[8px] font-black text-white rounded-md uppercase tracking-tighter">
                     Main
                   </div>
                 )}
@@ -393,7 +393,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
             ))}
 
             {/* Upload Placeholder */}
-            <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-indigo-300 transition-all text-slate-400 hover:text-indigo-500 group">
+            <label className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-200 bg-muted flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-primary transition-all text-muted-foreground hover:text-primary group">
               <Upload className="w-6 h-6 mb-1 group-hover:scale-110 transition-transform" />
               <span className="text-[9px] font-black uppercase tracking-tighter">Add Photo</span>
               <input 
@@ -414,7 +414,7 @@ export const NewItemFormRow: React.FC<NewItemFormRowProps> = ({
               />
             </label>
           </div>
-          <p className="text-[9px] text-slate-400 font-medium">
+          <p className="text-[9px] text-muted-foreground font-medium">
             First image is "Main" by default. Set main image to be used as product thumbnail.
           </p>
         </div>

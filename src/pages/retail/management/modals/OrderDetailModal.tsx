@@ -51,9 +51,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       case "reserved":
         return "bg-secondary/10 text-muted-foreground";
       case "paid":
-        return "bg-blue-100 text-blue-700";
+        return "bg-primary text-primary";
       case "processing":
-        return "bg-amber-100 text-amber-700";
+        return "bg-warning text-warning";
       case "ready_for_pickup":
         return "bg-primary/10 text-primary";
       case "shipped":
@@ -61,9 +61,9 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       case "complete":
         return "bg-secondary text-foreground";
       case "cancelled":
-        return "bg-red-100 text-red-700";
+        return "bg-destructive text-destructive";
       case "refunded":
-        return "bg-orange-100 text-orange-700";
+        return "bg-destructive text-destructive";
       default:
         return "bg-secondary/10 text-muted-foreground";
     }
@@ -154,7 +154,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                   return (
                     <div
                       key={idx}
-                      className="flex flex-col p-5 bg-white border border-slate-100 rounded-xl hover:border-indigo-300 transition-all group"
+                      className="flex flex-col p-5 bg-white border border-slate-100 rounded-xl hover:border-primary transition-all group"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -190,7 +190,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                           <p
                             className={
                               isBufferWarning
-                                ? "text-amber-600"
+                                ? "text-warning"
                                 : "text-success"
                             }
                           >
@@ -198,7 +198,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                           </p>
                         </div>
                         {isBufferWarning && (
-                          <Badge className="bg-amber-50 text-amber-600 border-none font-black italic text-[8px] uppercase tracking-tighter">
+                          <Badge className="bg-warning text-warning border-none font-black italic text-[8px] uppercase tracking-tighter">
                             <AlertTriangle className="w-3 h-3 mr-1" /> Stock
                             Depletion Risk
                           </Badge>
@@ -252,7 +252,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "processing" && (
                 <Button
                   onClick={() => handleStatusChange("ready_for_pickup")}
-                  className="h-14 flex-[2] bg-amber-500 hover:bg-amber-600 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-amber-100"
+                  className="h-14 flex-[2] bg-warning hover:bg-warning rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-amber-100"
                 >
                   <Clock className="w-4 h-4 mr-2" />
                   Mark Ready for Pickup
@@ -262,7 +262,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               {order.status === "ready_for_pickup" && (
                 <Button
                   onClick={() => handleStatusChange("shipped")}
-                  className="h-14 flex-[2] bg-success hover:bg-emerald-700 rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-100"
+                  className="h-14 flex-[2] bg-success hover:bg-success rounded-2xl font-black italic uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-100"
                 >
                   <Truck className="w-4 h-4 mr-2" />
                   Dispatch Payload
@@ -284,7 +284,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 <Button
                   variant="ghost"
                   onClick={() => onVoid(order.id)}
-                  className="h-14 w-14 rounded-2xl border border-red-100 text-red-600 hover:bg-red-50"
+                  className="h-14 w-14 rounded-2xl border border-red-100 text-destructive hover:bg-destructive"
                   title="Void Order"
                 >
                   <XCircle className="w-5 h-5" />
@@ -295,7 +295,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                 <Button
                   variant="ghost"
                   onClick={() => onRefund(order.id, (Array.isArray(order.items) ? order.items : []).map(i => i.product_id))}
-                  className="h-14 w-14 rounded-2xl border border-orange-100 text-orange-600 hover:bg-orange-50"
+                  className="h-14 w-14 rounded-2xl border border-orange-100 text-warning hover:bg-warning"
                   title="Initiate Refund"
                 >
                   <CheckCircle2 className="w-5 h-5" />

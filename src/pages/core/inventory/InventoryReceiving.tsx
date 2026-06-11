@@ -347,7 +347,7 @@ export default function InventoryReceiving() {
               ))}
             </div>
 
-            <div className="flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 text-xs dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400">
+            <div className="flex items-center gap-1 rounded border border-amber-200 bg-warning px-3 py-2 text-warning text-xs dark:bg-warning dark:border-amber-800 dark:text-warning">
               <AlertTriangle className="h-3 w-3 shrink-0" />
               This will update stock levels for each line item and mark the PO as RECEIVED.
             </div>

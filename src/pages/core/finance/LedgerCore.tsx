@@ -445,7 +445,7 @@ export default function LedgerCore() {
                     <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Status</p>
                     <div className="flex items-center gap-2">
                       {isBalanced ? (
-                        <><CheckCircle2 className="w-4 h-4 text-green-500" /> <span className="font-semibold text-sm text-green-600">Perfectly Balanced</span></>
+                        <><CheckCircle2 className="w-4 h-4 text-success" /> <span className="font-semibold text-sm text-success">Perfectly Balanced</span></>
                       ) : (
                         <><AlertTriangle className="w-4 h-4 text-destructive" /> <span className="font-semibold text-sm text-destructive">Imbalanced Entry</span></>
                       )}
@@ -812,7 +812,7 @@ export default function LedgerCore() {
               <span className="text-muted-foreground">Employee Reference:</span>
               <span>{selectedPayroll?.employeeId}</span>
               <span className="text-muted-foreground">Purpose:</span>
-              <span className="text-blue-600 font-medium">
+              <span className="text-primary font-medium">
                 Standard Payroll Run / Monthly Disbursement
               </span>
               <span className="text-muted-foreground">Status:</span>

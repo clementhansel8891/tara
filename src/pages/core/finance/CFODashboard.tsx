@@ -158,7 +158,7 @@ const CFODashboardContent: React.FC = () => {
             <Button variant="outline" size="sm" onClick={() => handleSendReport()} className="rounded-xl border-primary/20 hover:bg-primary/5">
               <Share2 size={16} className="mr-2" /> Send Report
             </Button>
-            <Button variant="outline" size="sm" onClick={() => handleDiscussReport()} className="rounded-xl border-indigo-200 hover:bg-indigo-50">
+            <Button variant="outline" size="sm" onClick={() => handleDiscussReport()} className="rounded-xl border-primary hover:bg-primary">
               <MessageSquare size={16} className="mr-2" /> Discuss
             </Button>
           </div>

@@ -102,7 +102,7 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                 </div>
               </div>
               <div className="flex flex-col items-end gap-3">
-                 <div className="px-6 py-3 bg-primary/10 border border-indigo-600/20 rounded-2xl flex items-center gap-3 shadow-xl backdrop-blur-xl">
+                 <div className="px-6 py-3 bg-primary/10 border border-primary rounded-2xl flex items-center gap-3 shadow-xl backdrop-blur-xl">
                   <Target className="w-5 h-5 text-primary" />
                   <span className="text-[10px] font-black italic uppercase text-primary tracking-[0.2em]">
                     LIVE TELEMETRY
@@ -125,7 +125,7 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
                     onClick={() => {
                       alert("Requesting strategic yield projections from AI core. (Simulated)");
                     }}
-                    className="px-4 py-2 bg-primary/20 border border-indigo-600/40 rounded-xl text-[9px] font-black italic uppercase text-primary hover:text-indigo-200 hover:bg-primary/40 transition-all tracking-widest"
+                    className="px-4 py-2 bg-primary/20 border border-primary rounded-xl text-[9px] font-black italic uppercase text-primary hover:text-primary hover:bg-primary/40 transition-all tracking-widest"
                   >
                     AI Forecast
                   </button>
@@ -180,7 +180,7 @@ export const FleetRevenueMatrix: React.FC<FleetRevenueMatrixProps> = ({
           <Card className="border-none bg-white/[0.03] backdrop-blur-3xl shadow-2xl rounded-[2rem] p-6 flex flex-col justify-between group border border-white/5 relative overflow-hidden flex-1">
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-success/5 rounded-full blur-[60px] -ml-16 -mb-16 group-hover:bg-success/10 transition-all duration-1000" />
             <div className="space-y-6 relative z-10">
-              <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary border border-indigo-600/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
+              <div className="w-16 h-16 rounded-xl bg-primary/10 text-primary border border-primary flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-2xl">
                 <Zap className="w-8 h-8" />
               </div>
               <div>

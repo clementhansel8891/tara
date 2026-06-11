@@ -50,16 +50,16 @@ const RetailWorkspace = () => {
       apps: [
         { id: "mgt-dashboard", title: "Command Center", desc: "Sales & KPIs", icon: BarChart3, route: "/m/retail/management/dashboard", color: "text-primary", bg: "bg-primary/5" },
         { id: "mgt-profile", title: "Store Profile", desc: "Identity & Tax", icon: Store, route: "/m/retail/management/profile", color: "text-primary", bg: "bg-primary/5" },
-        { id: "mgt-audit", title: "Audit Ledger", desc: "Transaction logs", icon: ShieldAlert, route: "/m/retail/management/audit", color: "text-red-600", bg: "bg-red-50" },
+        { id: "mgt-audit", title: "Audit Ledger", desc: "Transaction logs", icon: ShieldAlert, route: "/m/retail/management/audit", color: "text-destructive", bg: "bg-destructive" },
       ]
     },
     {
       title: "Inventory & Fulfilment",
       apps: [
-        { id: "mgt-orders", title: "Fulfillment Hub", desc: "Unified order truth", icon: BoxSelect, route: "/m/retail/management/orders", color: "text-orange-600", bg: "bg-orange-50" },
-        { id: "mgt-inventory", title: "Inventory ATS", desc: "Stock visibility", icon: Eye, route: "/m/retail/management/inventory", color: "text-success", bg: "bg-emerald-50" },
+        { id: "mgt-orders", title: "Fulfillment Hub", desc: "Unified order truth", icon: BoxSelect, route: "/m/retail/management/orders", color: "text-warning", bg: "bg-warning" },
+        { id: "mgt-inventory", title: "Inventory ATS", desc: "Stock visibility", icon: Eye, route: "/m/retail/management/inventory", color: "text-success", bg: "bg-success" },
         { id: "mgt-pricing", title: "Pricing Desk", desc: "Maker-checker promos", icon: Tag, route: "/m/retail/management/pricing", color: "text-pink-600", bg: "bg-pink-50" },
-        { id: "mgt-prs", title: "Stock Request", desc: "Purchase requests", icon: ShoppingCart, route: "/m/retail/management/prs?dept=RETAIL", color: "text-amber-600", bg: "bg-amber-50" },
+        { id: "mgt-prs", title: "Stock Request", desc: "Purchase requests", icon: ShoppingCart, route: "/m/retail/management/prs?dept=RETAIL", color: "text-warning", bg: "bg-warning" },
         { id: "ops-receiving", title: "Stock Intake", desc: "Goods receiving", icon: MonitorDot, route: "/m/retail/operational/receiving", color: "text-muted-foreground", bg: "bg-secondary/5" },
         { id: "ops-opname", title: "Stock Opname", desc: "Audit & counts", icon: BoxSelect, route: "/m/retail/operational/opname", color: "text-primary", bg: "bg-primary/5" },
       ]
@@ -67,10 +67,10 @@ const RetailWorkspace = () => {
     {
       title: "Workforce & Compliance",
       apps: [
-        { id: "mgt-shifts", title: "Shift Control", desc: "Shift gatekeeping", icon: Clock, route: "/m/retail/management/shifts", color: "text-green-600", bg: "bg-green-50" },
-        { id: "mgt-staff", title: "Staff Roles", desc: "Access enforcement", icon: Users, route: "/m/retail/management/staff", color: "text-purple-600", bg: "bg-purple-50" },
+        { id: "mgt-shifts", title: "Shift Control", desc: "Shift gatekeeping", icon: Clock, route: "/m/retail/management/shifts", color: "text-success", bg: "bg-success" },
+        { id: "mgt-staff", title: "Staff Roles", desc: "Access enforcement", icon: Users, route: "/m/retail/management/staff", color: "text-primary", bg: "bg-primary" },
         { id: "mgt-schedule", title: "Staff Schedule", desc: "Roster management", icon: FileText, route: "/m/retail/management/schedule", color: "text-sky-600", bg: "bg-sky-50" },
-        { id: "mgt-attendance", title: "Attendance", desc: "Time tracking", icon: Clock, route: "/m/retail/management/attendance", color: "text-success", bg: "bg-emerald-50" },
+        { id: "mgt-attendance", title: "Attendance", desc: "Time tracking", icon: Clock, route: "/m/retail/management/attendance", color: "text-success", bg: "bg-success" },
         { id: "mgt-portal", title: "Staff Portal", desc: "Employee self-service", icon: Users, route: "/m/retail/management/portal", color: "text-primary", bg: "bg-primary/5" },
       ]
     },
@@ -81,7 +81,7 @@ const RetailWorkspace = () => {
         { id: "mgt-infrastructure", title: "Infra Control", desc: "Network & settings", icon: Globe, route: "/m/retail/management/infrastructure", color: "text-cyan-600", bg: "bg-cyan-50" },
         { id: "mgt-admin", title: "Administrative", desc: "System settings", icon: Layout, route: "/m/retail/management/admin", color: "text-muted-foreground", bg: "bg-secondary/10" },
         { id: "mgt-logs", title: "System Logs", desc: "Activity history", icon: Search, route: "/m/retail/management/logs?scope=RETAIL", color: "text-muted-foreground", bg: "bg-secondary/5" },
-        { id: "mgt-workflow", title: "Workflow Inbox", desc: "Approval tasks", icon: AlertCircle, route: "/m/retail/management/workflow?scope=RETAIL", color: "text-amber-700", bg: "bg-amber-50" },
+        { id: "mgt-workflow", title: "Workflow Inbox", desc: "Approval tasks", icon: AlertCircle, route: "/m/retail/management/workflow?scope=RETAIL", color: "text-warning", bg: "bg-warning" },
       ]
     },
   ];
@@ -99,7 +99,7 @@ const RetailWorkspace = () => {
               <Badge className="bg-primary hover:bg-primary px-3 py-1 font-black italic">
                 GENESIS_MODE
               </Badge>
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Zenvix Governance Active
               </span>
@@ -128,7 +128,7 @@ const RetailWorkspace = () => {
                 {section.apps.map((app) => (
                   <Card
                     key={app.id}
-                    className="group hover:border-blue-500/50 hover:shadow-2xl transition-all cursor-pointer bg-white/[0.03] border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-3xl"
+                    className="group hover:border-primary hover:shadow-2xl transition-all cursor-pointer bg-white/[0.03] border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-3xl"
                     onClick={() => navigate(app.route)}
                   >
                     <CardContent className="p-6 space-y-4">
@@ -170,7 +170,7 @@ const RetailWorkspace = () => {
           </div>
           <Button
             variant="outline"
-            className="h-14 px-8 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all gap-3"
+            className="h-14 px-8 rounded-2xl border border-primary bg-primary text-primary hover:bg-primary hover:text-white transition-all gap-3"
             onClick={() => navigate("/m/retail/operational/gateway")}
           >
             GO TO OPERATIONAL MODE

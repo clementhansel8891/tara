@@ -109,7 +109,7 @@ export default function DepartmentAttendanceStudio({
             </Button>
           </div>
 
-          <div className="rounded-2xl border border-white/5 overflow-hidden bg-slate-950/40 backdrop-blur-md">
+          <div className="rounded-2xl border border-white/5 overflow-hidden bg-muted backdrop-blur-md">
             <Table>
               <TableHeader>
                 <TableRow className="bg-white/[0.02] border-b border-white/5 hover:bg-white/[0.02]">
@@ -136,10 +136,10 @@ export default function DepartmentAttendanceStudio({
                         variant="outline" 
                         className={cn(
                           "text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 border-none",
-                          record.status === "Present" && "bg-emerald-500/10 text-emerald-400",
+                          record.status === "Present" && "bg-success text-success",
                           record.status === "On Duty" && "bg-sky-500/10 text-sky-400",
-                          record.status === "Absent" && "bg-rose-500/10 text-rose-400",
-                          record.status === "Late" && "bg-amber-500/10 text-amber-400"
+                          record.status === "Absent" && "bg-destructive text-destructive",
+                          record.status === "Late" && "bg-warning text-warning"
                         )}
                       >
                         {record.status}
@@ -177,10 +177,10 @@ export default function DepartmentAttendanceStudio({
             <div className="flex items-center gap-2">
               {canManagePersonnel && (
                 <Select value={selectedDeptId} onValueChange={setSelectedDeptId}>
-                  <SelectTrigger className="w-[180px] bg-slate-900/60 border-white/5 text-foreground shadow-sm hover:bg-slate-900/80">
+                  <SelectTrigger className="w-[180px] bg-muted border-white/5 text-foreground shadow-sm hover:bg-muted">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-950 border-white/5">
+                  <SelectContent className="bg-muted border-white/5">
                     <SelectItem value="FINANCE">Finance</SelectItem>
                     <SelectItem value="HR">Human Resources</SelectItem>
                     <SelectItem value="IT">IT Support</SelectItem>
@@ -208,10 +208,10 @@ export default function DepartmentAttendanceStudio({
 
 function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType, label: string, value: string, color: string }) {
   const colorMap: Record<string, string> = {
-    emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    amber: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-    rose: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-    slate: "text-slate-400 bg-slate-500/10 border-slate-500/20",
+    emerald: "text-success bg-success border-emerald-500/20",
+    amber: "text-warning bg-warning border-amber-500/20",
+    rose: "text-destructive bg-destructive border-rose-500/20",
+    slate: "text-muted-foreground bg-muted border-slate-500/20",
   };
 
   return (

@@ -127,7 +127,7 @@ export default function CoreDashboard() {
              <div className="flex flex-col items-end">
                 <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Governance Tier</span>
                 <div className="flex items-center gap-2 mt-0.5">
-                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-emerald-500/50 shadow-lg" />
+                   <div className="h-1.5 w-1.5 rounded-full bg-success shadow-emerald-500/50 shadow-lg" />
                    <span className="text-[11px] font-black text-foreground italic tracking-tighter">L4 COMMANDER</span>
                 </div>
              </div>

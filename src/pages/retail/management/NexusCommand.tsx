@@ -96,14 +96,14 @@ export default function NexusCommand() {
                     <p className="text-[9px] font-black uppercase text-muted-foreground">Active Personnel</p>
                     <p className="text-lg font-black italic">840 Active</p>
                  </div>
-                 <Button onClick={() => handleDeploy("Staff")} className="h-12 px-6 rounded-xl bg-success hover:bg-emerald-700 text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
+                 <Button onClick={() => handleDeploy("Staff")} className="h-12 px-6 rounded-xl bg-success hover:bg-success text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
                     DEPLOY STAFF <ChevronRight className="h-4 w-4" />
                  </Button>
               </div>
            </Card>
 
            <Card className="glass-card p-6 rounded-[2rem] card-premium flex flex-col gap-6">
-              <div className="h-16 w-16 rounded-3xl bg-amber-600 text-foreground flex items-center justify-center shadow-2xl">
+              <div className="h-16 w-16 rounded-3xl bg-warning text-foreground flex items-center justify-center shadow-2xl">
                  <Box className="h-8 w-8" />
               </div>
               <div className="space-y-2">
@@ -115,7 +115,7 @@ export default function NexusCommand() {
                     <p className="text-[9px] font-black uppercase text-muted-foreground">Replenishment Status</p>
                     <p className="text-lg font-black italic">AUTO-ACTIVE</p>
                  </div>
-                 <Button onClick={() => handleDeploy("Inventory")} className="h-12 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
+                 <Button onClick={() => handleDeploy("Inventory")} className="h-12 px-6 rounded-xl bg-warning hover:bg-warning text-foreground font-black uppercase tracking-widest text-[9px] gap-2">
                     SYNC STOCKS <ChevronRight className="h-4 w-4" />
                  </Button>
               </div>
@@ -148,7 +148,7 @@ export default function NexusCommand() {
                        <div className="flex items-center gap-8">
                           <div className={cn(
                              "h-12 w-12 rounded-2xl flex items-center justify-center",
-                             inc.severity === "HIGH" ? "bg-destructive/10 text-destructive" : inc.severity === "MEDIUM" ? "bg-amber-500/10 text-amber-500" : "bg-primary/10 text-primary"
+                             inc.severity === "HIGH" ? "bg-destructive/10 text-destructive" : inc.severity === "MEDIUM" ? "bg-warning text-warning" : "bg-primary/10 text-primary"
                           )}>
                              <AlertTriangle className="h-6 w-6" />
                           </div>

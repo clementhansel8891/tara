@@ -100,8 +100,8 @@ export const CashflowIntelligenceTab: React.FC<CashflowIntelligenceTabProps> = (
           )}
 
           {cashflow.isBelowSafeBuffer && !cashflow.deficitRisk && (
-            <Alert variant="warning" className="border-2 border-amber-500 bg-amber-50 text-amber-900 animate-in fade-in slide-in-from-top-4">
-              <AlertTriangle size={18} className="text-amber-600" />
+            <Alert variant="warning" className="border-2 border-amber-500 bg-warning text-warning animate-in fade-in slide-in-from-top-4">
+              <AlertTriangle size={18} className="text-warning" />
               <AlertTitle className="font-black uppercase tracking-wider text-[11px]">
                 Safety Buffer Breach Predicted
               </AlertTitle>
@@ -139,7 +139,7 @@ export const CashflowIntelligenceTab: React.FC<CashflowIntelligenceTabProps> = (
               <div className="flex gap-2 mt-2">
                   <Badge variant="outline" className="text-[8px] font-bold uppercase py-0 leading-tight">TEMPORAL_CONSISTENCY_OK</Badge>
                   <Badge variant="outline" className="text-[8px] font-bold uppercase py-0 leading-tight">TIMEZONE_NORMALIZED</Badge>
-                  {cashflow.scenarioApplied && <Badge className="text-[8px] font-bold uppercase py-0 leading-tight bg-indigo-500">SCENARIO_ACTIVE</Badge>}
+                  {cashflow.scenarioApplied && <Badge className="text-[8px] font-bold uppercase py-0 leading-tight bg-primary">SCENARIO_ACTIVE</Badge>}
               </div>
           </div>
         </div>

@@ -211,7 +211,7 @@ const ReceivingTerminal = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-primary/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
+            <div className="px-4 py-2 bg-primary/10 border border-primary rounded-xl flex items-center gap-2">
               <Activity className="w-4 h-4 text-primary animate-pulse" />
               <span className="text-[10px] font-black italic uppercase text-primary tracking-widest">
                 Port Status: Optimal
@@ -281,7 +281,7 @@ const ReceivingTerminal = () => {
                         .map((shipment) => (
                           <div
                             key={shipment.id}
-                            className="p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex items-center justify-between hover:bg-white/[0.05] hover:border-blue-500/50 transition-all cursor-pointer group"
+                            className="p-6 rounded-[2rem] border border-white/5 bg-white/[0.02] flex items-center justify-between hover:bg-white/[0.05] hover:border-primary transition-all cursor-pointer group"
                             onClick={() => startIntake(shipment)}
                           >
                             <div className="flex gap-6">
@@ -370,7 +370,7 @@ const ReceivingTerminal = () => {
                             key={item.itemId}
                             className={`p-6 rounded-[2rem] border transition-all flex items-center justify-between group ${
                               hasVariance && item.received > 0
-                                ? "bg-red-500/10 border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.1)]"
+                                ? "bg-destructive border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.1)]"
                                 : "bg-secondary/40 border-border hover:border-white/20"
                             }`}
                           >
@@ -471,7 +471,7 @@ const ReceivingTerminal = () => {
                 </p>
                 <Button 
                   onClick={() => navigate("/core/logistics")}
-                  className="w-full text-[10px] font-black italic uppercase h-12 bg-destructive text-foreground hover:bg-red-500 transition-all rounded-xl shadow-lg shadow-red-600/20 tracking-widest"
+                  className="w-full text-[10px] font-black italic uppercase h-12 bg-destructive text-foreground hover:bg-destructive transition-all rounded-xl shadow-lg shadow-red-600/20 tracking-widest"
                 >
                   Flag Intake Errors
                 </Button>

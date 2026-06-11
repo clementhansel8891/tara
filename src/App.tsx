@@ -51,7 +51,7 @@ function AppRoutes() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">
+      <div className="min-h-screen flex items-center justify-center bg-muted text-muted-foreground">
         Loading Zenvix Environment...
       </div>
     );

@@ -69,7 +69,7 @@ export function InvitePartnerDialog({ open, onOpenChange, profiles }: InvitePart
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] glass-morphism border-gray-200/50 shadow-2xl">
+      <DialogContent className="sm:max-w-[425px] glass-morphism border-border shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-primary">
             <Mail className="h-5 w-5" />

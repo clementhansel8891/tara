@@ -18,16 +18,16 @@ export const PayrollBurnTrendChart: React.FC = () => {
 
   return (
     <div 
-      className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-rose-500/10 group cursor-pointer overflow-hidden relative"
+      className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-muted p-8 shadow-2xl transition-all duration-500 hover:shadow-rose-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/hr/paycycle')}
     >
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div>
           <h4 className="text-lg font-black italic uppercase tracking-tighter text-white">Payroll Burn Trend</h4>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Monthly expenditure trajectory</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Monthly expenditure trajectory</p>
         </div>
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-rose-500/10 transition-all">
-          <CreditCard className="h-5 w-5 text-slate-500 group-hover:text-rose-400 transition-colors" />
+        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-destructive transition-all">
+          <CreditCard className="h-5 w-5 text-muted-foreground group-hover:text-destructive transition-colors" />
         </div>
       </div>
 
@@ -63,13 +63,13 @@ export const PayrollBurnTrendChart: React.FC = () => {
       
       <div className="mt-4 flex items-center justify-between opacity-50 relative z-10">
          <div className="flex items-center gap-2">
-            <TrendingUp className="h-3 w-3 text-rose-500" />
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Projected 3% increase next quarter</span>
+            <TrendingUp className="h-3 w-3 text-destructive" />
+            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Projected 3% increase next quarter</span>
          </div>
       </div>
       
       {/* Subtle background glow */}
-      <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-rose-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-destructive blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
     </div>
   );
 };

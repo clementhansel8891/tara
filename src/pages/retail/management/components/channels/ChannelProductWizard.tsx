@@ -174,7 +174,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-full bg-white">
-      <div className="p-8 border-b bg-secondary/5/50">
+      <div className="p-8 border-b bg-secondary/5">
         <StepIndicator />
         <div className="space-y-1">
           <h2 className="text-2xl font-black italic uppercase tracking-tighter text-foreground">
@@ -262,7 +262,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
               ))}
               {filteredProducts.length === 0 && (
                 <div className="text-center p-6 space-y-4">
-                  <AlertCircle className="w-12 h-12 text-slate-200 mx-auto" />
+                  <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
                   <p className="text-xs font-black italic text-muted-foreground uppercase tracking-widest">No matching assets found in selected categories</p>
                 </div>
               )}
@@ -273,11 +273,11 @@ export const ChannelProductWizard: React.FC<Props> = ({
         {/* Step 3: Stock Assignment */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="p-6 bg-primary/5 rounded-3xl border border-blue-100 flex gap-4">
+            <div className="p-6 bg-primary/5 rounded-3xl border border-primary flex gap-4">
               <Settings2 className="w-10 h-10 text-primary" />
               <div>
-                <h4 className="font-black italic text-blue-900 text-sm">Sync Logic Override</h4>
-                <p className="text-[11px] font-bold text-blue-700 leading-relaxed max-w-xl">
+                <h4 className="font-black italic text-primary text-sm">Sync Logic Override</h4>
+                <p className="text-[11px] font-bold text-primary leading-relaxed max-w-xl">
                   Assigning stock here updates the **Master Inventory**. Changes by non-HOD users 
                   will be cached for approval. Website reservations occur only at checkout.
                 </p>
@@ -315,10 +315,10 @@ export const ChannelProductWizard: React.FC<Props> = ({
         )}
       </div>
 
-      <div className="p-8 border-t flex justify-between items-center bg-secondary/5/50">
+      <div className="p-8 border-t flex justify-between items-center bg-secondary/5">
         <Button 
           variant="ghost" 
-          className="h-14 px-8 rounded-2xl font-black italic uppercase text-xs text-muted-foreground hover:text-red-500 transition-colors"
+          className="h-14 px-8 rounded-2xl font-black italic uppercase text-xs text-muted-foreground hover:text-destructive transition-colors"
           onClick={onFinished}
         >
           {step === 1 ? "Exit Wizard" : "Back"}
@@ -336,7 +336,7 @@ export const ChannelProductWizard: React.FC<Props> = ({
           <Button 
             className={cn(
               "h-14 px-12 rounded-2xl font-black italic uppercase text-xs gap-3 shadow-xl",
-              step === 3 ? "bg-success hover:bg-emerald-700" : "bg-secondary hover:bg-secondary/60"
+              step === 3 ? "bg-success hover:bg-success" : "bg-secondary hover:bg-secondary/60"
             )}
             onClick={step === 3 ? handleFinish : () => setStep(step + 1)}
             disabled={saving || (step === 1 && selectedCats.length === 0)}

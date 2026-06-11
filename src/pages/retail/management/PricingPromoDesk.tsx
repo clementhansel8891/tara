@@ -109,7 +109,7 @@ const PricingPromoDesk = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[400px] items-center justify-center bg-secondary/5/50">
+      <div className="flex h-[400px] items-center justify-center bg-secondary/5">
         <div className="flex flex-col items-center gap-4">
           <RotateCcw className="w-8 h-8 text-primary animate-spin" />
           <p className="text-sm font-black italic uppercase tracking-widest text-muted-foreground">
@@ -154,7 +154,7 @@ const PricingPromoDesk = () => {
                 <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-primary/20">
                   <Percent className="w-5 h-5" />
                 </div>
-                <Badge className="bg-emerald-500/15 text-emerald-400 font-black italic text-[8px] uppercase tracking-widest border border-emerald-500/20">
+                <Badge className="bg-success text-success font-black italic text-[8px] uppercase tracking-widest border border-emerald-500/20">
                   LIVE
                 </Badge>
               </div>
@@ -168,7 +168,7 @@ const PricingPromoDesk = () => {
 
             <Card className="rounded-2xl p-6 bg-white/[0.04] border border-white/10 border-l-[6px] border-l-amber-500 shadow-xl backdrop-blur-xl">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <div className="p-4 rounded-2xl bg-warning text-warning border border-amber-500/20">
                   <Zap className="w-5 h-5" />
                 </div>
                 <Badge
@@ -245,8 +245,8 @@ const PricingPromoDesk = () => {
                       className={cn(
                         "group p-6 flex flex-col md:flex-row items-start md:items-center justify-between transition-all cursor-pointer",
                         focusedPromoId === promo.id
-                          ? "bg-primary/5/80"
-                          : "hover:bg-secondary/5/80",
+                          ? "bg-primary/5"
+                          : "hover:bg-secondary/5",
                       )}
                     >
                       <div className="flex items-center gap-4 w-full">
@@ -293,7 +293,7 @@ const PricingPromoDesk = () => {
                           className={
                             focusedPromo.status === "active"
                               ? "text-success"
-                              : "text-amber-500"
+                              : "text-warning"
                           }
                         >
                           Status: {focusedPromo.status}
@@ -379,7 +379,7 @@ const PricingPromoDesk = () => {
                             focusedPromo.status === "active"
                             ? "bg-secondary/60 text-muted-foreground"
                             : govState.isBypassMode
-                              ? "bg-red-600 hover:bg-red-700 text-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                              ? "bg-destructive hover:bg-destructive text-foreground shadow-[0_0_20px_rgba(239,68,68,0.4)]"
                               : "bg-success hover:bg-success text-foreground shadow-[0_0_20px_rgba(16,185,129,0.3)]",
                         )}
                       >

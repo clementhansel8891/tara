@@ -94,7 +94,7 @@ export default function FinancialOperationsDesk() {
           title="Financial Operations Desk"
           subtitle="Revenue lifecycle management, delinquency tracking, and automated invoicing."
           primaryAction={
-            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95">
+            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-success hover:bg-success shadow-xl shadow-emerald-500/30 transition-all hover:scale-105 active:scale-95">
               <FileCheck className="h-4 w-4" /> BATCH INVOICE
             </Button>
           }
@@ -116,14 +116,14 @@ export default function FinancialOperationsDesk() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-               <TrendingUp className="w-16 h-16 text-emerald-500" />
+               <TrendingUp className="w-16 h-16 text-success" />
             </div>
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Total Revenue Pool</div>
               <div className="text-3xl font-black italic tracking-tighter flex items-end gap-2">
-                $1.2M <span className="text-sm font-bold text-emerald-500 mb-1">+4.2%</span>
+                $1.2M <span className="text-sm font-bold text-success mb-1">+4.2%</span>
               </div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <ShieldCheck className="w-3 h-3" />
                 Capital Velocity Optimal
               </div>
@@ -133,8 +133,8 @@ export default function FinancialOperationsDesk() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">DSO (Days Sales Outstanding)</div>
-              <div className="text-3xl font-black italic tracking-tighter text-blue-500">14.2 Days</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-blue-500 uppercase">
+              <div className="text-3xl font-black italic tracking-tighter text-primary">14.2 Days</div>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Scale className="w-3 h-3" />
                 Industry Alpha Tier
               </div>
@@ -144,8 +144,8 @@ export default function FinancialOperationsDesk() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Delinquency Risk</div>
-              <div className="text-3xl font-black italic tracking-tighter text-orange-500">2.1%</div>
-              <Progress value={2.1} className="h-1.5 mt-4 bg-orange-500/10" />
+              <div className="text-3xl font-black italic tracking-tighter text-warning">2.1%</div>
+              <Progress value={2.1} className="h-1.5 mt-4 bg-warning" />
             </CardContent>
           </Card>
 
@@ -153,7 +153,7 @@ export default function FinancialOperationsDesk() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Audit Status</div>
               <div className="text-3xl font-black italic tracking-tighter">CLEAN</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <CheckCircle2 className="w-3 h-3" />
                 Global Parity Verified
               </div>
@@ -231,7 +231,7 @@ export default function FinancialOperationsDesk() {
                                      <p className="text-xs font-black italic">{invoice.customerName}</p>
                                      <p className="text-[8px] font-medium text-muted-foreground uppercase">ID: ACC-442</p>
                                   </td>
-                                  <td className="px-8 py-6 font-black text-xs italic text-emerald-600">
+                                  <td className="px-8 py-6 font-black text-xs italic text-success">
                                      ${invoice.amount.toLocaleString()}
                                   </td>
                                   <td className="px-8 py-6">
@@ -241,7 +241,7 @@ export default function FinancialOperationsDesk() {
                                      </div>
                                   </td>
                                   <td className="px-8 py-6 text-right">
-                                     <Badge className="rounded-full bg-emerald-500/10 text-emerald-500 border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">
+                                     <Badge className="rounded-full bg-success text-success border-none font-black text-[9px] px-3 py-1 uppercase tracking-widest">
                                         SETTLED
                                      </Badge>
                                   </td>
@@ -254,22 +254,22 @@ export default function FinancialOperationsDesk() {
              </div>
 
              <div className="space-y-8">
-                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-emerald-950 text-white relative overflow-hidden group">
+                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-success text-white relative overflow-hidden group">
                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                    <div className="relative z-10 space-y-8">
                       <div className="flex items-center gap-4">
                          <div className="h-14 w-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
-                            <Zap className="h-7 w-7 text-emerald-400" />
+                            <Zap className="h-7 w-7 text-success" />
                          </div>
                          <div>
-                            <h4 className="font-black text-xl uppercase tracking-tighter italic text-emerald-400">Yield Engine</h4>
+                            <h4 className="font-black text-xl uppercase tracking-tighter italic text-success">Yield Engine</h4>
                             <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Revenue Optimization</p>
                          </div>
                       </div>
                       <p className="text-sm font-medium italic opacity-70 leading-relaxed italic">
                         "Automated invoicing cycle is currently capturing <strong>99.4% of eligible revenue</strong>. Average settlement time decreased by 18%."
                       </p>
-                      <Button className="w-full h-16 bg-emerald-500 text-white hover:bg-emerald-600 border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
+                      <Button className="w-full h-16 bg-success text-white hover:bg-success border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
                          AUTHORIZE REVENUE BUMP
                       </Button>
                    </div>
@@ -278,7 +278,7 @@ export default function FinancialOperationsDesk() {
                 <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10">
                    <div className="space-y-6">
                       <h4 className="font-black text-xs uppercase tracking-widest text-muted-foreground italic flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                        <AlertCircle className="h-4 w-4 text-destructive" />
                         Critical Watchlist
                       </h4>
                       <div className="space-y-4">
@@ -287,11 +287,11 @@ export default function FinancialOperationsDesk() {
                               <div className="flex justify-between items-start">
                                  <div className="space-y-0.5">
                                     <p className="text-[10px] font-black italic uppercase">ACME CORP PROTOCOL</p>
-                                    <p className="text-[12px] font-black text-orange-500 italic">$42,500.00 OVERDUE</p>
+                                    <p className="text-[12px] font-black text-warning italic">$42,500.00 OVERDUE</p>
                                  </div>
-                                 <Badge className="bg-orange-500 text-white border-none text-[8px] px-2 py-0">Tier 1</Badge>
+                                 <Badge className="bg-warning text-white border-none text-[8px] px-2 py-0">Tier 1</Badge>
                               </div>
-                              <Progress value={85} className="h-1 bg-orange-500/10" />
+                              <Progress value={85} className="h-1 bg-warning" />
                               <div className="flex justify-between items-center text-[8px] font-black uppercase text-muted-foreground tracking-widest">
                                  <span>Last Contact: 2h ago</span>
                                  <Button variant="link" className="h-auto p-0 text-[8px] font-black text-primary">ESCALATE</Button>
@@ -311,8 +311,8 @@ export default function FinancialOperationsDesk() {
                 <div className="flex items-center justify-between mb-8">
                    <h3 className="font-black italic uppercase tracking-tighter text-xl">Delinquency Heatmap</h3>
                    <div className="flex gap-2">
-                      <Badge className="bg-rose-500/10 text-rose-500 border-none">High Risk</Badge>
-                      <Badge className="bg-amber-500/10 text-amber-500 border-none">Medium Risk</Badge>
+                      <Badge className="bg-destructive text-destructive border-none">High Risk</Badge>
+                      <Badge className="bg-warning text-warning border-none">Medium Risk</Badge>
                    </div>
                 </div>
                 <div className="h-[300px] flex items-center justify-center bg-secondary/30 rounded-[2rem] border-2 border-dashed border-border/50">
@@ -326,7 +326,7 @@ export default function FinancialOperationsDesk() {
              <div className="space-y-8">
                 <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 flex flex-col justify-between">
                    <div className="space-y-6">
-                      <div className="h-12 w-12 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-2xl bg-warning text-warning flex items-center justify-center">
                          <AlertCircle className="h-6 w-6" />
                       </div>
                       <div className="space-y-2">
@@ -336,7 +336,7 @@ export default function FinancialOperationsDesk() {
                          </p>
                       </div>
                    </div>
-                   <Button className="w-full h-14 mt-8 rounded-2xl bg-orange-500 hover:bg-orange-600 font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20">
+                   <Button className="w-full h-14 mt-8 rounded-2xl bg-warning hover:bg-warning font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20">
                       INITIATE HARD RECOVERY SUITE
                    </Button>
                 </Card>
@@ -344,11 +344,11 @@ export default function FinancialOperationsDesk() {
                 <div className="grid grid-cols-2 gap-6">
                    <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-6 text-center">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Recovery Rate</p>
-                      <p className="text-3xl font-black italic text-emerald-500">92%</p>
+                      <p className="text-3xl font-black italic text-success">92%</p>
                    </Card>
                    <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-6 text-center">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Write-Offs</p>
-                      <p className="text-3xl font-black italic text-rose-500">0.4%</p>
+                      <p className="text-3xl font-black italic text-destructive">0.4%</p>
                    </Card>
                 </div>
              </div>

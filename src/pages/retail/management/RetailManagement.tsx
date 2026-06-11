@@ -136,7 +136,7 @@ export default function RetailManagement() {
 
       {/* Background Atmosphere */}
       <div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-violet-600/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[5%] right-[-5%] w-[35%] h-[35%] bg-primary rounded-full blur-[100px] pointer-events-none" />
       
       <div className="max-w-7xl mx-auto p-6 md:p-8 lg:p-10 space-y-20 relative z-10">
         {/* Header Tier */}
@@ -257,13 +257,13 @@ export default function RetailManagement() {
           <div className="flex items-center gap-6">
             <span 
               onClick={() => navigate("/m/retail/management/infrastructure-map")}
-              className="hover:text-primary cursor-pointer transition-colors border-b border-transparent hover:border-indigo-400"
+              className="hover:text-primary cursor-pointer transition-colors border-b border-transparent hover:border-primary"
             >
               Infrastructure Map
             </span>
             <span 
               onClick={() => navigate("/m/retail/management/infrastructure-map")}
-              className="hover:text-rose-400 cursor-pointer transition-colors border-b border-transparent hover:border-rose-400"
+              className="hover:text-destructive cursor-pointer transition-colors border-b border-transparent hover:border-rose-400"
             >
               Access Logs
             </span>

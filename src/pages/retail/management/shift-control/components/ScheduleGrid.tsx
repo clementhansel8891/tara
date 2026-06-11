@@ -236,7 +236,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
     }
 
     return (
-      <div className="bg-slate-950/40 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl flex flex-col w-full h-full min-h-[600px] text-foreground">
+      <div className="bg-muted rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl flex flex-col w-full h-full min-h-[600px] text-foreground">
         <ViewControls
           viewMode={viewMode}
           onViewModeChange={onViewModeChange}
@@ -268,14 +268,14 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     "min-h-[100px] rounded-2xl border p-2 flex flex-col items-start justify-start relative cursor-pointer transition-all group overflow-hidden",
                     !isCurrentMonth && "opacity-30 grayscale",
                     isToday
-                      ? "bg-primary/10 border-blue-500/30"
-                      : "bg-slate-900/40 border-white/5 hover:border-blue-500/30 hover:shadow-lg",
+                      ? "bg-primary/10 border-primary"
+                      : "bg-muted border-white/5 hover:border-primary hover:shadow-lg",
                   )}
                 >
                   <span
                     className={cn(
                       "text-xs font-bold mb-1",
-                      isToday ? "text-blue-400" : "text-muted-foreground",
+                      isToday ? "text-primary" : "text-muted-foreground",
                     )}
                   >
                     {format(d, "d")}
@@ -287,7 +287,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                         className={cn(
                           "h-1.5 w-full rounded-full transition-all hover:h-3 group/bar relative",
                           s.status === "draft"
-                            ? "bg-amber-500 group-hover/bar:bg-amber-600"
+                            ? "bg-warning group-hover/bar:bg-warning"
                             : "bg-primary group-hover/bar:bg-primary",
                         )}
                       >
@@ -309,7 +309,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
   const visibleDates = getVisibleDays();
 
   return (
-    <div className="bg-slate-950/40 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl flex flex-col w-full min-h-full text-foreground">
+    <div className="bg-muted rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl flex flex-col w-full min-h-full text-foreground">
       <ViewControls
         viewMode={viewMode}
         onViewModeChange={onViewModeChange}
@@ -320,7 +320,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
       <div className="w-full flex-1">
         <div className="flex flex-col w-full relative">
           {/* Days Header */}
-          <div className="flex border-b border-white/5 bg-slate-950/85 sticky top-0 z-30 backdrop-blur-md">
+          <div className="flex border-b border-white/5 bg-muted sticky top-0 z-30 backdrop-blur-md">
             <div className="w-20 shrink-0 border-r border-white/5 flex items-center justify-center bg-black/20">
               <Clock className="w-4 h-4 text-muted-foreground" />
             </div>
@@ -342,7 +342,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                   <div
                     className={cn(
                       "text-xl font-black italic tracking-tighter",
-                      isToday ? "text-blue-400" : "text-foreground",
+                      isToday ? "text-primary" : "text-foreground",
                     )}
                   >
                     {format(date, "MMM d")}
@@ -351,7 +351,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                     onClick={() => onShiftCreate(date.getDay(), 8, date)}
                     size="icon"
                     variant="ghost"
-                    className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10 text-primary hover:bg-blue-100/10"
+                    className="absolute top-4 right-4 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity bg-primary/10 text-primary hover:bg-primary"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -409,8 +409,8 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                           className={cn(
                             "absolute rounded-2xl shadow-sm border transition-all z-20 overflow-hidden group/shift backdrop-blur-sm",
                             shift.status === "draft"
-                              ? "bg-amber-500/10 border-amber-500/20 text-amber-300 hover:border-amber-400"
-                              : "bg-primary/10 border-blue-500/20 text-blue-300 hover:border-blue-400",
+                              ? "bg-warning border-amber-500/20 text-warning hover:border-amber-400"
+                              : "bg-primary/10 border-primary text-primary hover:border-primary",
                             isInteracting && "opacity-50 scale-95",
                           )}
                           style={style}
@@ -438,7 +438,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                                 e.stopPropagation();
                                 onShiftDelete(shift.id);
                               }}
-                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/40 text-muted-foreground opacity-0 group-hover/shift:opacity-100 hover:text-red-400 hover:bg-red-950/50 transition-all z-40"
+                              className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/40 text-muted-foreground opacity-0 group-hover/shift:opacity-100 hover:text-destructive hover:bg-destructive transition-all z-40"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -448,7 +448,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                                 className={cn(
                                   "text-[10px] font-black uppercase tracking-wider",
                                   shift.status === "draft"
-                                    ? "text-amber-600"
+                                    ? "text-warning"
                                     : "text-primary",
                                 )}
                               >
@@ -488,7 +488,7 @@ const ViewControls = ({
   onDateChange: (date: Date) => void;
 }) => {
   return (
-    <div className="p-6 border-b border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md">
+    <div className="p-6 border-b border-white/5 flex flex-col lg:flex-row items-center justify-between gap-6 bg-muted sticky top-0 z-40 backdrop-blur-md">
       <div className="flex items-center gap-4 bg-black/40 p-1 rounded-2xl border border-white/5">
         <Button
           variant="ghost"

@@ -29,7 +29,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
           <DialogHeader>
             <div className="flex items-center gap-4">
               <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-emerald-50 text-success" : sensor.status === "warning" ? "bg-amber-50 text-amber-500" : sensor.status === "critical" ? "bg-red-50 text-red-500" : "bg-secondary/10 text-muted-foreground"}`}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${sensor.status === "normal" ? "bg-success text-success" : sensor.status === "warning" ? "bg-warning text-warning" : sensor.status === "critical" ? "bg-destructive text-destructive" : "bg-secondary/10 text-muted-foreground"}`}
               >
                 <SIcon type={sensor.type} cls="w-6 h-6" />
               </div>
@@ -51,14 +51,14 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
           <div className="space-y-4 pt-2">
             {sensor.currentValue !== undefined && (
               <div
-                className={`rounded-2xl p-5 flex items-center justify-between ${sensor.status === "warning" ? "bg-amber-50" : sensor.status === "critical" ? "bg-red-50" : "bg-emerald-50"}`}
+                className={`rounded-2xl p-5 flex items-center justify-between ${sensor.status === "warning" ? "bg-warning" : sensor.status === "critical" ? "bg-destructive" : "bg-success"}`}
               >
                 <div>
                   <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                     Current Reading
                   </div>
                   <div
-                    className={`text-3xl font-black italic tracking-tighter mt-1 ${sensor.status === "warning" ? "text-amber-600" : sensor.status === "critical" ? "text-red-600" : "text-success"}`}
+                    className={`text-3xl font-black italic tracking-tighter mt-1 ${sensor.status === "warning" ? "text-warning" : sensor.status === "critical" ? "text-destructive" : "text-success"}`}
                   >
                     {sensor.currentValue}
                     <span className="text-sm ml-1 opacity-60">
@@ -103,7 +103,7 @@ const SensorModal = ({ sensor, onClose }: SensorModalProps) => (
                     <div className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">
                       {r.l}
                     </div>
-                    <div className="font-semibold text-slate-800 font-mono">
+                    <div className="font-semibold text-muted-foreground font-mono">
                       {r.v}
                     </div>
                   </div>

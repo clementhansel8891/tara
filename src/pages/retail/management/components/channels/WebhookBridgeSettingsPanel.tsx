@@ -248,9 +248,9 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                 className={cn(
                   "h-11 px-4 rounded-xl font-black italic text-xs gap-1.5 shrink-0 border-2 transition-all",
                   testResult?.success === true &&
-                    "border-emerald-300 text-success bg-emerald-50",
+                    "border-emerald-300 text-success bg-success",
                   testResult?.success === false &&
-                    "border-red-300 text-red-600 bg-red-50",
+                    "border-red-300 text-destructive bg-destructive",
                   !testResult && "border-slate-200",
                 )}
               >
@@ -271,8 +271,8 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold",
                   testResult.success
-                    ? "bg-emerald-50 text-success"
-                    : "bg-red-50 text-red-700",
+                    ? "bg-success text-success"
+                    : "bg-destructive text-destructive",
                 )}
               >
                 {testResult.success ? (
@@ -384,7 +384,7 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
               className="flex items-center justify-between px-4 py-3 hover:bg-secondary/5 transition-colors"
             >
               <div>
-                <div className="font-black italic text-slate-800 text-xs">
+                <div className="font-black italic text-muted-foreground text-xs">
                   {ev.label}
                 </div>
                 <code className="text-[10px] text-muted-foreground font-mono">
@@ -438,13 +438,13 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
               <div
                 className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center shrink-0",
-                  log.success ? "bg-emerald-50" : "bg-red-50",
+                  log.success ? "bg-success" : "bg-destructive",
                 )}
               >
                 {log.success ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 ) : (
-                  <AlertCircle className="w-3.5 h-3.5 text-red-500" />
+                  <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
@@ -456,8 +456,8 @@ export const WebhookBridgeSettingsPanel: React.FC<Props> = ({
                     className={cn(
                       "text-[9px] font-black border-none px-1.5 py-0",
                       log.success
-                        ? "bg-emerald-50 text-success"
-                        : "bg-red-50 text-red-600",
+                        ? "bg-success text-success"
+                        : "bg-destructive text-destructive",
                     )}
                   >
                     {log.statusCode}

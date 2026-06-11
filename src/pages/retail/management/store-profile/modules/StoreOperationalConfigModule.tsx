@@ -44,11 +44,11 @@ export const StoreOperationalConfigModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-purple-100/50 rounded-xl text-purple-600">
+        <div className="p-2 bg-primary rounded-xl text-primary">
           <Zap className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Operational Capabilities
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -60,7 +60,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Core Execution Rules */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <Clock className="w-4 h-4 text-muted-foreground" /> Boundary Conditions
           </h3>
 
@@ -119,7 +119,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5">
               <div className="space-y-0.5">
                 <Label className="text-sm font-bold text-muted-foreground">
                   Auto-Close Orphaned Shifts
@@ -141,7 +141,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
 
         {/* Sales & POS Policies */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <MonitorSmartphone className="w-4 h-4 text-muted-foreground" /> Sales &
             Execution Policies
           </h3>
@@ -196,7 +196,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5">
               <div className="space-y-0.5">
                 <Label className="text-sm font-bold text-muted-foreground">
                   Enable Self-Checkout Engine
@@ -218,7 +218,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
 
         {/* Taxation & Fiscal Policy */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm md:col-span-2">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <ShieldAlert className="w-4 h-4 text-destructive" /> Taxation & Fiscal Policy
           </h3>
 
@@ -247,7 +247,7 @@ export const StoreOperationalConfigModule: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5/50">
+            <div className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-secondary/5">
               <div className="space-y-0.5">
                 <Label className="text-sm font-bold text-muted-foreground">
                   Tax Inclusive Pricing

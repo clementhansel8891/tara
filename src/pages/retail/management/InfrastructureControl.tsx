@@ -109,10 +109,10 @@ const InfrastructureControl = () => {
       case "MAINTENANCE":
         return "bg-primary animate-pulse";
       case "STANDBY":
-        return "bg-amber-500";
+        return "bg-warning";
       case "DOWN":
       case "OFFLINE":
-        return "bg-red-500";
+        return "bg-destructive";
       default:
         return "bg-secondary/50";
     }
@@ -198,7 +198,7 @@ const InfrastructureControl = () => {
                 <Card key={lb.id} className="border border-white/5 bg-white/[0.03] rounded-3xl overflow-hidden shadow-2xl backdrop-blur-3xl">
                   <div className="bg-white/[0.02] p-4 border-b border-white/5 flex justify-between items-center">
                     <div className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full ${lb.status === 'ONLINE' ? 'bg-success animate-pulse' : 'bg-red-500'}`} />
+                      <div className={`w-3 h-3 rounded-full ${lb.status === 'ONLINE' ? 'bg-success animate-pulse' : 'bg-destructive'}`} />
                       <div>
                         <div className="text-sm font-black italic text-foreground">{lb.name}</div>
                         <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">VIP: {lb.virtualIp || 'Pending...'} • {lb.algorithm}</div>
@@ -212,7 +212,7 @@ const InfrastructureControl = () => {
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {(Array.isArray(lb.nodes) ? lb.nodes : []).map(node => (
-                        <div key={node.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-blue-500/30 transition-all group">
+                        <div key={node.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 hover:border-primary transition-all group">
                           <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-white/5 text-foreground flex items-center justify-center">
@@ -253,7 +253,7 @@ const InfrastructureControl = () => {
                             <div className="space-y-1">
                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
                                   <span className="text-muted-foreground">Health</span>
-                                  <span className={node.healthScore > 80 ? 'text-success' : 'text-amber-500'}>{node.healthScore}%</span>
+                                  <span className={node.healthScore > 80 ? 'text-success' : 'text-warning'}>{node.healthScore}%</span>
                                </div>
                                <Progress value={node.healthScore} className="h-1 bg-white/10" />
                             </div>
@@ -290,7 +290,7 @@ const InfrastructureControl = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(Array.isArray(requests) ? requests : []).map(req => (
-                <Card key={req.id} className="border border-white/5 bg-white/[0.03] rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all shadow-2xl backdrop-blur-3xl">
+                <Card key={req.id} className="border border-white/5 bg-white/[0.03] rounded-3xl overflow-hidden hover:border-primary transition-all shadow-2xl backdrop-blur-3xl">
                   <CardContent className="p-5">
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-10 h-10 rounded-xl bg-white/5 text-primary flex items-center justify-center">
@@ -298,7 +298,7 @@ const InfrastructureControl = () => {
                       </div>
                       <Badge className={`text-[9px] font-black tracking-widest uppercase text-foreground ${
                         req.status === 'FULFILLED' ? 'bg-success' : 
-                        req.status === 'PROCUREMENT_TRIGGERED' ? 'bg-primary' : 'bg-amber-500'
+                        req.status === 'PROCUREMENT_TRIGGERED' ? 'bg-primary' : 'bg-warning'
                       }`}>
                         {req.status.replace('_', ' ')}
                       </Badge>

@@ -83,7 +83,7 @@ export const UnresolvedBarcodesModal: React.FC<UnresolvedBarcodesModalProps> = (
 
     return (
       <Dialog open={true} onOpenChange={(open) => !open && setShowItemCreation(false)}>
-        <DialogContent className="max-w-[95vw] h-[90vh] rounded-[2rem] border-none shadow-2xl bg-slate-50 dark:bg-slate-950 p-0 overflow-y-auto">
+        <DialogContent className="max-w-[95vw] h-[90vh] rounded-[2rem] border-none shadow-2xl bg-muted dark:bg-muted p-0 overflow-y-auto">
           <div className="p-8">
             <ItemCreationTab 
               canWrite={true} 
@@ -111,14 +111,14 @@ export const UnresolvedBarcodesModal: React.FC<UnresolvedBarcodesModalProps> = (
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] p-0 overflow-hidden border-none rounded-[2rem] shadow-2xl">
-        <div className="relative h-32 bg-slate-900 flex items-center justify-center overflow-hidden">
+        <div className="relative h-32 bg-muted flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-[-10%] left-[-10%] w-40 h-40 bg-indigo-500 rounded-full blur-3xl" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-60 h-60 bg-amber-500 rounded-full blur-3xl" />
+            <div className="absolute top-[-10%] left-[-10%] w-40 h-40 bg-primary rounded-full blur-3xl" />
+            <div className="absolute bottom-[-20%] right-[-10%] w-60 h-60 bg-warning rounded-full blur-3xl" />
           </div>
           <div className="relative z-10 flex flex-col items-center text-white">
             <div className="bg-white/10 backdrop-blur-md p-3 rounded-2xl mb-2">
-              <Barcode className="w-8 h-8 text-indigo-300" />
+              <Barcode className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-xl font-black italic uppercase tracking-widest">Unresolved Scans</h2>
           </div>
@@ -126,23 +126,23 @@ export const UnresolvedBarcodesModal: React.FC<UnresolvedBarcodesModalProps> = (
 
         <div className="p-8 space-y-6">
           <div>
-            <h3 className="font-black text-lg italic text-slate-900 uppercase">Action Required</h3>
-            <p className="text-sm text-slate-500 font-medium">
+            <h3 className="font-black text-lg italic text-muted-foreground uppercase">Action Required</h3>
+            <p className="text-sm text-muted-foreground font-medium">
               You scanned {unresolvedBarcodes.length} barcode(s) that are not in the master list. 
               Please resolve them before finalizing the audit.
             </p>
           </div>
 
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
-            <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center gap-4">
-              <button onClick={toggleSelectAll} className="text-slate-500 hover:text-slate-900 transition-colors">
+            <div className="bg-muted border-b border-slate-200 p-4 flex items-center gap-4">
+              <button onClick={toggleSelectAll} className="text-muted-foreground hover:text-muted-foreground transition-colors">
                 {selected.length === unresolvedBarcodes.length ? (
                   <CheckSquare className="w-5 h-5" />
                 ) : (
                   <Square className="w-5 h-5" />
                 )}
               </button>
-              <span className="text-xs font-black uppercase tracking-widest text-slate-500">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                 {selected.length} Selected
               </span>
             </div>
@@ -150,20 +150,20 @@ export const UnresolvedBarcodesModal: React.FC<UnresolvedBarcodesModalProps> = (
               {unresolvedBarcodes.map(barcode => (
                 <div 
                   key={barcode} 
-                  className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
+                  className="flex items-center gap-4 p-3 hover:bg-muted rounded-xl cursor-pointer transition-colors"
                   onClick={() => toggleSelect(barcode)}
                 >
                   <Checkbox 
                     checked={selected.includes(barcode)} 
                     onCheckedChange={() => toggleSelect(barcode)} 
                   />
-                  <div className="font-mono font-bold text-slate-700 bg-white border border-slate-200 px-3 py-1 rounded-lg">
+                  <div className="font-mono font-bold text-muted-foreground bg-white border border-slate-200 px-3 py-1 rounded-lg">
                     {barcode}
                   </div>
                 </div>
               ))}
               {unresolvedBarcodes.length === 0 && (
-                <div className="p-8 text-center text-slate-400 font-bold italic">
+                <div className="p-8 text-center text-muted-foreground font-bold italic">
                   No unresolved barcodes remaining.
                 </div>
               )}
@@ -173,14 +173,14 @@ export const UnresolvedBarcodesModal: React.FC<UnresolvedBarcodesModalProps> = (
           <div className="flex gap-4 pt-4">
             <Button
               variant="outline"
-              className="flex-1 h-14 rounded-xl border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 hover:text-amber-800 font-black italic uppercase tracking-widest text-xs"
+              className="flex-1 h-14 rounded-xl border-amber-200 text-warning bg-warning hover:bg-warning hover:text-warning font-black italic uppercase tracking-widest text-xs"
               disabled={selected.length === 0}
               onClick={handleFlagSelected}
             >
               <AlertTriangle className="w-4 h-4 mr-2" /> Flag as Anomalies
             </Button>
             <Button
-              className="flex-1 h-14 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black italic uppercase tracking-widest text-xs shadow-xl shadow-indigo-200"
+              className="flex-1 h-14 rounded-xl bg-primary hover:bg-primary text-white font-black italic uppercase tracking-widest text-xs shadow-xl shadow-indigo-200"
               disabled={selected.length === 0}
               onClick={() => setShowItemCreation(true)}
             >

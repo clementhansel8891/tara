@@ -19,7 +19,7 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
   return (
     <Card className="rounded-2xl bg-secondary border-none shadow-2xl overflow-hidden group">
       <CardHeader className="p-8 pb-4">
-        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 italic">
+        <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-primary italic">
           Terminal Network Health
         </CardTitle>
       </CardHeader>
@@ -32,8 +32,8 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
                 className={cn(
                   "aspect-square rounded-xl flex items-center justify-center transition-all",
                   d.isActive
-                    ? "bg-primary/20 border border-blue-500/30 text-blue-400"
-                    : "bg-red-500/10 border border-red-500/30 text-red-500",
+                    ? "bg-primary/20 border border-primary text-primary"
+                    : "bg-destructive border border-red-500/30 text-destructive",
                 )}
               >
                 <Smartphone className="w-4 h-4" />
@@ -54,7 +54,7 @@ export const TerminalNetworkHealth: React.FC<TerminalNetworkHealthProps> = ({
         <Separator className="bg-white/10" />
         <div className="flex justify-between items-center">
           <div className="text-[10px] font-black italic text-muted-foreground uppercase">
-            Status: <span className="text-blue-400">Stable</span>
+            Status: <span className="text-primary">Stable</span>
           </div>
           <Button
             variant="ghost"

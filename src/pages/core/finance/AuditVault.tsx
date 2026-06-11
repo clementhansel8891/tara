@@ -198,7 +198,7 @@ export default function AuditVault() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mt-2">Triggered Action</p>
-                    <p className="text-blue-600 font-bold text-sm tracking-tight">{selectedRow?.action}</p>
+                    <p className="text-primary font-bold text-sm tracking-tight">{selectedRow?.action}</p>
                   </div>
                 </div>
               </div>

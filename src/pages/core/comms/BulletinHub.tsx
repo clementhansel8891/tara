@@ -298,13 +298,13 @@ export default function BulletinHub() {
       <Button
         onClick={() => openCreate("TOPIC")}
         variant="outline"
-        className="rounded-xl border-slate-200 bg-white shadow-sm hover:bg-slate-50 font-bold text-[10px] uppercase tracking-widest h-9"
+        className="rounded-xl border-slate-200 bg-white shadow-sm hover:bg-muted font-bold text-[10px] uppercase tracking-widest h-9"
       >
         <Plus className="h-3 w-3 mr-2" /> New Topic
       </Button>
       <Button
         onClick={() => openCreate("CONTENT")}
-        className="rounded-xl bg-slate-900 hover:bg-black text-white shadow-sm font-bold text-[10px] uppercase tracking-widest h-9"
+        className="rounded-xl bg-muted hover:bg-black text-white shadow-sm font-bold text-[10px] uppercase tracking-widest h-9"
       >
         <Send className="h-3 w-3 mr-2" /> Post Content
       </Button>
@@ -319,7 +319,7 @@ export default function BulletinHub() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search posts..."
-              className="pl-10 h-12 bg-white dark:bg-slate-900 border-slate-200 shadow-sm rounded-2xl text-sm font-bold"
+              className="pl-10 h-12 bg-white dark:bg-muted border-slate-200 shadow-sm rounded-2xl text-sm font-bold"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             />
@@ -356,7 +356,7 @@ export default function BulletinHub() {
               (Array.isArray(filteredPosts) ? filteredPosts : []).map((post) => (
                 <Card
                   key={post.id}
-                  className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-slate-900/50 overflow-hidden group hover:-translate-y-1 transition-all rounded-[2.5rem]"
+                  className="border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white dark:bg-muted overflow-hidden group hover:-translate-y-1 transition-all rounded-[2.5rem]"
                 >
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
@@ -410,19 +410,19 @@ export default function BulletinHub() {
                   </CardHeader>
                   <CardContent className="pb-6">
                     <p
-                      className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 font-medium cursor-pointer"
+                      className="text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed line-clamp-3 font-medium cursor-pointer"
                       onClick={() => handleViewDetail(post)}
                     >
                       {post.body}
                     </p>
                   </CardContent>
-                  <CardFooter className="bg-slate-50/50 dark:bg-slate-900/20 px-8 py-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
+                  <CardFooter className="bg-muted dark:bg-muted px-8 py-4 flex justify-between items-center border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
                         <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center">
                           <UserIcon className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        <span className="text-[10px] font-black uppercase text-slate-500 tracking-tighter">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">
                           @{post.authorId?.split("-")[0] || "anon"}
                         </span>
                       </div>
@@ -467,7 +467,7 @@ export default function BulletinHub() {
                             {isActionLoading === `${post.id}-DISLIKE` ? (
                               <Loader2 className="h-4 w-4 animate-spin mr-2" />
                             ) : (
-                              <ThumbsDown className="h-4 w-4 mr-2 text-rose-500" />
+                              <ThumbsDown className="h-4 w-4 mr-2 text-destructive" />
                             )}
                             {post.dislikesCount || 0}
                           </Button>
@@ -487,7 +487,7 @@ export default function BulletinHub() {
                               )
                             }
                           >
-                            <MessageSquare className="h-4 w-4 mr-2 text-indigo-500" />
+                            <MessageSquare className="h-4 w-4 mr-2 text-primary" />
                             {post.commentsCount || 0}
                           </Button>
                         </TooltipTrigger>
@@ -501,7 +501,7 @@ export default function BulletinHub() {
                       <div className="flex gap-4">
                         <Textarea
                           placeholder="Your professional perspective..."
-                          className="min-h-[100px] text-xs font-bold bg-white dark:bg-slate-950 resize-none rounded-2xl border-none shadow-inner"
+                          className="min-h-[100px] text-xs font-bold bg-white dark:bg-muted resize-none rounded-2xl border-none shadow-inner"
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
                         />
@@ -543,10 +543,10 @@ export default function BulletinHub() {
                 >
                   <div className="flex items-center gap-4">
                     <Filter
-                      className={`h-4 w-4 ${activeCategory === "all" ? "text-primary" : "text-slate-400"}`}
+                      className={`h-4 w-4 ${activeCategory === "all" ? "text-primary" : "text-muted-foreground"}`}
                     />
                     <span
-                      className={`text-xs font-black uppercase tracking-widest ${activeCategory === "all" ? "text-primary" : "text-slate-700 dark:text-slate-300"}`}
+                      className={`text-xs font-black uppercase tracking-widest ${activeCategory === "all" ? "text-primary" : "text-muted-foreground dark:text-muted-foreground"}`}
                     >
                       All Channels
                     </span>
@@ -560,10 +560,10 @@ export default function BulletinHub() {
                 </div>
 
                 <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
                     placeholder="Search channels..."
-                    className="h-10 pl-9 rounded-xl border-none bg-slate-100 dark:bg-slate-800 text-[10px] font-bold"
+                    className="h-10 pl-9 rounded-xl border-none bg-muted dark:bg-muted text-[10px] font-bold"
                     value={channelSearch}
                     onChange={(e) => setChannelSearch(e.target.value)}
                   />
@@ -593,7 +593,7 @@ export default function BulletinHub() {
                             style={{ backgroundColor: cat.color || "#6366f1" }}
                           />
                           <span
-                            className={`text-xs font-black uppercase tracking-widest ${activeCategory === cat.code ? "text-primary" : "text-slate-700 dark:text-slate-300"}`}
+                            className={`text-xs font-black uppercase tracking-widest ${activeCategory === cat.code ? "text-primary" : "text-muted-foreground dark:text-muted-foreground"}`}
                           >
                             {cat.name}
                           </span>
@@ -646,10 +646,10 @@ export default function BulletinHub() {
           open={!!selectedPost}
           onOpenChange={(open) => !open && setSelectedPost(null)}
         >
-          <DialogContent className="sm:max-w-3xl border-none shadow-3xl bg-slate-50 dark:bg-slate-950 p-0 overflow-hidden rounded-[3rem]">
+          <DialogContent className="sm:max-w-3xl border-none shadow-3xl bg-muted dark:bg-muted p-0 overflow-hidden rounded-[3rem]">
             {selectedPost && (
-              <div className="flex flex-col h-[80vh] bg-white dark:bg-slate-900">
-                <div className="p-10 border-b flex justify-between items-start bg-slate-50/50 dark:bg-slate-950/20 sticky top-0 z-10">
+              <div className="flex flex-col h-[80vh] bg-white dark:bg-muted">
+                <div className="p-10 border-b flex justify-between items-start bg-muted dark:bg-muted sticky top-0 z-10">
                   <div className="space-y-4">
                     <Badge className="bg-primary/10 text-primary border-none font-black tracking-widest text-[10px] uppercase">
                        {categories.find((c) => c.code === selectedPost.category)
@@ -660,8 +660,8 @@ export default function BulletinHub() {
                     </h2>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
-                        <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                          <User className="h-5 w-5 text-slate-500" />
+                        <div className="h-10 w-10 rounded-2xl bg-muted dark:bg-muted flex items-center justify-center">
+                          <User className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div className="text-left">
                           <div className="text-[10px] font-black uppercase tracking-widest">
@@ -672,7 +672,7 @@ export default function BulletinHub() {
                           </div>
                         </div>
                       </div>
-                      <div className="h-6 w-px bg-slate-200" />
+                      <div className="h-6 w-px bg-muted" />
                       <div className="text-left">
                         <div className="text-[10px] font-black uppercase tracking-widest">
                           TRANSMITTED
@@ -686,7 +686,7 @@ export default function BulletinHub() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-12 space-y-12 scrollbar-hide">
-                  <div className="text-base text-slate-700 dark:text-slate-300 leading-[2] font-medium whitespace-pre-wrap tracking-tight">
+                  <div className="text-base text-muted-foreground dark:text-muted-foreground leading-[2] font-medium whitespace-pre-wrap tracking-tight">
                     {selectedPost.body}
                   </div>
 
@@ -706,7 +706,7 @@ export default function BulletinHub() {
                   </div>
 
                   <div className="space-y-8 pb-12">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center">
                       <ChevronRight className="h-4 w-4 mr-2" /> Comments
                     </h4>
                     {selectedPost.comments && selectedPost.comments.length > 0 ? (
@@ -716,12 +716,12 @@ export default function BulletinHub() {
                             key={comment.id}
                             className="flex gap-5 animate-in slide-in-from-left duration-500"
                           >
-                            <div className="h-10 w-10 shrink-0 rounded-[1.25rem] bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-xs">
+                            <div className="h-10 w-10 shrink-0 rounded-[1.25rem] bg-primary flex items-center justify-center text-primary font-black text-xs">
                               {comment.authorId?.[0]?.toUpperCase() || "A"}
                             </div>
                             <div className="space-y-2 flex-1">
                               <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground dark:text-white">
                                   @{comment.authorId?.split("-")[0] || "anon"}
                                 </span>
                                 <span className="text-[9px] font-bold text-muted-foreground opacity-40">
@@ -730,7 +730,7 @@ export default function BulletinHub() {
                                   ).toLocaleTimeString()}
                                 </span>
                               </div>
-                              <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/40 text-sm font-medium leading-relaxed border border-slate-100 dark:border-slate-800">
+                              <div className="p-5 rounded-3xl bg-muted dark:bg-muted text-sm font-medium leading-relaxed border border-slate-100 dark:border-slate-800">
                                 {comment.body}
                               </div>
                             </div>
@@ -745,11 +745,11 @@ export default function BulletinHub() {
                   </div>
                 </div>
 
-                <div className="p-8 border-t bg-slate-50/50 backdrop-blur-xl">
+                <div className="p-8 border-t bg-muted backdrop-blur-xl">
                   <div className="flex gap-4">
                     <Textarea
                       placeholder="Write a comment..."
-                      className="h-14 min-h-[56px] bg-white dark:bg-slate-950 rounded-2xl border-none shadow-sm font-bold text-sm px-6 py-4"
+                      className="h-14 min-h-[56px] bg-white dark:bg-muted rounded-2xl border-none shadow-sm font-bold text-sm px-6 py-4"
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                     />
@@ -770,8 +770,8 @@ export default function BulletinHub() {
 
         {/* Create Dialog */}
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="sm:max-w-2xl border-none shadow-3xl bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[3rem]">
-            <DialogHeader className="p-10 border-b bg-slate-50 dark:bg-slate-800/20">
+          <DialogContent className="sm:max-w-2xl border-none shadow-3xl bg-white dark:bg-muted p-0 overflow-hidden rounded-[3rem]">
+            <DialogHeader className="p-10 border-b bg-muted dark:bg-muted">
               <DialogTitle className="text-3xl font-black tracking-tighter">
                 {creationType === "TOPIC" ? "Initiate Topic" : "Broadcast Content"}
               </DialogTitle>
@@ -781,7 +781,7 @@ export default function BulletinHub() {
             </DialogHeader>
             <div className="p-10 space-y-8">
                <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Channel</label>
+                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Channel</label>
                  <div className="flex gap-2 flex-wrap">
                     {(Array.isArray(categories) ? categories : []).map(cat => (
                       <Badge 
@@ -798,26 +798,26 @@ export default function BulletinHub() {
                
                <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Headline</label>
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Headline</label>
                     <Input 
                       placeholder="Enter a compelling title..." 
-                      className="h-14 border-none bg-slate-50 dark:bg-slate-800 rounded-2xl px-6 text-sm font-black shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20"
+                      className="h-14 border-none bg-muted dark:bg-muted rounded-2xl px-6 text-sm font-black shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20"
                       value={newPost.title}
                       onChange={e => setNewPost({...newPost, title: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">Context</label>
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Context</label>
                     <Textarea 
                       placeholder="Share your insights..." 
-                      className="min-h-[200px] border-none bg-slate-50 dark:bg-slate-800 rounded-2xl px-6 py-4 text-sm font-medium shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20 resize-none"
+                      className="min-h-[200px] border-none bg-muted dark:bg-muted rounded-2xl px-6 py-4 text-sm font-medium shadow-inner focus-visible:ring-1 focus-visible:ring-primary/20 resize-none"
                       value={newPost.body}
                       onChange={e => setNewPost({...newPost, body: e.target.value})}
                     />
                   </div>
                </div>
             </div>
-            <DialogFooter className="p-10 bg-slate-50 dark:bg-slate-800/20 border-t">
+            <DialogFooter className="p-10 bg-muted dark:bg-muted border-t">
               <Button variant="ghost" onClick={() => setIsCreateOpen(false)} className="rounded-xl font-black uppercase tracking-widest text-[10px]">Discard</Button>
               <Button onClick={handleCreatePost} className="rounded-xl px-8 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[10px]">Publish Entry</Button>
             </DialogFooter>
@@ -826,8 +826,8 @@ export default function BulletinHub() {
 
         {/* Category Management Dialog */}
         <Dialog open={isCategoryManageOpen} onOpenChange={setIsCategoryManageOpen}>
-          <DialogContent className="sm:max-w-md border-none shadow-3xl bg-white dark:bg-slate-900 p-0 overflow-hidden rounded-[3rem]">
-            <DialogHeader className="p-10 border-b bg-slate-50 dark:bg-slate-800/20">
+          <DialogContent className="sm:max-w-md border-none shadow-3xl bg-white dark:bg-muted p-0 overflow-hidden rounded-[3rem]">
+            <DialogHeader className="p-10 border-b bg-muted dark:bg-muted">
               <DialogTitle className="text-2xl font-black tracking-tighter">Channel Governance</DialogTitle>
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Configure Discussion Domains</div>
             </DialogHeader>
@@ -835,46 +835,46 @@ export default function BulletinHub() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Name</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Name</label>
                     <Input 
                       placeholder="General" 
-                      className="h-11 border-none bg-slate-50 dark:bg-slate-800 rounded-xl px-4 text-xs font-black shadow-inner"
+                      className="h-11 border-none bg-muted dark:bg-muted rounded-xl px-4 text-xs font-black shadow-inner"
                       value={newCategory.name}
                       onChange={e => setNewCategory({...newCategory, name: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Code</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Code</label>
                     <Input 
                       placeholder="general" 
-                      className="h-11 border-none bg-slate-50 dark:bg-slate-800 rounded-xl px-4 text-xs font-black shadow-inner"
+                      className="h-11 border-none bg-muted dark:bg-muted rounded-xl px-4 text-xs font-black shadow-inner"
                       value={newCategory.code}
                       onChange={e => setNewCategory({...newCategory, code: e.target.value})}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Vibrancy</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Vibrancy</label>
                   <Input 
                     type="color" 
-                    className="h-11 w-full border-none bg-slate-50 dark:bg-slate-800 rounded-xl px-2 shadow-inner"
+                    className="h-11 w-full border-none bg-muted dark:bg-muted rounded-xl px-2 shadow-inner"
                     value={newCategory.color}
                     onChange={e => setNewCategory({...newCategory, color: e.target.value})}
                   />
                 </div>
-                <Button onClick={handleCreateCategory} className="w-full h-11 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[10px]">Add Channel</Button>
+                <Button onClick={handleCreateCategory} className="w-full h-11 rounded-xl bg-muted text-white font-black uppercase tracking-widest text-[10px]">Add Channel</Button>
               </div>
 
               <div className="pt-6 border-t space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Active Domains</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2">Active Domains</label>
                 <div className="space-y-2">
                   {(Array.isArray(categories) ? categories : []).map(cat => (
-                    <div key={cat.id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <div key={cat.id} className="flex justify-between items-center p-3 bg-muted dark:bg-muted rounded-xl border border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-3">
                         <div className="h-3 w-3 rounded-full" style={{backgroundColor: cat.color}} />
                         <span className="text-[10px] font-black uppercase tracking-widest">{cat.name}</span>
                       </div>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-500 hover:bg-rose-50" onClick={() => handleDeleteCategory(cat.id)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive" onClick={() => handleDeleteCategory(cat.id)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </div>

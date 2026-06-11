@@ -206,7 +206,7 @@ const StaffAssignments = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-secondary/5/50 p-8 lg:p-6">
+      <div className="flex-1 bg-secondary/5 p-8 lg:p-6">
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -354,7 +354,7 @@ const StaffAssignments = () => {
                         (Array.isArray(filteredStaff) ? filteredStaff : []).map((s, i) => (
                           <tr
                             key={i}
-                            className="group hover:bg-secondary/5/50 transition-colors border-b border-slate-50 last:border-none cursor-pointer"
+                            className="group hover:bg-secondary/5 transition-colors border-b border-slate-50 last:border-none cursor-pointer"
                             onClick={() => setSelectedStaffForDetails(s)}
                           >
                             <td className="px-8 py-5">
@@ -452,12 +452,12 @@ const StaffAssignments = () => {
                                     Modify Permissions
                                   </DropdownMenuItem>
                                   <DropdownMenuItem className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer">
-                                    <Key className="w-4 h-4 text-amber-600" />{" "}
+                                    <Key className="w-4 h-4 text-warning" />{" "}
                                     Reset Credentials
                                   </DropdownMenuItem>
                                   <Separator className="my-1" />
                                   <DropdownMenuItem
-                                    className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
+                                    className="rounded-xl gap-2 font-black italic text-xs py-3 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleDelete(s.id);
@@ -482,13 +482,13 @@ const StaffAssignments = () => {
               {/* Critical Alerts */}
               <Card className="bg-secondary text-foreground shadow-2xl rounded-2xl overflow-hidden">
                 <CardHeader className="p-7 pb-0">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 italic flex items-center gap-2">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-warning italic flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4" /> Critical Alerts
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-7 space-y-4">
                   <div className="p-5 rounded-2xl bg-secondary/40 border border-border">
-                    <div className="text-[10px] text-amber-400 font-black uppercase mb-2 flex items-center gap-2 italic">
+                    <div className="text-[10px] text-warning font-black uppercase mb-2 flex items-center gap-2 italic">
                       <Clock className="w-3 h-3" /> Policy Verification
                     </div>
                     <div className="text-xs font-bold leading-relaxed text-foreground/80 mb-4">

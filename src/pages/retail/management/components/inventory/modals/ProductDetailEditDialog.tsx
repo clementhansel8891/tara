@@ -264,8 +264,8 @@ export const ProductDetailEditDialog: React.FC<Props> = ({
                     "h-12 flex items-center justify-center shrink-0 px-4 rounded-2xl font-black text-sm",
                     Number(formData.stock_on_hand) - Number(formData.reserved) >
                       0
-                      ? "bg-emerald-50 text-success"
-                      : "bg-red-50 text-red-600",
+                      ? "bg-success text-success"
+                      : "bg-destructive text-destructive",
                   )}
                   title="Available to Sell"
                 >

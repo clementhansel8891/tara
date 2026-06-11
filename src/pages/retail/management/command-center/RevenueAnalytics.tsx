@@ -191,7 +191,7 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
           <div className="absolute bottom-[-20%] left-[-10%] w-32 h-32 bg-success/20 blur-[70px] pointer-events-none" />
 
           <div className="flex items-center justify-between mb-6 relative z-10">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 italic">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary italic">
               Loss Prevention
             </h3>
             <Receipt className="w-6 h-6 text-foreground opacity-50 group-hover:rotate-12 transition-transform duration-500" />
@@ -206,11 +206,11 @@ export const RevenueAnalytics: React.FC<RevenueAnalyticsProps> = ({ data }) => {
 
           <div className="mt-12 relative z-10">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] italic">
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">
                 Refund Ratio
               </span>
               <span className="px-4 py-1.5 rounded-xl bg-white/10 border border-white/20 text-[9px] font-black text-foreground uppercase tracking-widest flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />{" "}
+                <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />{" "}
                 NOMINAL
               </span>
             </div>

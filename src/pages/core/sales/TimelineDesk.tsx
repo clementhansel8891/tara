@@ -149,21 +149,21 @@ export default function TimelineDesk() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Omnichannel Stream</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Omnichannel Stream</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Activity Pulse Active
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent italic">Neural Timeline</h1>
 
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Every interaction is a node in the strategic architecture of the deal."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic">"Every interaction is a node in the strategic architecture of the deal."</p>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+          <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-11 h-14 w-[300px] rounded-[1.5rem] bg-transparent border-none focus-visible:ring-0 text-base font-medium"
                 value={search}
@@ -173,7 +173,7 @@ export default function TimelineDesk() {
             </div>
             <Button
               variant="secondary"
-              className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+              className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
               onClick={() => refresh(true)}
               disabled={refreshing}
             >
@@ -183,12 +183,12 @@ export default function TimelineDesk() {
 
           <Dialog open={isLogOpen} onOpenChange={setIsLogOpen}>
             <DialogTrigger asChild>
-              <Button className="h-[4.5rem] px-10 rounded-[2rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95">
+              <Button className="h-[4.5rem] px-10 rounded-[2rem] bg-primary hover:bg-primary shadow-2xl shadow-indigo-500/30 font-black text-sm gap-3 group transition-all hover:scale-105 active:scale-95">
                 <Plus className="h-6 w-6 group-hover:rotate-90 transition-transform duration-500" /> 
                 LOG INTERACTION
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-slate-950">
+            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-muted">
               <div className="h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500" />
               <div className="p-10 space-y-8">
                 <DialogHeader>
@@ -197,12 +197,12 @@ export default function TimelineDesk() {
                 </DialogHeader>
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Target Opportunity</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Target Opportunity</Label>
                     <Select 
                       value={logData.opportunityId} 
                       onValueChange={(val) => setLogData({...logData, opportunityId: val})}
                     >
-                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold">
+                      <SelectTrigger className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold">
                         <SelectValue placeholder="Select deal context" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
@@ -214,12 +214,12 @@ export default function TimelineDesk() {
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Channel</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Channel</Label>
                       <Select 
                         value={logData.channel} 
                         onValueChange={(val: any) => setLogData({...logData, channel: val})}
                       >
-                        <SelectTrigger className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold">
+                        <SelectTrigger className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold">
                           <SelectValue placeholder="Channel" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
@@ -230,15 +230,15 @@ export default function TimelineDesk() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Direction</Label>
-                      <div className="flex gap-2 h-14 items-center bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 border-none shadow-inner">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Direction</Label>
+                      <div className="flex gap-2 h-14 items-center bg-muted dark:bg-muted rounded-2xl px-4 border-none shadow-inner">
                          {["INBOUND", "OUTBOUND"].map((d) => (
                            <button
                              key={d}
                              onClick={() => setLogData({...logData, direction: d as any})}
                              className={cn(
                                "flex-1 py-1.5 rounded-xl text-[8px] font-black tracking-widest transition-all",
-                               logData.direction === d ? "bg-indigo-600 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
+                               logData.direction === d ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-muted-foreground"
                              )}
                            >
                              {d}
@@ -248,18 +248,18 @@ export default function TimelineDesk() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Summary</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Summary</Label>
                     <Input 
-                      className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner font-bold"
+                      className="h-14 rounded-2xl bg-muted dark:bg-muted border-none shadow-inner font-bold"
                       value={logData.summary}
                       onChange={(e) => setLogData({...logData, summary: e.target.value})}
                       placeholder="Pricing discussion and timeline review..."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detailed Context</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Detailed Context</Label>
                     <Textarea 
-                      className="rounded-2xl bg-slate-50 dark:bg-slate-900 border-none shadow-inner min-h-[100px]"
+                      className="rounded-2xl bg-muted dark:bg-muted border-none shadow-inner min-h-[100px]"
                       value={logData.detail}
                       onChange={(e) => setLogData({...logData, detail: e.target.value})}
                       placeholder="Customer expressed interest in the Q3 roadmap and requested a follow-up on..."
@@ -267,7 +267,7 @@ export default function TimelineDesk() {
                   </div>
                 </div>
                 <DialogFooter className="pt-4">
-                  <Button onClick={handleLogEvent} className="w-full h-16 rounded-[1.5rem] bg-indigo-600 hover:bg-indigo-700 font-black text-sm">COMMIT TO STREAM</Button>
+                  <Button onClick={handleLogEvent} className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary font-black text-sm">COMMIT TO STREAM</Button>
                 </DialogFooter>
               </div>
             </DialogContent>
@@ -281,11 +281,11 @@ export default function TimelineDesk() {
             <div className="absolute left-8 top-10 bottom-10 w-0.5 bg-gradient-to-b from-indigo-500 via-indigo-500/20 to-transparent hidden md:block" />
             
             {filtered.length === 0 ? (
-               <Card className="rounded-[3rem] border-none shadow-xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-20 text-center space-y-6">
-                  <div className="h-20 w-20 rounded-[2.5rem] bg-slate-50 dark:bg-slate-900 flex items-center justify-center mx-auto opacity-30 grayscale">
+               <Card className="rounded-[3rem] border-none shadow-xl bg-white/40 dark:bg-muted backdrop-blur-xl p-20 text-center space-y-6">
+                  <div className="h-20 w-20 rounded-[2.5rem] bg-muted dark:bg-muted flex items-center justify-center mx-auto opacity-30 grayscale">
                      <History className="h-10 w-10" />
                   </div>
-                  <p className="text-sm font-bold text-slate-400 italic">The neural stream is silent. Initialize interaction protocol.</p>
+                  <p className="text-sm font-bold text-muted-foreground italic">The neural stream is silent. Initialize interaction protocol.</p>
                </Card>
             ) : (
                (Array.isArray(filtered) ? filtered : []).map((item, i) => {
@@ -293,8 +293,8 @@ export default function TimelineDesk() {
                   const Icon = channel.icon;
                   return (
                     <div key={item.id} className="relative pl-0 md:pl-20 animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                       <div className="absolute left-6 top-6 h-4 w-4 rounded-full border-4 border-white dark:border-slate-950 bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)] z-10 hidden md:block" />
-                       <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-slate-900 overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
+                       <div className="absolute left-6 top-6 h-4 w-4 rounded-full border-4 border-white dark:border-slate-950 bg-primary shadow-[0_0_15px_rgba(79,70,229,0.5)] z-10 hidden md:block" />
+                       <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-muted overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
                           <CardContent className="p-8">
                              <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                                 <div className="flex items-start gap-6">
@@ -306,12 +306,12 @@ export default function TimelineDesk() {
                                          <p className="font-black text-lg tracking-tight leading-none">{item.summary}</p>
                                          <Badge variant="outline" className="rounded-full text-[8px] font-black px-2 py-0 h-4 border-slate-200 uppercase tracking-widest">{item.channel}</Badge>
                                       </div>
-                                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-xl italic">"{item.detail || "Strategic node update with no supplementary context."}"</p>
+                                      <p className="text-xs font-medium text-muted-foreground dark:text-muted-foreground leading-relaxed max-w-xl italic">"{item.detail || "Strategic node update with no supplementary context."}"</p>
                                       <div className="flex items-center gap-4 pt-2">
-                                         <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 uppercase tracking-widest">
+                                         <div className="flex items-center gap-1.5 text-[10px] font-black text-primary uppercase tracking-widest">
                                             <Target className="h-3 w-3" /> {item.opportunityId.slice(-8)}
                                          </div>
-                                         <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                         <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                                             <User className="h-3 w-3" /> {item.createdBy}
                                          </div>
                                       </div>
@@ -320,12 +320,12 @@ export default function TimelineDesk() {
                                 
                                 <div className="flex flex-col items-end gap-3 shrink-0">
                                    <div className="text-right">
-                                      <p className="text-xs font-black tracking-tighter text-slate-900 dark:text-white uppercase">{new Date(item.createdAt).toLocaleDateString()}</p>
-                                      <p className="text-[10px] font-bold text-slate-400">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                      <p className="text-xs font-black tracking-tighter text-muted-foreground dark:text-white uppercase">{new Date(item.createdAt).toLocaleDateString()}</p>
+                                      <p className="text-[10px] font-bold text-muted-foreground">{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                                    </div>
                                    <Badge className={cn(
                                       "rounded-full font-black text-[8px] px-2 py-0.5 border-none shadow-sm uppercase tracking-widest",
-                                      item.direction === "INBOUND" ? "bg-emerald-500 text-white" : "bg-indigo-600 text-white"
+                                      item.direction === "INBOUND" ? "bg-success text-white" : "bg-primary text-white"
                                    )}>
                                       {item.direction === "INBOUND" ? <ArrowDownLeft className="h-2.5 w-2.5 mr-1 inline" /> : <ArrowUpRight className="h-2.5 w-2.5 mr-1 inline" />}
                                       {item.direction}
@@ -341,7 +341,7 @@ export default function TimelineDesk() {
          </div>
 
          <div className="col-span-12 lg:col-span-4 space-y-8">
-            <Card className="rounded-[3rem] border-none shadow-2xl bg-indigo-600 text-white p-10 space-y-8 overflow-hidden relative group">
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-primary text-white p-10 space-y-8 overflow-hidden relative group">
                <div className="absolute top-0 right-0 h-40 w-40 -mr-10 -mt-10 bg-white/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
                <div className="space-y-2 relative z-10">
                   <h3 className="text-2xl font-black tracking-tight">Channel Pulse</h3>
@@ -351,8 +351,8 @@ export default function TimelineDesk() {
                <div className="space-y-6 relative z-10">
                   {[
                     { label: "Internal Notes", count: (Array.isArray(timeline) ? timeline : []).filter(t => t.channel === "NOTE").length, color: "bg-white/20" },
-                    { label: "Digital Outreach", count: (Array.isArray(timeline) ? timeline : []).filter(t => ["EMAIL", "SMS", "WHATSAPP"].includes(t.channel)).length, color: "bg-emerald-400" },
-                    { label: "Direct Comms", count: (Array.isArray(timeline) ? timeline : []).filter(t => ["CALL", "MEETING"].includes(t.channel)).length, color: "bg-amber-400" },
+                    { label: "Digital Outreach", count: (Array.isArray(timeline) ? timeline : []).filter(t => ["EMAIL", "SMS", "WHATSAPP"].includes(t.channel)).length, color: "bg-success" },
+                    { label: "Direct Comms", count: (Array.isArray(timeline) ? timeline : []).filter(t => ["CALL", "MEETING"].includes(t.channel)).length, color: "bg-warning" },
                   ].map((stat, i) => (
                     <div key={i} className="space-y-2">
                        <div className="flex justify-between items-end">
@@ -379,9 +379,9 @@ export default function TimelineDesk() {
                </div>
             </Card>
 
-            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-10 space-y-8">
+            <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl p-10 space-y-8">
                <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                  <Filter className="h-5 w-5 text-indigo-600" />
+                  <Filter className="h-5 w-5 text-primary" />
                   Stream Filter
                </CardTitle>
                <div className="space-y-3">
@@ -389,14 +389,14 @@ export default function TimelineDesk() {
                     onClick={() => setChannelFilter(null)}
                     className={cn(
                       "w-full flex items-center justify-between p-4 rounded-2xl transition-all group shadow-sm",
-                      !channelFilter ? "bg-indigo-600 text-white" : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"
+                      !channelFilter ? "bg-primary text-white" : "bg-white dark:bg-muted hover:bg-muted dark:hover:bg-muted"
                     )}
                   >
                      <div className="flex items-center gap-3">
-                        <div className={cn("h-2 w-2 rounded-full", !channelFilter ? "bg-white" : "bg-slate-300")} />
+                        <div className={cn("h-2 w-2 rounded-full", !channelFilter ? "bg-white" : "bg-muted")} />
                         <span className="text-[10px] font-black uppercase tracking-widest">ALL ACTIVITIES</span>
                      </div>
-                     <Badge variant="secondary" className={cn("rounded-full text-[8px] font-black", !channelFilter ? "bg-white text-indigo-600" : "")}>{timeline.length}</Badge>
+                     <Badge variant="secondary" className={cn("rounded-full text-[8px] font-black", !channelFilter ? "bg-white text-primary" : "")}>{timeline.length}</Badge>
                   </button>
                   {Object.keys(CHANNELS).map(c => (
                     <button 
@@ -404,14 +404,14 @@ export default function TimelineDesk() {
                       onClick={() => setChannelFilter(c)}
                       className={cn(
                         "w-full flex items-center justify-between p-4 rounded-2xl transition-all group shadow-sm",
-                        channelFilter === c ? "bg-indigo-600 text-white" : "bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        channelFilter === c ? "bg-primary text-white" : "bg-white dark:bg-muted hover:bg-muted dark:hover:bg-muted"
                       )}
                     >
                        <div className="flex items-center gap-3">
-                          <div className={cn("h-2 w-2 rounded-full", channelFilter === c ? "bg-white" : "bg-slate-300")} />
+                          <div className={cn("h-2 w-2 rounded-full", channelFilter === c ? "bg-white" : "bg-muted")} />
                            <span className="text-[10px] font-black uppercase tracking-widest">{c}</span>
                        </div>
-                       <Badge variant="secondary" className={cn("rounded-full text-[8px] font-black", channelFilter === c ? "bg-white text-indigo-600" : "")}>{(Array.isArray(timeline) ? timeline : []).filter(t => t.channel === c).length}</Badge>
+                       <Badge variant="secondary" className={cn("rounded-full text-[8px] font-black", channelFilter === c ? "bg-white text-primary" : "")}>{(Array.isArray(timeline) ? timeline : []).filter(t => t.channel === c).length}</Badge>
                     </button>
                   ))}
                </div>

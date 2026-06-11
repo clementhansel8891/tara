@@ -90,7 +90,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                 return (
                   <tr
                     key={entry.id || i}
-                    className="group border-b border-slate-50 last:border-none hover:bg-secondary/5/50 transition-colors"
+                    className="group border-b border-slate-50 last:border-none hover:bg-secondary/5 transition-colors"
                   >
                     <td className="px-6 py-4 text-[11px] text-muted-foreground font-bold">
                       {i + 1}
@@ -112,7 +112,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                         min="0"
                         value={entry.counted}
                         onChange={(e) => onCountChange(i, e.target.value)}
-                        className="w-24 h-10 rounded-xl font-black italic text-center border-slate-200 focus:ring-blue-600 bg-secondary/5/50"
+                        className="w-24 h-10 rounded-xl font-black italic text-center border-slate-200 focus:ring-blue-600 bg-secondary/5"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -124,7 +124,7 @@ export const OpnameTable: React.FC<OpnameTableProps> = ({
                               ? "text-success"
                               : variance > 0
                                 ? "text-primary"
-                                : "text-red-600",
+                                : "text-destructive",
                           )}
                         >
                           {variance > 0 ? "+" : ""}

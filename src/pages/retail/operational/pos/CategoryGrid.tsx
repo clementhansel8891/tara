@@ -68,8 +68,8 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
             onClick={() => onSelect(cat)}
             className={`group relative flex flex-col items-center justify-center p-6 rounded-[2rem] border-2 transition-all duration-500 active:scale-95 ${
               isActive
-                ? "bg-primary border-indigo-600 text-primary-foreground shadow-2xl shadow-indigo-500/30 scale-105 z-10"
-                : "bg-secondary/30 backdrop-blur-xl border-border text-muted-foreground hover:border-indigo-200 hover:text-primary hover:bg-secondary/50"
+                ? "bg-primary border-primary text-primary-foreground shadow-2xl shadow-indigo-500/30 scale-105 z-10"
+                : "bg-secondary/30 backdrop-blur-xl border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-secondary/50"
             }`}
             style={{ transitionDelay: `${i * 50}ms` }}
           >

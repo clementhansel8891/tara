@@ -11,31 +11,47 @@ import {
   Percent,
 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import { CHART_COLORS } from "@/lib/chart-colors";
 
 interface GlobalKpiRowProps {
   kpis: GlobalKpis;
 }
 
 export const GlobalKpiRow: React.FC<GlobalKpiRowProps> = ({ kpis }) => {
+  // Map semantic color keys to hardcoded hex values for Recharts SVG props.
+  // CSS variables cannot be resolved inside Recharts SVG rendering.
+  const colorKeyToHex = (colorKey: string): string => {
+    const map: Record<string, string> = {
+      success:     CHART_COLORS.success,
+      primary:     CHART_COLORS.primary,
+      secondary:   '#94a3b8',  // slate-400 neutral
+      muted:       '#94a3b8',  // slate-400
+      accent:      CHART_COLORS.primary,
+      warning:     CHART_COLORS.warning,
+      info:        CHART_COLORS.info,
+      destructive: '#ef4444',  // red-500
+    };
+    return map[colorKey] ?? CHART_COLORS[1];
+  };
+
   const sparklineWrapper = (data: number[] | undefined, colorClass: string) => {
     if (!data) return null;
-    // Recharts Area requires a CSS color string; we derive it from the CSS variable
-    // for the token so no inline hex literals are needed in JSX data fields.
-    const cssVar = `var(--color-chart-${colorClass})`;
+    // Use hardcoded hex — Recharts renders to SVG and cannot resolve hsl(var(--*))
+    const hexColor = colorKeyToHex(colorClass);
     return (
       <div className="h-10 w-full mt-2 opacity-50">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={(Array.isArray(data) ? data : []).map((v) => ({ v }))}>
             <defs>
               <linearGradient id={`color-${colorClass}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={cssVar} stopOpacity={0.3}/>
-                <stop offset="95%" stopColor={cssVar} stopOpacity={0}/>
+                <stop offset="5%" stopColor={hexColor} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={hexColor} stopOpacity={0}/>
               </linearGradient>
             </defs>
             <Area
               type="monotone"
               dataKey="v"
-              stroke={cssVar}
+              stroke={hexColor}
               strokeWidth={2}
               fillOpacity={1}
               fill={`url(#color-${colorClass})`}

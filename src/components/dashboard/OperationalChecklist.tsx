@@ -22,30 +22,30 @@ export const OperationalChecklist: React.FC = () => {
   const progress = (completedCount / items.length) * 100;
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-muted p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success text-success border border-emerald-500/20">
             <ListTodo className="h-5 w-5" />
           </div>
           <div>
             <h4 className="text-sm font-black uppercase tracking-[0.15em] text-white">Daily Checklist</h4>
-            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Mission-critical tasks for oversight</p>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Mission-critical tasks for oversight</p>
           </div>
         </div>
         <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-           <Target className="h-5 w-5 text-indigo-400 opacity-50" />
+           <Target className="h-5 w-5 text-primary opacity-50" />
         </div>
       </div>
 
       <div className="mb-8 space-y-3 px-1">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Execution Progress</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Execution Progress</span>
           <span className="text-sm font-black text-white">{Math.round(progress)}%</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5 border border-white/5">
           <div 
-            className="h-full bg-indigo-500 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
+            className="h-full bg-primary transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" 
             style={{ width: `${progress}%` }} 
           />
         </div>
@@ -65,14 +65,14 @@ export const OperationalChecklist: React.FC = () => {
                 id={item.id} 
                 checked={item.completed} 
                 onCheckedChange={() => toggleItem(item.id)}
-                className="h-6 w-6 rounded-lg border-slate-700 bg-slate-950 data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600 transition-all"
+                className="h-6 w-6 rounded-lg border-slate-700 bg-muted data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
               />
             </div>
             <label 
               htmlFor={item.id} 
               className={cn(
                 "cursor-pointer text-xs font-black transition-all tracking-tight",
-                item.completed ? "text-slate-500 line-through" : "text-slate-300 group-hover/item:text-white"
+                item.completed ? "text-muted-foreground line-through" : "text-muted-foreground group-hover/item:text-white"
               )}
             >
               {item.label}
@@ -82,7 +82,7 @@ export const OperationalChecklist: React.FC = () => {
       </div>
       
       {/* Subtle corner glow */}
-      <div className="absolute -bottom-16 -right-16 h-32 w-32 bg-indigo-500/5 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute -bottom-16 -right-16 h-32 w-32 bg-primary blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 };

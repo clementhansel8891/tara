@@ -235,7 +235,7 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
             href={config.docsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
+            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary transition-colors"
           >
             <ExternalLink className="w-3 h-3" /> Docs
           </a>
@@ -266,9 +266,9 @@ export const MarketplaceSettingsPanel: React.FC<Props> = ({
       </div>
 
       {/* Status badge */}
-      <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-blue-100">
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary">
         <Info className="w-4 h-4 text-primary shrink-0" />
-        <p className="text-[11px] font-bold text-blue-700">
+        <p className="text-[11px] font-bold text-primary">
           Settings are encrypted at rest and only transmitted over HTTPS.
           Credentials are never logged.
         </p>

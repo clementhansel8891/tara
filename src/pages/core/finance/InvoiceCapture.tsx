@@ -334,7 +334,7 @@ export default function InvoiceCapture() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Due Date</p>
-                    <p className="font-medium text-sm text-rose-600">{selectedInvoice?.dueDate}</p>
+                    <p className="font-medium text-sm text-destructive">{selectedInvoice?.dueDate}</p>
                   </div>
                 </div>
               </div>

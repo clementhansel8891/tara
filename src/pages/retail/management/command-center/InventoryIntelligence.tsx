@@ -108,7 +108,7 @@ export const InventoryIntelligence: React.FC<InventoryIntelligenceProps> = ({
                 Critical Depletion (7D)
               </p>
             </div>
-            <span className="text-[10px] font-black text-rose-400 bg-destructive/10 px-4 py-1.5 rounded-xl border border-rose-500/20 animate-pulse tracking-widest italic">
+            <span className="text-[10px] font-black text-destructive bg-destructive/10 px-4 py-1.5 rounded-xl border border-rose-500/20 animate-pulse tracking-widest italic">
               ACTION REQUIRED
             </span>
           </div>
@@ -129,11 +129,11 @@ export const InventoryIntelligence: React.FC<InventoryIntelligenceProps> = ({
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-black italic text-foreground group-hover/item:text-rose-400 transition-colors truncate mb-2 tracking-tighter">
+                  <h4 className="text-lg font-black italic text-foreground group-hover/item:text-destructive transition-colors truncate mb-2 tracking-tighter">
                     {item.name}
                   </h4>
                   <div className="flex items-center gap-4">
-                    <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground group-hover/item:text-rose-300 whitespace-nowrap italic">
+                    <p className="text-[11px] font-black uppercase tracking-widest text-muted-foreground group-hover/item:text-destructive whitespace-nowrap italic">
                       EST DEPLETION: {item.predictedOutDate}
                     </p>
                     <div className="h-2 flex-1 bg-secondary/40 rounded-full overflow-hidden p-[1px] border border-white/5">

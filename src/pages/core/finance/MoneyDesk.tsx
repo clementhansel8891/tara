@@ -304,12 +304,12 @@ export default function MoneyDesk() {
         description="Active payment requests and treasury alerts requiring immediate action."
       >
         {statusMessage ? (
-          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-success px-3 py-2 text-sm text-success">
             {statusMessage}
           </div>
         ) : null}
         {errorMessage ? (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <div className="mb-4 rounded-lg border border-red-200 bg-destructive px-3 py-2 text-sm text-destructive">
             {errorMessage}
           </div>
         ) : null}
@@ -475,20 +475,20 @@ export default function MoneyDesk() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-slate-50">
                     <div>
-                      <p className="text-[8px] font-black uppercase text-slate-400 mb-0.5">Min Limit</p>
-                      <p className={`text-xs font-bold ${source.balance < (source.minLimit || 0) ? "text-rose-600" : "text-slate-600"}`}>
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Min Limit</p>
+                      <p className={`text-xs font-bold ${source.balance < (source.minLimit || 0) ? "text-destructive" : "text-muted-foreground"}`}>
                         {source.minLimit ? `${source.currency} ${source.minLimit.toLocaleString()}` : "Not Set"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[8px] font-black uppercase text-slate-400 mb-0.5">Max Limit</p>
-                      <p className={`text-xs font-bold ${source.balance > (source.maxLimit || 999999999) ? "text-rose-600" : "text-slate-600"}`}>
+                      <p className="text-[8px] font-black uppercase text-muted-foreground mb-0.5">Max Limit</p>
+                      <p className={`text-xs font-bold ${source.balance > (source.maxLimit || 999999999) ? "text-destructive" : "text-muted-foreground"}`}>
                         {source.maxLimit ? `${source.currency} ${source.maxLimit.toLocaleString()}` : "Not Set"}
                       </p>
                     </div>
                   </div>
                   {(source.balance < (source.minLimit || 0) || source.balance > (source.maxLimit || 999999999)) && (
-                    <div className="mt-3 flex items-center gap-2 text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 animate-pulse">
+                    <div className="mt-3 flex items-center gap-2 text-destructive bg-destructive p-2 rounded-lg border border-rose-100 animate-pulse">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       <span className="text-[9px] font-black uppercase tracking-tighter">THRESHOLD VIOLATION</span>
                     </div>
@@ -581,9 +581,9 @@ export default function MoneyDesk() {
                     <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Authorization</p>
                     <p className="font-semibold text-sm flex items-center gap-1">
                       {isHighLevel ? (
-                        <><CheckCircle2 className="w-4 h-4 text-green-500" /> Direct Processing</>
+                        <><CheckCircle2 className="w-4 h-4 text-success" /> Direct Processing</>
                       ) : (
-                        <><Info className="w-4 h-4 text-blue-500" /> Route to Finance HOD</>
+                        <><Info className="w-4 h-4 text-primary" /> Route to Finance HOD</>
                       )}
                     </p>
                   </div>
@@ -792,7 +792,7 @@ export default function MoneyDesk() {
             <DialogTitle>Operational Alert</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div className="rounded-lg bg-rose-50 border border-rose-100 p-3 text-rose-900">
+            <div className="rounded-lg bg-destructive border border-rose-100 p-3 text-destructive">
               <p className="font-bold">{selectedAlert?.title}</p>
               <p className="text-sm">{selectedAlert?.description}</p>
             </div>
@@ -832,7 +832,7 @@ export default function MoneyDesk() {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Min Balance Limit</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Min Balance Limit</label>
                 <Input 
                   type="number" 
                   value={limitMin} 
@@ -841,7 +841,7 @@ export default function MoneyDesk() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Max Balance Limit</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Max Balance Limit</label>
                 <Input 
                   type="number" 
                   value={limitMax} 
@@ -851,7 +851,7 @@ export default function MoneyDesk() {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-100 p-3 rounded-lg text-[10px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">
+            <div className="bg-warning border border-amber-100 p-3 rounded-lg text-[10px] text-warning font-bold uppercase tracking-widest leading-relaxed">
               <Info className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
               Violations will trigger real-time alerts in the Money Desk and notify the treasury team.
             </div>

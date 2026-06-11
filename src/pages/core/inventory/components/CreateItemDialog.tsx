@@ -84,16 +84,16 @@ export function CreateItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-950 p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[600px] rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted p-0 overflow-hidden">
         <form onSubmit={handleSubmit}>
-          <div className="bg-slate-900 p-8 text-white">
-            <div className="flex items-center gap-3 text-indigo-400 font-black text-[10px] uppercase tracking-[0.3em] mb-2">
+          <div className="bg-muted p-8 text-white">
+            <div className="flex items-center gap-3 text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-2">
               <Plus className="h-3 w-3" /> CATALOG_ADDITION
             </div>
             <DialogTitle className="text-3xl font-black tracking-tighter uppercase italic">
               New Inventory Item
             </DialogTitle>
-            <DialogDescription className="text-slate-400 font-bold italic">
+            <DialogDescription className="text-muted-foreground font-bold italic">
               Define a new product identity within the logistics engine.
             </DialogDescription>
           </div>
@@ -101,12 +101,12 @@ export function CreateItemDialog({
           <div className="p-8 space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Unique SKU</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unique SKU</Label>
                 <div className="relative">
-                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <UIInput
                     required
-                    className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                    className="pl-12 h-12 rounded-2xl bg-muted dark:bg-muted border-none font-bold"
                     placeholder="e.g. ELE-MAC-001"
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
@@ -114,12 +114,12 @@ export function CreateItemDialog({
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</Label>
                 <div className="relative">
-                  <Tags className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Tags className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <UIInput
                     required
-                    className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                    className="pl-12 h-12 rounded-2xl bg-muted dark:bg-muted border-none font-bold"
                     placeholder="e.g. Electronics"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -129,12 +129,12 @@ export function CreateItemDialog({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Item Identity (Name)</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Item Identity (Name)</Label>
               <div className="relative">
-                <Box className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Box className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <UIInput
                   required
-                  className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                  className="pl-12 h-12 rounded-2xl bg-muted dark:bg-muted border-none font-bold"
                   placeholder="e.g. Macbook Pro M3 14-inch"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -144,25 +144,25 @@ export function CreateItemDialog({
 
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Base Cost ($)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Base Cost ($)</Label>
                 <div className="relative">
-                  <BarChart3 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <BarChart3 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <UIInput
                     type="number"
                     step="0.01"
-                    className="pl-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold"
+                    className="pl-12 h-12 rounded-2xl bg-muted dark:bg-muted border-none font-bold"
                     value={formData.base_price}
                     onChange={(e) => setFormData({ ...formData, base_price: parseFloat(e.target.value) })}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Unit of Measure</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Unit of Measure</Label>
                 <UISelect 
                   value={formData.uom} 
                   onValueChange={(val) => setFormData({ ...formData, uom: val })}
                 >
-                  <UISelectTrigger className="h-12 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-bold">
+                  <UISelectTrigger className="h-12 rounded-2xl bg-muted dark:bg-muted border-none font-bold">
                     <UISelectValue />
                   </UISelectTrigger>
                   <UISelectContent className="rounded-2xl border-none shadow-2xl">
@@ -176,9 +176,9 @@ export function CreateItemDialog({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Description</Label>
               <Textarea
-                className="min-h-[100px] rounded-2xl bg-slate-50 dark:bg-slate-900 border-none font-medium italic"
+                className="min-h-[100px] rounded-2xl bg-muted dark:bg-muted border-none font-medium italic"
                 placeholder="Technical specifications and logistics notes..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -197,7 +197,7 @@ export function CreateItemDialog({
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="rounded-xl h-12 px-10 font-black text-[10px] uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 shadow-xl"
+                className="rounded-xl h-12 px-10 font-black text-[10px] uppercase tracking-widest bg-muted text-white hover:bg-muted shadow-xl"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                 Execute Creation

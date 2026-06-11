@@ -74,13 +74,13 @@ export const ChannelListItem = ({
   return (
     <div
       key={channel.id}
-      className="group hover:bg-secondary/5/50 transition-all border-b border-slate-100 last:border-none"
+      className="group hover:bg-secondary/5 transition-all border-b border-slate-100 last:border-none"
     >
       <div className="flex flex-col lg:flex-row lg:items-center gap-6 p-8">
         <div className="flex items-center gap-6 flex-1">
           <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
             {channel.integrationCategory === "PRESET" ? (
-              <ShoppingBag className="w-8 h-8 text-blue-400" />
+              <ShoppingBag className="w-8 h-8 text-primary" />
             ) : (
               <Globe className="w-8 h-8 text-success" />
             )}
@@ -93,7 +93,7 @@ export const ChannelListItem = ({
               <Badge
                 className={
                   channel.status === "active"
-                    ? "bg-emerald-50 text-success border-none font-black italic text-[8px] uppercase"
+                    ? "bg-success text-success border-none font-black italic text-[8px] uppercase"
                     : "bg-secondary/10 text-muted-foreground border-none font-black italic text-[8px] uppercase"
                 }
               >
@@ -148,7 +148,7 @@ export const ChannelListItem = ({
               className="h-12 px-6 rounded-xl bg-secondary border-none font-black italic uppercase text-[9px] tracking-widest flex items-center gap-2 group/btn"
             >
               Vault{" "}
-              <Key className="w-3 h-3 group-hover/btn:rotate-12 transition-transform text-amber-400" />
+              <Key className="w-3 h-3 group-hover/btn:rotate-12 transition-transform text-warning" />
             </Button>
           </div>
         </div>
@@ -167,7 +167,7 @@ export const ChannelListItem = ({
               e.stopPropagation();
               copyCredential(cred.value as string, cred.label);
             }}
-            className="h-10 px-4 bg-white border border-slate-100 rounded-xl hover:border-blue-200 hover:bg-primary/5/50 transition-all flex items-center gap-3 group/cred"
+            className="h-10 px-4 bg-white border border-slate-100 rounded-xl hover:border-primary hover:bg-primary/5 transition-all flex items-center gap-3 group/cred"
           >
             <cred.icon className="w-3.5 h-3.5 text-muted-foreground group-hover/cred:text-primary transition-colors" />
             <div className="flex flex-col items-start leading-none text-left">

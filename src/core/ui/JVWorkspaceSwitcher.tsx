@@ -54,7 +54,7 @@ export function JVWorkspaceSwitcher() {
           size="sm" 
           className={cn(
             "h-8 gap-2 border-dashed transition-all duration-300",
-            currentJV ? "bg-amber-500/10 border-amber-500/50 text-amber-700 hover:bg-amber-500/20" : "hover:bg-accent"
+            currentJV ? "bg-warning border-amber-500/50 text-warning hover:bg-warning" : "hover:bg-accent"
           )}
         >
           <Globe className={cn("w-4 h-4", currentJV && "animate-pulse")} />
@@ -64,22 +64,22 @@ export function JVWorkspaceSwitcher() {
           <ChevronDown className="w-3 h-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64 glass-morphism border-gray-200/50 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        <DropdownMenuLabel className="text-xs font-bold text-gray-500 uppercase tracking-wider px-3 py-2">
+      <DropdownMenuContent align="start" className="w-64 glass-morphism border-border shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <DropdownMenuLabel className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-3 py-2">
           Joint Venture Mirror
         </DropdownMenuLabel>
         
         {currentJV && (
           <DropdownMenuItem 
             onClick={exitMirrorMode}
-            className="text-rose-600 focus:text-rose-700 focus:bg-rose-50 cursor-pointer font-semibold"
+            className="text-destructive focus:text-destructive focus:bg-destructive cursor-pointer font-semibold"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Exit Mirror Mode
           </DropdownMenuItem>
         )}
 
-        {participations.length > 0 && <DropdownMenuSeparator className="bg-gray-100" />}
+        {participations.length > 0 && <DropdownMenuSeparator className="bg-muted" />}
         
         {(Array.isArray(participations) ? participations : []).map((p) => {
           const isSelected = currentJV?.hostTenantId === p.jv_profiles.tenant_id;
@@ -90,12 +90,12 @@ export function JVWorkspaceSwitcher() {
               className="flex flex-col items-start gap-1 py-3 px-3 cursor-pointer group"
             >
               <div className="flex items-center justify-between w-full">
-                <span className={cn("font-bold text-sm transition-colors", isSelected ? "text-indigo-600" : "text-gray-900 group-hover:text-indigo-600")}>
+                <span className={cn("font-bold text-sm transition-colors", isSelected ? "text-primary" : "text-muted-foreground group-hover:text-primary")}>
                   {p.jv_profiles.name}
                 </span>
-                {isSelected && <CheckCircle2 className="w-4 h-4 text-indigo-600 animate-in zoom-in" />}
+                {isSelected && <CheckCircle2 className="w-4 h-4 text-primary animate-in zoom-in" />}
               </div>
-              <span className="text-[10px] text-gray-500 leading-tight">
+              <span className="text-[10px] text-muted-foreground leading-tight">
                 Role: {p.role} • Scope: {p.jv_profiles.scopes[0]?.branch_id ? "Branch-Level" : "Company-Level"}
               </span>
             </DropdownMenuItem>
@@ -104,7 +104,7 @@ export function JVWorkspaceSwitcher() {
 
         {participations.length === 0 && !currentJV && (
           <div className="px-3 py-4 text-center">
-            <p className="text-xs text-gray-400 italic">No partner invitations found</p>
+            <p className="text-xs text-muted-foreground italic">No partner invitations found</p>
           </div>
         )}
       </DropdownMenuContent>

@@ -116,19 +116,19 @@ export default function PaymentDashboard() {
           description="In-store physical POS device health and retail payment dispute rate."
         >
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-success">
               <p className="text-xs text-muted-foreground">
                 Active POS Devices
               </p>
-              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+              <p className="text-2xl font-semibold text-success dark:text-success">
                 {metrics.moduleContributions.retail.activePosDevices}
               </p>
             </div>
-            <div className="rounded-lg border p-3 border-emerald-500/20 bg-emerald-500/5">
+            <div className="rounded-lg border p-3 border-emerald-500/20 bg-success">
               <p className="text-xs text-muted-foreground">
                 Store Payment Disputes
               </p>
-              <p className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
+              <p className="text-2xl font-semibold text-success dark:text-success">
                 {metrics.moduleContributions.retail.totalDisputes}
               </p>
             </div>

@@ -40,7 +40,7 @@ const DiscoveryModal = ({
       <div className="flex-1 overflow-y-auto py-4 space-y-3">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <RefreshCw className="w-10 h-10 text-slate-200 animate-spin" />
+            <RefreshCw className="w-10 h-10 text-muted-foreground animate-spin" />
             <div className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
               Scanning Branch LAN…
             </div>
@@ -56,7 +56,7 @@ const DiscoveryModal = ({
           (Array.isArray(results) ? results : []).map((r, i) => (
             <div
               key={i}
-              className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 bg-secondary/5/50 hover:bg-white hover:shadow-md transition-all group"
+              className="flex items-center gap-4 p-4 rounded-2xl border border-slate-50 bg-secondary/5 hover:bg-white hover:shadow-md transition-all group"
             >
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <DeviceIcon type={r.type} cls="w-5 h-5" />

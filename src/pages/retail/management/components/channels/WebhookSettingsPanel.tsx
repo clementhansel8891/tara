@@ -96,9 +96,9 @@ const WEBHOOK_EVENTS: WebhookEvent[] = [
 
 const CATEGORY_COLORS: Record<string, string> = {
   order: "bg-primary/5 text-primary",
-  inventory: "bg-amber-50 text-amber-600",
-  payment: "bg-emerald-50 text-success",
-  customer: "bg-purple-50 text-purple-600",
+  inventory: "bg-warning text-warning",
+  payment: "bg-success text-success",
+  customer: "bg-primary text-primary",
 };
 
 export const WebhookSettingsPanel: React.FC<Props> = ({
@@ -203,7 +203,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
       {/* ── Inbound Section ── */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
             <ArrowDownToLine className="w-4 h-4 text-primary" />
           </div>
           <div>
@@ -253,7 +253,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
                 variant="outline"
                 onClick={handleRotateHmac}
                 disabled={isRotating}
-                className="rounded-xl font-black italic text-xs gap-1.5 border-amber-200 text-amber-600 hover:bg-amber-50 shrink-0"
+                className="rounded-xl font-black italic text-xs gap-1.5 border-amber-200 text-warning hover:bg-warning shrink-0"
               >
                 <RotateCcw
                   className={cn("w-3.5 h-3.5", isRotating && "animate-spin")}
@@ -363,7 +363,7 @@ export const WebhookSettingsPanel: React.FC<Props> = ({
                       {ev.category}
                     </Badge>
                     <div>
-                      <div className="font-black italic text-slate-800 text-xs">
+                      <div className="font-black italic text-muted-foreground text-xs">
                         {ev.label}
                       </div>
                       <div className="text-[10px] text-muted-foreground font-bold">

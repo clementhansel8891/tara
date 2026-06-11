@@ -191,7 +191,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
           <Button
             variant="ghost"
             onClick={handleDelete}
-            className="text-[10px] font-black italic uppercase tracking-widest text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl h-11"
+            className="text-[10px] font-black italic uppercase tracking-widest text-destructive hover:text-destructive hover:bg-destructive rounded-xl h-11"
           >
             <Trash2 className="w-4 h-4 mr-2" /> Delete
           </Button>
@@ -205,7 +205,7 @@ export const EditShiftModal: React.FC<EditShiftModalProps> = ({
             </Button>
             <Button
               onClick={handleSave}
-              className="text-[10px] font-black italic uppercase tracking-widest bg-primary hover:bg-blue-700 text-foreground rounded-xl h-11 px-6 shadow-md"
+              className="text-[10px] font-black italic uppercase tracking-widest bg-primary hover:bg-primary text-foreground rounded-xl h-11 px-6 shadow-md"
             >
               Confirm
             </Button>

@@ -22,7 +22,7 @@ export function WorkspacePanel({
   const variantClasses = {
     default: "bg-background",
     glass: "bg-white/80 backdrop-blur-xl border-white/20 shadow-xl",
-    dark: "bg-slate-900 text-slate-100 border-slate-800"
+    dark: "bg-muted text-muted-foreground border-slate-800"
   };
 
   return (
@@ -40,13 +40,13 @@ export function WorkspacePanel({
             {title ? (
               <p className={cn(
                 "text-sm font-semibold",
-                variant === 'dark' ? "text-slate-100" : "text-foreground"
+                variant === 'dark' ? "text-muted-foreground" : "text-foreground"
               )}>{title}</p>
             ) : null}
             {description ? (
               <p className={cn(
                 "text-xs",
-                variant === 'dark' ? "text-slate-400" : "text-muted-foreground"
+                variant === 'dark' ? "text-muted-foreground" : "text-muted-foreground"
               )}>{description}</p>
             ) : null}
           </div>

@@ -48,12 +48,12 @@ interface AuditLog {
 
 const eventColors: Record<string, string> = {
   FISCAL_VOID: "text-destructive bg-destructive/10 border-rose-500/20",
-  PERMISSION_CHANGE: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-  MANUAL_ADJUST: "text-primary bg-primary/10 border-blue-500/20",
+  PERMISSION_CHANGE: "text-warning bg-warning border-amber-500/20",
+  MANUAL_ADJUST: "text-primary bg-primary/10 border-primary",
   STORE_OPEN: "text-success bg-success/10 border-emerald-500/20",
-  STORE_CLOSE: "text-muted-foreground bg-muted/40/10 border-slate-400/20",
-  DISCOUNT_APPLIED: "text-primary bg-primary/10 border-indigo-500/20",
-  REFUND_ISSUED: "text-rose-400 bg-rose-400/10 border-rose-400/20",
+  STORE_CLOSE: "text-muted-foreground bg-muted/40 border-slate-400/20",
+  DISCOUNT_APPLIED: "text-primary bg-primary/10 border-primary",
+  REFUND_ISSUED: "text-destructive bg-destructive border-rose-400/20",
 };
 
 const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
@@ -121,7 +121,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <Card className="lg:col-span-3 bg-white/[0.03] border border-border shadow-2xl rounded-[2rem] overflow-hidden relative group backdrop-blur-3xl">
             <div className="absolute top-0 right-0 p-6 opacity-5">
-              <ShieldCheck className="w-48 h-48 text-blue-400" />
+              <ShieldCheck className="w-48 h-48 text-primary" />
             </div>
             <CardContent className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10 text-foreground">
               <div className="space-y-6 flex-1">
@@ -192,7 +192,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-2xl border-none bg-primary/10 hover:bg-primary/20 border border-indigo-500/20 backdrop-blur-3xl rounded-2xl group cursor-pointer transition-all duration-500" onClick={() => navigate("/core/compliance")}>
+            <Card className="shadow-2xl border-none bg-primary/10 hover:bg-primary/20 border border-primary backdrop-blur-3xl rounded-2xl group cursor-pointer transition-all duration-500" onClick={() => navigate("/core/compliance")}>
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-foreground shadow-xl mx-auto group-hover:scale-110 transition-transform">
                   <Database className="w-7 h-7" />
@@ -253,7 +253,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-indigo-500/20 rounded-xl">
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary rounded-xl">
               <Zap className="w-4 h-4 text-primary" />
               <span className="text-[10px] font-black italic uppercase text-primary tracking-widest">REAL-TIME SYNC</span>
             </div>
@@ -322,7 +322,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
                     </td>
                     <td className="px-10 py-6">
                       <div
-                        className={`text-xs font-black italic ${String(log.metadata?.impact || "").startsWith("-") ? "text-destructive" : log.action === "PERMISSION_CHANGE" ? "text-amber-500" : "text-muted-foreground"}`}
+                        className={`text-xs font-black italic ${String(log.metadata?.impact || "").startsWith("-") ? "text-destructive" : log.action === "PERMISSION_CHANGE" ? "text-warning" : "text-muted-foreground"}`}
                       >
                         {log.metadata?.impact || "N/A"}
                       </div>
@@ -352,7 +352,7 @@ const ComplianceAuditLedger = ({ noShell = false }: { noShell?: boolean }) => {
             onClick={() => navigate("/core/compliance")}
             variant="ghost"
             size="sm"
-            className="font-black italic text-[11px] uppercase text-primary hover:bg-primary/10 rounded-2xl gap-3 h-11 px-6 border border-indigo-500/20"
+            className="font-black italic text-[11px] uppercase text-primary hover:bg-primary/10 rounded-2xl gap-3 h-11 px-6 border border-primary"
           >
             Verify All Historical Blocks{" "}
             <ChevronRight className="w-4 h-4" />

@@ -52,19 +52,19 @@ const STATUS_META: Record<OrderStatus, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-secondary/10 text-muted-foreground" },
   pending_payment: {
     label: "Pending Payment",
-    className: "bg-yellow-50 text-yellow-700",
+    className: "bg-warning text-warning",
   },
   reserved: { label: "Reserved", className: "bg-primary/5 text-primary" },
-  paid: { label: "Paid", className: "bg-primary/5 text-blue-700" },
+  paid: { label: "Paid", className: "bg-primary/5 text-primary" },
   processing: {
     label: "Processing",
-    className: "bg-violet-50 text-violet-700",
+    className: "bg-primary text-primary",
   },
-  ready_for_pickup: { label: "Ready", className: "bg-amber-50 text-amber-700" },
+  ready_for_pickup: { label: "Ready", className: "bg-warning text-warning" },
   shipped: { label: "Shipped", className: "bg-cyan-50 text-cyan-700" },
-  complete: { label: "Complete", className: "bg-emerald-50 text-success" },
-  cancelled: { label: "Cancelled", className: "bg-red-50 text-red-600" },
-  refunded: { label: "Refunded", className: "bg-rose-50 text-destructive" },
+  complete: { label: "Complete", className: "bg-success text-success" },
+  cancelled: { label: "Cancelled", className: "bg-destructive text-destructive" },
+  refunded: { label: "Refunded", className: "bg-destructive text-destructive" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
           {filteredOrders.length === 0 ? (
             <Card className="rounded-2xl shadow-2xl border-none bg-white overflow-hidden">
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <Package className="w-12 h-12 text-slate-200" />
+                <Package className="w-12 h-12 text-muted-foreground" />
                 <p className="text-xs font-black italic uppercase tracking-widest text-muted-foreground/60">
                   No orders in this queue
                 </p>
@@ -266,7 +266,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                         <tr
                           key={order.id}
                           className={cn(
-                            "group hover:bg-secondary/5/80 transition-all cursor-pointer",
+                            "group hover:bg-secondary/5 transition-all cursor-pointer",
                             isCompleted && "opacity-60",
                           )}
                           onClick={() => onOrderClick(order)}
@@ -278,7 +278,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                                 className={cn(
                                   "w-10 h-10 rounded-2xl flex items-center justify-center font-black italic text-[10px] shadow-inner",
                                   (order.totalAmount || 0) > 1000000
-                                    ? "bg-amber-50 text-amber-600"
+                                    ? "bg-warning text-warning"
                                     : "bg-secondary/5 text-muted-foreground",
                                 )}
                               >
@@ -353,7 +353,7 @@ export const OrderRacetrack: React.FC<OrderRacetrackProps> = ({
                             ) : channel.source === "POS" ||
                               order.status === "ready_for_pickup" ? (
                               <div className="flex items-center gap-2">
-                                <Badge className="bg-emerald-50 text-success border-none text-[9px] font-black italic uppercase">
+                                <Badge className="bg-success text-success border-none text-[9px] font-black italic uppercase">
                                   Ready for Pickup
                                 </Badge>
                                 <Button

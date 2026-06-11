@@ -220,7 +220,7 @@ export default function PeopleCore() {
         secondaryActions={
           <div className="flex gap-2">
              {isRetailStaff && (
-               <Badge className="bg-orange-100 text-orange-700 border-orange-200 flex items-center gap-1">
+               <Badge className="bg-warning text-warning border-orange-200 flex items-center gap-1">
                  <Store className="h-3 w-3" /> Retail Workforce
                </Badge>
              )}
@@ -308,7 +308,7 @@ export default function PeopleCore() {
           <ZenTooltip content="Transfer this professional to a different organizational department.">
             <Button
               variant="outline"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="border-primary text-primary hover:bg-primary"
               onClick={() => {
                 setTargetDept(employee.departmentId);
                 setActionType("MOVE");
@@ -322,7 +322,7 @@ export default function PeopleCore() {
           <ZenTooltip content="Promote this professional to a new rank or roleTitle.">
             <Button
               variant="outline"
-              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              className="border-emerald-200 text-success hover:bg-success"
               onClick={() => {
                 setNewRole(employee.roleTitle);
                 setNewSalary(employee.baseSalary);
@@ -337,7 +337,7 @@ export default function PeopleCore() {
           <ZenTooltip content="Place this record under temporary suspension for administrative reasons.">
             <Button
               variant="outline"
-              className="border-red-200 text-red-700 hover:bg-red-50"
+              className="border-red-200 text-destructive hover:bg-destructive"
               onClick={() => {
                 setActionType("SUSPEND");
                 setActionOpen(true);
@@ -350,7 +350,7 @@ export default function PeopleCore() {
           <ZenTooltip content="Remove active status from this professional's record.">
             <Button
               variant="outline"
-              className="border-amber-200 text-amber-700 hover:bg-amber-50"
+              className="border-amber-200 text-warning hover:bg-warning"
               onClick={() => {
                 setActionType("REMOVE");
                 setActionOpen(true);
@@ -400,7 +400,7 @@ export default function PeopleCore() {
                  <div className="rounded-lg border p-4">
                     <p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Shift Status</p>
                     {activeShift ? (
-                      <div className="flex items-center gap-2 text-emerald-600">
+                      <div className="flex items-center gap-2 text-success">
                          <Zap className="h-4 w-4" />
                          <span className="text-sm font-medium">Active Shift at Store {activeShift.storeId}</span>
                       </div>
@@ -950,7 +950,7 @@ export default function PeopleCore() {
                 {actionType === "MOVE" && wizardStep === 1 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Network className="w-5 h-5 text-blue-500" />
+                      <Network className="w-5 h-5 text-primary" />
                       <h3 className="font-semibold">Select Target Department</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
@@ -974,7 +974,7 @@ export default function PeopleCore() {
                 {actionType === "MOVE" && wizardStep === 2 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="w-5 h-5 text-orange-500" />
+                      <MapPin className="w-5 h-5 text-warning" />
                       <h3 className="font-semibold">Select Work Location</h3>
                     </div>
                     <div className="grid grid-cols-1 gap-2">
@@ -998,7 +998,7 @@ export default function PeopleCore() {
                 {actionType === "PROMOTE" && wizardStep === 1 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <Briefcase className="w-5 h-5 text-emerald-500" />
+                      <Briefcase className="w-5 h-5 text-success" />
                       <h3 className="font-semibold">New Professional Grade</h3>
                     </div>
                     <div className="space-y-4">
@@ -1020,7 +1020,7 @@ export default function PeopleCore() {
                 {actionType === "PROMOTE" && wizardStep === 2 && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                     <div className="flex items-center gap-2 mb-2">
-                      <CreditCard className="w-5 h-5 text-amber-500" />
+                      <CreditCard className="w-5 h-5 text-warning" />
                       <h3 className="font-semibold">Compensation Adjustment</h3>
                     </div>
                     <div className="space-y-4">
@@ -1033,12 +1033,12 @@ export default function PeopleCore() {
                           onChange={(e) => setNewSalary(Number(e.target.value))}
                         />
                       </div>
-                      <div className="rounded-lg border bg-amber-50 p-4 border-amber-100">
+                      <div className="rounded-lg border bg-warning p-4 border-amber-100">
                          <div className="flex justify-between text-xs mb-1">
                             <span>Current Salary</span>
                             <span className="font-mono">{employee.baseSalary}</span>
                          </div>
-                         <div className="flex justify-between text-xs font-bold text-amber-700">
+                         <div className="flex justify-between text-xs font-bold text-warning">
                             <span>Projected Increase</span>
                             <span>{newSalary ? (newSalary - (employee.baseSalary || 0)).toFixed(2) : '--'}</span>
                          </div>

@@ -256,7 +256,7 @@ export default function ContractDesk() {
                   <Info className="w-3.5 h-3.5" /> Compliance Mode
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Once created, the status reverts to <span className="text-amber-600 font-bold">LEGAL_REVIEW</span>. Versioning is automatic.
+                  Once created, the status reverts to <span className="text-warning font-bold">LEGAL_REVIEW</span>. Versioning is automatic.
                 </p>
               </div>
             </div>

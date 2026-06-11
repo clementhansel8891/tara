@@ -119,22 +119,22 @@ export const ReconciliationDesk: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50/50 min-h-screen">
+    <div className="p-6 space-y-6 bg-muted min-h-screen">
       <GlobalFinancialFilterBar />
 
       <header className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm backdrop-blur-md">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Bank className="w-8 h-8 text-indigo-600" />
+          <h1 className="text-2xl font-bold text-muted-foreground flex items-center gap-2">
+            <Bank className="w-8 h-8 text-primary" />
             Bank Reconciliation Desk
           </h1>
-          <p className="text-slate-500">Reconcile bank statements with your internal ledger</p>
+          <p className="text-muted-foreground">Reconcile bank statements with your internal ledger</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="flex gap-2">
             <CloudUpload className="w-4 h-4" /> Import Statement
           </Button>
-          <Button onClick={handleAutoMatch} disabled={!selectedStatementId || isLoading} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button onClick={handleAutoMatch} disabled={!selectedStatementId || isLoading} className="bg-primary hover:bg-primary">
             Auto-Match All
           </Button>
           <Button onClick={handleFinalize} disabled={!selectedStatementId} variant="success">
@@ -146,13 +146,13 @@ export const ReconciliationDesk: React.FC = () => {
       <div className="grid grid-cols-12 gap-6">
         {/* Left: Bank Transactions */}
         <Card className="col-span-12 lg:col-span-7 border-none shadow-xl bg-white/80 backdrop-blur-lg">
-          <CardHeader className="border-b bg-slate-50/50">
+          <CardHeader className="border-b bg-muted">
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-lg">Bank Statement Transactions</CardTitle>
                 <CardDescription>Select a transaction to find matches</CardDescription>
               </div>
-              <Badge variant="outline" className="text-indigo-600 border-indigo-200">
+              <Badge variant="outline" className="text-primary border-primary">
                 {bankTxs.length} Transactions
               </Badge>
             </div>
@@ -160,12 +160,12 @@ export const ReconciliationDesk: React.FC = () => {
           <CardContent className="p-0">
             <div className="overflow-auto max-h-[600px]">
               <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 bg-slate-100 z-10">
+                <thead className="sticky top-0 bg-muted z-10">
                   <tr>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Date</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Description</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase text-right">Amount</th>
-                    <th className="p-4 text-xs font-semibold text-slate-500 uppercase">Status</th>
+                    <th className="p-4 text-xs font-semibold text-muted-foreground uppercase">Date</th>
+                    <th className="p-4 text-xs font-semibold text-muted-foreground uppercase">Description</th>
+                    <th className="p-4 text-xs font-semibold text-muted-foreground uppercase text-right">Amount</th>
+                    <th className="p-4 text-xs font-semibold text-muted-foreground uppercase">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -173,21 +173,21 @@ export const ReconciliationDesk: React.FC = () => {
                     <tr 
                       key={tx.id} 
                       onClick={() => setSelectedBankTx(tx)}
-                      className={`cursor-pointer hover:bg-indigo-50/50 transition-colors ${selectedBankTx?.id === tx.id ? 'bg-indigo-50 border-l-4 border-indigo-500' : 'border-b border-slate-100'}`}
+                      className={`cursor-pointer hover:bg-primary transition-colors ${selectedBankTx?.id === tx.id ? 'bg-primary border-l-4 border-primary' : 'border-b border-slate-100'}`}
                     >
                       <td className="p-4 text-sm font-medium">{tx.transaction_date}</td>
                       <td className="p-4">
-                        <div className="text-sm font-bold text-slate-700">{tx.description}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">{tx.reference}</div>
+                        <div className="text-sm font-bold text-muted-foreground">{tx.description}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{tx.reference}</div>
                       </td>
-                      <td className={`p-4 text-sm font-black text-right ${tx.amount < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      <td className={`p-4 text-sm font-black text-right ${tx.amount < 0 ? 'text-destructive' : 'text-success'}`}>
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(tx.amount)}
                       </td>
                       <td className="p-4">
                         <Badge variant="outline" className={
-                          tx.status === 'MATCHED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
-                          tx.status === 'PARTIALLY_MATCHED' ? 'bg-amber-50 text-amber-600 border-amber-100' : 
-                          'bg-slate-100 text-slate-500 border-slate-200'
+                          tx.status === 'MATCHED' ? 'bg-success text-success border-emerald-100' : 
+                          tx.status === 'PARTIALLY_MATCHED' ? 'bg-warning text-warning border-amber-100' : 
+                          'bg-muted text-muted-foreground border-slate-200'
                         }>
                           {tx.status}
                         </Badge>
@@ -202,10 +202,10 @@ export const ReconciliationDesk: React.FC = () => {
 
         {/* Right: Matches & Ledger */}
         <div className="col-span-12 lg:col-span-5 space-y-6">
-          <Card className="border-none shadow-xl bg-white/80 backdrop-blur-lg border-l-4 border-indigo-500">
+          <Card className="border-none shadow-xl bg-white/80 backdrop-blur-lg border-l-4 border-primary">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <LinkIcon className="w-5 h-5 text-indigo-500" />
+                <LinkIcon className="w-5 h-5 text-primary" />
                 Manual Matching
               </CardTitle>
               <CardDescription>
@@ -217,21 +217,21 @@ export const ReconciliationDesk: React.FC = () => {
             <CardContent>
               {selectedBankTx ? (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 space-y-2">
-                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-indigo-400">
+                  <div className="p-4 rounded-xl bg-primary border border-primary space-y-2">
+                    <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-primary">
                       <span>Total Selected</span>
                       <span>Target Difference</span>
                     </div>
                     <div className="flex justify-between items-baseline">
-                      <div className="text-2xl font-black text-indigo-900">
+                      <div className="text-2xl font-black text-primary">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
                           (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
                         )}
                       </div>
                       <div className={`text-sm font-bold ${
                         Math.abs(selectedBankTx.amount - (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)) < 0.01
-                          ? 'text-emerald-600'
-                          : 'text-rose-500'
+                          ? 'text-success'
+                          : 'text-destructive'
                       }`}>
                         Δ {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
                           selectedBankTx.amount - (Array.isArray(unmatchedLedger) ? unmatchedLedger : []).filter(l => selectedLedgerIds.includes(l.id)).reduce((acc, l) => acc + l.amount, 0)
@@ -242,13 +242,13 @@ export const ReconciliationDesk: React.FC = () => {
                   <Button 
                     onClick={handleManualMatch} 
                     disabled={selectedLedgerIds.length === 0}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 text-lg font-bold"
+                    className="w-full bg-primary hover:bg-primary h-12 text-lg font-bold"
                   >
                     Confirm Match ({selectedLedgerIds.length})
                   </Button>
                 </div>
               ) : (
-                <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-slate-400 italic">
+                <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl text-muted-foreground italic">
                   Select a bank transaction on the left
                 </div>
               )}
@@ -256,8 +256,8 @@ export const ReconciliationDesk: React.FC = () => {
           </Card>
 
           <Card className="border-none shadow-xl bg-white/80 backdrop-blur-lg">
-            <CardHeader className="bg-slate-50/50 border-b">
-              <CardTitle className="text-sm uppercase tracking-widest text-slate-500">Unmatched Ledger Entries</CardTitle>
+            <CardHeader className="bg-muted border-b">
+              <CardTitle className="text-sm uppercase tracking-widest text-muted-foreground">Unmatched Ledger Entries</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-auto max-h-[400px]">
@@ -271,18 +271,18 @@ export const ReconciliationDesk: React.FC = () => {
                         setSelectedLedgerIds(prev => [...prev, entry.id]);
                       }
                     }}
-                    className={`p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors flex justify-between items-center ${selectedLedgerIds.includes(entry.id) ? 'bg-emerald-50/50' : ''}`}
+                    className={`p-4 border-b border-slate-100 cursor-pointer hover:bg-muted transition-colors flex justify-between items-center ${selectedLedgerIds.includes(entry.id) ? 'bg-success' : ''}`}
                   >
                     <div>
-                      <div className="text-sm font-bold text-slate-700">{entry.description}</div>
-                      <div className="text-[10px] text-slate-400 font-mono">{entry.ref} • {entry.posting_date}</div>
+                      <div className="text-sm font-bold text-muted-foreground">{entry.description}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono">{entry.ref} • {entry.posting_date}</div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-sm font-black text-slate-900">
+                      <div className="text-sm font-black text-muted-foreground">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(entry.amount)}
                       </div>
                       <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                        selectedLedgerIds.includes(entry.id) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'
+                        selectedLedgerIds.includes(entry.id) ? 'bg-success border-emerald-500' : 'border-slate-300'
                       }`}>
                         {selectedLedgerIds.includes(entry.id) && <Check className="w-3 h-3 text-white" />}
                       </div>

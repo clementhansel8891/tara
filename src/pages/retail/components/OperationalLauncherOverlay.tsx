@@ -41,8 +41,8 @@ const APPS: LauncherApp[] = [
     desc: "Post-Sale Disputes",
     icon: RotateCcw,
     route: "/m/retail/operational/refund",
-    color: "text-red-500",
-    bg: "bg-red-500/10",
+    color: "text-destructive",
+    bg: "bg-destructive",
   },
   {
     id: "ops-cash-movement",
@@ -50,8 +50,8 @@ const APPS: LauncherApp[] = [
     desc: "Petty Cash & Out",
     icon: Banknote,
     route: "/m/retail/operational/cash-movement",
-    color: "text-amber-500",
-    bg: "bg-amber-500/10",
+    color: "text-warning",
+    bg: "bg-warning",
   },
   {
     id: "ops-opname",
@@ -68,8 +68,8 @@ const APPS: LauncherApp[] = [
     desc: "Good Receiving",
     icon: Truck,
     route: "/m/retail/operational/receiving",
-    color: "text-orange-500",
-    bg: "bg-orange-500/10",
+    color: "text-warning",
+    bg: "bg-warning",
   },
   {
     id: "ops-kiosk",
@@ -77,8 +77,8 @@ const APPS: LauncherApp[] = [
     desc: "Guest Checkout",
     icon: Monitor,
     route: "/m/retail/operational/kiosk",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
+    color: "text-primary",
+    bg: "bg-primary",
   },
   {
     id: "ops-shift-close",
@@ -87,7 +87,7 @@ const APPS: LauncherApp[] = [
     icon: Lock,
     route: "/m/retail/operational/shift-close",
     color: "text-muted-foreground",
-    bg: "bg-muted/40/10",
+    bg: "bg-muted/40",
   },
 ];
 
@@ -125,7 +125,7 @@ export const OperationalLauncherOverlay: React.FC<{
         {(Array.isArray(APPS) ? APPS : []).map((app) => (
           <Card
             key={app.id}
-            className="group hover:scale-105 active:scale-95 transition-all cursor-pointer bg-secondary border-slate-800 hover:border-blue-500/50 hover:shadow-[0_0_40px_rgba(59,130,246,0.2)] overflow-hidden h-40 flex items-center"
+            className="group hover:scale-105 active:scale-95 transition-all cursor-pointer bg-secondary border-slate-800 hover:border-primary hover:shadow-[0_0_40px_rgba(59,130,246,0.2)] overflow-hidden h-40 flex items-center"
             onClick={() => {
               navigate(app.route);
               onClose();
@@ -138,7 +138,7 @@ export const OperationalLauncherOverlay: React.FC<{
                 <app.icon className="w-10 h-10" />
               </div>
               <div>
-                <div className="font-black text-white text-2xl uppercase tracking-tighter italic group-hover:text-blue-400 transition-colors">
+                <div className="font-black text-white text-2xl uppercase tracking-tighter italic group-hover:text-primary transition-colors">
                   {app.title}
                 </div>
                 <div className="text-sm text-muted-foreground font-bold uppercase tracking-widest mt-1">

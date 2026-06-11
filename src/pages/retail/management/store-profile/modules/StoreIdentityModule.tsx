@@ -35,11 +35,11 @@ export const StoreIdentityModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-100/50 rounded-xl text-primary">
+        <div className="p-2 bg-primary rounded-xl text-primary">
           <Building2 className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Node Identity & Registration
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -51,7 +51,7 @@ export const StoreIdentityModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Core Identity */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <Building2 className="w-4 h-4 text-muted-foreground" /> Core Identity
           </h3>
 
@@ -64,7 +64,7 @@ export const StoreIdentityModule: React.FC = () => {
                 value={selectedStore.name || ""}
                 onChange={(e) => updateLocalConfig({ name: e.target.value })}
                 disabled={!canEditStore}
-                className="font-bold border-slate-200 bg-secondary/5/50"
+                className="font-bold border-slate-200 bg-secondary/5"
               />
             </div>
 
@@ -90,7 +90,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ type: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -118,7 +118,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ status: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -136,13 +136,13 @@ export const StoreIdentityModule: React.FC = () => {
                   </SelectItem>
                   <SelectItem
                     value="archived"
-                    className="font-bold text-amber-600"
+                    className="font-bold text-warning"
                   >
                     Archived
                   </SelectItem>
                   <SelectItem
                     value="decommissioned"
-                    className="font-bold text-red-600"
+                    className="font-bold text-destructive"
                   >
                     Decommissioned
                   </SelectItem>
@@ -154,7 +154,7 @@ export const StoreIdentityModule: React.FC = () => {
 
         {/* Regional Parameters */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <MapPin className="w-4 h-4 text-muted-foreground" /> Regional Parameters
           </h3>
 
@@ -185,7 +185,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ timezone: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -215,7 +215,7 @@ export const StoreIdentityModule: React.FC = () => {
                   updateLocalConfig({ currency: value })
                 }
               >
-                <SelectTrigger className="border-slate-200 bg-secondary/5/50">
+                <SelectTrigger className="border-slate-200 bg-secondary/5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -240,7 +240,7 @@ export const StoreIdentityModule: React.FC = () => {
                 value={selectedStore.taxZone || "STANDARD"}
                 onChange={(e) => updateLocalConfig({ taxZone: e.target.value })}
                 disabled={!canEditStore}
-                className="font-mono border-slate-200 bg-secondary/5/50 uppercase"
+                className="font-mono border-slate-200 bg-secondary/5 uppercase"
               />
             </div>
           </div>

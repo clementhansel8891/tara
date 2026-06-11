@@ -11,10 +11,18 @@ import {
 } from "./dashboard-data";
 import { SimpleKpi, SectionLabel } from "./DashboardPrimitives";
 import { cn } from "@/lib/utils";
+import { CHART_COLORS, CHART_COLORS_DARK, CHART_NEUTRAL, CHART_NEUTRAL_DARK } from "@/lib/chart-colors";
+import { useTheme } from "next-themes";
 
 const fmt = (v: number | string) => [`Rp ${v}M`];
 
 export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? CHART_COLORS_DARK : CHART_COLORS;
+  const neutral = theme === 'dark' ? CHART_NEUTRAL_DARK : CHART_NEUTRAL;
+  const gridStroke = theme === 'dark' ? '#1e293b' : '#f1f5f9';
+  const tickFill = theme === 'dark' ? '#94a3b8' : '#64748b';
+
   return (
     <section>
       <SectionLabel
@@ -29,28 +37,28 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
           description="Net cash reserve vs aggregate inflows and outflows (Rp M)"
           className="rounded-3xl border-slate-100 bg-white shadow-sm"
         >
-          <div className="grid grid-cols-3 gap-4 my-5 p-4 bg-slate-50/80 rounded-2xl border border-slate-100">
-            <SimpleKpi label="Inflows (Period)"  value={summaryData ? `Rp ${Number(summaryData.revenue).toLocaleString()}` : "Loading..."}  color="text-emerald-600" />
-            <SimpleKpi label="Outflows (Period)" value={summaryData ? `Rp ${Number(summaryData.expense).toLocaleString()}` : "Loading..."}  color="text-rose-500"    />
-            <SimpleKpi label="Net Reserve"    value={summaryData ? `Rp ${Number(summaryData.netProfit).toLocaleString()}` : "Loading..."} color="text-indigo-600"  />
+          <div className="grid grid-cols-3 gap-4 my-5 p-4 bg-muted rounded-2xl border border-slate-100">
+            <SimpleKpi label="Inflows (Period)"  value={summaryData ? `Rp ${Number(summaryData.revenue).toLocaleString()}` : "Loading..."}  color="text-success" />
+            <SimpleKpi label="Outflows (Period)" value={summaryData ? `Rp ${Number(summaryData.expense).toLocaleString()}` : "Loading..."}  color="text-destructive"    />
+            <SimpleKpi label="Net Reserve"    value={summaryData ? `Rp ${Number(summaryData.netProfit).toLocaleString()}` : "Loading..."} color="text-primary"  />
           </div>
           <div className="h-[260px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={CFO_LIQUIDITY_DATA}>
                 <defs>
                   <linearGradient id="gReserve" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor="hsl(var(--primary))" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0}    />
+                    <stop offset="0%"   stopColor={colors[1]} stopOpacity={0.15} />
+                    <stop offset="100%" stopColor={colors[1]} stopOpacity={0}    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: "#94a3b8" }} dx={-8} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridStroke} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 700, fill: tickFill }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: tickFill }} dx={-8} />
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={fmt} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", fontWeight: 700, paddingTop: "10px" }} />
-                <Area type="monotone" dataKey="reserve" name="Cash Reserve" stroke="hsl(var(--primary))" strokeWidth={3} fill="url(#gReserve)" />
-                <Bar dataKey="inflows"  name="Inflows"  fill="#10b981" opacity={0.55} radius={[4,4,0,0]} barSize={14} />
-                <Bar dataKey="outflows" name="Outflows" fill="#f43f5e" opacity={0.55} radius={[4,4,0,0]} barSize={14} />
+                <Area type="monotone" dataKey="reserve" name="Cash Reserve" stroke={colors[1]} strokeWidth={3} fill="url(#gReserve)" />
+                <Bar dataKey="inflows"  name="Inflows"  fill={colors[2]} opacity={0.55} radius={[4,4,0,0]} barSize={14} />
+                <Bar dataKey="outflows" name="Outflows" fill={theme === 'dark' ? '#f87171' : '#f43f5e'} opacity={0.55} radius={[4,4,0,0]} barSize={14} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -63,12 +71,12 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
         >
           <div className="flex items-center justify-between my-5">
             <div>
-              <p className="text-2xl font-black tracking-tighter text-slate-900">Rp 785M</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Total Outstanding</p>
+              <p className="text-2xl font-black tracking-tighter text-muted-foreground">Rp 785M</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Total Outstanding</p>
             </div>
             <div className="text-right">
-              <p className="text-xl font-black text-rose-500">Rp 90M</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-rose-400 mt-0.5">High Risk (&gt;60d)</p>
+              <p className="text-xl font-black text-destructive">Rp 90M</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-destructive mt-0.5">High Risk (&gt;60d)</p>
             </div>
           </div>
           <div className="h-[248px] w-full">
@@ -76,7 +84,7 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
               <BarChart data={CFO_AR_AGING_DATA} layout="vertical" margin={{ left: 10, right: 30 }}>
                 <XAxis type="number" hide />
                 <YAxis dataKey="name" type="category" axisLine={false} tickLine={false}
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }} />
+                  tick={{ fontSize: 11, fontWeight: 700, fill: tickFill }} />
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={fmt} />
                 <Bar dataKey="amount" name="Amount" radius={[0, 6, 6, 0]} barSize={22}>
                   {(Array.isArray(CFO_AR_AGING_DATA) ? CFO_AR_AGING_DATA : []).map((e, i) => <Cell key={i} fill={e.fill} />)}
@@ -97,14 +105,14 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
           <div className="h-[280px] w-full mt-3">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={CFO_AP_PIPELINE_DATA} layout="vertical" margin={{ left: 10, right: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={gridStroke} />
                 <XAxis type="number" hide />
                 <YAxis dataKey="name" type="category" axisLine={false} tickLine={false}
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }} width={76} />
+                  tick={{ fontSize: 11, fontWeight: 700, fill: tickFill }} width={76} />
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={fmt} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", fontWeight: 700, paddingTop: "8px" }} />
-                <Bar dataKey="due"     name="Due"     stackId="a" fill="#6366f1" barSize={18} />
-                <Bar dataKey="overdue" name="Overdue" stackId="a" fill="#f43f5e" barSize={18} radius={[0,4,4,0]} />
+                <Bar dataKey="due"     name="Due"     stackId="a" fill={colors[1]} barSize={18} />
+                <Bar dataKey="overdue" name="Overdue" stackId="a" fill={theme === 'dark' ? '#f87171' : '#f43f5e'} barSize={18} radius={[0,4,4,0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -132,11 +140,11 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
               className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
               style={{ marginTop: "-46px" }}
             >
-              <DollarSign className="h-6 w-6 text-slate-200 mb-0.5" />
-              <span className="text-lg font-black text-slate-800">
+              <DollarSign className="h-6 w-6 text-muted-foreground mb-0.5" />
+              <span className="text-lg font-black text-muted-foreground">
                 {summaryData ? `Rp ${Number(summaryData.kpis?.totalAssets || 0).toLocaleString()}` : "Rp 11.2B"}
               </span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Assets</span>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Assets</span>
             </div>
           </div>
         </WorkspacePanel>
@@ -153,9 +161,9 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
                 key={d.subject}
                 className={cn(
                   "text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide",
-                  d.A >= 85 ? "bg-emerald-50 text-emerald-600" :
-                  d.A >= 75 ? "bg-amber-50 text-amber-600"   :
-                              "bg-rose-50 text-rose-500",
+                  d.A >= 85 ? "bg-success text-success" :
+                  d.A >= 75 ? "bg-warning text-warning"   :
+                              "bg-destructive text-destructive",
                 )}
               >
                 {d.subject} {d.A}%
@@ -165,12 +173,12 @@ export function CfoChartsSection({ summaryData }: { summaryData?: any }) {
           <div className="h-[232px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart data={COMPLIANCE_RADAR_DATA}>
-                <PolarGrid stroke="#e2e8f0" />
+                <PolarGrid stroke={neutral} />
                 <PolarAngleAxis dataKey="subject"
-                  tick={{ fontSize: 11, fontWeight: 700, fill: "#94a3b8" }} />
+                  tick={{ fontSize: 11, fontWeight: 700, fill: tickFill }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="Score" dataKey="A"
-                  stroke="hsl(var(--primary))" fill="hsl(var(--primary))"
+                  stroke={colors[1]} fill={colors[1]}
                   fillOpacity={0.2} strokeWidth={2} />
                 <ChartTooltip {...CHART_TOOLTIP_STYLE} formatter={(v) => [`${v}%`]} />
               </RadarChart>

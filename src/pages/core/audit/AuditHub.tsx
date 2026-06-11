@@ -103,7 +103,7 @@ export default function AuditHub() {
       case "CRITICAL":
         return <Badge variant="destructive">CRITICAL</Badge>;
       case "WARN":
-        return <Badge className="bg-amber-500 hover:bg-amber-600">WARN</Badge>;
+        return <Badge className="bg-warning hover:bg-warning">WARN</Badge>;
       default:
         return <Badge variant="secondary">INFO</Badge>;
     }
@@ -291,7 +291,7 @@ export default function AuditHub() {
 
               <div className="space-y-2">
                 <label className="text-xs text-muted-foreground block">Metadata</label>
-                <div className="bg-slate-950 text-slate-50 p-3 rounded-md text-xs font-mono overflow-x-auto">
+                <div className="bg-muted text-muted-foreground p-3 rounded-md text-xs font-mono overflow-x-auto">
                   <pre>{JSON.stringify(selectedLog.metadata, null, 2)}</pre>
                 </div>
               </div>
@@ -302,13 +302,13 @@ export default function AuditHub() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase text-muted-foreground">Before</label>
-                      <div className="bg-red-950/20 border border-red-500/20 text-red-200 p-2 rounded text-[10px] font-mono whitespace-pre-wrap">
+                      <div className="bg-destructive border border-red-500/20 text-destructive p-2 rounded text-[10px] font-mono whitespace-pre-wrap">
                         {JSON.stringify(selectedLog.changes.before || {}, null, 2)}
                       </div>
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] uppercase text-muted-foreground">After</label>
-                      <div className="bg-green-950/20 border border-green-500/20 text-green-200 p-2 rounded text-[10px] font-mono whitespace-pre-wrap">
+                      <div className="bg-success border border-green-500/20 text-success p-2 rounded text-[10px] font-mono whitespace-pre-wrap">
                         {JSON.stringify(selectedLog.changes.after || {}, null, 2)}
                       </div>
                     </div>

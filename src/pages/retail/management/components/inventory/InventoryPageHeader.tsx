@@ -67,7 +67,7 @@ export const InventoryPageHeader: React.FC<Props> = ({
           Sync Core
         </Button>
         {!canWrite && (
-          <Badge className="bg-amber-50 text-amber-700 border-amber-200 font-black italic text-[10px] uppercase px-3 py-1 gap-1 flex items-center">
+          <Badge className="bg-warning text-warning border-amber-200 font-black italic text-[10px] uppercase px-3 py-1 gap-1 flex items-center">
             <Lock className="w-3 h-3" /> View + Request Only
           </Badge>
         )}

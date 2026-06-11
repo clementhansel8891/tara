@@ -313,7 +313,7 @@ export default function InventoryStockOpname() {
   const totalVariances = history.filter(h => h.actualCount !== h.systemCount).length;
 
   return (
-    <div className="flex-1 p-8 flex flex-col gap-8 bg-slate-50/50 dark:bg-slate-950/50 min-h-full">
+    <div className="flex-1 p-8 flex flex-col gap-8 bg-muted dark:bg-muted min-h-full">
       <InventoryGlassHeader
         title="Stock Opname Terminal"
         subtitle="Physical verification and variance reconciliation engine."
@@ -331,14 +331,14 @@ export default function InventoryStockOpname() {
 
       {!activeCycleId ? (
         <div className="flex-1 flex items-center justify-center">
-          <Card className="w-full max-w-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-none shadow-2xl rounded-[3rem] overflow-hidden">
+          <Card className="w-full max-w-2xl bg-white/70 dark:bg-muted backdrop-blur-2xl border-none shadow-2xl rounded-[3rem] overflow-hidden">
             <CardContent className="p-16 text-center space-y-8">
               <div className="w-24 h-24 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto">
                 <ShieldCheck className="w-12 h-12 text-primary" />
               </div>
               <div className="space-y-2">
                 <h2 className="text-3xl font-black italic tracking-tighter uppercase">Initialize Audit Cycle</h2>
-                <p className="text-sm text-slate-500 font-medium italic">Select a target location to begin the physical count verification.</p>
+                <p className="text-sm text-muted-foreground font-medium italic">Select a target location to begin the physical count verification.</p>
               </div>
 
               <div className="space-y-4 max-w-sm mx-auto">
@@ -368,7 +368,7 @@ export default function InventoryStockOpname() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1 overflow-hidden">
           <div className="lg:col-span-2 flex flex-col gap-8 overflow-hidden">
-            <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
+            <Card className="bg-white/70 dark:bg-muted backdrop-blur-2xl border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
               <CardContent className="p-12">
                 <form onSubmit={handleManualScan} className="flex flex-col items-center gap-10 max-w-xl mx-auto">
                   <div className="w-24 h-24 bg-primary rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-primary/30 animate-pulse">
@@ -376,28 +376,28 @@ export default function InventoryStockOpname() {
                   </div>
                   
                   <div className="w-full relative group">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-focus-within:text-primary transition-colors" />
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       ref={inputRef}
                       value={scanInput}
                       onChange={(e) => setScanInput(e.target.value)}
                       placeholder="SCAN BARCODE OR SKU..."
-                      className="h-20 pl-16 text-2xl font-black bg-slate-100/50 dark:bg-slate-800/50 border-none rounded-3xl shadow-inner italic uppercase tracking-widest"
+                      className="h-20 pl-16 text-2xl font-black bg-muted dark:bg-muted border-none rounded-3xl shadow-inner italic uppercase tracking-widest"
                       autoFocus
                     />
                   </div>
 
-                  <div className="flex items-center gap-4 px-6 py-3 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                    <span className="text-[10px] font-black italic uppercase tracking-widest text-emerald-600">Scanner Engine: Active & Calibrated</span>
+                  <div className="flex items-center gap-4 px-6 py-3 bg-success rounded-full border border-emerald-500/20">
+                    <div className="w-2 h-2 rounded-full bg-success animate-ping" />
+                    <span className="text-[10px] font-black italic uppercase tracking-widest text-success">Scanner Engine: Active & Calibrated</span>
                   </div>
                 </form>
               </CardContent>
             </Card>
 
-            <Card className="flex-1 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
+            <Card className="flex-1 bg-white/70 dark:bg-muted backdrop-blur-2xl border-none shadow-2xl rounded-[2.5rem] overflow-hidden flex flex-col">
               <CardHeader className="p-8 border-b border-slate-100 dark:border-slate-800">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center justify-between italic">
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center justify-between italic">
                   Live Audit Stream
                   <Badge variant="outline" className="rounded-lg border-primary/20 text-primary font-black italic">{history.length} Unique SKUs</Badge>
                 </CardTitle>
@@ -412,25 +412,25 @@ export default function InventoryStockOpname() {
                   ) : (
                     <div className="space-y-4">
                       {history.map((entry, idx) => (
-                        <div key={idx} className="p-6 bg-slate-100/30 dark:bg-slate-800/30 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between group hover:bg-primary/[0.02] transition-all">
+                        <div key={idx} className="p-6 bg-muted dark:bg-muted rounded-3xl border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between group hover:bg-primary/[0.02] transition-all">
                           <div className="flex gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center">
-                              <Box className="w-6 h-6 text-slate-400" />
+                            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-muted shadow-sm flex items-center justify-center">
+                              <Box className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div>
-                              <div className="text-sm font-black italic text-slate-900 dark:text-white">{entry.name}</div>
-                              <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{entry.sku} • {entry.timestamp}</div>
+                              <div className="text-sm font-black italic text-muted-foreground dark:text-white">{entry.name}</div>
+                              <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{entry.sku} • {entry.timestamp}</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-8">
                              <div className="text-right">
                                 <div className="text-2xl font-black italic text-primary">x{entry.actualCount}</div>
-                                <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">Physical Count</div>
+                                <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Physical Count</div>
                              </div>
                              <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-10 w-10 rounded-xl hover:bg-rose-500/10 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                              className="h-10 w-10 rounded-xl hover:bg-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-all"
                               onClick={() => setHistory(prev => prev.filter((_, i) => i !== idx))}
                              >
                                <Trash2 className="w-4 h-4" />
@@ -446,7 +446,7 @@ export default function InventoryStockOpname() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <Card className="bg-slate-900 border-none shadow-2xl rounded-[3rem] overflow-hidden relative">
+            <Card className="bg-muted border-none shadow-2xl rounded-[3rem] overflow-hidden relative">
               <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                 <BarChart className="w-32 h-32 text-primary" />
               </div>
@@ -455,20 +455,20 @@ export default function InventoryStockOpname() {
               </CardHeader>
               <CardContent className="p-10 pt-0 space-y-10">
                 <div className="space-y-6">
-                  <div className="bg-slate-800/50 p-6 rounded-2xl border border-white/5">
-                    <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1 italic">Audit Target</div>
+                  <div className="bg-muted p-6 rounded-2xl border border-white/5">
+                    <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 italic">Audit Target</div>
                     <div className="text-lg font-black text-white italic">{locations.find(l => l.id === selectedLocation)?.name}</div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-800/50 p-6 rounded-2xl border border-white/5">
-                      <div className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1 italic">Total Units</div>
+                    <div className="bg-muted p-6 rounded-2xl border border-white/5">
+                      <div className="text-[9px] font-black text-success uppercase tracking-widest mb-1 italic">Total Units</div>
                       <div className="text-3xl font-black text-white italic tracking-tighter">
                         {history.reduce((a, b) => a + b.actualCount, 0)}
                       </div>
                     </div>
-                    <div className="bg-slate-800/50 p-6 rounded-2xl border border-white/5">
-                      <div className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1 italic">SKUs Scanned</div>
+                    <div className="bg-muted p-6 rounded-2xl border border-white/5">
+                      <div className="text-[9px] font-black text-destructive uppercase tracking-widest mb-1 italic">SKUs Scanned</div>
                       <div className="text-3xl font-black text-white italic tracking-tighter">{history.length}</div>
                     </div>
                   </div>
@@ -476,12 +476,12 @@ export default function InventoryStockOpname() {
 
                 <div className="space-y-4">
                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest italic">
-                      <span className="text-slate-500">Anomaly Vector</span>
-                      <span className="text-amber-500">{totalVariances} Mismatches</span>
+                      <span className="text-muted-foreground">Anomaly Vector</span>
+                      <span className="text-warning">{totalVariances} Mismatches</span>
                    </div>
-                   <div className="h-2 bg-slate-800 rounded-full overflow-hidden p-0.5">
+                   <div className="h-2 bg-muted rounded-full overflow-hidden p-0.5">
                       <div 
-                         className="h-full bg-amber-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(245,158,11,0.5)]" 
+                         className="h-full bg-warning rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(245,158,11,0.5)]" 
                          style={{ width: `${history.length > 0 ? (totalVariances / history.length) * 100 : 0}%` }}
                       />
                    </div>
@@ -490,7 +490,7 @@ export default function InventoryStockOpname() {
                 <div className="flex gap-4 pt-4">
                   <Button
                     variant="outline"
-                    className="flex-1 h-16 bg-transparent border-white/10 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-2xl font-black italic uppercase tracking-widest text-[10px]"
+                    className="flex-1 h-16 bg-transparent border-white/10 text-muted-foreground hover:text-destructive hover:bg-destructive rounded-2xl font-black italic uppercase tracking-widest text-[10px]"
                     onClick={() => {
                       if (confirm("Abort current audit session? Data will not be saved.")) {
                         setActiveCycleId(null);
@@ -512,12 +512,12 @@ export default function InventoryStockOpname() {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-500/5 border-blue-500/20 border-2 rounded-[2.5rem]">
+            <Card className="bg-primary border-primary border-2 rounded-[2.5rem]">
               <CardContent className="p-8 flex gap-5">
-                <AlertCircle className="w-6 h-6 text-blue-500 shrink-0" />
+                <AlertCircle className="w-6 h-6 text-primary shrink-0" />
                 <div>
-                  <div className="text-[10px] font-black text-blue-500 uppercase italic tracking-widest">Protocol Intelligence</div>
-                  <p className="text-[11px] text-blue-500/60 font-bold mt-2 leading-relaxed italic">
+                  <div className="text-[10px] font-black text-primary uppercase italic tracking-widest">Protocol Intelligence</div>
+                  <p className="text-[11px] text-primary font-bold mt-2 leading-relaxed italic">
                     Audit data is buffered locally and reconciled upon commit. Mismatches will trigger automated variance logs.
                   </p>
                 </div>

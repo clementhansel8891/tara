@@ -7,30 +7,30 @@ export const SalesPipelineFunnel: React.FC = () => {
   const navigate = useNavigate();
 
   const stages = [
-    { label: 'Leads', value: 450, width: '100%', color: 'bg-indigo-600', glow: 'shadow-indigo-500/20' },
-    { label: 'Qualified', value: 280, width: '85%', color: 'bg-indigo-500', glow: 'shadow-indigo-500/10' },
-    { label: 'Proposal', value: 120, width: '70%', color: 'bg-indigo-400', glow: 'shadow-indigo-500/10' },
-    { label: 'Negotiation', value: 45, width: '55%', color: 'bg-indigo-300', glow: 'shadow-indigo-500/10' },
-    { label: 'Won', value: 32, width: '40%', color: 'bg-emerald-500', glow: 'shadow-emerald-500/30' },
+    { label: 'Leads', value: 450, width: '100%', color: 'bg-primary', glow: 'shadow-indigo-500/20' },
+    { label: 'Qualified', value: 280, width: '85%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Proposal', value: 120, width: '70%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Negotiation', value: 45, width: '55%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Won', value: 32, width: '40%', color: 'bg-success', glow: 'shadow-emerald-500/30' },
   ];
 
   return (
     <div 
-      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
+      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-muted p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/sales/pipeline')}
     >
       <div className="flex items-center justify-between mb-10 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
             <BarChart3 className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Sales Pipeline</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Conversion from lead to closed-won</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Conversion from lead to closed-won</p>
           </div>
         </div>
-        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-indigo-600/10 transition-all">
-          <Target className="h-5 w-5 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+        <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-primary transition-all">
+          <Target className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
         </div>
       </div>
 
@@ -56,14 +56,14 @@ export const SalesPipelineFunnel: React.FC = () => {
       
       <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between opacity-50">
          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Win Rate</span>
+            <TrendingUp className="h-4 w-4 text-success" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Win Rate</span>
          </div>
          <span className="text-lg font-black text-white">7.1%</span>
       </div>
       
       {/* Subtle background glow */}
-      <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-indigo-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-primary blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 };

@@ -264,12 +264,12 @@ export default function RosterGrid() {
   return (
     <div className="space-y-6">
       {statusMessage && (
-        <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3 text-emerald-900 text-sm animate-in fade-in slide-in-from-top-1">
+        <div className="rounded-lg bg-success border border-emerald-100 p-3 text-success text-sm animate-in fade-in slide-in-from-top-1">
           {statusMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="rounded-lg bg-rose-50 border border-rose-100 p-3 text-rose-900 text-sm">
+        <div className="rounded-lg bg-destructive border border-rose-100 p-3 text-destructive text-sm">
           {errorMessage}
         </div>
       )}
@@ -459,12 +459,12 @@ export default function RosterGrid() {
                     </td>
                     <td className="p-3 text-sm text-muted-foreground">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        employee.status === "active" ? "bg-emerald-50 text-emerald-700" :
-                        employee.status === "promoted" ? "bg-blue-50 text-blue-700" :
-                        employee.status === "suspended" ? "bg-amber-50 text-amber-700" :
-                        employee.status === "probation" ? "bg-purple-50 text-purple-700" :
-                        employee.status === "candidate" ? "bg-slate-100 text-slate-700" :
-                        employee.status === "terminated" ? "bg-rose-50 text-rose-700" :
+                        employee.status === "active" ? "bg-success text-success" :
+                        employee.status === "promoted" ? "bg-primary text-primary" :
+                        employee.status === "suspended" ? "bg-warning text-warning" :
+                        employee.status === "probation" ? "bg-primary text-primary" :
+                        employee.status === "candidate" ? "bg-muted text-muted-foreground" :
+                        employee.status === "terminated" ? "bg-destructive text-destructive" :
                         "bg-muted text-muted-foreground"
                       }`}>
                         {employee.status.replace("_", " ")}
@@ -504,7 +504,7 @@ export default function RosterGrid() {
                               Edit Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-rose-600"
+                              className="text-destructive"
                               onClick={async () => {
                                 try {
                                   await staffService.requestTermination(session.tenant_id, session, employee.id, "RosterGrid request");

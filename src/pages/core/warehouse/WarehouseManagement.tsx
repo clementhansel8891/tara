@@ -85,14 +85,14 @@ export default function WarehouseManagement() {
         subtitle="Tactical spatial visualization of storage hierarchy and bin occupancy."
         primaryAction={
           <div className="flex items-center gap-3">
-             <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+             <div className="flex bg-muted dark:bg-muted p-1 rounded-xl border border-slate-200 dark:border-slate-700">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setViewMode("map")}
                   className={cn(
                     "rounded-lg h-8 px-3 gap-2 text-[10px] font-black uppercase tracking-widest transition-all",
-                    viewMode === "map" ? "bg-white dark:bg-slate-950 shadow-sm text-blue-600" : "text-slate-500"
+                    viewMode === "map" ? "bg-white dark:bg-muted shadow-sm text-primary" : "text-muted-foreground"
                   )}
                 >
                   <LayoutGrid className="h-3 w-3" /> Map
@@ -103,13 +103,13 @@ export default function WarehouseManagement() {
                   onClick={() => setViewMode("list")}
                   className={cn(
                     "rounded-lg h-8 px-3 gap-2 text-[10px] font-black uppercase tracking-widest transition-all",
-                    viewMode === "list" ? "bg-white dark:bg-slate-950 shadow-sm text-blue-600" : "text-slate-500"
+                    viewMode === "list" ? "bg-white dark:bg-muted shadow-sm text-primary" : "text-muted-foreground"
                   )}
                 >
                   <List className="h-3 w-3" /> List
                 </Button>
              </div>
-             <Button onClick={() => {}} className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-2 text-[10px] font-black uppercase tracking-widest px-6 h-10 shadow-lg shadow-blue-600/20">
+             <Button onClick={() => {}} className="rounded-xl bg-primary hover:bg-primary text-white gap-2 text-[10px] font-black uppercase tracking-widest px-6 h-10 shadow-lg shadow-blue-600/20">
                 <Plus className="h-3 w-3" /> Create Bin
              </Button>
           </div>
@@ -119,25 +119,25 @@ export default function WarehouseManagement() {
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         <div className="space-y-6">
            {/* Search & Stats */}
-           <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-sm">
+           <div className="flex items-center justify-between p-6 bg-white dark:bg-muted border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-sm">
               <div className="relative flex-1 max-w-md">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                  <UIInput 
                    placeholder="Locate bin, zone, or aisle..." 
                    value={search}
                    onChange={e => setSearch(e.target.value)}
-                   className="pl-10 h-11 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm"
+                   className="pl-10 h-11 bg-muted dark:bg-muted border-none rounded-xl text-sm"
                  />
               </div>
               <div className="flex items-center gap-6">
                  <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Bins</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Active Bins</p>
                     <p className="text-xl font-black italic">{bins.length}</p>
                  </div>
-                 <div className="h-10 w-[1px] bg-slate-100 dark:bg-slate-800" />
+                 <div className="h-10 w-[1px] bg-muted dark:bg-muted" />
                  <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Avg Utilization</p>
-                    <p className="text-xl font-black italic text-emerald-500">68%</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Avg Utilization</p>
+                    <p className="text-xl font-black italic text-success">68%</p>
                  </div>
               </div>
            </div>
@@ -147,12 +147,12 @@ export default function WarehouseManagement() {
                 <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                   {loading ? (
                     <div className="space-y-3 p-4">
-                       {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+                       {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-xl bg-muted dark:bg-muted animate-pulse" />)}
                     </div>
                   ) : filteredBins.length === 0 ? (
                     <div className="p-12 text-center border-2 border-dashed rounded-[2rem] border-slate-200 dark:border-slate-800">
-                       <Warehouse className="h-10 w-10 mx-auto mb-4 text-slate-300" />
-                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">No storage bins found.</p>
+                       <Warehouse className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No storage bins found.</p>
                     </div>
                   ) : (
                     filteredBins.map((bin) => (
@@ -162,30 +162,30 @@ export default function WarehouseManagement() {
                         className={cn(
                           "group flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 cursor-pointer",
                           selectedBin?.id === bin.id 
-                            ? "border-blue-500 bg-blue-500/5 shadow-lg shadow-blue-500/5 ring-1 ring-blue-500" 
-                            : "border-slate-100 dark:border-slate-800 hover:border-blue-500/30 bg-white dark:bg-slate-900"
+                            ? "border-primary bg-primary shadow-lg shadow-blue-500/5 ring-1 ring-blue-500" 
+                            : "border-slate-100 dark:border-slate-800 hover:border-primary bg-white dark:bg-muted"
                         )}
                       >
                         <div className="flex items-center gap-4">
                           <div className={cn(
                             "h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
-                            selectedBin?.id === bin.id ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                            selectedBin?.id === bin.id ? "bg-primary text-white" : "bg-muted dark:bg-muted text-muted-foreground"
                           )}>
                             <Warehouse className="h-5 w-5" />
                           </div>
                           <div>
                             <p className="font-black text-sm tracking-tight">{bin.code}</p>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
                               Zone {bin.zone} · Aisle {bin.aisle} · Rack {bin.rack}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                            <div className="text-right">
-                              <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Cap</p>
+                              <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Cap</p>
                               <p className="text-xs font-black italic">{bin.capacity}</p>
                            </div>
-                           <Badge className="bg-emerald-500/10 text-emerald-600 border-none text-[8px] font-black px-2">ACTIVE</Badge>
+                           <Badge className="bg-success text-success border-none text-[8px] font-black px-2">ACTIVE</Badge>
                         </div>
                       </div>
                     ))
@@ -197,10 +197,10 @@ export default function WarehouseManagement() {
                 {Object.entries(binsByZone).map(([zone, zoneBins]) => (
                   <div key={zone} className="space-y-4">
                      <div className="flex items-center gap-4">
-                        <Badge className="bg-blue-600 text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase">
+                        <Badge className="bg-primary text-white border-none px-4 py-1.5 rounded-full text-[10px] font-black tracking-[0.2em] uppercase">
                           Zone {zone}
                         </Badge>
-                        <div className="h-[1px] flex-1 bg-slate-200 dark:bg-slate-800" />
+                        <div className="h-[1px] flex-1 bg-muted dark:bg-muted" />
                      </div>
                      
                      <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
@@ -210,10 +210,10 @@ export default function WarehouseManagement() {
                           return (
                             <div key={aisle} className="space-y-3">
                                <div className="flex items-center justify-between px-2">
-                                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Aisle {aisle}</span>
-                                  <span className="text-[8px] font-bold text-slate-300 uppercase">{aisleBins.length} Nodes</span>
+                                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">Aisle {aisle}</span>
+                                  <span className="text-[8px] font-bold text-muted-foreground uppercase">{aisleBins.length} Nodes</span>
                                </div>
-                               <div className="p-4 rounded-[2rem] bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2">
+                               <div className="p-4 rounded-[2rem] bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2">
                                   {aisleBins.map(bin => (
                                     <button
                                       key={bin.id}
@@ -221,23 +221,23 @@ export default function WarehouseManagement() {
                                       className={cn(
                                         "aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 transition-all duration-300 relative overflow-hidden group",
                                         selectedBin?.id === bin.id 
-                                          ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-600/20 scale-105 z-10" 
-                                          : "bg-white dark:bg-slate-950 border-slate-100 dark:border-slate-800 hover:border-blue-500/30"
+                                          ? "bg-primary border-primary text-white shadow-xl shadow-blue-600/20 scale-105 z-10" 
+                                          : "bg-white dark:bg-muted border-slate-100 dark:border-slate-800 hover:border-primary"
                                       )}
                                     >
                                        {/* Occupancy Indicator */}
                                        <div className={cn(
                                          "absolute top-2 right-2 h-1.5 w-1.5 rounded-full",
-                                         selectedBin?.id === bin.id ? "bg-white animate-pulse" : "bg-emerald-500"
+                                         selectedBin?.id === bin.id ? "bg-white animate-pulse" : "bg-success"
                                        )} />
                                        
                                        <span className={cn(
                                          "text-[10px] font-black tracking-tight transition-transform group-hover:scale-110",
-                                         selectedBin?.id === bin.id ? "text-white" : "text-slate-900 dark:text-white"
+                                         selectedBin?.id === bin.id ? "text-white" : "text-muted-foreground dark:text-white"
                                        )}>{bin.code.split('-').pop()}</span>
                                        <span className={cn(
                                          "text-[7px] font-bold uppercase opacity-50 tracking-widest",
-                                         selectedBin?.id === bin.id ? "text-blue-100" : "text-slate-400"
+                                         selectedBin?.id === bin.id ? "text-primary" : "text-muted-foreground"
                                        )}>R{bin.rack}L{bin.level}</span>
                                     </button>
                                   ))}
@@ -260,50 +260,50 @@ export default function WarehouseManagement() {
            >
              {!selectedBin ? (
                <div className="p-12 text-center border-2 border-dashed rounded-[2.5rem] border-slate-100 dark:border-slate-800">
-                  <MapPin className="h-10 w-10 mx-auto mb-4 text-slate-200" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Satellite lock pending. Select bin.</p>
+                  <MapPin className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Satellite lock pending. Select bin.</p>
                </div>
              ) : (
                <div className="space-y-8">
                  {/* Bin Telemetry Grid */}
                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Zone / Aisle</p>
+                    <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                       <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Zone / Aisle</p>
                        <p className="text-xs font-black italic">{selectedBin.zone || "N/A"} / {selectedBin.aisle || "N/A"}</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Rack / Level</p>
+                    <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                       <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Rack / Level</p>
                        <p className="text-xs font-black italic">{selectedBin.rack || "N/A"} / {selectedBin.level || "N/A"}</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Max Capacity</p>
+                    <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                       <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Max Capacity</p>
                        <p className="text-xs font-black italic">{selectedBin.capacity} Units</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Current Stock</p>
-                       <p className="text-xs font-black italic text-blue-600">{binStock.length} SKUs</p>
+                    <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                       <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Current Stock</p>
+                       <p className="text-xs font-black italic text-primary">{binStock.length} SKUs</p>
                     </div>
                  </div>
 
                  {/* Content Table */}
                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">Active Stock Assignments</p>
-                    <div className="rounded-[1.5rem] border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Active Stock Assignments</p>
+                    <div className="rounded-[1.5rem] border border-slate-100 dark:border-slate-800 overflow-hidden bg-white dark:bg-muted">
                        {binStock.length === 0 ? (
-                         <div className="p-10 text-center italic text-[10px] text-slate-400 uppercase tracking-widest">
+                         <div className="p-10 text-center italic text-[10px] text-muted-foreground uppercase tracking-widest">
                            Bin is clinically empty.
                          </div>
                        ) : (
                          <div className="divide-y divide-slate-50 dark:divide-slate-800">
                            {binStock.map((stock) => (
-                             <div key={stock.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                             <div key={stock.id} className="p-4 flex items-center justify-between hover:bg-muted dark:hover:bg-muted transition-colors group">
                                 <div>
-                                   <p className="text-[11px] font-black tracking-tight group-hover:text-blue-600 transition-colors uppercase italic">{stock.item_masters?.name || "Unknown Asset"}</p>
-                                   <p className="text-[9px] font-bold text-slate-400 font-mono">{stock.item_masters?.sku || stock.product_id}</p>
+                                   <p className="text-[11px] font-black tracking-tight group-hover:text-primary transition-colors uppercase italic">{stock.item_masters?.name || "Unknown Asset"}</p>
+                                   <p className="text-[9px] font-bold text-muted-foreground font-mono">{stock.item_masters?.sku || stock.product_id}</p>
                                 </div>
                                 <div className="text-right">
                                    <p className="text-[10px] font-black italic">{stock.qty}</p>
-                                   <p className="text-[8px] font-bold text-slate-400 uppercase">PCS</p>
+                                   <p className="text-[8px] font-bold text-muted-foreground uppercase">PCS</p>
                                 </div>
                              </div>
                            ))}
@@ -317,7 +317,7 @@ export default function WarehouseManagement() {
                     <Button variant="outline" className="rounded-xl border-slate-200 dark:border-slate-800 text-[9px] font-black uppercase tracking-widest py-6 h-auto">
                        Print Bin Label
                     </Button>
-                    <Button className="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest py-6 h-auto">
+                    <Button className="rounded-xl bg-muted dark:bg-white text-white dark:text-muted-foreground text-[9px] font-black uppercase tracking-widest py-6 h-auto">
                        Stock Move
                     </Button>
                  </div>

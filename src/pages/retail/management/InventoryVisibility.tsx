@@ -489,14 +489,14 @@ const InventoryVisibility = () => {
       case "in stock":
       case "ok":
       case "active":
-        return "bg-emerald-50 text-success";
+        return "bg-success text-success";
       case "low stock":
       case "low":
-        return "bg-amber-50 text-amber-600";
+        return "bg-warning text-warning";
       case "out of stock":
       case "critical":
       case "discontinued":
-        return "bg-red-50 text-red-600";
+        return "bg-destructive text-destructive";
       case "pending":
         return "bg-primary/5 text-primary animate-pulse";
       default:
@@ -750,7 +750,7 @@ const InventoryVisibility = () => {
               minimumFractionDigits: 0,
               maximumFractionDigits: 0,
             }).format(stats.totalCapitalValue) : "0", 
-            color: "text-indigo-500" 
+            color: "text-primary" 
           },
           { 
             label: "Branch Value (Selling)", 
@@ -760,7 +760,7 @@ const InventoryVisibility = () => {
               minimumFractionDigits: 0,
               maximumFractionDigits: 0,
             }).format(stats.totalValue) : "0", 
-            color: "text-purple-500" 
+            color: "text-primary" 
           },
         ]}
         actions={
@@ -777,7 +777,7 @@ const InventoryVisibility = () => {
             </Button>
 
             {!canWrite && (
-              <Badge className="bg-amber-500 text-foreground border-none font-black italic text-[10px] uppercase px-4 h-14 rounded-2xl flex items-center gap-2">
+              <Badge className="bg-warning text-foreground border-none font-black italic text-[10px] uppercase px-4 h-14 rounded-2xl flex items-center gap-2">
                 <Lock className="w-4 h-4" /> View Only
               </Badge>
             )}
@@ -788,7 +788,7 @@ const InventoryVisibility = () => {
       <div className="flex-1">
         <Tabs defaultValue="ledger" className="flex flex-col">
           <div className="max-w-[1600px] mx-auto pt-4 shrink-0">
-            <TabsList className="h-14 p-1.5 bg-slate-900/50 backdrop-blur-md border border-white/5 rounded-[1.2rem] shadow-sm w-full md:w-auto overflow-x-auto overflow-y-hidden no-scrollbar">
+            <TabsList className="h-14 p-1.5 bg-muted backdrop-blur-md border border-white/5 rounded-[1.2rem] shadow-sm w-full md:w-auto overflow-x-auto overflow-y-hidden no-scrollbar">
               {[
                 { val: "ledger", label: "Ledger", icon: Layers },
                 { val: "opname", label: "Opname", icon: ClipboardCheck },
@@ -1004,7 +1004,7 @@ const InventoryVisibility = () => {
 
                       <div className="flex gap-3">
                         <Button
-                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest bg-success hover:bg-emerald-700 text-foreground"
+                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest bg-success hover:bg-success text-foreground"
                           disabled={isApproving}
                           onClick={async () => {
                             setIsApproving(true);
@@ -1035,7 +1035,7 @@ const InventoryVisibility = () => {
                         </Button>
                         <Button
                           variant="outline"
-                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest text-red-600 border-red-100 hover:bg-red-50"
+                          className="flex-1 rounded-xl h-10 font-black italic uppercase text-[10px] tracking-widest text-destructive border-red-100 hover:bg-destructive"
                           disabled={isApproving}
                           onClick={async () => {
                             setIsApproving(true);
@@ -1116,48 +1116,48 @@ const InventoryVisibility = () => {
       />
 
       <Dialog open={isBufferDialogOpen} onOpenChange={setIsBufferDialogOpen}>
-        <DialogContent className="max-w-md rounded-[2.5rem] bg-slate-900/90 backdrop-blur-2xl border-white/10 shadow-2xl p-8">
+        <DialogContent className="max-w-md rounded-[2.5rem] bg-muted backdrop-blur-2xl border-white/10 shadow-2xl p-8">
           <DialogHeader>
             <DialogTitle className="text-xl font-black italic uppercase tracking-widest text-white flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-indigo-400" />
+              <ShieldCheck className="w-6 h-6 text-primary" />
               Stock Threshold
             </DialogTitle>
-            <DialogDescription className="text-slate-400 font-bold italic text-xs uppercase tracking-wider">
+            <DialogDescription className="text-muted-foreground font-bold italic text-xs uppercase tracking-wider">
               Set minimum buffer for {selectedItem?.name}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-6">
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Min Buffer Quantity</Label>
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Min Buffer Quantity</Label>
               <div className="relative">
                 <input
                   type="number"
-                  className="w-full h-14 bg-slate-950/50 border border-white/5 rounded-2xl px-6 font-black italic text-lg text-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                  className="w-full h-14 bg-muted border border-white/5 rounded-2xl px-6 font-black italic text-lg text-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                   value={bufferValue}
                   onChange={(e) => setBufferValue(parseInt(e.target.value) || 0)}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-slate-600 italic">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
                   Branch
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Global Min Stock (Meta)</Label>
+              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Global Min Stock (Meta)</Label>
               <div className="relative">
                 <input
                   type="number"
-                  className="w-full h-14 bg-slate-950/50 border border-white/5 rounded-2xl px-6 font-black italic text-lg text-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+                  className="w-full h-14 bg-muted border border-white/5 rounded-2xl px-6 font-black italic text-lg text-white focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                   value={globalMinStock}
                   onChange={(e) => setGlobalMinStock(parseInt(e.target.value) || 0)}
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-slate-600 italic">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
                   Global
                 </div>
               </div>
             </div>
-              <p className="text-[10px] text-slate-500 font-bold italic px-2">
+              <p className="text-[10px] text-muted-foreground font-bold italic px-2">
                 System will trigger LOW STOCK alert when inventory falls below this level.
               </p>
             </div>
@@ -1166,14 +1166,14 @@ const InventoryVisibility = () => {
             <Button
               variant="outline"
               onClick={() => setIsBufferDialogOpen(false)}
-              className="h-12 rounded-xl font-black italic text-xs uppercase tracking-widest border-white/5 bg-transparent text-slate-400 hover:bg-slate-800"
+              className="h-12 rounded-xl font-black italic text-xs uppercase tracking-widest border-white/5 bg-transparent text-muted-foreground hover:bg-muted"
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateBuffer}
               disabled={isUpdatingBuffer}
-              className="h-12 flex-1 rounded-xl font-black italic text-xs uppercase tracking-widest bg-white text-slate-950 hover:bg-slate-100"
+              className="h-12 flex-1 rounded-xl font-black italic text-xs uppercase tracking-widest bg-white text-muted-foreground hover:bg-muted"
             >
               {isUpdatingBuffer ? (
                 <RefreshCw className="w-4 h-4 animate-spin mr-2" />

@@ -76,21 +76,21 @@ export default function DepartmentWorkspaceLayout({
 
   // Define accent color classes
   const colorMap: Record<string, string> = {
-    emerald: "text-emerald-600 bg-emerald-600 shadow-emerald-600/20 border-l-emerald-600 border-emerald-600/20 hover:text-emerald-500 from-emerald-500/5",
-    rose: "text-rose-600 bg-rose-600 shadow-rose-600/20 border-l-rose-600 border-rose-600/20 hover:text-rose-500 from-rose-500/5",
-    amber: "text-amber-600 bg-amber-600 shadow-amber-600/20 border-l-amber-600 border-amber-600/20 hover:text-amber-500 from-amber-500/5",
-    orange: "text-orange-600 bg-orange-600 shadow-orange-600/20 border-l-orange-600 border-orange-600/20 hover:text-orange-500 from-orange-500/5",
-    blue: "text-blue-600 bg-blue-600 shadow-blue-600/20 border-l-blue-600 border-blue-600/20 hover:text-blue-500 from-blue-500/5",
-    purple: "text-purple-600 bg-purple-600 shadow-purple-600/20 border-l-purple-600 border-purple-600/20 hover:text-purple-500 from-purple-500/5",
-    indigo: "text-indigo-600 bg-indigo-600 shadow-indigo-600/20 border-l-indigo-600 border-indigo-600/20 hover:text-indigo-500 from-indigo-500/5",
-    slate: "text-slate-600 bg-slate-600 shadow-slate-600/20 border-l-slate-600 border-slate-600/20 hover:text-slate-500 from-slate-500/5",
+    emerald: "text-success bg-success shadow-emerald-600/20 border-l-emerald-600 border-emerald-600/20 hover:text-success from-emerald-500/5",
+    rose: "text-destructive bg-destructive shadow-rose-600/20 border-l-rose-600 border-rose-600/20 hover:text-destructive from-rose-500/5",
+    amber: "text-warning bg-warning shadow-amber-600/20 border-l-amber-600 border-amber-600/20 hover:text-warning from-amber-500/5",
+    orange: "text-destructive bg-destructive shadow-orange-600/20 border-l-orange-600 border-orange-600/20 hover:text-warning from-orange-500/5",
+    blue: "text-primary bg-primary shadow-blue-600/20 border-l-blue-600 border-primary hover:text-primary from-blue-500/5",
+    purple: "text-primary bg-primary shadow-purple-600/20 border-l-purple-600 border-purple-600/20 hover:text-primary from-purple-500/5",
+    indigo: "text-primary bg-primary shadow-indigo-600/20 border-l-indigo-600 border-primary hover:text-primary from-indigo-500/5",
+    slate: "text-muted-foreground bg-muted shadow-slate-600/20 border-l-slate-600 border-slate-600/20 hover:text-muted-foreground from-slate-500/5",
   };
 
   const c = colorMap[accentColor] || colorMap.indigo;
   const [textC, bgC, shadowC, borderLC, borderC20, hoverTextC, fromC5] = c.split(" ");
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-muted dark:bg-muted font-sans overflow-hidden flex flex-col">
       <PageShell
         header={
           <div className="space-y-4 px-4 md:px-10 py-4 md:py-8 border-b border-white/5 bg-white/5 backdrop-blur-md">
@@ -98,26 +98,26 @@ export default function DepartmentWorkspaceLayout({
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to="/core" className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all flex items-center gap-2", `hover:${textC}`)}>
+                    <Link to="/core" className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground transition-all flex items-center gap-2", `hover:${textC}`)}>
                        <Monitor className="h-3 w-3" /> CORE_SYSTEM
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="text-slate-800" />
+                <BreadcrumbSeparator className="text-muted-foreground" />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link to={basePath} className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all", `hover:${textC}`)}>{engineName}</Link>
+                    <Link to={basePath} className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground transition-all", `hover:${textC}`)}>{engineName}</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {(Array.isArray(breadcrumbs) ? breadcrumbs : []).map((item, index) => (
                   <React.Fragment key={item.path}>
-                    <BreadcrumbSeparator className="text-slate-800" />
+                    <BreadcrumbSeparator className="text-muted-foreground" />
                     <BreadcrumbItem>
                       {index === breadcrumbs.length - 1 ? (
                         <BreadcrumbPage className={cn("text-[9px] font-black uppercase tracking-[0.2em] italic", textC)}>{item.label}</BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink asChild>
-                          <Link to={item.path} className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all", `hover:${textC}`)}>
+                          <Link to={item.path} className={cn("text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground transition-all", `hover:${textC}`)}>
                             {item.label}
                           </Link>
                         </BreadcrumbLink>
@@ -134,8 +134,8 @@ export default function DepartmentWorkspaceLayout({
                      <HeaderIcon className="h-6 w-6 md:h-10 md:w-10 text-white" />
                   </div>
                   <div>
-                     <h2 className="text-xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic leading-none">{title}</h2>
-                     <p className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] leading-relaxed italic mt-2 md:mt-4 flex items-center gap-2">
+                     <h2 className="text-xl md:text-5xl font-black tracking-tighter text-muted-foreground dark:text-white uppercase italic leading-none">{title}</h2>
+                     <p className="text-[8px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] leading-relaxed italic mt-2 md:mt-4 flex items-center gap-2">
                         <Target className={cn("h-3 w-3 md:h-4 md:w-4", textC)} /> {subtitle}
                      </p>
                   </div>
@@ -143,19 +143,19 @@ export default function DepartmentWorkspaceLayout({
                
                <div className="flex items-center gap-2 md:gap-4">
                   {headerActions}
-                  <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-slate-900/50 px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                  <div className="hidden sm:flex items-center gap-3 bg-white dark:bg-muted px-4 py-2.5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
                      <span className={cn("h-1.5 w-1.5 rounded-full animate-pulse", bgC)} />
-                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Telemetry Active</span>
+                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Telemetry Active</span>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 md:h-14 md:w-14 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all">
-                     <Settings className="h-5 w-5 md:h-6 md:w-6 text-slate-500" />
+                  <Button variant="ghost" size="icon" className="h-10 w-10 md:h-14 md:w-14 rounded-2xl hover:bg-muted dark:hover:bg-white/5 transition-all">
+                     <Settings className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
                   </Button>
                </div>
             </div>
           </div>
         }
         left={
-          <div className="h-full flex flex-col bg-white/40 dark:bg-slate-950/80 backdrop-blur-2xl border-r border-slate-200/50 dark:border-white/5 relative overflow-hidden w-64 md:w-80">
+          <div className="h-full flex flex-col bg-white/40 dark:bg-muted backdrop-blur-2xl border-r border-slate-200/50 dark:border-white/5 relative overflow-hidden w-64 md:w-80">
             <div className={cn("absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b pointer-events-none opacity-20", fromC5)} />
             
             <ScrollArea className="flex-1 relative z-10">
@@ -164,7 +164,7 @@ export default function DepartmentWorkspaceLayout({
 
                 {(Array.isArray(sections) ? sections : []).map((section) => (
                   <div key={section.title} className="space-y-6">
-                    <p className={cn("text-[9px] font-black uppercase tracking-[0.5em] text-slate-500 pl-4 border-l-2", borderC20)}>
+                    <p className={cn("text-[9px] font-black uppercase tracking-[0.5em] text-muted-foreground pl-4 border-l-2", borderC20)}>
                       {section.title}
                     </p>
                     <div className="space-y-1.5">
@@ -179,7 +179,7 @@ export default function DepartmentWorkspaceLayout({
                                 "group flex items-center gap-4 rounded-2xl px-4 py-4 text-[10px] font-black uppercase tracking-widest transition-all duration-500 relative overflow-hidden",
                                 isActive
                                   ? cn("bg-white dark:bg-white/10 shadow-2xl translate-x-4 border-l-4", textC, shadowC, borderLC)
-                                  : cn("text-slate-500 hover:bg-white/50 dark:hover:bg-white/5 hover:translate-x-2", hoverTextC),
+                                  : cn("text-muted-foreground hover:bg-white/50 dark:hover:bg-white/5 hover:translate-x-2", hoverTextC),
                               )
                             }
                           >
@@ -195,7 +195,7 @@ export default function DepartmentWorkspaceLayout({
               </div>
             </ScrollArea>
             
-            <div className="p-6 border-t border-slate-200/50 dark:border-white/5 bg-white/20 dark:bg-slate-900/40 backdrop-blur-3xl relative z-10">
+            <div className="p-6 border-t border-slate-200/50 dark:border-white/5 bg-white/20 dark:bg-muted backdrop-blur-3xl relative z-10">
                <div className="flex items-center justify-between p-5 rounded-[1.5rem] bg-white dark:bg-white/5 shadow-xl border border-slate-100 dark:border-white/5 group hover:shadow-2xl transition-all duration-500 cursor-pointer">
                   <div className="flex items-center gap-4">
                      <div className="relative">
@@ -203,17 +203,17 @@ export default function DepartmentWorkspaceLayout({
                         <div className={cn("h-2.5 w-2.5 rounded-full relative z-10 shadow-lg", bgC)} />
                      </div>
                      <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white leading-none">{pulseLabel}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground dark:text-white leading-none">{pulseLabel}</p>
                         <p className={cn("text-[8px] font-black uppercase tracking-[0.2em] animate-pulse italic leading-none", textC)}>Operational</p>
                      </div>
                   </div>
-                  <PulseIcon className={cn("h-5 w-5 text-slate-500 transition-colors", `group-hover:${textC}`)} />
+                  <PulseIcon className={cn("h-5 w-5 text-muted-foreground transition-colors", `group-hover:${textC}`)} />
                </div>
             </div>
           </div>
         }
       >
-        <div className="p-0 h-full overflow-y-auto bg-slate-50 dark:bg-slate-950">
+        <div className="p-0 h-full overflow-y-auto bg-muted dark:bg-muted">
           <ErrorBoundary>
             {children || <Outlet />}
           </ErrorBoundary>

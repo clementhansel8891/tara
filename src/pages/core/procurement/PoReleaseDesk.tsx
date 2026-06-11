@@ -350,8 +350,8 @@ export default function PoReleaseDesk() {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                    <p className="text-[10px] font-bold uppercase text-amber-600 tracking-widest mb-1 flex items-center gap-1.5">
+                  <div className="p-4 rounded-lg bg-warning border border-amber-500/10">
+                    <p className="text-[10px] font-bold uppercase text-warning tracking-widest mb-1 flex items-center gap-1.5">
                       <DollarSign className="w-3 h-3" /> Integrity Check
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed">

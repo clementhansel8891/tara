@@ -141,7 +141,7 @@ export default function FinanceInsights() {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span>Total Variance</span>
-                <span className={budgetVariance.varianceAmount < 0 ? "text-destructive" : "text-green-600"}>
+                <span className={budgetVariance.varianceAmount < 0 ? "text-destructive" : "text-success"}>
                   {budgetVariance.varianceAmount >= 0 ? "+" : ""}{budgetVariance.varianceAmount.toLocaleString()}
                 </span>
               </div>

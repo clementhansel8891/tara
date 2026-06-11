@@ -174,7 +174,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
       </DialogTrigger>
       <DialogContent className="rounded-[2rem] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-black italic text-2xl uppercase tracking-tighter text-blue-900">
+          <DialogTitle className="font-black italic text-2xl uppercase tracking-tighter text-primary">
             Establishing New Branch
           </DialogTitle>
           <DialogDescription className="font-bold italic">
@@ -323,9 +323,9 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
               </div>
 
               {/* Geospatial Section */}
-              <div className="p-4 bg-primary/5/50 rounded-2xl border border-blue-100/50 space-y-4">
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                  <label className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                     <Globe className="w-3.5 h-3.5" /> Geospatial Anchoring
                   </label>
                 </div>
@@ -362,7 +362,7 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                     step="50"
                     name="geofence_radius"
                     defaultValue="200"
-                    className="w-full h-1.5 bg-blue-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-1.5 bg-primary rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                 </div>
               </div>
@@ -385,11 +385,11 @@ export const RegisterStoreDialog: React.FC<RegisterStoreDialogProps> = ({
                 </select>
 
                 {selectedCountry && (
-                  <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-blue-100 bg-primary/5/50">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-900">
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-primary bg-primary/5">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">
                       Currency:
                     </span>
-                    <span className="text-xs font-bold text-blue-700">
+                    <span className="text-xs font-bold text-primary">
                       {selectedCountry.currency}
                     </span>
                     <span className="text-[10px] font-medium text-primary/70">

@@ -45,3 +45,6 @@ frontend/dist/
 /playwright/.cache/
 /playwright/.auth/
 graphify-out/
+
+# Audit tooling — generated output
+audit-results/

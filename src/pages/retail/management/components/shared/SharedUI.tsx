@@ -58,7 +58,7 @@ export const CredentialField = ({
           className={`flex-1 rounded-xl px-4 py-3 text-sm font-mono font-bold truncate ${
             isMissing
               ? "bg-secondary/10 text-muted-foreground"
-              : "bg-secondary text-slate-100"
+              : "bg-secondary text-muted-foreground"
           }`}
         >
           {displayValue}
@@ -67,7 +67,7 @@ export const CredentialField = ({
           <Button
             variant="outline"
             size="icon"
-            className="border-slate-700 text-slate-200 hover:text-foreground shrink-0"
+            className="border-slate-700 text-muted-foreground hover:text-foreground shrink-0"
             onClick={onCopy}
           >
             <Copy className="w-4 h-4" />

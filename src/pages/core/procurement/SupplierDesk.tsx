@@ -620,7 +620,7 @@ export default function SupplierDesk() {
                       <p className="font-semibold text-sm">{cat.name}</p>
                       <p className="text-xs text-muted-foreground">{cat.description || "No description"}</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" onClick={() => handleDeleteCategory(cat.id)} className="text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>

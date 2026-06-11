@@ -103,7 +103,7 @@ export const WorkforceAnalytics: React.FC<WorkforceAnalyticsProps> = ({
 
           <div className="group/tile relative bg-white/[0.02] backdrop-blur-3xl p-8 rounded-2xl border border-white/5 hover:bg-white/[0.04] hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 shadow-xl overflow-hidden">
             <div className="absolute -right-4 -top-4 w-24 h-24 bg-destructive/10 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700" />
-            <AlertCircle className="absolute top-8 right-8 w-6 h-6 text-muted-foreground group-hover/tile:text-rose-400 transition-colors duration-500" />
+            <AlertCircle className="absolute top-8 right-8 w-6 h-6 text-muted-foreground group-hover/tile:text-destructive transition-colors duration-500" />
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4 italic">
               Workforce Alerts
             </p>
@@ -111,12 +111,12 @@ export const WorkforceAnalytics: React.FC<WorkforceAnalyticsProps> = ({
               <span className="text-3xl font-black italic text-foreground tracking-tighter">
                 0
               </span>
-              <span className="text-xl font-black text-rose-400 italic uppercase tracking-tighter leading-none">
+              <span className="text-xl font-black text-destructive italic uppercase tracking-tighter leading-none">
                 CRIT
               </span>
             </div>
             <div className="mt-6 flex items-center gap-3 relative z-10 px-4 py-1.5 rounded-xl bg-success/10 border border-emerald-500/20 w-fit shadow-lg">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
               <span className="text-[9px] font-black text-success uppercase tracking-widest italic">
                 Nominal
               </span>

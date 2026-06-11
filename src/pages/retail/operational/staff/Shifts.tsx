@@ -328,10 +328,10 @@ export default function RetailShifts() {
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-2 rounded-lg",
-                totalVariance >= 0 ? "bg-green-500/10" : "bg-destructive/10"
+                totalVariance >= 0 ? "bg-success" : "bg-destructive/10"
               )}>
                 {totalVariance >= 0 ? (
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-success" />
                 ) : (
                   <TrendingDown className="h-5 w-5 text-destructive" />
                 )}
@@ -340,7 +340,7 @@ export default function RetailShifts() {
                 <p className="text-sm text-muted-foreground">Cash Variance</p>
                 <p className={cn(
                   "text-xl font-bold",
-                  totalVariance >= 0 ? "text-green-500" : "text-destructive"
+                  totalVariance >= 0 ? "text-success" : "text-destructive"
                 )}>
                   {totalVariance >= 0 ? '+' : ''}{formatCurrency(totalVariance)}
                 </p>
@@ -353,11 +353,11 @@ export default function RetailShifts() {
             <div className="flex items-center gap-3">
               <div className={cn(
                 "p-2 rounded-lg",
-                currentShift ? "bg-green-500/10" : "bg-muted"
+                currentShift ? "bg-success" : "bg-muted"
               )}>
                 <Clock className={cn(
                   "h-5 w-5",
-                  currentShift ? "text-green-500" : "text-muted-foreground"
+                  currentShift ? "text-success" : "text-muted-foreground"
                 )} />
               </div>
               <div>
@@ -373,17 +373,17 @@ export default function RetailShifts() {
 
       {/* Current Shift Card */}
       {currentShift && (
-        <Card className="border-green-500/50 bg-green-500/5">
+        <Card className="border-green-500/50 bg-success">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-500/10">
-                  <Clock className="h-6 w-6 text-green-500" />
+                <div className="p-3 rounded-full bg-success">
+                  <Clock className="h-6 w-6 text-success" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-lg">Active Shift</h3>
-                    <Badge variant="default" className="bg-green-500">In Progress</Badge>
+                    <Badge variant="default" className="bg-success">In Progress</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
@@ -481,7 +481,7 @@ export default function RetailShifts() {
                       {shift.cashDifference !== undefined && (
                         <div className={cn(
                           "flex items-center gap-1 justify-end",
-                          shift.cashDifference > 0 ? "text-green-500" :
+                          shift.cashDifference > 0 ? "text-success" :
                           shift.cashDifference < 0 ? "text-destructive" :
                           "text-muted-foreground"
                         )}>
@@ -777,12 +777,12 @@ export default function RetailShifts() {
                 {selectedShift.cashDifference !== undefined && (
                   <div className={cn(
                     "p-3 rounded-lg flex items-center justify-between",
-                    selectedShift.cashDifference >= 0 ? "bg-green-500/10" : "bg-destructive/10"
+                    selectedShift.cashDifference >= 0 ? "bg-success" : "bg-destructive/10"
                   )}>
                     <span className="font-medium">Variance</span>
                     <span className={cn(
                       "font-bold flex items-center gap-1",
-                      selectedShift.cashDifference >= 0 ? "text-green-500" : "text-destructive"
+                      selectedShift.cashDifference >= 0 ? "text-success" : "text-destructive"
                     )}>
                       {selectedShift.cashDifference >= 0 ? (
                         <CheckCircle className="h-4 w-4" />

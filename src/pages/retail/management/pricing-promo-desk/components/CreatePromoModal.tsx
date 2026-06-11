@@ -59,7 +59,7 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border border-white/10 shadow-2xl bg-slate-950/98 backdrop-blur-2xl text-foreground">
+      <DialogContent className="sm:max-w-md rounded-[2rem] p-6 border border-white/10 shadow-2xl bg-muted backdrop-blur-2xl text-foreground">
         <DialogHeader>
           <DialogTitle className="text-xl font-black italic tracking-tighter uppercase flex items-center gap-2 text-foreground">
             <Plus className="w-5 h-5 text-primary" /> Issue Promo Proposal
@@ -82,12 +82,12 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-2 mb-1 block">Promo Type</label>
                 <select 
-                  className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-slate-900 text-foreground text-sm outline-none focus:border-primary/50"
+                  className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-muted text-foreground text-sm outline-none focus:border-primary/50"
                   value={formData.type}
                   onChange={e => setFormData({ ...formData, type: e.target.value as RetailPromotion["type"] })}
                 >
-                  <option value="percentage" className="bg-slate-900 text-foreground">Percentage (%)</option>
-                  <option value="fixed_amount" className="bg-slate-900 text-foreground">Fixed Amount (Rp)</option>
+                  <option value="percentage" className="bg-muted text-foreground">Percentage (%)</option>
+                  <option value="fixed_amount" className="bg-muted text-foreground">Fixed Amount (Rp)</option>
                 </select>
               </div>
               <div>
@@ -133,13 +133,13 @@ export const CreatePromoModal: React.FC<CreatePromoModalProps> = ({ isOpen, onCl
                 <Target className="w-3 h-3" /> Target Scope
               </label>
               <select 
-                className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-slate-900 text-foreground text-sm outline-none focus:border-primary/50"
+                className="w-full h-12 px-3 rounded-xl border border-white/10 font-bold italic bg-muted text-foreground text-sm outline-none focus:border-primary/50"
                 value={formData.target}
                 onChange={e => setFormData({ ...formData, target: e.target.value as RetailPromotion["target"] })}
               >
-                <option value="all" className="bg-slate-900 text-foreground">All Items (Global)</option>
-                <option value="category" className="bg-slate-900 text-foreground">Specific Category</option>
-                <option value="specific_items" className="bg-slate-900 text-foreground">Specific Items</option>
+                <option value="all" className="bg-muted text-foreground">All Items (Global)</option>
+                <option value="category" className="bg-muted text-foreground">Specific Category</option>
+                <option value="specific_items" className="bg-muted text-foreground">Specific Items</option>
               </select>
             </div>
           </div>

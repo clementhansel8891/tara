@@ -213,7 +213,7 @@ export default function SchedulingStudio() {
                                   <div className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 ${
                                     data.source === "OVERRIDE" ? "bg-destructive/10 text-destructive border border-destructive/20" :
                                     data.source === "SWAP" ? "bg-primary/10 text-primary border border-primary/20" :
-                                    "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
+                                    "bg-success text-success border border-emerald-500/20"
                                   }`}>
                                     <Clock className="w-3 h-3" /> {data.shift?.startTime} - {data.shift?.endTime}
                                   </div>
@@ -243,8 +243,8 @@ export default function SchedulingStudio() {
                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Weekly Coverage</p>
                 <p className="text-2xl font-black text-foreground">98.4%</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Badge className="bg-emerald-500 hover:bg-emerald-600">Optimal</Badge>
+              <div className="w-10 h-10 rounded-full bg-success flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Badge className="bg-success hover:bg-success">Optimal</Badge>
               </div>
             </Card>
             <Card className="p-4 bg-gradient-to-br from-card to-background shadow-none border-dashed flex items-center justify-between group hover:border-primary/50 transition-all duration-300">
@@ -252,8 +252,8 @@ export default function SchedulingStudio() {
                 <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Open Shifts</p>
                 <p className="text-2xl font-black text-foreground">12</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-amber-500/20">
-                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              <div className="w-10 h-10 rounded-full bg-warning flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-amber-500/20">
+                <AlertTriangle className="w-5 h-5 text-warning" />
               </div>
             </Card>
             <Card className="p-4 bg-gradient-to-br from-card to-background shadow-none border-dashed flex items-center justify-between group hover:border-primary/50 transition-all duration-300">

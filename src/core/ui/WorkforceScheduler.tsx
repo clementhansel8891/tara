@@ -105,10 +105,10 @@ export function WorkforceScheduler({
                   <p className="text-xs text-muted-foreground whitespace-nowrap">Week of {format(weekStart, "MMMM dd, yyyy")}</p>
                   {isHR && (
                     <Select value={departmentId} onValueChange={onDepartmentChange}>
-                      <SelectTrigger className="h-6 text-[9px] font-black uppercase tracking-widest bg-slate-900/60 border-white/5 text-primary w-[140px] rounded-lg hover:bg-slate-900/80">
+                      <SelectTrigger className="h-6 text-[9px] font-black uppercase tracking-widest bg-muted border-white/5 text-primary w-[140px] rounded-lg hover:bg-muted">
                         <SelectValue placeholder="Switch Department" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-950 border-white/5">
+                      <SelectContent className="bg-muted border-white/5">
                         <SelectItem value="HR">HR & Legal</SelectItem>
                         <SelectItem value="FINANCE">Finance</SelectItem>
                         <SelectItem value="IT">IT & Tech</SelectItem>
@@ -184,12 +184,12 @@ export function WorkforceScheduler({
                                 {(Array.isArray(days) ? days : []).map(day => (
                                     <td key={day.toString()} className="p-2 h-20 group relative">
                                         {/* Mock Shift Card */}
-                                        <div className="h-full w-full rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-2 text-[10px] flex flex-col justify-between group-hover:bg-emerald-500/25 cursor-pointer transition-all">
+                                        <div className="h-full w-full rounded-lg bg-success border border-emerald-500/20 p-2 text-[10px] flex flex-col justify-between group-hover:bg-success cursor-pointer transition-all">
                                             <div className="flex justify-between items-start">
-                                                <span className="font-bold text-emerald-400">Morning</span>
-                                                <Clock className="h-3 w-3 text-emerald-400 opacity-0 group-hover:opacity-100" />
+                                                <span className="font-bold text-success">Morning</span>
+                                                <Clock className="h-3 w-3 text-success opacity-0 group-hover:opacity-100" />
                                             </div>
-                                            <span className="text-emerald-300 font-medium font-mono">08:00 - 16:00</span>
+                                            <span className="text-success font-medium font-mono">08:00 - 16:00</span>
                                         </div>
                                         
                                         {/* Action Overlay */}
@@ -210,7 +210,7 @@ export function WorkforceScheduler({
 
       <div className="flex justify-end gap-3 mt-4">
           <Button variant="ghost" size="sm" className="text-muted-foreground">Discard Changes</Button>
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+          <Button size="sm" className="bg-success hover:bg-success">
               <Save className="h-4 w-4 mr-2" /> Publish Schedule
           </Button>
       </div>

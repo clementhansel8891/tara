@@ -27,11 +27,11 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
     <Card
       className={cn(
         "p-6 md:p-8 rounded-2xl shadow-xl overflow-hidden relative border-none",
-        isCollision ? "bg-red-50" : "bg-white",
+        isCollision ? "bg-destructive" : "bg-white",
       )}
     >
       {isCollision && (
-        <AlertTriangle className="absolute -right-8 -top-8 w-48 h-48 text-red-500 opacity-[0.03] group-hover:scale-110 transition-transform" />
+        <AlertTriangle className="absolute -right-8 -top-8 w-48 h-48 text-destructive opacity-[0.03] group-hover:scale-110 transition-transform" />
       )}
       {!isCollision && (
         <ShieldCheck className="absolute -right-8 -top-8 w-48 h-48 text-success opacity-[0.03] group-hover:scale-110 transition-transform" />
@@ -44,7 +44,7 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
               className={cn(
                 "p-4 rounded-2xl flex items-center justify-center",
                 isCollision
-                  ? "bg-red-100 text-red-600 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+                  ? "bg-destructive text-destructive shadow-[0_0_20px_rgba(239,68,68,0.2)]"
                   : "bg-primary/5 text-primary",
               )}
             >
@@ -54,7 +54,7 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
               className={cn(
                 "text-[9px] font-black italic uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm",
                 isCollision
-                  ? "bg-red-600 text-foreground"
+                  ? "bg-destructive text-foreground"
                   : "bg-secondary text-foreground",
               )}
             >
@@ -66,7 +66,7 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
             <div
               className={cn(
                 "text-2xl font-black italic tracking-tighter mb-2",
-                isCollision ? "text-red-900" : "text-foreground",
+                isCollision ? "text-destructive" : "text-foreground",
               )}
             >
               {isCollision ? "COLLISION DETECTED" : "SAFE ZONE"}
@@ -74,7 +74,7 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
             <div
               className={cn(
                 "text-[10px] font-black uppercase italic tracking-widest",
-                isCollision ? "text-red-600/70" : "text-muted-foreground",
+                isCollision ? "text-destructive" : "text-muted-foreground",
               )}
             >
               Projected Final Stock:{" "}
@@ -92,16 +92,16 @@ export const BufferCollisionSensor: React.FC<BufferCollisionSensorProps> = ({
             value={Math.max(0, bufferUtilization)}
             className={cn(
               "h-2.5 rounded-full bg-secondary/10",
-              isCollision ? "bg-red-100" : "bg-secondary/10",
+              isCollision ? "bg-destructive" : "bg-secondary/10",
             )}
             indicatorClassName={
               isCollision
-                ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]"
+                ? "bg-destructive shadow-[0_0_10px_rgba(239,68,68,0.8)]"
                 : "bg-primary"
             }
           />
           {isCollision && (
-            <p className="text-[10px] font-bold text-red-600 italic mt-3 uppercase">
+            <p className="text-[10px] font-bold text-destructive italic mt-3 uppercase">
               Warning: E-Commerce operational buffer will be breached
             </p>
           )}

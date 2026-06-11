@@ -25,7 +25,7 @@ export function WorkflowRequestCard({
   footer,
 }: WorkflowRequestCardProps) {
   const urgencyTone =
-    urgency >= 80 ? "text-red-600" : urgency >= 60 ? "text-amber-600" : "text-emerald-600";
+    urgency >= 80 ? "text-destructive" : urgency >= 60 ? "text-warning" : "text-success";
 
   return (
     <div className={cn("rounded-xl border bg-card p-4 shadow-sm")}>

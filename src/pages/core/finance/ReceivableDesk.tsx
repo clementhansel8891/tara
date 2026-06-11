@@ -197,7 +197,7 @@ export default function ReceivableDesk() {
           </div>
           <div className="rounded-lg border p-3">
             <p className="text-xs text-muted-foreground">Overdue</p>
-            <p className="text-xl font-semibold text-rose-600">{grouped.OVERDUE.length}</p>
+            <p className="text-xl font-semibold text-destructive">{grouped.OVERDUE.length}</p>
             <Badge variant="destructive">Follow up</Badge>
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function ReceivableDesk() {
                 <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-1">Timeline</p>
                 <div className="bg-muted/30 p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Due Date</p>
-                  <p className="font-medium text-sm text-rose-600">{selectedItem?.dueDate}</p>
+                  <p className="font-medium text-sm text-destructive">{selectedItem?.dueDate}</p>
                 </div>
               </div>
             </div>

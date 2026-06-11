@@ -382,8 +382,8 @@ export const ItemCreationTab: React.FC<Props> = ({
         {/* ── Bulk Image Matching (NEW) ── */}
         <Card className="rounded-[3rem] border border-white/10 shadow-sm bg-white/[0.04] backdrop-blur-xl">
           <CardContent className="p-10 flex flex-col items-center text-center gap-6">
-            <div className="w-20 h-20 rounded-[2rem] bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-              <Plus className="w-8 h-8 text-amber-400" />
+            <div className="w-20 h-20 rounded-[2rem] bg-warning border border-amber-500/20 flex items-center justify-center shrink-0">
+              <Plus className="w-8 h-8 text-warning" />
             </div>
             <div>
               <h3 className="text-lg font-black italic tracking-tight uppercase text-foreground">
@@ -403,7 +403,7 @@ export const ItemCreationTab: React.FC<Props> = ({
                 />
                 <Button 
                   onClick={() => imageInputRef.current?.click()}
-                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-amber-500/80 hover:bg-amber-500 text-white"
+                  className="rounded-2xl h-11 px-8 font-black italic uppercase tracking-widest text-[10px] gap-3 bg-warning hover:bg-warning text-white"
                 >
                   <Upload className="w-4 h-4" /> Drop SKU Images
                 </Button>

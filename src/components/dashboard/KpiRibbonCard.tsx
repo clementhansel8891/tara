@@ -30,9 +30,9 @@ export const KpiRibbonCard: React.FC<KpiRibbonCardProps> = ({
   const IconComponent = (Icons as any)[icon] || Icons.HelpCircle;
 
   const trendStyles = {
-    up: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-    down: "text-rose-500 bg-rose-500/10 border-rose-500/20",
-    flat: "text-amber-500 bg-amber-500/10 border-amber-500/20"
+    up: "text-success bg-success border-emerald-500/20",
+    down: "text-destructive bg-destructive border-rose-500/20",
+    flat: "text-warning bg-warning border-amber-500/20"
   };
 
   const trendIcons = {

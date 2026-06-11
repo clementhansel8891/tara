@@ -132,25 +132,25 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-xl shadow-slate-200/20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-muted p-6 rounded-[2rem] shadow-xl shadow-slate-200/20">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search approvals matrix..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="pl-11 h-12 rounded-xl border-slate-100 bg-slate-50 focus:bg-white transition-all font-medium"
+            className="pl-11 h-12 rounded-xl border-slate-100 bg-muted focus:bg-white transition-all font-medium"
           />
         </div>
         <div className="flex items-center gap-3">
-          <Badge className="bg-indigo-600 text-white border-none font-black px-4 py-2 rounded-full uppercase tracking-widest text-[10px]">
+          <Badge className="bg-primary text-white border-none font-black px-4 py-2 rounded-full uppercase tracking-widest text-[10px]">
             Dept: {session.department_id || "Global Operations"}
           </Badge>
           <Button 
             onClick={() => setVersion(v => v + 1)} 
             variant="ghost" 
             size="icon" 
-            className="rounded-full hover:bg-slate-100"
+            className="rounded-full hover:bg-muted"
             disabled={loading}
           >
             <Loader2 className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -159,7 +159,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
       </div>
 
       <Tabs value={tab} onValueChange={(value) => setTab(value as "ALL" | WorkflowStatus)} className="space-y-6">
-        <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl h-14 w-full justify-start overflow-x-auto no-scrollbar">
+        <TabsList className="bg-muted dark:bg-muted p-1.5 rounded-2xl h-14 w-full justify-start overflow-x-auto no-scrollbar">
           {[
             { id: "ALL", label: "All" },
             { id: "PENDING", label: "Pending" },
@@ -170,7 +170,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
             <TabsTrigger 
               key={t.id} 
               value={t.id}
-              className="rounded-xl px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg dark:data-[state=active]:bg-slate-900"
+              className="rounded-xl px-6 font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:shadow-lg dark:data-[state=active]:bg-muted"
             >
               {t.label} ({statusCounts[t.id as any] || 0})
             </TabsTrigger>
@@ -178,9 +178,9 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
         </TabsList>
 
         {loading && workflows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-80 rounded-[3rem] border border-dashed border-slate-200 bg-slate-50/30">
-            <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-4" />
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Syncing Approval Matrix</p>
+          <div className="flex flex-col items-center justify-center h-80 rounded-[3rem] border border-dashed border-slate-200 bg-muted">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">Syncing Approval Matrix</p>
           </div>
         ) : error ? (
           <EmptyState 
@@ -202,7 +202,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
             <DataTableShell>
               <table className="w-full text-sm border-separate border-spacing-y-4">
                 <thead>
-                  <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                     <th className="px-6 py-4 text-left">Request Identity</th>
                     <th className="px-6 py-4 text-left">Departmental Route</th>
                     <th className="px-6 py-4 text-left">Status</th>
@@ -213,16 +213,16 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
                   {(Array.isArray(filtered) ? filtered : []).map((flow) => (
                     <tr 
                       key={flow.id} 
-                      className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+                      className="bg-white dark:bg-muted shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
                     >
                       <td className="px-6 py-6 first:rounded-l-[2rem]">
-                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight">{flow.entityType}</p>
-                        <p className="text-[10px] font-bold text-indigo-600 font-mono opacity-60">#{flow.entityId.substring(0, 12)}</p>
+                        <p className="font-black text-muted-foreground dark:text-white uppercase tracking-tight">{flow.entityType}</p>
+                        <p className="text-[10px] font-bold text-primary font-mono opacity-60">#{flow.entityId.substring(0, 12)}</p>
                       </td>
                       <td className="px-6 py-6">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                           <span>{flow.makerDept}</span>
-                          <Separator className="w-4 bg-slate-200" />
+                          <Separator className="w-4 bg-muted" />
                           <span>{flow.destinationDept}</span>
                         </div>
                       </td>
@@ -242,7 +242,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
                           {flow.status === "PENDING" && (
                             <Button
                               size="sm"
-                              className="rounded-xl font-black text-[10px] h-9 bg-emerald-600 hover:bg-emerald-700 text-white"
+                              className="rounded-xl font-black text-[10px] h-9 bg-success hover:bg-success text-white"
                               onClick={() => handleAction("approve", flow)}
                             >
                               AUTHORIZE
@@ -265,40 +265,40 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
             <div className="space-y-10">
               <SheetHeader className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-indigo-600/10 text-indigo-600 border-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
+                  <Badge className="bg-primary text-primary border-none font-black text-[10px] px-3 py-1 rounded-full uppercase">
                     {selected.entityType}
                   </Badge>
                   <ApprovalStatusBadge status={selected.status} />
                 </div>
                 <SheetTitle className="text-4xl font-black tracking-tighter italic uppercase">Authorization Trace</SheetTitle>
-                <SheetDescription className="font-medium text-slate-500">
+                <SheetDescription className="font-medium text-muted-foreground">
                   Detailed inspection of request #{selected.entityId}
                 </SheetDescription>
               </SheetHeader>
 
-              <Separator className="bg-slate-100" />
+              <Separator className="bg-muted" />
 
               <div className="space-y-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Requester</p>
-                    <p className="font-bold text-slate-900">{selected.requestedBy}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Requester</p>
+                    <p className="font-bold text-muted-foreground">{selected.requestedBy}</p>
                   </div>
                   <div className="space-y-1 text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</p>
-                    <p className="font-bold text-slate-900 font-mono text-xs">{new Date(selected.requestedAt).toLocaleString()}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Timestamp</p>
+                    <p className="font-bold text-muted-foreground font-mono text-xs">{new Date(selected.requestedAt).toLocaleString()}</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contextual Notes</p>
-                  <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 italic text-slate-600 text-sm">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contextual Notes</p>
+                  <div className="p-6 rounded-3xl bg-muted border border-slate-100 italic text-muted-foreground text-sm">
                     {selected.notes || "No additional context provided by the maker."}
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Authorization Protocol</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Authorization Protocol</p>
                   <Textarea
                     placeholder="Enter disposition notes..."
                     value={notes}
@@ -315,7 +315,7 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
                       DENY REQUEST
                     </Button>
                     <Button
-                      className="h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="h-14 rounded-2xl font-black uppercase tracking-widest text-xs bg-success hover:bg-success text-white"
                       onClick={() => handleAction("approve", selected)}
                       disabled={selected.status !== "PENDING"}
                     >
@@ -326,19 +326,19 @@ export function ApprovalInbox({ tenantId, session }: ApprovalInboxProps) {
 
                 {auditTrail.length > 0 && (
                   <div className="space-y-6 pt-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                        <History className="h-3 w-3" />
                        Audit History
                     </p>
                     <div className="space-y-4 border-l-2 border-slate-100 ml-2 pl-6">
                       {(Array.isArray(auditTrail) ? auditTrail : []).map((log: any, i: number) => (
                         <div key={i} className="relative">
-                          <div className="absolute -left-[1.85rem] top-1 h-3 w-3 rounded-full bg-slate-200 border-2 border-white" />
-                          <p className="text-xs font-bold text-slate-900">{log.action}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">
+                          <div className="absolute -left-[1.85rem] top-1 h-3 w-3 rounded-full bg-muted border-2 border-white" />
+                          <p className="text-xs font-bold text-muted-foreground">{log.action}</p>
+                          <p className="text-[10px] text-muted-foreground font-medium">
                             {log.user_id} • {new Date(log.created_at).toLocaleString()}
                           </p>
-                          {log.notes && <p className="mt-1 text-[10px] italic text-slate-500">"{log.notes}"</p>}
+                          {log.notes && <p className="mt-1 text-[10px] italic text-muted-foreground">"{log.notes}"</p>}
                         </div>
                       ))}
                     </div>

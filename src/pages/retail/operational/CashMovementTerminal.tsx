@@ -144,7 +144,7 @@ const CashMovementTerminal = () => {
                 </div>
 
                 {/* Amount Input */}
-                <div className="relative group bg-secondary/40 border border-border rounded-3xl p-8 hover:bg-white/10 transition-colors focus-within:border-indigo-500/50">
+                <div className="relative group bg-secondary/40 border border-border rounded-3xl p-8 hover:bg-white/10 transition-colors focus-within:border-primary">
                   <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-4 italic text-center">
                     Enter Amount
                   </div>

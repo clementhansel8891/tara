@@ -41,12 +41,12 @@ const SECTIONS = [
 
 const statusTone = (status: string) => {
   if (status === "Complete" || status === "Ready") {
-    return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+    return "bg-success text-success border-emerald-500/20";
   }
   if (status === "Attention" || status === "Overdue") {
-    return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+    return "bg-destructive text-destructive border-rose-500/20";
   }
-  return "bg-slate-500/10 text-slate-400 border-slate-500/20";
+  return "bg-muted text-muted-foreground border-slate-500/20";
 };
 
 interface FinanceMetric {
@@ -118,10 +118,10 @@ export default function CoreFinance() {
 
   if (loading || !data) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-black uppercase tracking-widest text-slate-500 italic">Accessing Treasury Mainframe...</p>
+          <p className="text-xs font-black uppercase tracking-widest text-muted-foreground italic">Accessing Treasury Mainframe...</p>
         </div>
       </div>
     );
@@ -156,19 +156,19 @@ export default function CoreFinance() {
           {(Array.isArray(financialSummary) ? financialSummary : []).map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-2xl border bg-white dark:bg-muted p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between text-muted-foreground mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.label}</span>
-                <Wallet className="h-4 w-4 text-indigo-500" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</span>
+                <Wallet className="h-4 w-4 text-primary" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black italic tracking-tighter uppercase text-slate-900 dark:text-white">
+                <span className="text-3xl font-black italic tracking-tighter uppercase text-muted-foreground dark:text-white">
                   {item.value}
                 </span>
               </div>
               {item.delta && (
-                <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-emerald-500">
+                <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-success">
                   <ArrowUpRight className="h-3 w-3" /> {item.delta}
                 </div>
               )}
@@ -184,58 +184,58 @@ export default function CoreFinance() {
           description="Live revenue and performance metrics pulled dynamically from the active Retail module."
         >
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
-              <div className="flex items-center justify-between text-blue-500 mb-4">
+            <div className="rounded-2xl border border-primary bg-primary p-6">
+              <div className="flex items-center justify-between text-primary mb-4">
                 <span className="text-[10px] font-black uppercase tracking-widest">
                   Weekly Retail Revenue
                 </span>
                 <TrendingUp className="h-4 w-4" />
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black italic tracking-tighter uppercase text-blue-600 dark:text-blue-400">
+                <span className="text-3xl font-black italic tracking-tighter uppercase text-primary dark:text-primary">
                   {retailStats.weeklyRevenue}
                 </span>
               </div>
-              <div className="mt-2 text-[10px] font-bold text-blue-500/70 flex items-center gap-1 uppercase tracking-widest">
+              <div className="mt-2 text-[10px] font-bold text-primary flex items-center gap-1 uppercase tracking-widest">
                 Retail orders this week
               </div>
             </div>
 
-            <div className="rounded-2xl border p-6 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="rounded-2xl border p-6 bg-white dark:bg-muted shadow-sm">
               <div className="flex items-center justify-between text-muted-foreground mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Orders Today</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Orders Today</span>
                 <ShoppingBag className="h-4 w-4" />
               </div>
-              <p className="text-2xl font-black italic text-slate-900 dark:text-white uppercase">
+              <p className="text-2xl font-black italic text-muted-foreground dark:text-white uppercase">
                 {retailStats.ordersToday}
               </p>
-              <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <p className="mt-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Across all branches
               </p>
             </div>
 
-            <div className="rounded-2xl border p-6 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="rounded-2xl border p-6 bg-white dark:bg-muted shadow-sm">
               <div className="flex items-center justify-between text-muted-foreground mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Avg Basket</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Avg Basket</span>
                 <Receipt className="h-4 w-4" />
               </div>
-              <p className="text-2xl font-black italic text-slate-900 dark:text-white uppercase">
+              <p className="text-2xl font-black italic text-muted-foreground dark:text-white uppercase">
                 {retailStats.avgBasketValue}
               </p>
-              <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <p className="mt-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Rolling Average
               </p>
             </div>
 
-            <div className="rounded-2xl border p-6 bg-white dark:bg-slate-900 shadow-sm">
+            <div className="rounded-2xl border p-6 bg-white dark:bg-muted shadow-sm">
               <div className="flex items-center justify-between text-muted-foreground mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Top Category</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Top Category</span>
                 <TrendingUp className="h-4 w-4" />
               </div>
-              <p className="text-xl font-black italic text-slate-900 dark:text-white uppercase truncate">
+              <p className="text-xl font-black italic text-muted-foreground dark:text-white uppercase truncate">
                 {retailStats.topCategory}
               </p>
-              <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <p className="mt-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 Highest Grossing
               </p>
             </div>
@@ -250,18 +250,18 @@ export default function CoreFinance() {
         >
           <div className="space-y-4 pt-2">
             {(Array.isArray(billingQueue) ? billingQueue : []).map((item) => (
-              <div key={item.id} className="rounded-2xl border p-5 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+              <div key={item.id} className="rounded-2xl border p-5 bg-white dark:bg-muted shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground dark:text-white mb-1">
                       {item.title}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">
                       DUE: {item.due}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-black italic text-slate-900 dark:text-white uppercase">{item.amount}</p>
+                    <p className="text-sm font-black italic text-muted-foreground dark:text-white uppercase">{item.amount}</p>
                     <Badge
                       variant="outline"
                       className={`mt-2 rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none ${statusTone(item.status)}`}
@@ -284,13 +284,13 @@ export default function CoreFinance() {
         >
           <div className="space-y-4 pt-2">
             {(Array.isArray(taxReports) ? taxReports : []).map((report) => (
-              <div key={report.id} className="rounded-2xl border p-5 bg-white dark:bg-slate-900 shadow-sm">
+              <div key={report.id} className="rounded-2xl border p-5 bg-white dark:bg-muted shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground dark:text-white mb-1">
                       {report.title}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">
                       DEADLINE: {report.due}
                     </p>
                   </div>
@@ -301,18 +301,18 @@ export default function CoreFinance() {
                     {report.status}
                   </Badge>
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-indigo-600 uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity">
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest cursor-pointer hover:opacity-70 transition-opacity">
                   <FileText className="h-3.5 w-3.5" />
                   View Filing Summary
                 </div>
               </div>
             ))}
-            <div className="flex items-center justify-between rounded-2xl border border-dashed p-6 bg-emerald-50/20 border-emerald-500/20">
+            <div className="flex items-center justify-between rounded-2xl border border-dashed p-6 bg-success border-emerald-500/20">
               <div className="flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest">Tax documentation package ready</span>
+                <ShieldCheck className="h-5 w-5 text-success" />
+                <span className="text-[11px] font-bold text-success uppercase tracking-widest">Tax documentation package ready</span>
               </div>
-              <Button onClick={handleDownloadTaxPackage} size="sm" variant="outline" className="rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest border-emerald-200 text-emerald-600">
+              <Button onClick={handleDownloadTaxPackage} size="sm" variant="outline" className="rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest border-emerald-200 text-success">
                 Download
               </Button>
             </div>
@@ -326,16 +326,16 @@ export default function CoreFinance() {
       >
         <div className="grid gap-4 md:grid-cols-3 pt-2">
           {(Array.isArray(auditReadiness) ? auditReadiness : []).map((item) => (
-            <div key={item.id} className="rounded-2xl border p-5 bg-white dark:bg-slate-900 shadow-sm border-slate-100">
+            <div key={item.id} className="rounded-2xl border p-5 bg-white dark:bg-muted shadow-sm border-slate-100">
               <div className="flex items-start justify-between gap-3 mb-3">
-                <p className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground dark:text-white">
                   {item.label}
                 </p>
                 <Badge variant="outline" className={`rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest border-none ${statusTone(item.status)}`}>
                   {item.status}
                 </Badge>
               </div>
-              <p className="text-[10px] font-medium text-slate-500 leading-relaxed italic">"{item.note}"</p>
+              <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">"{item.note}"</p>
             </div>
           ))}
         </div>
@@ -366,7 +366,7 @@ export default function CoreFinance() {
           </Button>
           <Button 
             onClick={() => toast({ title: "New Invoice", description: "Opening invoice creation studio..." })}
-            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-500/20"
+            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-success hover:bg-success shadow-xl shadow-emerald-500/20"
           >
             <Plus className="h-3 w-3 mr-2" /> New invoice
           </Button>

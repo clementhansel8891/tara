@@ -11,9 +11,11 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
+import { useTheme } from 'next-themes';
 import { WorkspacePanel } from '@/core/ui/WorkspacePanel';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { CHART_COLORS, CHART_COLORS_DARK, CHART_NEUTRAL, CHART_NEUTRAL_DARK } from '@/lib/chart-colors';
 
 interface FinancialTrajectoryChartProps {
   data: { month: string; revenue: number; expenses: number; profit?: number }[];
@@ -26,6 +28,15 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
   period,
   onPeriodChange 
 }) => {
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? CHART_COLORS_DARK : CHART_COLORS;
+  const neutral = theme === 'dark' ? CHART_NEUTRAL_DARK : CHART_NEUTRAL;
+  const mutedFg = theme === 'dark' ? '#94a3b8' : '#64748b';
+  const tooltipBg = theme === 'dark' ? '#1e293b' : '#ffffff';
+  const tooltipBorder = theme === 'dark' ? CHART_NEUTRAL_DARK : CHART_NEUTRAL;
+  const foreground = theme === 'dark' ? '#f8fafc' : '#0f172a';
+  const dotStroke = theme === 'dark' ? '#1e293b' : '#ffffff';
+
   const formattedData = data.map(d => ({
     ...d,
     profit: d.revenue - d.expenses
@@ -63,53 +74,53 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
           <ComposedChart data={formattedData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorRevenuePremium" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                <stop offset="5%" stopColor={colors[1]} stopOpacity={0.3}/>
+                <stop offset="95%" stopColor={colors[1]} stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={neutral} opacity={0.5} />
             <XAxis 
               dataKey="month" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }} 
+              tick={{ fontSize: 10, fontWeight: 800, fill: mutedFg, textTransform: 'uppercase' }} 
             />
             <YAxis 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 10, fontWeight: 800, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 10, fontWeight: 800, fill: mutedFg }}
               tickFormatter={(value) => `$${value / 1000}k`}
             />
             <Tooltip 
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--card))', 
+                backgroundColor: tooltipBg, 
                 borderRadius: '1.5rem', 
-                border: '1px solid hsl(var(--border))', 
+                border: `1px solid ${tooltipBorder}`, 
                 boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.2)',
                 padding: '1rem'
               }}
               itemStyle={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}
-              cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4' }}
+              cursor={{ stroke: colors[1], strokeWidth: 1, strokeDasharray: '4 4' }}
             />
             <Legend 
               verticalAlign="top" 
               align="right" 
               height={40} 
               iconType="circle" 
-              wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'hsl(var(--foreground))' }}
+              wrapperStyle={{ paddingTop: '0px', paddingBottom: '20px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: foreground }}
             />
             <Area 
               type="monotone" 
               dataKey="revenue" 
               fill="url(#colorRevenuePremium)" 
-              stroke="hsl(var(--primary))" 
+              stroke={colors[1]} 
               strokeWidth={4} 
               animationDuration={1500}
             />
             <Bar 
               dataKey="expenses" 
               barSize={16} 
-              fill="hsl(var(--muted-foreground))" 
+              fill={mutedFg} 
               radius={[4, 4, 0, 0]} 
               opacity={0.3} 
               animationDuration={2000}
@@ -117,9 +128,9 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
             <Line 
               type="monotone" 
               dataKey="profit" 
-              stroke="hsl(var(--success))" 
+              stroke={colors[2]} 
               strokeWidth={4} 
-              dot={{ r: 5, fill: 'hsl(var(--success))', strokeWidth: 3, stroke: 'hsl(var(--card))' }} 
+              dot={{ r: 5, fill: colors[2], strokeWidth: 3, stroke: dotStroke }} 
               activeDot={{ r: 8, strokeWidth: 0 }}
               animationDuration={2500}
             />

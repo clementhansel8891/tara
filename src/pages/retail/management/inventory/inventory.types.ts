@@ -82,16 +82,16 @@ export const getItemStatus = (
 };
 
 export const STATUS_BADGE: Record<ItemStatus, string> = {
-  ok: "bg-emerald-50 text-emerald-700",
-  low: "bg-amber-50 text-amber-700",
-  critical: "bg-red-50 text-red-700",
-  overstock: "bg-blue-50 text-blue-700",
+  ok: "bg-success text-success",
+  low: "bg-warning text-warning",
+  critical: "bg-destructive text-destructive",
+  overstock: "bg-primary text-primary",
 };
 
 export const AUDIT_STATUS_BADGE: Record<AuditStatus, string> = {
-  approved: "bg-emerald-50 text-emerald-700",
-  pending: "bg-amber-50 text-amber-700",
-  rejected: "bg-red-50 text-red-700",
+  approved: "bg-success text-success",
+  pending: "bg-warning text-warning",
+  rejected: "bg-destructive text-destructive",
 };
 
 // ─── Mock seed data ───────────────────────────────────────────

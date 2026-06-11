@@ -120,26 +120,26 @@ export default function IotEventFeed() {
           description="Edge gateway and telemetry status."
         >
           <div className="space-y-4">
-             <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+             <div className="p-4 rounded-lg bg-success border border-emerald-500/20">
                 <div className="flex items-center justify-between mb-2">
-                   <p className="text-sm font-medium text-emerald-600">Gate-01 (Main Warehouse)</p>
-                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                   <p className="text-sm font-medium text-success">Gate-01 (Main Warehouse)</p>
+                   <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 </div>
                 <p className="text-xs text-muted-foreground uppercase">Status: Online · Last Scan: 2m ago</p>
              </div>
 
-             <div className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+             <div className="p-4 rounded-lg bg-success border border-emerald-500/20">
                 <div className="flex items-center justify-between mb-2">
-                   <p className="text-sm font-medium text-emerald-600">Gate-02 (Loading Dock)</p>
-                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                   <p className="text-sm font-medium text-success">Gate-02 (Loading Dock)</p>
+                   <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
                 </div>
                 <p className="text-xs text-muted-foreground uppercase">Status: Online · Last Scan: 15m ago</p>
              </div>
 
-             <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/20">
+             <div className="p-4 rounded-lg bg-warning border border-orange-500/20">
                 <div className="flex items-center justify-between mb-2">
-                   <p className="text-sm font-medium text-orange-600">Temp-Sensor-04 (Cold Storage)</p>
-                   <div className="h-2 w-2 rounded-full bg-orange-500" />
+                   <p className="text-sm font-medium text-warning">Temp-Sensor-04 (Cold Storage)</p>
+                   <div className="h-2 w-2 rounded-full bg-warning" />
                 </div>
                 <p className="text-xs text-muted-foreground uppercase">Status: High Signal Noise · 4.2°C</p>
              </div>

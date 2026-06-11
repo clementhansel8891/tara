@@ -108,21 +108,21 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="rounded-[3rem] border-white/10 bg-slate-900/90 backdrop-blur-3xl shadow-2xl sm:max-w-[700px] p-0 overflow-hidden max-h-[85vh]">
+      <DialogContent className="rounded-[3rem] border-white/10 bg-muted backdrop-blur-3xl shadow-2xl sm:max-w-[700px] p-0 overflow-hidden max-h-[85vh]">
         <DialogHeader className="p-10 bg-white/5 border-b border-white/5">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="flex items-center gap-5 text-3xl font-black tracking-tighter text-white uppercase italic leading-none">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 border border-white/20">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[1.5rem] bg-primary text-white shadow-xl shadow-indigo-600/20 border border-white/20">
                   <FolderTree className="h-7 w-7" />
                 </div>
                 Category Manager
               </DialogTitle>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mt-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" /> CLASSIFICATION_ENGINE_V2
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mt-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> CLASSIFICATION_ENGINE_V2
               </p>
             </div>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl hover:bg-white/5 text-slate-500 hover:text-white" onClick={onClose}>
+            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl hover:bg-white/5 text-muted-foreground hover:text-white" onClick={onClose}>
               <X className="h-6 w-6" />
             </Button>
           </div>
@@ -133,23 +133,23 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
           <FeedbackAlert message={error} variant="error" onClose={() => setError(null)} />
 
           <div className="p-8 bg-white/5 rounded-[2rem] border border-white/10 space-y-6">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Initialize New Node</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Initialize New Node</p>
             <div className="flex gap-4 items-end">
               <div className="flex-1 space-y-3">
-                <Label htmlFor="new-category" className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-2">Label Designation</Label>
+                <Label htmlFor="new-category" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-2">Label Designation</Label>
                 <Input
                   id="new-category"
                   placeholder="e.g. RAW_MATERIALS_01"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                  className="h-14 rounded-xl bg-slate-950 border-white/5 text-white shadow-inner font-black italic tracking-widest placeholder:text-slate-700 focus:border-indigo-500 transition-all"
+                  className="h-14 rounded-xl bg-muted border-white/5 text-white shadow-inner font-black italic tracking-widest placeholder:text-muted-foreground focus:border-primary transition-all"
                 />
               </div>
               <Button 
                 onClick={handleCreate} 
                 disabled={!newName.trim()}
-                className="h-14 px-8 rounded-xl bg-white text-slate-950 font-black italic uppercase tracking-widest text-[10px] hover:bg-slate-100 shadow-2xl transition-all hover:scale-105"
+                className="h-14 px-8 rounded-xl bg-white text-muted-foreground font-black italic uppercase tracking-widest text-[10px] hover:bg-muted shadow-2xl transition-all hover:scale-105"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Commit
@@ -157,18 +157,18 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-white/5 bg-slate-950 overflow-hidden shadow-2xl">
+          <div className="rounded-[2rem] border border-white/5 bg-muted overflow-hidden shadow-2xl">
             <Table>
               <TableHeader>
                 <TableRow className="border-b border-white/5 hover:bg-transparent bg-white/5">
-                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Node Label</TableHead>
-                  <TableHead className="p-6 w-[150px] text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Operation</TableHead>
+                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Node Label</TableHead>
+                  <TableHead className="p-6 w-[150px] text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Operation</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {categories.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={2} className="text-center py-20 text-slate-600 italic font-black uppercase tracking-widest text-xs">
+                    <TableCell colSpan={2} className="text-center py-20 text-muted-foreground italic font-black uppercase tracking-widest text-xs">
                       No classification nodes found. Initialization required.
                     </TableCell>
                   </TableRow>
@@ -186,8 +186,8 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
                           />
                         ) : (
                           <div className="flex items-center gap-4">
-                             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                <FolderTree className="h-4 w-4 text-indigo-400" />
+                             <div className="w-8 h-8 rounded-lg bg-primary border border-primary flex items-center justify-center">
+                                <FolderTree className="h-4 w-4 text-primary" />
                              </div>
                              <span className="font-black text-white italic tracking-tight uppercase text-base">{cat.name}</span>
                           </div>
@@ -200,7 +200,7 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 rounded-xl text-emerald-400 hover:bg-emerald-500/20"
+                                className="h-10 w-10 rounded-xl text-success hover:bg-success"
                                 onClick={() => handleUpdate(cat.id)}
                               >
                                 <Save className="h-4 w-4" />
@@ -208,7 +208,7 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 rounded-xl text-rose-400 hover:bg-rose-500/20"
+                                className="h-10 w-10 rounded-xl text-destructive hover:bg-destructive"
                                 onClick={() => setEditingId(null)}
                               >
                                 <X className="h-4 w-4" />
@@ -219,7 +219,7 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 rounded-xl text-indigo-400 hover:bg-indigo-500/20"
+                                className="h-10 w-10 rounded-xl text-primary hover:bg-primary"
                                 onClick={() => {
                                   setEditingId(cat.id);
                                   setEditingName(cat.name);
@@ -230,7 +230,7 @@ export function CategoryManager({ isOpen, onClose, onCategoriesChange }: Categor
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-10 w-10 rounded-xl text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10"
+                                className="h-10 w-10 rounded-xl text-destructive hover:text-destructive hover:bg-destructive"
                                 onClick={() => handleDelete(cat.id)}
                               >
                                 <Trash2 className="h-4 w-4" />

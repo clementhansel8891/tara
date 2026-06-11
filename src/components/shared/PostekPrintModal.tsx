@@ -213,7 +213,7 @@ export const PostekPrintModal: React.FC<DialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
-      <DialogContent className="max-w-6xl rounded-[2rem] p-0 overflow-hidden bg-slate-50 flex h-[85vh] border-none shadow-2xl">
+      <DialogContent className="max-w-6xl rounded-[2rem] p-0 overflow-hidden bg-muted flex h-[85vh] border-none shadow-2xl">
         <PostekLeftControls
           items={items}
           quantities={quantities}

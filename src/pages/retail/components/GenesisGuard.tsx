@@ -29,7 +29,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="text-muted-foreground font-bold italic animate-pulse uppercase tracking-widest text-xs">
           Synchronizing Zenvix State...
         </p>
@@ -41,7 +41,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
     return (
       <div className="max-w-4xl mx-auto py-12 px-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center space-y-4">
-          <Badge className="bg-orange-500 hover:bg-orange-600 px-4 py-1 font-black italic tracking-widest">
+          <Badge className="bg-warning hover:bg-warning px-4 py-1 font-black italic tracking-widest">
             CORE_REQUIREMENT_MISSING
           </Badge>
           <h1 className="text-5xl font-black italic tracking-tighter text-foreground leading-none">
@@ -57,7 +57,7 @@ export const GenesisGuard: React.FC<{ children: React.ReactNode }> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-2 border-slate-100 hover:border-blue-500 transition-all group overflow-hidden bg-white rounded-[2rem] shadow-xl">
+          <Card className="border-2 border-slate-100 hover:border-primary transition-all group overflow-hidden bg-white rounded-[2rem] shadow-xl">
             <CardHeader className="p-8">
               <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                 <Store className="w-8 h-8" />

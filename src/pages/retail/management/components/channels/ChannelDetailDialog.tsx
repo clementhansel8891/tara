@@ -106,7 +106,7 @@ export const ChannelDetailDialog = ({
         <div className="bg-secondary p-6 text-foreground relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 p-6 opacity-10">
             {selectedChannel.type === "OWNED" ? (
-              <Globe className="w-32 h-32 text-blue-400" />
+              <Globe className="w-32 h-32 text-primary" />
             ) : (
               <ShoppingBag className="w-32 h-32 text-success" />
             )}
@@ -115,7 +115,7 @@ export const ChannelDetailDialog = ({
           <div className="relative z-10 flex items-start justify-between">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Badge className="bg-primary/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1">
+                <Badge className="bg-primary/20 text-primary border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1">
                   Channel Configuration
                 </Badge>
                 <Badge
@@ -140,7 +140,7 @@ export const ChannelDetailDialog = ({
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar controls */}
-          <div className="w-72 border-r border-slate-100 bg-secondary/5/50 p-8 space-y-8 flex flex-col justify-between">
+          <div className="w-72 border-r border-slate-100 bg-secondary/5 p-8 space-y-8 flex flex-col justify-between">
             <div className="space-y-6">
               <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">
                 Security Actions
@@ -165,7 +165,7 @@ export const ChannelDetailDialog = ({
                   variant="ghost"
                   onClick={() => handleRevokeChannel(selectedChannel.id)}
                   disabled={!canEdit || !!revocationLoading}
-                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-muted-foreground hover:bg-white hover:text-red-600 transition-all border border-transparent hover:border-slate-200"
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-muted-foreground hover:bg-white hover:text-destructive transition-all border border-transparent hover:border-slate-200"
                 >
                   <ShieldOff className="w-3.5 h-3.5" />
                   Revoke Access
@@ -175,7 +175,7 @@ export const ChannelDetailDialog = ({
                   variant="ghost"
                   onClick={() => handleDelete(selectedChannel.id)}
                   disabled={!canEdit}
-                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-red-500 hover:bg-red-50 transition-all border border-transparent"
+                  className="w-full h-12 justify-start rounded-xl px-4 gap-3 font-black italic uppercase text-[9px] tracking-widest text-destructive hover:bg-destructive transition-all border border-transparent"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Destroy Node
@@ -184,20 +184,20 @@ export const ChannelDetailDialog = ({
             </div>
 
             {!canEdit && (
-              <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 space-y-4">
-                <div className="flex items-center gap-2 text-amber-600">
+              <div className="p-6 rounded-2xl bg-warning border border-amber-100 space-y-4">
+                <div className="flex items-center gap-2 text-warning">
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-[9px] font-black uppercase tracking-widest italic">
                     LOCKED
                   </span>
                 </div>
-                <p className="text-[10px] font-bold text-amber-700 leading-relaxed italic uppercase italic tracking-tighter">
+                <p className="text-[10px] font-bold text-warning leading-relaxed italic uppercase italic tracking-tighter">
                   Approval required to modify vault configurations.
                 </p>
                 <Button
                   size="sm"
                   onClick={handleRequestApproval}
-                  className="w-full bg-amber-600 text-foreground font-black italic uppercase text-[8px] h-8 rounded-lg"
+                  className="w-full bg-warning text-foreground font-black italic uppercase text-[8px] h-8 rounded-lg"
                 >
                   Request Unlock
                 </Button>

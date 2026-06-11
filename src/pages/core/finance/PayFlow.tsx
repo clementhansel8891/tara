@@ -340,33 +340,33 @@ export default function PayFlow() {
         <DialogContent className="max-w-4xl p-0 overflow-hidden">
           <div className="grid md:grid-cols-[1fr_2fr] h-full">
             {/* Left Info Panel */}
-            <div className="bg-slate-950 text-slate-50 p-6 flex flex-col justify-between">
+            <div className="bg-muted text-muted-foreground p-6 flex flex-col justify-between">
               <div>
-                <ShieldCheck className="w-8 h-8 text-blue-400 mb-4" />
+                <ShieldCheck className="w-8 h-8 text-primary mb-4" />
                 <DialogTitle className="text-xl mb-2 text-white">Secure Payment Protocol</DialogTitle>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-muted-foreground">
                   All decentralized payments are hashed, signed by internal HSM prior to broadcast, and routed strictly per RBAC limits.
                 </p>
                 <div className="mt-8 space-y-5">
                   <div className="flex items-start gap-3">
-                    <Fingerprint className="w-5 h-5 text-emerald-400 mt-0.5" />
+                    <Fingerprint className="w-5 h-5 text-success mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-white">Biometric Authorization</p>
-                      <p className="text-xs text-slate-400">Transactions over $10k require CFO physical YubiKey or Biometric approval.</p>
+                      <p className="text-xs text-muted-foreground">Transactions over $10k require CFO physical YubiKey or Biometric approval.</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Building2 className="w-5 h-5 text-blue-400 mt-0.5" />
+                    <Building2 className="w-5 h-5 text-primary mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-white">Treasury Gateway</p>
-                      <p className="text-xs text-slate-400">Funds are pulled from unified internal treasury pools linked to source accounts.</p>
+                      <p className="text-xs text-muted-foreground">Funds are pulled from unified internal treasury pools linked to source accounts.</p>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="bg-blue-900/40 p-4 rounded-lg border border-blue-500/20 mt-8">
-                <p className="text-xs text-blue-300 font-medium">Compliance Note</p>
-                <p className="text-[10px] text-slate-400 mt-1">
+              <div className="bg-primary p-4 rounded-lg border border-primary mt-8">
+                <p className="text-xs text-primary font-medium">Compliance Note</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
                   Ensure AML checks are complete before executing cross-border payments.
                 </p>
               </div>
@@ -577,18 +577,18 @@ export default function PayFlow() {
               </div>
               <div className="pt-2">
                 <p className="text-sm text-muted-foreground uppercase font-semibold tracking-wider mb-2">Audit & Cryptographic Proof</p>
-                <div className="space-y-3 bg-slate-50 dark:bg-slate-900 border rounded-lg p-4">
+                <div className="space-y-3 bg-muted dark:bg-muted border rounded-lg p-4">
                   <div className="flex gap-2 text-xs">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <ShieldCheck className="w-4 h-4 text-success" />
                     <span className="text-muted-foreground">Transaction mapped securely. HSM validation passed.</span>
                   </div>
                   <div className="flex gap-2 text-xs">
-                    <Fingerprint className="w-4 h-4 text-slate-400" />
-                    <span className="text-muted-foreground">Trace route established. Compliance check: <span className="text-emerald-600 font-bold">CLEARED</span>.</span>
+                    <Fingerprint className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Trace route established. Compliance check: <span className="text-success font-bold">CLEARED</span>.</span>
                   </div>
                   {selectedItem?.recurring && (
                     <div className="flex gap-2 text-xs">
-                      <CalendarDays className="w-4 h-4 text-blue-500" />
+                      <CalendarDays className="w-4 h-4 text-primary" />
                       <span className="text-muted-foreground">This is marked as a <span className="font-bold text-foreground">Recurring Payment Structure</span>.</span>
                     </div>
                   )}

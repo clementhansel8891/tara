@@ -99,12 +99,12 @@ export default function ForecastDesk() {
 
   if (loading || !forecast) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted dark:bg-muted">
         <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+          <div className="h-20 w-20 bg-primary rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
             <TrendingUp className="h-10 w-10 text-white" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Projecting Neural Outcomes...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Projecting Neural Outcomes...</p>
         </div>
       </div>
     );
@@ -116,19 +116,19 @@ export default function ForecastDesk() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Strategic Foresight</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Strategic Foresight</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Live Analytical Engine
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">Executive Forecast</h1>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Predicting the future is easy. Creating it requires accurate telemetry."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic">"Predicting the future is easy. Creating it requires accurate telemetry."</p>
         </div>
         
-        <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+        <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-11 h-14 w-[300px] rounded-[1.5rem] bg-transparent border-none focus-visible:ring-0 text-base font-medium"
               value={search}
@@ -138,7 +138,7 @@ export default function ForecastDesk() {
           </div>
           <Button
             variant="secondary"
-            className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+            className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
             onClick={() => refresh(true)}
             disabled={refreshing}
           >
@@ -149,10 +149,10 @@ export default function ForecastDesk() {
 
       {/* Analytical Charts */}
       <div className="grid gap-8 lg:grid-cols-2">
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted overflow-hidden group">
           <CardHeader className="p-10 pb-2">
             <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 text-indigo-600" />
+              <TrendingUp className="h-6 w-6 text-primary" />
               Revenue Projection Model
             </CardTitle>
             <CardDescription className="text-sm font-medium">Weighted vs. Commit forecast delta (6 Month Tactical Horizon)</CardDescription>
@@ -202,10 +202,10 @@ export default function ForecastDesk() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted overflow-hidden group">
           <CardHeader className="p-10 pb-2">
             <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-emerald-600" />
+              <BarChart3 className="h-6 w-6 text-success" />
               Monthly Victory Distribution
             </CardTitle>
             <CardDescription className="text-sm font-medium">Historical trends for current fiscal cycle performance.</CardDescription>
@@ -256,23 +256,23 @@ export default function ForecastDesk() {
           { label: "Cycle", value: `${forecast.avgDealCycleDays}d`, color: "amber", icon: Clock },
           { label: "Rep Load", value: analytics?.topReps?.length || 0, color: "slate", icon: Users },
         ].map((kpi, i) => (
-          <Card key={i} className="rounded-3xl border-none shadow-lg bg-white dark:bg-slate-900 p-6 flex flex-col items-center justify-center text-center space-y-2 hover:shadow-xl transition-all hover:-translate-y-1">
+          <Card key={i} className="rounded-3xl border-none shadow-lg bg-white dark:bg-muted p-6 flex flex-col items-center justify-center text-center space-y-2 hover:shadow-xl transition-all hover:-translate-y-1">
              <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center mb-1", `bg-${kpi.color}-500/10`)}>
                 <kpi.icon className={cn("h-5 w-5", `text-${kpi.color}-500`)} />
              </div>
              <h4 className="text-xl font-black tracking-tighter">{kpi.value}</h4>
-             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{kpi.label}</p>
+             <p className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground">{kpi.label}</p>
           </Card>
         ))}
       </div>
 
       {/* Detailed Forecast Table */}
-      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden">
+      <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden">
         <CardHeader className="p-10 pb-6 border-b border-white/20 dark:border-slate-800/20">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-                <PieChart className="h-6 w-6 text-indigo-600" />
+                <PieChart className="h-6 w-6 text-primary" />
                 Weighted Revenue Matrix
               </CardTitle>
               <CardDescription className="text-sm font-medium">Granular visibility into deal-level probability impact on gross forecast.</CardDescription>
@@ -285,56 +285,56 @@ export default function ForecastDesk() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+              <thead className="bg-muted dark:bg-muted">
                 <tr>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Account Designation</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Owner</th>
-                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Current Node</th>
-                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Nominal Amount</th>
-                  <th className="px-10 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Probability Matrix</th>
-                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Weighted Impact</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Account Designation</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Owner</th>
+                  <th className="px-10 py-6 text-left text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Current Node</th>
+                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Nominal Amount</th>
+                  <th className="px-10 py-6 text-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Probability Matrix</th>
+                  <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Weighted Impact</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                 {(Array.isArray(filtered) ? filtered : []).map((item) => (
-                  <tr key={item.id} className="group hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all cursor-default">
+                  <tr key={item.id} className="group hover:bg-white/60 dark:hover:bg-muted transition-all cursor-default">
                     <td className="px-10 py-8">
                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                          <div className="h-10 w-10 rounded-xl bg-muted dark:bg-muted flex items-center justify-center font-black text-xs group-hover:bg-primary group-hover:text-white transition-colors">
                              {(item.accountName ?? "?").charAt(0)}
                           </div>
                           <div>
                              <p className="font-black text-sm">{item.accountName}</p>
-                             <p className="text-[10px] font-bold text-slate-400 uppercase italic">ID: {(item.id ?? "").slice(-6)}</p>
+                             <p className="text-[10px] font-bold text-muted-foreground uppercase italic">ID: {(item.id ?? "").slice(-6)}</p>
                           </div>
                        </div>
                     </td>
                     <td className="px-10 py-8">
                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-indigo-500" />
+                          <div className="h-2 w-2 rounded-full bg-primary" />
                           <span className="text-xs font-black uppercase tracking-tight">{item.ownerName}</span>
                        </div>
                     </td>
                     <td className="px-10 py-8">
-                       <Badge variant="outline" className="rounded-full font-black text-[9px] px-3 py-1 border-slate-200 uppercase tracking-widest text-slate-500">{item.stage.replace('_', ' ')}</Badge>
+                       <Badge variant="outline" className="rounded-full font-black text-[9px] px-3 py-1 border-slate-200 uppercase tracking-widest text-muted-foreground">{item.stage.replace('_', ' ')}</Badge>
                     </td>
-                    <td className="px-10 py-8 text-right font-bold text-slate-600 dark:text-slate-400">
+                    <td className="px-10 py-8 text-right font-bold text-muted-foreground dark:text-muted-foreground">
                        ${item.amount.toLocaleString()}
                     </td>
                     <td className="px-10 py-8">
                        <div className="flex items-center justify-center gap-3">
-                          <div className="w-20 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner">
+                          <div className="w-20 h-1.5 rounded-full bg-muted dark:bg-muted overflow-hidden shadow-inner">
                              <div 
-                               className={cn("h-full transition-all duration-1000 shadow-sm", STAGE_COLORS[item.stage] || "bg-indigo-500")} 
+                               className={cn("h-full transition-all duration-1000 shadow-sm", STAGE_COLORS[item.stage] || "bg-primary")} 
                                style={{ width: `${item.probability}%` }} 
                              />
                           </div>
-                          <span className="text-[10px] font-black text-indigo-600">{item.probability}%</span>
+                          <span className="text-[10px] font-black text-primary">{item.probability}%</span>
                        </div>
                     </td>
                     <td className="px-10 py-8 text-right">
-                       <p className="text-sm font-black text-indigo-600">${Math.round(item.amount * (item.probability / 100)).toLocaleString()}</p>
-                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Adjusted Value</p>
+                       <p className="text-sm font-black text-primary">${Math.round(item.amount * (item.probability / 100)).toLocaleString()}</p>
+                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">Adjusted Value</p>
                     </td>
                   </tr>
                 ))}
@@ -343,10 +343,10 @@ export default function ForecastDesk() {
           </div>
           {filtered.length === 0 && (
              <div className="p-20 text-center space-y-4">
-                <div className="h-20 w-20 rounded-[2rem] bg-slate-50 dark:bg-slate-900 flex items-center justify-center mx-auto grayscale opacity-30">
+                <div className="h-20 w-20 rounded-[2rem] bg-muted dark:bg-muted flex items-center justify-center mx-auto grayscale opacity-30">
                    <Target className="h-10 w-10" />
                 </div>
-                <p className="text-sm font-bold text-slate-400 italic">No active opportunities detected in the tactical horizon.</p>
+                <p className="text-sm font-bold text-muted-foreground italic">No active opportunities detected in the tactical horizon.</p>
              </div>
           )}
         </CardContent>
@@ -356,13 +356,13 @@ export default function ForecastDesk() {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  NEW: "bg-slate-500",
-  CONTACTED: "bg-blue-500",
-  QUALIFIED: "bg-indigo-500",
-  PROPOSAL: "bg-purple-500",
-  NEGOTIATION: "bg-orange-500",
-  CLOSED_WON: "bg-emerald-500",
-  CLOSED_LOST: "bg-rose-500",
+  NEW: "bg-muted",
+  CONTACTED: "bg-primary",
+  QUALIFIED: "bg-primary",
+  PROPOSAL: "bg-primary",
+  NEGOTIATION: "bg-destructive",
+  CLOSED_WON: "bg-success",
+  CLOSED_LOST: "bg-destructive",
 };
 
 const Users = ({ className }: { className?: string }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M17 11a4 4 0 0 0 0-8"/></svg>;

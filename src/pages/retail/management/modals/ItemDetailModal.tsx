@@ -53,10 +53,10 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
   const getMovementColor = (type: string) => {
     switch (type) {
-      case 'SALE': return 'text-red-600 bg-red-50';
-      case 'RECEIVE': return 'text-success bg-emerald-50';
+      case 'SALE': return 'text-destructive bg-destructive';
+      case 'RECEIVE': return 'text-success bg-success';
       case 'TRANSFER': return 'text-primary bg-primary/5';
-      case 'ADJUSTMENT': return 'text-amber-600 bg-amber-50';
+      case 'ADJUSTMENT': return 'text-warning bg-warning';
       default: return 'text-muted-foreground bg-secondary/5';
     }
   };
@@ -96,7 +96,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   }}
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-xl font-black italic text-red-600 border-red-300 hover:bg-red-50"
+                  className="h-10 px-4 rounded-xl font-black italic text-destructive border-red-300 hover:bg-destructive"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
@@ -115,31 +115,31 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="grid grid-cols-3 gap-4">
-              <div className="bg-primary/5 rounded-2xl p-6 border-2 border-blue-200">
+              <div className="bg-primary/5 rounded-2xl p-6 border-2 border-primary">
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-5 h-5 text-primary" />
                   <div className="text-xs font-black uppercase tracking-widest text-primary">Stock On Hand</div>
                 </div>
-                <div className="text-3xl font-black italic text-blue-900">{item.stock}</div>
+                <div className="text-3xl font-black italic text-primary">{item.stock}</div>
                 <div className="text-xs text-primary font-bold mt-1">Units Available</div>
               </div>
 
-              <div className="bg-emerald-50 rounded-2xl p-6 border-2 border-emerald-200">
+              <div className="bg-success rounded-2xl p-6 border-2 border-emerald-200">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-5 h-5 text-success" />
                   <div className="text-xs font-black uppercase tracking-widest text-success">Turnover</div>
                 </div>
-                <div className="text-3xl font-black italic text-emerald-900">8.2x</div>
+                <div className="text-3xl font-black italic text-success">8.2x</div>
                 <div className="text-xs text-success font-bold mt-1">Per Month</div>
               </div>
 
-              <div className="bg-amber-50 rounded-2xl p-6 border-2 border-amber-200">
+              <div className="bg-warning rounded-2xl p-6 border-2 border-amber-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                  <div className="text-xs font-black uppercase tracking-widest text-amber-600">Reorder Point</div>
+                  <Clock className="w-5 h-5 text-warning" />
+                  <div className="text-xs font-black uppercase tracking-widest text-warning">Reorder Point</div>
                 </div>
-                <div className="text-3xl font-black italic text-amber-900">15</div>
-                <div className="text-xs text-amber-600 font-bold mt-1">Safety Stock</div>
+                <div className="text-3xl font-black italic text-warning">15</div>
+                <div className="text-xs text-warning font-bold mt-1">Safety Stock</div>
               </div>
             </div>
 
@@ -169,7 +169,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
           <TabsContent value="movements" className="space-y-3 mt-4">
             <div className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Recent Activity</div>
             {(Array.isArray(movements) ? movements : []).map((movement, idx) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-300 transition-all">
+              <div key={idx} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:border-primary transition-all">
                 <div className="flex items-center gap-4">
                   <Badge className={`${getMovementColor(movement.type)} font-black italic text-xs px-3`}>
                     {movement.type}
@@ -180,7 +180,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={`font-black italic ${movement.qty > 0 ? 'text-success' : 'text-red-600'}`}>
+                  <div className={`font-black italic ${movement.qty > 0 ? 'text-success' : 'text-destructive'}`}>
                     {movement.qty > 0 ? '+' : ''}{movement.qty}
                   </div>
                   <div className="text-xs text-muted-foreground font-bold">{movement.date}</div>

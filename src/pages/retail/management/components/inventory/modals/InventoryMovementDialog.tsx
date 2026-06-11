@@ -361,7 +361,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
 
   const renderItemPicker = () => (
     <div className="space-y-4">
-      <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 italic">
+      <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground italic">
         1. Item Discovery
       </h3>
 
@@ -415,10 +415,10 @@ export const InventoryMovementDialog: React.FC<Props> = ({
             (Array.isArray(paginatedItems) ? paginatedItems : []).map((item) => (
               <div
                 key={item.id}
-                className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5/50 transition-colors group"
+                className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5 transition-colors group"
               >
                 <div className="col-span-8">
-                  <div className="font-black italic text-slate-800 truncate text-[12px]">
+                  <div className="font-black italic text-muted-foreground truncate text-[12px]">
                     {item.name}
                   </div>
                   <div className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-tighter">
@@ -449,7 +449,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
           )}
         </div>
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-slate-50 bg-secondary/5/30 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shrink-0">
+        <div className="px-4 py-3 border-t border-slate-50 bg-secondary/5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shrink-0">
           <span className="text-[9px] font-black italic uppercase tracking-widest text-muted-foreground">
             Page {currentPage} of {Math.max(1, totalPages)} •{" "}
             {filteredItems.length} items
@@ -505,15 +505,15 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         <Button
           size="sm"
           variant="outline"
-          className="h-7 gap-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border-emerald-200 text-success hover:bg-emerald-50"
+          className="h-7 gap-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border-emerald-200 text-success hover:bg-success"
           onClick={addNewProductLine}
         >
           <Plus className="w-3 h-3" /> Add Item
         </Button>
       </div>
       {newProductLines.length === 0 ? (
-        <div className="rounded-xl border-2 border-dashed border-emerald-100 bg-emerald-50/30 flex flex-col items-center justify-center py-10 text-center gap-2">
-          <PackagePlus className="w-8 h-8 text-emerald-300" />
+        <div className="rounded-xl border-2 border-dashed border-emerald-100 bg-success flex flex-col items-center justify-center py-10 text-center gap-2">
+          <PackagePlus className="w-8 h-8 text-success" />
           <p className="text-[10px] font-black italic uppercase tracking-widest text-success">
             No new products added yet.
             <br />
@@ -570,7 +570,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         <div className="space-y-6">
           {/* Mode selector */}
           <div className="space-y-3">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-800 italic">
+            <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground italic">
               1. Purchase Type
             </h3>
             <div className="grid grid-cols-3 gap-3">
@@ -581,8 +581,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                   className={cn(
                     "rounded-[1rem] border-2 p-4 text-left transition-all",
                     purchaseMode === m.key
-                      ? "border-emerald-400 bg-emerald-50 shadow-sm"
-                      : "border-slate-100 bg-white hover:border-emerald-200 hover:bg-emerald-50/30",
+                      ? "border-emerald-400 bg-success shadow-sm"
+                      : "border-slate-100 bg-white hover:border-emerald-200 hover:bg-success",
                   )}
                 >
                   <div
@@ -648,7 +648,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Stock Transfer → Destination location
     if (isTransferOut) {
       return (
-        <div className="bg-primary/5/50 rounded-xl p-5 border border-indigo-100 space-y-3">
+        <div className="bg-primary/5 rounded-xl p-5 border border-primary space-y-3">
           <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5" /> Transfer Destination *
           </Label>
@@ -665,7 +665,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               value={destinationStoreId}
               onValueChange={setDestinationStoreId}
             >
-              <SelectTrigger className="h-10 rounded-xl font-bold bg-white border-indigo-100 text-xs">
+              <SelectTrigger className="h-10 rounded-xl font-bold bg-white border-primary text-xs">
                 <SelectValue placeholder="Select destination location..." />
               </SelectTrigger>
               <SelectContent className="rounded-xl font-bold italic">
@@ -689,7 +689,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Receive from PO → Supplier
     if (type === "receive_po") {
       return (
-        <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 space-y-3">
+        <div className="bg-success rounded-xl p-5 border border-emerald-100 space-y-3">
           <Label className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-2">
             <Building2 className="w-3.5 h-3.5" /> Supplier *
           </Label>
@@ -722,7 +722,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
     // Receive Transfer → Source location
     if (isReceiveTransfer) {
       return (
-        <div className="bg-emerald-50/50 rounded-xl p-5 border border-emerald-100 space-y-3">
+        <div className="bg-success rounded-xl p-5 border border-emerald-100 space-y-3">
           <Label className="text-[10px] font-black uppercase tracking-widest text-success flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5" /> Transferring From *
           </Label>
@@ -784,13 +784,13 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 setSelectedLines([]);
                 setNewProductLines([]);
               }}
-              className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:underline"
+              className="text-[9px] font-black uppercase tracking-widest text-destructive hover:underline"
             >
               Clear All
             </button>
           )}
         </div>
-        <div className="rounded-xl border-2 border-slate-50 overflow-hidden shadow-sm flex flex-col bg-secondary/5/10 min-h-[160px] max-h-[260px]">
+        <div className="rounded-xl border-2 border-slate-50 overflow-hidden shadow-sm flex flex-col bg-secondary/5 min-h-[160px] max-h-[260px]">
           <div className="grid grid-cols-12 bg-secondary/5 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground px-4 py-3">
             <div className="col-span-8 italic">Item Info</div>
             <div className="col-span-4 text-right italic pr-4">Qty</div>
@@ -801,17 +801,17 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               (Array.isArray(selectedLines) ? selectedLines : []).map((line) => (
                 <div
                   key={line.id}
-                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5/50 transition-colors"
+                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-secondary/5 transition-colors"
                 >
                   <div className="col-span-8 flex items-center gap-3">
                     <button
-                      className="text-red-300 hover:text-red-500 transition-colors"
+                      className="text-destructive hover:text-destructive transition-colors"
                       onClick={() => removeLine(line.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <div>
-                      <div className="font-black italic text-slate-800 truncate text-[11px]">
+                      <div className="font-black italic text-muted-foreground truncate text-[11px]">
                         {line.name}
                       </div>
                       <div className="text-[9px] font-mono font-bold text-muted-foreground uppercase tracking-tighter">
@@ -839,11 +839,11 @@ export const InventoryMovementDialog: React.FC<Props> = ({
               (Array.isArray(newProductLines) ? newProductLines : []).map((line) => (
                 <div
                   key={line.tempId}
-                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-emerald-50/50 transition-colors"
+                  className="grid grid-cols-12 items-center px-4 py-3 text-sm gap-2 hover:bg-success transition-colors"
                 >
                   <div className="col-span-8 flex items-center gap-3">
                     <button
-                      className="text-red-300 hover:text-red-500 transition-colors"
+                      className="text-destructive hover:text-destructive transition-colors"
                       onClick={() => removeNewProductLine(line.tempId)}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -851,7 +851,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                     <div>
                       <div className="flex items-center gap-1">
                         <PackagePlus className="w-3 h-3 text-success" />
-                        <div className="font-black italic text-slate-800 truncate text-[11px]">
+                        <div className="font-black italic text-muted-foreground truncate text-[11px]">
                           {line.name || "(unnamed)"}
                         </div>
                       </div>
@@ -994,8 +994,8 @@ export const InventoryMovementDialog: React.FC<Props> = ({
                 </div>
               </div>
 
-              <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-[10px] font-bold italic text-amber-700 flex items-start gap-3">
-                <Lock className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+              <div className="bg-warning border border-amber-100 rounded-xl p-3 text-[10px] font-bold italic text-warning flex items-start gap-3">
+                <Lock className="w-3.5 h-3.5 text-warning mt-0.5 shrink-0" />
                 <p className="leading-relaxed">
                   Total{" "}
                   {selectedLines.length +
@@ -1009,7 +1009,7 @@ export const InventoryMovementDialog: React.FC<Props> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t bg-secondary/5/80 shrink-0">
+        <div className="px-8 py-6 border-t bg-secondary/5 shrink-0">
           <div className="flex justify-end gap-3">
             <Button
               variant="ghost"

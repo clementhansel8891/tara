@@ -576,7 +576,7 @@ export default function Explorer() {
                 <div
                   className={cn(
                     "flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all",
-                    activeFolder === "recycle" ? "bg-rose-500/10 text-rose-500 shadow-sm" : "hover:bg-muted/50 text-muted-foreground/70"
+                    activeFolder === "recycle" ? "bg-destructive text-destructive shadow-sm" : "hover:bg-muted/50 text-muted-foreground/70"
                   )}
                   onClick={() => navigateToFolder("recycle")}
                 >
@@ -987,7 +987,7 @@ export default function Explorer() {
                                       <TooltipTrigger asChild>
                                         <span className="truncate max-w-[200px] block">{file.name}</span>
                                       </TooltipTrigger>
-                                      <TooltipContent className="bg-slate-900 border-white/10 text-white font-bold italic">
+                                      <TooltipContent className="bg-muted border-white/10 text-white font-bold italic">
                                         {file.name}
                                       </TooltipContent>
                                     </Tooltip>
@@ -1321,7 +1321,7 @@ export default function Explorer() {
                                               {file.name}
                                             </p>
                                           </TooltipTrigger>
-                                          <TooltipContent className="bg-slate-900 border-white/10 text-white font-bold italic shadow-2xl backdrop-blur-xl">
+                                          <TooltipContent className="bg-muted border-white/10 text-white font-bold italic shadow-2xl backdrop-blur-xl">
                                             {file.name}
                                           </TooltipContent>
                                         </Tooltip>
@@ -1330,14 +1330,14 @@ export default function Explorer() {
                                     
                                     <div className="flex flex-col gap-2 mt-2">
                                         <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1.5 bg-slate-900/5 dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-900/5 dark:border-white/5 shadow-inner group-hover:bg-primary/5 transition-all">
-                                            <Folder className="h-2.5 w-2.5 text-slate-400" />
-                                            <p className="text-[8px] text-slate-500 font-black tracking-widest truncate max-w-[120px] uppercase">
+                                          <div className="flex items-center gap-1.5 bg-muted dark:bg-white/5 px-2.5 py-1 rounded-lg border border-slate-900/5 dark:border-white/5 shadow-inner group-hover:bg-primary/5 transition-all">
+                                            <Folder className="h-2.5 w-2.5 text-muted-foreground" />
+                                            <p className="text-[8px] text-muted-foreground font-black tracking-widest truncate max-w-[120px] uppercase">
                                               {folderMap.get(file.folderId ?? "root") ?? "ROOT_NODE"}
                                             </p>
                                           </div>
                                           {file.access_level && (
-                                            <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4.5 px-2 text-[8px] uppercase font-black rounded-lg border-none shadow-sm tracking-[0.2em] bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                            <Badge variant={file.access_level === "private" ? "destructive" : "secondary"} className="h-4.5 px-2 text-[8px] uppercase font-black rounded-lg border-none shadow-sm tracking-[0.2em] bg-muted dark:bg-muted text-muted-foreground">
                                               {file.access_level}
                                             </Badge>
                                           )}
@@ -1350,11 +1350,11 @@ export default function Explorer() {
                                           return (
                                             <div className="pt-2 border-t border-dashed border-primary/10 space-y-2 mt-1">
                                               <div className="flex items-center gap-2 flex-wrap">
-                                                <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/5 text-indigo-600 text-[8px] px-2 py-1 rounded-lg border border-indigo-500/20 font-black shadow-sm uppercase tracking-widest">
+                                                <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/5 text-primary text-[8px] px-2 py-1 rounded-lg border border-primary font-black shadow-sm uppercase tracking-widest">
                                                   <Bot className="h-3 w-3" />
                                                   {meta.ai_name || "AUDIT_ENGINE"}
                                                 </div>
-                                                <div className="flex items-center gap-1 bg-slate-100 text-slate-500 text-[8px] px-2 py-1 rounded-lg border border-slate-200 font-black shadow-sm uppercase tracking-widest">
+                                                <div className="flex items-center gap-1 bg-muted text-muted-foreground text-[8px] px-2 py-1 rounded-lg border border-slate-200 font-black shadow-sm uppercase tracking-widest">
                                                   <User className="h-3 w-3" />
                                                   {meta.performer}
                                                 </div>

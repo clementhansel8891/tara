@@ -91,31 +91,31 @@ export default function ProcurementInsights() {
   }, [goodsReceiptSyncs, legalHandoffs, supplierAccess]);
 
   return (
-    <div className="min-h-full p-8 space-y-10 bg-slate-50/50 dark:bg-slate-950/50">
+    <div className="min-h-full p-8 space-y-10 bg-muted dark:bg-muted">
       {/* Tactical Header */}
       <div className="flex items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-8">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-amber-600 font-black text-[10px] uppercase tracking-[0.3em]">
+          <div className="flex items-center gap-2 text-warning font-black text-[10px] uppercase tracking-[0.3em]">
             <Activity className="h-3 w-3" /> Supply Intelligence Node
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-muted-foreground dark:text-white">
             Procurement Insights
           </h1>
-          <p className="text-sm text-slate-500 font-medium">Strategic spend analytics and cross-departmental integration telemetry.</p>
+          <p className="text-sm text-muted-foreground font-medium">Strategic spend analytics and cross-departmental integration telemetry.</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-amber-500 transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-warning transition-colors" />
             <Input 
               placeholder="Query Intelligence..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 w-64 rounded-xl focus:ring-amber-500/20"
+              className="pl-10 bg-white dark:bg-muted border-slate-200 dark:border-slate-800 w-64 rounded-xl focus:ring-amber-500/20"
             />
           </div>
           <Button 
             onClick={refresh}
-            className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-600/20 gap-2"
+            className="rounded-xl bg-warning hover:bg-warning text-white shadow-lg shadow-amber-600/20 gap-2"
           >
             <RefreshCcw className={cn("h-4 w-4", loading && "animate-spin")} />
             Sync
@@ -128,38 +128,38 @@ export default function ProcurementInsights() {
         {Object.entries(integrationMetrics).map(([key, data]) => {
           const Icon = data.icon;
           return (
-            <div key={key} className="group relative p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+            <div key={key} className="group relative p-6 rounded-[2rem] bg-white dark:bg-muted border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
               <div className={cn(
                 "absolute top-6 right-6 h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:rotate-12",
-                data.color === 'rose' ? "bg-rose-500/10 text-rose-600" :
-                data.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                data.color === 'indigo' ? "bg-indigo-500/10 text-indigo-600" :
-                "bg-amber-500/10 text-amber-600"
+                data.color === 'rose' ? "bg-destructive text-destructive" :
+                data.color === 'blue' ? "bg-primary text-primary" :
+                data.color === 'indigo' ? "bg-primary text-primary" :
+                "bg-warning text-warning"
               )}>
                 <Icon className="h-6 w-6" />
               </div>
               <div className="space-y-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{data.label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{data.label}</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white leading-none">
+                  <span className="text-4xl font-black tracking-tighter text-muted-foreground dark:text-white leading-none">
                     {loading ? "..." : data.count}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Units Pending</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic">Units Pending</span>
                 </div>
                 <div className="flex items-center gap-2 pt-2">
-                  <div className={cn("h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden")}>
+                  <div className={cn("h-1.5 flex-1 rounded-full bg-muted dark:bg-muted overflow-hidden")}>
                     <div 
                       className={cn(
                         "h-full rounded-full transition-all duration-1000",
-                        data.color === 'rose' ? "bg-rose-500" :
-                        data.color === 'blue' ? "bg-blue-500" :
-                        data.color === 'indigo' ? "bg-indigo-500" :
-                        "bg-amber-500"
+                        data.color === 'rose' ? "bg-destructive" :
+                        data.color === 'blue' ? "bg-primary" :
+                        data.color === 'indigo' ? "bg-primary" :
+                        "bg-warning"
                       )} 
                       style={{ width: `${Math.min(100, (data.count / 10) * 100)}%` }} 
                     />
                   </div>
-                  <span className="text-[9px] font-bold text-slate-400">{(data.count / 10 * 100).toFixed(0)}%</span>
+                  <span className="text-[9px] font-bold text-muted-foreground">{(data.count / 10 * 100).toFixed(0)}%</span>
                 </div>
               </div>
             </div>
@@ -172,35 +172,35 @@ export default function ProcurementInsights() {
         {/* Spend Insights List */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-             <h3 className="text-lg font-black tracking-tight uppercase italic text-slate-800 dark:text-slate-200 flex items-center gap-3">
-               <TrendingUp className="h-5 w-5 text-amber-600" /> Strategic Spend Insights
+             <h3 className="text-lg font-black tracking-tight uppercase italic text-muted-foreground dark:text-muted-foreground flex items-center gap-3">
+               <TrendingUp className="h-5 w-5 text-warning" /> Strategic Spend Insights
              </h3>
-             <Badge className="bg-amber-500/10 text-amber-600 border-none px-3 py-1 text-[8px] font-black uppercase tracking-widest">Global Scan Active</Badge>
+             <Badge className="bg-warning text-warning border-none px-3 py-1 text-[8px] font-black uppercase tracking-widest">Global Scan Active</Badge>
           </div>
           
           <div className="grid gap-4">
             {loading ? (
               Array(4).fill(0).map((_, i) => (
-                <div key={i} className="h-24 rounded-3xl bg-slate-200/50 animate-pulse" />
+                <div key={i} className="h-24 rounded-3xl bg-muted animate-pulse" />
               ))
             ) : (
               (Array.isArray(insights) ? insights : []).map((insight) => (
-                <div key={insight.id} className="group flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-amber-500/30 hover:shadow-xl transition-all duration-500">
+                <div key={insight.id} className="group flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-muted border border-slate-100 dark:border-slate-800 hover:border-amber-500/30 hover:shadow-xl transition-all duration-500">
                   <div className="flex items-center gap-6">
-                    <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-all duration-500 shadow-inner">
+                    <div className="h-12 w-12 rounded-2xl bg-muted dark:bg-muted flex items-center justify-center group-hover:bg-warning group-hover:text-white transition-all duration-500 shadow-inner">
                       <Zap className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight uppercase">{insight.label}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{insight.category}</p>
+                      <p className="text-sm font-black text-muted-foreground dark:text-white tracking-tight uppercase">{insight.label}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">{insight.category}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-8">
                     <div className="text-right">
-                      <p className="text-xl font-black tracking-tighter text-slate-900 dark:text-white leading-none">{insight.value}</p>
-                      <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Calculated</p>
+                      <p className="text-xl font-black tracking-tighter text-muted-foreground dark:text-white leading-none">{insight.value}</p>
+                      <p className="text-[9px] font-bold text-success uppercase tracking-widest mt-1">Calculated</p>
                     </div>
-                    <ArrowUpRight className="h-5 w-5 text-slate-200 group-hover:text-amber-500 transition-colors" />
+                    <ArrowUpRight className="h-5 w-5 text-muted-foreground group-hover:text-warning transition-colors" />
                   </div>
                 </div>
               ))
@@ -211,19 +211,19 @@ export default function ProcurementInsights() {
         {/* Integration Telemetry */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-             <h3 className="text-lg font-black tracking-tight uppercase italic text-slate-800 dark:text-slate-200 flex items-center gap-3">
-               <Activity className="h-5 w-5 text-indigo-500" /> Node Telemetry
+             <h3 className="text-lg font-black tracking-tight uppercase italic text-muted-foreground dark:text-muted-foreground flex items-center gap-3">
+               <Activity className="h-5 w-5 text-primary" /> Node Telemetry
              </h3>
           </div>
 
-          <div className="p-8 rounded-[2.5rem] bg-indigo-950 text-white relative overflow-hidden group shadow-2xl shadow-indigo-950/20">
+          <div className="p-8 rounded-[2.5rem] bg-primary text-white relative overflow-hidden group shadow-2xl shadow-indigo-950/20">
              <div className="absolute top-0 right-0 h-40 w-40 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-150 transition-transform duration-1000" />
              <div className="relative z-10 space-y-6">
                 <div className="space-y-2">
                    <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Integration Health</p>
                    <div className="flex items-center justify-between">
                       <span className="text-3xl font-black tracking-tighter uppercase italic leading-none">94.2%</span>
-                      <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                      <CheckCircle2 className="h-6 w-6 text-success" />
                    </div>
                 </div>
 
@@ -235,7 +235,7 @@ export default function ProcurementInsights() {
                    ].map((node) => (
                      <div key={node.label} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                           <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                           <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">{node.label}</span>
                         </div>
                         <span className="text-[10px] font-black tracking-widest">{node.latency}</span>
@@ -250,12 +250,12 @@ export default function ProcurementInsights() {
           </div>
 
           {/* SLA Alert Box */}
-          <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/20 space-y-4">
-             <div className="flex items-center gap-3 text-rose-600">
+          <div className="p-6 rounded-3xl bg-destructive border border-rose-500/20 space-y-4">
+             <div className="flex items-center gap-3 text-destructive">
                 <AlertCircle className="h-5 w-5" />
                 <span className="text-xs font-black uppercase tracking-widest">Critical SLA Alerts</span>
              </div>
-             <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+             <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
                 {integrationMetrics.risk.count} Integration events have exceeded the target SLA thresholds. Immediate manual override or escalation required.
              </p>
           </div>

@@ -142,7 +142,7 @@ export const InventoryStockEditDialog: React.FC<Props> = ({
             onClick={handleSubmit}
             className={cn(
               "rounded-xl font-black italic gap-2",
-              canWrite ? "bg-secondary" : "bg-amber-600 hover:bg-amber-700",
+              canWrite ? "bg-secondary" : "bg-warning hover:bg-warning",
             )}
           >
             {canWrite ? "Save Changes" : "Request Changes"}

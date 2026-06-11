@@ -43,11 +43,11 @@ export const StoreChannelBindingModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-primary/10/50 rounded-xl text-primary">
+        <div className="p-2 bg-primary/10 rounded-xl text-primary">
           <Link className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Channel Bindings
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -59,7 +59,7 @@ export const StoreChannelBindingModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Marketplace Connectors */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <ShoppingCart className="w-4 h-4 text-muted-foreground" /> Omnichannel
             Connectors
           </h3>
@@ -107,7 +107,7 @@ export const StoreChannelBindingModule: React.FC = () => {
 
         {/* Sync & Routing */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3">
             <Repeat2 className="w-4 h-4 text-muted-foreground" /> Order & Sync Routing
           </h3>
 
@@ -194,8 +194,8 @@ export const StoreChannelBindingModule: React.FC = () => {
               </Select>
             </div>
 
-            <div className="bg-primary/5 p-4 rounded-xl border border-blue-100">
-              <p className="text-xs text-blue-800 font-medium">
+            <div className="bg-primary/5 p-4 rounded-xl border border-primary">
+              <p className="text-xs text-primary font-medium">
                 Channel configuration determines how global orders map to this
                 physical node. Real-time marketplace credentials should be
                 managed in <strong>Ecommerce Connectors</strong>.

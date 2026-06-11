@@ -75,12 +75,12 @@ export default function SalesOverview() {
 
   if (loading || !forecast) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted dark:bg-muted">
         <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+          <div className="h-20 w-20 bg-primary rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
             <TrendingUp className="h-10 w-10 text-white" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Projecting Executive Intelligence...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Projecting Executive Intelligence...</p>
         </div>
       </div>
     );
@@ -92,20 +92,20 @@ export default function SalesOverview() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Executive Intelligence</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Executive Intelligence</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <Activity className="h-4 w-4 animate-pulse" />
                Global Sales Pulse Active
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent italic">Sales Overview</h1>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic">"Revenue is the result of strategic coordination and relentless execution."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic">"Revenue is the result of strategic coordination and relentless execution."</p>
         </div>
         
-        <div className="flex items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
+        <div className="flex items-center bg-white/50 dark:bg-muted backdrop-blur-xl p-2 rounded-[2rem] border border-white/20 dark:border-slate-800/20 shadow-2xl">
           <Button
             variant="secondary"
-            className="h-14 w-14 rounded-[1.5rem] bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+            className="h-14 w-14 rounded-[1.5rem] bg-primary text-white hover:bg-primary transition-all shadow-xl shadow-indigo-500/20"
             onClick={() => refresh(true)}
             disabled={refreshing}
           >
@@ -156,10 +156,10 @@ export default function SalesOverview() {
 
       <div className="grid gap-10 lg:grid-cols-3">
         {/* Revenue Projection Model */}
-        <Card className="lg:col-span-2 rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+        <Card className="lg:col-span-2 rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted overflow-hidden group">
           <CardHeader className="p-10 pb-4">
             <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 text-indigo-600" />
+              <TrendingUp className="h-6 w-6 text-primary" />
               Strategic Projection Model
             </CardTitle>
             <CardDescription className="text-sm font-medium">Weighted vs. Commit forecast delta (6 Month Tactical Horizon)</CardDescription>
@@ -222,10 +222,10 @@ export default function SalesOverview() {
         </Card>
 
         {/* Top Performance Board */}
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-slate-900 overflow-hidden group">
+        <Card className="rounded-[3rem] border-none shadow-2xl bg-white dark:bg-muted overflow-hidden group">
           <CardHeader className="p-10 pb-4">
             <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
-              <Medal className="h-6 w-6 text-amber-500" />
+              <Medal className="h-6 w-6 text-warning" />
               Victory Leaders
             </CardTitle>
             <CardDescription className="text-sm font-medium">Top representatives by won revenue yield this year.</CardDescription>
@@ -236,22 +236,22 @@ export default function SalesOverview() {
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-black transition-all shadow-inner",
-                    idx === 0 ? "bg-amber-500 text-white shadow-amber-500/20" :
-                    idx === 1 ? "bg-slate-200 text-slate-500 dark:bg-slate-800" :
-                    "bg-slate-100 text-slate-400 dark:bg-slate-900"
+                    idx === 0 ? "bg-warning text-white shadow-amber-500/20" :
+                    idx === 1 ? "bg-muted text-muted-foreground dark:bg-muted" :
+                    "bg-muted text-muted-foreground dark:bg-muted"
                   )}>
                     {idx === 0 ? <Medal className="h-5 w-5" /> : idx + 1}
                   </div>
                   <div>
                     <p className="text-sm font-black uppercase tracking-tight">{rep.name}</p>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">RANK {idx + 1} CUSTODIAN</p>
+                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">RANK {idx + 1} CUSTODIAN</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-base font-black text-indigo-600">${Number(rep.total).toLocaleString()}</p>
-                  <div className="h-1.5 w-32 bg-slate-100 dark:bg-slate-800 rounded-full mt-2 overflow-hidden shadow-inner">
+                  <p className="text-base font-black text-primary">${Number(rep.total).toLocaleString()}</p>
+                  <div className="h-1.5 w-32 bg-muted dark:bg-muted rounded-full mt-2 overflow-hidden shadow-inner">
                     <div 
-                      className={cn("h-full transition-all duration-1000", idx === 0 ? "bg-amber-500" : "bg-indigo-600")}
+                      className={cn("h-full transition-all duration-1000", idx === 0 ? "bg-warning" : "bg-primary")}
                       style={{ width: `${(rep.total / analytics.topReps[0].total) * 100}%` }} 
                     />
                   </div>
@@ -264,13 +264,13 @@ export default function SalesOverview() {
 
       <div className="grid gap-10 md:grid-cols-2">
         {/* Revenue Distribution */}
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden p-10 space-y-6">
+        <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden p-10 space-y-6">
           <div className="space-y-2">
             <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-indigo-600" />
+              <BarChart3 className="h-6 w-6 text-primary" />
               Capture Trend
             </h3>
-            <p className="text-sm font-medium text-slate-500">Monthly revenue capture velocity across all channels.</p>
+            <p className="text-sm font-medium text-muted-foreground">Monthly revenue capture velocity across all channels.</p>
           </div>
           <div className="h-[250px] w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -303,41 +303,41 @@ export default function SalesOverview() {
         </Card>
 
         {/* Funnel Health Matrix */}
-        <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl p-10 space-y-8">
+        <Card className="rounded-[3rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl p-10 space-y-8">
            <div className="space-y-2">
               <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
-                 <ShieldCheck className="h-6 w-6 text-emerald-500" />
+                 <ShieldCheck className="h-6 w-6 text-success" />
                  Funnel Health Matrix
               </h3>
-              <p className="text-sm font-medium text-slate-500">Real-time signals of funnel integrity and deal velocity.</p>
+              <p className="text-sm font-medium text-muted-foreground">Real-time signals of funnel integrity and deal velocity.</p>
            </div>
            <div className="grid grid-cols-2 gap-6">
               <HealthMetric 
                  label="Funnel Integrity" 
                  value="HIGH" 
                  detail="SLA Compliance: 94%" 
-                 color="text-emerald-500"
+                 color="text-success"
                  icon={ShieldCheck}
               />
               <HealthMetric 
                  label="Stalled Nodes" 
                  value="4" 
                  detail="> 30 days stagnant" 
-                 color="text-orange-500"
+                 color="text-warning"
                  icon={Clock}
               />
               <HealthMetric 
                  label="Lost Deal Value" 
                  value={`$${forecast.lostThisPeriod.toLocaleString()}`} 
                  detail="Gross slippage this month" 
-                 color="text-rose-500"
+                 color="text-destructive"
                  icon={ArrowDownRight}
               />
               <HealthMetric 
                  label="Pipeline Health" 
                  value="STRONG" 
                  detail="Growth: +8.3% MoM" 
-                 color="text-indigo-600"
+                 color="text-primary"
                  icon={TrendingUp}
               />
            </div>
@@ -349,10 +349,10 @@ export default function SalesOverview() {
 
 function KPIItem({ title, value, trend, trendUp, description, icon: Icon, color }: any) {
   return (
-    <Card className="group relative overflow-hidden rounded-[2.5rem] border-none bg-white dark:bg-slate-900 p-8 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
+    <Card className="group relative overflow-hidden rounded-[2.5rem] border-none bg-white dark:bg-muted p-8 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
       <div className="flex items-center justify-between relative z-10">
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{title}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
           <h3 className="text-3xl font-black tracking-tighter">{value}</h3>
         </div>
         <div className={cn("rounded-2xl p-4 shadow-inner group-hover:scale-110 transition-transform", `bg-${color}-500/10 text-${color}-600`)}>
@@ -362,12 +362,12 @@ function KPIItem({ title, value, trend, trendUp, description, icon: Icon, color 
       <div className="mt-6 flex items-center gap-3 relative z-10">
         <Badge className={cn(
           "rounded-full font-black text-[9px] px-2.5 py-0.5 border-none shadow-sm uppercase tracking-widest",
-          trendUp ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+          trendUp ? "bg-success text-white" : "bg-destructive text-white"
         )}>
           {trendUp ? <ArrowUpRight className="h-3 w-3 mr-1 inline" /> : <ArrowDownRight className="h-3 w-3 mr-1 inline" />}
           {trend}
         </Badge>
-        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{description}</span>
+        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">{description}</span>
       </div>
       <div className={cn("absolute bottom-0 left-0 h-1 w-0 transition-all duration-700 group-hover:w-full", `bg-${color}-600`)} />
     </Card>
@@ -376,14 +376,14 @@ function KPIItem({ title, value, trend, trendUp, description, icon: Icon, color 
 
 function HealthMetric({ label, value, detail, color, icon: Icon }: any) {
   return (
-    <div className="rounded-[2rem] bg-white/60 dark:bg-slate-800/60 p-6 space-y-3 shadow-sm border border-white/20">
+    <div className="rounded-[2rem] bg-white/60 dark:bg-muted p-6 space-y-3 shadow-sm border border-white/20">
       <div className="flex items-center justify-between">
-         <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
          <Icon className={cn("h-4 w-4", color)} />
       </div>
       <div className="space-y-1">
         <span className={cn("text-2xl font-black tracking-tighter", color)}>{value}</span>
-        <p className="text-[9px] font-bold text-slate-400 uppercase italic leading-none">{detail}</p>
+        <p className="text-[9px] font-bold text-muted-foreground uppercase italic leading-none">{detail}</p>
       </div>
     </div>
   );

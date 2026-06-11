@@ -18,22 +18,22 @@ export const MarketingRoiChart: React.FC<MarketingRoiChartProps> = ({ data = [] 
 
   return (
     <div 
-      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
+      className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-muted p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/marketing/analytics')}
     >
       <div className="flex items-center justify-between mb-10 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
             <Megaphone className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Marketing ROI</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Spend vs Gross Sales Efficiency</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Spend vs Gross Sales Efficiency</p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
-           <TrendingUp className="h-4 w-4 text-emerald-400" />
-           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Growth Phase</span>
+           <TrendingUp className="h-4 w-4 text-success" />
+           <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Growth Phase</span>
         </div>
       </div>
 
@@ -93,7 +93,7 @@ export const MarketingRoiChart: React.FC<MarketingRoiChartProps> = ({ data = [] 
       </div>
       
       {/* Subtle background glow */}
-      <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-rose-500/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute -bottom-24 -left-24 h-48 w-48 bg-destructive blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 };

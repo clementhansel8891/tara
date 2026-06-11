@@ -107,7 +107,7 @@ export const FiltersBar: React.FC<Props> = ({
         </SelectContent>
       </Select>
 
-      <div className="flex items-center gap-2 border border-slate-100 rounded-xl px-2 h-11 bg-secondary/5/50">
+      <div className="flex items-center gap-2 border border-slate-100 rounded-xl px-2 h-11 bg-secondary/5">
         <span className="text-[10px] font-black italic text-muted-foreground uppercase">
           Price
         </span>

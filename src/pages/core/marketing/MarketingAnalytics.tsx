@@ -87,12 +87,12 @@ export default function MarketingAnalytics() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-muted dark:bg-muted">
         <div className="flex flex-col items-center gap-6">
-          <div className="h-20 w-20 bg-indigo-600 rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
+          <div className="h-20 w-20 bg-primary rounded-[2.5rem] animate-pulse flex items-center justify-center shadow-2xl shadow-indigo-500/20">
             <PieChart className="h-10 w-10 text-white" />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Synthesizing ROI Intelligence...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Synthesizing ROI Intelligence...</p>
         </div>
       </div>
     );
@@ -104,33 +104,33 @@ export default function MarketingAnalytics() {
       <div className="flex flex-col lg:flex-row justify-between items-end gap-6">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <Badge className="bg-indigo-600 text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Intelligence & ROI</Badge>
-            <div className="flex items-center gap-1.5 text-indigo-500 font-bold text-xs uppercase tracking-widest">
+            <Badge className="bg-primary text-white border-none font-black px-3 py-1 rounded-full uppercase tracking-widest text-[10px]">Intelligence & ROI</Badge>
+            <div className="flex items-center gap-1.5 text-primary font-bold text-xs uppercase tracking-widest">
                <ActivitySquare className="h-4 w-4 animate-pulse" />
                Attribution Matrix Active
             </div>
           </div>
           <h1 className="text-6xl font-black tracking-tighter bg-gradient-to-br from-slate-900 via-slate-700 to-indigo-900 dark:from-white dark:to-slate-400 bg-clip-text text-transparent text-left italic">Analytics Engine</h1>
-          <p className="text-slate-500 font-medium max-w-2xl text-lg leading-relaxed italic text-left">"Deep-field measurement authorizes total control and high-fidelity tactical improvement."</p>
+          <p className="text-muted-foreground font-medium max-w-2xl text-lg leading-relaxed italic text-left">"Deep-field measurement authorizes total control and high-fidelity tactical improvement."</p>
         </div>
         
         <div className="flex items-center gap-4">
           <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input 
               placeholder="Search strategic nodes..." 
-              className="pl-12 h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-none shadow-inner rounded-2xl min-w-[300px] font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/20 transition-all"
+              className="pl-12 h-14 bg-white/50 dark:bg-muted backdrop-blur-xl border-none shadow-inner rounded-2xl min-w-[300px] font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-600/20 transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <Button
             variant="secondary"
-            className="h-14 w-14 rounded-2xl bg-white dark:bg-slate-800 border-none shadow-xl hover:scale-110 transition-all"
+            className="h-14 w-14 rounded-2xl bg-white dark:bg-muted border-none shadow-xl hover:scale-110 transition-all"
             onClick={() => refresh(true)}
             disabled={refreshing}
           >
-            <RefreshCw className={cn("h-6 w-6 text-indigo-600", refreshing && "animate-spin")} />
+            <RefreshCw className={cn("h-6 w-6 text-primary", refreshing && "animate-spin")} />
           </Button>
         </div>
       </div>
@@ -138,51 +138,51 @@ export default function MarketingAnalytics() {
       {/* Channel Breakdown Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {(Array.isArray(channelPerformance) ? channelPerformance : []).map((item, i) => (
-          <Card key={item.channel} className="rounded-[3rem] border-none shadow-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-10 space-y-8 group hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 overflow-hidden relative">
-            <div className="absolute top-0 right-0 h-40 w-40 bg-indigo-500/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000" />
+          <Card key={item.channel} className="rounded-[3rem] border-none shadow-2xl bg-white/60 dark:bg-muted backdrop-blur-xl p-10 space-y-8 group hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 overflow-hidden relative">
+            <div className="absolute top-0 right-0 h-40 w-40 bg-primary rounded-full blur-3xl -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000" />
             <div className="flex items-center justify-between relative z-10">
-               <div className="h-14 w-14 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+               <div className="h-14 w-14 rounded-2xl bg-primary text-primary flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
                   <Globe className="h-7 w-7" />
                </div>
-               <Badge className="bg-emerald-500/10 text-emerald-500 font-black text-[9px] px-3 py-1 rounded-full border-none uppercase tracking-widest">+12.4% Δ</Badge>
+               <Badge className="bg-success text-success font-black text-[9px] px-3 py-1 rounded-full border-none uppercase tracking-widest">+12.4% Δ</Badge>
             </div>
             <div className="relative z-10 space-y-1">
-               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">{item.channel}</p>
-               <h4 className="text-4xl font-black tracking-tighter italic">{item.leads} <span className="text-sm font-bold text-slate-400 uppercase">LEADS</span></h4>
+               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">{item.channel}</p>
+               <h4 className="text-4xl font-black tracking-tighter italic">{item.leads} <span className="text-sm font-bold text-muted-foreground uppercase">LEADS</span></h4>
                
                <div className="grid grid-cols-2 gap-6 pt-8 mt-4 border-t border-slate-100 dark:border-slate-800">
                   <div className="space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Allocation</p>
-                     <p className="text-xl font-black text-indigo-600 italic">${item.spend.toLocaleString()}</p>
+                     <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Allocation</p>
+                     <p className="text-xl font-black text-primary italic">${item.spend.toLocaleString()}</p>
                   </div>
                   <div className="text-right space-y-1">
-                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">CPL Yield</p>
-                     <p className="text-xl font-black text-emerald-600 italic">${item.cpl.toLocaleString()}</p>
+                     <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">CPL Yield</p>
+                     <p className="text-xl font-black text-success italic">${item.cpl.toLocaleString()}</p>
                   </div>
                </div>
             </div>
-            <div className="absolute bottom-0 left-0 h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-               <div className="h-full bg-indigo-600 transition-all duration-1000 shadow-[0_0_12px_rgba(79,70,229,0.4)]" style={{ width: `${Math.min((item.leads / 100) * 100, 100)}%` }} />
+            <div className="absolute bottom-0 left-0 h-2 w-full bg-muted dark:bg-muted rounded-full overflow-hidden shadow-inner">
+               <div className="h-full bg-primary transition-all duration-1000 shadow-[0_0_12px_rgba(79,70,229,0.4)]" style={{ width: `${Math.min((item.leads / 100) * 100, 100)}%` }} />
             </div>
           </Card>
         ))}
       </div>
 
       {/* Attribution Intelligence Matrix */}
-      <Card className="rounded-[4rem] border-none shadow-2xl bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl overflow-hidden flex flex-col">
+      <Card className="rounded-[4rem] border-none shadow-2xl bg-white/40 dark:bg-muted backdrop-blur-xl overflow-hidden flex flex-col">
         <Tabs defaultValue="campaigns" className="w-full flex flex-col h-full">
            <CardHeader className="p-12 pb-6 border-b border-white/10 dark:border-slate-800/10 shrink-0">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-4">
                  <div className="space-y-2">
                     <CardTitle className="text-3xl font-black tracking-tighter flex items-center gap-4 uppercase italic">
-                       <Layers className="h-8 w-8 text-indigo-600" />
+                       <Layers className="h-8 w-8 text-primary" />
                        Intelligence Matrix
                     </CardTitle>
                     <CardDescription className="text-base font-medium italic italic opacity-60">Cross-referencing campaign clusters with multi-touch attribution yield ledger.</CardDescription>
                  </div>
-                 <TabsList className="bg-slate-100/50 dark:bg-slate-800/50 p-2 rounded-[2rem] shadow-inner border-none h-auto">
-                    <TabsTrigger value="campaigns" className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-xl h-12 border-none transition-all">Campaign Performance</TabsTrigger>
-                    <TabsTrigger value="attribution" className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-xl h-12 border-none transition-all">Attribution Ledger</TabsTrigger>
+                 <TabsList className="bg-muted dark:bg-muted p-2 rounded-[2rem] shadow-inner border-none h-auto">
+                    <TabsTrigger value="campaigns" className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-xl h-12 border-none transition-all">Campaign Performance</TabsTrigger>
+                    <TabsTrigger value="attribution" className="rounded-[1.5rem] px-8 py-3 font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-xl h-12 border-none transition-all">Attribution Ledger</TabsTrigger>
                  </TabsList>
               </div>
            </CardHeader>
@@ -190,7 +190,7 @@ export default function MarketingAnalytics() {
            <TabsContent value="campaigns" className="mt-0 outline-none flex-1 overflow-hidden">
               <ScrollArea className="h-[600px]">
                  <table className="w-full">
-                    <thead className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 sticky top-0 z-10 italic">
+                    <thead className="bg-muted dark:bg-muted text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground sticky top-0 z-10 italic">
                        <tr>
                           <th className="px-12 py-8 text-left">Strategic Node</th>
                           <th className="px-12 py-8 text-left">Objective Cluster</th>
@@ -201,33 +201,33 @@ export default function MarketingAnalytics() {
                     </thead>
                     <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                        {(Array.isArray(filteredCampaigns) ? filteredCampaigns : []).map((item) => (
-                          <tr key={item.id} className="group hover:bg-indigo-600/5 transition-all cursor-default">
+                          <tr key={item.id} className="group hover:bg-primary transition-all cursor-default">
                              <td className="px-12 py-10">
                                 <div className="flex items-center gap-6">
-                                   <div className="h-14 w-14 rounded-2xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center shadow-inner group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500">
+                                   <div className="h-14 w-14 rounded-2xl bg-primary text-primary flex items-center justify-center shadow-inner group-hover:bg-primary group-hover:text-white transition-all duration-500">
                                       <Rocket className="h-7 w-7" />
                                    </div>
                                    <div className="space-y-1">
-                                      <p className="font-black text-xl uppercase tracking-tighter italic group-hover:text-indigo-600 transition-colors leading-none">{item.name}</p>
-                                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 opacity-60 italic">UID: {item.id.slice(-8)}</p>
+                                      <p className="font-black text-xl uppercase tracking-tighter italic group-hover:text-primary transition-colors leading-none">{item.name}</p>
+                                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60 italic">UID: {item.id.slice(-8)}</p>
                                    </div>
                                 </div>
                              </td>
                              <td className="px-12 py-10">
-                                <Badge className="rounded-full font-black text-[9px] px-4 py-1.5 border-none shadow-sm uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 italic">
+                                <Badge className="rounded-full font-black text-[9px] px-4 py-1.5 border-none shadow-sm uppercase tracking-widest bg-muted dark:bg-muted text-muted-foreground italic">
                                    {item.objective.replace('_', ' ')}
                                 </Badge>
                              </td>
                              <td className="px-12 py-10">
                                 <div className="space-y-1">
-                                   <p className="text-xl font-black text-indigo-600 italic">${item.budget.toLocaleString()} <span className="text-[10px] uppercase opacity-40">{item.currency}</span></p>
-                                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">Allocated Node</p>
+                                   <p className="text-xl font-black text-primary italic">${item.budget.toLocaleString()} <span className="text-[10px] uppercase opacity-40">{item.currency}</span></p>
+                                   <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Allocated Node</p>
                                 </div>
                              </td>
                              <td className="px-12 py-10">
-                                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-indigo-500/10 group-hover:border-indigo-600/20 transition-all max-w-xs">
-                                   <Zap className="h-4 w-4 text-amber-500 shrink-0 mt-1" />
-                                   <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 italic leading-relaxed">
+                                <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/50 dark:bg-muted border border-primary group-hover:border-primary transition-all max-w-xs">
+                                   <Zap className="h-4 w-4 text-warning shrink-0 mt-1" />
+                                   <p className="text-[11px] font-medium text-muted-foreground dark:text-muted-foreground italic leading-relaxed">
                                       {item.aiRecommendation ?? "Node is currently executing at peak nominal efficiency."}
                                    </p>
                                 </div>
@@ -235,7 +235,7 @@ export default function MarketingAnalytics() {
                              <td className="px-12 py-10 text-right">
                                 <Badge className={cn(
                                    "rounded-full font-black text-[9px] px-4 py-1.5 border-none shadow-lg uppercase tracking-widest transition-all",
-                                   item.status === "ACTIVE" ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                   item.status === "ACTIVE" ? "bg-success text-white shadow-emerald-500/20" : "bg-muted dark:bg-muted text-muted-foreground"
                                 )}>
                                    {item.status}
                                 </Badge>
@@ -250,7 +250,7 @@ export default function MarketingAnalytics() {
            <TabsContent value="attribution" className="mt-0 outline-none flex-1 overflow-hidden">
               <ScrollArea className="h-[600px]">
                  <table className="w-full">
-                    <thead className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 sticky top-0 z-10 italic">
+                    <thead className="bg-muted dark:bg-muted text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground sticky top-0 z-10 italic">
                        <tr>
                           <th className="px-12 py-8 text-left">Source Cluster</th>
                           <th className="px-12 py-8 text-left">Entity Link</th>
@@ -261,36 +261,36 @@ export default function MarketingAnalytics() {
                     </thead>
                     <tbody className="divide-y divide-white/10 dark:divide-slate-800/10">
                        {(Array.isArray(attribution) ? attribution : []).map((item) => (
-                          <tr key={item.id} className="group hover:bg-emerald-600/5 transition-all cursor-default">
+                          <tr key={item.id} className="group hover:bg-success transition-all cursor-default">
                              <td className="px-12 py-10">
                                 <div className="flex items-center gap-4">
-                                   <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                                   <div className="h-10 w-10 rounded-xl bg-muted dark:bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-sm">
                                       <Network className="h-5 w-5" />
                                    </div>
-                                   <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">NODE: {item.campaignId.slice(-8)}</p>
+                                   <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">NODE: {item.campaignId.slice(-8)}</p>
                                 </div>
                              </td>
                              <td className="px-12 py-10">
-                                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-tighter text-slate-400 group-hover:text-indigo-600 transition-colors italic">
+                                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-tighter text-muted-foreground group-hover:text-primary transition-colors italic">
                                    <Fingerprint className="h-4 w-4" /> ENTITY: {item.leadId.slice(-8)}
                                 </div>
                              </td>
                              <td className="px-12 py-10 text-right">
-                                <p className="text-xl font-black text-emerald-600 italic tracking-tighter">${item.revenueAttributed.toLocaleString()}</p>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Net Attribution</p>
+                                <p className="text-xl font-black text-success italic tracking-tighter">${item.revenueAttributed.toLocaleString()}</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground italic">Net Attribution</p>
                              </td>
                              <td className="px-12 py-10 text-right">
-                                <p className="text-xl font-black text-indigo-600 italic tracking-tighter">${item.spend.toLocaleString()}</p>
-                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 italic">Channel Burn</p>
+                                <p className="text-xl font-black text-primary italic tracking-tighter">${item.spend.toLocaleString()}</p>
+                                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground italic">Channel Burn</p>
                              </td>
                              <td className="px-12 py-10 text-right">
                                 <div className="flex flex-col items-end gap-3">
                                    <div className="flex items-center gap-3">
-                                      <Badge className="bg-emerald-500/10 text-emerald-500 font-black text-[9px] px-3 py-1 rounded-full border-none shadow-sm uppercase tracking-widest">PROFITABLE</Badge>
-                                      <p className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">{item.roiPercent}%</p>
+                                      <Badge className="bg-success text-success font-black text-[9px] px-3 py-1 rounded-full border-none shadow-sm uppercase tracking-widest">PROFITABLE</Badge>
+                                      <p className="text-2xl font-black text-muted-foreground dark:text-white uppercase tracking-tighter">{item.roiPercent}%</p>
                                    </div>
-                                   <div className="h-2 w-40 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-                                      <div className="h-full bg-emerald-500 transition-all duration-1000 shadow-[0_0_12px_rgba(16,185,129,0.4)]" style={{ width: `${Math.min(item.roiPercent / 10, 100)}%` }} />
+                                   <div className="h-2 w-40 bg-muted dark:bg-muted rounded-full overflow-hidden shadow-inner">
+                                      <div className="h-full bg-success transition-all duration-1000 shadow-[0_0_12px_rgba(16,185,129,0.4)]" style={{ width: `${Math.min(item.roiPercent / 10, 100)}%` }} />
                                    </div>
                                 </div>
                              </td>
@@ -304,22 +304,22 @@ export default function MarketingAnalytics() {
       </Card>
       
       {/* Strategy Optimization Footer */}
-      <Card className="rounded-[4rem] border-none shadow-2xl bg-white dark:bg-slate-900 p-12 flex flex-col lg:flex-row items-center gap-12 group overflow-hidden relative">
-         <div className="absolute inset-0 bg-indigo-600/5 dark:bg-indigo-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-         <div className="h-32 w-32 bg-indigo-600 rounded-[3rem] flex items-center justify-center shadow-[0_30px_60px_-15px_rgba(79,70,229,0.4)] group-hover:rotate-12 transition-all duration-700 shrink-0 relative z-10">
+      <Card className="rounded-[4rem] border-none shadow-2xl bg-white dark:bg-muted p-12 flex flex-col lg:flex-row items-center gap-12 group overflow-hidden relative">
+         <div className="absolute inset-0 bg-primary dark:bg-primary opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+         <div className="h-32 w-32 bg-primary rounded-[3rem] flex items-center justify-center shadow-[0_30px_60px_-15px_rgba(79,70,229,0.4)] group-hover:rotate-12 transition-all duration-700 shrink-0 relative z-10">
             <Cpu className="h-16 w-16 text-white drop-shadow-2xl" />
          </div>
          <div className="flex-1 space-y-4 text-center lg:text-left relative z-10">
             <div className="flex items-center gap-4 justify-center lg:justify-start">
-               <Badge className="bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-4 py-1 rounded-full">Neural Analyzer</Badge>
-               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">ROI Projection Active</p>
+               <Badge className="bg-primary text-white font-black text-[10px] uppercase tracking-widest px-4 py-1 rounded-full">Neural Analyzer</Badge>
+               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">ROI Projection Active</p>
             </div>
             <h3 className="text-3xl font-black uppercase italic tracking-tighter italic leading-none">Yield Optimization Strategy</h3>
             <p className="text-lg font-medium italic italic opacity-60 italic leading-relaxed italic max-w-4xl italic">
                "Cross-channel telemetry authorizes a <strong>+22.4% ROI lift</strong> by re-allocating $14.5k from low-yield Google Ads clusters into the <strong>High-Intent Meta Ads</strong> network. Attribution lag is currently at <strong>nominal levels</strong>."
             </p>
          </div>
-         <Button className="h-20 px-12 rounded-[2.5rem] bg-indigo-600 hover:bg-indigo-700 shadow-2xl shadow-indigo-500/30 font-black text-sm uppercase tracking-widest gap-4 group transition-all hover:scale-105 active:scale-95 text-white whitespace-nowrap relative z-10">
+         <Button className="h-20 px-12 rounded-[2.5rem] bg-primary hover:bg-primary shadow-2xl shadow-indigo-500/30 font-black text-sm uppercase tracking-widest gap-4 group transition-all hover:scale-105 active:scale-95 text-white whitespace-nowrap relative z-10">
             OPTIMIZE MATRIX <ChevronRight className="h-6 w-6 group-hover:translate-x-2 transition-transform duration-500" />
          </Button>
       </Card>

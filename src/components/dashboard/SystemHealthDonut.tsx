@@ -16,16 +16,16 @@ export const SystemHealthDonut: React.FC<SystemHealthDonutProps> = ({ data }) =>
 
   return (
     <div 
-      className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-8 shadow-2xl transition-all duration-500 hover:shadow-emerald-500/10 group cursor-pointer overflow-hidden relative"
+      className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-muted p-8 shadow-2xl transition-all duration-500 hover:shadow-emerald-500/10 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/it/health')}
     >
       <div className="flex items-center justify-between mb-6">
         <div>
           <h4 className="text-lg font-black italic uppercase tracking-tighter text-white">Core Integrity</h4>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Service uptime & health</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Service uptime & health</p>
         </div>
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/20 transition-all">
-          <Server className="h-5 w-5 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-success group-hover:border-emerald-500/20 transition-all">
+          <Server className="h-5 w-5 text-muted-foreground group-hover:text-success transition-colors" />
         </div>
       </div>
 
@@ -55,20 +55,20 @@ export const SystemHealthDonut: React.FC<SystemHealthDonutProps> = ({ data }) =>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <p className="text-4xl font-black text-white tracking-tighter">{percentage}%</p>
           <div className="flex items-center gap-1.5 mt-1">
-             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-             <p className="text-[10px] font-black uppercase text-emerald-400 tracking-widest">Stable</p>
+             <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+             <p className="text-[10px] font-black uppercase text-success tracking-widest">Stable</p>
           </div>
         </div>
       </div>
 
       <div className="mt-4 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500 group-hover:text-white transition-colors">
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground group-hover:text-white transition-colors">
           {optimal} / {total} Infrastructure nodes active
         </p>
       </div>
       
       {/* Subtle background glow */}
-      <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-emerald-500/5 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="absolute -bottom-10 -right-10 h-32 w-32 bg-success blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
     </div>
   );
 };

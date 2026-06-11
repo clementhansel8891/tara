@@ -122,12 +122,12 @@ const OrderFulfillment = () => {
             }}
             className="h-10 px-5 rounded-xl bg-secondary font-black italic uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-slate-900/10 hover:bg-secondary/60"
           >
-            <Zap className="w-3 h-3 text-amber-400" /> START BATCH
+            <Zap className="w-3 h-3 text-warning" /> START BATCH
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 p-8 lg:p-6 bg-secondary/5/50">
+      <div className="flex-1 p-8 lg:p-6 bg-secondary/5">
         <div className="max-w-7xl mx-auto space-y-12">
           {/* Logistics Pulse Vitals */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -136,7 +136,7 @@ const OrderFulfillment = () => {
                 <div className="p-4 rounded-2xl bg-primary/5 text-primary">
                   <PackageCheck className="w-5 h-5" />
                 </div>
-                <Badge className="bg-primary/5 text-blue-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-primary/5 text-primary font-black italic text-[8px] uppercase tracking-widest border-none">
                   Active
                 </Badge>
               </div>
@@ -153,10 +153,10 @@ const OrderFulfillment = () => {
 
             <Card className="rounded-[2rem] p-6 bg-white border-slate-200 shadow-xl border-b-4 border-b-slate-100 hover:border-b-amber-500 transition-all">
               <div className="flex justify-between items-start mb-6">
-                <div className="p-4 rounded-2xl bg-amber-50 text-amber-600">
+                <div className="p-4 rounded-2xl bg-warning text-warning">
                   <Truck className="w-5 h-5" />
                 </div>
-                <Badge className="bg-amber-50 text-amber-700 font-black italic text-[8px] uppercase tracking-widest border-none">
+                <Badge className="bg-warning text-warning font-black italic text-[8px] uppercase tracking-widest border-none">
                   Awaiting
                 </Badge>
               </div>

@@ -49,11 +49,11 @@ export const StoreGovernanceModule: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-red-100/50 rounded-xl text-red-600">
+        <div className="p-2 bg-destructive rounded-xl text-destructive">
           <ShieldAlert className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-lg font-black italic uppercase tracking-wider text-slate-800">
+          <h2 className="text-lg font-black italic uppercase tracking-wider text-muted-foreground">
             Governance & Risk Control
           </h2>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
@@ -66,8 +66,8 @@ export const StoreGovernanceModule: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Entitlements & Licensing */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
-          <div className="absolute -top-4 -right-4 w-24 h-24 bg-red-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
+          <div className="absolute -top-4 -right-4 w-24 h-24 bg-destructive rounded-full blur-3xl opacity-50 pointer-events-none" />
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
             <Fingerprint className="w-4 h-4 text-muted-foreground" /> Digital
             Entitlements
           </h3>
@@ -102,7 +102,7 @@ export const StoreGovernanceModule: React.FC = () => {
                   </SelectItem>
                   <SelectItem
                     value="expired"
-                    className="text-red-600 font-bold"
+                    className="text-destructive font-bold"
                   >
                     License Revoked / Expired
                   </SelectItem>
@@ -163,7 +163,7 @@ export const StoreGovernanceModule: React.FC = () => {
         {/* Security & Audit Parameters */}
         <div className="space-y-6 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden">
           <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-secondary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
-          <h3 className="text-sm font-black italic text-slate-800 tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
+          <h3 className="text-sm font-black italic text-muted-foreground tracking-wider flex items-center gap-2 border-b border-slate-100 pb-3 relative z-10">
             <Lock className="w-4 h-4 text-muted-foreground" /> Security & Compliance
           </h3>
 
@@ -243,8 +243,8 @@ export const StoreGovernanceModule: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-red-50 p-4 rounded-xl border border-red-100 mt-6 hidden group-hover:block transition-all">
-              <p className="text-xs text-red-800 font-medium mb-3">
+            <div className="bg-destructive p-4 rounded-xl border border-red-100 mt-6 hidden group-hover:block transition-all">
+              <p className="text-xs text-destructive font-medium mb-3">
                 <strong>DANGER ZONE</strong>
               </p>
               <Button

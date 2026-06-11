@@ -59,8 +59,8 @@ export function OperationsView() {
     return (
       <div className="flex h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Tactical Intelligence...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Loading Tactical Intelligence...</p>
         </div>
       </div>
     );
@@ -69,20 +69,20 @@ export function OperationsView() {
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       {/* Tactical Header Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 rounded-[3rem] bg-slate-900 border border-slate-800 shadow-3xl relative overflow-hidden group">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 rounded-[3rem] bg-muted border border-slate-800 shadow-3xl relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
         <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-2xl shadow-amber-500/40 border border-amber-400/50 animate-pulse-slow">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-warning text-white shadow-2xl shadow-amber-500/40 border border-amber-400/50 animate-pulse-slow">
             <Zap className="h-8 w-8" />
           </div>
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tighter italic text-white">Live Operations Flow</h2>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-400">Tactical Control Layer v2.0</p>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Tactical Control Layer v2.0</p>
           </div>
         </div>
         <Button 
           onClick={() => setIsModalOpen(true)}
-          className="relative z-10 h-16 rounded-2xl bg-white text-slate-950 px-10 font-black text-xs uppercase tracking-[0.25em] shadow-2xl hover:bg-indigo-600 hover:text-white transition-all duration-500 active:scale-95 border-none"
+          className="relative z-10 h-16 rounded-2xl bg-white text-muted-foreground px-10 font-black text-xs uppercase tracking-[0.25em] shadow-2xl hover:bg-primary hover:text-white transition-all duration-500 active:scale-95 border-none"
         >
           <PhoneCall className="mr-3 h-4 w-4" />
           Launch Incident Bridge

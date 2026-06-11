@@ -49,7 +49,7 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="p-4 rounded-3xl bg-primary/20/20 border border-indigo-500/20 flex gap-4">
+          <div className="p-4 rounded-3xl bg-primary/20 border border-primary flex gap-4">
             <AlertTriangle className="w-6 h-6 text-primary shrink-0" />
             <div className="text-[10px] font-bold italic text-primary/70 uppercase leading-relaxed">
               You are about to publish {affectedShiftsCount} shift assignments
@@ -64,7 +64,7 @@ export const ShiftGovernanceModal: React.FC<ShiftGovernanceModalProps> = ({
                 Mandatory: Publication Justification
               </label>
               <textarea
-                className="w-full h-24 bg-secondary/60 border-slate-700 text-foreground rounded-xl p-4 font-bold italic text-sm placeholder:text-muted-foreground focus:border-indigo-500 outline-none resize-none transition-colors"
+                className="w-full h-24 bg-secondary/60 border-slate-700 text-foreground rounded-xl p-4 font-bold italic text-sm placeholder:text-muted-foreground focus:border-primary outline-none resize-none transition-colors"
                 placeholder="E.g., Weekly Schedule generation approved by..."
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}

@@ -242,15 +242,15 @@ export default function CoreSecurity() {
           >
             <div className="space-y-4">
               <div className={`rounded-2xl border p-4 transition-all duration-500 ${
-                integrityStatus === 'secure' ? 'bg-emerald-50/50 border-emerald-200' : 
-                integrityStatus === 'tampered' ? 'bg-rose-50 border-rose-200 animate-pulse' : 'bg-muted/30'
+                integrityStatus === 'secure' ? 'bg-success/10 border-success/30' : 
+                integrityStatus === 'tampered' ? 'bg-destructive/10 border-destructive/30 animate-pulse' : 'bg-muted/30'
               }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {integrityStatus === 'idle' && <Clock className="h-5 w-5 text-muted-foreground" />}
                     {integrityStatus === 'scanning' && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
-                    {integrityStatus === 'secure' && <ShieldCheck className="h-5 w-5 text-emerald-500" />}
-                    {integrityStatus === 'tampered' && <AlertTriangle className="h-5 w-5 text-rose-500" />}
+                    {integrityStatus === 'secure' && <ShieldCheck className="h-5 w-5 text-success" />}
+                    {integrityStatus === 'tampered' && <AlertTriangle className="h-5 w-5 text-destructive" />}
                     <div>
                       <p className="text-sm font-black uppercase tracking-tighter">Audit Integrity</p>
                       <p className="text-[10px] text-muted-foreground font-medium">
@@ -271,7 +271,7 @@ export default function CoreSecurity() {
 
               <div className="rounded-2xl border p-4 bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                  <ShieldCheck className="h-5 w-5 text-success" />
                   <div>
                     <p className="text-sm font-black uppercase tracking-tighter">MFA coverage</p>
                     <p className="text-[10px] text-muted-foreground font-medium">
@@ -353,7 +353,7 @@ export default function CoreSecurity() {
           </Button>
           <Button 
             onClick={() => setIsModalOpen(true)}
-            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-slate-900 hover:bg-black text-white"
+            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-muted hover:bg-black text-white"
           >
             <UserCog className="mr-2 h-3.5 w-3.5" /> Manage Roles
           </Button>

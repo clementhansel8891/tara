@@ -88,7 +88,7 @@ export default function WorkforceComplianceHub() {
           title="Workforce & Compliance Hub"
           subtitle="Enterprise governance, labor optimization, and deep forensic auditing."
           primaryAction={
-            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-destructive hover:bg-rose-700 shadow-xl shadow-rose-500/30 transition-all hover:scale-105 active:scale-95">
+            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-destructive hover:bg-destructive shadow-xl shadow-rose-500/30 transition-all hover:scale-105 active:scale-95">
               <ShieldAlert className="h-4 w-4" /> TRIGGER AUDIT
             </Button>
           }
@@ -239,7 +239,7 @@ export default function WorkforceComplianceHub() {
                       <p className="text-sm font-medium italic opacity-70 leading-relaxed italic">
                         "Biometric and GPS validation protocols are active. All personnel handshakes are currently <strong>100% verified</strong>."
                       </p>
-                      <Button className="w-full h-16 bg-destructive text-foreground hover:bg-rose-700 border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
+                      <Button className="w-full h-16 bg-destructive text-foreground hover:bg-destructive border-none rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all hover:scale-105 active:scale-95">
                          VIEW SECURITY LOGS
                       </Button>
                    </div>
@@ -362,8 +362,8 @@ export default function WorkforceComplianceHub() {
                      <div key={i} className="flex gap-4 opacity-80 hover:opacity-100 transition-opacity">
                         <span className="text-muted-foreground shrink-0">[{log.time}]</span>
                         <span className={cn(
-                          log.type === 'warn' ? 'text-amber-500' : 
-                          log.type === 'success' ? 'text-success' : 'text-blue-400'
+                          log.type === 'warn' ? 'text-warning' : 
+                          log.type === 'success' ? 'text-success' : 'text-primary'
                         )}>{log.msg}</span>
                      </div>
                    ))}

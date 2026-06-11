@@ -87,7 +87,7 @@ export default function AutomationLab() {
           title="Advanced Automation Lab"
           subtitle="Autonomous workflow orchestration, behavioral mapping, and multi-channel dispatch."
           primaryAction={
-            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
+            <Button className="rounded-[1.2rem] px-8 h-12 gap-3 font-black text-xs uppercase tracking-widest bg-primary hover:bg-primary shadow-xl shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95">
               <Play className="h-4 w-4" /> DEPLOY ENGINE
             </Button>
           }
@@ -114,9 +114,9 @@ export default function AutomationLab() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Compute Availability</div>
               <div className="text-3xl font-black italic tracking-tighter flex items-end gap-2">
-                98% <span className="text-sm font-bold text-emerald-500 mb-1">OPTIMAL</span>
+                98% <span className="text-sm font-bold text-success mb-1">OPTIMAL</span>
               </div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <CheckCircle2 className="w-3 h-3" />
                 Processing Node Verified
               </div>
@@ -126,8 +126,8 @@ export default function AutomationLab() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Active Workflows</div>
-              <div className="text-3xl font-black italic tracking-tighter text-blue-500">24</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-blue-500 uppercase">
+              <div className="text-3xl font-black italic tracking-tighter text-primary">24</div>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Workflow className="w-3 h-3" />
                 Multi-Channel Active
               </div>
@@ -137,8 +137,8 @@ export default function AutomationLab() {
           <Card className="glass-card border-none shadow-xl relative overflow-hidden group">
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Decision Latency</div>
-              <div className="text-3xl font-black italic tracking-tighter text-indigo-500">12ms</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-indigo-500 uppercase">
+              <div className="text-3xl font-black italic tracking-tighter text-primary">12ms</div>
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-primary uppercase">
                 <Zap className="w-3 h-3" />
                 Edge Compute Triggered
               </div>
@@ -149,7 +149,7 @@ export default function AutomationLab() {
             <CardContent className="p-8">
               <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">AI Agent Status</div>
               <div className="text-3xl font-black italic tracking-tighter">LISTENING</div>
-              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-emerald-500 uppercase">
+              <div className="flex items-center gap-2 mt-4 text-[10px] font-bold text-success uppercase">
                 <Brain className="w-3 h-3" />
                 Autonomous Mode Active
               </div>
@@ -207,7 +207,7 @@ export default function AutomationLab() {
                 </div>
 
                 <div className="flex gap-6 relative z-10">
-                   <Button className="h-16 px-12 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3 group transition-all hover:scale-105">
+                   <Button className="h-16 px-12 rounded-2xl bg-primary hover:bg-primary font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 gap-3 group transition-all hover:scale-105">
                       <Sparkles className="h-5 w-5" />
                       AUTO-GENERATE FLOW
                    </Button>
@@ -219,7 +219,7 @@ export default function AutomationLab() {
              </Card>
 
              <div className="lg:col-span-4 space-y-8">
-                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-slate-950 text-white relative overflow-hidden group">
+                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 bg-muted text-white relative overflow-hidden group">
                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                    <div className="relative z-10 space-y-8">
                       <div className="flex items-center gap-4">
@@ -243,14 +243,14 @@ export default function AutomationLab() {
                 <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-8">
                    <div className="space-y-6">
                       <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground italic flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                        <TrendingUp className="h-4 w-4 text-success" />
                         Automation Yield
                       </h4>
                       <div className="space-y-4">
                          {[
-                           { name: 'Email Nurture', val: 92, color: 'bg-indigo-500' },
-                           { name: 'Ad Retargeting', val: 78, color: 'bg-blue-500' },
-                           { name: 'WhatsApp Push', val: 84, color: 'bg-emerald-500' }
+                           { name: 'Email Nurture', val: 92, color: 'bg-primary' },
+                           { name: 'Ad Retargeting', val: 78, color: 'bg-primary' },
+                           { name: 'WhatsApp Push', val: 84, color: 'bg-success' }
                          ].map(flow => (
                            <div key={flow.name} className="space-y-2">
                               <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
@@ -286,7 +286,7 @@ export default function AutomationLab() {
              <div className="space-y-8">
                 <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-10 flex flex-col justify-between">
                    <div className="space-y-6">
-                      <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-2xl bg-primary text-primary flex items-center justify-center">
                          <Share2 className="h-6 w-6" />
                       </div>
                       <div className="space-y-2">
@@ -296,7 +296,7 @@ export default function AutomationLab() {
                          </p>
                       </div>
                    </div>
-                   <Button className="w-full h-14 mt-8 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-500/20">
+                   <Button className="w-full h-14 mt-8 rounded-2xl bg-primary hover:bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-500/20">
                       MAP NEW SEMANTIC NODE
                    </Button>
                 </Card>
@@ -304,11 +304,11 @@ export default function AutomationLab() {
                 <div className="grid grid-cols-2 gap-6">
                    <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-6 text-center">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Intent Confidence</p>
-                      <p className="text-3xl font-black italic text-emerald-500">94.2%</p>
+                      <p className="text-3xl font-black italic text-success">94.2%</p>
                    </Card>
                    <Card className="glass-card border-none shadow-xl rounded-[2.5rem] p-6 text-center">
                       <p className="text-[10px] font-black uppercase text-muted-foreground mb-1 tracking-widest">Action Velocity</p>
-                      <p className="text-3xl font-black italic text-blue-500">2.1s</p>
+                      <p className="text-3xl font-black italic text-primary">2.1s</p>
                    </Card>
                 </div>
              </div>
@@ -317,13 +317,13 @@ export default function AutomationLab() {
 
         {activeTab === "runtime" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-             <Card className="lg:col-span-8 glass-card border-none shadow-2xl rounded-[3rem] overflow-hidden flex flex-col bg-slate-950 text-indigo-400 font-mono">
+             <Card className="lg:col-span-8 glass-card border-none shadow-2xl rounded-[3rem] overflow-hidden flex flex-col bg-muted text-primary font-mono">
                 <div className="p-8 border-b border-white/10 bg-black/40 flex items-center justify-between">
                    <div className="flex items-center gap-3">
                       <Terminal className="h-5 w-5" />
                       <h3 className="text-[10px] font-black uppercase tracking-[0.3em] italic">Automation Runtime Logs</h3>
                    </div>
-                   <Badge className="bg-indigo-500/20 text-indigo-400 border-none">ACTIVE SESSION</Badge>
+                   <Badge className="bg-primary text-primary border-none">ACTIVE SESSION</Badge>
                 </div>
                 <div className="flex-1 p-8 space-y-3 overflow-y-auto max-h-[500px] text-[10px]">
                    {[
@@ -334,15 +334,15 @@ export default function AutomationLab() {
                      { time: '21:55:00', msg: '[INFO] ALL AUTOMATION GATEWAYS CONFIRMED HEALTHY', type: 'info' }
                    ].map((log, i) => (
                      <div key={i} className="flex gap-4 opacity-80 hover:opacity-100 transition-opacity">
-                        <span className="text-slate-500 shrink-0">[{log.time}]</span>
+                        <span className="text-muted-foreground shrink-0">[{log.time}]</span>
                         <span className={cn(
-                          log.type === 'warn' ? 'text-amber-500' : 
-                          log.type === 'success' ? 'text-emerald-400' : 'text-indigo-400'
+                          log.type === 'warn' ? 'text-warning' : 
+                          log.type === 'success' ? 'text-success' : 'text-primary'
                         )}>{log.msg}</span>
                      </div>
                    ))}
                    <div className="flex gap-1.5 items-center animate-pulse pt-2">
-                      <span className="w-1.5 h-3 bg-indigo-500" />
+                      <span className="w-1.5 h-3 bg-primary" />
                       <span className="text-[8px] font-black uppercase tracking-widest opacity-50">LISTENING FOR EVENTS...</span>
                    </div>
                 </div>
@@ -371,10 +371,10 @@ export default function AutomationLab() {
                    </div>
                 </Card>
 
-                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-8 text-center bg-indigo-500/5">
-                   <Activity className="h-10 w-10 text-indigo-500 mx-auto mb-4" />
-                   <h4 className="font-black text-xs uppercase tracking-widest text-indigo-600 mb-1">Engine Operational</h4>
-                   <p className="text-[8px] font-bold text-indigo-600/60 uppercase">Runtime: 142h 12m 04s</p>
+                <Card className="glass-card border-none shadow-2xl rounded-[3rem] p-8 text-center bg-primary">
+                   <Activity className="h-10 w-10 text-primary mx-auto mb-4" />
+                   <h4 className="font-black text-xs uppercase tracking-widest text-primary mb-1">Engine Operational</h4>
+                   <p className="text-[8px] font-bold text-primary uppercase">Runtime: 142h 12m 04s</p>
                 </Card>
              </div>
           </div>

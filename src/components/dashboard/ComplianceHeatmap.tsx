@@ -19,27 +19,27 @@ const data: ComplianceItem[] = [
 
 export const ComplianceHeatmap: React.FC = () => {
   const getCellColor = (value: number) => {
-    if (value >= 95) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]';
-    if (value >= 90) return 'bg-emerald-400/5 text-emerald-400 border-emerald-400/10';
-    if (value >= 85) return 'bg-amber-400/5 text-amber-400 border-amber-400/10';
-    return 'bg-rose-400/10 text-rose-400 border-rose-400/20 shadow-[0_0_15px_-5px_rgba(244,63,94,0.3)]';
+    if (value >= 95) return 'bg-success text-success border-emerald-500/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]';
+    if (value >= 90) return 'bg-success text-success border-emerald-400/10';
+    if (value >= 85) return 'bg-warning text-warning border-amber-400/10';
+    return 'bg-destructive text-destructive border-rose-400/20 shadow-[0_0_15px_-5px_rgba(244,63,94,0.3)]';
   };
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-[2.5rem] border border-slate-800 bg-muted p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
             <Gavel className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Compliance Heatmap</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Governance adherence by region</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Governance adherence by region</p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
-           <FileCheck className="h-4 w-4 text-emerald-400" />
-           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Audited Q2 2026</span>
+           <FileCheck className="h-4 w-4 text-success" />
+           <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest">Audited Q2 2026</span>
         </div>
       </div>
 
@@ -47,18 +47,18 @@ export const ComplianceHeatmap: React.FC = () => {
         <table className="w-full text-left border-separate border-spacing-3">
           <thead>
             <tr>
-              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">Location</th>
-              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-center">Tax</th>
-              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-center">Labor</th>
-              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-center">Data</th>
-              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 text-center">Audit</th>
+              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Location</th>
+              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-center">Tax</th>
+              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-center">Labor</th>
+              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-center">Data</th>
+              <th className="p-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground text-center">Audit</th>
             </tr>
           </thead>
           <tbody>
             {data.map((row, i) => (
               <tr key={i} className="group/row">
                 <td className="p-2">
-                  <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 group-hover/row:text-white transition-colors">{row.region}</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground group-hover/row:text-white transition-colors">{row.region}</span>
                 </td>
                 {[row.tax, row.labor, row.data, row.audit].map((val, j) => (
                   <td key={j} className="p-0">
@@ -77,7 +77,7 @@ export const ComplianceHeatmap: React.FC = () => {
       </div>
       
       {/* Subtle corner glow */}
-      <div className="absolute -bottom-16 -right-16 h-40 w-40 bg-indigo-500/5 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+      <div className="absolute -bottom-16 -right-16 h-40 w-40 bg-primary blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
     </div>
   );
 };

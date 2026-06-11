@@ -34,20 +34,20 @@ const PLATFORM_ICON: Record<string, React.ElementType> = {
 
 const PLATFORM_COLOR: Record<string, string> = {
   HEADLESS: "bg-secondary/10 text-muted-foreground",
-  PRESET: "bg-blue-100 text-primary",
+  PRESET: "bg-primary text-primary",
   PREMADE: "bg-success/10 text-success",
 };
 
 const PLATFORM_ACCENT: Record<string, string> = {
   HEADLESS: "border-slate-200 hover:border-slate-400",
-  PRESET: "border-blue-100 hover:border-blue-400",
+  PRESET: "border-primary hover:border-primary",
   PREMADE: "border-emerald-100 hover:border-emerald-400",
 };
 
 const STATUS_BADGE: Record<string, string> = {
-  active: "bg-emerald-50 text-success",
-  inactive: "bg-amber-50 text-amber-600",
-  warning: "bg-red-50 text-red-600",
+  active: "bg-success text-success",
+  inactive: "bg-warning text-warning",
+  warning: "bg-destructive text-destructive",
 };
 
 const STATUS_ICON: Record<string, React.ElementType> = {
@@ -166,7 +166,7 @@ const EcommerceConnector = () => {
       {/* -- Body: Two-column layout -- */}
       <div className="flex-1 flex overflow-hidden">
         {/* -- LEFT: Channel List -- */}
-        <div className="w-80 shrink-0 flex flex-col border-r bg-secondary/5/60 overflow-hidden">
+        <div className="w-80 shrink-0 flex flex-col border-r bg-secondary/5 overflow-hidden">
           {/* KPI strip */}
           <div className="grid grid-cols-3 gap-2 p-4 shrink-0">
             {(Array.isArray(kpis) ? kpis : []).map((k) => (

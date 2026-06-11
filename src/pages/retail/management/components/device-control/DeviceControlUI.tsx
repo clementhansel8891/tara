@@ -100,26 +100,26 @@ export const connLabel: Record<ConnType, string> = {
 // ── Color Helpers ─────────────────────────────────────────────────
 export const dsc = (s: BranchDevice["status"]) =>
   ({
-    online: "bg-emerald-50 text-success border-emerald-100",
-    offline: "bg-red-50 text-red-600 border-red-100",
-    maintenance: "bg-amber-50 text-amber-700 border-amber-100",
+    online: "bg-success text-success border-emerald-100",
+    offline: "bg-destructive text-destructive border-red-100",
+    maintenance: "bg-warning text-warning border-amber-100",
     unknown: "bg-secondary/10 text-muted-foreground border-slate-100",
   })[s];
 
 export const csc = (s: CCTVCamera["status"]) =>
   ({
-    live: "bg-emerald-50 text-success border-emerald-100",
-    recording: "bg-primary/5 text-blue-700 border-blue-100",
-    offline: "bg-red-50 text-red-600 border-red-100",
-    error: "bg-red-50 text-red-700 border-red-100",
-    maintenance: "bg-amber-50 text-amber-700 border-amber-100",
+    live: "bg-success text-success border-emerald-100",
+    recording: "bg-primary/5 text-primary border-primary",
+    offline: "bg-destructive text-destructive border-red-100",
+    error: "bg-destructive text-destructive border-red-100",
+    maintenance: "bg-warning text-warning border-amber-100",
   })[s];
 
 export const ssc = (s: BranchSensor["status"]) =>
   ({
-    normal: "bg-emerald-50 text-success border-emerald-100",
-    warning: "bg-amber-50 text-amber-700 border-amber-100",
-    critical: "bg-red-50 text-red-700 border-red-100",
+    normal: "bg-success text-success border-emerald-100",
+    warning: "bg-warning text-warning border-amber-100",
+    critical: "bg-destructive text-destructive border-red-100",
     offline: "bg-secondary/10 text-muted-foreground border-slate-100",
     unknown: "bg-secondary/10 text-muted-foreground border-slate-100",
   })[s];

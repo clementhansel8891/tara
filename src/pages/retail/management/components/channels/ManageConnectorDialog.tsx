@@ -155,10 +155,10 @@ export const ManageConnectorDialog = ({
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-3xl rounded-[2rem] p-0 overflow-hidden border-none shadow-[0_40px_100px_rgba(0,0,0,0.25)] flex flex-col max-h-[90vh]">
         <div className="bg-secondary p-6 text-foreground relative overflow-hidden shrink-0">
-          <Zap className="absolute -right-12 -top-6 w-64 h-64 opacity-10 text-blue-400" />
+          <Zap className="absolute -right-12 -top-6 w-64 h-64 opacity-10 text-primary" />
           <div className="relative z-10 flex items-center justify-between">
             <div className="space-y-2">
-              <Badge className="bg-primary/20 text-blue-400 border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1 mb-4">
+              <Badge className="bg-primary/20 text-primary border-none font-black italic text-[9px] uppercase tracking-[0.2em] px-4 py-1 mb-4">
                 Secure Channel Provisioning
               </Badge>
               <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter leading-none">
@@ -176,12 +176,12 @@ export const ManageConnectorDialog = ({
         <div className="p-6 space-y-12 flex-1 overflow-y-auto bg-white">
           {step === "SUCCESS" && generatedCreds ? (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
-              <div className="bg-emerald-50 border-2 border-emerald-100 rounded-[2rem] p-8 flex items-center gap-6">
+              <div className="bg-success border-2 border-emerald-100 rounded-[2rem] p-8 flex items-center gap-6">
                 <div className="w-16 h-16 bg-success rounded-3xl flex items-center justify-center shadow-lg shadow-emerald-900/10">
                   <CheckCircle2 className="w-8 h-8 text-foreground" />
                 </div>
                 <div>
-                  <div className="text-xl font-black italic text-emerald-900 uppercase italic">
+                  <div className="text-xl font-black italic text-success uppercase italic">
                     Handshake Successful
                   </div>
                   <div className="text-[11px] font-bold text-success uppercase tracking-widest mt-1">
@@ -236,7 +236,7 @@ export const ManageConnectorDialog = ({
                       isMasked
                     />
                     <Separator className="my-4" />
-                    <div className="p-6 rounded-[2rem] bg-primary/5 border border-indigo-100 space-y-3">
+                    <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary space-y-3">
                       <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest">
                         <AlertCircle className="w-4 h-4 text-primary" />{" "}
                         Security Notice
@@ -262,13 +262,13 @@ export const ManageConnectorDialog = ({
               <div className="grid grid-cols-2 gap-8">
                 <div
                   onClick={() => setChannelType("OWNED")}
-                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "OWNED" ? "border-blue-600 bg-primary/5/30" : "border-slate-100 hover:border-slate-200"}`}
+                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "OWNED" ? "border-primary bg-primary/5" : "border-slate-100 hover:border-slate-200"}`}
                 >
                   <Globe
                     className={`w-10 h-10 mb-6 transition-transform ${channelType === "OWNED" ? "text-primary scale-110" : "text-muted-foreground/60"}`}
                   />
                   <div
-                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "OWNED" ? "text-blue-900" : "text-muted-foreground"}`}
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "OWNED" ? "text-primary" : "text-muted-foreground"}`}
                   >
                     Headless API
                   </div>
@@ -278,13 +278,13 @@ export const ManageConnectorDialog = ({
                 </div>
                 <div
                   onClick={() => setChannelType("MARKETPLACE")}
-                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "MARKETPLACE" ? "border-emerald-600 bg-emerald-50/30" : "border-slate-100 hover:border-slate-200"}`}
+                  className={`p-8 rounded-2xl border-2 transition-all cursor-pointer group ${channelType === "MARKETPLACE" ? "border-emerald-600 bg-success" : "border-slate-100 hover:border-slate-200"}`}
                 >
                   <ShoppingBag
                     className={`w-10 h-10 mb-6 transition-transform ${channelType === "MARKETPLACE" ? "text-success scale-110" : "text-muted-foreground/60"}`}
                   />
                   <div
-                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "MARKETPLACE" ? "text-emerald-900" : "text-muted-foreground"}`}
+                    className={`text-lg font-black italic uppercase italic tracking-tighter ${channelType === "MARKETPLACE" ? "text-success" : "text-muted-foreground"}`}
                   >
                     Marketplace Hub
                   </div>
@@ -338,9 +338,9 @@ export const ManageConnectorDialog = ({
 
                 {channelType === "MARKETPLACE" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-center gap-4 p-6 bg-amber-50 rounded-2xl border border-amber-100">
-                      <ShieldCheck className="w-6 h-6 text-amber-500" />
-                      <p className="text-[10px] font-bold text-amber-700 uppercase italic tracking-tighter">
+                    <div className="flex items-center gap-4 p-6 bg-warning rounded-2xl border border-amber-100">
+                      <ShieldCheck className="w-6 h-6 text-warning" />
+                      <p className="text-[10px] font-bold text-warning uppercase italic tracking-tighter">
                         External authorization required. Provide your platform
                         API secrets.
                       </p>
@@ -370,7 +370,7 @@ export const ManageConnectorDialog = ({
               <Button
                 onClick={handleCreate}
                 disabled={isProcessing || !channelName}
-                className="w-full h-20 rounded-[2rem] bg-primary text-foreground font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:bg-blue-700 hover:scale-[0.98] transition-all"
+                className="w-full h-20 rounded-[2rem] bg-primary text-foreground font-black italic uppercase tracking-[0.3em] text-xs shadow-2xl hover:bg-primary hover:scale-[0.98] transition-all"
               >
                 {isProcessing ? (
                   <RefreshCw className="w-6 h-6 animate-spin" />

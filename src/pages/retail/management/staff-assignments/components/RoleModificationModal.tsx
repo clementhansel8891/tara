@@ -57,20 +57,20 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
       <DialogContent className="max-w-md bg-secondary border-slate-800 p-8 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] text-foreground">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-black italic tracking-tighter flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-500">
+            <div className="p-2.5 rounded-2xl bg-warning text-warning">
               <ShieldHalf className="w-6 h-6" />
             </div>
             MODIFY PERMISSIONS
           </DialogTitle>
-          <div className="text-[10px] font-black text-amber-400/80 uppercase tracking-widest mt-2 pl-14">
+          <div className="text-[10px] font-black text-warning uppercase tracking-widest mt-2 pl-14">
             Security Clearance Override
           </div>
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="p-4 rounded-3xl bg-amber-950/20 border border-amber-500/20 flex gap-4">
-            <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
-            <div className="text-[10px] font-bold italic text-amber-500/80 uppercase leading-relaxed">
+          <div className="p-4 rounded-3xl bg-warning border border-amber-500/20 flex gap-4">
+            <AlertTriangle className="w-6 h-6 text-warning shrink-0" />
+            <div className="text-[10px] font-bold italic text-warning uppercase leading-relaxed">
               Warning: Elevating access scope requires an audit trail entry.
               This action will be logged into the Zenvix Vault permanently.
             </div>
@@ -81,7 +81,7 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
               <label className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground block mb-2">
                 Target Personnel
               </label>
-              <div className="h-12 bg-secondary/60/50 rounded-xl border border-white/5 flex items-center px-4 font-bold text-sm text-muted-foreground/60">
+              <div className="h-12 bg-secondary/60 rounded-xl border border-white/5 flex items-center px-4 font-bold text-sm text-muted-foreground/60">
                 {staff.fullName} ({staff.roleTitle})
               </div>
             </div>
@@ -133,7 +133,7 @@ export const RoleModificationModal: React.FC<RoleModificationModalProps> = ({
           <Button
             onClick={handleSubmit}
             disabled={!newRole || !reason || isSubmitting}
-            className="text-[10px] font-black italic uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-foreground rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+            className="text-[10px] font-black italic uppercase tracking-widest bg-warning hover:bg-warning text-foreground rounded-xl h-11 px-6 shadow-[0_0_15px_rgba(245,158,11,0.2)]"
           >
             <Lock className="w-3.5 h-3.5 mr-2" /> Sign & Modify
           </Button>

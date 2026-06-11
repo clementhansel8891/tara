@@ -103,7 +103,7 @@ export const CommandCenterStats = ({
         value={orderCount}
         icon={Receipt}
         trend={{ value: "4.2%", isPositive: true }}
-        color="bg-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.4)]"
+        color="bg-primary shadow-[0_0_20px_rgba(139,92,246,0.4)]"
       />
       <StatCard
         label="Terminal Integrity"
@@ -115,7 +115,7 @@ export const CommandCenterStats = ({
         label="Edge Latency"
         value={systemStatus}
         icon={Activity}
-        color="bg-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+        color="bg-warning shadow-[0_0_20px_rgba(245,158,11,0.4)]"
       />
     </div>
   );

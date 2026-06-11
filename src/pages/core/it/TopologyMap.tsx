@@ -122,8 +122,8 @@ export default function TopologyMap() {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-           <Activity className="h-10 w-10 text-indigo-500 animate-pulse" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Scanning Infrastructure...</p>
+           <Activity className="h-10 w-10 text-primary animate-pulse" />
+           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Scanning Infrastructure...</p>
         </div>
       </div>
     );
@@ -131,30 +131,30 @@ export default function TopologyMap() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-8">
+      <div className="flex items-end justify-between border-b border-border pb-8">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.3em]">
+          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
             <Link2 className="h-3 w-3" /> Live Visual Connection
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">
             Infrastructure Node
           </h1>
-          <p className="text-sm text-slate-500 font-medium">Real-time device topology and connectivity orchestration.</p>
+          <p className="text-sm text-muted-foreground font-medium">Real-time device topology and connectivity orchestration.</p>
         </div>
 
         <div className="flex items-center gap-3">
-           <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-2xl p-1 border border-slate-200 dark:border-slate-800">
+           <div className="flex items-center bg-muted rounded-2xl p-1 border border-border">
               <Button variant="ghost" size="icon" onClick={() => setZoom(z => Math.max(0.5, z - 0.1))} className="h-10 w-10 rounded-xl"><Minimize2 className="h-4 w-4" /></Button>
-              <div className="px-3 text-[10px] font-black text-slate-400">{(zoom * 100).toFixed(0)}%</div>
+              <div className="px-3 text-[10px] font-black text-muted-foreground">{(zoom * 100).toFixed(0)}%</div>
               <Button variant="ghost" size="icon" onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="h-10 w-10 rounded-xl"><Maximize2 className="h-4 w-4" /></Button>
            </div>
-           <Button className="rounded-2xl bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-6 h-12 shadow-xl shadow-indigo-500/20 gap-2">
+           <Button className="rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest px-6 h-12 shadow-xl shadow-primary/20 gap-2">
              <Settings2 className="h-4 w-4" /> Provision Node
            </Button>
         </div>
       </div>
 
-      <div className="relative w-full h-[700px] bg-slate-950 rounded-[3rem] border border-slate-800 overflow-hidden shadow-inner cursor-grab active:cursor-grabbing">
+      <div className="relative w-full h-[700px] bg-muted rounded-[3rem] border border-border overflow-hidden shadow-inner cursor-grab active:cursor-grabbing">
         {/* SVG Canvas */}
         <svg 
           viewBox="0 0 800 700" 
@@ -267,84 +267,84 @@ export default function TopologyMap() {
         </svg>
 
         {/* Legend Overlay */}
-        <div className="absolute bottom-8 left-8 p-4 bg-slate-900/80 backdrop-blur-md rounded-2xl border border-white/5 space-y-3">
+        <div className="absolute bottom-8 left-8 p-4 bg-card/80 backdrop-blur-md rounded-2xl border border-border space-y-3">
            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50" />
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Active Node</span>
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Active Node</span>
            </div>
            <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-rose-500" />
-              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Failure/Offline</span>
+              <div className="h-2 w-2 rounded-full bg-destructive" />
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Failure/Offline</span>
            </div>
            <div className="flex items-center gap-3">
-              <div className="h-[1px] w-4 bg-indigo-500 opacity-40" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-[8px]">Encrypted Link</span>
+              <div className="h-[1px] w-4 bg-primary opacity-40" />
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-[8px]">Encrypted Link</span>
            </div>
         </div>
       </div>
 
       <Sheet open={!!selectedNode} onOpenChange={() => setSelectedNode(null)}>
-        <SheetContent className="sm:max-w-md bg-slate-50 dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800">
+        <SheetContent className="sm:max-w-md bg-background border-l border-border">
            <SheetHeader>
               <SheetTitle className="text-2xl font-black tracking-tighter uppercase italic flex items-center gap-3">
-                 <Monitor className="h-6 w-6 text-indigo-600" /> Device Telemetry
+                 <Monitor className="h-6 w-6 text-primary" /> Device Telemetry
               </SheetTitle>
            </SheetHeader>
            
            {selectedNode && (
              <div className="mt-8 space-y-8">
-                <div className="p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+                <div className="p-6 rounded-[2rem] bg-card border border-border shadow-xl space-y-4">
                    <div className="flex justify-between items-start">
                       <div>
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Host Identity</p>
-                         <h3 className="text-xl font-black tracking-tight uppercase text-slate-900 dark:text-white">{selectedNode.deviceName}</h3>
+                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Host Identity</p>
+                         <h3 className="text-xl font-black tracking-tight uppercase">{selectedNode.deviceName}</h3>
                       </div>
                       <Badge className={cn(
                         "border-none px-3 py-1 text-[8px] font-black uppercase tracking-widest",
-                        selectedNode.status === 'online' ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"
+                        selectedNode.status === 'online' ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
                       )}>{selectedNode.status}</Badge>
                    </div>
                    
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">IP Address</p>
+                         <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">IP Address</p>
                          <p className="text-xs font-mono font-bold">{selectedNode.ipAddress || '192.168.1.1'}</p>
                       </div>
                       <div className="space-y-1">
-                         <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">MAC Identity</p>
-                         <p className="text-xs font-mono font-bold text-slate-500">{selectedNode.macAddress || 'FF:FF:FF:FF:FF:FF'}</p>
+                         <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">MAC Identity</p>
+                         <p className="text-xs font-mono font-bold text-muted-foreground">{selectedNode.macAddress || 'FF:FF:FF:FF:FF:FF'}</p>
                       </div>
                    </div>
                 </div>
 
                 <div className="space-y-4">
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 flex items-center gap-2">
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2">
                       <Activity className="h-3 w-3" /> Utilization Pulse
                    </h4>
                    <div className="space-y-4">
                       {[
-                        { label: 'CPU Load', value: 42, color: 'indigo' },
-                        { label: 'Mem Usage', value: 68, color: 'emerald' },
-                        { label: 'Storage', value: 85, color: 'rose' },
+                        { label: 'CPU Load', value: 42, color: 'primary' },
+                        { label: 'Mem Usage', value: 68, color: 'success' },
+                        { label: 'Storage', value: 85, color: 'destructive' },
                       ].map(m => (
                         <div key={m.label} className="space-y-2">
                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                               <span>{m.label}</span>
                               <span>{m.value}%</span>
                            </div>
-                           <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                              <div className={cn("h-full rounded-full transition-all duration-1000", `bg-${m.color}-500`)} style={{ width: `${m.value}%` }} />
+                           <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                              <div className={cn("h-full rounded-full transition-all duration-1000", `bg-${m.color}`)} style={{ width: `${m.value}%` }} />
                            </div>
                         </div>
                       ))}
                    </div>
                 </div>
 
-                <div className="pt-8 border-t border-slate-200 dark:border-slate-800 space-y-3">
-                   <Button className="w-full rounded-2xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-6">
+                <div className="pt-8 border-t border-border space-y-3">
+                   <Button className="w-full rounded-2xl bg-foreground text-background font-black text-[10px] uppercase tracking-widest py-6">
                       Access Remote Shell
                    </Button>
-                   <Button variant="outline" className="w-full rounded-2xl border-slate-200 dark:border-slate-800 font-black text-[10px] uppercase tracking-widest py-6">
+                   <Button variant="outline" className="w-full rounded-2xl border-border font-black text-[10px] uppercase tracking-widest py-6">
                       View Audit Log
                    </Button>
                 </div>

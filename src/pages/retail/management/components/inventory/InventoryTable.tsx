@@ -61,7 +61,7 @@ const PaginationBar: React.FC<PaginationProps> = ({
   });
 
   return (
-    <div className="px-6 py-4 border-t border-slate-50 bg-secondary/5/30 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="px-6 py-4 border-t border-slate-50 bg-secondary/5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-[10px] font-black italic uppercase tracking-widest text-muted-foreground">
           Page {page} of {totalPages} • Total {totalItems} items
@@ -186,10 +186,10 @@ export const InventoryTable: React.FC<TableProps> = ({
                 <tr
                   key={item.id}
                   onClick={() => onRowClick?.(item)}
-                  className="group border-b border-slate-50 last:border-none hover:bg-secondary/5/50 transition-colors cursor-pointer"
+                  className="group border-b border-slate-50 last:border-none hover:bg-secondary/5 transition-colors cursor-pointer"
                 >
                   <td className="px-6 py-4">
-                    <div className="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted dark:bg-muted border border-slate-200 dark:border-slate-800 flex items-center justify-center">
                       {item.imageUrl ? (
                         <img 
                           src={item.imageUrl} 
@@ -201,7 +201,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                           }}
                         />
                       ) : (
-                        <ImageIcon className="h-4 w-4 text-slate-300" />
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
                       )}
                     </div>
                   </td>
@@ -233,7 +233,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                       className={cn(
                         "font-black italic",
                         item.available <= 0
-                          ? "text-red-600"
+                          ? "text-destructive"
                           : "text-success",
                       )}
                     >
@@ -243,7 +243,7 @@ export const InventoryTable: React.FC<TableProps> = ({
                   <td className="px-6 py-4 text-muted-foreground font-bold italic text-sm">
                     {item.minBuffer}
                   </td>
-                  <td className="px-6 py-4 font-black italic text-indigo-600">
+                  <td className="px-6 py-4 font-black italic text-primary">
                     Rp {(item.price || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
@@ -309,12 +309,12 @@ export const InventoryTable: React.FC<TableProps> = ({
                             onReclassify?.(item);
                           }}
                         >
-                          <FolderTree className="w-3.5 h-3.5 text-orange-600" />{" "}
+                          <FolderTree className="w-3.5 h-3.5 text-warning" />{" "}
                           Change Category
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="rounded-xl gap-2 font-black italic text-xs py-3 text-red-600 focus:bg-red-50"
+                          className="rounded-xl gap-2 font-black italic text-xs py-3 text-destructive focus:bg-destructive"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Trash2 className="w-3.5 h-3.5" /> Request Write-off

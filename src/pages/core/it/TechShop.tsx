@@ -87,28 +87,28 @@ export default function TechShop() {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 dark:border-slate-800 pb-8 gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-8 gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.3em]">
+          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
             <ShoppingBag className="h-3 w-3" /> Hardware Catalog
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+          <h1 className="text-4xl font-black tracking-tighter uppercase italic">
             Zenvix Tech Shop
           </h1>
-          <p className="text-sm text-slate-500 font-medium">Official hardware and provisioning hub for Zenvix infrastructure.</p>
+          <p className="text-sm text-muted-foreground font-medium">Official hardware and provisioning hub for Zenvix infrastructure.</p>
         </div>
 
         <div className="flex items-center gap-3">
            <div className="relative w-64 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input 
                 placeholder="Search hardware or SKU..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 rounded-2xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
+                className="pl-12 h-12 rounded-2xl border-border focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
               />
            </div>
-           <Button variant="outline" className="h-12 w-12 rounded-2xl border-slate-200 dark:border-slate-800 p-0">
+           <Button variant="outline" className="h-12 w-12 rounded-2xl border-border p-0">
               <Filter className="h-4 w-4" />
            </Button>
         </div>
@@ -118,16 +118,16 @@ export default function TechShop() {
         {(Array.isArray(filteredItems) ? filteredItems : []).map((item) => (
           <div 
             key={item.id} 
-            className="group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-2 p-8"
+            className="group relative bg-card border border-border rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 hover:-translate-y-2 p-8"
           >
              <div className="absolute top-0 right-0 p-8">
-                <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 font-black text-[8px] tracking-[0.2em] uppercase px-3">
+                <Badge className="bg-primary/10 text-primary border-primary/20 font-black text-[8px] tracking-[0.2em] uppercase px-3">
                    {item.sku}
                 </Badge>
              </div>
 
              <div className="mb-8">
-                <div className="h-16 w-16 rounded-3xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500">
+                <div className="h-16 w-16 rounded-3xl bg-muted flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-500">
                    {item.name.includes("Tab") ? <Smartphone className="h-8 w-8" /> : 
                     item.name.includes("Printer") ? <Printer className="h-8 w-8" /> : 
                     <Monitor className="h-8 w-8" />}
@@ -135,28 +135,28 @@ export default function TechShop() {
              </div>
 
              <div className="space-y-2 mb-8">
-                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white uppercase italic group-hover:text-indigo-600 transition-colors">
+                <h3 className="text-xl font-black tracking-tight uppercase italic group-hover:text-primary transition-colors">
                   {item.name}
                 </h3>
-                <p className="text-sm text-slate-400 font-medium leading-relaxed line-clamp-2">
+                <p className="text-sm text-muted-foreground font-medium leading-relaxed line-clamp-2">
                    {item.description}
                 </p>
              </div>
 
-             <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-800/50 mb-8 space-y-3 border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+             <div className="p-4 rounded-3xl bg-muted mb-8 space-y-3 border border-border">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                    <span>Administrative Note</span>
                    <Info className="h-3 w-3" />
                 </div>
-                <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">
+                <p className="text-[10px] font-bold text-muted-foreground leading-relaxed italic">
                    "{item.notes}"
                 </p>
              </div>
 
              <div className="flex items-center justify-between mt-auto">
                 <div>
-                   <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Est. Cost</p>
-                   <p className="text-lg font-black text-slate-900 dark:text-white">
+                   <p className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground">Est. Cost</p>
+                   <p className="text-lg font-black">
                       Rp {(item.estimatedCost / 1000000).toFixed(1)}M
                    </p>
                 </div>
@@ -166,43 +166,43 @@ export default function TechShop() {
                   if (open) setActiveItem(item);
                 }}>
                   <DialogTrigger asChild>
-                    <Button className="rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-6 h-12 group-hover:scale-105 transition-all">
+                    <Button className="rounded-2xl bg-foreground dark:bg-primary text-background font-black text-[10px] uppercase tracking-widest px-6 h-12 group-hover:scale-105 transition-all">
                        Request Gear <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="rounded-[2.5rem] border-none shadow-2xl dark:bg-slate-900 p-8 max-w-md">
+                  <DialogContent className="rounded-[2.5rem] border-none shadow-2xl bg-card p-8 max-w-md">
                     <DialogHeader className="space-y-4">
-                      <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
                          <Package className="h-6 w-6" />
                       </div>
                       <DialogTitle className="text-2xl font-black tracking-tighter uppercase italic">Confirm Request</DialogTitle>
                       <DialogDescription className="font-medium">
-                        Requesting <span className="text-indigo-600 font-black">{item.name}</span> for branch orchestration. This will trigger inventory check and potential procurement.
+                        Requesting <span className="text-primary font-black">{item.name}</span> for branch orchestration. This will trigger inventory check and potential procurement.
                       </DialogDescription>
                     </DialogHeader>
 
                     <div className="py-6 space-y-4">
                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Request Notes</label>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Request Notes</label>
                           <Textarea 
                             placeholder="Add specific deployment instructions or search tags..."
-                            className="rounded-2xl border-slate-100 dark:border-slate-800 min-h-[100px] font-medium text-sm"
+                            className="rounded-2xl border-border min-h-[100px] font-medium text-sm"
                             value={requestNotes}
                             onChange={(e) => setRequestNotes(e.target.value)}
                           />
                        </div>
 
                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
-                             <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Stock Check</p>
-                             <div className="flex items-center gap-2 text-emerald-500">
+                          <div className="p-4 rounded-2xl bg-muted border border-border">
+                             <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Stock Check</p>
+                             <div className="flex items-center gap-2 text-success">
                                 <CheckCircle2 className="h-3 w-3" />
                                 <span className="text-[10px] font-black uppercase">Automated</span>
                              </div>
                           </div>
-                          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
-                             <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-1">Fiscal Impact</p>
-                             <div className="flex items-center gap-2 text-amber-500">
+                          <div className="p-4 rounded-2xl bg-muted border border-border">
+                             <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground mb-1">Fiscal Impact</p>
+                             <div className="flex items-center gap-2 text-warning">
                                 <AlertCircle className="h-3 w-3" />
                                 <span className="text-[10px] font-black uppercase tracking-tighter">CAPEX Gate</span>
                              </div>
@@ -217,7 +217,7 @@ export default function TechShop() {
                        <Button 
                          onClick={handleRequest}
                          disabled={isRequesting === item.id}
-                         className="rounded-2xl bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest px-8 h-12 shadow-xl shadow-indigo-500/20 min-w-[140px]"
+                       className="rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest px-8 h-12 shadow-xl shadow-primary/20 min-w-[140px]"
                        >
                           {isRequesting === item.id ? (
                             <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -234,42 +234,42 @@ export default function TechShop() {
         ))}
       </div>
 
-      <WorkspacePanel title="Deployment Flow" description="Understanding the orchestration sequence." className="rounded-[2.5rem] border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden p-0">
+      <WorkspacePanel title="Deployment Flow" description="Understanding the orchestration sequence." className="rounded-[2.5rem] border-border shadow-xl overflow-hidden p-0">
          <div className="grid grid-cols-1 md:grid-cols-4">
-            <div className="p-8 border-r border-slate-100 dark:border-slate-800 flex flex-col items-center text-center space-y-4 group">
-               <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-8 border-r border-border flex flex-col items-center text-center space-y-4 group">
+               <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
                   <ShoppingBag className="h-6 w-6" />
                </div>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step 01</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase italic">Catalog Selection</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Step 01</p>
+                  <p className="text-sm font-black uppercase italic">Catalog Selection</p>
                </div>
             </div>
-            <div className="p-8 border-r border-slate-100 dark:border-slate-800 flex flex-col items-center text-center space-y-4 group">
-               <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-8 border-r border-border flex flex-col items-center text-center space-y-4 group">
+               <div className="h-12 w-12 rounded-2xl bg-success/10 text-success flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Layers className="h-6 w-6" />
                </div>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step 02</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase italic">Stock Check Bridge</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Step 02</p>
+                  <p className="text-sm font-black uppercase italic">Stock Check Bridge</p>
                </div>
             </div>
-            <div className="p-8 border-r border-slate-100 dark:border-slate-800 flex flex-col items-center text-center space-y-4 group">
-               <div className="h-12 w-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="p-8 border-r border-border flex flex-col items-center text-center space-y-4 group">
+               <div className="h-12 w-12 rounded-2xl bg-warning/10 text-warning flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Truck className="h-6 w-6" />
                </div>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step 03</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase italic">Fulfill or Procure</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Step 03</p>
+                  <p className="text-sm font-black uppercase italic">Fulfill or Procure</p>
                </div>
             </div>
             <div className="p-8 flex flex-col items-center text-center space-y-4 group">
-               <div className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+               <div className="h-12 w-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Package className="h-6 w-6" />
                </div>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Step 04</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase italic">Asset Registration</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Step 04</p>
+                  <p className="text-sm font-black uppercase italic">Asset Registration</p>
                </div>
             </div>
          </div>

@@ -231,18 +231,18 @@ export default function InventoryInsights() {
                </div>
             ) : (
               (Array.isArray(agenticEvents) ? agenticEvents : []).map(event => (
-                <div key={event.id} className="p-4 rounded-lg bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
-                   <div className="mt-1 h-8 w-8 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
-                      <Sparkles className="h-4 w-4 text-indigo-500" />
+                <div key={event.id} className="p-4 rounded-lg bg-primary border border-primary flex items-start gap-4">
+                   <div className="mt-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                      <Sparkles className="h-4 w-4 text-primary" />
                    </div>
                    <div className="flex-1">
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{event.eventType.replace(/_/g, " ")}</p>
-                        <Badge variant="outline" className="text-[10px] bg-indigo-500/10 border-indigo-500/20 text-indigo-600">AI AGENT</Badge>
+                        <p className="text-sm font-semibold text-primary dark:text-primary">{event.eventType.replace(/_/g, " ")}</p>
+                        <Badge variant="outline" className="text-[10px] bg-primary border-primary text-primary">AI AGENT</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mb-2">{JSON.stringify(event.payload)}</p>
                       <div className="flex items-center gap-2">
-                         <Button onClick={(e) => { e.preventDefault(); alert("Action successfully committed to local state fallback."); }} variant="ghost" size="sm" className="h-7 text-[10px] px-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-500/10">Approve Action</Button>
+                         <Button onClick={(e) => { e.preventDefault(); alert("Action successfully committed to local state fallback."); }} variant="ghost" size="sm" className="h-7 text-[10px] px-2 text-primary hover:text-primary hover:bg-primary">Approve Action</Button>
                          <Button disabled title="Not available yet" variant="ghost" size="sm" className="h-7 text-[10px] px-2">Dismiss</Button>
                       </div>
                    </div>
@@ -259,17 +259,17 @@ export default function InventoryInsights() {
           <div className="space-y-4">
              <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
-                   <TrendingUp className="h-4 w-4 text-emerald-500" />
+                   <TrendingUp className="h-4 w-4 text-success" />
                    <p className="text-sm font-medium">Demand Forecast Accuracy</p>
                 </div>
-                <span className="font-mono text-emerald-600">94.2%</span>
+                <span className="font-mono text-success">94.2%</span>
              </div>
              <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
-                   <ActivitySquare className="h-4 w-4 text-orange-500" />
+                   <ActivitySquare className="h-4 w-4 text-warning" />
                    <p className="text-sm font-medium">Stock-out Probability (Avg)</p>
                 </div>
-                <span className="font-mono text-orange-600">2.1%</span>
+                <span className="font-mono text-warning">2.1%</span>
              </div>
              <div className="p-4 rounded-lg bg-muted/30 border border-dashed text-center">
                 <p className="text-xs text-muted-foreground">Historical modeling for Indonesia West Region suggests a 15% demand surge in RAM components due to upcoming seasonal trends.</p>

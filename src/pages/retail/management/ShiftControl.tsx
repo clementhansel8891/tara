@@ -253,7 +253,7 @@ const ShiftControl = () => {
             className="h-12 px-6 font-black italic border border-border text-foreground hover:bg-secondary/40 text-[11px] uppercase tracking-widest gap-3 rounded-2xl transition-all"
             onClick={() => setIsAuditModalOpen(true)}
           >
-            <FileText className="w-4 h-4 text-amber-500" /> Core HR Ledger
+            <FileText className="w-4 h-4 text-warning" /> Core HR Ledger
           </Button>
           
           {activeShift && (
@@ -311,7 +311,7 @@ const ShiftControl = () => {
 
             <Card className="rounded-2xl p-6 bg-white/[0.03] border border-white/5 shadow-2xl backdrop-blur-3xl">
               <div className="flex justify-between items-start mb-8">
-                <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-blue-500/20">
+                <div className="p-4 rounded-2xl bg-primary/10 text-primary border border-primary">
                   <BarChart3 className="w-6 h-6" />
                 </div>
                 <Badge className="bg-primary text-foreground font-black italic text-[8px] uppercase tracking-widest border-none px-3">
@@ -325,16 +325,16 @@ const ShiftControl = () => {
                 {stats.efficiency}%
               </div>
               <div className="text-[10px] font-bold italic text-primary mt-4 uppercase flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-500" /> Peak Performance Mode
+                <Flame className="w-4 h-4 text-warning" /> Peak Performance Mode
               </div>
             </Card>
 
             <Card className="rounded-2xl p-6 bg-white/[0.03] border border-white/5 shadow-2xl backdrop-blur-3xl">
               <div className="flex justify-between items-start mb-8">
-                <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <div className="p-4 rounded-2xl bg-warning text-warning border border-amber-500/20">
                   <Award className="w-6 h-6" />
                 </div>
-                <Badge className="bg-amber-500 text-foreground font-black italic text-[8px] uppercase tracking-widest border-none px-3">
+                <Badge className="bg-warning text-foreground font-black italic text-[8px] uppercase tracking-widest border-none px-3">
                   ELITE
                 </Badge>
               </div>
@@ -344,7 +344,7 @@ const ShiftControl = () => {
               <div className="text-2xl font-black italic tracking-tighter text-foreground">
                 1.8m
               </div>
-              <div className="text-[10px] font-bold italic text-amber-500 mt-4 uppercase">
+              <div className="text-[10px] font-bold italic text-warning mt-4 uppercase">
                 Avg. Interaction Latency
               </div>
             </Card>
@@ -353,7 +353,7 @@ const ShiftControl = () => {
               <ShieldAlert className="absolute -right-10 -bottom-10 w-48 h-48 opacity-10 group-hover:scale-110 transition-transform duration-700" />
               <div className="relative z-10 flex flex-col h-full justify-between">
                 <div>
-                  <div className="text-[10px] font-black italic uppercase tracking-[0.3em] text-indigo-200 mb-2">
+                  <div className="text-[10px] font-black italic uppercase tracking-[0.3em] text-primary mb-2">
                     Compliance Guard
                   </div>
                   <div className="text-3xl font-black italic tracking-tighter text-foreground">
@@ -427,7 +427,7 @@ const ShiftControl = () => {
                     <h4 className="text-3xl font-black italic tracking-tighter uppercase text-foreground">
                       AI Optimizer
                     </h4>
-                    <p className="text-[11px] font-bold text-primary/10/70 leading-relaxed italic uppercase tracking-widest max-w-[280px]">
+                    <p className="text-[11px] font-bold text-primary/10 leading-relaxed italic uppercase tracking-widest max-w-[280px]">
                       Traffic peak detected at 17:00. Suggested: Add 2 cashiers to Front End.
                     </p>
                   </div>

@@ -204,7 +204,7 @@ export const ReportFilterDialog: React.FC<ReportFilterDialogProps> = ({
                     className={cn(
                       "flex flex-col items-center justify-center p-8 rounded-2xl cursor-pointer transition-all border-2 text-center space-y-4",
                       toggles[toggle.key as keyof typeof toggles]
-                        ? "bg-primary/5 border-indigo-600 shadow-xl shadow-indigo-100/50"
+                        ? "bg-primary/5 border-primary shadow-xl shadow-indigo-100/50"
                         : "bg-white border-slate-100 text-muted-foreground hover:border-slate-200",
                     )}
                   >

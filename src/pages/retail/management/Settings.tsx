@@ -421,27 +421,27 @@ export default function RetailSettings() {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <Printer className="h-5 w-5 text-green-500" />
+                  <div className="p-2 rounded-lg bg-success">
+                    <Printer className="h-5 w-5 text-success" />
                   </div>
                   <div>
                     <p className="font-medium">Receipt Printer</p>
                     <p className="text-sm text-muted-foreground">Epson TM-T88VI</p>
                   </div>
                 </div>
-                <span className="text-sm text-green-500 font-medium">Connected</span>
+                <span className="text-sm text-success font-medium">Connected</span>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <Barcode className="h-5 w-5 text-green-500" />
+                  <div className="p-2 rounded-lg bg-success">
+                    <Barcode className="h-5 w-5 text-success" />
                   </div>
                   <div>
                     <p className="font-medium">Barcode Scanner</p>
                     <p className="text-sm text-muted-foreground">Honeywell Voyager</p>
                   </div>
                 </div>
-                <span className="text-sm text-green-500 font-medium">Connected</span>
+                <span className="text-sm text-success font-medium">Connected</span>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">

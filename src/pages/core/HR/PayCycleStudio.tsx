@@ -131,7 +131,7 @@ export default function PayCycleStudio() {
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="bg-success hover:bg-success text-white"
                           onClick={async () => {
                             await payrollService.approvePayroll(session, run.id);
                             refresh();
@@ -158,7 +158,7 @@ export default function PayCycleStudio() {
                         </Button>
                         <Button
                           size="sm"
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          className="bg-primary hover:bg-primary text-white"
                           onClick={async () => {
                             if (confirm("Confirm disbursement and post to GL?")) {
                               await payrollService.confirmDisbursement(session, run.id);

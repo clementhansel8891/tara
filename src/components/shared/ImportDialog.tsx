@@ -182,7 +182,7 @@ export function ImportDialog({
           <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
             {title}
           </DialogTitle>
-          <DialogDescription className="text-slate-500">
+          <DialogDescription className="text-muted-foreground">
             {jobId 
               ? `Job ID: ${jobId.slice(0, 8)}...`
               : type === "IMAGES" 
@@ -204,22 +204,22 @@ export function ImportDialog({
                   </div>
                   
                   <div className="space-y-2">
-                    <p className="text-lg font-semibold text-slate-800">
+                    <p className="text-lg font-semibold text-muted-foreground">
                       {status.status === "PENDING" ? "Queueing Job..." : "Importing Data..."}
                     </p>
-                    <p className="text-sm text-slate-500 font-medium">
-                      Processed <span className="text-primary">{status.processed_items}</span> of <span className="text-slate-800 font-bold">{status.total_items || "?"}</span> records
+                    <p className="text-sm text-muted-foreground font-medium">
+                      Processed <span className="text-primary">{status.processed_items}</span> of <span className="text-muted-foreground font-bold">{status.total_items || "?"}</span> records
                     </p>
                   </div>
                   
-                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
+                  <div className="w-full bg-muted rounded-full h-3 overflow-hidden shadow-inner">
                     <div 
                       className="h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-500 ease-out"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                   
-                  <p className="text-xs text-slate-400 italic">
+                  <p className="text-xs text-muted-foreground italic">
                     This may take a few minutes for very large files. You can minimize this and it will continue in the background.
                   </p>
                 </div>
@@ -227,12 +227,12 @@ export function ImportDialog({
 
               {isCompleted && (
                 <div className="w-full space-y-4 py-4">
-                  <div className="h-20 w-20 rounded-full bg-green-50 flex items-center justify-center mx-auto border-4 border-green-100">
-                    <CheckCircle2 className="h-12 w-12 text-green-500" />
+                  <div className="h-20 w-20 rounded-full bg-success flex items-center justify-center mx-auto border-4 border-green-100">
+                    <CheckCircle2 className="h-12 w-12 text-success" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xl font-bold text-slate-900">Success!</p>
-                    <p className="text-slate-500 font-medium">
+                    <p className="text-xl font-bold text-muted-foreground">Success!</p>
+                    <p className="text-muted-foreground font-medium">
                       Imported {status.processed_items} items successfully.
                     </p>
                   </div>
@@ -241,12 +241,12 @@ export function ImportDialog({
 
               {isFailed && (
                 <div className="w-full space-y-4 py-4">
-                  <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center mx-auto border-4 border-red-100">
-                    <AlertCircle className="h-12 w-12 text-red-500" />
+                  <div className="h-20 w-20 rounded-full bg-destructive flex items-center justify-center mx-auto border-4 border-red-100">
+                    <AlertCircle className="h-12 w-12 text-destructive" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xl font-bold text-red-600">Import Failed</p>
-                    <p className="text-slate-500 font-medium">
+                    <p className="text-xl font-bold text-destructive">Import Failed</p>
+                    <p className="text-muted-foreground font-medium">
                       The process encountered a critical error.
                     </p>
                   </div>
@@ -255,12 +255,12 @@ export function ImportDialog({
 
               {isAborted && (
                 <div className="w-full space-y-4 py-4">
-                  <div className="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center mx-auto border-4 border-slate-100">
-                    <XCircle className="h-12 w-12 text-slate-500" />
+                  <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mx-auto border-4 border-slate-100">
+                    <XCircle className="h-12 w-12 text-muted-foreground" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xl font-bold text-slate-600">Import Aborted</p>
-                    <p className="text-slate-500 font-medium">
+                    <p className="text-xl font-bold text-muted-foreground">Import Aborted</p>
+                    <p className="text-muted-foreground font-medium">
                       The operation was cancelled by user.
                     </p>
                   </div>
@@ -270,16 +270,16 @@ export function ImportDialog({
             </div>
 
             {status?.errors && status.errors.length > 0 && (
-              <div className="rounded-2xl border bg-red-50/50 p-4">
-                <p className="text-sm font-bold text-red-700 mb-2 flex items-center gap-2">
+              <div className="rounded-2xl border bg-destructive p-4">
+                <p className="text-sm font-bold text-destructive mb-2 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   Migration Anomalies Detected ({status.error_count || status.errors.length})
                 </p>
                 <ScrollArea className="h-40 pr-4">
                   <div className="space-y-2">
                     {status.errors.map((err: any, i: number) => (
-                      <div key={i} className="text-[10px] bg-white/80 p-3 rounded-xl border border-red-100 shadow-sm text-red-600 font-bold leading-tight">
-                        <span className="text-slate-900 uppercase tracking-tighter mr-2">[{err.identifier || "ITEM"}]</span>
+                      <div key={i} className="text-[10px] bg-white/80 p-3 rounded-xl border border-red-100 shadow-sm text-destructive font-bold leading-tight">
+                        <span className="text-muted-foreground uppercase tracking-tighter mr-2">[{err.identifier || "ITEM"}]</span>
                         {err.message || JSON.stringify(err)}
                       </div>
                     ))}
@@ -293,7 +293,7 @@ export function ImportDialog({
                 <div className="flex gap-2 w-full">
                   <Button 
                     variant="outline"
-                    className="flex-1 rounded-xl py-6 font-bold text-red-500 hover:bg-red-50"
+                    className="flex-1 rounded-xl py-6 font-bold text-destructive hover:bg-destructive"
                     onClick={() => handleAbort(jobId)}
                   >
                     Abort Sync
@@ -332,33 +332,33 @@ export function ImportDialog({
         ) : (
           <div className="grid gap-6 py-6">
             <div className="space-y-3">
-              <Label className="text-sm font-bold text-slate-700 ml-1">
+              <Label className="text-sm font-bold text-muted-foreground ml-1">
                 Payload Source
               </Label>
               <div 
-                className="group border-2 border-dashed border-slate-200 rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 hover:border-primary hover:bg-slate-50 transition-all cursor-pointer relative"
+                className="group border-2 border-dashed border-slate-200 rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 hover:border-primary hover:bg-muted transition-all cursor-pointer relative"
                 onClick={() => document.getElementById('file-upload')?.click()}
               >
-                <div className="h-20 w-20 rounded-3xl bg-slate-50 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <div className="h-20 w-20 rounded-3xl bg-muted group-hover:bg-primary/10 flex items-center justify-center transition-colors">
                   {file ? (
-                    type === "IMAGES" ? <FileArchive className="h-10 w-10 text-blue-500" /> : <FileText className="h-10 w-10 text-primary" />
+                    type === "IMAGES" ? <FileArchive className="h-10 w-10 text-primary" /> : <FileText className="h-10 w-10 text-primary" />
                   ) : (
-                    <Upload className="h-10 w-10 text-slate-400 group-hover:text-primary" />
+                    <Upload className="h-10 w-10 text-muted-foreground group-hover:text-primary" />
                   )}
                 </div>
                 
                 <div className="text-center">
                   {file ? (
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-slate-800">{file.name}</p>
-                      <p className="text-xs font-medium text-slate-500">
+                      <p className="text-sm font-bold text-muted-foreground">{file.name}</p>
+                      <p className="text-xs font-medium text-muted-foreground">
                         {(file.size / (1024 * 1024)).toFixed(2)} MB • Ready to sync
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-slate-700">Drop your file here</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-sm font-bold text-muted-foreground">Drop your file here</p>
+                      <p className="text-xs text-muted-foreground">
                         {type === "IMAGES" ? "ZIP archive only" : "CSV or XLSX format"}
                       </p>
                     </div>
@@ -377,11 +377,11 @@ export function ImportDialog({
 
             {type === "DATA" && (
               <div className="space-y-3">
-                <Label className="text-sm font-bold text-slate-700 ml-1">
+                <Label className="text-sm font-bold text-muted-foreground ml-1">
                   Destination Location (Optional)
                 </Label>
                 <Select value={locationId} onValueChange={setLocationId}>
-                  <SelectTrigger className="rounded-xl h-12 bg-slate-50 border-slate-200">
+                  <SelectTrigger className="rounded-xl h-12 bg-muted border-slate-200">
                     <SelectValue placeholder="Default to CSV location or Headquarters" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -393,7 +393,7 @@ export function ImportDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-slate-400 ml-1">
+                <p className="text-xs text-muted-foreground ml-1">
                   If selected, this overrides the location specified in the CSV.
                 </p>
               </div>
@@ -460,7 +460,7 @@ function ActiveJobsList({
   return (
     <div className="space-y-3 pt-4 border-t border-dashed">
       <div className="flex items-center justify-between px-1">
-        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
           <History className="w-3 h-3" /> Recent Activity
         </h4>
         {jobs.some(j => j.status === 'PROCESSING') && (
@@ -481,7 +481,7 @@ function ActiveJobsList({
             return (
               <div 
                 key={job.id} 
-                className={`group relative bg-slate-50/50 hover:bg-primary/5 border border-slate-100 hover:border-primary/20 rounded-2xl p-4 transition-all duration-300 cursor-pointer overflow-hidden ${isActive ? 'ring-1 ring-primary/20' : ''}`}
+                className={`group relative bg-muted hover:bg-primary/5 border border-slate-100 hover:border-primary/20 rounded-2xl p-4 transition-all duration-300 cursor-pointer overflow-hidden ${isActive ? 'ring-1 ring-primary/20' : ''}`}
               >
                 <div className="flex items-start justify-between relative z-10" onClick={() => onSelectJob(job.id)}>
                   <div className="flex items-center space-x-3">
@@ -489,18 +489,18 @@ function ActiveJobsList({
                       {isActive ? (
                         <Loader2 className="w-4 h-4 text-primary animate-spin" />
                       ) : job.status === 'COMPLETED' ? (
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <CheckCircle2 className="w-4 h-4 text-success" />
                       ) : job.status === 'ABORTED' ? (
-                        <XCircle className="w-4 h-4 text-slate-400" />
+                        <XCircle className="w-4 h-4 text-muted-foreground" />
                       ) : (
-                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <AlertCircle className="w-4 h-4 text-destructive" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-700 truncate max-w-[180px]">
+                      <p className="text-sm font-semibold text-muted-foreground truncate max-w-[180px]">
                         {job.filename}
                       </p>
-                      <p className="text-[10px] font-medium text-slate-400">
+                      <p className="text-[10px] font-medium text-muted-foreground">
                         {job.created_at && !isNaN(new Date(job.created_at).getTime()) 
                           ? new Date(job.created_at).toLocaleTimeString() 
                           : "Pending"} • {job.status}
@@ -512,7 +512,7 @@ function ActiveJobsList({
                        <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 rounded-full hover:bg-red-500 hover:text-white"
+                        className="h-6 w-6 rounded-full hover:bg-destructive hover:text-white"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAbort(job.id);
@@ -522,15 +522,15 @@ function ActiveJobsList({
                        </Button>
                     )}
                     <div>
-                      <p className="text-xs font-bold text-slate-700">{progress}%</p>
-                      <p className="text-[10px] font-medium text-slate-400">
+                      <p className="text-xs font-bold text-muted-foreground">{progress}%</p>
+                      <p className="text-[10px] font-medium text-muted-foreground">
                         {job.processed_items} / {job.total_items}
                       </p>
                     </div>
                   </div>
                 </div>
                 {isActive && (
-                  <div className="mt-3 relative h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div className="mt-3 relative h-1.5 w-full bg-muted rounded-full overflow-hidden">
                     <div 
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-blue-500 transition-all duration-500 ease-out"
                       style={{ width: `${progress}%` }}

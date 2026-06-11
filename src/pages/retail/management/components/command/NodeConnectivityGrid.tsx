@@ -38,7 +38,7 @@ const NodeRow: React.FC<NodeStatusProps> = ({
   metric,
   health,
 }) => (
-  <div className="flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-indigo-500/30 hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg">
+  <div className="flex items-center justify-between p-6 rounded-[2rem] bg-white/[0.03] backdrop-blur-3xl border border-white/5 hover:border-primary hover:bg-white/[0.05] transition-all duration-500 group cursor-pointer shadow-lg">
     <div className="flex items-center gap-6">
       <div
         className={cn(
@@ -46,10 +46,10 @@ const NodeRow: React.FC<NodeStatusProps> = ({
           status === "ONLINE" || status === "ACTIVE"
             ? "bg-success/10 border-emerald-500/20 text-success"
             : status === "LOAD" || status === "STANDBY"
-              ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
+              ? "bg-warning border-amber-500/20 text-warning"
               : status === "SYNCING"
-                ? "bg-primary/10 border-indigo-500/20 text-primary"
-                : "bg-destructive/10 border-rose-500/20 text-rose-400",
+                ? "bg-primary/10 border-primary text-primary"
+                : "bg-destructive/10 border-rose-500/20 text-destructive",
         )}
       >
         {type === "BRANCH" ? (
@@ -71,10 +71,10 @@ const NodeRow: React.FC<NodeStatusProps> = ({
               status === "ONLINE" || status === "ACTIVE"
                 ? "bg-success/20 text-success"
                 : status === "LOAD" || status === "STANDBY"
-                  ? "bg-amber-500/20 text-amber-400"
+                  ? "bg-warning text-warning"
                   : status === "SYNCING"
                     ? "bg-primary/20 text-primary animate-pulse"
-                    : "bg-destructive/20 text-rose-400",
+                    : "bg-destructive/20 text-destructive",
             )}
           >
             {status}

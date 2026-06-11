@@ -9,12 +9,21 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
 import { Wallet, TrendingUp, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CHART_COLORS, CHART_COLORS_DARK, CHART_NEUTRAL, CHART_NEUTRAL_DARK } from '@/lib/chart-colors';
 
 export const ArApWaterfallChart: React.FC = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const colors = theme === 'dark' ? CHART_COLORS_DARK : CHART_COLORS;
+  const neutral = theme === 'dark' ? CHART_NEUTRAL_DARK : CHART_NEUTRAL;
+  const mutedFg = theme === 'dark' ? '#94a3b8' : '#64748b';
+  const tooltipBg = theme === 'dark' ? '#1e293b' : '#ffffff';
+  const tooltipBorder = theme === 'dark' ? CHART_NEUTRAL_DARK : CHART_NEUTRAL;
+  const destructive = theme === 'dark' ? '#f87171' : '#dc2626';
   
   const data = [
     { bucket: 'Current', ar: 45000, ap: 32000 },
@@ -39,22 +48,22 @@ export const ArApWaterfallChart: React.FC = () => {
       <div className="h-[280px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" opacity={0.5} />
-            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 800, fill: 'hsl(var(--muted-foreground))' }} />
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={neutral} opacity={0.5} />
+            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 800, fill: mutedFg }} />
             <YAxis 
               dataKey="bucket" 
               type="category" 
               axisLine={false} 
               tickLine={false} 
-              tick={{ fontSize: 9, fontWeight: 900, fill: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }} 
+              tick={{ fontSize: 9, fontWeight: 900, fill: mutedFg, textTransform: 'uppercase' }} 
               width={60}
             />
             <Tooltip 
-              cursor={{ fill: 'hsl(var(--primary))', opacity: 0.05 }}
+              cursor={{ fill: colors[1], opacity: 0.05 }}
               contentStyle={{ 
-                backgroundColor: 'hsl(var(--card))', 
+                backgroundColor: tooltipBg, 
                 borderRadius: '1.5rem', 
-                border: '1px solid hsl(var(--border))', 
+                border: `1px solid ${tooltipBorder}`, 
                 boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.2)',
                 padding: '1rem'
               }}
@@ -62,7 +71,7 @@ export const ArApWaterfallChart: React.FC = () => {
             />
             <Bar 
               dataKey="ar" 
-              fill="hsl(var(--success))" 
+              fill={colors[2]} 
               radius={[0, 6, 6, 0]} 
               barSize={16}
               onClick={() => navigate('/core/finance/receivables')} 
@@ -71,7 +80,7 @@ export const ArApWaterfallChart: React.FC = () => {
             />
             <Bar 
               dataKey="ap" 
-              fill="hsl(var(--destructive))" 
+              fill={destructive} 
               radius={[0, 6, 6, 0]} 
               barSize={16}
               onClick={() => navigate('/core/finance/payables')} 

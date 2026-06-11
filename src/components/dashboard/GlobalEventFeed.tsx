@@ -16,9 +16,9 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
 
   const getSeverityStyles = (severity?: string) => {
     switch (severity) {
-      case 'critical': return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
-      case 'warning': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-      default: return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+      case 'critical': return 'text-destructive bg-destructive border-rose-500/20';
+      case 'warning': return 'text-warning bg-warning border-amber-500/20';
+      default: return 'text-primary bg-primary border-primary';
     }
   };
 
@@ -34,24 +34,24 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
   };
 
   return (
-    <div className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-slate-900 p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-[3rem] border border-slate-800 bg-muted p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
       <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
          <Globe className="h-40 w-40 text-white" />
       </div>
 
       <div className="flex items-center justify-between mb-10 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
             <Terminal className="h-6 w-6" />
           </div>
           <div>
             <h4 className="text-xl font-black italic uppercase tracking-tighter text-white">Global Event Telemetry</h4>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Real-time multi-tenant activity stream</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Real-time multi-tenant activity stream</p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
-           <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-           <span className="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">Live Stream Active</span>
+           <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+           <span className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em]">Live Stream Active</span>
         </div>
       </div>
 
@@ -65,19 +65,19 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
             >
               <div className={cn(
                 "mt-2 h-2.5 w-2.5 rounded-full shrink-0 shadow-lg", 
-                activity.severity === 'critical' ? 'bg-rose-500 animate-pulse shadow-rose-500/40' : 
-                activity.severity === 'warning' ? 'bg-amber-500 shadow-amber-500/40' : 
-                'bg-blue-500 shadow-blue-500/40'
+                activity.severity === 'critical' ? 'bg-destructive animate-pulse shadow-rose-500/40' : 
+                activity.severity === 'warning' ? 'bg-warning shadow-amber-500/40' : 
+                'bg-primary shadow-blue-500/40'
               )} />
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-black text-white group-hover/item:text-indigo-400 transition-colors">{activity.title}</p>
-                  <span className="text-[9px] font-black uppercase text-slate-600 tracking-tighter">{formatDistanceToNow(new Date(activity.time))} ago</span>
+                  <p className="text-sm font-black text-white group-hover/item:text-primary transition-colors">{activity.title}</p>
+                  <span className="text-[9px] font-black uppercase text-muted-foreground tracking-tighter">{formatDistanceToNow(new Date(activity.time))} ago</span>
                 </div>
-                <p className="text-[11px] font-medium text-slate-500 line-clamp-2 leading-relaxed group-hover/item:text-slate-400 transition-colors">{activity.detail}</p>
+                <p className="text-[11px] font-medium text-muted-foreground line-clamp-2 leading-relaxed group-hover/item:text-muted-foreground transition-colors">{activity.detail}</p>
                 <div className="flex items-center gap-3 pt-2">
                   {activity.module && (
-                    <div className="px-2.5 py-0.5 rounded-lg bg-indigo-500/5 border border-indigo-500/10 text-[8px] font-black uppercase text-indigo-400 tracking-widest">
+                    <div className="px-2.5 py-0.5 rounded-lg bg-primary border border-primary text-[8px] font-black uppercase text-primary tracking-widest">
                       {activity.module}
                     </div>
                   )}
@@ -88,15 +88,15 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
               </div>
               
               {/* Hover highlight line */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 scale-y-0 group-hover/item:scale-y-100 transition-transform duration-300" />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover/item:scale-y-100 transition-transform duration-300" />
             </div>
           )) : (
             <div className="col-span-2 flex h-[350px] flex-col items-center justify-center text-center opacity-30">
               <div className="rounded-3xl bg-white/5 p-6 border border-white/10">
-                <ActivityIcon className="h-10 w-10 text-slate-500" />
+                <ActivityIcon className="h-10 w-10 text-muted-foreground" />
               </div>
-              <p className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-slate-400 italic">Static Environment</p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Awaiting ingress events from core engine</p>
+              <p className="mt-6 text-sm font-black uppercase tracking-[0.3em] text-muted-foreground italic">Static Environment</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-2">Awaiting ingress events from core engine</p>
             </div>
           )}
         </div>
@@ -105,10 +105,10 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
       {/* Footer info line */}
       <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between opacity-50 relative z-10">
          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-3 w-3 text-emerald-500" />
-            <span className="text-[8px] font-black uppercase text-slate-500 tracking-widest">Encrypted Stream Protocol TLS 1.3</span>
+            <ShieldCheck className="h-3 w-3 text-success" />
+            <span className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Encrypted Stream Protocol TLS 1.3</span>
          </div>
-         <span className="text-[8px] font-black uppercase text-slate-600">Buffer: 1024 Events</span>
+         <span className="text-[8px] font-black uppercase text-muted-foreground">Buffer: 1024 Events</span>
       </div>
     </div>
   );

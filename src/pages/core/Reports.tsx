@@ -190,9 +190,9 @@ export default function CoreReports() {
                   {job.status === 'PENDING' || job.status === 'PROCESSING' ? (
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
                   ) : job.status === 'COMPLETED' ? (
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-rose-500" />
+                    <AlertCircle className="h-4 w-4 text-destructive" />
                   )}
                   <div>
                     <p className="text-sm font-medium">{job.report_type} ({job.id.slice(0, 8)})</p>
@@ -364,7 +364,7 @@ export default function CoreReports() {
           </Button>
           <Button 
             onClick={() => alert("Detailed View:\n\nMetadata: " + (typeof window !== "undefined" ? window.location.pathname : "N/A"))}
-            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-500/20"
+            className="rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest bg-primary hover:bg-primary shadow-xl shadow-indigo-500/20"
           >
             <Plus className="h-3 w-3 mr-2" /> New report
           </Button>

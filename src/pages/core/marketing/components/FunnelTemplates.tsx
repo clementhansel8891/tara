@@ -29,8 +29,8 @@ const TEMPLATES = [
     description: "Authorize free report or guide in exchange for contact info.",
     steps: ["Landing Page", "Thank You Page"],
     icon: Users,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
+    color: "text-primary",
+    bg: "bg-primary",
     difficulty: "STRATEGIC",
     intensity: 45
   },
@@ -40,8 +40,8 @@ const TEMPLATES = [
     description: "High-conversion sales path driven by tactical video content.",
     steps: ["VSL Page", "Checkout", "Upsell", "Thank You"],
     icon: Flame,
-    color: "text-orange-500",
-    bg: "bg-orange-500/10",
+    color: "text-warning",
+    bg: "bg-warning",
     difficulty: "TACTICAL",
     intensity: 72
   },
@@ -51,8 +51,8 @@ const TEMPLATES = [
     description: "Multi-touch registration and replay funnel orchestration.",
     steps: ["Reg Page", "Waiting Room", "Webinar", "Sales Page", "Success"],
     icon: Zap,
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
+    color: "text-primary",
+    bg: "bg-primary",
     difficulty: "ELITE",
     intensity: 89
   },
@@ -62,8 +62,8 @@ const TEMPLATES = [
     description: "Optimized for high-velocity physical product conversion.",
     steps: ["Product", "Checkout", "Upsell", "Receipt"],
     icon: ShoppingCart,
-    color: "text-green-500",
-    bg: "bg-green-500/10",
+    color: "text-success",
+    bg: "bg-success",
     difficulty: "CORE",
     intensity: 64
   }
@@ -75,7 +75,7 @@ export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) =
       {(Array.isArray(TEMPLATES) ? TEMPLATES : []).map((template) => (
         <Card 
           key={template.id} 
-          className="group relative overflow-hidden rounded-[2.5rem] border-none bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-xl shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 cursor-pointer"
+          className="group relative overflow-hidden rounded-[2.5rem] border-none bg-muted dark:bg-muted backdrop-blur-xl shadow-xl hover:shadow-[0_40px_80px_-20px_rgba(79,70,229,0.2)] transition-all duration-500 cursor-pointer"
           onClick={() => onSelect(template.id)}
         >
           {/* Status Glow */}
@@ -95,7 +95,7 @@ export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) =
             <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xl font-black uppercase tracking-tighter italic leading-none">{template.name}</CardTitle>
-                <Badge className="bg-indigo-600/10 text-indigo-600 border-none font-black text-[9px] px-3 py-1 rounded-full uppercase tracking-widest leading-none h-6">
+                <Badge className="bg-primary text-primary border-none font-black text-[9px] px-3 py-1 rounded-full uppercase tracking-widest leading-none h-6">
                    {template.difficulty}
                 </Badge>
               </div>
@@ -105,14 +105,14 @@ export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) =
           
           <CardContent className="p-8 pt-4 space-y-6 relative z-10">
              <div className="space-y-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Pathway Logic</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">Pathway Logic</p>
                 <div className="flex items-center gap-3 overflow-hidden">
                    {(Array.isArray(template.steps) ? template.steps : []).map((step, i) => (
                       <React.Fragment key={step}>
-                         <div className="bg-white/60 dark:bg-slate-800/60 px-4 py-2 rounded-xl border border-white/20 shadow-sm text-[10px] font-black uppercase tracking-tight text-slate-900 dark:text-white italic">
+                         <div className="bg-white/60 dark:bg-muted px-4 py-2 rounded-xl border border-white/20 shadow-sm text-[10px] font-black uppercase tracking-tight text-muted-foreground dark:text-white italic">
                             {step}
                          </div>
-                         {i < template.steps.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-indigo-500 opacity-40" />}
+                         {i < template.steps.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-primary opacity-40" />}
                       </React.Fragment>
                    ))}
                 </div>
@@ -120,12 +120,12 @@ export default function FunnelTemplates({ onSelect }: { onSelect: (id: string) =
              
              <div className="flex items-center justify-between pt-2 border-t border-white/10">
                 <div className="flex items-center gap-3">
-                   <Activity className="h-4 w-4 text-indigo-500 animate-pulse" />
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Simulation IQ: {template.intensity}%</span>
+                   <Activity className="h-4 w-4 text-primary animate-pulse" />
+                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">Simulation IQ: {template.intensity}%</span>
                 </div>
                 <Button 
                    variant="ghost" 
-                   className="h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-indigo-600 text-white shadow-lg shadow-indigo-600/20 group-hover:scale-105 active:scale-95 transition-all"
+                   className="h-10 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-primary text-white shadow-lg shadow-indigo-600/20 group-hover:scale-105 active:scale-95 transition-all"
                 >
                    DEPLOY TOPOLOGY
                 </Button>

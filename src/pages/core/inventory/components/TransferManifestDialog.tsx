@@ -69,8 +69,8 @@ export function TransferManifestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-slate-950 max-h-[90vh] flex flex-col">
-        <DialogHeader className="p-8 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">
+      <DialogContent className="max-w-4xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-muted max-h-[90vh] flex flex-col">
+        <DialogHeader className="p-8 bg-muted dark:bg-muted border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-[0.3em]">
@@ -99,12 +99,12 @@ export function TransferManifestDialog({
             <>
               {/* Route Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 space-y-3">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <div className="p-6 rounded-3xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     <MapPin className="h-3 w-3" /> Origin Node
                   </div>
                   <div className="text-lg font-black tracking-tight">{transfer.from_location?.name || transfer.from_location_id}</div>
-                  <div className="text-xs text-slate-500 italic">Central Distribution Hub</div>
+                  <div className="text-xs text-muted-foreground italic">Central Distribution Hub</div>
                 </div>
                 <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 space-y-3 relative overflow-hidden">
                   <ArrowRight className="absolute -right-4 -bottom-4 h-24 w-24 text-primary/5 -rotate-12" />
@@ -119,49 +119,49 @@ export function TransferManifestDialog({
               {/* Item Details */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Asset Inventory Line</h3>
-                  <div className="text-[10px] font-black text-slate-400">{transfer.quantity} Units Total</div>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Asset Inventory Line</h3>
+                  <div className="text-[10px] font-black text-muted-foreground">{transfer.quantity} Units Total</div>
                 </div>
                 <div className="p-6 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-6 group hover:border-primary/30 transition-all">
-                  <div className="h-20 w-20 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="h-20 w-20 rounded-2xl bg-muted dark:bg-muted flex items-center justify-center overflow-hidden shrink-0">
                     {transfer.item_masters?.image_url ? (
                       <img src={transfer.item_masters.image_url} alt="" className="h-full w-full object-cover" />
                     ) : (
-                      <Package className="h-8 w-8 text-slate-300" />
+                      <Package className="h-8 w-8 text-muted-foreground" />
                     )}
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="text-[10px] font-black text-primary uppercase tracking-widest">{transfer.item_masters?.sku}</div>
                     <div className="text-xl font-black tracking-tighter uppercase">{transfer.item_masters?.name}</div>
-                    <div className="text-xs text-slate-500 line-clamp-1">{transfer.item_masters?.description || "No technical description provided."}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-1">{transfer.item_masters?.description || "No technical description provided."}</div>
                   </div>
                 </div>
               </div>
 
               {/* Protocol Logs */}
               <div className="space-y-4">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-2">Lifecycle Protocol</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Lifecycle Protocol</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Requested</div>
+                  <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                    <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Requested</div>
                     <div className="text-[11px] font-bold truncate">
                       {formatDate(transfer.requested_at || transfer.requestedAt || transfer.created_at || transfer.createdAt)}
                     </div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Picked</div>
+                  <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                    <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Picked</div>
                     <div className="text-[11px] font-bold truncate">
                       {formatDate(transfer.picked_at || transfer.pickedAt)}
                     </div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Shipped</div>
+                  <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                    <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Shipped</div>
                     <div className="text-[11px] font-bold truncate">
                       {formatDate(transfer.shipped_at || transfer.shippedAt)}
                     </div>
                   </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Received</div>
+                  <div className="p-4 rounded-2xl bg-muted dark:bg-muted border border-slate-100 dark:border-slate-800">
+                    <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Received</div>
                     <div className="text-[11px] font-bold truncate">
                       {formatDate(transfer.received_at || transfer.receivedAt)}
                     </div>
@@ -178,12 +178,12 @@ export function TransferManifestDialog({
         </div>
       </div>
 
-        <DialogFooter className="p-8 bg-slate-900/40 border-t border-slate-800 flex flex-row items-center justify-between">
-          <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <DialogFooter className="p-8 bg-muted border-t border-slate-800 flex flex-row items-center justify-between">
+          <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
             Zenvix Logistics Core v2.4
           </div>
           <Button 
-            className="rounded-xl px-8 h-12 bg-white text-slate-950 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100"
+            className="rounded-xl px-8 h-12 bg-white text-muted-foreground font-black uppercase tracking-widest text-[10px] hover:bg-muted"
             onClick={() => onOpenChange(false)}
           >
             Close Manifest

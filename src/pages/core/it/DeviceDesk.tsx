@@ -100,7 +100,7 @@ export default function DeviceDesk() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="p-12 text-center text-slate-400">Scanning frequency...</td></tr>
+                <tr><td colSpan={5} className="p-12 text-center text-muted-foreground">Scanning frequency...</td></tr>
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={5} className="p-12 text-center text-muted-foreground italic">No assets mapped in this scope.</td></tr>
               ) : (
@@ -113,7 +113,7 @@ export default function DeviceDesk() {
                     <td className="p-3 font-medium">
                        <div className="flex flex-col">
                           <span>{dev.deviceName}</span>
-                          <span className="text-[10px] font-mono text-slate-400">{dev.id}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">{dev.id}</span>
                        </div>
                     </td>
                     <td className="p-3">
@@ -122,7 +122,7 @@ export default function DeviceDesk() {
                     <td className="p-3 text-muted-foreground text-xs">{dev.locationId || "UNASSIGNED"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                         <span className={cn("h-1.5 w-1.5 rounded-full", dev.status === 'active' || dev.status === 'online' ? "bg-emerald-500" : "bg-rose-500")} />
+                         <span className={cn("h-1.5 w-1.5 rounded-full", dev.status === 'active' || dev.status === 'online' ? "bg-success" : "bg-destructive")} />
                          <span className="text-xs uppercase font-bold">{dev.status}</span>
                       </div>
                     </td>
@@ -144,7 +144,7 @@ export default function DeviceDesk() {
           <div className="grid md:grid-cols-[1fr_2fr]">
             <div className="bg-muted p-6 flex flex-col justify-between">
               <div>
-                <Laptop className="w-8 h-8 text-indigo-600 mb-4" />
+                <Laptop className="w-8 h-8 text-primary mb-4" />
                 <DialogTitle className="text-xl mb-2">Assign Node</DialogTitle>
                 <p className="text-sm text-muted-foreground">
                   Register a physical or logical IT asset to the centralized inventory matrix.
@@ -159,8 +159,8 @@ export default function DeviceDesk() {
                   </div>
                 </div>
               </div>
-              <div className="bg-indigo-600/5 p-4 rounded-lg mt-8 border border-indigo-600/10">
-                <p className="text-xs text-indigo-600 font-medium flex items-center gap-1.5">
+              <div className="bg-primary/5 p-4 rounded-lg mt-8 border border-primary/10">
+                <p className="text-xs text-primary font-medium flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4" /> Policy Enforcement
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -172,11 +172,11 @@ export default function DeviceDesk() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Identity</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Identity</label>
                       <Input placeholder="Device Name" id="reg-device-name" />
                    </div>
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Class</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Class</label>
                       <Select onValueChange={(val) => ((window as any)._regDeviceType = val)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Type" />
@@ -194,11 +194,11 @@ export default function DeviceDesk() {
                 
                 <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location Context</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Location Context</label>
                       <Input placeholder="Location ID" id="reg-location-id" defaultValue={session.location_id} />
                    </div>
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Topological Parent</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Topological Parent</label>
                       <Select onValueChange={(val) => ((window as any)._regParentId = val)}>
                          <SelectTrigger>
                             <SelectValue placeholder="Core Connection" />
@@ -213,10 +213,10 @@ export default function DeviceDesk() {
                    </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-border">
                   <Button variant="outline" onClick={() => setCreateOpen(false)} className="rounded-xl px-6">Cancel</Button>
                   <Button
-                    className="rounded-xl bg-indigo-600 text-white px-8"
+                    className="rounded-xl bg-primary text-white px-8"
                     onClick={async () => {
                       try {
                         const deviceName = (document.getElementById("reg-device-name") as HTMLInputElement).value;
@@ -250,8 +250,8 @@ export default function DeviceDesk() {
       </Dialog>
 
       <Dialog open={!!selectedDevice} onOpenChange={() => setSelectedDevice(null)}>
-        <DialogContent className="max-w-md bg-slate-50 dark:bg-slate-950 p-0 overflow-hidden border-none shadow-2xl">
-          <div className="bg-indigo-600 p-8 text-white relative">
+        <DialogContent className="max-w-md bg-background p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-primary p-8 text-white relative">
              <div className="absolute top-0 right-0 p-8 opacity-10">
                 <Laptop className="h-24 w-24" />
              </div>
@@ -261,24 +261,24 @@ export default function DeviceDesk() {
           <div className="p-8 space-y-6">
             <div className="grid grid-cols-2 text-[10px] font-black uppercase tracking-widest gap-y-4">
               <div className="space-y-1">
-                 <span className="text-slate-400">Node Identity</span>
+                 <span className="text-muted-foreground">Node Identity</span>
                  <p className="text-xs font-mono font-bold">{selectedDevice?.id}</p>
               </div>
               <div className="space-y-1">
-                 <span className="text-slate-400">Classification</span>
+                 <span className="text-muted-foreground">Classification</span>
                  <p className="text-xs font-bold">{selectedDevice?.deviceType}</p>
               </div>
               <div className="space-y-1">
-                 <span className="text-slate-400">Assigned Domain</span>
-                 <p className="text-xs font-bold text-indigo-600">{selectedDevice?.locationId || "UNASSIGNED"}</p>
+                 <span className="text-muted-foreground">Assigned Domain</span>
+                 <p className="text-xs font-bold text-primary">{selectedDevice?.locationId || "UNASSIGNED"}</p>
               </div>
               <div className="space-y-1">
-                 <span className="text-slate-400">Current Vector</span>
+                 <span className="text-muted-foreground">Current Vector</span>
                  <p className="text-xs font-bold">{selectedDevice?.status}</p>
               </div>
             </div>
             
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[9px] text-slate-400 italic leading-relaxed">
+            <div className="p-4 rounded-2xl bg-card border border-border text-[9px] text-muted-foreground italic leading-relaxed">
               Managed via LAN-first physical mapping. Last seen: {selectedDevice ? new Date(selectedDevice.lastSeen).toLocaleString() : "N/A"}. Security policies active.
             </div>
 

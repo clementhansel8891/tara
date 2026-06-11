@@ -28,9 +28,9 @@ export const MovementsTab: React.FC<Props> = ({
   onMovement,
 }) => {
   const colorMap: Record<string, { bg: string; icon: string; text: string; border: string }> = {
-    blue: { bg: "bg-blue-500/10", icon: "text-blue-400", text: "text-blue-400", border: "border-blue-500/20" },
-    indigo: { bg: "bg-indigo-500/10", icon: "text-indigo-400", text: "text-indigo-400", border: "border-indigo-500/20" },
-    emerald: { bg: "bg-emerald-500/10", icon: "text-emerald-400", text: "text-emerald-400", border: "border-emerald-500/20" },
+    blue: { bg: "bg-primary", icon: "text-primary", text: "text-primary", border: "border-primary" },
+    indigo: { bg: "bg-primary", icon: "text-primary", text: "text-primary", border: "border-primary" },
+    emerald: { bg: "bg-success", icon: "text-success", text: "text-success", border: "border-emerald-500/20" },
   };
 
   return (
@@ -48,7 +48,7 @@ export const MovementsTab: React.FC<Props> = ({
             <Card
               key={type}
               onClick={() => onMovement(type)}
-              className="rounded-[2rem] border border-white/5 hover:border-blue-500/50 shadow-xl bg-white/[0.03] p-7 cursor-pointer group transition-all hover:shadow-2xl backdrop-blur-3xl"
+              className="rounded-[2rem] border border-white/5 hover:border-primary shadow-xl bg-white/[0.03] p-7 cursor-pointer group transition-all hover:shadow-2xl backdrop-blur-3xl"
             >
               <div
                 className={`w-14 h-14 rounded-2xl ${colors.bg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}
@@ -68,7 +68,7 @@ export const MovementsTab: React.FC<Props> = ({
                 {meta.dir === "in" ? "Inbound" : "Outbound"}
               </div>
               {!canWrite && (
-                <div className="mt-3 text-[9px] font-black italic text-amber-500 flex items-center gap-1">
+                <div className="mt-3 text-[9px] font-black italic text-warning flex items-center gap-1">
                   <Lock className="w-3 h-3" /> Requires Approval
                 </div>
               )}
@@ -133,10 +133,10 @@ export const MovementsTab: React.FC<Props> = ({
                       className={cn(
                         "border font-black italic text-[9px] uppercase",
                         log.status === "approved"
-                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          ? "bg-success text-success border-emerald-500/20"
                           : log.status === "pending"
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            : "bg-rose-500/10 text-rose-400 border-rose-500/20",
+                            ? "bg-warning text-warning border-amber-500/20"
+                            : "bg-destructive text-destructive border-rose-500/20",
                       )}
                     >
                       {log.status}
