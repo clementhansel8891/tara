@@ -171,33 +171,93 @@ export class FinanceDbRepository extends IFinanceRepository {
       );
     }
 
-    // 2. Create Entry
+    // 2. Resolve an OPEN fiscal period (create one for the tenant if none exists). The
+    //    previous hardcoded fiscal_period_id "FISCAL_AUTO" is not a real row -> FK violation.
+    let period = await tx.finance_fiscal_periods.findFirst({
+      where: { tenant_id: ctx.tenant_id, status: "OPEN" },
+    });
+    if (!period) {
+      const now = new Date();
+      period = await tx.finance_fiscal_periods.create({
+        data: {
+          id: randomUUID(),
+          tenant_id: ctx.tenant_id,
+          name: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`,
+          start_date: new Date(now.getFullYear(), now.getMonth(), 1),
+          end_date: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59),
+          status: "OPEN",
+          fiscal_year_id: `FY-${ctx.tenant_id}-${now.getFullYear()}`,
+          updated_at: new Date(),
+        },
+      });
+    }
+
+    // 3. Resolve-or-create each line's GL account by code. Callers pass account codes/labels
+    //    (e.g. "4100-SALES-RETURNS") in accountId/accountCode; these are not real COA ids.
+    const typeFromCode = (code: string): string => {
+      switch (String(code).trim()[0]) {
+        case "1": return "ASSET";
+        case "2": return "LIABILITY";
+        case "3": return "EQUITY";
+        case "4": return "REVENUE";
+        case "5":
+        case "6": return "EXPENSE";
+        default: return "ASSET";
+      }
+    };
+    const resolveAccount = async (rawCode: string, desc?: string) => {
+      const code = String(rawCode);
+      let acc = await tx.finance_chart_of_accounts.findUnique({
+        where: { tenant_id_code: { tenant_id: ctx.tenant_id, code } },
+      });
+      if (!acc) {
+        acc = await tx.finance_chart_of_accounts.create({
+          data: {
+            id: randomUUID(),
+            tenant_id: ctx.tenant_id,
+            code,
+            name: desc || code,
+            type: typeFromCode(code),
+            status: "ACTIVE",
+            updated_at: new Date(),
+          },
+        });
+      }
+      return acc;
+    };
+
+    const linesData = [];
+    for (const line of data.lines as any[]) {
+      const code = line.accountCode || line.account_code || line.accountId || line.account_id;
+      const acc = await resolveAccount(code, line.description);
+      linesData.push({
+        id: randomUUID(),
+        tenant_id: ctx.tenant_id,
+        account_id: acc.id,
+        account_code: acc.code,
+        side: new Prisma.Decimal(line.debit || 0).gt(0) ? "DEBIT" : "CREDIT",
+        amount: new Prisma.Decimal(line.debit || 0).gt(0)
+          ? new Prisma.Decimal(line.debit)
+          : new Prisma.Decimal(line.credit),
+        description: line.description,
+        debit: new Prisma.Decimal(line.debit || 0),
+        credit: new Prisma.Decimal(line.credit || 0),
+      });
+    }
+
+    // 4. Create Entry
     return tx.finance_journal_entries.create({
       data: {
         id: randomUUID(),
-        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
+        tenant_id: ctx.tenant_id,
         ref: data.ref || `JR-${Date.now()}`,
         description: data.description,
-        fiscal_period_id: "FISCAL_AUTO",
+        fiscal_period_id: period.id,
         posting_date: new Date(),
         journal_type: "MANUAL",
         status: "POSTED",
         updated_at: new Date(),
-        finance_journal_lines: {
-          create: data.lines.map((line: any) => ({
-            id: randomUUID(),
-            ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
-            account_id: line.accountId || line.account_id || `ACC-${line.accountCode}`,
-            account_code: line.accountCode || line.account_code,
-            side: new Prisma.Decimal(line.debit || 0).gt(0) ? "DEBIT" : "CREDIT",
-            amount: new Prisma.Decimal(line.debit || 0).gt(0)
-              ? new Prisma.Decimal(line.debit)
-              : new Prisma.Decimal(line.credit),
-            description: line.description,
-            debit: new Prisma.Decimal(line.debit || 0),
-            credit: new Prisma.Decimal(line.credit || 0),
-          })),
-        },
+        finance_journal_lines: { create: linesData },
       },
       include: {
         finance_journal_lines: true,
