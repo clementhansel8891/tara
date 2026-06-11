@@ -1997,7 +1997,10 @@ export class RetailDbRepository implements IRetailRepository {
         itemsData.push({
           ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
           product_id: item.product_id,
-          quantity: q,
+          // retail_order_items.quantity is an Int column — pass a JS integer, not a
+          // Prisma.Decimal (passing the Decimal object made Prisma reject the nested
+          // create and 500 the whole checkout transaction before any order was written).
+          quantity: Math.round(q.toNumber()),
           unit_price: up,
           total_price: itemSubtotal.minus(itemDiscount),
           unit_cost: new Prisma.Decimal(unitCost),
