@@ -1688,7 +1688,12 @@ export class RetailService {
         // 6.5 Update Shift Expected Cash if it was a cash sale
         if (order.payment_method?.toLowerCase() === "cash") {
             const shiftId = data.shift_id || order.shift_id;
-            if (shiftId) {
+            // employee_id FKs to employees.id — resolve from the auth user_id (fall back to
+            // the order's cashier). Passing the raw user_id caused a FK violation -> 500.
+            const refundEmployeeId =
+                (await tx.employees.findFirst({ where: { user_id, tenant_id: ctx.tenant_id }, select: { id: true } }))?.id
+                ?? order.cashier_id;
+            if (shiftId && refundEmployeeId) {
                 const refundTotal = totalRefundAmount.add(totalTaxReversal);
                 await tx.retail_shifts.update({
                     where: { id: shiftId },
@@ -1703,7 +1708,7 @@ export class RetailService {
                         tenant_id: ctx.tenant_id,
                         store_id: order.store_id,
                         shift_id: shiftId,
-                        employee_id: user_id,
+                        employee_id: refundEmployeeId,
                         amount: refundTotal,
                         type: "CASH_OUT",
                         reason: `RETURN_REFUND: ${order_id}`,
