@@ -608,14 +608,10 @@ export class RetailController {
       );
       return this.respond(request.tenantContext, order);
     } catch (e: any) {
-      throw new BadRequestException({
-        type: "debug/checkout-error",
-        title: "Checkout Debug",
-        detail: String(e?.message ?? e),
-        name: String(e?.name ?? ""),
-        code: String(e?.code ?? ""),
-        stack: String(e?.stack ?? "").split("\n").slice(0, 6),
-      });
+      // TEMP DIAGNOSTIC (revert): the global filter renders `name: message`, so pass the
+      // real error as a plain string message to surface it through the sanitizer.
+      const frame = String(e?.stack ?? "").split("\n")[1]?.trim() ?? "";
+      throw new BadRequestException(`CHECKOUT_DEBUG :: ${e?.name ?? "Error"}: ${e?.message ?? e} @@ ${frame}`);
     }
   }
 
