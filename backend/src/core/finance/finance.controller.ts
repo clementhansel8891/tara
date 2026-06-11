@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Inject, BadRequestException } from '@nestjs/common';
 import { getFinanceExecutionMode } from './utils/finance-safety.utils';
 import { FinanceService } from './finance.service';
 import { ChartOfAccountService } from './services/chart-of-account.service';
@@ -108,8 +108,14 @@ export class FinanceController {
   @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async processEvent(@TenantCtx() ctx: TenantContext, @Body() envelope: any) {
     // Envelope context is now secondary to the secure TenantCtx
-    const targetCompanyId = envelope.company_id || ctx.company_id;
-    return this.ledgerService.processEvent(ctx.tenant_id, targetCompanyId, envelope.id || envelope.postingId);
+    const targetCompanyId = envelope?.company_id || ctx.company_id;
+    const postingId = envelope?.id || envelope?.postingId;
+    if (!postingId) {
+      throw new BadRequestException(
+        'process-event requires an enqueued posting id (envelope.id or envelope.postingId)',
+      );
+    }
+    return this.ledgerService.processEvent(ctx.tenant_id, targetCompanyId, postingId);
   }
 
   // --- Auditable Flux & Reversals ---
