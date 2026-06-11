@@ -174,7 +174,11 @@ export class PaymentDbRepository implements IPaymentRepository {
     const created = await this.prisma.payment_transactions.create({
       data: {
         id: uuidv4(),
-        ...MultiTenancyUtil.getScope(ctx),
+        // payment_transactions only carries tenant_id + company_id. Using the full
+        // getScope() here injected branch_id/location_id, which are not columns on this
+        // model -> PrismaClientValidationError that 500-ed POS checkout's payment step.
+        tenant_id: ctx.tenant_id,
+        company_id: ctx.company_id,
         external_reference: dto.externalReference,
         type: dto.type,
         amount: dto.amount,
@@ -186,7 +190,6 @@ export class PaymentDbRepository implements IPaymentRepository {
         status: "APPROVAL_PENDING",
         created_by: actor_id,
         method: dto.method ?? "GATEWAY",
-        provider: dto.provider ?? "STRIPE",
         payment_status: "PENDING",
         external_ref: dto.externalRef,
         platform_fee_pending: 0,
