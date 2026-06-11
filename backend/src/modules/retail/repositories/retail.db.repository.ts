@@ -2245,6 +2245,17 @@ export class RetailDbRepository implements IRetailRepository {
           if (product) productId = product.id;
         }
 
+        // Verify the resolved product_id actually exists in the master for this tenant. A
+        // provided-but-unknown product_id is truthy and would otherwise FK-violate on
+        // stock_levels/stock_movements (500). Treat unknown items as skipped, not fatal.
+        if (productId) {
+          const exists = await tx.item_masters.findFirst({
+            where: { id: productId, tenant_id: ctx.tenant_id },
+            select: { id: true },
+          });
+          if (!exists) productId = undefined;
+        }
+
         if (!productId) {
           console.warn(`[RETAIL_OPNAME] Could not resolve item: ${adj.sku || adj.product_id}`);
           skipped.push(String(adj.sku || adj.product_id || "unknown"));
