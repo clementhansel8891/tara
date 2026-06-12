@@ -62,6 +62,31 @@ export class AuditService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Canonical audit-chain hash. MUST be byte-identical across write, verify, and
+   * repair. correlation_id is included ONLY when present: JSON.stringify omits
+   * `undefined` keys, which is exactly what the historical write path produced.
+   * Serializing a null/absent correlation_id as `null` here would diverge from the
+   * stored hashes and raise false "chain corruption". Key order is fixed:
+   * tenant_id, user_id, action, entity_id, [correlation_id], previousHash.
+   */
+  private computeChainHash(
+    fields: { tenant_id: string; user_id: string; action: string; entity_id: string; correlation_id?: string | null },
+    previousHash: string,
+  ): string {
+    const payload: Record<string, unknown> = {
+      tenant_id: fields.tenant_id,
+      user_id: fields.user_id,
+      action: fields.action,
+      entity_id: fields.entity_id,
+    };
+    if (fields.correlation_id !== undefined && fields.correlation_id !== null) {
+      payload.correlation_id = fields.correlation_id;
+    }
+    payload.previousHash = previousHash;
+    return createHash('sha256').update(JSON.stringify(payload)).digest('hex');
+  }
+
   private ensureBackupDir() {
     [path.dirname(this.anchorLogPath), path.dirname(this.secondaryAnchorPath)].forEach(dir => {
       if (!fs.existsSync(dir)) {
@@ -110,16 +135,17 @@ export class AuditService implements OnModuleDestroy {
 
       const previousHash = lastLogs.length > 0 ? lastLogs[0].hash_chain : 'GENESIS';
 
-      // 2. Compute current hash
-      const logData = JSON.stringify({
-        tenant_id: params.tenant_id,
-        user_id: params.user_id,
-        action: params.action,
-        entity_id: params.entity_id,
-        correlation_id: params.correlation_id,
+      // 2. Compute current hash (canonical — shared with verify/repair)
+      const currentHash = this.computeChainHash(
+        {
+          tenant_id: params.tenant_id,
+          user_id: params.user_id,
+          action: params.action,
+          entity_id: params.entity_id,
+          correlation_id: params.correlation_id,
+        },
         previousHash,
-      });
-      const currentHash = createHash('sha256').update(logData).digest('hex');
+      );
 
       const result = await tx.audit_logs.create({
         data: {
@@ -292,15 +318,16 @@ export class AuditService implements OnModuleDestroy {
       checkedRecords++;
       const expectedPrevHash = lastHash;
       
-      const logData = JSON.stringify({
-        tenant_id: log.tenant_id,
-        user_id: log.user_id,
-        action: log.action,
-        entity_id: log.entity_id,
-        correlation_id: log.correlation_id,
-        previousHash: expectedPrevHash,
-      });
-      const recomputedHash = createHash('sha256').update(logData).digest('hex');
+      const recomputedHash = this.computeChainHash(
+        {
+          tenant_id: log.tenant_id,
+          user_id: log.user_id,
+          action: log.action,
+          entity_id: log.entity_id,
+          correlation_id: log.correlation_id,
+        },
+        expectedPrevHash,
+      );
 
       if (log.previous_hash !== expectedPrevHash || log.hash_chain !== recomputedHash) {
         this.metrics.chainVerificationFailures++;
@@ -448,15 +475,16 @@ export class AuditService implements OnModuleDestroy {
       });
 
       for (const log of logs) {
-        const logData = JSON.stringify({
-          tenant_id: log.tenant_id,
-          user_id: log.user_id,
-          action: log.action,
-          entity_id: log.entity_id,
-          correlation_id: log.correlation_id,
-          previousHash: lastHash,
-        });
-        const newHash = createHash('sha256').update(logData).digest('hex');
+        const newHash = this.computeChainHash(
+          {
+            tenant_id: log.tenant_id,
+            user_id: log.user_id,
+            action: log.action,
+            entity_id: log.entity_id,
+            correlation_id: log.correlation_id,
+          },
+          lastHash,
+        );
 
         if (log.hash_chain !== newHash || log.previous_hash !== lastHash) {
           await tx.audit_logs.update({

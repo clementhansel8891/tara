@@ -25,10 +25,7 @@ export class AuditController {
 
   @Get('logs/:id')
   async getOne(@Req() req: any, @Param('id') id: string) {
-    // Note: accessing prisma directly from service for this specific bypass
-    return (this.auditService as any).prisma.auditLog.findFirst({
-      where: { id, tenant_id: req.tenantContext.tenant_id },
-    });
+    return this.auditService.getLogDetail(req.tenantContext.tenant_id, id);
   }
 
   @Get('verify-chain')
