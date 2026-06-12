@@ -54,7 +54,12 @@ export class FiscalPeriodDbRepository implements IFiscalPeriodRepository {
     const res = await this.db.finance_fiscal_periods.findUnique({
       where: { id }
     });
-    if (!res || res.company_id !== company_id) return null;
+    if (!res) return null;
+    // Enforce tenant isolation strictly.
+    if (res.tenant_id !== tenant_id) return null;
+    // Company scoping is best-effort: periods may be created with a null/empty
+    // company_id (tenant-level), so only reject when BOTH sides are concrete and differ.
+    if (res.company_id && company_id && res.company_id !== company_id) return null;
     return this.mapEntity(res);
   }
 
