@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
   Inject,
 } from "@nestjs/common";
 import { IAuthRepository } from "./repositories/auth.repository.interface";
@@ -11,6 +12,7 @@ import { RegisterDto } from "./dto/register.dto";
 import { LoginDto } from "./dto/login.dto";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { PrismaService } from "../../persistence/prisma.service";
+import { AuditService } from "../../shared/audit/audit.service";
 
 @Injectable()
 export class AuthService {
@@ -26,6 +28,7 @@ export class AuthService {
   constructor(
     @Inject(IAuthRepository) private readonly authRepo: IAuthRepository,
     private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
   ) {
     const secret = process.env.JWT_SECRET;
     const INSECURE_DEFAULT = "dev-secret-key-do-not-use-in-prod";
@@ -149,6 +152,9 @@ export class AuthService {
   async resetPasswordDirect(email: string, newPassword: string): Promise<void> {
     const normalizedEmail = email?.toLowerCase();
     if (!normalizedEmail) throw new UnauthorizedException("Invalid email");
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException("Password must be at least 8 characters.");
+    }
     const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
     if (!user) {
       throw new UnauthorizedException("User not found");
@@ -160,5 +166,24 @@ export class AuthService {
     await this.authRepo.update(this.systemCtx, user.id, {
       password_hash,
     } as any);
+
+    // SECURITY: password resets are high-risk. Record every reset in the audit
+    // chain (CRITICAL) so the action is attributable and detectable. NOTE: this
+    // self-service reset path is only as strong as the email-ownership proof in
+    // front of it — production should gate it behind an email/SMS one-time code.
+    try {
+      await this.audit.log({
+        tenant_id: (user as any).tenant_id || "system",
+        user_id: user.id,
+        module: "AUTH",
+        action: "PASSWORD_RESET",
+        entity_type: "USER",
+        entity_id: user.id,
+        severity: "CRITICAL",
+        metadata: { email: normalizedEmail, method: "reset-password-direct" },
+      });
+    } catch {
+      /* audit failure must not block the reset */
+    }
   }
 }

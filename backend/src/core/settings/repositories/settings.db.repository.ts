@@ -7,8 +7,10 @@ export class SettingsDbRepository implements ISettingsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getProfile(tenant_id: string): Promise<any> {
+    const companyId = await this.resolveOrgCompanyId(tenant_id);
+    if (!companyId) return null;
     return this.prisma.companies.findUnique({
-      where: { id: tenant_id },
+      where: { id: companyId },
       select: {
         id: true,
         name: true,
@@ -17,12 +19,37 @@ export class SettingsDbRepository implements ISettingsRepository {
         currency: true,
         industry: true,
         created_at: true,
+        updated_at: true,
       }
     });
   }
 
+  /**
+   * Resolve the organization's primary company id for a tenant.
+   * Historically the code assumed company.id === tenant_id, but normally-onboarded
+   * tenants have a company with a distinct uuid. Prefer the id==tenant_id record
+   * (legacy convention) and fall back to the tenant's oldest company.
+   */
+  private async resolveOrgCompanyId(tenant_id: string): Promise<string | null> {
+    const direct = await this.prisma.companies.findUnique({
+      where: { id: tenant_id },
+      select: { id: true },
+    });
+    if (direct) return direct.id;
+    const primary = await this.prisma.companies.findFirst({
+      where: { tenant_id },
+      orderBy: { created_at: 'asc' },
+      select: { id: true },
+    });
+    return primary?.id ?? null;
+  }
+
   async updateProfile(tenant_id: string, data: OrgProfileDto): Promise<any> {
-    const where: any = { id: tenant_id };
+    const companyId = await this.resolveOrgCompanyId(tenant_id);
+    if (!companyId) {
+      throw new NotFoundException('Organization profile (company) not found for this tenant.');
+    }
+    const where: any = { id: companyId };
     if (data.last_updated_at) {
       where.updated_at = new Date(data.last_updated_at);
     }
@@ -39,6 +66,8 @@ export class SettingsDbRepository implements ISettingsRepository {
       });
     } catch (error) {
       if (error.code === 'P2025') {
+        // With a resolved company id, P2025 only occurs on a genuine optimistic-lock
+        // mismatch (stale last_updated_at), not a missing record.
         throw new ConflictException('Settings were updated by another user. Please refresh and try again.');
       }
       throw error;
@@ -88,11 +117,13 @@ export class SettingsDbRepository implements ISettingsRepository {
   }
 
   async getChildCompanies(tenant_id: string): Promise<any[]> {
+    // Exclude the organization's own primary company so it isn't listed as a child.
+    const orgCompanyId = await this.resolveOrgCompanyId(tenant_id);
     return this.prisma.companies.findMany({
       where: {
         tenant_id,
         NOT: {
-          id: tenant_id // Exclude self if tenant_id = id
+          id: orgCompanyId ?? tenant_id,
         }
       },
       orderBy: { created_at: 'desc' }
