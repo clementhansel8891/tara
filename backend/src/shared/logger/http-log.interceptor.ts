@@ -18,8 +18,8 @@ export class HttpLogInterceptor implements NestInterceptor {
     const request_id = uuidv4();
     const start = Date.now();
 
-    const tenant_id: string | undefined = req.tenant_id ?? undefined;
-    const user_id: string | undefined = req.user?.user_id ?? undefined;
+    const tenant_id: string | undefined = req.tenantContext?.tenant_id ?? req.tenant_id ?? undefined;
+    const user_id: string | undefined = req.tenantContext?.user_id ?? req.user?.id ?? req.user?.user_id ?? undefined;
     const ip_address: string | undefined = req.ip ?? undefined;
     const urlParts = (req.url as string)?.split('/').filter(Boolean);
     const module = urlParts?.[0] ?? 'unknown';
