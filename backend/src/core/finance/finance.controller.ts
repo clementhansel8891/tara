@@ -6,6 +6,7 @@ import { FiscalPeriodService } from './services/fiscal-period.service';
 import { PostingRuleService } from './services/posting-rule.service';
 import { LedgerPostingService } from './services/ledger-posting.service';
 import { JournalReversalService } from './services/journal-reversal.service';
+import { PeriodClosingService } from './services/period-closing.service';
 import { CreateCOADto, UpdateCOADto } from './dto/coa.dto';
 import { UpdateFiscalPeriodDto } from './dto/fiscal.dto';
 import { CreatePostingRuleDto } from './dto/posting-rule.dto';
@@ -25,6 +26,7 @@ export class FinanceController {
     private readonly ruleService: PostingRuleService,
     private readonly ledgerService: LedgerPostingService,
     private readonly reversalService: JournalReversalService,
+    private readonly periodClosingService: PeriodClosingService,
     private readonly financeService: FinanceService,
     @Inject('IAccountBalanceRepository') private readonly balanceRepo: any,
     @Inject('IUnitOfWork') private readonly uow: any,
@@ -83,6 +85,25 @@ export class FinanceController {
   @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async transitionPeriod(@TenantCtx() ctx: TenantContext, @Param('id') id: string, @Body() dto: UpdateFiscalPeriodDto) {
     return this.fiscalService.transitionStatus(ctx.tenant_id, ctx.company_id, id, dto.status, ctx.user_id || 'SYSTEM');
+  }
+
+  @Post('fiscal-periods/:id/close')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
+  async closePeriod(@TenantCtx() ctx: TenantContext, @Param('id') id: string) {
+    const closingRecordId = await this.periodClosingService.closePeriod(
+      ctx.tenant_id,
+      ctx.company_id,
+      id,
+      ctx.user_id || 'SYSTEM',
+    );
+    return { success: true, closingRecordId };
+  }
+
+  @Post('fiscal-periods/:id/reopen')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
+  async reopenPeriod(@TenantCtx() ctx: TenantContext, @Param('id') id: string) {
+    await this.periodClosingService.reverseClosing(ctx.tenant_id, ctx.company_id, id);
+    return { success: true, periodId: id, status: 'OPEN' };
   }
 
   // --- Posting Rules ---

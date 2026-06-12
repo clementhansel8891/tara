@@ -103,25 +103,110 @@ export class FiscalPeriodDbRepository implements IFiscalPeriodRepository {
   }
 
   async saveClosingRecord(tenant_id: string, company_id: string, record: PeriodClosingRecord): Promise<PeriodClosingRecord> {
-    return record;
+    const safeCompanyId = company_id && company_id !== tenant_id ? company_id : null;
+    const payload = {
+      status: record.status,
+      snapshot_sequence: record.snapshotSequence ?? 0,
+      integrity_hash: record.integrityHash,
+      closing_journal_id: record.closingJournalId ?? null,
+      reversal_journal_id: record.reversalJournalId ?? null,
+      net_income_base: new Prisma.Decimal((record.netIncomeBase ?? 0).toString()),
+      closed_by: record.closedBy,
+      closed_at: record.closedAt ?? new Date(),
+      metadata: (record.metadata as any) ?? undefined,
+      updated_at: new Date(),
+    };
+    const saved = await this.db.finance_period_closing_records.upsert({
+      where: { tenant_id_period_id: { tenant_id, period_id: record.periodId } },
+      update: payload,
+      create: {
+        id: record.id || uuid(),
+        tenant_id,
+        company_id: safeCompanyId,
+        period_id: record.periodId,
+        ...payload,
+      },
+    });
+    return this.mapClosingRecord(saved);
   }
 
   async getClosingRecord(tenant_id: string, company_id: string, periodId: string): Promise<PeriodClosingRecord | null> {
-    return null;
+    const res = await this.db.finance_period_closing_records.findFirst({
+      where: { tenant_id, period_id: periodId },
+    });
+    return res ? this.mapClosingRecord(res) : null;
   }
 
   async acquireLock(tenant_id: string, company_id: string, periodId: string): Promise<void> {
-    // Implement SELECT FOR UPDATE if needed
+    // Concurrency is enforced via the atomic CLOSED status flip + the
+    // finance_period_execution_locks unique(tenant_id, period_id) constraint.
   }
 
   async getExecutionLock(tenant_id: string, company_id: string, periodId: string): Promise<ClosingExecutionLock | null> {
-    return null;
+    const res = await this.db.finance_period_execution_locks.findFirst({
+      where: { tenant_id, period_id: periodId },
+    });
+    return res ? this.mapExecutionLock(res) : null;
   }
 
   async saveExecutionLock(tenant_id: string, company_id: string, lock: ClosingExecutionLock): Promise<void> {
+    const safeCompanyId = company_id && company_id !== tenant_id ? company_id : null;
+    const payload = {
+      closing_request_id: lock.closingRequestId,
+      status: lock.status || 'IN_PROGRESS',
+      locked_by: lock.lockedBy,
+      started_at: lock.startedAt ?? new Date(),
+      expires_at: lock.expiresAt,
+      updated_at: new Date(),
+    };
+    await this.db.finance_period_execution_locks.upsert({
+      where: { tenant_id_period_id: { tenant_id, period_id: lock.periodId } },
+      update: payload,
+      create: {
+        id: lock.id || uuid(),
+        tenant_id,
+        company_id: safeCompanyId,
+        period_id: lock.periodId,
+        ...payload,
+      },
+    });
   }
 
   async releaseExecutionLock(tenant_id: string, company_id: string, periodId: string): Promise<void> {
+    await this.db.finance_period_execution_locks.deleteMany({
+      where: { tenant_id, period_id: periodId },
+    });
+  }
+
+  private mapClosingRecord(raw: any): PeriodClosingRecord {
+    return {
+      id: raw.id,
+      tenant_id: raw.tenant_id,
+      company_id: raw.company_id,
+      periodId: raw.period_id,
+      status: raw.status,
+      snapshotSequence: raw.snapshot_sequence,
+      integrityHash: raw.integrity_hash,
+      closingJournalId: raw.closing_journal_id ?? undefined,
+      reversalJournalId: raw.reversal_journal_id ?? undefined,
+      netIncomeBase: new Prisma.Decimal((raw.net_income_base ?? 0).toString()),
+      closedBy: raw.closed_by,
+      closedAt: raw.closed_at,
+      metadata: raw.metadata ?? undefined,
+    };
+  }
+
+  private mapExecutionLock(raw: any): ClosingExecutionLock {
+    return {
+      id: raw.id,
+      periodId: raw.period_id,
+      closingRequestId: raw.closing_request_id,
+      lockedBy: raw.locked_by,
+      expiresAt: raw.expires_at,
+      startedAt: raw.started_at,
+      status: raw.status,
+      updated_at: raw.updated_at,
+    };
   }
 
   private mapEntity(raw: any): FinanceFiscalPeriod {

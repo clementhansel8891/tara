@@ -225,6 +225,7 @@ export interface PeriodClosingRecord {
   integrityHash: string;
   fxAdjustmentJournalId?: string;
   reversalJournalId?: string;
+  closingJournalId?: string;
   netIncomeBase: Prisma.Decimal;
   closedBy: string;
   closedAt: Date;

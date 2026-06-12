@@ -9,6 +9,7 @@ import { PostingRuleService } from './services/posting-rule.service';
 import { TrialBalanceVerificationService } from './services/trial-balance-verification.service';
 import { LedgerPostingService } from './services/ledger-posting.service';
 import { JournalReversalService } from './services/journal-reversal.service';
+import { PeriodClosingService } from './services/period-closing.service';
 import { JournalValidationService } from './services/journal-validation.service';
 import { DimensionValidationService } from './services/dimension-validation.service';
 import { SnapshotEngineService } from './services/snapshot-engine.service';
@@ -272,6 +273,7 @@ function getRepository(dbClass: any, mockClass: any, fallbackClass?: any) {
     LedgerInvariantService,
     PostingAuditService,
     JournalReversalService,
+    PeriodClosingService,
     LedgerWorkerService,
     FinancialProjectionWorkerService,
     FinancialSnapshotService,
