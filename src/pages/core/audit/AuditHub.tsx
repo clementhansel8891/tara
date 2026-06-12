@@ -66,10 +66,10 @@ export default function AuditHub() {
         limit: limit.toString(),
         ...(filters.module && { module: filters.module }),
         ...(filters.action && { action: filters.action }),
-        ...(filters.userId && { userId: filters.userId }),
+        ...(filters.userId && { user_id: filters.userId }),
         ...(filters.severity !== "ALL" && { severity: filters.severity }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(filters.startDate && { start_date: filters.startDate }),
+        ...(filters.endDate && { end_date: filters.endDate }),
       });
 
       const result = await apiRequest<any>(`/audit/logs?${params.toString()}`, "GET", session);

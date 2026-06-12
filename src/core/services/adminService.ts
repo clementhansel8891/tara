@@ -30,5 +30,13 @@ export const adminService = {
   async createInvitation(session: SessionContext, data: { email: string; role: string; justification?: string }) {
     return apiRequest<any>("/v1/admin/invitations", "POST", session, data);
   },
+  async getSecurityRoles(session: SessionContext) {
+    return apiRequest<{
+      roles: { role: string; description: string; users: number; lastUpdated: string }[];
+      members: { id: string; name: string; email: string | null; role: string; joinedAt: string }[];
+      totalUsers: number;
+      privilegedUsers: number;
+    }>("/settings/roles", "GET", session);
+  },
 };
 

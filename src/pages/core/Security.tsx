@@ -19,7 +19,8 @@ import {
   UserCog,
   Shield,
   Activity,
-  Plus
+  Plus,
+  Users
 } from "lucide-react";
 import { RequestModal } from "@/core/ui/RequestModal";
 import { adminService } from "@/core/services/adminService";
@@ -31,30 +32,26 @@ import { itService, type SystemHealth } from "@/core/services/it/itService";
 import { useEffect, useCallback } from "react";
 import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
 
-// Mocks for UI-only sections that don't have endpoints yet
-const roleRows = [
-  {
-    id: "role-1",
-    name: "Platform Administrator",
-    description: "Full access across tenants, security policies, and billing.",
-    users: 8,
-    updated: "2 days ago",
-  },
-  {
-    id: "role-2",
-    name: "Operations Manager",
-    description: "Workflow approvals, reporting, and escalation access.",
-    users: 24,
-    updated: "1 week ago",
-  },
-  {
-    id: "role-3",
-    name: "Compliance Officer",
-    description: "Audit logs, policy reviews, and risk assessments.",
-    users: 6,
-    updated: "3 weeks ago",
-  },
-];
+interface RoleRow {
+  role: string;
+  description: string;
+  users: number;
+  lastUpdated: string;
+}
+
+const relativeTime = (value?: string) => {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+  const diffMs = Date.now() - d.getTime();
+  const days = Math.floor(diffMs / 86400000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)} week${days >= 14 ? "s" : ""} ago`;
+  if (days < 365) return `${Math.floor(days / 30)} month${days >= 60 ? "s" : ""} ago`;
+  return d.toLocaleDateString();
+};
 
 const SECTIONS = [
   {
@@ -73,18 +70,25 @@ export default function CoreSecurity() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [health, setHealth] = useState<SystemHealth[]>([]);
+  const [roles, setRoles] = useState<RoleRow[]>([]);
+  const [access, setAccess] = useState<{ totalUsers: number; privilegedUsers: number }>({ totalUsers: 0, privilegedUsers: 0 });
   const [loading, setLoading] = useState(true);
   const [integrityStatus, setIntegrityStatus] = useState<'idle' | 'scanning' | 'secure' | 'tampered'>('idle');
   const [checkResult, setCheckResult] = useState<VerificationResult | null>(null);
 
   const refreshData = useCallback(async () => {
     try {
-      const [l, h] = await Promise.all([
+      const [l, h, r] = await Promise.all([
         auditService.getLogs(session),
         itService.getSystemHealth(session.tenant_id, session),
+        adminService.getSecurityRoles(session),
       ]);
-      setLogs((l?.data ?? []).slice(0, 10)); // Top 10 for recent view — guard against undefined
-      setHealth(h);
+      // apiClient unwraps { data } envelopes, so getLogs may resolve to the array itself.
+      const logArr = Array.isArray(l) ? l : (l?.data ?? []);
+      setLogs(logArr.slice(0, 10));
+      setHealth(Array.isArray(h) ? h : []);
+      setRoles(r?.roles ?? []);
+      setAccess({ totalUsers: r?.totalUsers ?? 0, privilegedUsers: r?.privilegedUsers ?? 0 });
     } catch (err) {
       console.error("Failed to fetch security data:", err);
     } finally {
@@ -181,15 +185,25 @@ export default function CoreSecurity() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(Array.isArray(roleRows) ? roleRows : []).map((role) => (
-                    <TableRow key={role.id} className="hover:bg-muted/40 transition-colors">
-                      <TableCell className="font-medium">{role.name}</TableCell>
+                  {loading && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-6">Loading roles…</TableCell>
+                    </TableRow>
+                  )}
+                  {!loading && roles.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-6">No roles assigned yet.</TableCell>
+                    </TableRow>
+                  )}
+                  {(Array.isArray(roles) ? roles : []).map((role) => (
+                    <TableRow key={role.role} className="hover:bg-muted/40 transition-colors">
+                      <TableCell className="font-medium capitalize">{role.role.toLowerCase()}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {role.description}
                       </TableCell>
                       <TableCell>{role.users}</TableCell>
                       <TableCell className="text-muted-foreground">
-                        {role.updated}
+                        {relativeTime(role.lastUpdated)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -271,11 +285,11 @@ export default function CoreSecurity() {
 
               <div className="rounded-2xl border p-4 bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-success" />
+                  <Users className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-sm font-black uppercase tracking-tighter">MFA coverage</p>
+                    <p className="text-sm font-black uppercase tracking-tighter">Privileged Access</p>
                     <p className="text-[10px] text-muted-foreground font-medium">
-                      96% of privileged users enrolled
+                      {access.privilegedUsers} of {access.totalUsers} user{access.totalUsers === 1 ? "" : "s"} hold elevated roles
                     </p>
                   </div>
                 </div>

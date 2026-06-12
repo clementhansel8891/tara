@@ -130,6 +130,16 @@ export class SettingsDbRepository implements ISettingsRepository {
     });
   }
 
+  async getMemberships(tenant_id: string): Promise<any[]> {
+    return this.prisma.user_companies.findMany({
+      where: { tenant_id },
+      include: {
+        users: { select: { id: true, first_name: true, last_name: true, email: true } },
+      },
+      orderBy: { created_at: 'asc' },
+    });
+  }
+
   async getLocations(tenant_id: string): Promise<any[]> {
     return this.prisma.locations.findMany({
       where: {

@@ -66,6 +66,52 @@ export class SettingsService {
     return this.repository.getChildCompanies(tenant_id);
   }
 
+  async getRoles(tenant_id: string) {
+    const ROLE_DESCRIPTIONS: Record<string, string> = {
+      SUPERADMIN: 'Global platform access across all tenants and system controls.',
+      OWNER: 'Full access to this organization, including billing and security policies.',
+      ADMIN: 'Manage operations, configuration, and team members within the organization.',
+      MANAGER: 'Approvals, reporting, and supervision for an assigned scope.',
+      MEMBER: 'Standard operational access to assigned modules.',
+    };
+    const PRIVILEGED = ['SUPERADMIN', 'OWNER', 'ADMIN', 'MANAGER'];
+
+    const memberships = await this.repository.getMemberships(tenant_id);
+
+    const byRole = new Map<string, { role: string; description: string; users: number; lastUpdated: Date }>();
+    for (const m of memberships) {
+      const role = m.role || 'MEMBER';
+      const updated = m.updated_at ?? m.created_at;
+      if (!byRole.has(role)) {
+        byRole.set(role, {
+          role,
+          description: ROLE_DESCRIPTIONS[role] || 'Custom role.',
+          users: 0,
+          lastUpdated: updated,
+        });
+      }
+      const entry = byRole.get(role)!;
+      entry.users += 1;
+      if (updated && updated > entry.lastUpdated) entry.lastUpdated = updated;
+    }
+
+    const roles = Array.from(byRole.values()).sort((a, b) => b.users - a.users);
+    const members = memberships.map((m: any) => ({
+      id: m.user_id,
+      name: [m.users?.first_name, m.users?.last_name].filter(Boolean).join(' ') || m.users?.email || m.user_id,
+      email: m.users?.email ?? null,
+      role: m.role,
+      joinedAt: m.created_at,
+    }));
+
+    return {
+      roles,
+      members,
+      totalUsers: memberships.length,
+      privilegedUsers: memberships.filter((m: any) => PRIVILEGED.includes(m.role)).length,
+    };
+  }
+
   async getLocations(tenant_id: string) {
     return this.repository.getLocations(tenant_id);
   }

@@ -69,6 +69,16 @@ export class SettingsController {
     };
   }
 
+  @Get('roles')
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.MANAGER)
+  async getRoles(@Req() req: RequestWithTenant) {
+    const { tenant_id } = req.tenantContext;
+    return {
+      success: true,
+      data: await this.settingsService.getRoles(tenant_id),
+    };
+  }
+
   @Post('child-companies')
   @Roles(UserRole.OWNER)
   async createChildCompany(@Req() req: RequestWithTenant, @Body() body: any) {

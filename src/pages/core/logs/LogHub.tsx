@@ -123,9 +123,9 @@ export default function LogHub({ noShell = false }: { noShell?: boolean }) {
         ...(filters.module && { module: filters.module }),
         ...(filters.level !== "ALL" && { level: filters.level }),
         ...(filters.event && { event: filters.event }),
-        ...(filters.userId && { userId: filters.userId }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(filters.userId && { user_id: filters.userId }),
+        ...(filters.startDate && { start_date: filters.startDate }),
+        ...(filters.endDate && { end_date: filters.endDate }),
       });
 
       const result = await apiRequest<LogEntry[] | { data?: LogEntry[]; total?: number }>(`/v1/logs?${params.toString()}`, "GET", session);
