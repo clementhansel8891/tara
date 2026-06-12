@@ -78,7 +78,7 @@ export class JournalDbRepository implements IJournalRepository {
       data: {
         id: randomUUID(),
         tenant_id: ctx.tenant_id,
-        ref: entry.ref!,
+        ref: entry.ref || `JE-${randomUUID()}`,
         fiscal_period_id: entry.fiscalPeriodId!,
         posting_date: entry.postingDate || new Date(),
         effective_date: entry.effectiveDate || new Date(),
