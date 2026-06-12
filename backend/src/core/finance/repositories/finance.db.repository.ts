@@ -582,36 +582,41 @@ export class FinanceDbRepository extends IFinanceRepository {
     amount: number,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const db = tx ?? this.prisma;
-    // Update the MoneySource balance and pending settlement
-    const source = await db.money_sources.findFirst({
-      where: { id: sourceId, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
-    });
+    // Two writes (balance mutation + settlement record) MUST be atomic — otherwise
+    // money can move on the source with no settlement trace if the second write fails.
+    const execute = async (db: Prisma.TransactionClient): Promise<void> => {
+      const source = await db.money_sources.findFirst({
+        where: { id: sourceId, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
+      });
 
-    if (!source) return;
+      if (!source) return;
 
-    await db.money_sources.update({
-      where: { id: sourceId },
-      data: {
-        balance: { increment: amount },
-        pending_settlement: { decrement: amount },
-        last_updated: new Date(),
-      },
-    });
+      await db.money_sources.update({
+        where: { id: sourceId },
+        data: {
+          balance: { increment: amount },
+          pending_settlement: { decrement: amount },
+          last_updated: new Date(),
+        },
+      });
 
-    // Create a record of the reconciliation
-    await db.settlement_records.create({
-      data: {
-        id: randomUUID(),
-        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
-        source_id: sourceId,
-        amount,
-        currency: source.currency,
-        status: "COMPLETED",
-        reference: `RECON-${Date.now()}`,
-        updated_at: new Date(),
-      },
-    });
+      // Create a record of the reconciliation
+      await db.settlement_records.create({
+        data: {
+          id: randomUUID(),
+          ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
+          source_id: sourceId,
+          amount,
+          currency: source.currency,
+          status: "COMPLETED",
+          reference: `RECON-${Date.now()}`,
+          updated_at: new Date(),
+        },
+      });
+    };
+
+    if (tx) return execute(tx);
+    await this.prisma.$transaction(execute);
   }
 
   // Payments
