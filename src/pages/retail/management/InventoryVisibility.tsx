@@ -61,6 +61,7 @@ import { Package, LayoutGrid, Globe, Search, Plus, Filter, LayoutList, LayoutPan
 import { useDebounce } from "@/hooks/useDebounce";
 import { inventoryService } from "@/core/services/inventory/inventoryService";
 import { retailService } from "@/core/services/retail/retailService";
+import { apiRequest } from "@/core/api/apiClient";
 import { crisisManagementService } from "@/core/services/retail/crisisManagementService";
 import type { RetailProduct, RetailStore, RetailChannel } from "@/core/types/retail/retail";
 import type {
@@ -83,36 +84,9 @@ interface InventoryStats {
   currency?: string;
 }
 
-// Temporary mock suppliers – replace with retailService.listSuppliers() when the endpoint is available
-const MOCK_SUPPLIERS = [
-  { id: "sup-1", name: "Bean Brothers" },
-  { id: "sup-2", name: "Merch Supply Co" },
-  { id: "sup-3", name: "Gift Direct" },
-  { id: "sup-4", name: "Direct Import" },
-];
-
-const MOCK_AUDIT_LOG: AuditEntry[] = [
-  {
-    id: "1",
-    ts: "2024-03-20 14:30",
-    actor: "Admin",
-    action: "manual_adjustment",
-    sku: "ELEC-MB-P15",
-    qty: -5,
-    reason: "Damaged stock",
-    status: "approved",
-  },
-  {
-    id: "2",
-    ts: "2024-03-20 11:20",
-    actor: "System",
-    action: "stock_receive",
-    sku: "FOOD-SNK-LAYS",
-    qty: 50,
-    reason: "PO-2024-01-01",
-    status: "approved",
-  },
-];
+// Suppliers are loaded live from the procurement registry (GET /procurement/suppliers).
+// Inventory movement audit history has no dedicated retail endpoint yet, so the
+// Movements tab shows a real (empty) state rather than fabricated entries.
 
 const InventoryVisibility = () => {
   const { session, updateBranch, updateLocation } = useAuth();
@@ -123,6 +97,7 @@ const InventoryVisibility = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [stats, setStats] = useState<InventoryStats | null>(null);
   const [stores, setStores] = useState<RetailStore[]>([]);
+  const [suppliers, setSuppliers] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -392,6 +367,16 @@ const InventoryVisibility = () => {
     }
   }, [tenantId, session, activeStore, setStore]);
 
+  const fetchSuppliers = useCallback(async () => {
+    if (!tenantId || !session) return;
+    try {
+      const data = await apiRequest<{ id: string; name: string }[]>("/procurement/suppliers", "GET", session);
+      setSuppliers((Array.isArray(data) ? data : []).map((s) => ({ id: s.id, name: s.name })));
+    } catch (error) {
+      console.error("[InventoryVisibility] Failed to load suppliers:", error);
+    }
+  }, [tenantId, session]);
+
   useEffect(() => {
     const init = async () => {
       if (!tenantId || !session) return;
@@ -400,7 +385,8 @@ const InventoryVisibility = () => {
         await Promise.all([
           fetchStores(),
           fetchCategories(),
-          fetchPendingItems()
+          fetchPendingItems(),
+          fetchSuppliers()
         ]);
       } catch (err) {
         console.error("[InventoryVisibility] Init failed:", err);
@@ -409,7 +395,7 @@ const InventoryVisibility = () => {
       }
     };
     init();
-  }, [tenantId, session, fetchStores, fetchCategories, fetchPendingItems]);
+  }, [tenantId, session, fetchStores, fetchCategories, fetchPendingItems, fetchSuppliers]);
 
   useEffect(() => {
     if (tenantId && locationId) {
@@ -911,7 +897,7 @@ const InventoryVisibility = () => {
           <TabsContent value="movements" className="flex-1 m-0 p-8">
             <MovementsTab
               canWrite={canWrite}
-              auditLog={MOCK_AUDIT_LOG}
+              auditLog={[]}
               onMovement={(type) => setMovementType(type)}
             />
           </TabsContent>
@@ -1093,7 +1079,7 @@ const InventoryVisibility = () => {
         session={session ?? undefined}
         items={inventory}
         categoryOptions={categoryOptions}
-        suppliers={MOCK_SUPPLIERS}
+        suppliers={suppliers}
         onSubmit={handleMovementSubmit}
         onPrintBarcodes={(barcodeItems) => setPrintItems(barcodeItems)}
       />
