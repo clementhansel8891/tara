@@ -17,8 +17,11 @@ RUN npm install --legacy-peer-deps
 COPY . .
 
 # Generate Prisma Client and Build NestJS
+# Raise the V8 heap for the build step: the full NestJS compile exceeds the
+# default ~2GB ceiling and OOMs ("Ineffective mark-compacts near heap limit")
+# on memory-constrained build hosts. 4GB comfortably fits the current codebase.
 RUN ./node_modules/.bin/prisma generate
-RUN npm run build
+RUN NODE_OPTIONS=--max-old-space-size=4096 npm run build
 
 # --- Stage 2: Runner ---
 FROM node:22-alpine AS runner

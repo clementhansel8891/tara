@@ -136,13 +136,22 @@ export class HrPayrollService {
   }
 
   async approvePayroll(tenant_id: string, run_id: string, user_id: string): Promise<any> {
-    const run = await this.hrRepository.getPayrollRunById(tenant_id, run_id);
-    if (!run) throw new NotFoundException("Payroll run not found");
-    if (run.status !== "DRAFT" && run.status !== "draft") {
-      throw new BadRequestException(`Cannot approve payroll in ${run.status} status`);
-    }
-
+    // Atomic_Operation (Req 4.1/10.2/10.5): the state read + guard + status write +
+    // audit log all run inside a single `$transaction`, reading the run on the
+    // transaction client so a concurrent transition cannot race the DRAFT guard.
+    //
+    // NOTE: This is the legacy lifecycle path wired to `HrPayrollController`
+    // (`/hr/payroll/:id/approve`). The canonical Phase 5 lifecycle owner is
+    // `HrSettlementService` (wired to `HRController` `/hr/payroll/runs/:id/...`),
+    // per the design. Both paths are kept internally atomic and state-guarded;
+    // they MUST NOT be invoked concurrently for the same run.
     return this.prisma.$transaction(async (tx: any) => {
+      const run = await this.hrRepository.getPayrollRunById(tenant_id, run_id, tx);
+      if (!run) throw new NotFoundException("Payroll run not found");
+      if (run.status !== "DRAFT" && run.status !== "draft") {
+        throw new BadRequestException(`Cannot approve payroll in ${run.status} status`);
+      }
+
       const updated = await this.hrRepository.updatePayrollRun(tenant_id, run_id, { status: "APPROVED" }, tx);
       await this.auditService.log({
         tenant_id, user_id, module: "HR", action: "APPROVE_PAYROLL", entity_type: "PAYROLL_RUN", entity_id: run_id, after_state: updated,
@@ -170,14 +179,9 @@ export class HrPayrollService {
   }
 
   async confirmDisbursement(tenant_id: string, run_id: string, user_id: string): Promise<any> {
-    const run = await this.hrRepository.getPayrollRunById(tenant_id, run_id);
-    if (!run) throw new NotFoundException("Payroll run not found");
-    if (run.status !== "APPROVED") {
-      throw new BadRequestException("Only approved payroll runs can be disbursed");
-    }
-
     const today = new Date();
-    // 1. Validate Fiscal Period
+    // 1. Validate Fiscal Period (read-only precheck; the authoritative status
+    //    guard + write run together inside the transaction below).
     const openPeriodId = await this.fiscalPeriodService.validatePeriodOpenForPosting(tenant_id, tenant_id, "PAYROLL", user_id);
     if (!openPeriodId) {
       throw new BadRequestException("Financial period is closed. Cannot post payroll disbursement.");
@@ -188,7 +192,30 @@ export class HrPayrollService {
     const totalGross = lines.reduce((sum, line) => sum + Number(line.gross_income || line.grossPay), 0);
     const totalTax = lines.reduce((sum, line) => sum + Number(line.tax_amount || 0), 0);
 
+    // Atomic_Operation (Req 4.1/10.3/10.5): the run is read on the transaction
+    // client and the APPROVED guard, the status write, the disbursement log, the
+    // ledger posting, and the audit log all run inside a single `$transaction` so
+    // a concurrent transition cannot race the guard and a partial failure rolls
+    // everything back. See the reconciliation note on `approvePayroll`: the
+    // canonical lifecycle owner is `HrSettlementService`.
     return this.prisma.$transaction(async (tx: any) => {
+      const run = await this.hrRepository.getPayrollRunById(tenant_id, run_id, tx);
+      if (!run) throw new NotFoundException("Payroll run not found");
+      if (run.status !== "APPROVED") {
+        throw new BadRequestException("Only approved payroll runs can be disbursed");
+      }
+
+      // Resolve the company that owns this tenant. Currency follows the company
+      // registration; a company's `id` is NOT the `tenant_id`, so resolve by
+      // `tenant_id` rather than assuming `id === tenant_id` (Req 1.2). The trailing
+      // `?? 'USD'` is a last-resort fallback only after company resolution fails.
+      const company = await tx.companies.findFirst({
+        where: { tenant_id },
+        select: { id: true, currency: true },
+      });
+      const currency = company?.currency ?? run.baseCurrency ?? "USD";
+      const company_id = company?.id ?? tenant_id;
+
       // 2. Update Run Status
       const updated = await this.hrRepository.updatePayrollRun(tenant_id, run_id, { status: "DISBURSED" }, tx);
 
@@ -205,7 +232,7 @@ export class HrPayrollService {
       await this.postingGatewayService.postEvent({
         request_id: `PAY-${run_id}-${Date.now()}`,
         tenant_id,
-        company_id: tenant_id,
+        company_id,
         sourceEventId: run_id,
         event_type: "PAYROLL_POSTED",
         eventVersion: "1.0.0",
@@ -213,7 +240,7 @@ export class HrPayrollService {
           total: totalNet,
           gross: totalGross,
           tax: totalTax,
-          currency: run.baseCurrency || "USD",
+          currency,
           description: `Payroll Disbursement for period ending ${run.period_end}`,
           fiscalPeriodId: openPeriodId,
         },
@@ -245,9 +272,10 @@ export class HrPayrollService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    // 1. Get Employee Base Salary
-    const compensation = await this.prisma.compensations.findUnique({
-      where: { employee_id },
+    // 1. Get Employee Base Salary — scoped to the caller's tenant so we never
+    //    read another tenant's compensation (employee_id is globally unique).
+    const compensation = await this.prisma.compensations.findFirst({
+      where: { employee_id, tenant_id },
     });
     const baseSalary = compensation ? Number(compensation.base_salary) : 0;
 

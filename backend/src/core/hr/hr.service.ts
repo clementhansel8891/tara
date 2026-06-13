@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { IHRRepository } from "./repositories/hr.repository.interface";
 import { ContractGeneratorService, ContractType } from "./contract-generator.service";
@@ -199,6 +199,11 @@ export class HRService {
       }, tx);
 
       return employee;
+    }, {
+      // Preserve the no-double-hire concurrency guarantee: the repo's candidate
+      // status guard now runs inside this transaction, so SERIALIZABLE isolation
+      // prevents two concurrent hires from both passing the guard (Req 11.2).
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
     });
   }
 
@@ -1289,6 +1294,15 @@ export class HRService {
   async updateCompensation(tenant_id: string, employee_id: string, data: any, user_id?: string): Promise<Compensation> {
     const event_reference_id = `EVT-HR-COMP-UPD-${Date.now()}`;
     return this.prisma.$transaction(async (tx: any) => {
+      // Req 2.2 / 11.3: compensation is keyed by `employee_id` (a globally
+      // unique column), so the upsert alone is not tenant-scoped. Verify the
+      // employee belongs to the caller's tenant via a composite-key read before
+      // writing; an employee owned by another tenant resolves to `null` and
+      // surfaces as a 404 rather than allowing a cross-tenant compensation write.
+      const employee = await this.hrRepository.getEmployeeById(tenant_id, employee_id);
+      if (!employee) {
+        throw new NotFoundException(`Employee ${employee_id} not found within tenant scope`);
+      }
       const before_state = await this.hrRepository.getCompensation(tenant_id, employee_id);
       const compensation = await this.hrRepository.updateCompensation(tenant_id, employee_id, data, tx);
       
@@ -1454,6 +1468,19 @@ export class HRService {
   async submitPerformanceReview(tenant_id: string, data: SubmitReviewDto, user_id?: string, tx?: Prisma.TransactionClient): Promise<PerformanceReview> {
     const event_reference_id = `EVT-HR-PERF-REV-${Date.now()}`;
     const execute = async (contextTx: Prisma.TransactionClient) => {
+      // Req 11.5: a review may only be submitted for a performance cycle AND an
+      // employee that exist within the caller's tenant scope. Both lookups are
+      // composite-key reads bound to `tenant_id`, so a cycle/employee owned by
+      // another tenant resolves to `null` and surfaces as a 404 rather than
+      // persisting a cross-tenant review.
+      const cycle = await this.hrRepository.getPerformanceCycleById(tenant_id, data.cycleId);
+      if (!cycle) {
+        throw new NotFoundException(`Performance cycle ${data.cycleId} not found within tenant scope`);
+      }
+      const employee = await this.hrRepository.getEmployeeById(tenant_id, data.employee_id);
+      if (!employee) {
+        throw new NotFoundException(`Employee ${data.employee_id} not found within tenant scope`);
+      }
       const review = await this.hrRepository.submitPerformanceReview(tenant_id, data, contextTx);
       if (user_id) {
         await this.auditService.log({

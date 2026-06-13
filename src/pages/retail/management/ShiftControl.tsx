@@ -22,6 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { retailService } from "@/core/services/retail/retailService";
+import {
+  schedulingService,
+  type AvailableStaff,
+} from "@/core/services/hr/schedulingService";
 import { useSession } from "@/core/security/session";
 import { useRetail } from "../context/RetailContext";
 import type { RetailShift } from "@/core/types/retail/retail";
@@ -35,54 +39,13 @@ import {
 import { ShiftGovernanceModal } from "./shift-control/components/ShiftGovernanceModal";
 import { EditShiftModal } from "./shift-control/components/EditShiftModal";
 
-const MOCK_DRAFT_SHIFTS: ScheduledShift[] = [
-  {
-    id: "1",
-    employeeId: "EMP-01",
-    name: "Amelia Hart",
-    role: "Cashier",
-    startTime: "09:00",
-    endTime: "17:00",
-    dayOfWeek: 1,
-    status: "draft",
-  },
-  {
-    id: "2",
-    employeeId: "EMP-02",
-    name: "Marcus Volkov",
-    role: "Shift Supervisor",
-    startTime: "14:00",
-    endTime: "22:00",
-    dayOfWeek: 1,
-    status: "draft",
-  },
-  {
-    id: "3",
-    employeeId: "EMP-03",
-    name: "Sarah Jenkins",
-    role: "Cashier",
-    startTime: "08:00",
-    endTime: "16:00",
-    dayOfWeek: 2,
-    status: "published",
-  },
-];
-
-const AVAILABLE_STAFF = [
-  { id: "EMP-01", name: "Amelia Hart", role: "Cashier" },
-  { id: "EMP-02", name: "Marcus Volkov", role: "Shift Supervisor" },
-  { id: "EMP-03", name: "Sarah Jenkins", role: "Cashier" },
-  { id: "EMP-04", name: "David Kim", role: "Inventory Specialist" },
-  { id: "EMP-05", name: "Elena Rostova", role: "Store Manager" },
-];
-
 const ShiftControl = () => {
   const session = useSession();
   const { activeStore, activeShift, refreshState } = useRetail();
   const [shifts, setShifts] = useState<RetailShift[]>([]);
 
-  const [scheduledShifts, setScheduledShifts] =
-    useState<ScheduledShift[]>(MOCK_DRAFT_SHIFTS);
+  const [scheduledShifts, setScheduledShifts] = useState<ScheduledShift[]>([]);
+  const [availableStaff, setAvailableStaff] = useState<AvailableStaff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // New states for Advanced Features
@@ -107,14 +70,23 @@ const ShiftControl = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const data = await retailService.listShifts(
-          session.tenant_id!,
-          session,
-          { store_id: session.location_id }
-        );
-        setShifts(Array.isArray(data) ? data : []);
+        const [retailShifts, scheduled, staff] = await Promise.all([
+          retailService.listShifts(session.tenant_id!, session, {
+            store_id: session.location_id,
+          }),
+          schedulingService.getScheduledShifts(session),
+          schedulingService.getAvailableStaff(
+            session,
+            session.location_id
+              ? { location_id: session.location_id }
+              : undefined,
+          ),
+        ]);
+        setShifts(Array.isArray(retailShifts) ? retailShifts : []);
+        setScheduledShifts(Array.isArray(scheduled) ? scheduled : []);
+        setAvailableStaff(Array.isArray(staff) ? staff : []);
       } catch (error) {
-        console.error("Failed to fetch shifts", error);
+        console.error("Failed to fetch workforce data", error);
       } finally {
         setIsLoading(false);
       }
@@ -122,12 +94,45 @@ const ShiftControl = () => {
     if (session.tenant_id) fetchData();
   }, [session.tenant_id, session.location_id]);
 
+  // Workforce statistics derived from live schedule/shift/roster data.
+  // Phase 2 wires scheduling + roster only; metrics with no backing endpoint
+  // yet (attendance check-in, service velocity/score) are surfaced as
+  // unavailable (`null`) rather than fabricated.
   const stats = useMemo(() => {
-    const active = (Array.isArray(shifts) ? shifts : []).filter((s) => s.status === "open").length;
-    const efficiency = 84.5; // Mocked
-    const attendance = 100; // Mocked
-    return { active, efficiency, attendance };
-  }, [shifts]);
+    const grid = Array.isArray(scheduledShifts) ? scheduledShifts : [];
+    const staff = Array.isArray(availableStaff) ? availableStaff : [];
+
+    const assignedStaff = new Set(
+      grid
+        .map((s) => s.employeeId)
+        .filter((id) => id && id !== "NEW" && id !== "Unassigned"),
+    );
+    // Personnel on Grid: distinct assigned employees in the scheduling grid.
+    const active = assignedStaff.size;
+
+    // Labor efficiency: staffing coverage = scheduled distinct staff over the
+    // available roster (derived from live data).
+    const efficiency =
+      staff.length > 0
+        ? Math.round((active / staff.length) * 1000) / 10
+        : 0;
+
+    // Roster adherence: share of grid shifts already published/approved.
+    const publishedCount = grid.filter((s) => s.status === "published").length;
+    const rosterAdherence =
+      grid.length > 0 ? Math.round((publishedCount / grid.length) * 100) : 0;
+
+    return {
+      active,
+      efficiency,
+      rosterAdherence,
+      totalStaff: staff.length,
+      // No attendance/service-velocity backend wired in Phase 2.
+      attendance: null as number | null,
+      serviceVelocity: null as string | null,
+      serviceScore: null as number | null,
+    };
+  }, [scheduledShifts, availableStaff]);
 
   const handleShiftUpdate = (updatedShift: ScheduledShift) => {
     setScheduledShifts((prev) =>
@@ -342,10 +347,12 @@ const ShiftControl = () => {
                 Service Velocity
               </div>
               <div className="text-2xl font-black italic tracking-tighter text-foreground">
-                1.8m
+                {stats.serviceVelocity ?? "N/A"}
               </div>
               <div className="text-[10px] font-bold italic text-warning mt-4 uppercase">
-                Avg. Interaction Latency
+                {stats.serviceVelocity
+                  ? "Avg. Interaction Latency"
+                  : "No telemetry source wired"}
               </div>
             </Card>
 
@@ -394,26 +401,48 @@ const ShiftControl = () => {
                 </div>
                 <div className="space-y-8">
                   {[
-                    { label: "Check-in Accuracy", value: 100, color: "bg-success" },
-                    { label: "Roster Adherence", value: 92, color: "bg-primary" },
-                    { label: "Service Score", value: 96, color: "bg-primary", suffix: "/5", displayValue: "4.8" },
-                  ].map((item, i) => (
-                    <div key={i} className="space-y-3">
-                      <div className="flex justify-between items-end italic">
-                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                          {item.label}
-                        </span>
-                        <span className="text-xl font-black text-foreground tracking-tighter">
-                          {item.displayValue || item.value}
-                          {item.suffix || "%"}
-                        </span>
+                    {
+                      label: "Check-in Accuracy",
+                      value: stats.attendance,
+                      color: "bg-success",
+                    },
+                    {
+                      label: "Roster Adherence",
+                      value: stats.rosterAdherence,
+                      color: "bg-primary",
+                    },
+                    {
+                      label: "Service Score",
+                      value: stats.serviceScore,
+                      color: "bg-primary",
+                      suffix: "/5",
+                    },
+                  ].map((item, i) => {
+                    const available = item.value !== null && item.value !== undefined;
+                    return (
+                      <div key={i} className="space-y-3">
+                        <div className="flex justify-between items-end italic">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                            {item.label}
+                          </span>
+                          <span className="text-xl font-black text-foreground tracking-tighter">
+                            {available ? (
+                              <>
+                                {item.value}
+                                {item.suffix || "%"}
+                              </>
+                            ) : (
+                              "N/A"
+                            )}
+                          </span>
+                        </div>
+                        <Progress
+                          value={available ? (item.value as number) : 0}
+                          className="h-2 bg-secondary rounded-full overflow-hidden"
+                        />
                       </div>
-                      <Progress
-                        value={item.value}
-                        className="h-2 bg-secondary rounded-full overflow-hidden"
-                      />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Card>
 
@@ -457,7 +486,7 @@ const ShiftControl = () => {
           shift={selectedShiftForEdit}
           onSave={handleShiftUpdate}
           onDelete={handleShiftDelete}
-          availableStaff={AVAILABLE_STAFF}
+          availableStaff={availableStaff}
         />
       )}
 

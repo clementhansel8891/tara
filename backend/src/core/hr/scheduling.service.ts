@@ -4,6 +4,12 @@ import { IHRRepository } from "./repositories/hr.repository.interface";
 import { AuditService } from "../../shared/audit/audit.service";
 import { EventBusService } from "../../shared/events/event-bus.service";
 import { LoggerService } from "../../shared/logger/logger.service";
+import { BadRequestException, ConflictException } from "./utils/hr-prisma.errors";
+import { mapWorkShiftFieldsToColumns } from "./utils/field-mapping";
+import {
+  ScheduledShift,
+  mapToScheduledShift,
+} from "./contracts/consumer-contracts";
 
 /**
  * SchedulingService
@@ -26,7 +32,9 @@ export class SchedulingService {
       where: { id: data.location_id, tenant_id: tenant_id },
     });
     if (!location) {
-      throw new Error(`Location ${data.location_id} does not belong to tenant ${tenant_id}`);
+      throw new BadRequestException(
+        `Location ${data.location_id} does not belong to tenant ${tenant_id}`,
+      );
     }
 
     const event_reference_id = `EVT-HR-SCHED-NEW-${Date.now()}`;
@@ -63,16 +71,20 @@ export class SchedulingService {
 
   async createWorkShift(tenant_id: string, data: any, user_id: string) {
     const event_reference_id = `EVT-HR-SHIFT-NEW-${Date.now()}`;
+    // Map the inbound DTO (camelCase `scheduleId`/`roleId`) to schema column
+    // names (`schedule_id`/`role_id`) so the service and repository agree on the
+    // schema-aligned shape and no value is dropped by a name mismatch (Req 5.1/5.2).
+    const mapped = mapWorkShiftFieldsToColumns(data);
     return this.prisma.$transaction(async (tx: any) => {
       // Logic: Ensure schedule exists and is not approved (unless forced)
       const schedule = await this.hrRepository.getWorkSchedules(tenant_id, data.location_id);
-      const targetSchedule = schedule.find(s => s.id === data.scheduleId);
-      
+      const targetSchedule = schedule.find(s => s.id === mapped.schedule_id);
+
       if (targetSchedule && targetSchedule.status === "APPROVED") {
-        throw new Error("Cannot add shifts to an approved schedule.");
+        throw new ConflictException("Cannot add shifts to an approved schedule.");
       }
 
-      const shift = await this.hrRepository.createWorkShift(tenant_id, data, tx);
+      const shift = await this.hrRepository.createWorkShift(tenant_id, mapped, tx);
 
       // 1. Audit Logging
       await this.auditService.log({
@@ -84,6 +96,84 @@ export class SchedulingService {
         entity_id: shift.id,
         after_state: shift,
         event_reference_id,
+      }, tx);
+
+      return shift;
+    });
+  }
+
+  /**
+   * Update a Work_Schedule. The repository write, audit log, and domain event
+   * all enrol in a single transaction so the update either fully commits or
+   * fully rolls back (Atomic_Operation — Requirements 4.1, 4.2, 7.5). Field
+   * mapping to schema columns is performed at the repository boundary.
+   */
+  async updateWorkSchedule(tenant_id: string, id: string, data: any, user_id: string) {
+    const event_reference_id = `EVT-HR-SCHED-UPD-${Date.now()}`;
+    return this.prisma.$transaction(async (tx: any) => {
+      const schedule = await this.hrRepository.updateWorkSchedule(tenant_id, id, data, tx);
+
+      // 1. Audit Logging
+      await this.auditService.log({
+        tenant_id,
+        user_id,
+        module: "HR",
+        action: "UPDATE",
+        entity_type: "WORK_SCHEDULE",
+        entity_id: id,
+        after_state: schedule,
+        event_reference_id,
+      }, tx);
+
+      // 2. Domain Event
+      await this.eventBus.publish({
+        event_type: "hr.schedule.updated.v1",
+        tenant_id,
+        entity_id: id,
+        entity_type: "WORK_SCHEDULE",
+        source_module: "HR",
+        user_id,
+        event_reference_id,
+        payload: { name: schedule.name, location_id: schedule.location_id },
+      }, tx);
+
+      return schedule;
+    });
+  }
+
+  /**
+   * Update a Work_Shift. Rejects edits to a shift that belongs to an APPROVED
+   * (published) schedule with a client error, mirroring the create-shift guard.
+   * The repository write, audit log, and domain event run inside one
+   * transaction (Atomic_Operation — Requirements 4.1, 4.2, 7.5).
+   */
+  async updateWorkShift(tenant_id: string, id: string, data: any, user_id: string) {
+    const event_reference_id = `EVT-HR-SHIFT-UPD-${Date.now()}`;
+    return this.prisma.$transaction(async (tx: any) => {
+      const shift = await this.hrRepository.updateWorkShift(tenant_id, id, data, tx);
+
+      // 1. Audit Logging
+      await this.auditService.log({
+        tenant_id,
+        user_id,
+        module: "HR",
+        action: "UPDATE",
+        entity_type: "WORK_SHIFT",
+        entity_id: id,
+        after_state: shift,
+        event_reference_id,
+      }, tx);
+
+      // 2. Domain Event
+      await this.eventBus.publish({
+        event_type: "hr.shift.updated.v1",
+        tenant_id,
+        entity_id: id,
+        entity_type: "WORK_SHIFT",
+        source_module: "HR",
+        user_id,
+        event_reference_id,
+        payload: { schedule_id: shift.scheduleId, employee_id: shift.employee_id },
       }, tx);
 
       return shift;
@@ -146,6 +236,65 @@ export class SchedulingService {
 
   async getWorkShifts(tenant_id: string, scheduleId?: string, employee_id?: string) {
     return this.hrRepository.getWorkShifts(tenant_id, scheduleId, employee_id);
+  }
+
+  /**
+   * Scoped `ScheduledShift[]` projection consumed by the Retail `ShiftControl`
+   * grid (design "Shift scheduling consumer contract"; Requirements 7.7, 7.8,
+   * 1.6).
+   *
+   * Reads the persisted Work_Shifts for the Tenant_Scope (already filtered by
+   * `tenant_id`, and by `schedule_id`/`employee_id` when supplied), then enriches
+   * each shift with:
+   *   - the owning schedule's status (so `status` can be derived as
+   *     `draft`/`published`), resolved from the scoped Work_Schedules; and
+   *   - the assigned employee's identity/role (so `name`/`role` are populated),
+   *     resolved from the scoped Employee_Roster.
+   *
+   * All joins are performed within the same `tenant_id` so the projection never
+   * leaks cross-tenant data.
+   */
+  async getScheduledShifts(
+    tenant_id: string,
+    scheduleId?: string,
+    employee_id?: string,
+  ): Promise<ScheduledShift[]> {
+    const shifts = await this.hrRepository.getWorkShifts(
+      tenant_id,
+      scheduleId,
+      employee_id,
+    );
+
+    if (shifts.length === 0) {
+      return [];
+    }
+
+    // Resolve owning-schedule status for each shift (scoped to tenant_id).
+    const schedules = await this.hrRepository.getWorkSchedules(tenant_id);
+    const scheduleStatusById = new Map<string, string>(
+      schedules.map((s: any) => [s.id, s.status]),
+    );
+
+    // Resolve assigned-employee identity/role for each shift (scoped to tenant_id).
+    const employeeIds = [
+      ...new Set(shifts.map((s: any) => s.employee_id).filter(Boolean)),
+    ];
+    const employees = await Promise.all(
+      employeeIds.map((id) => this.hrRepository.getEmployeeById(tenant_id, id)),
+    );
+    const employeeById = new Map(
+      employees.filter((e): e is NonNullable<typeof e> => !!e).map((e) => [e.id, e]),
+    );
+
+    return shifts.map((shift: any) =>
+      mapToScheduledShift(
+        {
+          ...shift,
+          schedule_status: scheduleStatusById.get(shift.scheduleId) ?? null,
+        },
+        employeeById.get(shift.employee_id) ?? undefined,
+      ),
+    );
   }
 
   // --- Overrides & Swaps ---

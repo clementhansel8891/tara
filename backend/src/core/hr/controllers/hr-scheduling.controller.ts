@@ -1,133 +1,241 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Patch, 
-  Body, 
-  Param, 
-  Query, 
-  UseGuards, 
-  Headers,
-  Req 
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  Req,
 } from "@nestjs/common";
+import { Request } from "express";
 import { SchedulingService } from "../scheduling.service";
 import { Roles } from "../../../shared/decorators/roles.decorator";
 import { RolesGuard } from "../../../shared/guards/roles.guard";
 import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
-import { 
-  CreateWorkScheduleDto, 
-  UpdateWorkScheduleDto, 
-  CreateWorkShiftDto, 
-  UpdateWorkShiftDto 
-} from "../dto";
+import { TenantInterceptor } from "../../../gateway/tenant.interceptor";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { ModuleStateGuard } from "../../auth/guards/module-state.guard";
+import { TenantScopeResolver } from "../scope/tenant-scope.resolver";
+import { CreateWorkScheduleDto, CreateWorkShiftDto, UpdateWorkScheduleDto, UpdateWorkShiftDto } from "../dto";
 
+interface RequestWithTenant extends Request {
+  tenantContext: TenantContext;
+}
+
+/**
+ * HR Scheduling Controller
+ *
+ * Identity and scope are derived exclusively from the verified
+ * `request.tenantContext` (populated by `TenantInterceptor` after the
+ * JWT-bearing tenant middleware), never from client-supplied `x-tenant-id`
+ * headers (Requirements 2.1, 2.2, 2.3). Each request resolves a validated
+ * `TenantScope` via the shared `TenantScopeResolver`, and every mutating
+ * schedule/shift endpoint carries a `@Roles(...)` gate (Requirements 3.1,
+ * 3.2, 3.4).
+ *
+ * NOTE: `SchedulingService` method signatures still take `tenant_id` as their
+ * first argument; this task only migrates the controller's identity/scope
+ * sourcing, so the resolved `scope.tenant_id` (and `scope.location_id` for
+ * location-filtered reads) is passed through unchanged. Service-internal bug
+ * fixes are deferred to Phase 2 tasks 4.2/4.3.
+ */
 @Controller('hr/scheduling')
-@UseGuards(RolesGuard, TenantGuard)
+@UseInterceptors(TenantInterceptor)
+@UseGuards(ModuleStateGuard, TenantGuard, RolesGuard)
 export class HrSchedulingController {
-  constructor(private readonly schedulingService: SchedulingService) {}
+  constructor(
+    private readonly schedulingService: SchedulingService,
+    private readonly scopeResolver: TenantScopeResolver,
+  ) {}
 
   @Get("schedules")
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async getSchedules(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Query("location_id") location_id?: string,
     @Query("status") status?: string,
   ) {
-    return this.schedulingService.getWorkSchedules(tenant_id, location_id);
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id,
+    });
+    return this.schedulingService.getWorkSchedules(
+      scope.tenant_id,
+      scope.location_id,
+    );
   }
 
   @Post("schedules")
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async createSchedule(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Body() data: CreateWorkScheduleDto,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.schedulingService.createWorkSchedule(tenant_id, data, user_id);
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: data.location_id,
+    });
+    return this.schedulingService.createWorkSchedule(
+      scope.tenant_id,
+      data,
+      user_id,
+    );
   }
 
   @Post("schedules/:id/approve")
   @Roles(UserRole.ADMIN) // Only Admin can approve
   async approveSchedule(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Param("id") id: string,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.schedulingService.approveSchedule(tenant_id, id, user_id);
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.approveSchedule(scope.tenant_id, id, user_id);
   }
 
   @Get("shifts")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
   async getShifts(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Query("schedule_id") schedule_id?: string,
     @Query("employee_id") employee_id?: string,
+    @Query("projection") projection?: string,
   ) {
-    return this.schedulingService.getWorkShifts(tenant_id, schedule_id, employee_id);
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    // `?projection=scheduled` returns the `ScheduledShift[]` consumer projection
+    // consumed by the Retail `ShiftControl` grid (Requirements 7.7, 7.8, 1.6).
+    // The default response preserves the raw work-shift shape for other callers.
+    if (projection === "scheduled") {
+      return this.schedulingService.getScheduledShifts(
+        scope.tenant_id,
+        schedule_id,
+        employee_id,
+      );
+    }
+    return this.schedulingService.getWorkShifts(
+      scope.tenant_id,
+      schedule_id,
+      employee_id,
+    );
   }
 
   @Post("shifts")
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async createShift(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Body() data: CreateWorkShiftDto,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.schedulingService.createWorkShift(tenant_id, data, user_id);
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: (data as { location_id?: string }).location_id,
+    });
+    return this.schedulingService.createWorkShift(
+      scope.tenant_id,
+      data,
+      user_id,
+    );
+  }
+
+  @Patch("schedules/:id")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async updateSchedule(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() data: UpdateWorkScheduleDto,
+  ) {
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: data.location_id,
+    });
+    return this.schedulingService.updateWorkSchedule(
+      scope.tenant_id,
+      id,
+      data,
+      user_id,
+    );
+  }
+
+  @Patch("shifts/:id")
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async updateShift(
+    @Req() request: RequestWithTenant,
+    @Param("id") id: string,
+    @Body() data: UpdateWorkShiftDto,
+  ) {
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: (data as { location_id?: string }).location_id,
+    });
+    return this.schedulingService.updateWorkShift(
+      scope.tenant_id,
+      id,
+      data,
+      user_id,
+    );
   }
 
   // --- Overrides & Swaps ---
 
   @Get("overrides")
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  async getOverrides(@Headers("x-tenant-id") tenant_id: string) {
-    return this.schedulingService.listOverrides(tenant_id);
+  async getOverrides(@Req() request: RequestWithTenant) {
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.listOverrides(scope.tenant_id);
   }
 
   @Post("overrides")
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async saveOverride(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Body() data: any,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.schedulingService.saveOverride(tenant_id, data, user_id);
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.saveOverride(scope.tenant_id, data, user_id);
   }
 
   @Get("swaps")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
-  async getSwaps(@Headers("x-tenant-id") tenant_id: string) {
-    return this.schedulingService.listSwaps(tenant_id);
+  async getSwaps(@Req() request: RequestWithTenant) {
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.listSwaps(scope.tenant_id);
   }
 
   @Post("swaps")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
   async saveSwap(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Body() data: any,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.schedulingService.saveSwapRequest(tenant_id, data, user_id);
+    const user_id = request.tenantContext.user_id ?? "system";
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.saveSwapRequest(
+      scope.tenant_id,
+      data,
+      user_id,
+    );
   }
 
   @Get("master-shifts")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
-  async getMasterShifts(@Headers("x-tenant-id") tenant_id: string) {
-    return this.schedulingService.listAllShifts(tenant_id);
+  async getMasterShifts(@Req() request: RequestWithTenant) {
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.listAllShifts(scope.tenant_id);
   }
 
   @Get("assignments")
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MEMBER)
   async getAssignments(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Query("employeeId") employee_id?: string,
   ) {
-    return this.schedulingService.listAllAssignments(tenant_id, employee_id);
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.schedulingService.listAllAssignments(
+      scope.tenant_id,
+      employee_id,
+    );
   }
 }

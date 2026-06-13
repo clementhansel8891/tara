@@ -1,36 +1,70 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Query, 
-  UseGuards, 
-  Headers,
-  Req 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Req,
+  UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { Request } from "express";
 import { HrAttendanceService } from "../hr-attendance.service";
+import { TimeAndAttendanceService } from "../time/time.service";
 import { Roles } from "../../../shared/decorators/roles.decorator";
 import { RolesGuard } from "../../../shared/guards/roles.guard";
 import { TenantGuard } from "../../../shared/guards/tenant.guard";
 import { UserRole } from "../../../shared/roles";
+import { TenantInterceptor } from "../../../gateway/tenant.interceptor";
+import { TenantContext } from "../../../gateway/tenant-context.interface";
+import { ModuleStateGuard } from "../../auth/guards/module-state.guard";
+import { TenantScopeResolver } from "../scope/tenant-scope.resolver";
 
+interface RequestWithTenant extends Request {
+  tenantContext: TenantContext;
+}
+
+/**
+ * HR Attendance Controller (Phase 3)
+ *
+ * Identity and scope are derived exclusively from the verified
+ * `request.tenantContext` (populated by `TenantInterceptor` after the
+ * JWT-bearing tenant middleware), never from client-supplied `x-tenant-id` /
+ * `x-location-id` headers (Requirements 2.1, 2.2, 2.3). Each request resolves a
+ * validated `TenantScope` via the shared `TenantScopeResolver`, mirroring the
+ * pattern used by `HRController` and `HrSchedulingController`. Every mutating
+ * endpoint carries a `@Roles(...)` gate (Requirements 3.1, 3.2, 3.4).
+ *
+ * Clock-in/clock-out is delegated to the single canonical
+ * `TimeAndAttendanceService` code path (consolidation per design) instead of a
+ * duplicate attendance-service implementation. The single-open-record invariant
+ * is NOT changed here; that is task 6.2.
+ */
 @Controller('hr/attendance')
-@UseGuards(RolesGuard, TenantGuard)
+@UseInterceptors(TenantInterceptor)
+@UseGuards(ModuleStateGuard, TenantGuard, RolesGuard)
 export class HrAttendanceController {
-  constructor(private readonly attendanceService: HrAttendanceService) {}
+  constructor(
+    private readonly attendanceService: HrAttendanceService,
+    private readonly timeService: TimeAndAttendanceService,
+    private readonly scopeResolver: TenantScopeResolver,
+  ) {}
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async getAttendance(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Query("location_id") location_id?: string,
     @Query("employee_id") employee_id?: string,
     @Query("start_date") start_date?: string,
     @Query("end_date") end_date?: string,
   ) {
-    return this.attendanceService.getAttendance(
-      tenant_id,
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
       location_id,
+    });
+    return this.attendanceService.getAttendance(
+      scope.tenant_id,
+      scope.location_id,
       employee_id,
       start_date,
       end_date,
@@ -40,24 +74,23 @@ export class HrAttendanceController {
   @Post("clock-in")
   @Roles(UserRole.MEMBER, UserRole.MANAGER, UserRole.ADMIN)
   async clock_in(
-    @Headers("x-tenant-id") tenant_id: string,
-    @Headers("x-location-id") location_id: string,
+    @Req() request: RequestWithTenant,
     @Body("employee_id") employee_id: string,
-    @Req() req: any,
+    @Body("location_id") location_id?: string,
   ) {
-    const user_id = req.user?.id;
-    return this.attendanceService.clock_in(tenant_id, employee_id, location_id, user_id);
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    const effectiveLocationId =
+      location_id ?? request.tenantContext.location_id ?? "default";
+    return this.timeService.clock_in(scope.tenant_id, employee_id, effectiveLocationId);
   }
 
   @Post("clock-out")
   @Roles(UserRole.MEMBER, UserRole.MANAGER, UserRole.ADMIN)
   async clock_out(
-    @Headers("x-tenant-id") tenant_id: string,
+    @Req() request: RequestWithTenant,
     @Body("employee_id") employee_id: string,
-    @Req() req: any,
   ) {
-    const user_id = req.user?.id;
-    return this.attendanceService.clock_out(tenant_id, employee_id, user_id);
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
+    return this.timeService.clock_out(scope.tenant_id, employee_id);
   }
 }
-

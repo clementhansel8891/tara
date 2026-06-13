@@ -3,19 +3,83 @@ import type {
   DailySchedule,
   EmergencyOverride,
   ShiftSwapRequest,
-} from "@/core/types/hr/scheduling";
-import type { SessionContext } from "@/core/security/session";
-import type {
-  DailySchedule,
-  EmergencyOverride,
-  ShiftSwapRequest,
   Shift,
 } from "@/core/types/hr/scheduling";
 import { workflowService } from "@/core/services/hr/workflowService";
 import { audit } from "@/core/logging/audit";
 import { apiRequest } from "@/core/api/apiClient";
 
+/**
+ * `ScheduledShift` consumer projection returned by
+ * `GET /hr/scheduling/shifts?projection=scheduled`. Mirrors the backend
+ * `ScheduledShift` contract (`backend/src/core/hr/contracts/consumer-contracts.ts`)
+ * consumed by the Retail `ShiftControl` grid.
+ */
+export interface ScheduledShiftDTO {
+  id: string;
+  employeeId: string;
+  name: string;
+  role: string;
+  startTime: string; // "HH:mm"
+  endTime: string; // "HH:mm"
+  dayOfWeek: number; // 0 (Sun) - 6 (Sat)
+  status: "draft" | "published";
+}
+
+/**
+ * `AvailableStaff` roster projection returned by
+ * `GET /hr/employees?projection=staff`. Mirrors the backend `AvailableStaff`
+ * contract consumed by the Retail `ShiftControl` staff picker.
+ */
+export interface AvailableStaff {
+  id: string;
+  name: string;
+  role: string;
+}
+
 export const schedulingService = {
+  /**
+   * Fetch the scoped `ScheduledShift[]` projection for the scheduling grid,
+   * replacing the page's hardcoded `MOCK_DRAFT_SHIFTS`. Scope is derived
+   * server-side from the verified tenant context.
+   */
+  async getScheduledShifts(
+    session: SessionContext,
+    params?: { schedule_id?: string; employee_id?: string },
+  ): Promise<ScheduledShiftDTO[]> {
+    const qs = new URLSearchParams();
+    qs.set("projection", "scheduled");
+    if (params?.schedule_id) qs.set("schedule_id", params.schedule_id);
+    if (params?.employee_id) qs.set("employee_id", params.employee_id);
+
+    const data = await apiRequest<ScheduledShiftDTO[]>(
+      `/v1/hr/scheduling/shifts?${qs.toString()}`,
+      "GET",
+      session,
+    );
+    return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * Fetch the scoped `AvailableStaff[]` roster projection, replacing the page's
+   * hardcoded `AVAILABLE_STAFF` list.
+   */
+  async getAvailableStaff(
+    session: SessionContext,
+    params?: { location_id?: string },
+  ): Promise<AvailableStaff[]> {
+    const qs = new URLSearchParams();
+    qs.set("projection", "staff");
+    if (params?.location_id) qs.set("location_id", params.location_id);
+
+    const data = await apiRequest<AvailableStaff[]>(
+      `/v1/hr/employees?${qs.toString()}`,
+      "GET",
+      session,
+    );
+    return Array.isArray(data) ? data : [];
+  },
+
   async getDailySchedule(
     tenantId: string,
     employeeId: string,

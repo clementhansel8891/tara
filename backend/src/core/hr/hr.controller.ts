@@ -73,6 +73,7 @@ import { LearningService } from "./learning.service";
 import { LaborCostService } from "./labor-cost.service";
 import { TenantContext } from "../../gateway/tenant-context.interface";
 import { TenantInterceptor } from "../../gateway/tenant.interceptor";
+import { TimeAndAttendanceService } from "./time/time.service";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -88,6 +89,12 @@ import { ComplianceSuggestionService } from "../../modules/compliance/compliance
 import { RolesGuard } from "../../shared/guards/roles.guard";
 import { Roles } from "../../shared/decorators/roles.decorator";
 import { UserRole } from "../../shared/roles";
+import { TenantScopeResolver } from "./scope/tenant-scope.resolver";
+import { NotFoundException } from "./utils/hr-prisma.errors";
+import {
+  AvailableStaff,
+  mapToAvailableStaff,
+} from "./contracts/consumer-contracts";
 
 interface RequestWithTenant extends Request {
   tenantContext: TenantContext;
@@ -125,6 +132,8 @@ export class HRController {
     private readonly complianceSuggestionService: ComplianceSuggestionService,
     private readonly settlementService: HrSettlementService,
     private readonly hrPayrollService: HrPayrollService,
+    private readonly scopeResolver: TenantScopeResolver,
+    private readonly timeService: TimeAndAttendanceService,
   ) {}
   // ==================== Overview (Module-Aware) ====================
 
@@ -169,7 +178,14 @@ export class HRController {
 
   /**
    * GET /hr/employees
-   * List all employees for the tenant
+   * List all employees for the tenant.
+   *
+   * Supports an optional `?projection=staff` query parameter. When supplied,
+   * the endpoint returns the scoped roster as an `AvailableStaff[]` projection
+   * (`{ id, name, role }`) consumed by downstream modules such as the Retail
+   * `ShiftControl` page, replacing its hardcoded `AVAILABLE_STAFF` list
+   * (Requirements 1.6, 6.6). Without the parameter, the full employee list is
+   * returned unchanged for existing consumers.
    */
   @Get("employees")
   async getEmployees(
@@ -177,35 +193,45 @@ export class HRController {
     @Query("location_id") location_id?: string,
     @Query("company_id") company_id?: string,
     @Query("departmentId") departmentId?: string,
+    @Query("projection") projection?: string,
   ) {
-    const {
-      tenant_id,
-      role,
-      location_id: contextLocationId,
-      company_id: contextCompanyId,
-    } = request.tenantContext;
+    // Derive the effective, validated scope from the verified context. The
+    // resolver pins tenant_id to the context, forces non-privileged callers to
+    // their own location/company, and validates any requested filter belongs to
+    // the caller's tenant (Requirements 2.1, 2.5, 2.6).
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id,
+      company_id,
+    });
 
-    // For non-admin, force the context's location_id and company_id
-    const effectiveLocationId =
-      role === "SUPERADMIN" || role === "OWNER" || role === "ADMIN"
-        ? location_id
-        : contextLocationId;
+    const result = await this.hrService.getEmployees(
+      scope.tenant_id,
+      scope.location_id,
+      scope.company_id,
+      departmentId,
+    );
 
-    const effectiveCompanyId =
-      role === "SUPERADMIN" || role === "OWNER" || role === "ADMIN"
-        ? company_id
-        : contextCompanyId;
+    // Scoped roster projection for consumer modules: conform to the
+    // `AvailableStaff { id, name, role }` contract (Requirements 1.6, 6.6).
+    if (projection === "staff") {
+      const staff: AvailableStaff[] = result.data.map(mapToAvailableStaff);
 
-    const result =
-      role === "SUPERADMIN"
-        ? await this.hrService.getGlobalEmployees(effectiveLocationId)
-        : await this.hrService.getEmployees(tenant_id, effectiveLocationId, effectiveCompanyId, departmentId);
+      return {
+        success: true,
+        tenant_id: scope.tenant_id,
+        location_id: scope.location_id || "all",
+        company_id: scope.company_id || "all",
+        count: staff.length,
+        total: result.total,
+        data: staff,
+      };
+    }
 
     return {
       success: true,
-      tenant_id,
-      location_id: location_id || "all",
-      company_id: effectiveCompanyId || "all",
+      tenant_id: scope.tenant_id,
+      location_id: scope.location_id || "all",
+      company_id: scope.company_id || "all",
       count: result.data.length,
       total: result.total,
       data: result.data,
@@ -221,27 +247,23 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Param("id") employee_id: string,
   ) {
-    const { tenant_id, role } = request.tenantContext;
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
 
-    let employee;
-    if (role === "SUPERADMIN") {
-      employee = await this.hrService.getGlobalEmployeeById(employee_id);
-    } else {
-      employee = await this.hrService.getEmployeeById(tenant_id, employee_id);
-    }
+    // Composite-key read: findFirst({ where: { id, tenant_id } }) in the
+    // repository. An employee owned by another tenant resolves to null and
+    // therefore surfaces as a 404 (Requirements 4.3, 6.7).
+    const employee = await this.hrService.getEmployeeById(
+      scope.tenant_id,
+      employee_id,
+    );
 
     if (!employee) {
-      return {
-        success: false,
-        tenant_id,
-        message: "Employee not found",
-        data: null,
-      };
+      throw new NotFoundException("Employee not found");
     }
 
     return {
       success: true,
-      tenant_id,
+      tenant_id: scope.tenant_id,
       data: employee,
     };
   }
@@ -256,22 +278,29 @@ export class HRController {
     @Req() request: RequestWithTenant,
     @Body() createEmployeeDto: CreateEmployeeDto,
   ) {
-    const { tenant_id, location_id, user_id } = request.tenantContext;
+    const { user_id } = request.tenantContext;
 
-    // Use context location_id if not provided in DTO
-    if (location_id && !createEmployeeDto.location_id) {
-      createEmployeeDto.location_id = location_id;
-    }
+    // Resolve scope from the verified context, validating any body-supplied
+    // location/company belongs to the caller's tenant, then bind the persisted
+    // scope to the resolved values rather than trusting the request body
+    // (Requirements 2.2, 2.3, 2.5).
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: createEmployeeDto.location_id,
+      company_id: createEmployeeDto.company_id,
+    });
+
+    createEmployeeDto.location_id = scope.location_id;
+    createEmployeeDto.company_id = scope.company_id;
 
     const employee = await this.hrService.createEmployee(
-      tenant_id,
+      scope.tenant_id,
       createEmployeeDto,
       user_id,
     );
 
     return {
       success: true,
-      tenant_id,
+      tenant_id: scope.tenant_id,
       message: "Employee created successfully",
       data: employee,
     };
@@ -282,15 +311,27 @@ export class HRController {
    * Update an employee
    */
   @Put("employees/:id")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async updateEmployee(
     @Req() request: RequestWithTenant,
     @Param("id") employee_id: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
-    console.log(`[DEBUG] Updating Employee ${employee_id}:`, JSON.stringify(updateEmployeeDto, null, 2));
+    const { user_id } = request.tenantContext;
+
+    // Resolve scope; when the payload reassigns a location, validate it belongs
+    // to the caller's tenant and bind to the resolved value. Only override when
+    // supplied so partial-update semantics are preserved (Requirements 2.2, 2.5).
+    const scope = await this.scopeResolver.resolve(request.tenantContext, {
+      location_id: updateEmployeeDto.location_id,
+    });
+
+    if (updateEmployeeDto.location_id) {
+      updateEmployeeDto.location_id = scope.location_id;
+    }
+
     const employee = await this.hrService.updateEmployee(
-      tenant_id,
+      scope.tenant_id,
       employee_id,
       updateEmployeeDto,
       user_id,
@@ -298,7 +339,7 @@ export class HRController {
 
     return {
       success: true,
-      tenant_id,
+      tenant_id: scope.tenant_id,
       message: "Employee updated successfully",
       data: employee,
     };
@@ -309,20 +350,22 @@ export class HRController {
    * Deactivate an employee (soft delete)
    */
   @Delete("employees/:id")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async deactivateEmployee(
     @Req() request: RequestWithTenant,
     @Param("id") employee_id: string,
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
+    const { user_id } = request.tenantContext;
+    const scope = await this.scopeResolver.resolve(request.tenantContext);
     const employee = await this.hrService.deactivateEmployee(
-      tenant_id,
+      scope.tenant_id,
       employee_id,
       user_id,
     );
 
     return {
       success: true,
-      tenant_id,
+      tenant_id: scope.tenant_id,
       message: "Employee deactivated successfully",
       data: employee,
     };
@@ -333,6 +376,7 @@ export class HRController {
    * Bulk import employees from CSV/Excel
    */
   @Post("employees/import")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   @UseInterceptors(FileInterceptor("file"))
   async importEmployees(
     @Req() request: RequestWithTenant,
@@ -429,22 +473,31 @@ export class HRController {
 
   /**
    * POST /hr/attendance/clock-in
-   * Clock in an employee
+   * Clock in an employee.
+   *
+   * Consolidation (task 6.1): clock-in/out for all HR controllers
+   * (`HRController`, `HrAttendanceController`, `time/time.controller`) is routed
+   * through the single canonical `TimeAndAttendanceService` code path so the
+   * single-open-record invariant and clock logic live in one place (implemented
+   * in task 6.2). Identity is sourced from the verified `request.tenantContext`,
+   * never from client headers (Requirements 2.1, 2.2, 2.3). The mutating
+   * endpoint carries a `@Roles(...)` gate (Requirements 3.1, 3.2, 3.4).
    */
   @Post("attendance/clock-in")
+  @Roles(UserRole.MEMBER, UserRole.MANAGER, UserRole.ADMIN)
   async clock_in(
     @Req() request: RequestWithTenant,
     @Body() clockInDto: ClockInDto,
   ) {
-    const { tenant_id, user_id, location_id } = request.tenantContext;
+    const { tenant_id, location_id } = request.tenantContext;
     const effectiveLocationId =
       clockInDto.location_id || location_id || "default";
 
-    const attendance = await this.hrService.clock_in(
+    const attendance = await this.timeService.clock_in(
       tenant_id,
       clockInDto.employee_id,
       effectiveLocationId,
-      user_id,
+      { source: "WEB", reason: clockInDto.notes },
     );
 
     return {
@@ -457,18 +510,19 @@ export class HRController {
 
   /**
    * POST /hr/attendance/clock-out
-   * Clock out an employee
+   * Clock out an employee. Routed through the single canonical
+   * `TimeAndAttendanceService` path (see clock-in note above).
    */
   @Post("attendance/clock-out")
+  @Roles(UserRole.MEMBER, UserRole.MANAGER, UserRole.ADMIN)
   async clock_out(
     @Req() request: RequestWithTenant,
     @Body() body: { employee_id: string },
   ) {
-    const { tenant_id, user_id } = request.tenantContext;
-    const attendance = await this.hrService.clock_out(
+    const { tenant_id } = request.tenantContext;
+    const attendance = await this.timeService.clock_out(
       tenant_id,
       body.employee_id,
-      user_id,
     );
 
     return {
@@ -841,6 +895,7 @@ export class HRController {
   // ==================== Lifecycle Transitions ====================
 
   @Patch("employees/:id/promote")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async promoteEmployee(
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
@@ -852,6 +907,7 @@ export class HRController {
   }
 
   @Patch("employees/:id/transfer")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async transferEmployee(
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
@@ -863,6 +919,7 @@ export class HRController {
   }
 
   @Patch("employees/:id/suspend")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async suspendEmployee(
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
@@ -874,6 +931,7 @@ export class HRController {
   }
 
   @Put("employees/:id/status")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async updateEmployeeStatus(
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
@@ -920,9 +978,16 @@ export class HRController {
   async hireCandidate(
     @Req() request: RequestWithTenant,
     @Param("id") id: string,
+    @Body() body?: any,
   ) {
     const { tenant_id, user_id } = request.tenantContext;
-    const employee = await this.hrService.hireCandidate(tenant_id, id, user_id);
+    // Pass a data object (not the bare user_id string) so the verified actor is
+    // recorded on the hire audit log and any supplied hire details (location,
+    // department, salary) reach the atomic hire transaction.
+    const employee = await this.hrService.hireCandidate(tenant_id, id, {
+      ...(body || {}),
+      actor_id: user_id,
+    });
     return { success: true, tenant_id, message: "Candidate hired as employee", data: employee };
   }
 
@@ -960,6 +1025,7 @@ export class HRController {
   }
 
   @Patch("employees/:id/compensation")
+  @Roles(UserRole.ADMIN, UserRole.OWNER, UserRole.SUPERADMIN)
   async updateCompensation(
     @Req() request: RequestWithTenant,
     @Param("id") employee_id: string,

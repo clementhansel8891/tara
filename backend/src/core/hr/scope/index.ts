@@ -1,0 +1,11 @@
+export {
+  TenantScope,
+  RequestedScope,
+  PRIVILEGED_ROLES,
+  isPrivilegedRole,
+} from "./tenant-scope";
+export {
+  TenantScopeResolver,
+  ScopeIntent,
+  computeScopeIntent,
+} from "./tenant-scope.resolver";

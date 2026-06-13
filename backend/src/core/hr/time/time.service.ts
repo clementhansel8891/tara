@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventBusService } from '../../../shared/events/event-bus.service';
 import { EVENT_NAMES } from '../events/event-names';
 import { PrismaService } from '../../../persistence/prisma.service';
@@ -83,26 +88,30 @@ export class TimeAndAttendanceService {
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
     return this.prisma.$transaction(async (tx: any) => {
-      // 1. Idempotency & Concurrency Guard: Check for existing open record today
+      // 1. Single-open-record invariant guard (Requirement 8.3, design Property 7):
+      // an employee may have at most one OPEN attendance record (no check_out_time)
+      // at a time within the tenant scope, regardless of date. Reject a second
+      // clock-in with a 400 client error rather than creating a duplicate session.
       const existing = await tx.hr_attendance_records.findFirst({
         where: {
           tenant_id,
           employee_id,
-          date: { gte: startOfDay, lte: endOfDay },
           check_out_time: null,
           deleted_at: null,
         },
       });
 
       if (existing) {
-        throw new Error("Employee already has an active clock-in session for today.");
+        throw new BadRequestException(
+          'Employee already has an active (open) clock-in session. Clock out before clocking in again.',
+        );
       }
 
       // ──────────────────────────────────────────────
       // 2. Location & Schedule Validation (Ship or No Ship Filter)
       // ──────────────────────────────────────────────
       const employee = await this.hrRepository.getEmployeeById(tenant_id, employee_id);
-      if (!employee) throw new Error("Employee not found");
+      if (!employee) throw new NotFoundException('Employee not found');
 
       // Verify primary location binding
       const isPrimaryLocation = location_id === employee.location_id;
@@ -126,7 +135,7 @@ export class TimeAndAttendanceService {
         // STRICT LOCATION MATCH: Must match shift location or primary location
         const isShiftLocation = location_id === activeShift.location_id;
         if (!isShiftLocation && !isPrimaryLocation) {
-          throw new Error(`Location mismatch. This shift is assigned to location ${activeShift.location_id}. Access denied.`);
+          throw new BadRequestException(`Location mismatch. This shift is assigned to location ${activeShift.location_id}. Access denied.`);
         }
 
         if (now > shiftStart) {
@@ -138,12 +147,12 @@ export class TimeAndAttendanceService {
       } else {
         // 3. Unscheduled Handling (Strict location check still applies)
         if (!isPrimaryLocation) {
-          throw new Error(`Location mismatch. Employee is assigned to location ${employee.location_id}. Unscheduled clock-in at other locations is denied.`);
+          throw new BadRequestException(`Location mismatch. Employee is assigned to location ${employee.location_id}. Unscheduled clock-in at other locations is denied.`);
         }
         
         status = "UNSCHEDULED";
         if (!data.reason) {
-          throw new Error("Clock-in reason is required for unscheduled shifts.");
+          throw new BadRequestException("Clock-in reason is required for unscheduled shifts.");
         }
       }
 
@@ -224,7 +233,7 @@ export class TimeAndAttendanceService {
       });
 
       if (!record) {
-        throw new Error("No active clock-in session found for this employee.");
+        throw new BadRequestException("No active (open) clock-in session found for this employee.");
       }
 
       // 2. Duration & Overtime calculation
@@ -305,20 +314,30 @@ export class TimeAndAttendanceService {
   async biometricIngest(tenant_id: string, payload: { employee_code: string, device_id: string, timestamp: string, action?: 'IN' | 'OUT', metadata?: any }): Promise<Attendance> {
     this.logger.log(`Biometric ingest received for employee code ${payload.employee_code} from device ${payload.device_id}`);
 
-    // 1. Resolve Employee
+    // 1. Resolve Employee within the device's tenant scope (Requirement 8.6).
+    // The device event is always recorded against the employee that matches the
+    // submitted employee_code *within the device's tenant_id*; an employee from
+    // another tenant is never reachable. A missing/inactive employee is a
+    // not-found condition surfaced as a typed 404 rather than a bare Error/500.
     const employee = await this.prisma.employees.findFirst({
       where: {
         tenant_id,
         employee_code: payload.employee_code,
         status: 'active',
+        deleted_at: null,
       }
     });
 
     if (!employee) {
-      throw new Error(`Employee with code ${payload.employee_code} not found or inactive.`);
+      throw new NotFoundException(
+        `Employee with code ${payload.employee_code} not found or inactive within this tenant scope.`,
+      );
     }
 
-    // 2. Determine Action (Clock-in vs Clock-out)
+    // 2. Determine Action (Clock-in vs Clock-out) honoring the single-open-record
+    // invariant: when no explicit action is supplied, an existing open session
+    // (no check_out_time) implies the device tap should close it (OUT), otherwise
+    // it opens a new session (IN). The open-session lookup is itself tenant-scoped.
     let action = payload.action;
 
     if (!action) {
@@ -333,19 +352,22 @@ export class TimeAndAttendanceService {
       action = activeSession ? 'OUT' : 'IN';
     }
 
-    // 3. Execute Action
+    // 3. Execute Action against the resolved employee within the device scope.
+    // clock_in / clock_out enforce the single-open-record invariant (task 6.2):
+    // a second IN with an open session and an OUT with no open session both
+    // surface as 400 client errors.
     if (action === 'IN') {
       return this.clock_in(tenant_id, employee.id, employee.location_id, {
         source: 'BIOMETRIC',
         device_id: payload.device_id,
         reason: 'Biometric Auto-Clock',
-        metadata: payload.metadata,
+        metadata: { ...(payload.metadata || {}), device_id: payload.device_id, source: 'BIOMETRIC' },
       });
     } else {
       return this.clock_out(tenant_id, employee.id, {
+        ...(payload.metadata || {}),
         source: 'BIOMETRIC',
         device_id: payload.device_id,
-        metadata: payload.metadata,
       });
     }
   }

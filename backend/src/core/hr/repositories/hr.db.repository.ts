@@ -29,7 +29,18 @@ import { ExchangeRate } from "../entities/exchange-rate.entity";
 import { PayrollRun } from "../entities/payroll-run.entity";
 import { PayrollLine } from "../entities/payroll-line.entity";
 import { SuccessionPlan } from "../entities/succession-plan.entity";
-import { handlePrismaFkError, assertExists } from "../utils/hr-prisma.errors";
+import {
+  handlePrismaFkError,
+  assertExists,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from "../utils/hr-prisma.errors";
+import {
+  mapEmployeeFieldsToColumns,
+  mapWorkScheduleFieldsToColumns,
+  mapWorkShiftFieldsToColumns,
+} from "../utils/field-mapping";
 import { SuccessionCandidate } from "../entities/succession-candidate.entity";
 import { Skill } from "../entities/skill.entity";
 import { EmployeeSkill } from "../entities/employee-skill.entity";
@@ -251,28 +262,30 @@ export class HRDbRepository implements IHRRepository {
       }
     });
 
+    // Explicit DTO -> schema-column mapping (Requirement 5.1/5.2/5.3): translate
+    // compatibility aliases (`position`/`role_title` -> `positions`,
+    // `position_id` -> `job_role_id`, `documents_metadata` -> `document_metadata`)
+    // and drop non-columns (`full_name`, `id`) rather than spreading the DTO
+    // straight into Prisma. Computed/scoped/typed fields are applied explicitly
+    // afterwards so the resolved scope and correct value types always win.
+    const mapped = mapEmployeeFieldsToColumns(data as unknown as Record<string, unknown>);
+
     const employee = await db.employees.create({
       data: {
+        ...mapped,
         id: data.id || undefined,
         tenant_id: tenant_id,
         company_id: company_id,
         location_id: location_id as string,
-        department_id: data.department_id,
-        employee_code: data.employee_code,
         user_id: user.id, // Link to the user account
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-        phone: data.phone,
-        manager_id: data.manager_id,
-        positions: data.role_title || "Staff",
-        employment_type: data.employment_type || "full_time",
-        base_salary: data.base_salary ? new Prisma.Decimal(data.base_salary.toString()) : undefined,
-        hourly_rate: data.hourly_rate ? new Prisma.Decimal(data.hourly_rate.toString()) : undefined,
+        positions: (mapped.positions as string) || "Staff",
+        employment_type: (mapped.employment_type as string) || "full_time",
+        status: (mapped.status as string) || "active",
+        base_salary: data.base_salary != null ? new Prisma.Decimal(data.base_salary.toString()) : undefined,
+        hourly_rate: data.hourly_rate != null ? new Prisma.Decimal(data.hourly_rate.toString()) : undefined,
         hire_date: data.hire_date ? new Date(data.hire_date) : new Date(),
-        status: (data.status as string) || "active",
         updated_at: new Date(),
-      },
+      } as Prisma.employeesUncheckedCreateInput,
       include: { locations: true,
         departments: true,
       },
@@ -288,26 +301,37 @@ export class HRDbRepository implements IHRRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<Employee> {
     const db = tx ?? this.prisma;
-    const updateData: any = {};
 
-    if (data.first_name) updateData.first_name = data.first_name;
-    if (data.last_name) updateData.last_name = data.last_name;
-    if (data.phone !== undefined) updateData.phone = data.phone;
-    if (data.department_id) updateData.department_id = data.department_id;
-    if (data.manager_id !== undefined) updateData.manager_id = data.manager_id;
-    if (data.role_title) updateData.position = data.role_title;
-    if (data.location_id) updateData.location_id = data.location_id;
-    if (data.employment_type) updateData.employment_type = data.employment_type;
-    if (data.base_salary !== undefined) updateData.base_salary = data.base_salary;
-    if (data.hourly_rate !== undefined) updateData.hourly_rate = data.hourly_rate;
-    if (data.status) updateData.status = data.status;
+    // Route every supplied field through the explicit mapper so each value binds
+    // to its schema column (Requirement 5). This fixes the prior drift bug where
+    // `role_title` was written to a nonexistent `position` column (now correctly
+    // `positions`) and silently dropped. `undefined` fields are skipped by the
+    // mapper, preserving partial-update semantics; `full_name` (no column) is
+    // dropped; `documents_metadata` -> `document_metadata`.
+    const updateData: Record<string, unknown> = {
+      ...mapEmployeeFieldsToColumns(data as unknown as Record<string, unknown>),
+      updated_at: new Date(),
+    };
+
+    // Apply correctly-typed conversions, overriding the raw mapped values.
+    if (data.base_salary !== undefined) {
+      updateData.base_salary = new Prisma.Decimal(data.base_salary.toString());
+    }
+    if (data.hourly_rate !== undefined) {
+      updateData.hourly_rate = new Prisma.Decimal(data.hourly_rate.toString());
+    }
+    if (data.termination_date !== undefined) {
+      updateData.termination_date = data.termination_date
+        ? new Date(data.termination_date)
+        : null;
+    }
 
     const employee = await db.employees.update({
       where: {
         id: employee_id,
         tenant_id: tenant_id,
       },
-      data: updateData,
+      data: updateData as Prisma.employeesUncheckedUpdateInput,
       include: { locations: true,
         departments: true,
       },
@@ -322,14 +346,21 @@ export class HRDbRepository implements IHRRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<Employee> {
     const db = tx ?? this.prisma;
+    // Soft-deactivate via `status` while RETAINING the record for historical
+    // reference (Requirement 6.5 / design: "soft-deactivation via status,
+    // record retained"). We intentionally do NOT set `deleted_at` here: doing so
+    // would hide the row from scoped reads (which filter `deleted_at: null`) and
+    // break read-back of the deactivated employee. `termination_date` records
+    // when the employee was deactivated.
     const employee = await db.employees.update({
       where: {
         id: employee_id,
         tenant_id: tenant_id,
       },
       data: {
-        deleted_at: new Date(),
         status: "terminated",
+        termination_date: new Date(),
+        updated_at: new Date(),
       },
       include: { locations: true,
         departments: true,
@@ -534,10 +565,18 @@ export class HRDbRepository implements IHRRepository {
   ): Promise<LeaveRequest[]> {
     const where: any = { tenant_id: tenant_id };
 
+    // Location filtering rides the employee relation: `leave_requests` has no
+    // `location_id` column of its own, so we constrain the related employee's
+    // location. The Prisma relation field is `employees` (see schema), so the
+    // nested filter must use that name — `where.employee` is not a valid field
+    // and would raise a Prisma validation error (HTTP 500) at query time.
     if (location_id) {
-      where.employee = { location_id: location_id };
+      where.employees = { location_id: location_id };
     }
-    if (status) where.status = status;
+    // Status filtering is reconciled across the pending/requested split (the
+    // column default is `requested`, submit now persists `pending`) via
+    // `buildStatusFilter`, so a `pending` filter matches both literals.
+    if (status) where.status = this.buildStatusFilter(status);
     if (employee_id) where.employee_id = employee_id;
 
     const requests = await this.prisma.leave_requests.findMany({
@@ -561,7 +600,7 @@ export class HRDbRepository implements IHRRepository {
     employee_id?: string,
   ): Promise<LeaveRequest[]> {
     const where: any = {};
-    if (status) where.status = status;
+    if (status) where.status = this.buildStatusFilter(status);
     if (employee_id) where.employee_id = employee_id;
     where.deleted_at = null;
 
@@ -576,11 +615,17 @@ export class HRDbRepository implements IHRRepository {
   async createLeaveRequest(
     tenant_id: string,
     data: CreateLeaveRequestDto,
+    tx?: Prisma.TransactionClient,
   ): Promise<LeaveRequest> {
+    // Honour the optional transaction client so the insert participates in the
+    // service's `$transaction` together with the audit log (Requirement 4.1/4.4).
+    // Previously this ignored `tx` and wrote on `this.prisma`, so the create and
+    // its audit log were not atomic.
+    const db = tx ?? this.prisma;
     const start_date = new Date(data.start_date);
     const end_date = new Date(data.end_date);
 
-    const request = await this.prisma.leave_requests.create({
+    const request = await db.leave_requests.create({
       data: {
         id: uuidv4(),
         tenant_id: tenant_id,
@@ -590,7 +635,10 @@ export class HRDbRepository implements IHRRepository {
         start_date: start_date,
         end_date: end_date,
         reason: data.reason,
-        status: "requested",
+        // Persist the canonical pending state on submit (Requirement 9.1). The
+        // design models the initial state as `pending`; the read mapper also
+        // normalises any legacy `requested` rows to `pending`.
+        status: "pending",
         updated_at: new Date(),
       },
     });
@@ -606,6 +654,11 @@ export class HRDbRepository implements IHRRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<LeaveRequest> {
     const db = tx ?? this.prisma;
+    // Record the reviewer identity (`approved_by`) and decision time
+    // (`approved_at`) — the real schema columns — plus the optional reviewer
+    // note in `review_notes` (Requirements 9.2). The pending-state guard lives
+    // in `HrLeaveService` so an invalid transition surfaces as a 400 before any
+    // write occurs (Requirement 9.4).
     const request = await db.leave_requests.update({
       where: {
         id: request_id,
@@ -615,6 +668,8 @@ export class HRDbRepository implements IHRRepository {
         status: "approved",
         approved_by: reviewerId,
         approved_at: new Date(),
+        review_notes: notes ?? undefined,
+        updated_at: new Date(),
       },
     });
 
@@ -629,6 +684,9 @@ export class HRDbRepository implements IHRRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<LeaveRequest> {
     const db = tx ?? this.prisma;
+    // Record the reviewer identity/time and persist the supplied rejection note
+    // to `review_notes` (Requirement 9.3). The pending-state guard in
+    // `HrLeaveService` rejects non-pending transitions with a 400 (Req 9.4).
     const request = await db.leave_requests.update({
       where: {
         id: request_id,
@@ -638,6 +696,8 @@ export class HRDbRepository implements IHRRepository {
         status: "rejected",
         approved_by: reviewerId,
         approved_at: new Date(),
+        review_notes: notes,
+        updated_at: new Date(),
       },
     });
 
@@ -654,15 +714,30 @@ export class HRDbRepository implements IHRRepository {
     employee_id?: string,
     period?: string,
   ): Promise<Payroll[]> {
+    // Strictly tenant-scoped read: tenant_id is always required so a payroll
+    // line from another tenant can never be returned (Requirement 10.6).
     const where: any = {
       tenant_id: tenant_id,
     };
 
+    // Location filter traverses the `employees` relation (the Prisma relation
+    // field is `employees`, not `employee`); using the wrong relation name
+    // raised a Prisma validation error surfaced to the caller as a 500.
     if (location_id) {
-      where.employee = { location_id: location_id };
+      where.employees = { location_id: location_id };
     }
     if (employee_id) {
       where.employee_id = employee_id;
+    }
+    // payroll_lines has no `period` column; the period lives on the parent
+    // hr_payroll_runs row (period_start/period_end). Filter through the run
+    // relation so a "YYYY-MM" period narrows results to that month's run.
+    if (period) {
+      const [period_start, period_end] = this.getPeriodDates(period);
+      where.hr_payroll_runs = {
+        period_start: { gte: period_start },
+        period_end: { lte: period_end },
+      };
     }
 
     const payrollLines = await this.prisma.payroll_lines.findMany({
@@ -699,10 +774,21 @@ export class HRDbRepository implements IHRRepository {
     }) as any;
   }
 
-  async getPayrollRunById(tenant_id: string, id: string): Promise<PayrollRun | null> {
-    return this.prisma.hr_payroll_runs.findUnique({
+  async getPayrollRunById(tenant_id: string, id: string, tx?: Prisma.TransactionClient): Promise<PayrollRun | null> {
+    // Composite-key, tenant-scoped read. Map the raw snake_case row onto the
+    // PayrollRun entity (camelCase aliases) via mapRun so downstream consumers
+    // (e.g. HrSettlementService) read `totalGrossPay`/`totalNetPay`/`baseCurrency`
+    // instead of `undefined`. Returning the raw row here was silently breaking the
+    // Finance payroll handshake.
+    //
+    // When a `tx` is supplied the read executes on the transaction client so the
+    // state read + guard + status write form a single Atomic_Operation (Req 4.1):
+    // a concurrent lifecycle transition cannot race between the guard and the write.
+    const db = tx ?? this.prisma;
+    const row = await db.hr_payroll_runs.findFirst({
       where: { id, tenant_id },
-    }) as any;
+    });
+    return row ? this.mapRun(row) : null;
   }
 
   async updatePayrollRun(tenant_id: string, id: string, data: Partial<PayrollRun>, tx?: Prisma.TransactionClient): Promise<PayrollRun> {
@@ -1097,8 +1183,8 @@ export class HRDbRepository implements IHRRepository {
       base_salary: e.base_salary ? Number(e.base_salary) : undefined,
       hourly_rate: e.hourly_rate ? Number(e.hourly_rate) : undefined,
       hire_date: e.hire_date,
-      termination_date: e.deleted_at,
-      documents_metadata: e.extra_info,
+      termination_date: e.termination_date || undefined,
+      documents_metadata: e.document_metadata,
       hr_employee_skills: (e as any).hr_employee_skills ? (e as any).hr_employee_skills.map((es: any) => this.mapEmployeeSkill(es)) : undefined,
       companies: e.companies,
       currency: e.companies?.currency || "USD",
@@ -1138,29 +1224,73 @@ export class HRDbRepository implements IHRRepository {
     };
   }
 
+  /**
+   * Translates a caller-supplied leave status filter into a Prisma `where`
+   * clause that is robust to the pending/requested reconciliation (Req 9.5).
+   *
+   * Leave submit now persists the canonical literal `pending`, but legacy rows
+   * (and the DB column default) may still store `requested`. The read mapper
+   * normalises `requested` -> `pending` on the way out, so a caller filtering
+   * by `pending` expects to see those legacy rows too. We therefore expand a
+   * `pending` filter to an `IN ['pending','requested']` clause. All other
+   * statuses match exactly. Tenant scoping is applied by the caller and is left
+   * untouched here.
+   */
+  private buildStatusFilter(status: string): any {
+    // Persisted statuses are canonical lowercase (`pending`/`approved`/
+    // `rejected`/`cancelled`, plus the legacy `requested` default), and the read
+    // mapper lowercases on the way out. Normalise the caller's filter the same
+    // way so matching is case-insensitive and consistent with returned values.
+    const normalized = status.toLowerCase();
+    return normalized === "pending"
+      ? { in: ["pending", "requested"] }
+      : normalized;
+  }
+
   private mapLeaveRequest(l: any): LeaveRequest {
+    // Map the real `leave_requests` columns onto the design-aligned entity.
+    // The schema stores the reviewer/decision in `approved_by` / `approved_at`
+    // and the reviewer note in `review_notes`; it has no `reviewed_by`,
+    // `reviewed_at`, `requested_at`, `leave_type`, or `total_days` columns, so
+    // those are derived here (Requirement 5 field-mapping discipline). The
+    // canonical state is `pending`; a legacy `requested` value is normalised to
+    // `pending` so the API surface is consistent (Requirement 9.1).
     const start_date = new Date(l.start_date);
+    const end_date = new Date(l.end_date);
+    const rawStatus = String(l.status ?? "").toLowerCase();
+    const status = rawStatus === "requested" ? "pending" : rawStatus;
+
+    // No `total_days` column exists; derive an inclusive day count from the
+    // persisted date range so reads return a sensible number rather than NaN.
+    const total_days =
+      !isNaN(start_date.getTime()) && !isNaN(end_date.getTime())
+        ? Math.floor((end_date.getTime() - start_date.getTime()) / 86_400_000) + 1
+        : 0;
+
     return {
       id: l.id,
       tenant_id: l.tenant_id,
       employee_id: l.employee_id,
-      leave_type: l.leave_type as any,
+      leave_type: l.type as any,
       start_date: l.start_date,
       end_date: l.end_date,
-      total_days: Number(l.total_days),
+      total_days,
       reason: l.reason,
-      status: l.status.toLowerCase() as any,
-      requested_at: l.requested_at,
-      reviewed_by: l.reviewed_by,
-      reviewed_at: l.reviewed_at,
-      review_notes: l.review_notes,
+      status: status as any,
+      requested_at: l.created_at,
+      reviewed_by: l.approved_by ?? undefined,
+      reviewed_at: l.approved_at ?? undefined,
+      review_notes: l.review_notes ?? undefined,
       created_at: l.created_at,
       updated_at: l.updated_at,
     };
   }
 
   private mapPayroll(p: any): Payroll {
-    const payrollRun = p.hrPayrollRun || {};
+    // The findMany include exposes the parent run under the `hr_payroll_runs`
+    // relation key, so read that (the old `hrPayrollRun` alias was always
+    // undefined, which left period/paidAt empty on every returned record).
+    const payrollRun = p.hr_payroll_runs || {};
     const period = payrollRun.period_start
       ? `${new Date(payrollRun.period_start).getFullYear()}-${String(new Date(payrollRun.period_start).getMonth() + 1).padStart(2, "0")}`
       : "unknown";
@@ -1818,38 +1948,50 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async hireCandidate(tenant_id: string, candidateId: string, data: any, tx?: Prisma.TransactionClient): Promise<Employee> {
-    const db = tx ?? this.prisma;
-    const candidate = await db.candidates.findFirst({
-      where: { id: candidateId, tenant_id: tenant_id, deleted_at: null },
-      include: { job_requisitions: true },
-    });
-
-    if (!candidate) throw new Error("Candidate not found.");
-    if (candidate.status === "hired") {
-      throw new Error(`Candidate ${candidateId} is already hired.`);
-    }
-
-    // Pre-calculate password hash outside of transaction to avoid lock contention
+    // Pre-calculate the password hash outside the transaction to avoid holding a
+    // lock during the (slow) bcrypt work.
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash("Welcome123", salt);
 
-    // SERIALIZABLE Transaction for atomic hiring
-    const result = await this.prisma.$transaction(async (tx) => {
+    // All hire writes (candidate -> hired, user provisioning, employee, initial
+    // contract, outbox event) run on a single client so they commit or roll back
+    // together (Req 4.1/4.2). The candidate guard reads on the SAME client inside
+    // the transaction so the lookup + status check + writes cannot race a
+    // concurrent hire (Req 11.2). Every write binds `tenant_id` from the verified
+    // parameter — never from client input — and the employee is created within the
+    // SAME `tenant_id` as the candidate.
+    const run = async (client: Prisma.TransactionClient): Promise<any> => {
+      const candidate = await client.candidates.findFirst({
+        where: { id: candidateId, tenant_id: tenant_id, deleted_at: null },
+        include: { job_requisitions: true },
+      });
+
+      // Typed error surface (Req 1.1/1.3/1.4): a missing candidate is a 404 and an
+      // already-hired candidate is a 409 — not a bare Error that escapes as a 500.
+      // Throwing here rolls back the enclosing transaction, so a rejected hire
+      // leaves no partial employee/user/contract behind.
+      if (!candidate) {
+        throw new NotFoundException(`Candidate ${candidateId} not found.`);
+      }
+      if (candidate.status === "hired") {
+        throw new ConflictException(`Candidate ${candidateId} is already hired.`);
+      }
+
       // 1. Update Candidate Status
-      await tx.candidates.update({
+      await client.candidates.update({
         where: { id: candidateId },
         data: { status: "hired" },
       });
 
-      // 2. User Provisioning (moved into transaction)
-      let user = await tx.users.findUnique({
+      // 2. User Provisioning
+      let user = await client.users.findUnique({
         where: { tenant_id_email: { tenant_id: tenant_id, email: candidate.email } },
       });
 
       if (!user) {
-        user = await tx.users.create({
+        user = await client.users.create({
           data: {
-        tenant_id: tenant_id,
+            tenant_id: tenant_id,
             email: candidate.email,
             password_hash: password_hash,
             first_name: candidate.first_name,
@@ -1858,23 +2000,60 @@ export class HRDbRepository implements IHRRepository {
         });
       }
 
-      await tx.user_companies.upsert({
+      await client.user_companies.upsert({
         where: { tenant_id_user_id: { user_id: user.id, tenant_id: tenant_id } },
         update: {},
         create: { user_id: user.id, tenant_id: tenant_id, role: 'MEMBER' }
       });
 
-      // 3. Create Employee Record
-      const employee = await tx.employees.create({
+      // Resolve a real location within the candidate's tenant. employees.location_id
+      // is a required FK, so the previous hardcoded "loc-default" fallback would
+      // raise a P2003 against the live DB (Req 1.2/12.2). Prefer an explicitly
+      // supplied location_id (validated to belong to this tenant), otherwise fall
+      // back to the tenant's first location.
+      const location = data.location_id
+        ? await client.locations.findFirst({
+            where: { id: data.location_id, tenant_id: tenant_id, deleted_at: null },
+          })
+        : await client.locations.findFirst({
+            where: { tenant_id: tenant_id, deleted_at: null },
+            orderBy: { created_at: "asc" },
+          });
+      if (!location) {
+        throw new BadRequestException(
+          "Cannot hire candidate: no valid location found for this tenant. Provide a valid location_id.",
+        );
+      }
+
+      // Resolve a real department: explicit override -> requisition's department ->
+      // the tenant's first department. employees.department_id is a required FK, so
+      // the previous empty-string fallback would also break against the live DB.
+      let department_id: string | undefined =
+        data.department_id || candidate.job_requisitions?.department_id || undefined;
+      if (!department_id) {
+        const department = await client.departments.findFirst({
+          where: { tenant_id: tenant_id, deleted_at: null },
+          orderBy: { created_at: "asc" },
+        });
+        department_id = department?.id;
+      }
+      if (!department_id) {
+        throw new BadRequestException(
+          "Cannot hire candidate: no valid department found for this tenant. Provide a valid department_id.",
+        );
+      }
+
+      // 3. Create Employee Record within the SAME tenant_id as the candidate
+      const employee = await client.employees.create({
         data: {
-        tenant_id: tenant_id,
+          tenant_id: tenant_id,
           user_id: user.id,
           first_name: candidate.first_name,
           last_name: candidate.last_name,
           email: candidate.email,
           phone: candidate.phone,
-          location_id: data.location_id || "loc-default",
-          department_id: data.department_id || candidate.job_requisitions?.department_id || "",
+          location_id: location.id,
+          department_id: department_id,
           positions: data.position || candidate.job_requisitions?.title || "Staff",
           employee_code: data.employee_code || `EMP-${Date.now()}`,
           status: "probation",
@@ -1884,9 +2063,9 @@ export class HRDbRepository implements IHRRepository {
       });
 
       // 4. Create Initial Contract
-      await tx.contracts.create({
+      await client.contracts.create({
         data: {
-        tenant_id: tenant_id,
+          tenant_id: tenant_id,
           employee_id: employee.id,
           title: `Employment Contract - ${employee.first_name} ${employee.last_name}`,
           type: "PERMANENT",
@@ -1895,12 +2074,10 @@ export class HRDbRepository implements IHRRepository {
         },
       });
 
-      // 4. Update Candidate if applicable (already done above)
-
       // 5. Create Outbox Event for reliable emission
-      await tx.sys_outbox_events.create({
+      await client.sys_outbox_events.create({
         data: {
-        tenant_id: tenant_id,
+          tenant_id: tenant_id,
           type: 'hr.employees.created.v1',
           payload: {
             employee_id: employee.id,
@@ -1911,9 +2088,20 @@ export class HRDbRepository implements IHRRepository {
       });
 
       return employee;
-    }, {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    });
+    };
+
+    // When a caller supplies a transaction client (e.g. HRService/HrRecruitmentService
+    // wrap the hire with audit logging + event emission), participate in THAT
+    // transaction so the employee creation and the audit/event commit or roll back
+    // as one Atomic_Operation (Req 4.4). Previously this method ignored `tx` and
+    // always opened its own nested `$transaction`, which committed the employee
+    // independently of the caller's audit/event writes — defeating atomicity.
+    // With no caller transaction, open our own SERIALIZABLE transaction.
+    const result = tx
+      ? await run(tx)
+      : await this.prisma.$transaction(run, {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        });
 
     return this.mapEmployee(result as any);
   }
@@ -2204,10 +2392,14 @@ export class HRDbRepository implements IHRRepository {
 
   // Interview & Scheduling
   async getInterviews(tenant_id: string, candidateId?: string): Promise<Interview[]> {
+    // The `interviews` table column is `candidate_id` (snake_case); filtering by a
+    // `candidateId` key would raise a Prisma unknown-argument error. Map the
+    // optional candidate filter to the schema-defined column name (Req 5.1/5.2)
+    // while keeping the read strictly scoped by `tenant_id` (Req 11.4).
     const interviews = await this.prisma.interviews.findMany({
       where: {
         tenant_id: tenant_id,
-        ...(candidateId ? { candidateId } : {}),
+        ...(candidateId ? { candidate_id: candidateId } : {}),
       },
       orderBy: { scheduled_at: "desc" },
     });
@@ -2400,13 +2592,21 @@ export class HRDbRepository implements IHRRepository {
   }
 
   async createPayrollRun(tenant_id: string, data: any): Promise<PayrollRun> {
+    // Resolve the run's base currency from the owning company's registration
+    // rather than defaulting to a hardcoded literal (Req 1.2). Prefer an
+    // explicitly supplied currency, then the company's currency; the trailing
+    // "USD" is a last-resort fallback only when no company is resolvable.
+    const company = await this.prisma.companies.findFirst({
+      where: { tenant_id },
+      select: { currency: true },
+    });
     const created = await this.prisma.hr_payroll_runs.create({
       data: {
         id: uuidv4(),
         tenant_id: tenant_id,
         period_start: new Date(data.period_start),
         period_end: new Date(data.period_end),
-        base_currency: data.baseCurrency || "USD",
+        base_currency: data.baseCurrency ?? company?.currency ?? "USD",
         status: "DRAFT",
         updated_at: new Date(),
       },
@@ -3296,15 +3496,28 @@ export class HRDbRepository implements IHRRepository {
 
   async updateWorkSchedule(tenant_id: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
     const db = tx ?? this.prisma;
-    const updated = await db.hr_work_schedules.update({
-      where: { id, tenant_id: tenant_id },
-      data: {
-        ...data,
-        start_date: data.start_date ? new Date(data.start_date) : undefined,
-        end_date: data.end_date ? new Date(data.end_date) : undefined,
-      },
-    });
-    return this.mapWorkSchedule(updated);
+    // Translate the (possibly camelCase / aliased) update payload to schema
+    // columns so no value is silently dropped and no unknown key is spread into
+    // the Prisma payload (Req 5.1/5.2/5.3). Idempotent for already-mapped input.
+    const mapped = mapWorkScheduleFieldsToColumns(data) as Record<string, unknown>;
+    try {
+      const updated = await db.hr_work_schedules.update({
+        where: { id, tenant_id: tenant_id },
+        data: {
+          ...mapped,
+          ...(mapped.start_date !== undefined
+            ? { start_date: new Date(mapped.start_date as string) }
+            : {}),
+          ...(mapped.end_date !== undefined
+            ? { end_date: new Date(mapped.end_date as string) }
+            : {}),
+          updated_at: new Date(),
+        },
+      });
+      return this.mapWorkSchedule(updated);
+    } catch (error) {
+      handlePrismaFkError(error, 'WorkScheduleUpdate');
+    }
   }
 
   async getWorkShifts(tenant_id: string, scheduleId?: string, employee_id?: string): Promise<any[]> {
@@ -3322,20 +3535,26 @@ export class HRDbRepository implements IHRRepository {
   async createWorkShift(tenant_id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
     const db = tx ?? this.prisma;
 
+    // `data` is expected to be schema-aligned (snake_case columns) from the
+    // service's field-mapping step; fall back to the camelCase DTO aliases for
+    // any caller that still passes the raw DTO through.
+    const schedule_id = data.schedule_id ?? data.scheduleId;
+    const role_id = data.role_id ?? data.roleId;
+
     // Critical pre-validation
     await Promise.all([
-      assertExists(() => db.hr_work_schedules.findUnique({ where: { id: data.scheduleId } }), 'scheduleId', data.scheduleId),
+      assertExists(() => db.hr_work_schedules.findUnique({ where: { id: schedule_id } }), 'schedule_id', schedule_id),
       assertExists(() => db.employees.findUnique({ where: { id: data.employee_id } }), 'employee_id', data.employee_id),
     ]);
 
     const createData: Prisma.hr_work_shiftsUncheckedCreateInput = {
       id: uuidv4(),
       tenant_id: tenant_id,
-      schedule_id: data.scheduleId,
+      schedule_id: schedule_id,
       employee_id: data.employee_id,
       start_time: new Date(data.start_time),
       end_time: new Date(data.end_time),
-      role_id: data.roleId,
+      role_id: role_id,
       notes: data.notes,
       metadata: data.metadata || {},
       updated_at: new Date(),
@@ -3352,15 +3571,27 @@ export class HRDbRepository implements IHRRepository {
 
   async updateWorkShift(tenant_id: string, id: string, data: any, tx?: Prisma.TransactionClient): Promise<any> {
     const db = tx ?? this.prisma;
-    const updated = await db.hr_work_shifts.update({
-      where: { id, tenant_id: tenant_id },
-      data: {
-        ...data,
-        start_time: data.start_time ? new Date(data.start_time) : undefined,
-        end_time: data.end_time ? new Date(data.end_time) : undefined,
-      },
-    });
-    return this.mapWorkShift(updated);
+    // Translate camelCase DTO aliases (`scheduleId`/`roleId`) to schema columns
+    // and drop any non-column keys before persisting (Req 5.1/5.2/5.3).
+    const mapped = mapWorkShiftFieldsToColumns(data) as Record<string, unknown>;
+    try {
+      const updated = await db.hr_work_shifts.update({
+        where: { id, tenant_id: tenant_id },
+        data: {
+          ...mapped,
+          ...(mapped.start_time !== undefined
+            ? { start_time: new Date(mapped.start_time as string) }
+            : {}),
+          ...(mapped.end_time !== undefined
+            ? { end_time: new Date(mapped.end_time as string) }
+            : {}),
+          updated_at: new Date(),
+        },
+      });
+      return this.mapWorkShift(updated);
+    } catch (error) {
+      handlePrismaFkError(error, 'WorkShiftUpdate');
+    }
   }
 
   async approveWorkSchedule(tenant_id: string, id: string, approved_by: string, tx?: Prisma.TransactionClient): Promise<any> {

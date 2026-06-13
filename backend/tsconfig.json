@@ -24,5 +24,12 @@
     "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/__test__/**/*", "src/core/retail"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/__test__/**/*",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/core/retail"
+  ]
 }

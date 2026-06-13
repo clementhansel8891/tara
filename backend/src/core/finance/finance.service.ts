@@ -270,17 +270,39 @@ export class FinanceService {
     return tree;
   }
 
-  async finalizePayrollSettlement(
+  /**
+   * Post a balanced journal entry. Thin passthrough to the repository so other
+   * modules (e.g. HR payroll disbursement) can post their GL entries inside an
+   * existing transaction by forwarding `tx`. The repository resolves the open
+   * fiscal period, resolve-or-creates the GL accounts, and enforces balancing.
+   */
+  async createJournal(
     ctx: TenantContext,
+    data: CreateJournalDto,
+    tx?: Prisma.TransactionClient,
+  ): Promise<any> {
+    return this.financeRepository.createJournal(ctx, data, tx);
+  }
+
+  /**
+   * Finalize a payroll settlement coming from the HR module.
+   *
+   * NOTE: the event bus delivers a plain `tenant_id` string (see
+   * PayrollSettlementListener), not a full TenantContext. The previous
+   * signature typed this as `TenantContext`, so at runtime `ctx.tenant_id`
+   * resolved to `undefined` and the audit log was written with no tenant. The
+   * GL journal for the run is posted in the same DB transaction during
+   * disbursement; this handler records the settlement audit trail only.
+   */
+  async finalizePayrollSettlement(
+    tenant_id: string,
     runId: string,
     payload: any
   ): Promise<void> {
     this.logger.log(`[FinanceService] Finalizing Payroll Settlement for run ${runId}`);
-    
-    // Logic: Verify total gross matches expectations, then tag journal entries as 'FINALIZED'
-    // in this phase, we just log the audit trail for security compliance
+
     await this.auditService.log({
-      tenant_id: ctx.tenant_id,
+      tenant_id,
       user_id: 'SYSTEM',
       module: 'FINANCE',
       action: 'PAYROLL_SETTLEMENT_FINALIZED',

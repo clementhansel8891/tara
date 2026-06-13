@@ -29,6 +29,10 @@ import { HrPayrollService } from "./hr-payroll.service";
 import { HrPayrollController } from "./controllers/hr-payroll.controller";
 import { ComplianceController } from "./controllers/compliance.controller";
 import { HrSchedulingController } from "./controllers/hr-scheduling.controller";
+import { HrLeaveController } from "./controllers/hr-leave.controller";
+import { HrRecruitmentController } from "./controllers/hr-recruitment.controller";
+import { HrRecruitmentService } from "./hr-recruitment.service";
+import { HrLeaveService } from "./hr-leave.service";
 import { PayrollEngineService } from "./payroll-engine.service";
 import { PayslipService } from "./payslip.service";
 import { FinanceModule } from "../finance/finance.module";
@@ -36,6 +40,8 @@ import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
 import { IdempotencyInterceptor } from "../../shared/interceptors/idempotency.interceptor";
 import { PrismaService } from "../../persistence/prisma.service";
 import { TimeAndAttendanceService } from "./time/time.service";
+import { TenantScopeResolver } from "./scope/tenant-scope.resolver";
+import { AtomicOperationService } from "./utils/atomic-operation.service";
 
 import { FileProcessingModule } from "../../shared/file-processing/file-processing.module";
 import { AuditModule } from "../../shared/audit/audit.module";
@@ -89,7 +95,9 @@ import { CommsModule } from "../../shared/comms/comms.module";
     WorkflowController, 
     ComplianceController, 
     HrPayrollController, 
-    HrSchedulingController
+    HrSchedulingController,
+    HrLeaveController,
+    HrRecruitmentController
   ],
   providers: [
     {
@@ -119,12 +127,16 @@ import { CommsModule } from "../../shared/comms/comms.module";
     HRMetricService,
     SchedulingService,
     HrSettlementService,
+    HrLeaveService,
+    HrRecruitmentService,
     HrPayrollService,
     PayrollEngineService,
     PayslipService,
     PrismaService,
+    TenantScopeResolver,
     HRMutationInterceptor,
     IdempotencyInterceptor,
+    AtomicOperationService,
     HireEmployeeCommandHandler,
     PromoteEmployeeCommandHandler,
     TransferEmployeeCommandHandler,
@@ -147,6 +159,8 @@ import { CommsModule } from "../../shared/comms/comms.module";
     HrSettlementService,
     HRInsightService,
     TimeAndAttendanceService,
+    AtomicOperationService,
+    TenantScopeResolver,
   ],
 })
 export class HRModule implements OnModuleInit {

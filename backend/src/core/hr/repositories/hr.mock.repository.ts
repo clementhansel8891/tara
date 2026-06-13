@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException, ConflictException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { IHRRepository } from "./hr.repository.interface";
 import { Employee } from "../entities/employee.entity";
@@ -352,11 +352,11 @@ export class HRMockRepository extends IHRRepository {
   }
   async approveLeaveRequest(tenant_id: string, id: string, revId: string, n?: string, tx?: Prisma.TransactionClient): Promise<LeaveRequest> {
     const r = this.leaveRequests.find((r) => r.id === id && r.tenant_id === tenant_id);
-    if (!r) throw new Error("Not found"); r.status = "approved"; (r as any).reviewed_by = revId; r.reviewed_at = new Date(); r.updated_at = new Date(); return r;
+    if (!r) throw new Error("Not found"); r.status = "approved"; (r as any).reviewed_by = revId; r.reviewed_at = new Date(); if (n !== undefined) r.review_notes = n; r.updated_at = new Date(); return r;
   }
   async rejectLeaveRequest(tenant_id: string, id: string, revId: string, n: string, tx?: Prisma.TransactionClient): Promise<LeaveRequest> {
     const r = this.leaveRequests.find((r) => r.id === id && r.tenant_id === tenant_id);
-    if (!r) throw new Error("Not found"); r.status = "rejected"; (r as any).reviewed_by = revId; r.reviewed_at = new Date(); r.updated_at = new Date(); return r;
+    if (!r) throw new Error("Not found"); r.status = "rejected"; (r as any).reviewed_by = revId; r.reviewed_at = new Date(); r.review_notes = n; r.updated_at = new Date(); return r;
   }
 
   // Payroll Management
@@ -367,7 +367,7 @@ export class HRMockRepository extends IHRRepository {
     this.payrolls.push(pa); return pa;
   }
   async getPayrollRuns(tenant_id: string): Promise<PayrollRun[]> { return this.runs.filter(r => r.tenant_id === tenant_id); }
-  async getPayrollRunById(tenant_id: string, id: string): Promise<PayrollRun | null> {
+  async getPayrollRunById(tenant_id: string, id: string, tx?: Prisma.TransactionClient): Promise<PayrollRun | null> {
     return this.runs.find(r => r.id === id && r.tenant_id === tenant_id) || null;
   }
   async updatePayrollRun(tenant_id: string, id: string, updates: Partial<PayrollRun>, tx?: Prisma.TransactionClient): Promise<PayrollRun> {
@@ -419,7 +419,8 @@ export class HRMockRepository extends IHRRepository {
   }
   async hireCandidate(tenant_id: string, candidateId: string, data: any, tx?: Prisma.TransactionClient): Promise<Employee> {
     const c = this.candidates.find((c) => c.id === candidateId && c.tenant_id === tenant_id);
-    if (!c) throw new Error("Not found");
+    if (!c) throw new NotFoundException(`Candidate ${candidateId} not found.`);
+    if ((c as any).status === "hired") throw new ConflictException(`Candidate ${candidateId} is already hired.`);
     return this.createEmployee(tenant_id, { first_name: c.first_name, last_name: c.last_name, email: c.email, role: "employee", department_id: "new" } as any, tx);
   }
   async getTalentLeads(t: string, s?: string): Promise<TalentLead[]> { return this.leads.filter((l) => l.tenant_id === t && (!s || l.status === s)); }

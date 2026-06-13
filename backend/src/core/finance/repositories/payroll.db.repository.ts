@@ -16,8 +16,10 @@ export class PayrollDbRepository implements IPayrollRepository {
   }
 
   async findById(tenant_id: string, company_id: string, id: string): Promise<PayrollRecord | null> {
-    const res = await this.db.payroll_lines.findUnique({
-      where: { id },
+    // Tenant-scoped, composite-key read. Filtering by `id` alone allowed a
+    // caller of one tenant to read another tenant's payroll line.
+    const res = await this.db.payroll_lines.findFirst({
+      where: { id, tenant_id },
       include: { hr_payroll_runs: true }
     });
     if (!res) return null;

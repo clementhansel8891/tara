@@ -3507,6 +3507,7 @@ model leave_requests {
   status        String      @default("requested")
   approved_by   String?
   approved_at   DateTime?
+  review_notes  String?
   created_at    DateTime    @default(now())
   updated_at    DateTime    @default(now())
   approval_id   String?

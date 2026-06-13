@@ -102,7 +102,7 @@ export abstract class IHRRepository {
   abstract getPayroll(tenant_id: string, location_id?: string, employee_id?: string, period?: string): Promise<Payroll[]>;
   abstract getGlobalPayroll(employee_id: string, period?: string): Promise<Payroll[]>;
   abstract getPayrollRuns(tenant_id: string): Promise<PayrollRun[]>;
-  abstract getPayrollRunById(tenant_id: string, id: string): Promise<PayrollRun | null>;
+  abstract getPayrollRunById(tenant_id: string, id: string, tx?: Prisma.TransactionClient): Promise<PayrollRun | null>;
   abstract createPayrollRun(tenant_id: string, data: any, tx?: Prisma.TransactionClient): Promise<PayrollRun>;
   abstract updatePayrollRun(tenant_id: string, id: string, data: Partial<PayrollRun>, tx?: Prisma.TransactionClient): Promise<PayrollRun>;
   abstract getPayrollLines(tenant_id: string, runId: string): Promise<PayrollLine[]>;

@@ -39,9 +39,13 @@ export class PayrollEngineService {
   ): Promise<PayrollBreakdown> {
     this.logger.log(`Calculating payroll for employee ${employee_id} from ${period_start} to ${period_end}`);
 
-    // 1. Fetch Compensation (Base Salary)
-    const compensation = await this.prisma.compensations.findUnique({
-      where: { employee_id },
+    // 1. Fetch Compensation (Base Salary) — scoped to the caller's tenant.
+    //    `employee_id` is globally unique, so a `findUnique` by id alone could
+    //    read another tenant's compensation. Use a composite-key `findFirst`
+    //    ({ employee_id, tenant_id }) so payroll is always computed from the
+    //    employee's compensation within the caller's Tenant_Scope (Req 10.1, 4.3).
+    const compensation = await this.prisma.compensations.findFirst({
+      where: { employee_id, tenant_id },
     });
 
     if (!compensation) {
