@@ -2600,6 +2600,11 @@ export class HRDbRepository implements IHRRepository {
       where: { tenant_id },
       select: { currency: true },
     });
+    // Persist every supplied total — previously these were silently dropped, so
+    // a run created with gross/net totals was stored as 0/0, which in turn made
+    // the downstream settlement journal net to 0 (Req 5.1/5.2/5.3, 10.1, 10.4).
+    // Aliased camelCase fields are translated to their schema columns; absent
+    // totals fall through to the DB default rather than being forced to 0.
     const created = await this.prisma.hr_payroll_runs.create({
       data: {
         id: uuidv4(),
@@ -2607,7 +2612,12 @@ export class HRDbRepository implements IHRRepository {
         period_start: new Date(data.period_start),
         period_end: new Date(data.period_end),
         base_currency: data.baseCurrency ?? company?.currency ?? "USD",
-        status: "DRAFT",
+        status: data.status ?? "DRAFT",
+        name: data.name ?? undefined,
+        total_employees: data.totalEmployees ?? undefined,
+        total_gross_pay: data.totalGrossPay != null ? new Prisma.Decimal(data.totalGrossPay.toString()) : undefined,
+        total_net_pay: data.totalNetPay != null ? new Prisma.Decimal(data.totalNetPay.toString()) : undefined,
+        total_deductions: data.totalDeductions != null ? new Prisma.Decimal(data.totalDeductions.toString()) : undefined,
         updated_at: new Date(),
       },
     });

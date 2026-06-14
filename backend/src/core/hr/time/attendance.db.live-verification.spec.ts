@@ -71,7 +71,10 @@ async function probeLiveTenant(): Promise<ProbeResult> {
         tenant_id: LIVE_TENANT,
         status: "active",
         deleted_at: null,
-        location_id: { not: null },
+        // NOTE: `employees.location_id` is a non-nullable column in the Prisma
+        // schema, so an IS-NOT-NULL filter on it is both unnecessary and
+        // rejected by the client ("Argument `location_id` must not be null").
+        // Every active employee already carries a primary location_id.
       },
       take: 25,
     });
@@ -105,9 +108,14 @@ async function probeLiveTenant(): Promise<ProbeResult> {
       reason: `every probed employee in '${LIVE_TENANT}' already has an open attendance record; cannot safely exercise a fresh clock-in`,
     };
   } catch (e) {
+    // Surface the REAL error on one line. PrismaClientValidationError messages
+    // begin with a newline, so `.split("\n")[0]` previously yielded an empty
+    // string ("database connection failed: ."), masking the true cause.
+    const raw = (e as Error)?.message ?? String(e);
+    const oneLine = raw.replace(/\s+/g, " ").trim();
     return {
       available: false,
-      reason: `database connection failed: ${(e as Error).message.split("\n")[0]}`,
+      reason: `database probe failed: ${oneLine || (e as Error)?.constructor?.name || "unknown error"}`,
     };
   } finally {
     await prisma.$disconnect().catch(() => undefined);

@@ -163,9 +163,18 @@ describeLive(
     });
 
     async function createDraftRun() {
+      // Each run needs a UNIQUE (tenant_id, period_start, period_end) — that
+      // tuple carries a unique constraint. Derive a distinct far-future period
+      // per call (and per test run) so the two sub-tests below, and any rerun,
+      // never collide with each other or with pre-existing production data.
+      const seq = createdRunIds.length;
+      const startMs =
+        Date.UTC(2300, 0, 1) + ((Date.now() % 50000) + seq * 40) * 86_400_000;
+      const periodStart = new Date(startMs);
+      const periodEnd = new Date(startMs + 30 * 86_400_000);
       const run = await repo.createPayrollRun(LIVE_TENANT, {
-        period_start: new Date("2024-01-01T00:00:00.000Z"),
-        period_end: new Date("2024-01-31T00:00:00.000Z"),
+        period_start: periodStart,
+        period_end: periodEnd,
         status: "DRAFT",
         totalGrossPay: 1000,
         totalNetPay: 800,
