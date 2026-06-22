@@ -11,16 +11,11 @@ import {
   Lock,
   ShieldCheck,
   RefreshCcw,
-  Cpu,
   Clock,
-  UserCircle,
-  ShoppingCart,
-  ArrowDownLeft,
-  Archive,
-  History,
   GitBranch,
   BarChart3,
-  Scale
+  Scale,
+  History
 } from "lucide-react";
 import DepartmentWorkspaceLayout, { MenuSection } from "@/components/layouts/DepartmentWorkspaceLayout";
 
@@ -61,16 +56,10 @@ const SECTIONS: MenuSection[] = [
   {
     title: "Management",
     items: [
-      { label: "Schedule", to: "/core/finance/schedule", icon: Lock },
-      { label: "Staff Portal", to: "/core/finance/portal", icon: UserCircle },
-      { label: "Stock Request", to: "/core/finance/prs?dept=FINANCE", icon: ShoppingCart },
-      { label: "Stock Taking", to: "/core/finance/receiving?dept=FINANCE", icon: ArrowDownLeft },
-      { label: "Stock Opname", to: "/core/finance/stock?dept=FINANCE", icon: Archive },
-      { label: "Attendance", to: "/core/finance/attendance", icon: Clock },
-      { label: "Log", to: "/core/finance/logs?scope=FINANCE", icon: History },
-      { label: "Audit", to: "/core/finance/audit-log?scope=FINANCE", icon: ShieldCheck },
-      { label: "Workflow", to: "/core/finance/workflow?scope=FINANCE", icon: GitBranch },
-      { label: "Administrative", to: "/core/finance/admin", icon: Cpu },
+      { label: "Attendance", to: "/core/hr/attendance", icon: Clock },
+      { label: "System Logs", to: "/core/logs", icon: History },
+      { label: "Audit Trail", to: "/core/audit", icon: ShieldCheck },
+      { label: "Workflow Inbox", to: "/core/workflow", icon: GitBranch },
     ],
   },
 ];
