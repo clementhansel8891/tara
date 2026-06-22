@@ -183,12 +183,14 @@ export default function CoreDashboard() {
              <AttendanceGauge />
           </div>
 
-          {/* Tier 6: Risk & Governance — 2 columns on medium, 3 on XL */}
-          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          {/* Tier 6: Risk & Governance — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
              <AlertsRiskMatrix data={dashboardData.timeseries.alertsByModule as any} />
              <SystemHealthDonut data={dashboardData.timeseries.moduleHealth} />
-             <ComplianceHeatmap />
           </div>
+
+          {/* Tier 6b: Compliance Heatmap — full width */}
+          <ComplianceHeatmap />
 
           {/* Tier 7: Event Feed (full width) */}
           <GlobalEventFeed activities={dashboardData.activities} />

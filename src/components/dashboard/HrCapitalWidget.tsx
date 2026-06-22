@@ -12,7 +12,7 @@ export const HrCapitalWidget: React.FC<HrCapitalWidgetProps> = ({ distribution }
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col h-full rounded-[3rem] border border-border bg-card p-10 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-8 shadow-xl transition-all duration-300 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8 relative z-10">
         <div>
           <h4 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Workforce Capital</h4>
@@ -46,32 +46,14 @@ export const HrCapitalWidget: React.FC<HrCapitalWidgetProps> = ({ distribution }
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div 
-            className="flex items-center gap-4 rounded-3xl bg-white/2 p-5 border border-white/5 transition-all hover:bg-white/5 hover:border-primary cursor-pointer" 
-            onClick={() => navigate('/core/hr/scheduling')}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary border border-primary">
-              <Clock className="h-5 w-5" />
+        <div className="flex flex-col gap-3">
+          {distribution.slice(0, 5).map((dept, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: dept.color }} />
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide flex-1 truncate">{dept.department}</span>
+              <span className="text-xs font-black text-foreground">{dept.count}</span>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Attendance</p>
-              <p className="text-xl font-black text-foreground">94.2%</p>
-            </div>
-          </div>
-
-          <div 
-            className="flex items-center gap-4 rounded-3xl bg-white/2 p-5 border border-white/5 transition-all hover:bg-white/5 hover:border-success/20 cursor-pointer" 
-            onClick={() => navigate('/core/hr/talent')}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success text-success border border-success/20">
-              <UserPlus className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Open Roles</p>
-              <p className="text-xl font-black text-foreground">12</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 

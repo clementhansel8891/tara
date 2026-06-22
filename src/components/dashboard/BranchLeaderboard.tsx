@@ -76,7 +76,7 @@ export const BranchLeaderboard: React.FC<BranchLeaderboardProps> = ({ data }) =>
                 {formattedData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={index === 0 ? '#6366f1' : index === 1 ? '#4f46e5' : index === 2 ? '#4338ca' : '#1e1b4b'} 
+                    fill={index === 0 ? 'hsl(var(--primary))' : index === 1 ? 'hsl(var(--primary) / 0.75)' : index === 2 ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--primary) / 0.3)'} 
                   />
                 ))}
               </Bar>
@@ -92,15 +92,15 @@ export const BranchLeaderboard: React.FC<BranchLeaderboardProps> = ({ data }) =>
         )}
       </div>
 
-      <div className="mt-6 grid grid-cols-4 gap-4 border-t border-white/5 pt-6">
+      <div className="mt-6 grid grid-cols-4 gap-4 border-t border-border pt-6">
         {formattedData.slice(0, 4).map((d, i) => (
           <div key={i} className="group flex flex-col items-center text-center transition-all hover:-translate-y-1">
             <div className={cn(
               "mb-2 flex h-8 w-8 items-center justify-center rounded-xl font-black text-xs border transition-all",
-              i === 0 ? "bg-warning border-warning/20 text-warning" :
-              i === 1 ? "bg-muted border-border/20 text-muted-foreground" :
-              i === 2 ? "bg-warning border-warning/20 text-warning" :
-              "bg-white/5 border-white/10 text-muted-foreground"
+              i === 0 ? "bg-primary border-primary/20 text-primary-foreground" :
+              i === 1 ? "bg-primary/80 border-primary/20 text-primary-foreground" :
+              i === 2 ? "bg-primary/60 border-primary/20 text-primary-foreground" :
+              "bg-secondary border-border text-muted-foreground"
             )}>
               {i + 1}
             </div>

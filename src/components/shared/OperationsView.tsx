@@ -67,22 +67,21 @@ export function OperationsView() {
   }
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
       {/* Tactical Header Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 rounded-[3rem] bg-muted border border-border shadow-3xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-warning text-white shadow-2xl shadow-amber-500/40 border border-warning/50 animate-pulse-slow">
-            <Zap className="h-8 w-8" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 rounded-2xl bg-card border border-border shadow-xl">
+        <div className="flex items-center gap-6">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/10 border border-warning/20">
+            <Zap className="h-7 w-7 text-warning" />
           </div>
           <div>
-            <h2 className="text-2xl font-black uppercase tracking-tighter italic text-white">Live Operations Flow</h2>
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-primary">Tactical Control Layer v2.0</p>
+            <h2 className="text-xl font-black uppercase tracking-tighter italic text-foreground">Live Operations Flow</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Tactical Control Layer v2.0</p>
           </div>
         </div>
         <Button 
           onClick={() => setIsModalOpen(true)}
-          className="relative z-10 h-16 rounded-2xl bg-white text-muted-foreground px-10 font-black text-xs uppercase tracking-[0.25em] shadow-2xl hover:bg-primary hover:text-white transition-all duration-500 active:scale-95 border-none"
+          className="h-12 rounded-xl bg-primary text-primary-foreground px-8 font-black text-xs uppercase tracking-[0.2em] shadow-lg hover:bg-primary/90 transition-all active:scale-95"
         >
           <PhoneCall className="mr-3 h-4 w-4" />
           Launch Incident Bridge
@@ -93,13 +92,13 @@ export function OperationsView() {
       <LiveModuleActivity data={tacticalData.moduleActivity} />
 
       {/* System Integrity Layer */}
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <GlobalSyncHealthPanel data={tacticalData.syncHealth} />
         <AuditIntegrityPanel data={tacticalData.auditIntegrity} />
       </div>
 
       {/* Operational Flow Layer */}
-      <div className="grid gap-10 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <RetailShiftMatrix data={tacticalData.retailShifts} />
         </div>
@@ -107,11 +106,11 @@ export function OperationsView() {
       </div>
 
       {/* Edge & Alerts Layer */}
-      <div className="grid gap-10 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <DeviceNetworkTable data={tacticalData.iotDevices} />
         </div>
-        <div className="space-y-10">
+        <div className="space-y-6">
           <OperationalAlertsQueue data={tacticalData.alertsQueue} />
           <OperationalChecklist />
         </div>
