@@ -283,37 +283,42 @@ export class AdminService {
       color: ["#3b82f6", "#6366f1", "#14b8a6", "#8b5cf6", "#f59e0b"][i % 5]
     }));
 
-    // 9. Additional Metrics
+    // 9. Additional Metrics — each query wrapped in try/catch for fault tolerance
     const [pendingApprovals, inventoryStats, procurementStats, salesPipeline, payrollData, actionItems] = await Promise.all([
-      this.prisma.workflow_requests.count({ where: { tenant_id, status: 'PENDING' } }),
+      this.prisma.workflow_requests.count({ where: { tenant_id, status: 'PENDING' } }).catch(() => 0),
+      // Inventory stats
       // Inventory stats
       (async () => {
-        const [totalSkus, lowStock] = await Promise.all([
-          this.prisma.item_masters.count({ where: { tenant_id, status: 'active' } }),
-          this.prisma.stock_levels.count({ where: { tenant_id, on_hand: { lt: 10 } } }),
-        ]);
-        return { totalSkus, lowStock, turnoverRate: totalSkus > 0 ? +(totalSkus / Math.max(lowStock, 1) * 0.3).toFixed(1) : 4.2 };
+        try {
+          const [totalSkus, lowStock] = await Promise.all([
+            this.prisma.item_masters.count({ where: { tenant_id, status: 'active' } }),
+            this.prisma.stock_levels.count({ where: { tenant_id, on_hand: { lt: 10 } } }),
+          ]);
+          return { totalSkus, lowStock, turnoverRate: totalSkus > 0 ? +(totalSkus / Math.max(lowStock, 1) * 0.3).toFixed(1) : 4.2 };
+        } catch { return { totalSkus: 0, lowStock: 0, turnoverRate: 0 }; }
       })(),
       // Procurement pipeline
       (async () => {
-        const [draft, review, approved, delivered] = await Promise.all([
-          this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'DRAFT' } }),
-          this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'SUBMITTED' } }),
-          this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'APPROVED' } }),
-          this.prisma.procurement_requisitions.count({ where: { tenant_id, status: { in: ['RECEIVED', 'CLOSED'] } } }),
-        ]);
-        return { draft, review, approved, delivered };
+        try {
+          const [draft, review, approved, delivered] = await Promise.all([
+            this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'DRAFT' } }),
+            this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'SUBMITTED' } }),
+            this.prisma.procurement_requisitions.count({ where: { tenant_id, status: 'APPROVED' } }),
+            this.prisma.procurement_requisitions.count({ where: { tenant_id, status: { in: ['RECEIVED', 'CLOSED'] } } }),
+          ]);
+          return { draft, review, approved, delivered };
+        } catch { return { draft: 0, review: 0, approved: 0, delivered: 0 }; }
       })(),
       // Sales pipeline
       (async () => {
-        const [leads, qualified, proposal, negotiation, won] = await Promise.all([
-          this.prisma.sales_leads?.count({ where: { tenant_id } }) || Promise.resolve(0),
-          this.prisma.sales_leads?.count({ where: { tenant_id, status: 'QUALIFIED' } }) || Promise.resolve(0),
-          this.prisma.sales_quotes?.count({ where: { tenant_id, status: 'SENT' } }) || Promise.resolve(0),
-          this.prisma.sales_quotes?.count({ where: { tenant_id, status: 'NEGOTIATION' } }) || Promise.resolve(0),
-          this.prisma.sales_orders?.count({ where: { tenant_id, status: { in: ['CONFIRMED', 'COMPLETED'] } } }) || Promise.resolve(0),
-        ]);
-        return { leads, qualified, proposal, negotiation, won };
+        try {
+          const leads = await this.prisma.sales_leads.count({ where: { tenant_id } }).catch(() => 0);
+          const qualified = await this.prisma.sales_leads.count({ where: { tenant_id, status: 'QUALIFIED' } }).catch(() => 0);
+          const proposal = await this.prisma.sales_quotes.count({ where: { tenant_id, status: 'SENT' } }).catch(() => 0);
+          const negotiation = await this.prisma.sales_quotes.count({ where: { tenant_id, status: 'NEGOTIATION' } }).catch(() => 0);
+          const won = await this.prisma.sales_orders.count({ where: { tenant_id, status: { in: ['CONFIRMED', 'COMPLETED'] } } }).catch(() => 0);
+          return { leads, qualified, proposal, negotiation, won };
+        } catch { return { leads: 0, qualified: 0, proposal: 0, negotiation: 0, won: 0 }; }
       })(),
       // Payroll monthly data
       (async () => {
