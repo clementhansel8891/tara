@@ -40,24 +40,9 @@ import {
 import { SystemHealthDonut } from "@/components/dashboard/SystemHealthDonut";
 import { ComplianceHeatmap } from "@/components/dashboard/ComplianceHeatmap";
 import { DashboardPayload } from "@/types/dashboard.types";
-import DepartmentWorkspaceLayout from "@/components/layouts/DepartmentWorkspaceLayout";
+import DashboardLayout, { DASHBOARD_SECTIONS } from "./DashboardLayout";
 
-const SECTIONS = [
-  {
-    title: "STRATEGIC",
-    items: [
-      { id: 'overview', icon: LayoutDashboard, label: "Command Overview", to: "/core" },
-      { id: 'trajectory', icon: TrendingUp, label: "Growth Trajectory", to: "/core/trajectory" },
-      { id: 'risk', icon: Target, label: "Risk Matrix", to: "/core/risk" },
-    ]
-  },
-  {
-    title: "HISTORICAL",
-    items: [
-      { id: 'archives', icon: History, label: "Data Archives", to: "/core/archives" },
-    ]
-  }
-];
+const SECTIONS = DASHBOARD_SECTIONS;
 
 export default function CoreDashboard() {
   const session = useSession();
@@ -224,31 +209,8 @@ export default function CoreDashboard() {
   );
 
   return (
-    <DepartmentWorkspaceLayout
-      title="Command Center"
-      subtitle="Enterprise-wide intelligence & strategic growth telemetry."
-      headerIcon={LayoutDashboard}
-      accentColor="indigo"
-      engineName="INTELLIGENCE_ENGINE"
-      pulseLabel="Global Sync Active"
-      pulseIcon={Activity}
-      sections={SECTIONS}
-      routeLabels={{}}
-      basePath="/core"
-      headerActions={
-        <div className="flex items-center gap-2 md:gap-4">
-          <Button 
-            variant="outline" 
-            className="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-card/50 backdrop-blur-sm hover:bg-card transition-all p-0"
-            onClick={() => refresh(true)}
-            disabled={refreshing}
-          >
-            <RefreshCw className={cn("h-4 w-4 md:h-5 md:w-5", refreshing && "animate-spin")} />
-          </Button>
-        </div>
-      }
-    >
+    <DashboardLayout>
       {mainContent}
-    </DepartmentWorkspaceLayout>
+    </DashboardLayout>
   );
 }
