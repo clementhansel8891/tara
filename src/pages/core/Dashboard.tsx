@@ -111,14 +111,14 @@ export default function CoreDashboard() {
   }
 
   const mainContent = (
-    <div className="p-4 md:p-10 max-w-[1800px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-      <Tabs defaultValue="overview" className="space-y-12">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-8 bg-card border border-border p-6 rounded-[3rem] shadow-xl">
-          <TabsList className="bg-secondary/50 p-1.5 rounded-2xl h-14 border border-border/50">
-            <TabsTrigger value="overview" className="rounded-xl px-10 h-11 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
+    <div className="p-6 md:p-10 max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
+      <Tabs defaultValue="overview" className="space-y-10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-card border border-border p-5 rounded-2xl shadow-lg">
+          <TabsList className="bg-secondary/50 p-1.5 rounded-xl h-12 border border-border/50">
+            <TabsTrigger value="overview" className="rounded-lg px-8 h-9 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
               Strategic Overview
             </TabsTrigger>
-            <TabsTrigger value="operations" className="rounded-xl px-10 h-11 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
+            <TabsTrigger value="operations" className="rounded-lg px-8 h-9 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
               Tactical Flow
             </TabsTrigger>
           </TabsList>
@@ -131,21 +131,21 @@ export default function CoreDashboard() {
                    <span className="text-[11px] font-black text-foreground italic tracking-tighter">L4 COMMANDER</span>
                 </div>
              </div>
-             <div className="h-12 w-12 rounded-2xl grad-primary p-[1px]">
-                <div className="h-full w-full bg-card rounded-[0.9rem] flex items-center justify-center">
-                  <LayoutDashboard className="h-5 w-5 text-primary" />
+             <div className="h-10 w-10 rounded-xl grad-primary p-[1px]">
+                <div className="h-full w-full bg-card rounded-[0.6rem] flex items-center justify-center">
+                  <LayoutDashboard className="h-4 w-4 text-primary" />
                 </div>
              </div>
           </div>
         </div>
 
-        <TabsContent value="overview" className="space-y-12 m-0">
-          {/* Tier 0: Executive KPI Matrix */}
+        <TabsContent value="overview" className="space-y-10 m-0">
+          {/* Tier 0: Executive KPI Row — 4 columns on large screens */}
           <ExecutiveKpiRow kpis={dashboardData.kpis} />
 
-          {/* Tier 1: Financial Trajectory (full width) & Critical Actions */}
-          <div className="grid gap-8 lg:grid-cols-4">
-            <div className="lg:col-span-3">
+          {/* Tier 1: Financial Trajectory (wide) + Action Items (narrow) */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
               <FinancialTrajectoryChart 
                 data={dashboardData.timeseries.financialOverview} 
                 period={period}
@@ -158,58 +158,57 @@ export default function CoreDashboard() {
             <ActionItemsWidget />
           </div>
 
-          {/* Tier 2: Performance & Health Core */}
-          <div className="grid gap-8 lg:grid-cols-3">
-             <EnterpriseHealthWidget />
+          {/* Tier 2: Performance & Health — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
              <HrCapitalWidget distribution={dashboardData.timeseries.hrDistribution} />
              <BranchLeaderboard data={dashboardData.timeseries.topBranches} />
           </div>
 
-          {/* Tier 3: Treasury & Growth Intelligence */}
-          <div className="grid gap-8 lg:grid-cols-3">
+          {/* Tier 3: Treasury & Growth — 3 columns */}
+          <div className="grid gap-6 lg:grid-cols-3">
              <CashPositionWidget />
              <ArApWaterfallChart />
              <SalesPipelineFunnel />
           </div>
 
-          {/* Tier 4: Supply Chain & Operational Stability */}
-          <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          {/* Tier 4: Supply Chain — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
              <InventoryHealthWidget />
              <ProcurementPipelineWidget />
-             <div className="grid gap-8 lg:col-span-2 xl:col-span-1 lg:grid-cols-2 xl:grid-cols-1">
-                <PayrollBurnTrendChart />
-                <AttendanceGauge />
-             </div>
           </div>
 
-          {/* Tier 5: Risk & Governance Matrix */}
-          <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          {/* Tier 5: Payroll + Attendance — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
+             <PayrollBurnTrendChart />
+             <AttendanceGauge />
+          </div>
+
+          {/* Tier 6: Risk & Governance — 2 columns on medium, 3 on XL */}
+          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
              <AlertsRiskMatrix data={dashboardData.timeseries.alertsByModule as any} />
              <SystemHealthDonut data={dashboardData.timeseries.moduleHealth} />
              <ComplianceHeatmap />
           </div>
 
-          {/* Tier 6: Market Intelligence & Event Feed */}
-          <div className="grid gap-8 lg:grid-cols-4">
-             <div className="lg:col-span-3">
-                <GlobalEventFeed activities={dashboardData.activities} />
-             </div>
-             <div className="space-y-8">
-                <MarketingRoiChart data={dashboardData.timeseries.campaignCorrelation} />
-                <div className="rounded-[2.5rem] bg-card p-8 text-card-foreground shadow-2xl relative overflow-hidden group border border-border/50">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                  <div className="relative z-10 space-y-6">
-                     <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center backdrop-blur-xl border border-primary/20">
-                        <Briefcase className="h-5 w-5 text-primary" />
-                     </div>
-                     <div className="space-y-1">
-                        <h4 className="text-lg font-black italic uppercase tracking-tighter">Strategic Support</h4>
-                        <p className="text-[10px] text-muted-foreground font-medium">Tactical assistance and complex modeling ready.</p>
-                     </div>
-                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[9px] uppercase tracking-[0.2em] rounded-xl h-10 transition-all active:scale-95">
-                        CONNECT NOW
-                     </Button>
-                  </div>
+          {/* Tier 7: Event Feed (full width) */}
+          <GlobalEventFeed activities={dashboardData.activities} />
+
+          {/* Tier 8: Marketing + Support CTA — 2 columns */}
+          <div className="grid gap-6 lg:grid-cols-2">
+             <MarketingRoiChart data={dashboardData.timeseries.campaignCorrelation} />
+             <div className="rounded-2xl bg-card p-8 text-card-foreground shadow-xl relative overflow-hidden group border border-border">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="relative z-10 space-y-6">
+                   <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center backdrop-blur-xl border border-primary/20">
+                      <Briefcase className="h-5 w-5 text-primary" />
+                   </div>
+                   <div className="space-y-1">
+                      <h4 className="text-lg font-black italic uppercase tracking-tighter">Strategic Support</h4>
+                      <p className="text-[10px] text-muted-foreground font-medium">Tactical assistance and complex modeling ready.</p>
+                   </div>
+                   <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black text-[9px] uppercase tracking-[0.2em] rounded-xl h-10 transition-all active:scale-95">
+                      CONNECT NOW
+                   </Button>
                 </div>
              </div>
           </div>

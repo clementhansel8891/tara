@@ -43,7 +43,7 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
   }));
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] bg-card border border-border p-8 shadow-2xl card-premium">
+    <div className="flex flex-col h-full rounded-2xl bg-card border border-border p-8 shadow-2xl card-premium">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h4 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Financial Trajectory</h4>

@@ -48,7 +48,7 @@ export const KpiRibbonCard: React.FC<KpiRibbonCardProps> = ({
     <div 
       onClick={() => navigateTo && navigate(navigateTo)}
       className={cn(
-        "group relative flex flex-col gap-6 rounded-[2.5rem] bg-card border border-border p-7 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl",
+        "group relative flex flex-col gap-6 rounded-2xl bg-card border border-border p-7 shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl",
         navigateTo && "cursor-pointer"
       )}
     >

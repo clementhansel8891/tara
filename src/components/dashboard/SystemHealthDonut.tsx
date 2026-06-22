@@ -16,7 +16,7 @@ export const SystemHealthDonut: React.FC<SystemHealthDonutProps> = ({ data }) =>
 
   return (
     <div 
-      className="flex flex-col h-full rounded-[2.5rem] border border-border bg-card p-8 shadow-2xl transition-all duration-500 group cursor-pointer overflow-hidden relative"
+      className="flex flex-col h-full rounded-2xl border border-border bg-card p-8 shadow-2xl transition-all duration-500 group cursor-pointer overflow-hidden relative"
       onClick={() => navigate('/core/it/health')}
     >
       <div className="flex items-center justify-between mb-6">

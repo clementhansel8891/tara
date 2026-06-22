@@ -18,7 +18,7 @@ export const AttendanceGauge: React.FC = () => {
 
   return (
     <div
-      className="rounded-[2.5rem] border border-border bg-card p-6 shadow-xl cursor-pointer transition-all hover:shadow-2xl"
+      className="rounded-2xl border border-border bg-card p-6 shadow-xl cursor-pointer transition-all hover:shadow-2xl"
       onClick={() => navigate('/core/hr/scheduling')}
     >
       <div className="mb-2">

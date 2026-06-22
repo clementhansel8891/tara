@@ -13,7 +13,7 @@ export const InventoryHealthWidget: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-border bg-card p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
+    <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-muted-foreground border border-white/10 group-hover:text-foreground transition-colors">

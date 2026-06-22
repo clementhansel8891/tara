@@ -18,7 +18,7 @@ export const BranchLeaderboard: React.FC<BranchLeaderboardProps> = ({ data }) =>
   })).sort((a, b) => b.revenue - a.revenue);
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-border bg-card p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
+    <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h4 className="text-xl font-black italic uppercase tracking-tighter text-foreground">Regional Performance</h4>

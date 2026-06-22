@@ -10,7 +10,7 @@ export const EnterpriseHealthWidget: React.FC = () => {
   const data = [{ value: score }, { value: 100 - score }];
 
   return (
-    <div className="group relative flex flex-col items-center justify-center rounded-[2.5rem] border border-border bg-card p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/20 overflow-hidden">
+    <div className="group relative flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-7 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/20 overflow-hidden">
       <div className="absolute top-6 left-7 flex flex-col">
          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Enterprise</span>
          <span className="text-sm font-black text-foreground">Health Index</span>
@@ -60,7 +60,7 @@ export const ActionItemsWidget: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full rounded-[2.5rem] border border-border bg-card shadow-xl overflow-hidden">
+    <div className="flex flex-col h-full rounded-2xl border border-border bg-card shadow-xl overflow-hidden">
       <div className="p-8 pb-4">
         <h4 className="text-lg font-black text-foreground">Action Items</h4>
         <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Critical executive tasks</p>
