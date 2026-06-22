@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const PayrollBurnTrendChart: React.FC = () => {
+interface PayrollBurnTrendChartProps {
+  data?: Array<{ month: string; gross: number }> | null;
+}
+
+export const PayrollBurnTrendChart: React.FC<PayrollBurnTrendChartProps> = ({ data: propData }) => {
   const navigate = useNavigate();
 
-  const data = [
+  const defaultData = [
     { month: 'Jan', gross: 175000 },
     { month: 'Feb', gross: 178000 },
     { month: 'Mar', gross: 182000 },
@@ -15,6 +19,8 @@ export const PayrollBurnTrendChart: React.FC = () => {
     { month: 'May', gross: 184000 },
     { month: 'Jun', gross: 189000 },
   ];
+
+  const data = propData && propData.length > 0 ? propData : defaultData;
 
   return (
     <div 

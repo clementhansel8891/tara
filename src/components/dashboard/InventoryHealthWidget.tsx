@@ -3,13 +3,17 @@ import { Package, AlertTriangle, ArrowRight, BarChart2, Boxes } from 'lucide-rea
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-export const InventoryHealthWidget: React.FC = () => {
+interface InventoryHealthWidgetProps {
+  data?: { totalSkus: number; lowStock: number; turnoverRate: number };
+}
+
+export const InventoryHealthWidget: React.FC<InventoryHealthWidgetProps> = ({ data: propData }) => {
   const navigate = useNavigate();
 
   const metrics = [
-    { label: 'Low Stock SKUs', value: 24, icon: AlertTriangle, color: 'text-destructive-foreground', bg: 'bg-destructive', border: 'border-destructive/20' },
-    { label: 'Total SKUs', value: 1240, icon: Package, color: 'text-primary-foreground', bg: 'bg-primary', border: 'border-primary' },
-    { label: 'Turnover Rate', value: '4.2x', icon: BarChart2, color: 'text-success-foreground', bg: 'bg-success', border: 'border-success/20' },
+    { label: 'Low Stock SKUs', value: propData?.lowStock ?? 24, icon: AlertTriangle, color: 'text-destructive-foreground', bg: 'bg-destructive', border: 'border-destructive/20' },
+    { label: 'Total SKUs', value: propData?.totalSkus ?? 1240, icon: Package, color: 'text-primary-foreground', bg: 'bg-primary', border: 'border-primary' },
+    { label: 'Turnover Rate', value: `${propData?.turnoverRate ?? 4.2}x`, icon: BarChart2, color: 'text-success-foreground', bg: 'bg-success', border: 'border-success/20' },
   ];
 
   return (

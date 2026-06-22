@@ -4,16 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { Wallet, Landmark, CreditCard, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const CashPositionWidget: React.FC = () => {
+interface CashPositionWidgetProps {
+  data?: { bankAccounts: number; digitalWallets: number; creditLines: number; runway: number };
+}
+
+export const CashPositionWidget: React.FC<CashPositionWidgetProps> = ({ data: propData }) => {
   const navigate = useNavigate();
 
-  const data = [
-    { name: 'Bank Accounts', value: 750000, color: '#6366f1', icon: Landmark },
-    { name: 'Digital Wallets', value: 120000, color: '#10b981', icon: Wallet },
-    { name: 'Credit Lines', value: 500000, color: '#f59e0b', icon: CreditCard },
+  const chartData = [
+    { name: 'Bank Accounts', value: propData?.bankAccounts ?? 750000, color: '#6366f1', icon: Landmark },
+    { name: 'Digital Wallets', value: propData?.digitalWallets ?? 120000, color: '#10b981', icon: Wallet },
+    { name: 'Credit Lines', value: propData?.creditLines ?? 500000, color: '#f59e0b', icon: CreditCard },
   ];
 
-  const total = data.reduce((acc, curr) => acc + curr.value, 0);
+  const runway = propData?.runway ?? 184;
+  const total = chartData.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
     <div 
@@ -35,7 +40,7 @@ export const CashPositionWidget: React.FC = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 innerRadius={70}
@@ -44,7 +49,7 @@ export const CashPositionWidget: React.FC = () => {
                 dataKey="value"
                 stroke="none"
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} className="group-hover:opacity-80 transition-opacity" />
                 ))}
               </Pie>
@@ -57,7 +62,7 @@ export const CashPositionWidget: React.FC = () => {
         </div>
 
         <div className="flex-1 w-full space-y-6">
-          {data.map((item, i) => (
+          {chartData.map((item, i) => (
             <div key={i} className="flex items-center justify-between group/item">
               <div className="flex items-center gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 border border-white/5 text-muted-foreground group-hover/item:text-foreground group-hover/item:border-white/10 transition-all">
@@ -78,7 +83,7 @@ export const CashPositionWidget: React.FC = () => {
                <TrendingUp className="h-4 w-4 text-success" />
                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground">Est. Runway</span>
             </div>
-            <span className="text-sm font-black text-success">184 Days</span>
+            <span className="text-sm font-black text-success">{runway} Days</span>
           </div>
         </div>
       </div>

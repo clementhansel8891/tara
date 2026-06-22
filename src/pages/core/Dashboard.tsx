@@ -151,20 +151,20 @@ export default function CoreDashboard() {
 
           {/* Tier 3: Treasury & Growth — 3 columns */}
           <div className="grid gap-6 lg:grid-cols-3">
-             <CashPositionWidget />
+             <CashPositionWidget data={dashboardData.widgets?.cashPosition} />
              <ArApWaterfallChart />
-             <SalesPipelineFunnel />
+             <SalesPipelineFunnel data={dashboardData.widgets?.salesPipeline} />
           </div>
 
           {/* Tier 4: Supply Chain — 2 columns */}
           <div className="grid gap-6 lg:grid-cols-2">
-             <InventoryHealthWidget />
-             <ProcurementPipelineWidget />
+             <InventoryHealthWidget data={dashboardData.widgets?.inventory} />
+             <ProcurementPipelineWidget data={dashboardData.widgets?.procurement} />
           </div>
 
           {/* Tier 5: Payroll + Attendance — 2 columns */}
           <div className="grid gap-6 lg:grid-cols-2">
-             <PayrollBurnTrendChart />
+             <PayrollBurnTrendChart data={dashboardData.widgets?.payroll} />
              <AttendanceGauge />
           </div>
 

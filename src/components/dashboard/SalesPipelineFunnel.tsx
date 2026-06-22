@@ -3,15 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { Target, TrendingUp, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const SalesPipelineFunnel: React.FC = () => {
+interface SalesPipelineFunnelProps {
+  data?: { leads: number; qualified: number; proposal: number; negotiation: number; won: number };
+}
+
+export const SalesPipelineFunnel: React.FC<SalesPipelineFunnelProps> = ({ data: propData }) => {
   const navigate = useNavigate();
 
   const stages = [
-    { label: 'Leads', value: 450, width: '100%', color: 'bg-primary', glow: 'shadow-indigo-500/20' },
-    { label: 'Qualified', value: 280, width: '85%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
-    { label: 'Proposal', value: 120, width: '70%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
-    { label: 'Negotiation', value: 45, width: '55%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
-    { label: 'Won', value: 32, width: '40%', color: 'bg-success', glow: 'shadow-emerald-500/30' },
+    { label: 'Leads', value: propData?.leads ?? 450, width: '100%', color: 'bg-primary', glow: 'shadow-indigo-500/20' },
+    { label: 'Qualified', value: propData?.qualified ?? 280, width: '85%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Proposal', value: propData?.proposal ?? 120, width: '70%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Negotiation', value: propData?.negotiation ?? 45, width: '55%', color: 'bg-primary', glow: 'shadow-indigo-500/10' },
+    { label: 'Won', value: propData?.won ?? 32, width: '40%', color: 'bg-success', glow: 'shadow-emerald-500/30' },
   ];
 
   return (

@@ -3,14 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, FileText, CheckCircle, Truck, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const ProcurementPipelineWidget: React.FC = () => {
+interface ProcurementPipelineWidgetProps {
+  data?: { draft: number; review: number; approved: number; delivered: number };
+}
+
+export const ProcurementPipelineWidget: React.FC<ProcurementPipelineWidgetProps> = ({ data: propData }) => {
   const navigate = useNavigate();
 
   const stages = [
-    { label: 'Draft', value: 5, icon: FileText, color: 'text-muted-foreground', glow: 'shadow-slate-500/10' },
-    { label: 'Review', value: 12, icon: ShoppingCart, color: 'text-warning', glow: 'shadow-amber-500/30' },
-    { label: 'Approved', value: 8, icon: CheckCircle, color: 'text-primary', glow: 'shadow-indigo-500/30' },
-    { label: 'Delivered', value: 24, icon: Truck, color: 'text-success', glow: 'shadow-emerald-500/30' },
+    { label: 'Draft', value: propData?.draft ?? 5, icon: FileText, color: 'text-muted-foreground', glow: 'shadow-slate-500/10' },
+    { label: 'Review', value: propData?.review ?? 12, icon: ShoppingCart, color: 'text-warning', glow: 'shadow-amber-500/30' },
+    { label: 'Approved', value: propData?.approved ?? 8, icon: CheckCircle, color: 'text-primary', glow: 'shadow-indigo-500/30' },
+    { label: 'Delivered', value: propData?.delivered ?? 24, icon: Truck, color: 'text-success', glow: 'shadow-emerald-500/30' },
   ];
 
   return (
