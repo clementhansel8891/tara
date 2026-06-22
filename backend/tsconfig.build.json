@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/__test__/**/*",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts",
+    "src/core/retail",
+    "src/shared/iot/device-pairing.service.ts",
+    "src/shared/iot/universal-iot.service.ts",
+    "src/core/inventory/repositories/inventory.db.repository.ts",
+    "src/core/inventory/inventory.service.ts"
+  ]
+}
