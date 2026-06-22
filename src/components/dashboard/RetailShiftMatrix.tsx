@@ -28,7 +28,7 @@ export const RetailShiftMatrix: React.FC<RetailShiftMatrixProps> = ({ data = [] 
     >
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground border border-primary">
             <ShoppingBag className="h-6 w-6" />
           </div>
           <div>
@@ -52,7 +52,7 @@ export const RetailShiftMatrix: React.FC<RetailShiftMatrixProps> = ({ data = [] 
               </div>
               <div className={cn(
                 "h-5 rounded-full px-2.5 flex items-center text-[8px] font-black uppercase tracking-widest border",
-                shift.status === 'OPEN' ? 'bg-success text-success border-success/20' : 'bg-muted text-muted-foreground border-white/5'
+                shift.status === 'OPEN' ? 'bg-success text-success-foreground border-success/20' : 'bg-muted text-muted-foreground border-white/5'
               )}>
                 {shift.status}
               </div>

@@ -58,7 +58,7 @@ export const FinancialTrajectoryChart: React.FC<FinancialTrajectoryChartProps> =
               className={cn(
                 "h-8 px-5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300",
                 period === p 
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" 
+                  ? "bg-primary text-primary-foreground-foreground shadow-lg shadow-primary/20" 
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               )}
               onClick={() => onPeriodChange(p)}

@@ -19,7 +19,7 @@ export const LiveModuleActivity: React.FC<LiveModuleActivityProps> = ({ data = [
     <div className="space-y-6">
       <div className="flex items-center justify-between px-2">
          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary border border-primary">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground border border-primary">
                <ShieldCheck className="h-4 w-4" />
             </div>
             <div>

@@ -20,7 +20,7 @@ export const AuditIntegrityPanel: React.FC<AuditIntegrityPanelProps> = ({ data, 
     <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-8 shadow-2xl transition-all duration-500 hover:shadow-indigo-500/10 overflow-hidden group">
       <div className="flex items-center justify-between mb-10">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary border border-primary">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground border border-primary">
             <Fingerprint className="h-5 w-5" />
           </div>
           <div>

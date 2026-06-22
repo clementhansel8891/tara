@@ -23,7 +23,7 @@ export const MarketingRoiChart: React.FC<MarketingRoiChartProps> = ({ data = [] 
     >
       <div className="flex items-center justify-between mb-10 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground border border-primary">
             <Megaphone className="h-6 w-6" />
           </div>
           <div>

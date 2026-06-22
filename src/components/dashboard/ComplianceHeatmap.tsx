@@ -19,17 +19,17 @@ const data: ComplianceItem[] = [
 
 export const ComplianceHeatmap: React.FC = () => {
   const getCellColor = (value: number) => {
-    if (value >= 95) return 'bg-success text-success border-success/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]';
-    if (value >= 90) return 'bg-success text-success border-success/10';
-    if (value >= 85) return 'bg-warning text-warning border-warning/10';
-    return 'bg-destructive text-destructive border-destructive/20 shadow-[0_0_15px_-5px_rgba(244,63,94,0.3)]';
+    if (value >= 95) return 'bg-success text-success-foreground border-success/20 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)]';
+    if (value >= 90) return 'bg-success text-success-foreground border-success/10';
+    if (value >= 85) return 'bg-warning text-warning-foreground border-warning/10';
+    return 'bg-destructive text-destructive-foreground border-destructive/20 shadow-[0_0_15px_-5px_rgba(244,63,94,0.3)]';
   };
 
   return (
     <div className="flex flex-col h-full rounded-2xl border border-border bg-card p-10 shadow-2xl transition-all duration-500 group overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground border border-primary">
             <Gavel className="h-6 w-6" />
           </div>
           <div>

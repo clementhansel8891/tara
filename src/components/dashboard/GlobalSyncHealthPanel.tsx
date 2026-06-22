@@ -22,7 +22,7 @@ export const GlobalSyncHealthPanel: React.FC<GlobalSyncHealthPanelProps> = ({ da
         </div>
         <div className={cn(
           "h-12 w-12 rounded-2xl flex items-center justify-center border transition-all duration-700",
-          data.isHealthy ? "bg-success border-success/20 text-success" : "bg-destructive border-destructive/20 text-destructive"
+          data.isHealthy ? "bg-success border-success/20 text-success-foreground" : "bg-destructive border-destructive/20 text-destructive-foreground"
         )}>
           <Cloud className="h-6 w-6" />
         </div>

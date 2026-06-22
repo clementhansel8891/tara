@@ -41,7 +41,7 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
 
       <div className="flex items-center justify-between mb-10 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary border border-primary">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground border border-primary">
             <Terminal className="h-6 w-6" />
           </div>
           <div>
@@ -77,7 +77,7 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
                 <p className="text-[11px] font-medium text-muted-foreground line-clamp-2 leading-relaxed group-hover/item:text-muted-foreground transition-colors">{activity.detail}</p>
                 <div className="flex items-center gap-3 pt-2">
                   {activity.module && (
-                    <div className="px-2.5 py-0.5 rounded-lg bg-primary border border-primary text-[8px] font-black uppercase text-primary tracking-widest">
+                    <div className="px-2.5 py-0.5 rounded-lg bg-primary border border-primary text-[8px] font-black uppercase text-primary-foreground tracking-widest">
                       {activity.module}
                     </div>
                   )}
