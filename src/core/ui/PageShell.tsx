@@ -17,15 +17,15 @@ export function PageShell({
   children,
 }: PageShellProps) {
   return (
-    <div className="min-h-screen w-full bg-background selection:bg-primary/20 selection:text-primary">
-      <div className="flex flex-col w-full h-screen">
+    <div className="h-full w-full bg-background selection:bg-primary/20 selection:text-primary">
+      <div className="flex flex-col w-full h-full">
         {header && (
           <header className="shrink-0 border-b border-border/50 bg-surface-2/80 backdrop-blur-2xl z-20">
             {header}
           </header>
         )}
         
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {left && (
             <aside className="w-80 shrink-0 border-r border-border/50 bg-surface-2/40 backdrop-blur-2xl hidden lg:block overflow-y-auto premium-scrollbar">
               {left}

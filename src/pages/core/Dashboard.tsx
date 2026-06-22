@@ -113,7 +113,7 @@ export default function CoreDashboard() {
   const mainContent = (
     <div className="p-4 md:p-10 max-w-[1800px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <Tabs defaultValue="overview" className="space-y-12">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-8 glass-card p-6 rounded-[3rem]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-8 bg-card border border-border p-6 rounded-[3rem] shadow-xl">
           <TabsList className="bg-secondary/50 p-1.5 rounded-2xl h-14 border border-border/50">
             <TabsTrigger value="overview" className="rounded-xl px-10 h-11 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-primary-foreground font-black text-[10px] uppercase tracking-[0.25em] transition-all duration-300 text-muted-foreground">
               Strategic Overview
