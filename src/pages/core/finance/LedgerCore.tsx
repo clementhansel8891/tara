@@ -327,7 +327,7 @@ export default function LedgerCore() {
                         {formatNumber(journal.amount)}
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {(journal?.createdAt || """").slice(0, 10)}
+                        {(journal?.createdAt || "").slice(0, 10)}
                       </td>
                       <td className="p-3">
                         <ApprovalStatusBadge status={journal.status} />
@@ -427,7 +427,7 @@ export default function LedgerCore() {
                         />
                       </td>
                       <td className="p-3 text-muted-foreground">
-                        {(entryRow?.updatedAt || """").slice(0, 10)}
+                        {(entryRow?.updatedAt || "").slice(0, 10)}
                       </td>
                     </tr>
                   ))}
