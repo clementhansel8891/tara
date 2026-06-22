@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable, Inject } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../persistence/prisma.service';

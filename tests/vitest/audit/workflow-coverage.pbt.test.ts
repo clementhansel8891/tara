@@ -13,8 +13,8 @@ import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { WORKFLOW_NAMES } from '../fixtures/workflow-names.js';
-import type { WorkflowStepResult } from '../../../../scripts/audit/types/audit-types.js';
+import { WORKFLOW_NAMES } from '../../playwright/audit/fixtures/workflow-names.js';
+import type { WorkflowStepResult } from '../../../scripts/audit/types/audit-types.js';
 
 // ---------------------------------------------------------------------------
 // Helpers

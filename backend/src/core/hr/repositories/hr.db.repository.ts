@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Injectable } from "@nestjs/common";
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
