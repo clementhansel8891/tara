@@ -300,7 +300,7 @@ export default function DepartmentWorkspaceLayout({
           </div>
         }
       >
-        <div className="p-0 h-full overflow-y-auto bg-muted dark:bg-muted">
+        <div className="p-0 h-full bg-muted dark:bg-muted">
           <ErrorBoundary>
             {children || <Outlet />}
           </ErrorBoundary>
