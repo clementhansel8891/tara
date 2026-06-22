@@ -15,6 +15,9 @@ import { Navigate, Route } from "react-router-dom";
 
 import { resolveCorePages } from "./corePageResolver";
 import ProtectedRoute from "@/core/security/ProtectedRoute";
+import GrowthTrajectoryPage from "@/pages/core/GrowthTrajectory";
+import RiskMatrixPage from "@/pages/core/RiskMatrix";
+import DataArchivesPage from "@/pages/core/DataArchives";
 import HRWorkspaceLayout from "@/pages/core/HR/HRWorkspaceLayout";
 import PulseDesk from "@/pages/core/HR/PulseDesk";
 import RosterGrid from "@/pages/core/HR/RosterGrid";
@@ -177,6 +180,9 @@ export function buildCoreRoutes(): JSX.Element[] {
     <Route key="core-purchasing-legacy" path="purchasing" element={<Navigate to="/core/procurement" replace />} />,
     <Route key="core-settings-devices-legacy" path="settings/devices" element={<Navigate to="/core/it/devices" replace />} />,
     <Route key="core-settings-tabs" path="settings/:tab" element={<CoreSettings />} />,
+    <Route key="core-trajectory" path="trajectory" element={<GrowthTrajectoryPage />} />,
+    <Route key="core-risk" path="risk" element={<RiskMatrixPage />} />,
+    <Route key="core-archives" path="archives" element={<DataArchivesPage />} />,
     <Route
       key="core-finance"
       path="finance/*"
