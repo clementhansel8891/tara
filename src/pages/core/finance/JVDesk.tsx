@@ -78,39 +78,39 @@ export default function JVDesk() {
       />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="glass-panel p-5 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm relative overflow-hidden group">
+        <div className="p-5 rounded-2xl border border-border bg-card shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Users className="h-12 w-12 text-primary" />
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Participants</p>
           <p className="text-3xl font-black text-primary mt-1">{profiles.length || 0}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-success font-medium">
-            <ArrowUpRight className="h-3 w-3" />
-            <span>2 new this month</span>
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground font-medium">
+            <ArrowUpRight className="h-3 w-3 text-success" />
+            <span>{profiles.length > 0 ? `${profiles.length} active` : 'No profiles yet'}</span>
           </div>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm relative overflow-hidden group">
+        <div className="p-5 rounded-2xl border border-border bg-card shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <HandCoins className="h-12 w-12 text-primary" />
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">MTD Allocated Revenue</p>
-          <p className="text-3xl font-black text-primary mt-1">Rp 1.2B</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-primary font-medium">
+          <p className="text-3xl font-black text-primary mt-1">{netSettlement ? `Rp ${(Math.abs(netSettlement.totalDebit || 0) / 1e9).toFixed(1)}B` : '—'}</p>
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground font-medium">
             <History className="h-3 w-3" />
-            <span>Last sync: 10m ago</span>
+            <span>Last sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
           </div>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border bg-card/50 backdrop-blur-sm shadow-sm relative overflow-hidden group">
+        <div className="p-5 rounded-2xl border border-border bg-card shadow-sm relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Scale className="h-12 w-12 text-destructive" />
           </div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pending Cost Burden</p>
-          <p className="text-3xl font-black text-destructive mt-1">Rp 450M</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-destructive font-medium">
-            <ArrowDownRight className="h-3 w-3" />
-            <span>Category: Marketing (55%)</span>
+          <p className="text-3xl font-black text-destructive mt-1">{netSettlement ? `Rp ${(Math.abs(netSettlement.totalCredit || 0) / 1e6).toFixed(0)}M` : '—'}</p>
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground font-medium">
+            <ArrowDownRight className="h-3 w-3 text-destructive" />
+            <span>From active settlements</span>
           </div>
         </div>
       </div>

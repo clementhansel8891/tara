@@ -129,8 +129,8 @@ export function OperationsCommandGrid({
             value={payMetrics ? `${payMetrics.openDisputes} disputes` : "—"}
             sub={payMetrics ? `${payMetrics.openChargebacks} chargebacks` : "Loading..."}
             icon={ShieldCheck}
-            color="text-sky-500"
-            iconBg="bg-sky-500/10"
+            color="text-info"
+            iconBg="bg-info/10"
             href="/core/finance/audit"
             trend={payMetrics && payMetrics.openDisputes === 0 ? "Optimal" : "Review"}
             trendUp={payMetrics ? payMetrics.openDisputes === 0 : true}
@@ -150,8 +150,8 @@ export function OperationsCommandGrid({
             value={`${healthyProviders}/${providers.length}`}
             sub="Healthy bank providers"
             icon={Building2}
-            color="text-teal-500"
-            iconBg="bg-teal-500/10"
+            color="text-success"
+            iconBg="bg-success/10"
             href="/core/payment/providers"
             trend={healthyProviders === providers.length ? "All Healthy" : "Degraded"}
             trendUp={healthyProviders === providers.length}
@@ -215,8 +215,8 @@ export function OperationsCommandGrid({
             value={opsMetrics?.assetRegistryValue ?? "—"}
             sub="Capital deployed"
             icon={Building2}
-            color="text-teal-500"
-            iconBg="bg-teal-500/10"
+            color="text-success"
+            iconBg="bg-success/10"
             href="/core/finance/assets"
             trend={opsMetrics?.assetRegistryValue ? "Live" : "Loading..."}
             trendUp
