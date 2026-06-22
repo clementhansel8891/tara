@@ -998,6 +998,7 @@ model companies {
   user_companies                        user_companies[]
   user_notification_preferences         user_notification_preferences[]
   users                                 users[]
+  void_requests                         void_requests[]
   warehouse_bins                        warehouse_bins[]
   workflow_audit_entries                workflow_audit_entries[]
   workflow_definitions                  workflow_definitions[]
