@@ -317,26 +317,30 @@ export class AdminService {
       })(),
       // Payroll monthly data
       (async () => {
-        const raw: any[] = await this.prisma.$queryRaw`
-          SELECT DATE_TRUNC('month', pay_date) as month, SUM(gross_pay) as gross
-          FROM payroll_runs
-          WHERE tenant_id = ${tenant_id} AND pay_date >= ${sixMonthsAgo}
-          GROUP BY 1 ORDER BY 1 ASC
-        `.catch(() => []);
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return raw.length > 0
-          ? raw.map(r => ({ month: months[new Date(r.month).getMonth()], gross: Number(r.gross) }))
-          : null;
+        try {
+          const raw = await this.prisma.$queryRaw<any[]>`
+            SELECT DATE_TRUNC('month', pay_date) as month, SUM(gross_pay) as gross
+            FROM payroll_runs
+            WHERE tenant_id = ${tenant_id} AND pay_date >= ${sixMonthsAgo}
+            GROUP BY 1 ORDER BY 1 ASC
+          `;
+          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          return raw.length > 0
+            ? raw.map(r => ({ month: months[new Date(r.month).getMonth()], gross: Number(r.gross) }))
+            : null;
+        } catch { return null; }
       })(),
       // Action items (pending workflow requests)
       (async () => {
-        const items = await this.prisma.workflow_requests.findMany({
-          where: { tenant_id, status: 'PENDING' },
-          orderBy: { created_at: 'desc' },
-          take: 5,
-          select: { id: true, title: true, created_at: true, type: true },
-        }).catch(() => []);
-        return items;
+        try {
+          const items = await this.prisma.workflow_requests.findMany({
+            where: { tenant_id, status: 'PENDING' },
+            orderBy: { created_at: 'desc' },
+            take: 5,
+            select: { id: true, created_at: true, type: true },
+          });
+          return items;
+        } catch { return []; }
       })(),
     ]);
 
@@ -368,9 +372,9 @@ export class AdminService {
         inventory: inventoryStats,
         procurement: procurementStats,
         payroll: payrollData,
-        actionItems: actionItems.map((item: any) => ({
+        actionItems: (actionItems as any[]).map((item: any) => ({
           id: item.id,
-          title: item.title || item.type,
+          title: item.type || 'Pending Request',
           time: item.created_at ? this.timeAgo(item.created_at) : 'recently',
           priority: item.type === 'APPROVAL' ? 'high' : item.type === 'REVIEW' ? 'medium' : 'low',
         })),
