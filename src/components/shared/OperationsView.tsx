@@ -97,19 +97,15 @@ export function OperationsView() {
         <AuditIntegrityPanel data={tacticalData.auditIntegrity} />
       </div>
 
-      {/* Operational Flow Layer */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RetailShiftMatrix data={tacticalData.retailShifts} />
-        </div>
-        <WorkflowPipeline data={tacticalData.workflowItems} />
-      </div>
+      {/* Retail Shift Matrix — full width */}
+      <RetailShiftMatrix data={tacticalData.retailShifts} />
+
+      {/* Workflow Pipeline */}
+      <WorkflowPipeline data={tacticalData.workflowItems} />
 
       {/* Edge & Alerts Layer */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <DeviceNetworkTable data={tacticalData.iotDevices} />
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <DeviceNetworkTable data={tacticalData.iotDevices} />
         <div className="space-y-6">
           <OperationalAlertsQueue data={tacticalData.alertsQueue} />
           <OperationalChecklist />

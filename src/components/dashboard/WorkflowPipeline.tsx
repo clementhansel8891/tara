@@ -22,10 +22,10 @@ export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = ({ data = [] })
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'text-warning bg-warning border-warning/20';
-      case 'IN_PROGRESS': return 'text-primary bg-primary border-primary';
-      case 'COMPLETED': return 'text-success bg-success border-success/20';
-      default: return 'text-destructive bg-destructive border-destructive/20';
+      case 'PENDING': return 'text-warning-foreground bg-warning border-warning/20';
+      case 'IN_PROGRESS': return 'text-primary-foreground bg-primary border-primary';
+      case 'COMPLETED': return 'text-success-foreground bg-success border-success/20';
+      default: return 'text-destructive-foreground bg-destructive border-destructive/20';
     }
   };
 

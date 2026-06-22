@@ -28,8 +28,8 @@ export const LiveModuleActivity: React.FC<LiveModuleActivityProps> = ({ data = [
             </div>
          </div>
          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-success border border-success/20">
-            <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[8px] font-black uppercase text-success tracking-widest">Global Integrity Optimal</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-success-foreground animate-pulse" />
+            <span className="text-[8px] font-black uppercase text-success-foreground tracking-widest">Global Integrity Optimal</span>
          </div>
       </div>
 

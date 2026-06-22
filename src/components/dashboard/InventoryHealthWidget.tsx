@@ -7,9 +7,9 @@ export const InventoryHealthWidget: React.FC = () => {
   const navigate = useNavigate();
 
   const metrics = [
-    { label: 'Low Stock SKUs', value: 24, icon: AlertTriangle, color: 'text-destructive', bg: 'bg-destructive', border: 'border-destructive/20' },
-    { label: 'Total SKUs', value: 1240, icon: Package, color: 'text-primary', bg: 'bg-primary', border: 'border-primary' },
-    { label: 'Turnover Rate', value: '4.2x', icon: BarChart2, color: 'text-success', bg: 'bg-success', border: 'border-success/20' },
+    { label: 'Low Stock SKUs', value: 24, icon: AlertTriangle, color: 'text-destructive-foreground', bg: 'bg-destructive', border: 'border-destructive/20' },
+    { label: 'Total SKUs', value: 1240, icon: Package, color: 'text-primary-foreground', bg: 'bg-primary', border: 'border-primary' },
+    { label: 'Turnover Rate', value: '4.2x', icon: BarChart2, color: 'text-success-foreground', bg: 'bg-success', border: 'border-success/20' },
   ];
 
   return (

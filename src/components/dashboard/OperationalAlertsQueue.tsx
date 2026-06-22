@@ -23,9 +23,9 @@ export const OperationalAlertsQueue: React.FC<OperationalAlertsQueueProps> = ({ 
 
   const getSeverityStyle = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return { icon: AlertCircle, color: 'text-destructive', glow: 'shadow-rose-500/20', bg: 'bg-destructive', border: 'border-destructive/20' };
-      case 'HIGH': return { icon: AlertTriangle, color: 'text-warning', glow: 'shadow-amber-500/20', bg: 'bg-warning', border: 'border-warning/20' };
-      case 'MEDIUM': return { icon: Info, color: 'text-primary', glow: 'shadow-blue-500/20', bg: 'bg-primary', border: 'border-primary' };
+      case 'CRITICAL': return { icon: AlertCircle, color: 'text-destructive-foreground', glow: 'shadow-rose-500/20', bg: 'bg-destructive', border: 'border-destructive/20' };
+      case 'HIGH': return { icon: AlertTriangle, color: 'text-warning-foreground', glow: 'shadow-amber-500/20', bg: 'bg-warning', border: 'border-warning/20' };
+      case 'MEDIUM': return { icon: Info, color: 'text-primary-foreground', glow: 'shadow-blue-500/20', bg: 'bg-primary', border: 'border-primary' };
       default: return { icon: Info, color: 'text-muted-foreground', glow: 'shadow-slate-500/10', bg: 'bg-white/5', border: 'border-white/10' };
     }
   };

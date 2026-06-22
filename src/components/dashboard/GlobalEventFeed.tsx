@@ -16,9 +16,9 @@ export const GlobalEventFeed: React.FC<GlobalEventFeedProps> = ({ activities = [
 
   const getSeverityStyles = (severity?: string) => {
     switch (severity) {
-      case 'critical': return 'text-destructive bg-destructive border-destructive/20';
-      case 'warning': return 'text-warning bg-warning border-warning/20';
-      default: return 'text-primary bg-primary border-primary';
+      case 'critical': return 'text-destructive-foreground bg-destructive border-destructive/20';
+      case 'warning': return 'text-warning-foreground bg-warning border-warning/20';
+      default: return 'text-primary-foreground bg-primary border-primary';
     }
   };
 
