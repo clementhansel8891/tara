@@ -1,47 +1,46 @@
 import { PrismaClient } from '@prisma/client';
 
-// Hardcode the connection string to try port 5433
-const databaseUrl = "postgresql://zenvix:zenvix_secure_2026!@localhost:5433/zenvix_prod?schema=public";
-process.env.DATABASE_URL = databaseUrl;
+async function run() {
+  const prodPrisma = new PrismaClient({
+    datasources: {
+      db: {
+        url: "postgresql://zenvix:zenvix_secure_2026!@150.109.15.108:5433/zenvix_prod?schema=public"
+      }
+    }
+  });
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: databaseUrl,
-    },
-  },
-});
-
-async function main() {
-  console.log("Connecting to:", databaseUrl);
   try {
-    console.log("--- Tenants ---");
-    const tenants = await prisma.companies.findMany({
-      select: { id: true, name: true, code: true }
+    const tenantId = "tnt-3rlhko";
+    
+    // 1. Get user details
+    const user = await prodPrisma.users.findUnique({
+      where: { id: "f8591842-777d-47b0-8ac4-f10fff1008dd" }
     });
-    console.table(tenants);
+    console.log("User details:", user);
 
-    console.log("--- ALL Locations ---");
-    const allLocations = await prisma.locations.findMany({
-      select: { id: true, name: true, code: true, type: true, tenant_id: true }
+    // 2. Get locations for tenant
+    const locations = await prodPrisma.locations.findMany({
+      where: { tenant_id: tenantId }
     });
-    console.table(allLocations);
+    console.log("Locations in tenant:", locations.map(l => ({ id: l.id, name: l.name, code: l.code })));
 
-    console.log("--- ALL Stores ---");
-    const allStores = await prisma.stores.findMany({
-      select: { id: true, name: true, code: true, location_id: true, tenant_id: true }
+    // 3. Get employees for tenant
+    const employees = await prodPrisma.employees.findMany({
+      where: { tenant_id: tenantId }
     });
-    console.table(allStores);
-  } catch (err) {
-    console.error("Failed to query DB:", err);
+    console.log("Employees in tenant:", employees.map(e => ({ id: e.id, email: e.email, location_id: e.location_id })));
+
+    // 4. See if location 8cc63392-2c19-4823-b6a0-0baa4eb2205e exists at all in db
+    const targetLoc = await prodPrisma.locations.findUnique({
+      where: { id: "8cc63392-2c19-4823-b6a0-0baa4eb2205e" }
+    });
+    console.log("Target location exists details:", targetLoc);
+
+  } catch (err: any) {
+    console.error("Error running script:", err.message);
+  } finally {
+    await prodPrisma.$disconnect();
   }
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+run();

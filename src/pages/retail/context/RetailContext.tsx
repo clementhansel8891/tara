@@ -140,8 +140,8 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
 
         if (targetStore) {
           setActiveStore(targetStore);
-          if (session.location_id !== targetStore.id) {
-            updateLocationRef.current(targetStore.id);
+          if (session.location_id !== targetStore.locationId) {
+            updateLocationRef.current(targetStore.locationId);
           }
         } else if (targetChannel) {
           setActiveChannel(targetChannel);
@@ -152,8 +152,8 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
           // Default to first store if nothing saved
           const defaultStore = fetchedStores[0];
           setActiveStore(defaultStore);
-          if (session.location_id !== defaultStore.id) {
-            updateLocationRef.current(defaultStore.id);
+          if (session.location_id !== defaultStore.locationId) {
+            updateLocationRef.current(defaultStore.locationId);
           }
         }
       } else if (currentActiveStore) {
@@ -223,8 +223,8 @@ export const RetailProvider: React.FC<{ children: ReactNode }> = ({
         setActiveChannel(null);
         localStorage.setItem("retail_active_store_id", store.id);
         localStorage.removeItem("retail_active_channel_id");
-        if (session.location_id !== store.id) {
-          updateLocation(store.id);
+        if (session.location_id !== store.locationId) {
+          updateLocation(store.locationId);
         }
       }
     },

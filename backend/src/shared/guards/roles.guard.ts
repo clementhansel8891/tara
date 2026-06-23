@@ -29,14 +29,14 @@ export class RolesGuard implements CanActivate {
     const url = request.url;
 
     // Explicit System Route Blacklist for OWNER role
+    // Only block truly dangerous system-level write/infra operations.
+    // Read-only diagnostic routes like /v1/admin/audit are intentionally NOT blocked.
     const SYSTEM_ROUTES = [
       '/v1/audit/repair',
       '/v1/admin/infra',
-      '/v1/admin/audit',
       '/v1/license',
       '/v1/logs',
-      '/v1/sync',
-      '/v1/audit/verify'
+      '/v1/audit/verify',
     ];
 
     const isSystemRoute = SYSTEM_ROUTES.some(route => url.startsWith(route));

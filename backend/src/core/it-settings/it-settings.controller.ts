@@ -149,5 +149,44 @@ export class ITSettingsController {
       data: setting,
     };
   }
+
+  @Get("provisioning/requests")
+  async listProvisioningRequests(
+    @Req() request: RequestWithTenant,
+    @Query("locationId") locationId?: string,
+  ) {
+    const ctx = request.tenantContext;
+    const { tenant_id } = ctx;
+    const requests = await this.itSettingsService.listProvisioningRequests(
+      ctx,
+      locationId,
+    );
+    return {
+      success: true,
+      tenant_id,
+      count: requests.length,
+      data: requests,
+    };
+  }
+
+  @Post("provisioning/requests")
+  async createProvisioningRequest(
+    @Req() request: RequestWithTenant,
+    @Body() body: any,
+  ) {
+    const ctx = request.tenantContext;
+    const { tenant_id, user_id } = ctx;
+    const result = await this.itSettingsService.createProvisioningRequest(
+      ctx,
+      body,
+      user_id,
+    );
+    return {
+      success: true,
+      tenant_id,
+      message: "Provisioning request created successfully",
+      data: result,
+    };
+  }
 }
 

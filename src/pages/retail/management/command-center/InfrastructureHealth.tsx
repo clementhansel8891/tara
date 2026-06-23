@@ -9,6 +9,10 @@ interface InfrastructureHealthProps {
 export const InfrastructureHealth: React.FC<InfrastructureHealthProps> = ({
   data,
 }) => {
+  // Graceful fallbacks for infrastructure telemetry data to prevent rendering crashes
+  const uptimePercentage = data?.uptimePercentage ?? 100;
+  const networkLatency = data?.networkLatency ?? 45;
+
   return (
     <div className="bg-white/[0.03] backdrop-blur-3xl p-6 rounded-[2rem] border border-white/5 shadow-2xl hover:bg-white/[0.05] hover:-translate-y-1 transition-all duration-700 group h-full flex flex-col relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-info/10 rounded-full blur-[130px] -mr-[15%] -mt-[15%] pointer-events-none" />
@@ -36,7 +40,7 @@ export const InfrastructureHealth: React.FC<InfrastructureHealthProps> = ({
                 </p>
                 <div className="flex items-baseline gap-2">
                   <p className="text-3xl font-black italic tracking-tighter text-foreground">
-                    {data.uptimePercentage}
+                    {uptimePercentage}
                   </p>
                   <p className="text-2xl font-black text-muted-foreground opacity-40 tracking-tighter">
                     %
@@ -61,9 +65,9 @@ export const InfrastructureHealth: React.FC<InfrastructureHealthProps> = ({
             <div className="flex flex-col gap-2 relative z-10">
               <div className="flex items-baseline gap-2">
                 <span
-                  className={`text-3xl font-black italic tracking-tighter ${data.networkLatency > 150 ? "text-destructive" : "text-success"}`}
+                  className={`text-3xl font-black italic tracking-tighter ${networkLatency > 150 ? "text-destructive" : "text-success"}`}
                 >
-                  {data.networkLatency}
+                  {networkLatency}
                 </span>
                 <span className="text-xl font-black text-muted-foreground italic tracking-tighter">
                   ms
@@ -71,10 +75,10 @@ export const InfrastructureHealth: React.FC<InfrastructureHealthProps> = ({
               </div>
               <div className="mt-4 flex items-center gap-2 px-4 py-1.5 bg-black/20 rounded-xl w-fit border border-white/5 shadow-inner">
                 <div
-                  className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)] ${data.networkLatency > 150 ? "bg-destructive shadow-[0_0_8px_rgba(244,63,94,0.8)]" : "bg-success shadow-[0_0_8px_rgba(16,185,129,0.8)]"}`}
+                  className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)] ${networkLatency > 150 ? "bg-destructive shadow-[0_0_8px_rgba(244,63,94,0.8)]" : "bg-success shadow-[0_0_8px_rgba(16,185,129,0.8)]"}`}
                 />
                 <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">
-                  {data.networkLatency > 150 ? "DEGRADED" : "OPTIMAL PEAK"}
+                  {networkLatency > 150 ? "DEGRADED" : "OPTIMAL PEAK"}
                 </span>
               </div>
             </div>

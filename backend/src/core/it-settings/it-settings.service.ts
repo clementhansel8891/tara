@@ -6,12 +6,15 @@ import { Setting } from "./entities/setting.entity";
 import { RegisterDeviceDto } from "./dto/register-device.dto";
 import { UpdateSettingDto } from "./dto/update-setting.dto";
 import { AuditService } from "../../shared/audit/audit.service";
+import { PrismaService } from "../../persistence/prisma.service";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class ITSettingsService {
   constructor(
     private readonly repository: IITSettingsRepository,
     private readonly auditService: AuditService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async getDevices(ctx: TenantContext, location_id?: string): Promise<Device[]> {
@@ -88,4 +91,66 @@ export class ITSettingsService {
     }
     return setting;
   }
+
+  /**
+   * List provisioning requests backed by audit_logs
+   * (entity_type = 'PROVISIONING_REQUEST', module = 'it-provisioning').
+   * The full request payload is stored in the `metadata` JSON column.
+   */
+  async listProvisioningRequests(ctx: TenantContext, locationId?: string): Promise<any[]> {
+    const logs = await this.prisma.audit_logs.findMany({
+      where: {
+        tenant_id: ctx.tenant_id,
+        module: "it-provisioning",
+        entity_type: "PROVISIONING_REQUEST",
+        action: "CREATE",
+        ...(locationId ? { metadata: { path: ["locationId"], equals: locationId } } : {}),
+      },
+      orderBy: { created_at: "desc" },
+      take: 200,
+    });
+
+    return logs.map((log) => ({
+      id: log.entity_id,
+      tenantId: log.tenant_id,
+      requesterId: log.user_id,
+      createdAt: log.created_at,
+      updatedAt: log.updated_at,
+      status: (log.metadata as any)?.status ?? "PENDING",
+      ...((log.metadata as any) ?? {}),
+    }));
+  }
+
+  /**
+   * Create a provisioning request persisted as an audit_log entry.
+   */
+  async createProvisioningRequest(ctx: TenantContext, data: any, user_id?: string): Promise<any> {
+    const requestId = data.id ?? uuidv4();
+    const payload = {
+      ...data,
+      id: requestId,
+      status: data.status ?? "PENDING",
+    };
+
+    await this.auditService.log({
+      tenant_id: ctx.tenant_id,
+      user_id: user_id ?? ctx.user_id ?? "system",
+      module: "it-provisioning",
+      action: "CREATE",
+      entity_type: "PROVISIONING_REQUEST",
+      entity_id: requestId,
+      metadata: payload,
+    });
+
+    return {
+      id: requestId,
+      tenantId: ctx.tenant_id,
+      requesterId: user_id ?? ctx.user_id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: "PENDING",
+      ...data,
+    };
+  }
 }
+

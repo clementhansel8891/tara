@@ -21,6 +21,7 @@ import {
 import { Request } from "express";
 import { RetailService } from "./retail.service";
 import { RetailSeeder } from "./seeders/retail.seeder";
+import { AuditService } from "../../shared/audit/audit.service";
 import {
   CreateStoreDto,
   UpdateStoreDto,
@@ -59,6 +60,7 @@ export class RetailController {
     private readonly retailService: RetailService,
     private readonly retailExport: RetailExportService,
     private readonly retailSeeder: RetailSeeder,
+    private readonly auditService: AuditService,
   ) {
     console.log("[RetailController] Instantiated and routes registered.");
   }
@@ -1338,6 +1340,36 @@ export class RetailController {
     const { tenant_id } = request.tenantContext;
     const buffer = await this.retailService.printOrder(request.tenantContext, order_id);
     return buffer;
+  }
+
+  /**
+   * Governance audit log for a specific retail entity (e.g. GLOBAL_STAFF_ROSTER).
+   * Proxies into the shared audit_logs table filtered by module='retail' and the
+   * optional entity_id query parameter so the frontend compliance ledger can work.
+   */
+  @Get("governance/audit-log")
+  @SkipBranchCheck()
+  async getGovernanceAuditLog(
+    @Req() request: RequestWithTenant,
+    @Query("entity_id") entity_id?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    const ctx = request.tenantContext;
+    const result = await this.auditService.query(ctx.tenant_id, {
+      module: "retail",
+      entity_id,
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 50,
+    });
+    return {
+      success: true,
+      tenant_id: ctx.tenant_id,
+      data: result.data,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+    };
   }
 
 }

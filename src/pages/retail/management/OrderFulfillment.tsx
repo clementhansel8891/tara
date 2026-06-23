@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { OrderDetailModal } from "./modals/OrderDetailModal";
 import { QueryBoundary } from "@/components/shared/QueryBoundary";
 import { EmptyState, ErrorState } from "@/components/shared/AsyncState";
+import { formatNumber } from "@/lib/format";
 
 import {
   PackageCheck,

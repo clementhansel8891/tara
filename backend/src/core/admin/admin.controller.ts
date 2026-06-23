@@ -294,11 +294,21 @@ export class AdminController {
 
   /**
    * GET /v1/admin/audit/integrity-status
-   * Formal alias for integrity verification
+   * Formal alias for integrity verification — accessible by ADMIN and above.
    */
   @Get("audit/integrity-status")
+  @Roles(UserRole.SUPERADMIN, UserRole.OWNER, UserRole.ADMIN)
   async getAuditIntegrityStatus(@Req() request: RequestWithTenant) {
-    return this.verifyIntegrity(request);
+    const { tenant_id } = request.tenantContext;
+    const result = await this.auditChainService.verifyIntegrity(tenant_id);
+    return {
+      success: true,
+      tenant_id,
+      status: result.status,
+      verified_at: new Date().toISOString(),
+      details: result.details,
+      integrity_score: result.brokenCount === 0 ? 100 : Math.max(0, 100 - (result.brokenCount * 10))
+    };
   }
 
   /**

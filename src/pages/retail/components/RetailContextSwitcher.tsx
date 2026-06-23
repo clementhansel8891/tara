@@ -104,82 +104,84 @@ export const RetailContextSwitcher = () => {
         className="w-64 rounded-2xl p-2 shadow-2xl border-2 border-border"
         align="start"
       >
-        <DropdownMenuLabel className="px-3 py-2">
-          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Retail Governance
-          </div>
-          <div className="text-xs font-bold italic mt-1">
-            Switch Managed Presence
-          </div>
-        </DropdownMenuLabel>
+        <div className="max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
+          <DropdownMenuLabel className="px-3 py-2">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Retail Governance
+            </div>
+            <div className="text-xs font-bold italic mt-1">
+              Switch Managed Presence
+            </div>
+          </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="my-2" />
+          <DropdownMenuSeparator className="my-2" />
 
-        <DropdownMenuGroup>
-          <div className="px-3 py-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            <Building2 className="w-3 h-3" />
-            Physical Branches
-          </div>
-          {(Array.isArray(stores) ? stores : []).map((store) => (
-            <DropdownMenuItem
-              key={store.id}
-              onSelect={() => setStore(store.id)}
-              className="rounded-xl flex items-center justify-between p-3 cursor-pointer mt-1"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-2 h-2 rounded-full ${activeStore?.id === store.id ? "bg-primary/50 animate-pulse" : "bg-muted/20"}`}
-                />
-                <span
-                  className={`text-xs font-bold ${activeStore?.id === store.id ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  {store.name}
-                </span>
-              </div>
-              {activeStore?.id === store.id && (
-                <Check className="w-4 h-4 text-primary" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
+          <DropdownMenuGroup>
+            <div className="px-3 py-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <Building2 className="w-3 h-3" />
+              Physical Branches
+            </div>
+            {(Array.isArray(stores) ? stores : []).map((store) => (
+              <DropdownMenuItem
+                key={store.id}
+                onSelect={() => setStore(store.id)}
+                className="rounded-xl flex items-center justify-between p-3 cursor-pointer mt-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-2 h-2 rounded-full ${activeStore?.id === store.id ? "bg-primary/50 animate-pulse" : "bg-muted/20"}`}
+                  />
+                  <span
+                    className={`text-xs font-bold ${activeStore?.id === store.id ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    {store.name}
+                  </span>
+                </div>
+                {activeStore?.id === store.id && (
+                  <Check className="w-4 h-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
 
-        <DropdownMenuSeparator className="my-2" />
+          <DropdownMenuSeparator className="my-2" />
 
-        <DropdownMenuGroup>
-          <div className="px-3 py-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            <ShoppingBag className="w-3 h-3" />
-            Ecommerce Channels
-          </div>
-          {(Array.isArray(channels) ? channels : []).map((channel) => (
-            <DropdownMenuItem
-              key={channel.id}
-              onSelect={() => setChannel(channel.id)}
-              className="rounded-xl flex items-center justify-between p-3 cursor-pointer mt-1"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-2 h-2 rounded-full ${activeChannel?.id === channel.id ? "bg-primary animate-pulse" : "bg-muted/20"}`}
-                />
-                <span
-                  className={`text-xs font-bold ${activeChannel?.id === channel.id ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  {channel.name}
-                </span>
-              </div>
-              {activeChannel?.id === channel.id && (
-                <Check className="w-4 h-4 text-primary" />
-              )}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
+          <DropdownMenuGroup>
+            <div className="px-3 py-1 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              <ShoppingBag className="w-3 h-3" />
+              Ecommerce Channels
+            </div>
+            {(Array.isArray(channels) ? channels : []).map((channel) => (
+              <DropdownMenuItem
+                key={channel.id}
+                onSelect={() => setChannel(channel.id)}
+                className="rounded-xl flex items-center justify-between p-3 cursor-pointer mt-1"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-2 h-2 rounded-full ${activeChannel?.id === channel.id ? "bg-primary animate-pulse" : "bg-muted/20"}`}
+                  />
+                  <span
+                    className={`text-xs font-bold ${activeChannel?.id === channel.id ? "text-primary" : "text-muted-foreground"}`}
+                  >
+                    {channel.name}
+                  </span>
+                </div>
+                {activeChannel?.id === channel.id && (
+                  <Check className="w-4 h-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
 
-        {stores.length === 0 && channels.length === 0 && (
-          <div className="p-4 text-center">
-            <Badge variant="outline" className="text-[9px] text-muted-foreground">
-              No managed hubs found
-            </Badge>
-          </div>
-        )}
+          {stores.length === 0 && channels.length === 0 && (
+            <div className="p-4 text-center">
+              <Badge variant="outline" className="text-[9px] text-muted-foreground">
+                No managed hubs found
+              </Badge>
+            </div>
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

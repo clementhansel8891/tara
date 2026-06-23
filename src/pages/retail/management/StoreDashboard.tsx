@@ -94,6 +94,8 @@ const StoreDashboard = () => {
   const canViewRisk =
     hasPermission("VIEW_AUDIT") || hasPermission("MANAGE_STORE");
 
+  const [hasUplinkError, setHasUplinkError] = useState(false);
+
   // Data Fetching
   const fetchAnalytics = useCallback(async () => {
     try {
@@ -107,20 +109,27 @@ const StoreDashboard = () => {
         },
       );
       setData(analytics);
+      setHasUplinkError(false);
     } catch (error) {
-      toast({
-        title: "Sync Error",
-        description: "Failed to establish uplink with analytics engine.",
-        variant: "destructive",
-      });
+      if (!hasUplinkError) {
+        toast({
+          title: "Sync Error",
+          description: "Failed to establish uplink with analytics engine.",
+          variant: "destructive",
+        });
+        setHasUplinkError(true);
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [session, timeRange, scopedLocationId, toast]);
+  }, [session, timeRange, scopedLocationId, toast, hasUplinkError]);
 
   useEffect(() => {
-    if (session.tenant_id) fetchAnalytics();
-  }, [fetchAnalytics, session.tenant_id]);
+    if (session.tenant_id) {
+      setHasUplinkError(false); // Reset error state on tenant change
+      fetchAnalytics();
+    }
+  }, [scopedLocationId, timeRange, session.tenant_id]);
 
   // Real-Time Awareness
   useRealTimeAwareness((event) => {
