@@ -75,7 +75,7 @@ export class MultiTenancyUtil {
     // opt-in, making the safe behaviour the default.
     const shouldIncludeBranch =
       options.includeBranch === true ||
-      (options.excludeBranch === false && options.includeBranch !== true);
+      (options.excludeBranch === false);
 
     if (shouldIncludeBranch) {
       if (context.branch_id) {
