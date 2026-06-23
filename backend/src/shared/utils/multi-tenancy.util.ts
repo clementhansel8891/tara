@@ -24,26 +24,66 @@ export interface ScopeLike {
  */
 export class MultiTenancyUtil {
   /**
-   * Returns a Prisma 'where' object scoped to the current context
-   * @param context The current tenant context or resolved tenant scope
-   * @param extra Extra filters to merge
-   * @param options Scoping options (e.g. exclude branch)
+   * Returns a Prisma 'where' object scoped to the current context.
+   *
+   * **Default behaviour (safe for all core business tables):**
+   * Only `tenant_id` and `company_id` are included.  `location_id` and
+   * `branch_id` are **excluded by default** because the vast majority of core
+   * business tables (finance, sales, marketing, payment, pricing, procurement,
+   * HR, etc.) do not have those columns. Including them in a Prisma `where`
+   * clause for a table that lacks the column causes Prisma to throw an internal
+   * error (HTTP 500).
+   *
+   * **When to opt in:**
+   * Pass `{ includeBranch: true }` only for tables that physically have both
+   * `location_id` AND `branch_id` columns (e.g. stock_levels, stock_movements,
+   * inventory_* tables, retail_* tables, supplier_products, warehouse_bins).
+   *
+   * @param context   The current tenant context or resolved tenant scope.
+   * @param extra     Extra filters to merge into the returned where object.
+   * @param options   Scoping options.
    */
   static getScope(
     context: ScopeLike,
     extra: any = {},
-    options: { excludeBranch?: boolean; excludeEcommerce?: boolean } = {},
+    options: {
+      /**
+       * When `true`, include `branch_id` and `location_id` in the where clause.
+       * Only use for tables that have both columns in the schema.
+       * @default false
+       */
+      includeBranch?: boolean;
+      /**
+       * @deprecated Use `includeBranch: true` instead of `excludeBranch: false`.
+       * Kept for backward-compatibility; has no effect when `includeBranch` is set.
+       */
+      excludeBranch?: boolean;
+      excludeEcommerce?: boolean;
+    } = {},
   ) {
     const scope: any = {
       tenant_id: context.tenant_id,
     };
 
-    if (context.branch_id && !options.excludeBranch) {
-      scope.branch_id = context.branch_id;
+    if (context.company_id) {
+      scope.company_id = context.company_id;
     }
 
-    if (context.location_id && !options.excludeBranch) {
-      scope.location_id = context.location_id;
+    // Include branch/location ONLY when explicitly requested.
+    // The old `excludeBranch` option defaulted to false (include by default),
+    // which was the source of 500 errors.  The new `includeBranch` option is
+    // opt-in, making the safe behaviour the default.
+    const shouldIncludeBranch =
+      options.includeBranch === true ||
+      (options.excludeBranch === false && options.includeBranch !== true);
+
+    if (shouldIncludeBranch) {
+      if (context.branch_id) {
+        scope.branch_id = context.branch_id;
+      }
+      if (context.location_id) {
+        scope.location_id = context.location_id;
+      }
     }
 
     if (context.ecommerce_id && !options.excludeEcommerce) {
