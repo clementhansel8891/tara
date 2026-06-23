@@ -1334,7 +1334,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
 
   async getRiskSignals(ctx: TenantScope): Promise<ProcurementRisk[]> {
     const signals = await this.prisma.procurement_risk_signals.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
+      where: MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
       orderBy: { created_at: "desc" },
     });
     return (signals as any[]).map((s) => ({
@@ -1365,7 +1365,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
         ...(mapRiskSignalToColumns(
           data as unknown as Record<string, unknown>,
         ) as Record<string, any>),
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         detail: data.detail || "",
         status: "OPEN",
       },
@@ -1374,7 +1374,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
 
   async updateRiskSignalStatus(ctx: TenantScope, riskSignalId: string, status: string): Promise<any> {
     return this.prisma.procurement_risk_signals.update({
-      where: { id: riskSignalId, ...MultiTenancyUtil.getScope(ctx) },
+      where: { id: riskSignalId, ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }) },
       data: { status },
     });
   }
@@ -1383,7 +1383,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
 
   async getPortalMessages(ctx: TenantScope): Promise<any[]> {
     const messages = await this.prisma.supplier_portal_messages.findMany({
-      where: MultiTenancyUtil.getScope(ctx),
+      where: MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
       orderBy: { created_at: "desc" },
     });
     return messages;
@@ -1399,7 +1399,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
         ...(mapPortalMessageToColumns(
           data as unknown as Record<string, unknown>,
         ) as Record<string, any>),
-        ...MultiTenancyUtil.getScope(ctx),
+        ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }),
         created_by: createdBy,
       },
     });
@@ -1411,7 +1411,7 @@ export class ProcurementDbRepository extends IProcurementRepository {
     // Aggregate by category
     const items = await this.prisma.procurement_requisitions.groupBy({
       by: ["category"],
-      where: { ...MultiTenancyUtil.getScope(ctx), status: "PO_RELEASED" },
+      where: { ...MultiTenancyUtil.getScope(ctx, {}, { excludeBranch: true }), status: "PO_RELEASED" },
       _sum: { amount: true },
       _count: { id: true },
     });
