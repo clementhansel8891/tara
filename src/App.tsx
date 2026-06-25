@@ -22,6 +22,7 @@ import { SettingsPage } from "@/pages/web/SettingsPage";
 import { ProfilePage } from "@/pages/web/ProfilePage";
 import { PayrollPage } from "@/pages/web/PayrollPage";
 import { SchedulePage } from "@/pages/web/SchedulePage";
+import { EmployeeDetailPage } from "@/pages/web/EmployeeDetailPage";
 
 // Mobile pages
 import { MobileHomePage } from "@/pages/mobile/MobileHomePage";
@@ -53,7 +54,7 @@ function RootRedirect() {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <AuthProvider>
           <BrowserRouter>
             <Routes>
@@ -64,6 +65,7 @@ export function App() {
               <Route path="/web" element={<WebLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="employees" element={<EmployeesPage />} />
+                <Route path="employees/:id" element={<EmployeeDetailPage />} />
                 <Route path="attendance" element={<AttendancePage />} />
                 <Route path="leaves" element={<LeavesPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />

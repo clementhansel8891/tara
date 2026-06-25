@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import {
   Bot, Clock, MapPin, CalendarDays, Bell, Server,
   Building2, Users, Shield, Key, Send, Zap, Plus,
-  Trash2, TestTube, Wifi, X, Save, Activity,
+  Trash2, TestTube, Wifi, X, Save, Activity, Pencil, Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const sections = [
+  { id: "company", label: "Profil Perusahaan", icon: Building },
   { id: "agents", label: "Agen Otonom", icon: Bot },
   { id: "organization", label: "Organisasi", icon: Building2 },
   { id: "users", label: "Akun & Akses", icon: Key },
@@ -21,7 +22,7 @@ const sections = [
 ];
 
 export function SettingsPage() {
-  const [active, setActive] = useState("agents");
+  const [active, setActive] = useState("company");
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -39,6 +40,7 @@ export function SettingsPage() {
           ))}
         </nav>
         <div className="lg:col-span-4">
+          {active === "company" && <CompanySection />}
           {active === "agents" && <AgentsSection />}
           {active === "organization" && <OrganizationSection />}
           {active === "users" && <UsersSection />}
@@ -49,6 +51,135 @@ export function SettingsPage() {
           {active === "hermes" && <HermesSection />}
         </div>
       </div>
+    </div>
+  );
+}
+
+// === COMPANY PROFILE ===
+function CompanySection() {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["company-settings"],
+    queryFn: () => api.get("/settings/company"),
+    placeholderData: { data: {} },
+  });
+
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({
+    company_name: "",
+    legal_name: "",
+    industry: "",
+    tax_id: "",
+    email: "",
+    phone: "",
+    website: "",
+    address: "",
+    founded_year: "",
+  });
+
+  // Sync form when data loads
+  const company = data?.data || {};
+  const formReady = form.company_name || !company.company_name;
+
+  const startEdit = () => {
+    setForm({
+      company_name: company.company_name || "",
+      legal_name: company.legal_name || "",
+      industry: company.industry || "",
+      tax_id: company.tax_id || "",
+      email: company.email || "",
+      phone: company.phone || "",
+      website: company.website || "",
+      address: company.address || "",
+      founded_year: company.founded_year || "",
+    });
+    setEditing(true);
+  };
+
+  const saveCompany = async () => {
+    if (!form.company_name) { toast.error("Nama perusahaan wajib diisi"); return; }
+    try {
+      await api.put("/settings/company", form);
+      toast.success("Profil perusahaan berhasil disimpan");
+      queryClient.invalidateQueries({ queryKey: ["company-settings"] });
+      setEditing(false);
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <SH title="Profil Perusahaan" sub="Kelola informasi dasar perusahaan" />
+      <div className="surface-elevated p-6 space-y-5">
+        {!editing ? (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center">
+                  <Building className="h-6 w-6 text-gold" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{company.company_name || "—"}</h3>
+                  <p className="text-sm text-muted-foreground">{company.legal_name || ""}</p>
+                </div>
+              </div>
+              <button onClick={startEdit} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20">
+                <Pencil className="h-3 w-3" /> Edit
+              </button>
+            </div>
+            <div className="divider-luxury" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoRow label="Industri" value={company.industry} />
+              <InfoRow label="NPWP" value={company.tax_id} />
+              <InfoRow label="Email" value={company.email} />
+              <InfoRow label="Telepon" value={company.phone} />
+              <InfoRow label="Website" value={company.website} />
+              <InfoRow label="Tahun Berdiri" value={company.founded_year} />
+              <div className="md:col-span-2">
+                <InfoRow label="Alamat" value={company.address} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Edit Profil Perusahaan</p>
+              <button onClick={() => setEditing(false)} className="p-1.5 rounded hover:bg-accent">
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Inp label="Nama Perusahaan *" value={form.company_name} onChange={v => setForm({...form, company_name: v})} placeholder="PT. Maju Bersama" />
+              <Inp label="Nama Legal" value={form.legal_name} onChange={v => setForm({...form, legal_name: v})} placeholder="PT. Maju Bersama Sejahtera" />
+              <Inp label="Industri" value={form.industry} onChange={v => setForm({...form, industry: v})} placeholder="Teknologi Informasi" />
+              <Inp label="NPWP" value={form.tax_id} onChange={v => setForm({...form, tax_id: v})} placeholder="01.234.567.8-901.000" />
+              <Inp label="Email" value={form.email} onChange={v => setForm({...form, email: v})} placeholder="info@company.com" />
+              <Inp label="Telepon" value={form.phone} onChange={v => setForm({...form, phone: v})} placeholder="021-7654321" />
+              <Inp label="Website" value={form.website} onChange={v => setForm({...form, website: v})} placeholder="https://company.com" />
+              <Inp label="Tahun Berdiri" value={form.founded_year} onChange={v => setForm({...form, founded_year: v})} placeholder="2015" />
+              <div className="md:col-span-2">
+                <Inp label="Alamat Lengkap" value={form.address} onChange={v => setForm({...form, address: v})} placeholder="Jl. Sudirman No. 123, Jakarta Selatan" />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-md text-sm border border-input hover:bg-accent">Batal</button>
+              <button onClick={saveCompany} className="px-4 py-2 rounded-md text-sm bg-primary text-primary-foreground font-medium hover:bg-primary/90">
+                <Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  return (
+    <div>
+      <p className="text-2xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium mt-0.5">{value || "—"}</p>
     </div>
   );
 }
@@ -85,28 +216,101 @@ function AgentsSection() {
 
 // === ORGANIZATION ===
 function OrganizationSection() {
+  const queryClient = useQueryClient();
   const { data: offices } = useQuery({ queryKey: ["admin-offices"], queryFn: () => api.get("/admin/offices"), placeholderData: { data: [] } });
   const { data: departments } = useQuery({ queryKey: ["admin-departments"], queryFn: () => api.get("/admin/departments"), placeholderData: { data: [] } });
   const { data: roles } = useQuery({ queryKey: ["admin-roles"], queryFn: () => api.get("/admin/roles"), placeholderData: { data: [] } });
   const [showOfficeForm, setShowOfficeForm] = useState(false);
   const [showDeptForm, setShowDeptForm] = useState(false);
   const [showRoleForm, setShowRoleForm] = useState(false);
+  const [editingOffice, setEditingOffice] = useState<any>(null);
+  const [editingDept, setEditingDept] = useState<any>(null);
   const [officeForm, setOfficeForm] = useState({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
   const [deptForm, setDeptForm] = useState({ name: "", description: "" });
   const [roleForm, setRoleForm] = useState({ role_name: "", permissions: "" });
 
   const addOffice = async () => {
     if (!officeForm.location_name) { toast.error("Nama lokasi wajib diisi"); return; }
-    await api.post("/admin/offices", { ...officeForm, latitude: Number(officeForm.latitude), longitude: Number(officeForm.longitude), geofence_radius_meters: Number(officeForm.geofence_radius_meters) });
-    toast.success("Kantor berhasil ditambahkan"); setShowOfficeForm(false); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
+    try {
+      await api.post("/admin/offices", { ...officeForm, latitude: Number(officeForm.latitude), longitude: Number(officeForm.longitude), geofence_radius_meters: Number(officeForm.geofence_radius_meters) });
+      toast.success("Kantor berhasil ditambahkan");
+      queryClient.invalidateQueries({ queryKey: ["admin-offices"] });
+      setShowOfficeForm(false); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
+    } catch (err: any) { toast.error(err.message || "Gagal menambah kantor"); }
   };
+
+  const updateOffice = async () => {
+    if (!officeForm.location_name) { toast.error("Nama lokasi wajib diisi"); return; }
+    try {
+      await api.put(`/admin/offices/${editingOffice.id}`, { ...officeForm, latitude: Number(officeForm.latitude), longitude: Number(officeForm.longitude), geofence_radius_meters: Number(officeForm.geofence_radius_meters) });
+      toast.success("Kantor berhasil diperbarui");
+      queryClient.invalidateQueries({ queryKey: ["admin-offices"] });
+      setEditingOffice(null); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
+    } catch (err: any) { toast.error(err.message || "Gagal memperbarui kantor"); }
+  };
+
+  const startEditOffice = (o: any) => {
+    setEditingOffice(o);
+    setOfficeForm({
+      location_name: o.location_name || "",
+      address: o.address || "",
+      latitude: String(o.latitude || ""),
+      longitude: String(o.longitude || ""),
+      geofence_radius_meters: String(o.geofence_radius_meters || "200"),
+    });
+    setShowOfficeForm(false);
+  };
+
+  const deleteOffice = async (id: string) => {
+    try {
+      await api.delete(`/admin/offices/${id}`);
+      toast.success("Kantor berhasil dihapus");
+      queryClient.invalidateQueries({ queryKey: ["admin-offices"] });
+    } catch (err: any) { toast.error(err.message || "Gagal menghapus kantor"); }
+  };
+
   const addDept = async () => {
     if (!deptForm.name) { toast.error("Nama departemen wajib diisi"); return; }
-    await api.post("/admin/departments", deptForm); toast.success("Departemen berhasil ditambahkan"); setShowDeptForm(false); setDeptForm({ name: "", description: "" });
+    try {
+      await api.post("/admin/departments", deptForm);
+      toast.success("Departemen berhasil ditambahkan");
+      queryClient.invalidateQueries({ queryKey: ["admin-departments"] });
+      setShowDeptForm(false); setDeptForm({ name: "", description: "" });
+    } catch (err: any) { toast.error(err.message || "Gagal menambah departemen"); }
   };
+
+  const updateDept = async () => {
+    if (!deptForm.name) { toast.error("Nama departemen wajib diisi"); return; }
+    try {
+      await api.put(`/admin/departments/${editingDept.id}`, deptForm);
+      toast.success("Departemen berhasil diperbarui");
+      queryClient.invalidateQueries({ queryKey: ["admin-departments"] });
+      setEditingDept(null); setDeptForm({ name: "", description: "" });
+    } catch (err: any) { toast.error(err.message || "Gagal memperbarui departemen"); }
+  };
+
+  const startEditDept = (d: any) => {
+    setEditingDept(d);
+    setDeptForm({ name: d.name || "", description: d.description || "" });
+    setShowDeptForm(false);
+  };
+
+  const deleteDept = async (id: string) => {
+    try {
+      await api.delete(`/admin/departments/${id}`);
+      toast.success("Departemen berhasil dihapus");
+      queryClient.invalidateQueries({ queryKey: ["admin-departments"] });
+    } catch (err: any) { toast.error(err.message || "Gagal menghapus departemen"); }
+  };
+
   const addRole = async () => {
     if (!roleForm.role_name) { toast.error("Nama role wajib diisi"); return; }
-    await api.post("/admin/roles", { role_name: roleForm.role_name, permissions: {} }); toast.success("Role berhasil ditambahkan"); setShowRoleForm(false); setRoleForm({ role_name: "", permissions: "" });
+    try {
+      await api.post("/admin/roles", { role_name: roleForm.role_name, permissions: {} });
+      toast.success("Role berhasil ditambahkan");
+      queryClient.invalidateQueries({ queryKey: ["admin-roles"] });
+      setShowRoleForm(false); setRoleForm({ role_name: "", permissions: "" });
+    } catch (err: any) { toast.error(err.message || "Gagal menambah role"); }
   };
 
   return (
@@ -116,10 +320,11 @@ function OrganizationSection() {
       <div className="surface-elevated p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-medium">Kantor / Cabang</p></div>
-          <button onClick={() => setShowOfficeForm(!showOfficeForm)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Kantor</button>
+          <button onClick={() => { setShowOfficeForm(!showOfficeForm); setEditingOffice(null); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" }); }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Kantor</button>
         </div>
-        {showOfficeForm && (
+        {(showOfficeForm || editingOffice) && (
           <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <p className="text-xs font-medium text-muted-foreground">{editingOffice ? "Edit Kantor" : "Tambah Kantor Baru"}</p>
             <div className="grid grid-cols-2 gap-3">
               <Inp label="Nama Lokasi" value={officeForm.location_name} onChange={v => setOfficeForm({...officeForm, location_name: v})} placeholder="Kantor Pusat Jakarta" />
               <Inp label="Alamat" value={officeForm.address} onChange={v => setOfficeForm({...officeForm, address: v})} placeholder="Jl. Sudirman No. 123" />
@@ -127,13 +332,19 @@ function OrganizationSection() {
               <Inp label="Longitude" value={officeForm.longitude} onChange={v => setOfficeForm({...officeForm, longitude: v})} placeholder="106.8456" />
               <Inp label="Radius (meter)" value={officeForm.geofence_radius_meters} onChange={v => setOfficeForm({...officeForm, geofence_radius_meters: v})} placeholder="200" />
             </div>
-            <div className="flex gap-2"><button onClick={() => setShowOfficeForm(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addOffice} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Simpan</button></div>
+            <div className="flex gap-2">
+              <button onClick={() => { setShowOfficeForm(false); setEditingOffice(null); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" }); }} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button>
+              <button onClick={editingOffice ? updateOffice : addOffice} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">{editingOffice ? "Perbarui" : "Simpan"}</button>
+            </div>
           </div>
         )}
         {(offices?.data || []).map((o: any) => (
           <div key={o.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
             <div><p className="text-sm font-medium">{o.location_name}</p><p className="text-2xs text-muted-foreground">{o.address || "—"} • Radius {o.geofence_radius_meters}m</p></div>
-            <button onClick={() => toast.success("Kantor dihapus")} className="p-1 hover:text-destructive"><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+            <div className="flex items-center gap-1">
+              <button onClick={() => startEditOffice(o)} className="p-1.5 hover:bg-accent rounded-md" title="Edit"><Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-gold" /></button>
+              <button onClick={() => deleteOffice(o.id)} className="p-1.5 hover:bg-accent rounded-md" title="Hapus"><Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" /></button>
+            </div>
           </div>
         ))}
       </div>
@@ -141,21 +352,28 @@ function OrganizationSection() {
       <div className="surface-elevated p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-medium">Departemen</p></div>
-          <button onClick={() => setShowDeptForm(!showDeptForm)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Departemen</button>
+          <button onClick={() => { setShowDeptForm(!showDeptForm); setEditingDept(null); setDeptForm({ name: "", description: "" }); }} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Departemen</button>
         </div>
-        {showDeptForm && (
+        {(showDeptForm || editingDept) && (
           <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <p className="text-xs font-medium text-muted-foreground">{editingDept ? "Edit Departemen" : "Tambah Departemen Baru"}</p>
             <div className="grid grid-cols-2 gap-3">
               <Inp label="Nama Departemen" value={deptForm.name} onChange={v => setDeptForm({...deptForm, name: v})} placeholder="Engineering" />
               <Inp label="Deskripsi" value={deptForm.description} onChange={v => setDeptForm({...deptForm, description: v})} placeholder="Software Development" />
             </div>
-            <div className="flex gap-2"><button onClick={() => setShowDeptForm(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addDept} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Simpan</button></div>
+            <div className="flex gap-2">
+              <button onClick={() => { setShowDeptForm(false); setEditingDept(null); setDeptForm({ name: "", description: "" }); }} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button>
+              <button onClick={editingDept ? updateDept : addDept} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">{editingDept ? "Perbarui" : "Simpan"}</button>
+            </div>
           </div>
         )}
         {(departments?.data || []).map((d: any) => (
           <div key={d.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-            <div><p className="text-sm font-medium">{d.name}</p><p className="text-2xs text-muted-foreground">{d.employees?.length || 0} karyawan</p></div>
-            <button onClick={() => toast.success("Departemen dihapus")} className="p-1 hover:text-destructive"><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+            <div><p className="text-sm font-medium">{d.name}</p><p className="text-2xs text-muted-foreground">{d.description || "—"} • {d.employees?.length || 0} karyawan</p></div>
+            <div className="flex items-center gap-1">
+              <button onClick={() => startEditDept(d)} className="p-1.5 hover:bg-accent rounded-md" title="Edit"><Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-gold" /></button>
+              <button onClick={() => deleteDept(d.id)} className="p-1.5 hover:bg-accent rounded-md" title="Hapus"><Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" /></button>
+            </div>
           </div>
         ))}
       </div>
@@ -184,29 +402,57 @@ function OrganizationSection() {
 
 // === USERS ===
 function UsersSection() {
-  const [selectedRole, setSelectedRole] = useState("HR_Admin");
-  const { data } = useQuery({ queryKey: ["admin-roles"], queryFn: () => api.get("/admin/roles"), placeholderData: { data: [] } });
-  const roles = data?.data || [];
-  const selectedRoleData = roles.find((r: any) => r.role_name === selectedRole);
+  const [selectedRole, setSelectedRole] = useState("all");
+  const { data: usersData } = useQuery({ queryKey: ["admin-users"], queryFn: () => api.get("/admin/users"), placeholderData: { data: [] } });
+  const { data: rolesData } = useQuery({ queryKey: ["admin-roles"], queryFn: () => api.get("/admin/roles"), placeholderData: { data: [] } });
+  
+  const allUsers = usersData?.data || [];
+  const roles = rolesData?.data || [];
+
+  const filteredUsers = selectedRole === "all" 
+    ? allUsers 
+    : allUsers.filter((u: any) => u.role === selectedRole);
+
   return (
     <div className="space-y-6">
-      <SH title="Akun & Akses Pengguna" sub="Edit username, password, dan izin per pengguna" />
+      <SH title="Akun & Akses Pengguna" sub="Kelola akun karyawan — lihat nama, departemen, dan role" />
       <div className="surface-elevated p-6 space-y-4">
         <div className="space-y-2">
-          <label className="text-luxury-label">Pilih Role</label>
+          <label className="text-luxury-label">Filter Role</label>
           <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+            <option value="all">Semua Role</option>
             {roles.map((r: any) => <option key={r.id} value={r.role_name}>{r.role_name}</option>)}
           </select>
         </div>
         <div className="divider-luxury" />
-        <p className="text-sm font-medium">Pengguna dengan role: {selectedRole}</p>
-        <div className="space-y-2">
-          {(selectedRoleData?.employees || []).length === 0 
-            ? <p className="text-sm text-muted-foreground">Tidak ada pengguna dengan role ini</p>
-            : (selectedRoleData?.employees || []).map((e: any) => (
-              <div key={e.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                <span className="text-sm">{e.id}</span>
-                <button onClick={() => toast.success("Reset password berhasil")} className="text-xs text-gold hover:text-gold/80">Reset Password</button>
+        <p className="text-sm font-medium">{filteredUsers.length} pengguna {selectedRole !== "all" ? `dengan role: ${selectedRole}` : "terdaftar"}</p>
+        <div className="space-y-1">
+          {filteredUsers.length === 0 
+            ? <p className="text-sm text-muted-foreground py-4 text-center">Tidak ada pengguna</p>
+            : filteredUsers.map((e: any) => (
+              <div key={e.id} className="flex items-center justify-between py-3 px-3 border-b border-border/50 last:border-0 rounded-md hover:bg-accent/30 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-full bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-semibold text-gold">{e.full_name?.charAt(0) || "?"}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{e.full_name}</p>
+                    <div className="flex items-center gap-2 text-2xs text-muted-foreground">
+                      <span>{e.department || "—"}</span>
+                      <span className="text-border">•</span>
+                      <span className="px-1.5 py-0.5 rounded bg-accent text-foreground/70 font-medium">{e.role || "Employee"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-medium",
+                    e.employment_status === "active" ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"
+                  )}>
+                    {e.employment_status === "active" ? "Aktif" : e.employment_status}
+                  </span>
+                  <button onClick={() => toast.success("Reset password berhasil (demo)")} className="text-xs text-gold hover:text-gold/80 ml-2">Reset Password</button>
+                </div>
               </div>
             ))}
         </div>

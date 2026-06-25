@@ -1,7 +1,9 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 import { Users, Clock, CalendarDays, AlertTriangle } from "lucide-react";
 
 export function DashboardPage() {
@@ -9,11 +11,19 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const { data: statsData } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => api.get("/dashboard/stats"),
+    placeholderData: { data: { total_employees: 0, present_today: 0, pending_leave: 0, late_today: 0 } },
+  });
+
+  const s = statsData?.data || { total_employees: 0, present_today: 0, pending_leave: 0, late_today: 0 };
+
   const stats = [
-    { label: t("dashboard.total_employees"), value: "—", icon: Users },
-    { label: t("dashboard.present_today"), value: "—", icon: Clock },
-    { label: t("dashboard.pending_leave"), value: "—", icon: CalendarDays },
-    { label: t("dashboard.late_today"), value: "—", icon: AlertTriangle },
+    { label: t("dashboard.total_employees"), value: String(s.total_employees), icon: Users },
+    { label: t("dashboard.present_today"), value: String(s.present_today), icon: Clock },
+    { label: t("dashboard.pending_leave"), value: String(s.pending_leave), icon: CalendarDays },
+    { label: t("dashboard.late_today"), value: String(s.late_today), icon: AlertTriangle },
   ];
 
   const quickActions = [

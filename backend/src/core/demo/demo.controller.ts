@@ -41,6 +41,13 @@ export class DemoController {
   @Get('employees/me')
   getMyProfile(@Req() req: any) { return { success: true, data: this.extractUser(req) || DEMO_EMPLOYEES[0] }; }
 
+  @Get('employees/:id')
+  getEmployeeById(@Param('id') id: string) {
+    const emp = DEMO_EMPLOYEES.find(e => e.id === id);
+    if (!emp) return { statusCode: 404, message: 'Employee not found' };
+    return { success: true, data: emp };
+  }
+
   // === ATTENDANCE ===
   @Get('attendance/dashboard')
   getAttendanceDashboard() {
@@ -93,21 +100,99 @@ export class DemoController {
   @Get('settings')
   getSettings() { return { success: true, data: [] }; }
 
+  @Get('settings/company')
+  getCompanySettings() {
+    return {
+      success: true,
+      data: {
+        company_name: 'Ralali',
+        legal_name: 'PT. Ralali',
+        industry: 'Teknologi Informasi',
+        tax_id: '',
+        email: '',
+        phone: '',
+        website: '',
+        address: 'Capital Cove Business Loft, BSD City, Jl. BSD Grand Boulevard No.26, Cilenggang, Serpong Sub-District, South Tangerang City, Banten 15310',
+        founded_year: '',
+        total_employees: 6,
+      },
+    };
+  }
+
+  @Put('settings/company')
+  updateCompanySettings(@Body() body: any) {
+    return { success: true, data: body, message: 'Company settings updated' };
+  }
+
   @Get('settings/agents')
   getAgentConfigs() { return { success: true, data: DEMO_AGENT_CONFIGS }; }
 
   @Get('settings/:category')
   getSettingsByCategory() { return { success: true, data: [] }; }
 
+  // === DASHBOARD STATS ===
+  @Get('dashboard/stats')
+  getDashboardStats() {
+    const todayRecords = DEMO_ATTENDANCE;
+    const totalEmployees = DEMO_EMPLOYEES.length;
+    const presentToday = todayRecords.filter(a => a.clock_in_time).length;
+    const lateToday = todayRecords.filter(a => a.is_tardy).length;
+    const pendingLeaves = DEMO_LEAVE_REQUESTS.filter(l => l.status === 'pending').length;
+    return {
+      success: true,
+      data: {
+        total_employees: totalEmployees,
+        present_today: presentToday,
+        pending_leave: pendingLeaves,
+        late_today: lateToday,
+      },
+    };
+  }
+
   // === ADMIN ===
   @Get('admin/offices')
   getOffices() { return { success: true, data: DEMO_OFFICES }; }
 
+  @Get('admin/offices/:id')
+  getOfficeById(@Param('id') id: string) {
+    const office = DEMO_OFFICES.find(o => o.id === id);
+    if (!office) return { statusCode: 404, message: 'Office not found' };
+    return { success: true, data: office };
+  }
+
+  @Put('admin/offices/:id')
+  updateOffice(@Param('id') id: string, @Body() body: any) {
+    return { success: true, data: { ...body, id }, message: 'Office updated' };
+  }
+
   @Get('admin/departments')
   getDepartments() { return { success: true, data: DEMO_DEPARTMENTS }; }
 
+  @Put('admin/departments/:id')
+  updateDepartment(@Param('id') id: string, @Body() body: any) {
+    return { success: true, data: { ...body, id }, message: 'Department updated' };
+  }
+
   @Get('admin/roles')
   getRoles() { return { success: true, data: DEMO_ROLES }; }
+
+  @Get('admin/users')
+  getUsers() {
+    // Return users with full details (name, department, role)
+    return {
+      success: true,
+      data: DEMO_EMPLOYEES.map(e => ({
+        id: e.id,
+        employee_code: e.employee_code,
+        full_name: e.full_name,
+        email: e.email,
+        department: e.department,
+        role: e.role,
+        office: e.office,
+        employment_status: e.employment_status,
+      })),
+    };
+  }
 
   @Get('admin/notification-channels')
   getChannels() { return { success: true, data: [{ channel: 'in_app', enabled: true }, { channel: 'whatsapp', enabled: false }, { channel: 'telegram', enabled: false }] }; }

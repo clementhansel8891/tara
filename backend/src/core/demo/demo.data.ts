@@ -4,12 +4,12 @@
  */
 
 export const DEMO_EMPLOYEES = [
-  { id: 'emp-001', employee_code: 'ADM-001', full_name: 'Sari Wulandari', email: 'sari@majubersama.com', phone: '081234567890', role: 'HR_Admin', department: 'Human Resources', office: 'Kantor Pusat Jakarta', employment_status: 'active', hire_date: '2020-03-15', language_preference: 'id', supervisor_id: null },
-  { id: 'emp-002', employee_code: 'SUP-001', full_name: 'Budi Hartono', email: 'budi@majubersama.com', phone: '081234567891', role: 'Supervisor', department: 'Engineering', office: 'Kantor Pusat Jakarta', employment_status: 'active', hire_date: '2019-08-01', language_preference: 'id', supervisor_id: null },
-  { id: 'emp-003', employee_code: 'EMP-001', full_name: 'Rina Permata', email: 'rina@majubersama.com', phone: '081234567892', role: 'Employee', department: 'Engineering', office: 'Kantor Pusat Jakarta', employment_status: 'active', hire_date: '2022-01-10', language_preference: 'id', supervisor_id: 'emp-002' },
-  { id: 'emp-004', employee_code: 'EMP-002', full_name: 'Agus Setiawan', email: 'agus@majubersama.com', phone: '081234567893', role: 'Employee', department: 'Marketing', office: 'Kantor Pusat Jakarta', employment_status: 'active', hire_date: '2021-06-20', language_preference: 'id', supervisor_id: 'emp-002' },
+  { id: 'emp-001', employee_code: 'ADM-001', full_name: 'Sari Wulandari', email: 'sari@majubersama.com', phone: '081234567890', role: 'HR_Admin', department: 'Human Resources', office: 'Ralali Headquarter', employment_status: 'active', hire_date: '2020-03-15', language_preference: 'id', supervisor_id: null },
+  { id: 'emp-002', employee_code: 'SUP-001', full_name: 'Budi Hartono', email: 'budi@majubersama.com', phone: '081234567891', role: 'Supervisor', department: 'Engineering', office: 'Ralali Headquarter', employment_status: 'active', hire_date: '2019-08-01', language_preference: 'id', supervisor_id: null },
+  { id: 'emp-003', employee_code: 'EMP-001', full_name: 'Rina Permata', email: 'rina@majubersama.com', phone: '081234567892', role: 'Employee', department: 'Engineering', office: 'Ralali Headquarter', employment_status: 'active', hire_date: '2022-01-10', language_preference: 'id', supervisor_id: 'emp-002' },
+  { id: 'emp-004', employee_code: 'EMP-002', full_name: 'Agus Setiawan', email: 'agus@majubersama.com', phone: '081234567893', role: 'Employee', department: 'Marketing', office: 'Ralali Headquarter', employment_status: 'active', hire_date: '2021-06-20', language_preference: 'id', supervisor_id: 'emp-002' },
   { id: 'emp-005', employee_code: 'EMP-003', full_name: 'Dewi Lestari', email: 'dewi@majubersama.com', phone: '081234567894', role: 'Employee', department: 'Finance', office: 'Cabang Bandung', employment_status: 'active', hire_date: '2023-02-14', language_preference: 'id', supervisor_id: 'emp-002' },
-  { id: 'emp-006', employee_code: 'EMP-004', full_name: 'Rizky Pratama', email: 'rizky@majubersama.com', phone: '081234567895', role: 'Employee', department: 'Engineering', office: 'Kantor Pusat Jakarta', employment_status: 'active', hire_date: '2023-09-01', language_preference: 'en', supervisor_id: 'emp-002' },
+  { id: 'emp-006', employee_code: 'EMP-004', full_name: 'Rizky Pratama', email: 'rizky@majubersama.com', phone: '081234567895', role: 'Employee', department: 'Engineering', office: 'Ralali Headquarter', employment_status: 'active', hire_date: '2023-09-01', language_preference: 'en', supervisor_id: 'emp-002' },
 ];
 
 export const DEMO_ACCOUNTS: Record<string, { password: string; employee_id: string }> = {
@@ -34,7 +34,7 @@ export const DEMO_ROLES = [
 ];
 
 export const DEMO_OFFICES = [
-  { id: 'off-1', location_name: 'Kantor Pusat Jakarta', address: 'Jl. Sudirman No. 123, Jakarta Selatan', latitude: -6.2088, longitude: 106.8456, geofence_radius_meters: 200, is_active: true },
+  { id: 'off-1', location_name: 'Ralali Headquarter', address: 'Capital Cove Business Loft, BSD City, Jl. BSD Grand Boulevard No.26, Cilenggang, Serpong Sub-District, South Tangerang City, Banten 15310', latitude: -6.300421, longitude: 106.660355, geofence_radius_meters: 200, is_active: true },
   { id: 'off-2', location_name: 'Cabang Bandung', address: 'Jl. Asia Afrika No. 45, Bandung', latitude: -6.9175, longitude: 107.6191, geofence_radius_meters: 150, is_active: true },
 ];
 
