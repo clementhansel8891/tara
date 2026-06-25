@@ -83,6 +83,11 @@ import { WeeklyCheckinAgent } from './agents/weekly-checkin.agent';
 import { LateReportAgent } from './agents/late-report.agent';
 import { OnboardingAgent } from './agents/onboarding.agent';
 import { SaldoCutiAgent } from './agents/saldo-cuti.agent';
+import { PayrollAgent } from './agents/payroll.agent';
+import { LoanAgent } from './agents/loan.agent';
+import { SchedulingAgent } from './agents/scheduling.agent';
+import { WarningLetterAgent } from './agents/warning-letter.agent';
+import { HealthCheckAgent } from './agents/health-check.agent';
 import { OnboardingStatusService } from './agents/onboarding-status.service';
 import { ONBOARDING_INTEGRATIONS, StubOnboardingIntegrations } from './agents/onboarding-integrations';
 
@@ -152,7 +157,7 @@ import { I18nModule } from './i18n/i18n.module';
     ScheduleService,
     { provide: AWS_DEVICE_API_CLIENT, useClass: StubAwsDeviceApiClient },
 
-    // 7 Autonomous Agents
+    // 12 Autonomous Agents
     AbsensiAgent,
     LeaveRequestAgent,
     ClockConfirmationAgent,
@@ -160,6 +165,11 @@ import { I18nModule } from './i18n/i18n.module';
     LateReportAgent,
     OnboardingAgent,
     SaldoCutiAgent,
+    PayrollAgent,
+    LoanAgent,
+    SchedulingAgent,
+    WarningLetterAgent,
+    HealthCheckAgent,
     OnboardingStatusService,
     { provide: ONBOARDING_INTEGRATIONS, useClass: StubOnboardingIntegrations },
 

@@ -70,6 +70,11 @@ export const DEMO_AGENT_CONFIGS = [
   { id: 'ac-5', agent_name: 'late_report', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
   { id: 'ac-6', agent_name: 'onboarding', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
   { id: 'ac-7', agent_name: 'saldo_cuti', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
+  { id: 'ac-8', agent_name: 'payroll', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
+  { id: 'ac-9', agent_name: 'loan', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
+  { id: 'ac-10', agent_name: 'scheduling', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
+  { id: 'ac-11', agent_name: 'warning_letter', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
+  { id: 'ac-12', agent_name: 'health_check', is_enabled: true, health_status: 'healthy', last_heartbeat_at: new Date().toISOString() },
 ];
 
 export const DEMO_SCHEDULES = [
