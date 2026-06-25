@@ -13,3 +13,6 @@ dist/
 # Misc
 *.log
 coverage/
+
+# Uploaded files (persist on VPS, not in git)
+uploads/

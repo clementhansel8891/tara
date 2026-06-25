@@ -731,3 +731,28 @@ model HermesFollowUp {
   @@index([status, scheduled_at])
   @@map("hermes_follow_ups")
 }
+
+
+// ============================================================================
+// SOP (Standard Operating Procedure) Documents
+// ============================================================================
+
+model SopDocument {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  category    String?  // e.g. 'HR', 'IT', 'Finance', 'Operations'
+  file_name   String   // original file name
+  file_path   String   // stored file path on disk
+  file_size   Int      // in bytes
+  mime_type   String   @default("application/pdf")
+  uploaded_by String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  @@index([category])
+  @@index([is_active])
+  @@index([created_at])
+  @@map("sop_documents")
+}

@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
-import { Home, Clock, CalendarDays, Bell, User } from "lucide-react";
+import { Home, Clock, CalendarDays, Bell, User, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppFooter } from "@/components/AppFooter";
 
@@ -9,6 +9,7 @@ const bottomNav = [
   { to: "/m", icon: Home, labelKey: "nav.dashboard", end: true },
   { to: "/m/clock", icon: Clock, labelKey: "nav.attendance" },
   { to: "/m/leave", icon: CalendarDays, labelKey: "nav.leaves" },
+  { to: "/m/sop", icon: FileText, labelKey: "nav.sop" },
   { to: "/m/notifications", icon: Bell, labelKey: "nav.notifications" },
   { to: "/m/profile", icon: User, labelKey: "profile.my_profile" },
 ];

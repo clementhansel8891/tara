@@ -20,6 +20,7 @@ import {
   CalendarClock,
   User,
   ChevronDown,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const navItems = [
   { to: "/web/leaves", icon: CalendarDays, labelKey: "nav.leaves" },
   { to: "/web/payroll", icon: Banknote, labelKey: "nav.payroll" },
   { to: "/web/schedule", icon: CalendarClock, labelKey: "nav.schedule" },
+  { to: "/web/sop", icon: FileText, labelKey: "nav.sop" },
   { to: "/web/notifications", icon: Bell, labelKey: "nav.notifications" },
   { to: "/web/settings", icon: Settings, labelKey: "nav.settings" },
 ];

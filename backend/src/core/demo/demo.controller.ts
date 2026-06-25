@@ -237,6 +237,21 @@ export class DemoController {
   @Get('settings/public-holidays')
   getPublicHolidays() { return { success: true, data: DEMO_HOLIDAYS }; }
 
+  // === SOP ===
+  @Get('sop')
+  getSopDocuments() {
+    return {
+      success: true,
+      data: [
+        { id: 'sop-1', title: 'SOP Pengajuan Cuti', description: 'Prosedur pengajuan cuti tahunan dan cuti khusus', category: 'HR', file_name: 'sop-cuti.pdf', file_size: 245000, mime_type: 'application/pdf', created_at: '2026-06-01T00:00:00Z', is_active: true },
+        { id: 'sop-2', title: 'SOP Absensi & Kehadiran', description: 'Aturan clock-in/out dan keterlambatan', category: 'HR', file_name: 'sop-absensi.pdf', file_size: 180000, mime_type: 'application/pdf', created_at: '2026-06-05T00:00:00Z', is_active: true },
+        { id: 'sop-3', title: 'SOP Onboarding Karyawan Baru', description: 'Langkah-langkah proses onboarding 7 hari', category: 'HR', file_name: 'sop-onboarding.pdf', file_size: 320000, mime_type: 'application/pdf', created_at: '2026-06-10T00:00:00Z', is_active: true },
+        { id: 'sop-4', title: 'SOP Keamanan Informasi', description: 'Kebijakan keamanan data dan akses sistem', category: 'IT', file_name: 'sop-keamanan-it.pdf', file_size: 410000, mime_type: 'application/pdf', created_at: '2026-06-12T00:00:00Z', is_active: true },
+        { id: 'sop-5', title: 'SOP Pengadaan Barang', description: 'Prosedur procurement dan pembelian', category: 'Operations', file_name: 'sop-pengadaan.pdf', file_size: 275000, mime_type: 'application/pdf', created_at: '2026-06-15T00:00:00Z', is_active: true },
+      ],
+    };
+  }
+
   // === CATCH-ALL for any unmatched POST/PUT/DELETE ===
   @Post('*path')
   postCatchAll() { return { success: true, message: 'Demo mode: action simulated' }; }

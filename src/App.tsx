@@ -23,6 +23,7 @@ import { ProfilePage } from "@/pages/web/ProfilePage";
 import { PayrollPage } from "@/pages/web/PayrollPage";
 import { SchedulePage } from "@/pages/web/SchedulePage";
 import { EmployeeDetailPage } from "@/pages/web/EmployeeDetailPage";
+import { SopPage } from "@/pages/web/SopPage";
 
 // Mobile pages
 import { MobileHomePage } from "@/pages/mobile/MobileHomePage";
@@ -31,6 +32,7 @@ import { MobileLeavePage } from "@/pages/mobile/MobileLeavePage";
 import { MobileNotificationsPage } from "@/pages/mobile/MobileNotificationsPage";
 import { MobileProfilePage } from "@/pages/mobile/MobileProfilePage";
 import { MobileSchedulePage } from "@/pages/mobile/MobileSchedulePage";
+import { MobileSopPage } from "@/pages/mobile/MobileSopPage";
 
 // Misc
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -73,6 +75,7 @@ export function App() {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="payroll" element={<PayrollPage />} />
                 <Route path="schedule" element={<SchedulePage />} />
+                <Route path="sop" element={<SopPage />} />
               </Route>
 
               {/* Mobile Interface (All Employees) */}
@@ -82,6 +85,7 @@ export function App() {
                 <Route path="leave" element={<MobileLeavePage />} />
                 <Route path="notifications" element={<MobileNotificationsPage />} />
                 <Route path="profile" element={<MobileProfilePage />} />
+                <Route path="sop" element={<MobileSopPage />} />
               </Route>
 
               {/* Default */}

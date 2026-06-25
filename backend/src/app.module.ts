@@ -11,6 +11,7 @@ import { AuthModule } from './core/auth/auth.module';
 import { SettingsModule } from './core/settings/settings.module';
 import { HrModule } from './core/hr/hr.module';
 import { DemoModule } from './core/demo/demo.module';
+import { SopModule } from './core/sop/sop.module';
 
 /**
  * TARA HR System v2 — Root Module
@@ -26,6 +27,7 @@ import { DemoModule } from './core/demo/demo.module';
     DemoModule,  // Demo routes (provides mock data without DB)
     AuthModule,
     SettingsModule,
+    SopModule,    // SOP document management with PDF storage
     // HrModule,  // Disabled in demo mode — enable when DB is connected
   ],
   providers: [
