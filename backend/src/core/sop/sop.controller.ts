@@ -18,6 +18,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { Response } from 'express';
 import { SopService } from './sop.service';
+import { SopAgentService } from './sop-agent.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 
@@ -38,7 +39,10 @@ import * as path from 'path';
  */
 @Controller('sop')
 export class SopController {
-  constructor(private readonly sopService: SopService) {}
+  constructor(
+    private readonly sopService: SopService,
+    private readonly sopAgent: SopAgentService,
+  ) {}
 
   private getMulterStorage() {
     return diskStorage({
@@ -98,6 +102,15 @@ export class SopController {
       mime_type: file.mimetype,
     });
 
+    // Emit event via SOP Agent
+    await this.sopAgent.emitDocumentUploaded({
+      id: doc.id,
+      title: doc.title,
+      category: doc.category,
+      file_name: doc.file_name,
+      file_size: doc.file_size,
+    });
+
     return { success: true, data: doc };
   }
 
@@ -146,6 +159,18 @@ export class SopController {
     }));
 
     const created = await this.sopService.createMany(docs);
+
+    // Emit bulk event via SOP Agent
+    await this.sopAgent.emitBulkUploaded(
+      created.map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        category: d.category,
+        file_name: d.file_name,
+        file_size: d.file_size,
+      })),
+    );
+
     return { success: true, data: created, count: created.length };
   }
 
@@ -175,6 +200,13 @@ export class SopController {
     const doc = await this.sopService.findById(id);
     const filePath = await this.sopService.getFilePath(id);
 
+    // Track view event via SOP Agent
+    await this.sopAgent.emitDocumentViewed({
+      id: doc.id,
+      title: doc.title,
+      category: doc.category,
+    });
+
     res.setHeader('Content-Type', doc.mime_type);
     res.setHeader('Content-Disposition', `inline; filename="${doc.file_name}"`);
     res.sendFile(filePath);
@@ -189,6 +221,13 @@ export class SopController {
     @Body() body: { title?: string; description?: string; category?: string },
   ) {
     const doc = await this.sopService.update(id, body);
+
+    // Emit update event via SOP Agent
+    await this.sopAgent.emitDocumentUpdated(
+      { id: doc.id, title: doc.title, category: doc.category },
+      body,
+    );
+
     return { success: true, data: doc };
   }
 
@@ -198,7 +237,18 @@ export class SopController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async remove(@Param('id') id: string) {
+    // Get doc metadata before deletion for the event
+    const doc = await this.sopService.findById(id);
     const result = await this.sopService.remove(id);
+
+    // Emit delete event via SOP Agent
+    await this.sopAgent.emitDocumentDeleted({
+      id: doc.id,
+      title: doc.title,
+      category: doc.category,
+      file_name: doc.file_name,
+    });
+
     return { success: true, ...result };
   }
 }

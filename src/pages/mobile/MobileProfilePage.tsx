@@ -144,6 +144,7 @@ export function MobileProfilePage() {
           <div className="flex-1 text-left"><p className="text-sm">{theme === "dark" ? "Mode Terang" : "Mode Gelap"}</p></div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </button>
+      </div>
 
       {/* Logout */}
       <button onClick={handleLogout}
