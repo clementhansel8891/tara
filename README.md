@@ -1,281 +1,180 @@
-# OpsCore — Modular Business Operations Platform
+# TARA — Total Assistance for Resources & Administration
 
-OpsCore is a **multi-tenant, modular, local-first business operations platform** designed to support multiple industries through **industry-specific modules** running on a shared, secure core.
+**TARA** adalah sistem manajemen HR (Human Resources) cerdas yang dirancang untuk **PT. Maju Bersama**. Sistem ini mengotomatisasi operasional HR sehari-hari menggunakan 7 agen otonom, sehingga tim HR dapat fokus pada tugas strategis.
 
-The platform is architected to scale from small single-location businesses to multi-branch enterprises, while remaining configurable without hardcoded UI or business logic.
-
-This repository represents **Version 1 (V1)** of OpsCore, focused on establishing a **production-grade foundation** and two initial industry modules: **Cafe** and **Retail**.
-
----
-
-## 🎯 Core Vision
-
-OpsCore is built around three non-negotiable principles:
-
-1. **Core First** — Identity, licensing, configuration, and data safety are enforced centrally.
-2. **Modules, Not Apps** — Industries are implemented as isolated modules, not standalone systems.
-3. **Configuration Over Code** — Tenant-specific behavior is driven by configuration, not JSX or hardcoded logic.
-
-Future industries (Healthcare, Manufacturing, Security, etc.) will be added **only after the core and existing modules are production-stable**.
+**Version:** 2.0.0 ([Changelog](./CHANGELOG.md))  
+**Status:** Active Development
 
 ---
 
-## 🧱 Platform Architecture Overview
+## Apa yang TARA Lakukan?
 
-OpsCore is structured into **three architectural layers**:
-
-### 1. Core Layer (System Foundation)
-
-The Core layer is mandatory and always active. It is responsible for **safety, isolation, and orchestration**.
-
-Responsibilities:
-
-- Tenant identity & session management
-- Role and permission enforcement
-- Module licensing & access control
-- Cross-module services and aggregation
-- Configuration engine (tenant + module)
-- Reporting and analytics aggregation
-
-The Core **does not contain industry logic**.
+| Fitur | Penjelasan Singkat |
+|-------|-------------------|
+| 🕐 **Absensi Otomatis** | Karyawan clock-in/out via ponsel (biometrik + GPS) atau fingerprint device |
+| 📋 **Manajemen Cuti** | Pengajuan cuti online, persetujuan otomatis, saldo real-time |
+| 💰 **Penggajian** | Hitung gaji, potongan, bonus, dan cetak slip gaji |
+| 💳 **Pinjaman / Kasbon** | Karyawan ajukan pinjaman, cicilan otomatis potong gaji |
+| 📅 **Jadwal Kerja** | Atur shift, jadwal per karyawan, hari libur |
+| 🔔 **Notifikasi Multi-Kanal** | Kirim alert via aplikasi, WhatsApp, Telegram, atau Email |
+| 🤖 **7 Agen Otonom** | Robot HR yang bekerja 24/7 tanpa perlu dioperasikan manual |
+| 📊 **Laporan & Analitik** | Dashboard kehadiran, keterlambatan, dan produktivitas |
 
 ---
 
-### 2. Platform Layer (Runtime Control)
+## Siapa yang Menggunakan TARA?
 
-The Platform layer determines **how the application behaves at runtime**.
-
-Responsibilities:
-
-- Device detection (desktop, tablet, kiosk, shared screen)
-- Runtime UI resolution (role + device + license)
-- Dynamic routing and layout resolution
-
-This layer ensures that **static routing and hardcoded layouts are avoided**.
+| Pengguna | Akses |
+|----------|-------|
+| **HR Admin** | Akses penuh via Web — kelola semua karyawan, pengaturan, laporan |
+| **Supervisor** | Web — setujui cuti tim, lihat laporan tim |
+| **Karyawan** | Mobile (PWA) — clock-in/out, ajukan cuti, lihat slip gaji, notifikasi |
 
 ---
 
-### 3. Module Layer (Industry Logic)
+## Tampilan Aplikasi
 
-Modules encapsulate **industry-specific operations, roles, and workflows**.
+### Web Interface (untuk HR & Supervisor)
+- Dashboard dengan statistik real-time
+- Direktori karyawan dengan pencarian
+- Manajemen cuti (setujui/tolak)
+- Penggajian (periode, komponen, slip)
+- Pengaturan lengkap (agen, organisasi, notifikasi, Hermes AI)
 
-Each module:
-
-- Defines its own roles and permissions
-- Registers routes, pages, and configuration schema
-- Emits standardized output events to the Core
-- Cannot directly access other modules
-
-Modules are enabled or disabled per tenant through licensing.
-
----
-
-## 📦 Current Modules (V1 Scope)
-
-### Cafe Module
-
-Designed for cafe and restaurant operations.
-
-Core roles:
-
-- Waiter
-- Kitchen
-- Bar
-- Cashier
-
-Capabilities:
-
-- Table-based ordering
-- Kitchen Display System (KDS)
-- Counter and table billing
-- Cafe-specific inventory
+### Mobile Interface (untuk Karyawan)
+- Clock-in/out dengan satu ketukan
+- Ajukan cuti dari ponsel
+- Lihat saldo cuti dan riwayat
+- Notifikasi real-time
+- Profil dan pengaturan bahasa
 
 ---
 
-### Retail Module
+## Cara Menjalankan (Quick Start)
 
-Designed for retail store operations.
+### Prasyarat
+- Node.js 18+
+- PostgreSQL 14+ (atau gunakan Docker)
 
-Core roles:
+### Langkah
 
-- Cashier
-- Supervisor
-- Stock / Inventory Staff
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd project-tara
 
-Capabilities:
-
-- Barcode-based checkout
-- Shift management
-- Cash drawer reconciliation
-- Retail inventory workflows
-
----
-
-## 🧠 Core System (Admin & Management)
-
-The Core System is the **control plane** for OpsCore.
-
-It is not an industry module. Instead, it manages:
-
-- Tenant configuration
-- User & role management
-- Module licensing
-- Cross-module reporting
-- System-wide settings
-
-The Core System aggregates data **from modules**, never the other way around.
-
----
-
-## 🔗 Cross-Module Integration Model
-
-Modules communicate with the Core through **standardized output events**.
-
-| Core Capability       | Source Modules                                   |
-| --------------------- | ------------------------------------------------ |
-| Reports & Analytics   | Cafe, Retail (future: Healthcare, Manufacturing) |
-| Inventory Aggregation | Retail, Cafe                                     |
-| Finance & Accounting  | Sales & payroll events                           |
-| Security & Audit      | All modules                                      |
-
-Direct module-to-module communication is **not allowed**.
-
----
-
-## 🛠 Technology Stack
-
-- **Frontend:** React 18, TypeScript, Vite
-- **Styling:** Tailwind CSS, shadcn/ui
-- **State Management:** Localized Context + Reducers (global state minimized)
-- **Persistence:** Local Storage (tenant-scoped, offline-first)
-- **Charts & Visualization:** Recharts
-- **Routing:** React Router v6 (runtime-resolved)
-- **Icons:** Lucide React
-
----
-
-## 📁 Project Structure (Target Architecture)
-
-```text
-src/
-├── core/                # Mandatory system foundation
-│   ├── identity/        # Tenant, session, user context
-│   ├── licensing/       # Module access enforcement
-│   ├── services/        # Cross-module orchestration
-│   ├── config/          # Configuration engine
-│   └── types/           # Contracts & events
-│
-├── platform/            # Runtime behavior
-│   ├── device-detection/
-│   ├── runtime-ui/
-│   └── routing/
-│
-├── modules/             # Industry modules
-│   ├── cafe/
-│   │   ├── index.ts
-│   │   ├── roles.ts
-│   │   ├── config.ts
-│   │   └── components/
-│   ├── retail/
-│   │   ├── index.ts
-│   │   ├── roles.ts
-│   │   └── components/
-│   └── shared/
-│       └── contract.ts  # Locked module contracts
-│
-├── pages/               # Thin, declarative pages
-│   ├── core/
-│   ├── cafe/
-│   └── retail/
-│
-├── layouts/
-│   ├── CoreLayout.tsx
-│   └── ModuleLayout.tsx
-└── lib/                 # Utilities & local persistence
-```
-
----
-
-## 🚀 Getting Started
-
-```text
-bash
-Copy code
+# 2. Install dependencies
 npm install
+cd backend && npm install && cd ..
+
+# 3. Setup database (pilih salah satu)
+# Opsi A: Docker (rekomendasi)
+docker compose -f docker-compose.dev.yml up -d
+
+# Opsi B: PostgreSQL lokal
+# Buat database "tara" dan atur backend/.env
+
+# 4. Jalankan migrasi
+cd backend && npx prisma migrate dev && cd ..
+
+# 5. Jalankan aplikasi
 npm run dev
-npm run build
+```
+
+Aplikasi tersedia di:
+- **Frontend:** http://localhost:5173
+- **Backend:** http://localhost:3001
+
+### Demo Mode (Tanpa Database)
+TARA dapat berjalan dalam demo mode tanpa PostgreSQL:
+```
+Email: sari@majubersama.com
+Password: demo123
 ```
 
 ---
 
-## 🚀 Deployment (GitHub & Render)
+## Struktur Proyek (Ringkas)
 
-This project is configured for automated deployment using **Render Blueprints**.
-
-### 1. GitHub Preparation
-
-1. Create a new repository on GitHub.
-2. Ensure `.env` is ignored (already in `.gitignore`).
-3. Use the `.env.example` (root) and `backend/.env.example` as templates for your production settings.
-4. Push the code to your repository.
-
-### 2. Render Deployment
-
-1. Connect your GitHub account to [Render](https://render.com).
-2. Create a new **Blueprint Instance**.
-3. Select this repository. Render will automatically detect `render.yaml`.
-4. Render will provision:
-   - **Backend (Web Service)**: Running on NestJS.
-   - **Frontend (Static Site)**: Running the Vite build.
-
-### 3. Required Environment Variables
-
-After the first build (which may fail due to missing vars), set these in the Render Dashboard:
-
-**Backend Service:**
-
-- `ALLOWED_ORIGINS`: Your Render frontend URL (e.g., `https://zenvix-frontend.onrender.com`).
-- `JWT_SECRET`: A secure random string for signing tokens.
-
-**Frontend Service:**
-
-- `VITE_API_URL`: Your Render backend URL (e.g., `https://zenvix-backend.onrender.com`).
-
----
-
-### 👥 Demo Accounts (Development Only)
-
-Email | Password | Scope
-
-```text
-admin@opscore.com admin123 Core System (Admin)
-manager@opscore.com manager123 Core System (Manager)
-retail@opscore.com retail123 Retail Module (Cashier)
-retail.manager@opscore.com retail123 Retail Module (Manager)
-cafe@opscore.com cafe123 Cafe Module (Staff)
-cafe.manager@opscore.com cafe123 Cafe Module (Manager)
+```
+project-tara/
+├── src/                    # Frontend (React + TypeScript)
+│   ├── pages/web/          # Halaman Web Interface
+│   ├── pages/mobile/       # Halaman Mobile Interface
+│   ├── components/         # Komponen UI (shadcn/ui, AppFooter)
+│   ├── contexts/           # Auth & Theme context
+│   ├── layouts/            # WebLayout, MobileLayout
+│   └── lib/                # Utilities, API helper, version config
+│       └── version.ts      # App version (single source of truth)
+├── backend/                # Backend (NestJS + TypeScript)
+│   ├── src/core/hr/        # Modul HR (agen, services, controllers)
+│   ├── src/core/auth/      # Autentikasi (JWT + bcrypt)
+│   ├── src/core/demo/      # Demo mode (data mock)
+│   └── prisma/             # Database schema & migrations
+├── docs/                   # Dokumentasi teknis
+├── CHANGELOG.md            # Riwayat versi (Keep a Changelog)
+├── docker-compose.yml      # Production deployment
+└── docker-compose.dev.yml  # Development (DB only)
 ```
 
 ---
 
-### 🧭 Future Modules (Planned, Not Implemented)
+## Dokumentasi Teknis
 
-The following modules are planned but intentionally excluded from V1:
+Untuk developer, dokumentasi lengkap tersedia di folder [`docs/`](./docs/):
 
-- **Healthcare** — Clinics, patient flow, medical inventory
-- **Manufacturing** — Production lines, BOM, quality control
-- **Security** — Surveillance, access control, incident response
+| Dokumen | Isi |
+|---------|-----|
+| [Arsitektur Sistem](./docs/ARCHITECTURE.md) | Diagram arsitektur, layer, dan design decisions |
+| [Database Schema](./docs/DATABASE.md) | Semua tabel, relasi, dan indexing strategy |
+| [API Reference](./docs/API.md) | Endpoint lengkap, request/response, autentikasi |
+| [Agen Otonom](./docs/AGENTS.md) | 7 agen, cara kerja, event, dan konfigurasi |
+| [Deployment](./docs/DEPLOYMENT.md) | Docker, environment variables, production setup |
+| [Frontend](./docs/FRONTEND.md) | Routing, design system, tema, dan komponen |
+| [Security](./docs/SECURITY.md) | Autentikasi, otorisasi, enkripsi, OWASP |
+| [Changelog](./CHANGELOG.md) | Riwayat versi dan catatan rilis |
 
-These modules will be developed one by one after:
+---
 
-- **Core stability**
-- **Configuration engine completion**
-- **Cafe & Retail modules reach production maturity**
+## 🏷️ Version Control
+
+TARA menggunakan [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH).
+
+| Sumber | Fungsi |
+|--------|--------|
+| `src/lib/version.ts` | Single source of truth untuk versi aplikasi |
+| `package.json` | Versi untuk npm/build tooling |
+| `CHANGELOG.md` | Riwayat rilis yang mudah dibaca |
+
+Footer aplikasi menampilkan versi, tahun copyright, dan nama perusahaan di semua halaman (desktop & mobile).
+
+### Cara Rilis Versi Baru
+
+```bash
+# 1. Update src/lib/version.ts (APP_VERSION + APP_BUILD_DATE)
+# 2. Update version di package.json
+# 3. Tambahkan entry ke CHANGELOG.md
+# 4. Commit dan tag
+git commit -am "release: v2.1.0"
+git tag v2.1.0
+git push --follow-tags
+```
 
 ---
 
-### 📝 License
+## Teknologi
 
-This project is currently provided for demonstration and architectural reference purposes.
+| Layer | Stack |
+|-------|-------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend | NestJS, TypeScript, Prisma ORM |
+| Database | PostgreSQL 14+ dengan PostGIS |
+| Real-time | WebSocket (Socket.IO) |
+| Auth | JWT + bcrypt |
+| Deployment | Docker, Nginx |
 
 ---
+
+## Lisensi
+
+Proprietary — PT. Maju Bersama. Hak cipta dilindungi.

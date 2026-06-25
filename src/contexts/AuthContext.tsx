@@ -1,334 +1,96 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  ReactNode,
-} from "react";
-import * as storage from "@/lib/local-storage";
-import { type SessionContext } from "@/core/security/session";
-import { type Role, Roles } from "@/core/security/roles";
-import { apiRequest } from "@/core/api/apiClient";
-import { orgSettingsService } from "@/core/services";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 
-interface UserProfile {
+interface User {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
-  user_companies?: {
-    tenant_id: string;
-    role: string;
-    is_default: boolean;
-    company: {
-      id: string;
-      name: string;
-    };
-  }[];
+  full_name: string;
+  employee_code: string;
+  role: string;
+  department: string | null;
+  office: string | null;
+  language_preference: string;
 }
 
-interface AuthContextType {
+interface AuthContextValue {
+  user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: UserProfile | null;
-  session: SessionContext | null;
-  login: (credentials: any) => Promise<{ success: boolean; error?: string }>;
-  registerUser: (data: any) => Promise<{ success: boolean; error?: string }>;
-  provisionCompany: (
-    data: any,
-  ) => Promise<{ success: boolean; error?: string; session?: SessionContext }>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  setSession: (session: SessionContext) => void;
-  updateLocation: (locationId: string) => void;
-  updateBranch: (branchId: string | undefined) => void;
-  updateEcommerce: (ecommerceId: string | undefined) => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [session, setSessionState] = useState<SessionContext | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("tara-token")
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Attempt to restore session from storage
-    const storedToken = localStorage.getItem("ZENVIX_TOKEN");
-    const storedSession = localStorage.getItem("ZENVIX_SESSION");
-    console.log("[AuthContext] Init:", {
-      hasToken: !!storedToken,
-      hasSession: !!storedSession,
-    });
-
-    if (storedToken) {
-      // Validate token and fetch user
-      apiRequest<any>("/v1/auth/me", "GET", { token: storedToken } as any)
-        .then((data) => {
-          if (data) {
-            setUser(data);
-            if (storedSession) {
-              const parsedSession = JSON.parse(storedSession) as SessionContext;
-              setSessionState({
-                ...parsedSession,
-                permissions: parsedSession.permissions || [],
-              });
-            } else if (
-              data.user_companies &&
-              Array.isArray(data.user_companies) &&
-              data.user_companies.length > 0
-            ) {
-              // Auto-select default company
-              const defaultCompany =
-                data.user_companies.find((c: any) => c.is_default) ||
-                data.user_companies[0];
-              const newSession = {
-                user_id: data.id,
-                tenant_id: defaultCompany.tenant_id,
-                company_id: defaultCompany.company.id,
-                location_id: "", 
-                role: defaultCompany.role as Role,
-                department_id: "dept-default",
-                token: storedToken,
-                permissions: [
-                  "VIEW_FINANCIALS",
-                  "VIEW_INVENTORY",
-                  "VIEW_DEVICES",
-                  "VIEW_HR",
-                  "VIEW_AUDIT",
-                  "MANAGE_STORE",
-                ],
-              };
-              setSession(newSession);
-            }
-          } else {
-            logout();
-          }
-        })
-        .catch(() => logout())
-        .finally(() => setIsLoading(false));
+    if (token) {
+      fetchProfile(token);
     } else {
       setIsLoading(false);
     }
   }, []);
 
-  const setSession = useCallback((newSession: SessionContext) => {
-    setSessionState(newSession);
-    localStorage.setItem("ZENVIX_SESSION", JSON.stringify(newSession));
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem("ZENVIX_TOKEN");
-    localStorage.removeItem("ZENVIX_SESSION");
-    storage.clearAllData(); // Clear App/POS specific data
-    setUser(null);
-    setSessionState(null);
-  }, []);
-
-  const login = useCallback(
-    async (credentials: any) => {
-      try {
-        console.log("[AuthContext] Attempting login for:", credentials.email);
-        const data = await apiRequest<any>("/v1/auth/login", "POST", null, credentials);
-
-        if (data.token) {
-          console.log("[AuthContext] Login successful, token received");
-          localStorage.setItem("ZENVIX_TOKEN", data.token);
-          setUser(data.user);
-
-          // If they have companies, setup session
-          const companies = data.user?.user_companies || [];
-          console.log("[AuthContext] User companies:", companies.length);
-          
-          if (companies.length > 0) {
-            const defaultCompany =
-              companies.find((c: any) => c.is_default) ||
-              companies[0];
-            
-            console.log("[AuthContext] Setting session for tenant:", defaultCompany.tenant_id);
-            const newSession = {
-              user_id: data.user.id,
-              tenant_id: defaultCompany.tenant_id,
-              company_id: defaultCompany.company.id,
-              location_id: "",
-              role: defaultCompany.role as Role,
-              department_id: "dept-ret",
-              token: data.token,
-              permissions: [
-                "VIEW_FINANCIALS",
-                "VIEW_INVENTORY",
-                "VIEW_DEVICES",
-                "VIEW_HR",
-                "VIEW_AUDIT",
-                "MANAGE_STORE",
-              ],
-            };
-            setSession(newSession);
-          } else {
-            console.warn("[AuthContext] User has no companies associated.");
-          }
-
-          return { success: true };
-        }
-        console.error("[AuthContext] Login failed: No token in response");
-        return { success: false, error: "Login failed" };
-      } catch (e: any) {
-        console.error("[AuthContext] Login error:", e.message);
-        return { success: false, error: e.message };
-      }
-    },
-    [setSession],
-  );
-
-  const registerUser = useCallback(async (formData: any) => {
+  async function fetchProfile(authToken: string) {
     try {
-      await apiRequest("/v1/auth/register", "POST", null, formData);
-      return { success: true };
-    } catch (e: any) {
-      return { success: false, error: e.message };
-    }
-  }, []);
-
-  const provisionCompany = useCallback(
-    async (formData: any) => {
-      try {
-        const token = localStorage.getItem("ZENVIX_TOKEN");
-        const json = await apiRequest<any>("/v1/auth/company/provision", "POST", { token } as any, formData);
-
-        if (json) {
-          // Create active session based on provisioned data
-          const newSession = {
-            user_id: user?.id || "unknown",
-            tenant_id: json.tenant_id || json.data?.tenant_id,
-            company_id: json.company_id || json.data?.company_id,
-            location_id: json.location_id || json.data?.location_id,
-            role: Roles.SUPERADMIN, 
-            department_id: json.department_id || json.data?.department_id,
-            token: token as string,
-            permissions: [
-              "VIEW_FINANCIALS",
-              "VIEW_INVENTORY",
-              "VIEW_DEVICES",
-              "VIEW_HR",
-              "VIEW_AUDIT",
-              "MANAGE_STORE",
-            ],
-          };
-          setSession(newSession);
-
-          // Reload user to get updated userCompanies
-          const meData = await apiRequest<any>("/v1/auth/me", "GET", { token } as any);
-          if (meData) setUser(meData);
-
-          return { success: true, session: newSession };
-        }
-        return { success: false, error: "Provisioning failed" };
-      } catch (e: any) {
-        return { success: false, error: e.message };
+      const res = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.data);
+      } else {
+        localStorage.removeItem("tara-token");
+        setToken(null);
       }
-    },
-    [user, setSession],
-  );
-
-  const updateLocation = useCallback(
-    (location_id: string) => {
-      setSessionState((prev) => {
-        if (!prev || prev.location_id === location_id) return prev;
-        const next = { ...prev, location_id };
-        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
-        return next;
-      });
-    },
-    [],
-  );
-
-  const updateBranch = useCallback(
-    (branch_id: string | undefined) => {
-      setSessionState((prev) => {
-        if (!prev || prev.branch_id === branch_id) return prev;
-        const next = { ...prev, branch_id };
-        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
-        return next;
-      });
-    },
-    [],
-  );
-
-  const updateEcommerce = useCallback(
-    (ecommerce_id: string | undefined) => {
-      setSessionState((prev) => {
-        if (!prev || prev.ecommerce_id === ecommerce_id) return prev;
-        const next = { ...prev, ecommerce_id };
-        localStorage.setItem("ZENVIX_SESSION", JSON.stringify(next));
-        return next;
-      });
-    },
-    [],
-  );
-
-  // Auto-resolve locationId if missing but tenantId is present
-  useEffect(() => {
-    if (session && session.tenant_id && !session.location_id) {
-      console.log("[AuthContext] Missing location_id, attempting auto-resolution via Core...");
-      orgSettingsService.getLocations(session)
-        .then(locations => {
-          // Guard against non-array responses (e.g. HTML from a 404/500)
-          if (locations && Array.isArray(locations) && locations.length > 0) {
-            console.log("[AuthContext] Auto-resolved location_id:", locations[0].id);
-            updateLocation(locations[0].id);
-          } else {
-            console.warn("[AuthContext] No valid locations found or invalid response format during auto-resolution.");
-          }
-        })
-        .catch(err => {
-          // Defensively catch parsing errors and log them without crashing
-          if (err instanceof SyntaxError || err.message?.includes("Unexpected token")) {
-            console.warn("[AuthContext] Backend returned invalid JSON during location resolution. Likely a 404/500 HTML page.");
-          } else {
-            console.error("[AuthContext] Location resolution failed:", err);
-          }
-        });
+    } catch {
+      // Offline or server down — keep token for later
+    } finally {
+      setIsLoading(false);
     }
-  }, [session, updateLocation]);
+  }
 
-  const value = useMemo(
-    () => ({
-      isAuthenticated: !!user,
-      isLoading,
-      user,
-      session,
-      login,
-      registerUser,
-      provisionCompany,
-      logout,
-      setSession,
-      updateLocation,
-      updateBranch,
-      updateEcommerce,
-    }),
-    [
-      user,
-      isLoading,
-      session,
-      login,
-      registerUser,
-      provisionCompany,
-      logout,
-      setSession,
-      updateLocation,
-      updateBranch,
-      updateEcommerce,
-    ],
+  async function login(email: string, password: string) {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.message || "Login failed");
+    }
+
+    const data = await res.json();
+    setToken(data.token);
+    setUser(data.user);
+    localStorage.setItem("tara-token", data.token);
+  }
+
+  function logout() {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("tara-token");
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{ user, token, isAuthenticated: !!user, isLoading, login, logout }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

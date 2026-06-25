@@ -1,0 +1,29 @@
+# Development — only database and redis, app runs natively
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: tara-db-dev
+    environment:
+      POSTGRES_DB: tara
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: tara-redis-dev
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata_dev:

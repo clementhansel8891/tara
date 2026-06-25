@@ -1,189 +1,147 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-  BadRequestException,
-  Inject,
-} from "@nestjs/common";
-import { IAuthRepository } from "./repositories/auth.repository.interface";
-import * as bcrypt from "bcryptjs";
-import * as jwt from "jsonwebtoken";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-import { TenantContext } from "../../gateway/tenant-context.interface";
-import { PrismaService } from "../../persistence/prisma.service";
-import { AuditService } from "../../shared/audit/audit.service";
+import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import { PrismaService } from '../../persistence/prisma.service';
+
+export interface JwtPayload {
+  sub: string;
+  email: string;
+  role: string;
+  department_id?: string;
+  office_location_id?: string;
+  context?: string;
+  interface?: string;
+}
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly jwtSecret: string;
+  private readonly jwtExpiresIn = '8h';
 
-  private readonly systemCtx: TenantContext = {
-    tenant_id: "system",
-    company_id: "system",
-    branch_id: "default",
-    user_id: "system",
-  };
-
-  constructor(
-    @Inject(IAuthRepository) private readonly authRepo: IAuthRepository,
-    private readonly prisma: PrismaService,
-    private readonly audit: AuditService,
-  ) {
+  constructor(private readonly prisma: PrismaService) {
     const secret = process.env.JWT_SECRET;
-    const INSECURE_DEFAULT = "dev-secret-key-do-not-use-in-prod";
-    if (!secret || secret === INSECURE_DEFAULT) {
-      if (process.env.NODE_ENV === "production") {
-        // Fail fast: refuse to run with a missing/known JWT secret in production.
-        // A known secret means anyone can forge valid tokens for any user.
-        throw new Error(
-          "FATAL: JWT_SECRET must be set to a strong, secret value in production. Refusing to start with a missing or default secret.",
-        );
-      }
-      this.jwtSecret = INSECURE_DEFAULT;
-    } else {
-      this.jwtSecret = secret;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET must be set in production');
     }
+    this.jwtSecret = secret || 'dev-secret-key-do-not-use-in-prod';
   }
 
-  async register(dto: RegisterDto) {
-    const normalizedEmail = dto.email.toLowerCase();
-    
-    // 1. Check if user exists (globally by email)
-    const existing = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
-    if (existing) {
-      throw new ConflictException("Email already in use");
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(dto.password, salt);
-
-    // 2. Auto-Provision Tenant and User in a transaction
-    return await this.prisma.$transaction(async (tx) => {
-      const newTenantId = `tnt-${Math.random().toString(36).substring(2, 8)}`;
-      
-      // Create the Tenant record first
-      await tx.tenants.create({
-        data: {
-          id: newTenantId,
-          name: `${dto.first_name}'s Organization`,
-          code: `ORG-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
-          status: 'active',
-        },
-      });
-
-      // Create the User record linked to the new Tenant
-      const user = await tx.users.create({
-        data: {
-          email: normalizedEmail,
-          password_hash,
-          first_name: dto.first_name,
-          last_name: dto.last_name,
-          phone: dto.phone,
-          tenant_id: newTenantId,
-        },
-      });
-
-      const { password_hash: _, ...userWithoutPassword } = user;
-      return userWithoutPassword;
+  async login(email: string, password: string) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { email: email.toLowerCase() },
+      include: { role: true, department: true, office: true },
     });
-  }
 
-  async login(dto: LoginDto) {
-    const normalizedEmail = dto.email.toLowerCase();
-    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
-
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
+    if (!employee || !employee.password_hash) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isMatch = await bcrypt.compare(dto.password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, employee.password_hash);
     if (!isMatch) {
-      throw new UnauthorizedException("Invalid credentials");
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, email: user.email };
-    const token = (jwt.sign as any)(payload, this.jwtSecret, { expiresIn: "1d" });
+    if (employee.employment_status !== 'active') {
+      throw new UnauthorizedException('Account is inactive');
+    }
 
-    const { password_hash: _, ...userWithoutPassword } = user;
-    const userCompanies = ((user as any).user_companies || []).map((uc: any) => ({
-      ...uc,
-      company: uc.companies || uc.company,
-    }));
+    const payload: JwtPayload = {
+      sub: employee.id,
+      email: employee.email,
+      role: employee.role?.role_name || 'Employee',
+      department_id: employee.department_id || undefined,
+      office_location_id: employee.office_location_id || undefined,
+    };
+
+    const token = jwt.sign(payload, this.jwtSecret, { expiresIn: this.jwtExpiresIn });
 
     return {
       token,
       user: {
-        ...userWithoutPassword,
-        user_companies: userCompanies,
+        id: employee.id,
+        email: employee.email,
+        full_name: employee.full_name,
+        employee_code: employee.employee_code,
+        role: employee.role?.role_name || 'Employee',
+        department: employee.department?.name || null,
+        office: employee.office?.location_name || null,
+        language_preference: employee.language_preference,
       },
     };
   }
 
-  async verifyAndGetProfile(token: string) {
-    try {
-      const decoded: any = jwt.verify(token, this.jwtSecret);
-      const user = await this.authRepo.findById(this.systemCtx, decoded.sub);
+  async register(data: { email: string; password: string; full_name: string; employee_code?: string }) {
+    const existing = await this.prisma.employee.findUnique({ where: { email: data.email.toLowerCase() } });
+    if (existing) throw new ConflictException('Email already in use');
 
-      if (!user) throw new UnauthorizedException("User not found");
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+    const password_hash = await bcrypt.hash(data.password, rounds);
 
-      const { password_hash: _, ...userWithoutPassword } = user;
-      const userCompanies = ((user as any).user_companies || []).map((uc: any) => ({
-        ...uc,
-        company: uc.companies || uc.company,
-      }));
+    const employee = await this.prisma.employee.create({
+      data: {
+        email: data.email.toLowerCase(),
+        password_hash,
+        full_name: data.full_name,
+        employee_code: data.employee_code || `EMP-${Date.now().toString(36).toUpperCase()}`,
+        hire_date: new Date(),
+        employment_status: 'active',
+      },
+    });
 
-      return {
-        ...userWithoutPassword,
-        user_companies: userCompanies,
-      };
-    } catch (e) {
-      throw new UnauthorizedException("Invalid token");
-    }
+    return { id: employee.id, email: employee.email, full_name: employee.full_name };
   }
 
-  async verifyEmail(email: string): Promise<boolean> {
-    const normalizedEmail = email?.toLowerCase();
-    if (!normalizedEmail) return false;
-    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
-    return !!user;
+  async changePassword(employeeId: string, currentPassword: string, newPassword: string) {
+    const employee = await this.prisma.employee.findUnique({ where: { id: employeeId } });
+    if (!employee || !employee.password_hash) throw new UnauthorizedException('Invalid credentials');
+
+    const isMatch = await bcrypt.compare(currentPassword, employee.password_hash);
+    if (!isMatch) throw new UnauthorizedException('Current password is incorrect');
+
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+    const password_hash = await bcrypt.hash(newPassword, rounds);
+
+    await this.prisma.employee.update({ where: { id: employeeId }, data: { password_hash } });
+    return { success: true };
   }
 
-  async resetPasswordDirect(email: string, newPassword: string): Promise<void> {
-    const normalizedEmail = email?.toLowerCase();
-    if (!normalizedEmail) throw new UnauthorizedException("Invalid email");
-    if (!newPassword || newPassword.length < 8) {
-      throw new BadRequestException("Password must be at least 8 characters.");
-    }
-    const user = await this.authRepo.findByEmail(this.systemCtx, normalizedEmail);
-    if (!user) {
-      throw new UnauthorizedException("User not found");
-    }
+  async resetPassword(employeeId: string, newPassword: string) {
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+    const password_hash = await bcrypt.hash(newPassword, rounds);
+    await this.prisma.employee.update({ where: { id: employeeId }, data: { password_hash } });
+    return { success: true };
+  }
 
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(newPassword, salt);
-
-    await this.authRepo.update(this.systemCtx, user.id, {
-      password_hash,
-    } as any);
-
-    // SECURITY: password resets are high-risk. Record every reset in the audit
-    // chain (CRITICAL) so the action is attributable and detectable. NOTE: this
-    // self-service reset path is only as strong as the email-ownership proof in
-    // front of it — production should gate it behind an email/SMS one-time code.
+  verifyToken(token: string): JwtPayload {
     try {
-      await this.audit.log({
-        tenant_id: (user as any).tenant_id || "system",
-        user_id: user.id,
-        module: "AUTH",
-        action: "PASSWORD_RESET",
-        entity_type: "USER",
-        entity_id: user.id,
-        severity: "CRITICAL",
-        metadata: { email: normalizedEmail, method: "reset-password-direct" },
-      });
+      return jwt.verify(token, this.jwtSecret) as JwtPayload;
     } catch {
-      /* audit failure must not block the reset */
+      throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  async getProfile(employeeId: string) {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id: employeeId },
+      include: { role: true, department: true, office: true },
+    });
+    if (!employee) throw new UnauthorizedException('User not found');
+
+    return {
+      id: employee.id,
+      email: employee.email,
+      full_name: employee.full_name,
+      employee_code: employee.employee_code,
+      phone: employee.phone,
+      role: employee.role?.role_name || 'Employee',
+      department: employee.department?.name || null,
+      department_id: employee.department_id,
+      office: employee.office?.location_name || null,
+      office_location_id: employee.office_location_id,
+      hire_date: employee.hire_date,
+      employment_status: employee.employment_status,
+      language_preference: employee.language_preference,
+    };
   }
 }

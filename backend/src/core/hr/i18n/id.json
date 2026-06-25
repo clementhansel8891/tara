@@ -1,0 +1,70 @@
+{
+  "common": {
+    "success": "Berhasil",
+    "error": "Terjadi kesalahan",
+    "not_found": "Tidak ditemukan",
+    "unauthorized": "Tidak memiliki akses",
+    "forbidden": "Akses ditolak"
+  },
+  "attendance": {
+    "clock_in_confirmation": "Halo {{employeeName}}, kehadiran Anda tercatat pada {{time}} WIB.",
+    "clock_out_confirmation": "Halo {{employeeName}}, kepulangan Anda tercatat pada {{time}} WIB.",
+    "clock_in_tardy": "Halo {{employeeName}}, kehadiran Anda tercatat pada {{time}} WIB. Anda terlambat {{minutes}} menit.",
+    "tardiness_report_title": "Laporan Keterlambatan - {{date}}",
+    "tardiness_report_entry": "{{employeeName}} tiba pukul {{time}} WIB (terlambat {{minutes}} menit)",
+    "tardiness_report_none": "Tidak ada karyawan yang terlambat hari ini. Kerja bagus semua!",
+    "weekly_recap_title": "Rekap Kehadiran Mingguan - {{startDate}} s/d {{endDate}}"
+  },
+  "leave": {
+    "request_submitted": "Pengajuan cuti {{leaveType}} Anda telah dikirim dan menunggu persetujuan.",
+    "request_approved": "Pengajuan cuti {{leaveType}} Anda dari {{startDate}} sampai {{endDate}} telah disetujui.",
+    "request_rejected": "Pengajuan cuti {{leaveType}} Anda ditolak. Alasan: {{reason}}",
+    "insufficient_balance": "Saldo cuti Anda tidak mencukupi. Sisa cuti: {{remaining}} hari.",
+    "balance_info": "Saldo cuti Anda: {{remaining}} hari tersisa dari total {{total}} hari.",
+    "monthly_recap_title": "Rekap Saldo Cuti Bulanan - {{month}} {{year}}",
+    "types": {
+      "annual": "Tahunan",
+      "sick": "Sakit",
+      "emergency": "Darurat",
+      "maternity": "Melahirkan",
+      "paternity": "Kelahiran Anak"
+    }
+  },
+  "onboarding": {
+    "welcome": "Selamat datang di PT. Maju Bersama, {{employeeName}}!",
+    "step_completed": "Langkah onboarding {{stepNumber}} ({{stepName}}) telah selesai.",
+    "step_failed": "Langkah onboarding {{stepNumber}} ({{stepName}}) gagal. HR akan ditindaklanjuti.",
+    "workflow_completed": "Proses onboarding Anda telah selesai. Selamat bergabung!",
+    "steps": {
+      "1": "Pembuatan Akun Email",
+      "2": "Pengiriman Welcome Kit",
+      "3": "Penjadwalan Orientasi",
+      "4": "Perkenalan Tim",
+      "5": "Provisi Akses Sistem",
+      "6": "Dokumentasi SOP",
+      "7": "Penandatanganan Kontrak"
+    }
+  },
+  "checkin": {
+    "form_distributed": "Formulir check-in mingguan telah tersedia. Silakan isi sebelum akhir hari.",
+    "reminder": "Pengingat: Anda belum mengisi formulir check-in mingguan. Silakan segera isi.",
+    "report_title": "Laporan Check-in Mingguan - Minggu {{weekStart}}",
+    "questions": {
+      "accomplishments": "Pencapaian minggu ini",
+      "challenges": "Tantangan yang dihadapi",
+      "next_week_goals": "Target minggu depan"
+    }
+  },
+  "warning": {
+    "issued": "Surat Peringatan ({{level}}) telah diterbitkan pada {{date}}.",
+    "levels": {
+      "SP1": "Surat Peringatan 1",
+      "SP2": "Surat Peringatan 2",
+      "SP3": "Surat Peringatan 3"
+    }
+  },
+  "notification": {
+    "public_announcement": "Pengumuman",
+    "private_notification": "Notifikasi Pribadi"
+  }
+}

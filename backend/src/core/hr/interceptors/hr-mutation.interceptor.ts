@@ -1,103 +1,45 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Logger,
-} from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import { Observable, tap } from 'rxjs';
 import { AuditService } from '../../../shared/audit/audit.service';
-import { LoggerService } from '../../../shared/logger/logger.service';
 
 /**
- * HRMutationInterceptor
- * Automatically captures ALL HR mutations (POST, PUT, PATCH, DELETE)
- * for dual-logging to AuditStore and SystemLog.
+ * HR Mutation Interceptor — logs all HR write operations to the audit trail.
  */
 @Injectable()
 export class HRMutationInterceptor implements NestInterceptor {
-  private readonly logger = new Logger('HRMutationInterceptor');
+  private readonly logger = new Logger(HRMutationInterceptor.name);
 
-  constructor(
-    private readonly auditService: AuditService,
-    private readonly loggerService: LoggerService,
-  ) {}
+  constructor(private readonly auditService: AuditService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    const { method, path, body, headers } = request;
-    const tenant_id = headers['x-tenant-id'] || body.tenant_id;
-    const user_id = headers['x-user-id'] || 'system';
+    const method = request.method;
 
     // Only intercept mutations
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      return next.handle().pipe(
-        tap({
-          next: async (data) => {
-            const entity_id = data?.id || body?.id || 'n/a';
-            const entity_type = this.extractEntityType(path);
-
-            // 1. Audit Logging (Compliance Trace)
-            try {
-              await this.auditService.log({
-                tenant_id,
-                user_id,
-                module: 'HR',
-                action: method === 'POST' ? 'CREATE' : method === 'DELETE' ? 'DELETE' : 'UPDATE',
-                entity_type,
-                entity_id,
-                metadata: {
-                  path,
-                  method,
-                  payload: body,
-                },
-              });
-            } catch (err) {
-              this.logger.error(`Audit logging failed: ${err.message}`);
-            }
-
-            // 2. System Logging (Observability)
-            try {
-              await this.loggerService.log({
-                tenant_id,
-                module: 'HR',
-                level: 'INFO',
-                event: `HR_${method}_MUTATION`,
-                message: `HR Mutation: ${method} ${path} by ${user_id}`,
-                payload: {
-                  entity_type,
-                  entity_id,
-                  status: 'SUCCESS',
-                },
-                user_id,
-              });
-            } catch (err) {
-              this.logger.error(`System logging failed: ${err.message}`);
-            }
-          },
-          error: async (err) => {
-             // Log failures too
-             await this.loggerService.log({
-                tenant_id,
-                module: 'HR',
-                level: 'ERROR',
-                event: `HR_${method}_FAILURE`,
-                message: `HR Mutation Failed: ${method} ${path} - ${err.message}`,
-                payload: { body, error: err.message },
-                user_id,
-                errorStack: err.stack,
-              });
-          }
-        }),
-      );
+    if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+      return next.handle();
     }
 
-    return next.handle();
-  }
+    const startTime = Date.now();
+    const user = request.user;
 
-  private extractEntityType(path: string): string {
-    const segments = path.split('/').filter(s => s && s !== 'api' && s !== 'hr');
-    return segments[0]?.toUpperCase() || 'UNKNOWN';
+    return next.handle().pipe(
+      tap({
+        next: () => {
+          this.auditService.log({
+            action_type: `${method} ${request.url}`,
+            actor_id: user?.sub,
+            actor_role: user?.role,
+            target_entity_type: 'hr_mutation',
+            action_context: request.headers['x-interface-origin'] || 'web',
+            ip_address: request.ip,
+            user_agent: request.headers['user-agent'],
+          });
+        },
+        error: (err) => {
+          this.logger.warn(`HR mutation failed: ${method} ${request.url} — ${err.message}`);
+        },
+      }),
+    );
   }
 }

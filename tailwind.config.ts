@@ -2,8 +2,10 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
-  prefix: "",
+  content: [
+    "./index.html",
+    "./src/**/*.{ts,tsx}",
+  ],
   theme: {
     container: {
       center: true,
@@ -57,7 +59,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Semantic Colors
+        // Luxury semantic colors
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
@@ -70,38 +72,13 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
-        // Surface System
-        "surface-1": "hsl(var(--surface-1))",
-        "surface-2": "hsl(var(--surface-2))",
-        "surface-3": "hsl(var(--surface-3))",
-        
-        // Premium Text System
-        "text-strong": "hsl(var(--text-strong))",
-        "text-dim": "hsl(var(--text-dim))",
-        "text-label": "hsl(var(--text-label))",
-        "label-foreground": "hsl(var(--label-foreground))",
-        
-        // Status Colors
-        status: {
-          empty: "hsl(var(--status-empty))",
-          ordering: "hsl(var(--status-ordering))",
-          served: "hsl(var(--status-served))",
-          billed: "hsl(var(--status-billed))",
-          occupied: "hsl(var(--status-occupied))",
+        // Premium gold accent
+        gold: {
+          DEFAULT: "hsl(var(--gold))",
+          foreground: "hsl(var(--gold-foreground))",
+          muted: "hsl(var(--gold-muted))",
         },
-        // License Colors
-        license: {
-          active: "hsl(var(--license-active))",
-          trial: "hsl(var(--license-trial))",
-          expired: "hsl(var(--license-expired))",
-        },
-        // POS Specific
-        pos: {
-          background: "hsl(var(--pos-background))",
-          card: "hsl(var(--pos-card))",
-          accent: "hsl(var(--pos-accent))",
-        },
-        // Chart Colors
+        // Chart colors
         chart: {
           1: "hsl(var(--chart-1))",
           2: "hsl(var(--chart-2))",
@@ -110,11 +87,29 @@ export default {
           5: "hsl(var(--chart-5))",
         },
       },
-
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        sans: ['"Inter"', '"SF Pro Display"', "system-ui", "-apple-system", "sans-serif"],
+        display: ['"Playfair Display"', "Georgia", "serif"],
+        mono: ['"JetBrains Mono"', '"SF Mono"', "monospace"],
+      },
+      fontSize: {
+        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
+      },
+      letterSpacing: {
+        "luxury": "0.05em",
+        "wide-luxury": "0.12em",
+      },
+      boxShadow: {
+        "luxury": "0 1px 2px 0 rgb(0 0 0 / 0.03), 0 1px 6px -1px rgb(0 0 0 / 0.02)",
+        "luxury-md": "0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.03)",
+        "luxury-lg": "0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.03)",
+        "luxury-glow": "0 0 20px -5px hsl(var(--gold) / 0.15)",
+        "inner-luxury": "inset 0 1px 2px 0 rgb(0 0 0 / 0.04)",
       },
       keyframes: {
         "accordion-down": {
@@ -126,33 +121,24 @@ export default {
           to: { height: "0" },
         },
         "fade-in": {
-          from: { opacity: "0" },
-          to: { opacity: "1" },
+          from: { opacity: "0", transform: "translateY(4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         "slide-in-right": {
-          from: { transform: "translateX(100%)" },
-          to: { transform: "translateX(0)" },
+          from: { transform: "translateX(100%)", opacity: "0" },
+          to: { transform: "translateX(0)", opacity: "1" },
         },
-        "slide-in-bottom": {
-          from: { transform: "translateY(100%)" },
-          to: { transform: "translateY(0)" },
-        },
-        "scale-in": {
-          from: { transform: "scale(0.95)", opacity: "0" },
-          to: { transform: "scale(1)", opacity: "1" },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
-        "slide-in-bottom": "slide-in-bottom 0.3s ease-out",
-        "scale-in": "scale-in 0.2s ease-out",
-      },
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "monospace"],
+        shimmer: "shimmer 2s infinite linear",
       },
     },
   },

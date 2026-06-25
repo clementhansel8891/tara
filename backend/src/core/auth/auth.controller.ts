@@ -1,80 +1,44 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  UnauthorizedException,
-} from "@nestjs/common";
-import { Request } from "express";
-import { AuthService } from "./auth.service";
-import { LoginDto } from "./dto/login.dto";
-import { RegisterDto } from "./dto/register.dto";
-
-interface RequestWithUser extends Request {
-  user?: any;
-}
+import { Controller, Post, Get, Body, Req, UseGuards } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { LoginDto, RegisterDto, ChangePasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { JwtGuard } from './guards/jwt.guard';
+import { RolesGuard, Roles } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("register")
+  @Post('login')
+  async login(@Body() dto: LoginDto) {
+    const result = await this.authService.login(dto.email, dto.password);
+    return { success: true, ...result };
+  }
+
+  @Post('register')
   async register(@Body() dto: RegisterDto) {
     const user = await this.authService.register(dto);
-    return {
-      success: true,
-      message: "Registration successful",
-      data: user,
-    };
+    return { success: true, data: user };
   }
 
-  @Post("login")
-  async login(@Body() dto: LoginDto) {
-    const data = await this.authService.login(dto);
-    return {
-      success: true,
-      message: "Login successful",
-      ...data,
-    };
+  @Get('me')
+  @UseGuards(JwtGuard)
+  async getProfile(@Req() req: any) {
+    const profile = await this.authService.getProfile(req.user.sub);
+    return { success: true, data: profile };
   }
 
-  @Get("me")
-  async getProfile(@Req() request: RequestWithUser) {
-    // In a real implementation this would verify the token
-    // For now we assume the frontend passes an Authorization header we decode
-    const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new UnauthorizedException("Missing token");
-    }
-
-    const token = authHeader.split(" ")[1];
-    const user = await this.authService.verifyAndGetProfile(token);
-
-    return {
-      success: true,
-      data: user,
-    };
+  @Post('change-password')
+  @UseGuards(JwtGuard)
+  async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
+    await this.authService.changePassword(req.user.sub, dto.current_password, dto.new_password);
+    return { success: true, message: 'Password changed' };
   }
 
-  @Post("verify-email")
-  async verifyEmail(@Body("email") email: string) {
-    const exists = await this.authService.verifyEmail(email);
-    return {
-      success: true,
-      exists,
-    };
-  }
-
-  @Post("reset-password-direct")
-  async resetPasswordDirect(
-    @Body("email") email: string,
-    @Body("newPassword") newPassword: string,
-  ) {
-    await this.authService.resetPasswordDirect(email, newPassword);
-    return {
-      success: true,
-      message: "Password reset successful",
-    };
+  @Post('reset-password')
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles('SuperAdmin', 'HR_Admin')
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.employee_id, dto.new_password);
+    return { success: true, message: 'Password reset' };
   }
 }

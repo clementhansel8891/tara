@@ -1,5 +1,2 @@
-import { SetMetadata } from "@nestjs/common";
-import { UserRole } from "../roles";
-
-export const ROLES_KEY = "roles";
-export const Roles = (...roles: UserRole[]) => SetMetadata(ROLES_KEY, roles);
+// Re-export from auth guards for backward compatibility
+export { Roles, ROLES_KEY } from '../../core/auth/guards/roles.guard';

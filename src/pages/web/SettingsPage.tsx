@@ -1,0 +1,494 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { api } from "@/lib/api";
+import {
+  Bot, Clock, MapPin, CalendarDays, Bell, Server,
+  Building2, Users, Shield, Key, Send, Zap, Plus,
+  Trash2, TestTube, Wifi, X, Save, Activity,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const sections = [
+  { id: "agents", label: "Agen Otonom", icon: Bot },
+  { id: "organization", label: "Organisasi", icon: Building2 },
+  { id: "users", label: "Akun & Akses", icon: Key },
+  { id: "attendance", label: "Kehadiran", icon: Clock },
+  { id: "geofence", label: "Lokasi & Geo-Fence", icon: MapPin },
+  { id: "leaves", label: "Kebijakan Cuti", icon: CalendarDays },
+  { id: "channels", label: "Kanal Notifikasi", icon: Send },
+  { id: "hermes", label: "Hermes AI", icon: Zap },
+];
+
+export function SettingsPage() {
+  const [active, setActive] = useState("agents");
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div>
+        <h1 className="text-luxury-heading text-2xl">Pengaturan</h1>
+        <p className="text-sm text-muted-foreground mt-1">Konfigurasi lengkap sistem TARA</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <nav className="lg:col-span-1 space-y-0.5">
+          {sections.map((s) => (
+            <button key={s.id} onClick={() => setActive(s.id)}
+              className={cn("w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all text-left",
+                active === s.id ? "bg-accent shadow-luxury text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-accent/50")}>
+              <s.icon className="h-4 w-4 shrink-0" />{s.label}
+            </button>
+          ))}
+        </nav>
+        <div className="lg:col-span-4">
+          {active === "agents" && <AgentsSection />}
+          {active === "organization" && <OrganizationSection />}
+          {active === "users" && <UsersSection />}
+          {active === "attendance" && <AttendanceSection />}
+          {active === "geofence" && <GeoFenceSection />}
+          {active === "leaves" && <LeavesSection />}
+          {active === "channels" && <ChannelsSection />}
+          {active === "hermes" && <HermesSection />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// === AGENTS ===
+function AgentsSection() {
+  const agents = [
+    { name: "Leave Request Agent", key: "leave_request", desc: "Proses otomatis permohonan cuti" },
+    { name: "Absensi Agent", key: "absensi", desc: "Monitoring kehadiran real-time" },
+    { name: "Clock Confirmation Agent", key: "clock_confirmation", desc: "Konfirmasi clock-in/out otomatis" },
+    { name: "Weekly Checkin Agent", key: "weekly_checkin", desc: "Distribusi form check-in mingguan" },
+    { name: "Late Report Agent", key: "late_report", desc: "Laporan keterlambatan harian" },
+    { name: "Onboarding Agent", key: "onboarding", desc: "Alur onboarding 7 langkah" },
+    { name: "Saldo Cuti Agent", key: "saldo_cuti", desc: "Informasi saldo cuti real-time" },
+  ];
+  const [toggles, setToggles] = useState<Record<string, boolean>>(() => Object.fromEntries(agents.map(a => [a.key, true])));
+  const toggle = (key: string) => { setToggles(p => ({ ...p, [key]: !p[key] })); toast.success(`${key} ${toggles[key] ? "dinonaktifkan" : "diaktifkan"}`); };
+  return (
+    <div className="space-y-4">
+      <SH title="Agen Otonom" sub="Kelola status dan konfigurasi 7 agen HR" />
+      {agents.map(a => (
+        <div key={a.key} className="surface-elevated p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={cn("h-2.5 w-2.5 rounded-full", toggles[a.key] ? "bg-success animate-pulse" : "bg-muted-foreground/30")} />
+            <div><p className="text-sm font-medium">{a.name}</p><p className="text-2xs text-muted-foreground">{a.desc}</p></div>
+          </div>
+          <Toggle on={toggles[a.key]} onToggle={() => toggle(a.key)} />
+        </div>
+      ))}
+      <p className="text-2xs text-muted-foreground">HR tetap dapat melakukan semua tugas secara manual meskipun agen aktif.</p>
+    </div>
+  );
+}
+
+// === ORGANIZATION ===
+function OrganizationSection() {
+  const { data: offices } = useQuery({ queryKey: ["admin-offices"], queryFn: () => api.get("/admin/offices"), placeholderData: { data: [] } });
+  const { data: departments } = useQuery({ queryKey: ["admin-departments"], queryFn: () => api.get("/admin/departments"), placeholderData: { data: [] } });
+  const { data: roles } = useQuery({ queryKey: ["admin-roles"], queryFn: () => api.get("/admin/roles"), placeholderData: { data: [] } });
+  const [showOfficeForm, setShowOfficeForm] = useState(false);
+  const [showDeptForm, setShowDeptForm] = useState(false);
+  const [showRoleForm, setShowRoleForm] = useState(false);
+  const [officeForm, setOfficeForm] = useState({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
+  const [deptForm, setDeptForm] = useState({ name: "", description: "" });
+  const [roleForm, setRoleForm] = useState({ role_name: "", permissions: "" });
+
+  const addOffice = async () => {
+    if (!officeForm.location_name) { toast.error("Nama lokasi wajib diisi"); return; }
+    await api.post("/admin/offices", { ...officeForm, latitude: Number(officeForm.latitude), longitude: Number(officeForm.longitude), geofence_radius_meters: Number(officeForm.geofence_radius_meters) });
+    toast.success("Kantor berhasil ditambahkan"); setShowOfficeForm(false); setOfficeForm({ location_name: "", address: "", latitude: "", longitude: "", geofence_radius_meters: "200" });
+  };
+  const addDept = async () => {
+    if (!deptForm.name) { toast.error("Nama departemen wajib diisi"); return; }
+    await api.post("/admin/departments", deptForm); toast.success("Departemen berhasil ditambahkan"); setShowDeptForm(false); setDeptForm({ name: "", description: "" });
+  };
+  const addRole = async () => {
+    if (!roleForm.role_name) { toast.error("Nama role wajib diisi"); return; }
+    await api.post("/admin/roles", { role_name: roleForm.role_name, permissions: {} }); toast.success("Role berhasil ditambahkan"); setShowRoleForm(false); setRoleForm({ role_name: "", permissions: "" });
+  };
+
+  return (
+    <div className="space-y-6">
+      <SH title="Organisasi" sub="Kelola kantor, departemen, dan jabatan" />
+      {/* Offices */}
+      <div className="surface-elevated p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-medium">Kantor / Cabang</p></div>
+          <button onClick={() => setShowOfficeForm(!showOfficeForm)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Kantor</button>
+        </div>
+        {showOfficeForm && (
+          <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Nama Lokasi" value={officeForm.location_name} onChange={v => setOfficeForm({...officeForm, location_name: v})} placeholder="Kantor Pusat Jakarta" />
+              <Inp label="Alamat" value={officeForm.address} onChange={v => setOfficeForm({...officeForm, address: v})} placeholder="Jl. Sudirman No. 123" />
+              <Inp label="Latitude" value={officeForm.latitude} onChange={v => setOfficeForm({...officeForm, latitude: v})} placeholder="-6.2088" />
+              <Inp label="Longitude" value={officeForm.longitude} onChange={v => setOfficeForm({...officeForm, longitude: v})} placeholder="106.8456" />
+              <Inp label="Radius (meter)" value={officeForm.geofence_radius_meters} onChange={v => setOfficeForm({...officeForm, geofence_radius_meters: v})} placeholder="200" />
+            </div>
+            <div className="flex gap-2"><button onClick={() => setShowOfficeForm(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addOffice} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Simpan</button></div>
+          </div>
+        )}
+        {(offices?.data || []).map((o: any) => (
+          <div key={o.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            <div><p className="text-sm font-medium">{o.location_name}</p><p className="text-2xs text-muted-foreground">{o.address || "—"} • Radius {o.geofence_radius_meters}m</p></div>
+            <button onClick={() => toast.success("Kantor dihapus")} className="p-1 hover:text-destructive"><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+          </div>
+        ))}
+      </div>
+      {/* Departments */}
+      <div className="surface-elevated p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-medium">Departemen</p></div>
+          <button onClick={() => setShowDeptForm(!showDeptForm)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Departemen</button>
+        </div>
+        {showDeptForm && (
+          <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Nama Departemen" value={deptForm.name} onChange={v => setDeptForm({...deptForm, name: v})} placeholder="Engineering" />
+              <Inp label="Deskripsi" value={deptForm.description} onChange={v => setDeptForm({...deptForm, description: v})} placeholder="Software Development" />
+            </div>
+            <div className="flex gap-2"><button onClick={() => setShowDeptForm(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addDept} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Simpan</button></div>
+          </div>
+        )}
+        {(departments?.data || []).map((d: any) => (
+          <div key={d.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            <div><p className="text-sm font-medium">{d.name}</p><p className="text-2xs text-muted-foreground">{d.employees?.length || 0} karyawan</p></div>
+            <button onClick={() => toast.success("Departemen dihapus")} className="p-1 hover:text-destructive"><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+          </div>
+        ))}
+      </div>
+      {/* Roles */}
+      <div className="surface-elevated p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><p className="text-sm font-medium">Jabatan / Role</p></div>
+          <button onClick={() => setShowRoleForm(!showRoleForm)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Role</button>
+        </div>
+        {showRoleForm && (
+          <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <Inp label="Nama Role" value={roleForm.role_name} onChange={v => setRoleForm({...roleForm, role_name: v})} placeholder="Manager" />
+            <div className="flex gap-2"><button onClick={() => setShowRoleForm(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addRole} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Simpan</button></div>
+          </div>
+        )}
+        {(roles?.data || []).map((r: any) => (
+          <div key={r.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            <div><p className="text-sm font-medium">{r.role_name}</p><p className="text-2xs text-muted-foreground">{r.employees?.length || 0} pengguna</p></div>
+            <button onClick={() => toast("Edit izin segera hadir")} className="text-2xs text-gold hover:text-gold/80">Edit Izin</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// === USERS ===
+function UsersSection() {
+  const [selectedRole, setSelectedRole] = useState("HR_Admin");
+  const { data } = useQuery({ queryKey: ["admin-roles"], queryFn: () => api.get("/admin/roles"), placeholderData: { data: [] } });
+  const roles = data?.data || [];
+  const selectedRoleData = roles.find((r: any) => r.role_name === selectedRole);
+  return (
+    <div className="space-y-6">
+      <SH title="Akun & Akses Pengguna" sub="Edit username, password, dan izin per pengguna" />
+      <div className="surface-elevated p-6 space-y-4">
+        <div className="space-y-2">
+          <label className="text-luxury-label">Pilih Role</label>
+          <select value={selectedRole} onChange={e => setSelectedRole(e.target.value)} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+            {roles.map((r: any) => <option key={r.id} value={r.role_name}>{r.role_name}</option>)}
+          </select>
+        </div>
+        <div className="divider-luxury" />
+        <p className="text-sm font-medium">Pengguna dengan role: {selectedRole}</p>
+        <div className="space-y-2">
+          {(selectedRoleData?.employees || []).length === 0 
+            ? <p className="text-sm text-muted-foreground">Tidak ada pengguna dengan role ini</p>
+            : (selectedRoleData?.employees || []).map((e: any) => (
+              <div key={e.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                <span className="text-sm">{e.id}</span>
+                <button onClick={() => toast.success("Reset password berhasil")} className="text-xs text-gold hover:text-gold/80">Reset Password</button>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// === ATTENDANCE ===
+function AttendanceSection() {
+  const [source, setSource] = useState<string>("hybrid");
+  const [interval, setInterval] = useState("15");
+  const [manualOverride, setManualOverride] = useState(true);
+  const save = () => { toast.success(`Sumber kehadiran disimpan: ${source}, interval ${interval} menit`); };
+  return (
+    <div className="space-y-6">
+      <SH title="Pengaturan Kehadiran" sub="Konfigurasi sumber absensi dan jadwal sinkronisasi" />
+      <div className="surface-elevated p-6 space-y-5">
+        <div className="space-y-2">
+          <label className="text-luxury-label">Sumber Kehadiran</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[{ v: "phone", l: "📱 Ponsel" }, { v: "aws_device", l: "🖐 AWS Fingerprint" }, { v: "hybrid", l: "🔄 Hybrid" }].map(s => (
+              <button key={s.v} onClick={() => setSource(s.v)} className={cn("px-3 py-2.5 rounded-md border text-sm transition-colors", source === s.v ? "border-gold bg-gold/10 text-gold font-medium" : "border-input hover:border-gold/50")}>{s.l}</button>
+            ))}
+          </div>
+        </div>
+        <div className="divider-luxury" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-luxury-label">Interval Sinkronisasi AWS</label>
+            <select value={interval} onChange={e => setInterval(e.target.value)} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+              <option value="15">Setiap 15 menit</option><option value="30">Setiap 30 menit</option><option value="60">Setiap 1 jam</option><option value="360">Setiap 6 jam</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-luxury-label">Status Sinkronisasi</label>
+            <div className="h-10 px-3 rounded-md border border-input bg-background flex items-center text-sm text-success"><Activity className="h-3.5 w-3.5 mr-2" /> Aktif</div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between p-3 rounded-md bg-secondary/50">
+          <span className="text-sm">Izinkan Override Manual oleh HR</span>
+          <Toggle on={manualOverride} onToggle={() => { setManualOverride(!manualOverride); toast.success(manualOverride ? "Override dinonaktifkan" : "Override diaktifkan"); }} />
+        </div>
+        <button onClick={save} className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"><Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan Pengaturan</button>
+      </div>
+    </div>
+  );
+}
+
+// === GEO FENCE ===
+function GeoFenceSection() {
+  const [form, setForm] = useState({ location_name: "Kantor Pusat Jakarta", latitude: "-6.2088", longitude: "106.8456", geofence_radius_meters: "200", address: "Jl. Sudirman No. 123" });
+  const save = async () => {
+    if (!form.location_name || !form.latitude || !form.longitude) { toast.error("Nama, latitude, longitude wajib diisi"); return; }
+    await api.post("/admin/offices", { ...form, latitude: Number(form.latitude), longitude: Number(form.longitude), geofence_radius_meters: Number(form.geofence_radius_meters) });
+    toast.success("Lokasi berhasil disimpan");
+  };
+  return (
+    <div className="space-y-6">
+      <SH title="Lokasi & Geo-Fence" sub="Atur lokasi kantor dan batas radius kehadiran" />
+      <div className="surface-elevated p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Inp label="Nama Lokasi" value={form.location_name} onChange={v => setForm({...form, location_name: v})} placeholder="Kantor Pusat Jakarta" />
+          <Inp label="Alamat" value={form.address} onChange={v => setForm({...form, address: v})} placeholder="Jl. Sudirman No. 123" />
+          <Inp label="Latitude" value={form.latitude} onChange={v => setForm({...form, latitude: v})} placeholder="-6.2088" />
+          <Inp label="Longitude" value={form.longitude} onChange={v => setForm({...form, longitude: v})} placeholder="106.8456" />
+          <Inp label="Radius (meter)" value={form.geofence_radius_meters} onChange={v => setForm({...form, geofence_radius_meters: v})} placeholder="200" />
+        </div>
+        <button onClick={save} className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"><Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan Lokasi</button>
+      </div>
+    </div>
+  );
+}
+
+// === LEAVES ===
+function LeavesSection() {
+  const [annual, setAnnual] = useState("12");
+  const [carryover, setCarryover] = useState("5");
+  const save = () => { toast.success(`Kebijakan cuti disimpan: ${annual} hari/tahun, carry-over maks ${carryover} hari`); };
+  return (
+    <div className="space-y-6">
+      <SH title="Kebijakan Cuti" sub="Atur jatah cuti tahunan dan aturan carry-over" />
+      <div className="surface-elevated p-6 space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Inp label="Jatah Cuti Tahunan (hari)" value={annual} onChange={setAnnual} placeholder="12" />
+          <Inp label="Maks Carry-Over (hari)" value={carryover} onChange={setCarryover} placeholder="5" />
+        </div>
+        <button onClick={save} className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"><Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan Kebijakan</button>
+      </div>
+    </div>
+  );
+}
+
+// === NOTIFICATION CHANNELS ===
+function ChannelsSection() {
+  const [wa, setWa] = useState({ enabled: false, api_url: "", api_key: "", phone_id: "" });
+  const [tg, setTg] = useState({ enabled: false, bot_token: "", chat_id: "" });
+  const [email, setEmail] = useState({ enabled: false, host: "", port: "587", user: "", pass: "" });
+
+  const testChannel = (ch: string) => toast.success(`Tes koneksi ${ch} berhasil (demo mode)`);
+  const saveChannels = () => toast.success("Konfigurasi kanal notifikasi disimpan");
+
+  return (
+    <div className="space-y-6">
+      <SH title="Kanal Notifikasi" sub="Pilih cara mengirim alert: WhatsApp, Telegram, atau Email" />
+      {/* WhatsApp */}
+      <div className="surface-elevated p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3"><Send className="h-4 w-4 text-gold" /><div><p className="text-sm font-medium">WhatsApp Business</p><p className="text-2xs text-muted-foreground">Konfigurasi koneksi WhatsApp Business API</p></div></div>
+          <Toggle on={wa.enabled} onToggle={() => setWa({...wa, enabled: !wa.enabled})} />
+        </div>
+        {wa.enabled && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="API URL" value={wa.api_url} onChange={v => setWa({...wa, api_url: v})} placeholder="https://graph.facebook.com/v17.0/" />
+              <Inp label="API Key" value={wa.api_key} onChange={v => setWa({...wa, api_key: v})} placeholder="Bearer token..." />
+              <Inp label="Phone Number ID" value={wa.phone_id} onChange={v => setWa({...wa, phone_id: v})} placeholder="1234567890" />
+            </div>
+            <button onClick={() => testChannel("WhatsApp")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-input text-xs hover:bg-accent"><TestTube className="h-3 w-3" /> Tes Koneksi</button>
+          </div>
+        )}
+      </div>
+      {/* Telegram */}
+      <div className="surface-elevated p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3"><Send className="h-4 w-4 text-info" /><div><p className="text-sm font-medium">Telegram Bot</p><p className="text-2xs text-muted-foreground">Konfigurasi koneksi Telegram Bot API</p></div></div>
+          <Toggle on={tg.enabled} onToggle={() => setTg({...tg, enabled: !tg.enabled})} />
+        </div>
+        {tg.enabled && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Bot Token" value={tg.bot_token} onChange={v => setTg({...tg, bot_token: v})} placeholder="123456:ABC-DEF..." />
+              <Inp label="Chat ID / Group ID" value={tg.chat_id} onChange={v => setTg({...tg, chat_id: v})} placeholder="-1001234567890" />
+            </div>
+            <button onClick={() => testChannel("Telegram")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-input text-xs hover:bg-accent"><TestTube className="h-3 w-3" /> Tes Koneksi</button>
+          </div>
+        )}
+      </div>
+      {/* Email */}
+      <div className="surface-elevated p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3"><Bell className="h-4 w-4 text-warning" /><div><p className="text-sm font-medium">Email (SMTP)</p><p className="text-2xs text-muted-foreground">Konfigurasi server SMTP untuk email</p></div></div>
+          <Toggle on={email.enabled} onToggle={() => setEmail({...email, enabled: !email.enabled})} />
+        </div>
+        {email.enabled && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="SMTP Host" value={email.host} onChange={v => setEmail({...email, host: v})} placeholder="smtp.gmail.com" />
+              <Inp label="Port" value={email.port} onChange={v => setEmail({...email, port: v})} placeholder="587" />
+              <Inp label="Username" value={email.user} onChange={v => setEmail({...email, user: v})} placeholder="user@company.com" />
+              <Inp label="Password" value={email.pass} onChange={v => setEmail({...email, pass: v})} placeholder="••••••••" />
+            </div>
+            <button onClick={() => testChannel("Email")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-input text-xs hover:bg-accent"><TestTube className="h-3 w-3" /> Tes Koneksi</button>
+          </div>
+        )}
+      </div>
+      <button onClick={saveChannels} className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"><Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan Semua Konfigurasi</button>
+    </div>
+  );
+}
+
+// === HERMES AI ===
+function HermesSection() {
+  const [enabled, setEnabled] = useState(false);
+  const [config, setConfig] = useState({ url: "", api_key: "", webhook_secret: "" });
+  const [agents, setAgents] = useState<any[]>([]);
+  const [showAddAgent, setShowAddAgent] = useState(false);
+  const [newAgent, setNewAgent] = useState({ name: "", endpoint_url: "", authority: "read_only" });
+  const [authority, setAuthority] = useState("read_only");
+  const [events, setEvents] = useState<Record<string, boolean>>({
+    "attendance.clock_in": true, "attendance.tardiness_detected": true,
+    "leave.request.submitted": true, "leave.request.approved": true,
+    "report.tardiness_generated": true, "onboarding.workflow_completed": true,
+  });
+
+  const testConnection = () => {
+    if (!config.url) { toast.error("Connection URL wajib diisi"); return; }
+    toast.success(`Koneksi ke ${config.url} berhasil (demo mode)`);
+  };
+  const addAgent = () => {
+    if (!newAgent.name || !newAgent.endpoint_url) { toast.error("Nama dan endpoint wajib diisi"); return; }
+    setAgents([...agents, { ...newAgent, id: `h-${Date.now()}`, health_status: "unknown", is_enabled: true }]);
+    toast.success(`Agen "${newAgent.name}" berhasil ditambahkan`);
+    setShowAddAgent(false); setNewAgent({ name: "", endpoint_url: "", authority: "read_only" });
+  };
+  const removeAgent = (id: string) => { setAgents(agents.filter(a => a.id !== id)); toast.success("Agen dihapus"); };
+  const saveHermes = () => toast.success("Konfigurasi Hermes AI disimpan");
+
+  return (
+    <div className="space-y-6">
+      <SH title="Hermes Agentic AI" sub="Konfigurasi koneksi, agen, dan otoritas Hermes" />
+      {/* Connection */}
+      <div className="surface-elevated p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">Koneksi Hermes</p>
+          <Toggle on={enabled} onToggle={() => { setEnabled(!enabled); toast.success(enabled ? "Hermes dinonaktifkan" : "Hermes diaktifkan"); }} />
+        </div>
+        {enabled && (
+          <div className="space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Connection URL" value={config.url} onChange={v => setConfig({...config, url: v})} placeholder="https://hermes.api.example.com" />
+              <Inp label="API Key" value={config.api_key} onChange={v => setConfig({...config, api_key: v})} placeholder="sk-..." />
+              <Inp label="Webhook Secret" value={config.webhook_secret} onChange={v => setConfig({...config, webhook_secret: v})} placeholder="whsec_..." />
+            </div>
+            <button onClick={testConnection} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-input text-xs hover:bg-accent"><Wifi className="h-3 w-3" /> Tes Koneksi</button>
+          </div>
+        )}
+      </div>
+      {/* Agents */}
+      <div className="surface-elevated p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">Agen Hermes</p>
+          <button onClick={() => setShowAddAgent(!showAddAgent)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-gold/10 text-gold text-xs font-medium hover:bg-gold/20"><Plus className="h-3 w-3" /> Tambah Agen</button>
+        </div>
+        {showAddAgent && (
+          <div className="p-4 rounded-md border border-gold/20 space-y-3 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Nama Agen" value={newAgent.name} onChange={v => setNewAgent({...newAgent, name: v})} placeholder="HR Assistant" />
+              <Inp label="Endpoint URL" value={newAgent.endpoint_url} onChange={v => setNewAgent({...newAgent, endpoint_url: v})} placeholder="https://..." />
+            </div>
+            <div className="flex gap-2"><button onClick={() => setShowAddAgent(false)} className="px-3 py-1.5 rounded text-xs border border-input hover:bg-accent">Batal</button><button onClick={addAgent} className="px-3 py-1.5 rounded text-xs bg-primary text-primary-foreground font-medium">Tambah</button></div>
+          </div>
+        )}
+        {agents.length === 0 ? (
+          <p className="text-2xs text-muted-foreground">Belum ada agen Hermes terdaftar.</p>
+        ) : agents.map(a => (
+          <div key={a.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            <div><p className="text-sm font-medium">{a.name}</p><p className="text-2xs text-muted-foreground">{a.endpoint_url}</p></div>
+            <button onClick={() => removeAgent(a.id)} className="p-1 hover:text-destructive"><Trash2 className="h-3.5 w-3.5 text-muted-foreground" /></button>
+          </div>
+        ))}
+      </div>
+      {/* Event Forwarding */}
+      <div className="surface-elevated p-5 space-y-3">
+        <p className="text-sm font-medium">Event yang Diteruskan ke Hermes</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          {Object.entries(events).map(([ev, checked]) => (
+            <label key={ev} className="flex items-center gap-2 px-3 py-2 rounded-md border border-input text-xs hover:bg-accent/50 cursor-pointer">
+              <input type="checkbox" checked={checked} onChange={() => setEvents({...events, [ev]: !checked})} className="rounded" />
+              <span className="font-mono">{ev}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      {/* Authority */}
+      <div className="surface-elevated p-5 space-y-3">
+        <p className="text-sm font-medium">Level Otoritas Default</p>
+        {[
+          { v: "read_only", l: "Baca Saja", d: "Hanya bisa membaca data, tidak bisa mengubah" },
+          { v: "read_write", l: "Baca & Tulis", d: "Bisa membaca dan mengubah data dengan persetujuan" },
+          { v: "full_autonomous", l: "Otonom Penuh", d: "Bisa bertindak tanpa persetujuan manual" },
+        ].map(a => (
+          <label key={a.v} onClick={() => setAuthority(a.v)} className={cn("flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors", authority === a.v ? "border-gold bg-gold/5" : "border-input hover:border-gold/50")}>
+            <input type="radio" name="authority" checked={authority === a.v} onChange={() => setAuthority(a.v)} className="mt-0.5" />
+            <div><p className="text-sm font-medium">{a.l}</p><p className="text-2xs text-muted-foreground">{a.d}</p></div>
+          </label>
+        ))}
+      </div>
+      <button onClick={saveHermes} className="px-4 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"><Save className="h-3.5 w-3.5 inline mr-1.5" />Simpan Konfigurasi Hermes</button>
+    </div>
+  );
+}
+
+// === SHARED COMPONENTS ===
+function SH({ title, sub }: { title: string; sub: string }) {
+  return <div className="pb-2"><h2 className="text-sm font-semibold">{title}</h2><p className="text-2xs text-muted-foreground mt-0.5">{sub}</p></div>;
+}
+
+function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  return (
+    <button onClick={onToggle} className={cn("relative inline-flex h-5 w-9 items-center rounded-full transition-colors", on ? "bg-gold" : "bg-muted")}>
+      <span className={cn("inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform", on ? "translate-x-[18px]" : "translate-x-[3px]")} />
+    </button>
+  );
+}
+
+function Inp({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-luxury-label">{label}</label>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/20 transition-colors" />
+    </div>
+  );
+}

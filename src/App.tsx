@@ -1,164 +1,84 @@
-// ============================================================================
-// APP ENTRY ROUTER (PHASE 3)
-// ============================================================================
-//
-// Rules:
-// - App.tsx contains ZERO module logic
-// - Routes come ONLY from runtime builders
-// - No mock module instances
-// - No hardcoded module pages
-//
-// ============================================================================
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
-import Onboarding from "./pages/auth/Onboarding";
-
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { AppProvider } from "@/contexts/AppContext";
-import { BarcodeScannerProvider } from "@/contexts/BarcodeScannerContext";
-import { NotificationProvider } from "@/contexts/NotificationContext";
-import { CoreLayout } from "@/layouts/CoreLayout";
-import { ModuleLayout } from "@/layouts/ModuleLayout";
-import { HeartbeatManager } from "@/core/infrastructure/HeartbeatManager";
-import { buildCoreRoutes } from "@/core/runtime/coreRoutes";
-import { buildModuleRoutes } from "@/core/runtime/moduleRoutes";
-import { IdentityProvider } from "@/core/identity/context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { RootErrorBoundary } from "@/components/shared/PageErrorBoundary";
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+
+// Layouts
+import { WebLayout } from "@/layouts/WebLayout";
+import { MobileLayout } from "@/layouts/MobileLayout";
+
+// Auth
+import { LoginPage } from "@/pages/auth/LoginPage";
+
+// Web pages
+import { DashboardPage } from "@/pages/web/DashboardPage";
+import { EmployeesPage } from "@/pages/web/EmployeesPage";
+import { AttendancePage } from "@/pages/web/AttendancePage";
+import { LeavesPage } from "@/pages/web/LeavesPage";
+import { NotificationsPage } from "@/pages/web/NotificationsPage";
+import { SettingsPage } from "@/pages/web/SettingsPage";
+import { ProfilePage } from "@/pages/web/ProfilePage";
+import { PayrollPage } from "@/pages/web/PayrollPage";
+import { SchedulePage } from "@/pages/web/SchedulePage";
+
+// Mobile pages
+import { MobileHomePage } from "@/pages/mobile/MobileHomePage";
+import { MobileClockPage } from "@/pages/mobile/MobileClockPage";
+import { MobileLeavePage } from "@/pages/mobile/MobileLeavePage";
+import { MobileNotificationsPage } from "@/pages/mobile/MobileNotificationsPage";
+import { MobileProfilePage } from "@/pages/mobile/MobileProfilePage";
+import { MobileSchedulePage } from "@/pages/mobile/MobileSchedulePage";
+
+// Misc
+import { NotFoundPage } from "@/pages/NotFoundPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
+    queries: { staleTime: 5 * 60 * 1000, retry: 1 },
   },
 });
 
-function AppRoutes() {
-  const { isAuthenticated, isLoading, user, session } = useAuth();
-  console.log("[AppRoutes] State:", {
-    isAuthenticated,
-    isLoading,
-    hasUser: !!user,
-    hasSession: !!session,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted text-muted-foreground">
-        Loading Zenvix Environment...
-      </div>
-    );
-  }
-
-  // Guard routing logic
+export function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/core/dashboard" replace />} />
-      <Route path="/retail" element={<Navigate to="/m/retail/workspace" replace />} />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="dark">
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Auth */}
+              <Route path="/login" element={<LoginPage />} />
 
-      {/* Auth Routes */}
-      <Route
-        path="/auth/login"
-        element={
-          !isAuthenticated ? (
-            <Login />
-          ) : (
-            <Navigate to="/core/dashboard" replace />
-          )
-        }
-      />
-      <Route
-        path="/auth/register"
-        element={
-          !isAuthenticated ? (
-            <Register />
-          ) : (
-            <Navigate to="/core/dashboard" replace />
-          )
-        }
-      />
+              {/* Web Interface (HR & Supervisors) */}
+              <Route path="/web" element={<WebLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route path="employees" element={<EmployeesPage />} />
+                <Route path="attendance" element={<AttendancePage />} />
+                <Route path="leaves" element={<LeavesPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="payroll" element={<PayrollPage />} />
+                <Route path="schedule" element={<SchedulePage />} />
+              </Route>
 
-      {/* Onboarding Wizard (Authenticated, but without an active Company/Tenant) */}
-      <Route
-        path="/auth/onboarding"
-        element={
-          isAuthenticated && !session ? (
-            <Onboarding />
-          ) : (
-            <Navigate to="/core/dashboard" replace />
-          )
-        }
-      />
+              {/* Mobile Interface (All Employees) */}
+              <Route path="/m" element={<MobileLayout />}>
+                <Route index element={<MobileHomePage />} />
+                <Route path="clock" element={<MobileClockPage />} />
+                <Route path="leave" element={<MobileLeavePage />} />
+                <Route path="notifications" element={<MobileNotificationsPage />} />
+                <Route path="profile" element={<MobileProfilePage />} />
+              </Route>
 
-      {/* Guarded Core */}
-      <Route
-        path="/core/*"
-        element={
-          isAuthenticated ? (
-            session ? (
-              <CoreLayout />
-            ) : (
-              <Navigate to="/auth/onboarding" replace />
-            )
-          ) : (
-            <Navigate to="/auth/login" replace />
-          )
-        }
-      >
-        {buildCoreRoutes()}
-      </Route>
-
-      {/* Guarded Modules */}
-      <Route
-        path="/m/:moduleId/*"
-        element={
-          isAuthenticated ? (
-            session ? (
-              <ModuleLayout />
-            ) : (
-              <Navigate to="/auth/onboarding" replace />
-            )
-          ) : (
-            <Navigate to="/auth/login" replace />
-          )
-        }
-      >
-        {buildModuleRoutes()}
-      </Route>
-
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <IdentityProvider>
-            <NotificationProvider>
-              <BarcodeScannerProvider>
-                <BrowserRouter>
-                  <RootErrorBoundary>
-                    <AppRoutes />
-                  </RootErrorBoundary>
-                  <HeartbeatManager />
-                  <Toaster />
-                </BrowserRouter>
-              </BarcodeScannerProvider>
-            </NotificationProvider>
-          </IdentityProvider>
-        </AppProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+              {/* Default */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

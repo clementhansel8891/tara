@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
 import { SettingsController } from './settings.controller';
 import { SettingsService } from './settings.service';
-import { SettingsDbRepository } from './repositories/settings.db.repository';
-import { PersistenceModule } from '../../persistence/persistence.module';
-import { AuditModule } from '../../shared/audit/audit.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [PersistenceModule, AuditModule],
+  imports: [AuthModule],
   controllers: [SettingsController],
-  providers: [SettingsService, SettingsDbRepository],
+  providers: [SettingsService],
   exports: [SettingsService],
 })
 export class SettingsModule {}

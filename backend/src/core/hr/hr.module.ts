@@ -1,174 +1,176 @@
-import { Module, OnModuleInit, forwardRef } from "@nestjs/common";
-import { HRController } from "./hr.controller";
-import { WorkflowController } from "../../shared/workflow/workflow.controller";
-import { HRService } from "./hr.service";
-import { IHRRepository } from "./repositories/hr.repository.interface";
-import { HRDbRepository } from "./repositories/hr.db.repository";
-import { TalentSourcingService } from "./talent-sourcing.service";
-import { ComplianceService } from "./compliance.service";
-import { ContractGeneratorService } from "./contract-generator.service";
-import { AnalyticsService } from "./analytics.service";
-import { WorkforcePlannerService } from "./workforce-planner.service";
-import { PayrollConsolidationService } from "./payroll-consolidation.service";
-import { OcrService } from "./ocr.service";
-import { SuccessionService } from "./succession.service";
-import { SkillsService } from "./skills.service";
-import { TotalRewardsService } from "./total-rewards.service";
-import { CareerPathService } from "./career-path.service";
-import { JobDescriptionService } from "./job-description.service";
-import { PerformancePredictorService } from "./performance-predictor.service";
-import { LearningService } from "./learning.service";
-import { LaborCostService } from "./labor-cost.service";
-import { HRInsightService } from "./hr-insight.service";
-import { HRActionService } from "./hr-action.service";
-import { HRConsistencyService } from "./hr-consistency.service";
-import { HRMetricService } from "./hr-metric.service";
-import { SchedulingService } from "./scheduling.service";
-import { HrSettlementService } from "./hr-settlement.service";
-import { HrPayrollService } from "./hr-payroll.service";
-import { HrPayrollController } from "./controllers/hr-payroll.controller";
-import { ComplianceController } from "./controllers/compliance.controller";
-import { HrSchedulingController } from "./controllers/hr-scheduling.controller";
-import { HrLeaveController } from "./controllers/hr-leave.controller";
-import { HrRecruitmentController } from "./controllers/hr-recruitment.controller";
-import { HrRecruitmentService } from "./hr-recruitment.service";
-import { HrLeaveService } from "./hr-leave.service";
-import { PayrollEngineService } from "./payroll-engine.service";
-import { PayslipService } from "./payslip.service";
-import { FinanceModule } from "../finance/finance.module";
-import { HRMutationInterceptor } from "./interceptors/hr-mutation.interceptor";
-import { IdempotencyInterceptor } from "../../shared/interceptors/idempotency.interceptor";
-import { PrismaService } from "../../persistence/prisma.service";
-import { TimeAndAttendanceService } from "./time/time.service";
-import { TenantScopeResolver } from "./scope/tenant-scope.resolver";
-import { AtomicOperationService } from "./utils/atomic-operation.service";
+import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
 
-import { FileProcessingModule } from "../../shared/file-processing/file-processing.module";
-import { AuditModule } from "../../shared/audit/audit.module";
-import { LoggerModule } from "../../shared/logger/logger.module";
-import { ComplianceEngineModule } from "../../modules/compliance/compliance.module";
+// Controllers
+import { TaraEmployeeController } from './controllers/tara-employee.controller';
+import { TaraLeaveController } from './controllers/tara-leave.controller';
+import { DepartmentController } from './controllers/department.controller';
+import { RoleController } from './controllers/role.controller';
+import { SupervisorController } from './controllers/supervisor.controller';
+import { GeoFenceOverrideController } from './controllers/geo-fence-override.controller';
+import { AbsensiAgentController } from './controllers/absensi-agent.controller';
+import { NotificationController } from './controllers/notification.controller';
+import { SettingsController } from './controllers/settings.controller';
+import { AwsDeviceWebhookController } from './controllers/aws-device-webhook.controller';
+import { AwsDeviceMappingController } from './controllers/aws-device-mapping.controller';
+import { OfficeLocationController } from './controllers/office-location.controller';
+import { AdminSettingsController } from './controllers/admin-settings.controller';
+import { PayrollController } from './controllers/payroll.controller';
+import { ScheduleController } from './controllers/schedule.controller';
 
-// Phase 3: Automation Hooks
-import { HRAutomationModule } from "./automation/automation.module";
+// Core Services
+import { EventBusService } from './services/event-bus.service';
+import { TaraEmployeeService } from './services/tara-employee.service';
+import { EmployeeManagementService } from './services/employee-management.service';
+import { GeoService } from './services/geo.service';
+import { GeoFenceOverrideService } from './services/geo-fence-override.service';
+import { TaraAttendanceService } from './services/tara-attendance.service';
+import { NotificationService } from './services/notification.service';
+import { LeaveService } from './services/leave.service';
+import { WeeklyCheckinService } from './services/weekly-checkin.service';
+import { SystemSettingsService } from './services/system-settings.service';
+import { ConfigurationValidationService } from './services/configuration-validation.service';
+import { AgentConfigService } from './services/agent-config.service';
+import { ConfigChangeHistoryService } from './services/config-change-history.service';
+import { WarningLetterService } from './services/warning-letter.service';
+import { AwsDeviceWebhookService } from './services/aws-device-webhook.service';
+import { AwsDeviceMappingService } from './services/aws-device-mapping.service';
+import { ConflictResolutionService } from './services/conflict-resolution.service';
+import { AwsDeviceBatchSyncService, AWS_DEVICE_API_CLIENT, StubAwsDeviceApiClient } from './services/aws-device-batch-sync.service';
+import { OfficeLocationService } from './services/office-location.service';
+import { OrganizationService } from './services/organization.service';
+import { NotificationChannelService } from './services/notification-channel.service';
+import { HermesIntegrationService } from './services/hermes-integration.service';
+import { AttendanceConfigService } from './services/attendance-config.service';
+import { PayrollService } from './services/payroll.service';
+import { LoanService } from './services/loan.service';
+import { ScheduleService } from './services/schedule.service';
+import { CacheAsideService } from '../../shared/cache/cache-aside.service';
+import { AuditService } from '../../shared/audit/audit.service';
+import { LoggerService } from '../../shared/logger/logger.service';
+import { TaraContextQueryService } from '../auth/services/tara-context-query.service';
+import { TenantScopeResolver } from './scope/tenant-scope.resolver';
 
-// Phase 4: Time & Attendance
-import { TimeAndAttendanceModule } from "./time/time.module";
+// Events & WebSocket
+import { EventStreamGateway } from './events/event-stream.gateway';
+import { SessionDataPushGateway } from './events/session-data-push.gateway';
+import { EventSubscriptionRegistry } from './events/event-subscription.registry';
+import { EventSubscriptionController } from './events/event-subscription.controller';
 
-// Phase 1: Command Layer
-import {
-  HireEmployeeCommandHandler,
-  PromoteEmployeeCommandHandler,
-  TransferEmployeeCommandHandler,
-  TerminateEmployeeCommandHandler,
-  SuspendEmployeeCommandHandler,
-  CreateJobOpeningCommandHandler,
-  ConvertLeadToCandidateCommandHandler,
-  ScheduleInterviewCommandHandler,
-  ExecutePayrollCommandHandler,
-  AdjustCompensationCommandHandler,
-  GeneratePayslipCommandHandler,
-  GenerateComplianceReportCommandHandler,
-  ExportGovernmentReportCommandHandler,
-  EnableComplianceModuleCommandHandler,
-  HRCommandRegistrar,
-} from "./commands/hr.command-handlers";
+// i18n
+import { I18nService } from './i18n/i18n.service';
 
-import { CommsModule } from "../../shared/comms/comms.module";
+// Agents (7 autonomous agents)
+import { AbsensiAgent } from './agents/absensi.agent';
+import { LeaveRequestAgent } from './agents/leave-request.agent';
+import { ClockConfirmationAgent } from './agents/clock-confirmation.agent';
+import { WeeklyCheckinAgent } from './agents/weekly-checkin.agent';
+import { LateReportAgent } from './agents/late-report.agent';
+import { OnboardingAgent } from './agents/onboarding.agent';
+import { SaldoCutiAgent } from './agents/saldo-cuti.agent';
+import { OnboardingStatusService } from './agents/onboarding-status.service';
+import { ONBOARDING_INTEGRATIONS, StubOnboardingIntegrations } from './agents/onboarding-integrations';
+
+// HR root services
+import { DepartmentService } from './department.service';
+import { RoleService } from './role.service';
+import { SupervisorService } from './supervisor.service';
+
+// i18n
+import { I18nModule } from './i18n/i18n.module';
 
 /**
- * HR Module
- * Core module for Human Resources operations
+ * TARA HR Module — houses all HR services, 7 autonomous agents, and controllers.
+ * Clean, focused — no payroll, recruitment, OCR, or other multi-department cruft.
  */
 @Module({
-  imports: [
-    FileProcessingModule, 
-    AuditModule, 
-    LoggerModule, 
-    ComplianceEngineModule, 
-    HRAutomationModule, 
-    forwardRef(() => TimeAndAttendanceModule), 
-    CommsModule, 
-    forwardRef(() => FinanceModule)
-  ],
+  imports: [AuthModule],
   controllers: [
-    HRController, 
-    WorkflowController, 
-    ComplianceController, 
-    HrPayrollController, 
-    HrSchedulingController,
-    HrLeaveController,
-    HrRecruitmentController
+    TaraEmployeeController,
+    TaraLeaveController,
+    DepartmentController,
+    RoleController,
+    SupervisorController,
+    GeoFenceOverrideController,
+    AbsensiAgentController,
+    NotificationController,
+    SettingsController,
+    AwsDeviceWebhookController,
+    AwsDeviceMappingController,
+    OfficeLocationController,
+    AdminSettingsController,
+    PayrollController,
+    ScheduleController,
+    EventSubscriptionController,
   ],
   providers: [
-    {
-      provide: IHRRepository,
-      useClass: HRDbRepository,
-    },
-    HRService,
-    TalentSourcingService,
-    ComplianceService,
-    ContractGeneratorService,
-    AnalyticsService,
-    WorkforcePlannerService,
-    PayrollConsolidationService,
-    OcrService,
-    SuccessionService,
-    SkillsService,
-    TotalRewardsService,
-    CareerPathService,
-    JobDescriptionService,
-    PerformancePredictorService,
-    LearningService,
-    LaborCostService,
-    HRInsightService,
-    TimeAndAttendanceService,
-    HRActionService,
-    HRConsistencyService,
-    HRMetricService,
-    SchedulingService,
-    HrSettlementService,
-    HrLeaveService,
-    HrRecruitmentService,
-    HrPayrollService,
-    PayrollEngineService,
-    PayslipService,
-    PrismaService,
+    // Core services
+    EventBusService,
+    TaraEmployeeService,
+    EmployeeManagementService,
+    GeoService,
+    GeoFenceOverrideService,
+    TaraAttendanceService,
+    NotificationService,
+    LeaveService,
+    WeeklyCheckinService,
+    SystemSettingsService,
+    ConfigurationValidationService,
+    AgentConfigService,
+    ConfigChangeHistoryService,
+    WarningLetterService,
+    AwsDeviceWebhookService,
+    AwsDeviceMappingService,
+    ConflictResolutionService,
+    AwsDeviceBatchSyncService,
+    OfficeLocationService,
+    OrganizationService,
+    NotificationChannelService,
+    HermesIntegrationService,
+    AttendanceConfigService,
+    PayrollService,
+    LoanService,
+    ScheduleService,
+    { provide: AWS_DEVICE_API_CLIENT, useClass: StubAwsDeviceApiClient },
+
+    // 7 Autonomous Agents
+    AbsensiAgent,
+    LeaveRequestAgent,
+    ClockConfirmationAgent,
+    WeeklyCheckinAgent,
+    LateReportAgent,
+    OnboardingAgent,
+    SaldoCutiAgent,
+    OnboardingStatusService,
+    { provide: ONBOARDING_INTEGRATIONS, useClass: StubOnboardingIntegrations },
+
+    // Organization services
+    DepartmentService,
+    RoleService,
+    SupervisorService,
+    CacheAsideService,
+    AuditService,
+    LoggerService,
+    EventStreamGateway,
+    SessionDataPushGateway,
+    EventSubscriptionRegistry,
+    I18nService,
+    TaraContextQueryService,
     TenantScopeResolver,
-    HRMutationInterceptor,
-    IdempotencyInterceptor,
-    AtomicOperationService,
-    HireEmployeeCommandHandler,
-    PromoteEmployeeCommandHandler,
-    TransferEmployeeCommandHandler,
-    TerminateEmployeeCommandHandler,
-    SuspendEmployeeCommandHandler,
-    CreateJobOpeningCommandHandler,
-    ConvertLeadToCandidateCommandHandler,
-    ScheduleInterviewCommandHandler,
-    ExecutePayrollCommandHandler,
-    AdjustCompensationCommandHandler,
-    GeneratePayslipCommandHandler,
-    GenerateComplianceReportCommandHandler,
-    ExportGovernmentReportCommandHandler,
-    EnableComplianceModuleCommandHandler,
-    HRCommandRegistrar,
   ],
   exports: [
-    IHRRepository,
-    HRService,
-    HrSettlementService,
-    HRInsightService,
-    TimeAndAttendanceService,
-    AtomicOperationService,
-    TenantScopeResolver,
+    EventBusService,
+    TaraEmployeeService,
+    EmployeeManagementService,
+    GeoService,
+    NotificationService,
+    LeaveService,
+    SystemSettingsService,
+    AgentConfigService,
+    WarningLetterService,
+    DepartmentService,
+    RoleService,
+    SupervisorService,
   ],
 })
-export class HRModule implements OnModuleInit {
-  constructor(
-    private readonly registrar: HRCommandRegistrar
-  ) {}
-
-  onModuleInit(): void {
-    this.registrar.register();
-  }
-}
+export class HrModule {}

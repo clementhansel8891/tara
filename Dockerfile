@@ -1,37 +1,21 @@
-# --- Stage 1: Build ---
-FROM node:22-alpine AS builder
+# Frontend Dockerfile — TARA Web App (served by nginx)
+FROM node:20-alpine AS builder
 
 WORKDIR /app
-
-# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
-
-# Copy source and build
+RUN npm ci
 COPY . .
-RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
+RUN npm run build
 
-# --- Stage 2: Serve ---
-FROM nginx:alpine
+# Production image — nginx
+FROM nginx:alpine AS runner
 
-# Copy built assets to Nginx
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+COPY nginx.conf /etc/nginx/conf.d/tara.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy custom nginx config template
-COPY nginx.conf /etc/nginx/templates/default.conf.template
-
-# Professional metadata
-LABEL maintainer="Zenvix Team"
-LABEL version="1.0.0"
-
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:80 || exit 1
 
 EXPOSE 80
 
-# Defaults for local docker-compose (will be overridden in VPS)
-ENV PORT=80
-ENV BACKEND_URL=http://bfs-backend:3001
-
-# Entrypoint: Inject environment variables into Nginx config and start
-CMD ["/bin/sh", "-c", "envsubst '${PORT} ${BACKEND_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+CMD ["nginx", "-g", "daemon off;"]

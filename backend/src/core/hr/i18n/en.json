@@ -1,0 +1,70 @@
+{
+  "common": {
+    "success": "Success",
+    "error": "An error occurred",
+    "not_found": "Not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access denied"
+  },
+  "attendance": {
+    "clock_in_confirmation": "Hello {{employeeName}}, your attendance has been recorded at {{time}} WIB.",
+    "clock_out_confirmation": "Hello {{employeeName}}, your departure has been recorded at {{time}} WIB.",
+    "clock_in_tardy": "Hello {{employeeName}}, your attendance has been recorded at {{time}} WIB. You are {{minutes}} minutes late.",
+    "tardiness_report_title": "Tardiness Report - {{date}}",
+    "tardiness_report_entry": "{{employeeName}} arrived at {{time}} WIB ({{minutes}} minutes late)",
+    "tardiness_report_none": "No employees were late today. Great job everyone!",
+    "weekly_recap_title": "Weekly Attendance Recap - {{startDate}} to {{endDate}}"
+  },
+  "leave": {
+    "request_submitted": "Your {{leaveType}} leave request has been submitted and is pending approval.",
+    "request_approved": "Your {{leaveType}} leave request from {{startDate}} to {{endDate}} has been approved.",
+    "request_rejected": "Your {{leaveType}} leave request has been rejected. Reason: {{reason}}",
+    "insufficient_balance": "Your leave balance is insufficient. Remaining balance: {{remaining}} days.",
+    "balance_info": "Your leave balance: {{remaining}} days remaining out of {{total}} days total.",
+    "monthly_recap_title": "Monthly Leave Balance Recap - {{month}} {{year}}",
+    "types": {
+      "annual": "Annual",
+      "sick": "Sick",
+      "emergency": "Emergency",
+      "maternity": "Maternity",
+      "paternity": "Paternity"
+    }
+  },
+  "onboarding": {
+    "welcome": "Welcome to PT. Maju Bersama, {{employeeName}}!",
+    "step_completed": "Onboarding step {{stepNumber}} ({{stepName}}) has been completed.",
+    "step_failed": "Onboarding step {{stepNumber}} ({{stepName}}) has failed. HR will follow up.",
+    "workflow_completed": "Your onboarding process is complete. Welcome aboard!",
+    "steps": {
+      "1": "Email Account Creation",
+      "2": "Welcome Kit Delivery",
+      "3": "Orientation Scheduling",
+      "4": "Team Introduction",
+      "5": "System Access Provisioning",
+      "6": "SOP Documentation",
+      "7": "Contract Signing"
+    }
+  },
+  "checkin": {
+    "form_distributed": "The weekly check-in form is now available. Please complete it before end of day.",
+    "reminder": "Reminder: You haven't completed your weekly check-in form. Please fill it out soon.",
+    "report_title": "Weekly Check-in Report - Week of {{weekStart}}",
+    "questions": {
+      "accomplishments": "This week's accomplishments",
+      "challenges": "Challenges faced",
+      "next_week_goals": "Next week's goals"
+    }
+  },
+  "warning": {
+    "issued": "Warning Letter ({{level}}) has been issued on {{date}}.",
+    "levels": {
+      "SP1": "Warning Letter 1",
+      "SP2": "Warning Letter 2",
+      "SP3": "Warning Letter 3"
+    }
+  },
+  "notification": {
+    "public_announcement": "Announcement",
+    "private_notification": "Private Notification"
+  }
+}

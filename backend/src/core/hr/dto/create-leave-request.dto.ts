@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsDateString,
   IsNumber,
+  IsUUID,
   Min,
 } from "class-validator";
 
@@ -22,11 +23,11 @@ export enum LeaveType {
  * Validation for leave request creation
  */
 export class CreateLeaveRequestDto {
-  @IsString()
+  @IsUUID('4', { message: 'employee_id must be a valid UUID' })
   @IsNotEmpty()
   employee_id: string;
 
-  @IsString()
+  @IsUUID('4', { message: 'department_id must be a valid UUID' })
   @IsNotEmpty()
   department_id: string;
 

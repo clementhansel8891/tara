@@ -1,55 +1,18 @@
-import { Request } from "express";
-
 /**
- * Tenant Context Interface
- * Represents the multi-tenant context extracted from request headers.
- * Supports the hierarchical structure: Tenant > Company > Branch > Ecommerce.
+ * Tenant context interface (stub for TARA single-tenant system).
+ * Kept for backward compatibility with copied controllers.
  */
 export interface TenantContext {
-  /**
-   * SaaS Tenant ID (Root level)
-   */
-  tenant_id: string;
-
-  /**
-   * Company ID (Legal Entity level)
-   */
-  company_id: string;
-
-  /**
-   * Branch ID (Operational level)
-   */
-  branch_id?: string;
-
-  /**
-   * Ecommerce ID (Digital channel level)
-   */
-  ecommerce_id?: string;
-
-  /**
-   * Location ID (Physical location, often maps to Branch)
-   */
-  location_id?: string;
-
-  /**
-   * User ID (from x-actor-id)
-   */
-  user_id?: string;
-
-  /**
-   * User Role (from x-user-role)
-   */
-  role?: string;
-  
-  /**
-   * JV Mirror Mode flag
-   */
-  is_jv_read_only?: boolean;
+  tenant_id?: string;
+  user_id: string;
+  role: string;
+  interface_origin?: 'web' | 'mobile';
 }
 
-/**
- * Extended Express Request with Tenant Context
- */
-export interface RequestWithTenant extends Request {
-  tenantContext: TenantContext;
+export function extractTenantContext(req: any): TenantContext {
+  return {
+    user_id: req.user?.sub || '',
+    role: req.user?.role || 'Employee',
+    interface_origin: req.headers?.['x-interface-origin'] || 'web',
+  };
 }

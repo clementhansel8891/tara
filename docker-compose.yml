@@ -1,122 +1,73 @@
-
+version: "3.9"
 
 services:
+  # PostgreSQL with PostGIS
   db:
-    container_name: bfs-db
-    image: postgres:16-alpine
-    restart: always
+    image: postgis/postgis:16-3.4-alpine
+    container_name: tara-db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-zenvix}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zenvix_dev_password}
-      POSTGRES_DB: ${POSTGRES_DB:-zenvix_dev}
+      POSTGRES_DB: tara
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tara_secret_2024}
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zenvix} -d ${POSTGRES_DB:-zenvix_dev}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - zenvix_net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
-  db_backup:
-    container_name: bfs-db-backup
-    image: postgres:16-alpine
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - ./backups:/backups
-    environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD:-zenvix_dev_password}
-      POSTGRES_USER: ${POSTGRES_USER:-zenvix}
-      POSTGRES_DB: ${POSTGRES_DB:-zenvix_dev}
-    entrypoint: >
-      sh -c "while true; do
-        echo \"[$(date)] Starting daily backup...\"
-        pg_dump -h db -U $POSTGRES_USER $POSTGRES_DB > /backups/backup_$(date +%F_%H%M%S).sql;
-        echo \"[$(date)] Backup completed successfully.\"
-        sleep 86400;
-      done"
-    networks:
-      - zenvix_net
+  # Redis (sessions + caching)
+  redis:
+    image: redis:7-alpine
+    container_name: tara-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
+  # Backend API
   backend:
-    container_name: bfs-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-zenvix}:${POSTGRES_PASSWORD:-zenvix_dev_password}@db:5432/${POSTGRES_DB:-zenvix_dev}?schema=public
-      - RUNTIME=docker
-      - PERSISTENCE_MODE=db
-      - JWT_SECRET=${JWT_SECRET}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - FRONTEND_URL=${FRONTEND_URL}
-    volumes:
-      - ./backups:/data/backups
-      - ./logs:/data/logs
-      - ./uploads:/app/uploads
+    container_name: tara-backend
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - zenvix_net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-tara_secret_2024}@db:5432/tara?schema=public
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      BCRYPT_ROUNDS: 12
+      ALLOWED_ORIGINS: http://localhost:5173,http://localhost
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3001:3001"
 
+  # Frontend (production build served by nginx)
   frontend:
-    container_name: bfs-frontend
     build:
       context: .
       dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "3010:80"
-    environment:
-      - BACKEND_URL=http://bfs-backend:3001
-      - PORT=80
+    container_name: tara-frontend
+    restart: unless-stopped
     depends_on:
       - backend
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:80/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-    networks:
-      - zenvix_net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-networks:
-  zenvix_net:
-    driver: bridge
+    ports:
+      - "80:80"
+      - "443:443"
 
 volumes:
-  postgres_data:
+  pgdata:

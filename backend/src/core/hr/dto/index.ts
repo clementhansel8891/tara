@@ -36,3 +36,4 @@ export * from './update-work-schedule.dto';
 export * from './update-work-shift.dto';
 export * from './create-emergency-override.dto';
 export * from './create-shift-swap-request.dto';
+export * from './issue-warning-letter.dto';
