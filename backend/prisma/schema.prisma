@@ -65,6 +65,8 @@ model Employee {
   approved_loans          Loan[]               @relation("LoanApprover")
   payslips                Payslip[]
 
+  hermes_follow_ups   HermesFollowUp[] @relation("HermesFollowUpRecipient")
+
   created_employees Employee[] @relation("EmployeeCreator")
   updated_employees Employee[] @relation("EmployeeUpdater")
   creator           Employee?  @relation("EmployeeCreator", fields: [created_by], references: [id])
@@ -651,4 +653,81 @@ model PayrollComponent {
   @@index([component_type])
   @@index([is_active])
   @@map("payroll_components")
+}
+
+// ============================================================================
+// Hermes Agentic AI Integration Tables
+// ============================================================================
+
+// Hermes Action Log — audit trail of all actions performed by Hermes agents
+model HermesActionLog {
+  id              String   @id @default(uuid())
+  agent_id        String
+  action_type     String
+  parameters      Json     @default("{}")
+  result          Json?
+  status          String   @default("success") // 'success', 'failed', 'rate_limited', 'authority_denied', 'safety_blocked'
+  authority_level String
+  execution_ms    Int?
+  error_message   String?
+  created_at      DateTime @default(now())
+
+  @@index([agent_id])
+  @@index([action_type])
+  @@index([status])
+  @@index([created_at])
+  @@index([agent_id, status, created_at])
+  @@map("hermes_action_logs")
+}
+
+// Hermes Suggestion — proposals for human review (human-in-the-loop)
+model HermesSuggestion {
+  id                   String    @id @default(uuid())
+  agent_id             String
+  action_type          String
+  target_entity_id     String
+  entity_type          String
+  suggestion           Json      @default("{}")
+  reasoning            String
+  confidence           Float?
+  correlation_event_id String?
+  status               String    @default("pending") // 'pending', 'accepted', 'rejected', 'expired'
+  reviewed_by          String?
+  reviewed_at          DateTime?
+  review_notes         String?
+  expires_at           DateTime?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @default(now())
+
+  @@index([agent_id])
+  @@index([status])
+  @@index([entity_type])
+  @@index([expires_at])
+  @@index([status, expires_at])
+  @@map("hermes_suggestions")
+}
+
+// Hermes Follow-Up — scheduled notifications for future delivery
+model HermesFollowUp {
+  id                  String    @id @default(uuid())
+  agent_id            String
+  recipient_id        String
+  title               String
+  message             String
+  scheduled_at        DateTime
+  context_entity_id   String?
+  context_entity_type String?
+  status              String    @default("pending") // 'pending', 'delivered', 'cancelled', 'failed'
+  delivered_at        DateTime?
+  created_at          DateTime  @default(now())
+
+  // Relations
+  recipient Employee @relation("HermesFollowUpRecipient", fields: [recipient_id], references: [id])
+
+  @@index([agent_id])
+  @@index([recipient_id])
+  @@index([status])
+  @@index([scheduled_at])
+  @@index([status, scheduled_at])
+  @@map("hermes_follow_ups")
 }

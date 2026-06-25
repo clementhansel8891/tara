@@ -1,4 +1,13 @@
-# Development — only database and redis, app runs natively
+# ==============================================================================
+# TARA — Development Docker Compose
+#
+# Only database + redis. The app runs natively for hot-reload.
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up -d
+#   cd backend && npx prisma migrate deploy && npm run start:dev
+#   npm run dev:frontend  (in root)
+# ==============================================================================
 version: "3.9"
 
 services:
@@ -13,8 +22,9 @@ services:
       - "5432:5432"
     volumes:
       - pgdata_dev:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tara"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -1,6 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 
+// Hermes Integration
+import { HermesApiKeyGuard } from './hermes/hermes-api-key.guard';
+import { HermesAuthorityGuard } from './hermes/hermes-authority.guard';
+import { HermesRateLimitGuard } from './hermes/hermes-rate-limit.guard';
+import { HermesSafetyService } from './hermes/hermes-safety.service';
+import { HermesAuditService } from './hermes/hermes-audit.service';
+import { HermesSuggestionService } from './hermes/hermes-suggestion.service';
+import { HermesFollowUpProcessor } from './hermes/hermes-followup.processor';
+import { HermesNotificationExecutor } from './hermes/executors/notification.executor';
+import { HermesFollowUpExecutor } from './hermes/executors/follow-up.executor';
+import { HermesQueryExecutor } from './hermes/executors/query.executor';
+import { HermesActionController } from './hermes/hermes-action.controller';
+import { HermesSuggestionController } from './hermes/hermes-suggestion.controller';
+import { HermesEventsController } from './hermes/hermes-events.controller';
+
 // Controllers
 import { TaraEmployeeController } from './controllers/tara-employee.controller';
 import { TaraLeaveController } from './controllers/tara-leave.controller';
@@ -102,6 +117,10 @@ import { I18nModule } from './i18n/i18n.module';
     PayrollController,
     ScheduleController,
     EventSubscriptionController,
+    // Hermes Integration
+    HermesActionController,
+    HermesSuggestionController,
+    HermesEventsController,
   ],
   providers: [
     // Core services
@@ -157,6 +176,18 @@ import { I18nModule } from './i18n/i18n.module';
     I18nService,
     TaraContextQueryService,
     TenantScopeResolver,
+
+    // Hermes Integration
+    HermesApiKeyGuard,
+    HermesAuthorityGuard,
+    HermesRateLimitGuard,
+    HermesSafetyService,
+    HermesAuditService,
+    HermesSuggestionService,
+    HermesFollowUpProcessor,
+    HermesNotificationExecutor,
+    HermesFollowUpExecutor,
+    HermesQueryExecutor,
   ],
   exports: [
     EventBusService,

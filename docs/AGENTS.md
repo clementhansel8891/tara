@@ -105,3 +105,35 @@ All automated actions can be performed manually by HR:
 - HR can record attendance manually (override geo-fence)
 - HR can send notifications manually
 - HR can process onboarding steps manually
+
+## Hermes AI — The 8th Agent (External, LLM-based)
+
+In addition to the 7 deterministic internal agents, TARA supports an external LLM-based agent called **Hermes**. Unlike the internal agents, Hermes uses AI reasoning.
+
+### How Hermes Works
+
+1. **Observes** — connects via WebSocket to the Event Stream, receives all domain events in real-time
+2. **Queries** — uses `POST /v1/hermes/query` to read employee data, attendance, leave balances, etc.
+3. **Acts (safe only)** — sends reminders, encouragement, deadline notices via `POST /v1/hermes/actions`
+4. **Suggests (decisions)** — proposes leave approvals, warnings, etc. via `POST /v1/hermes/suggestions` for HR to review
+
+### Safety Boundaries
+
+| What Hermes CAN do | What Hermes CANNOT do |
+|--------------------|-----------------------|
+| Send reminders to employees/supervisors | Approve or reject leave |
+| Send encouragement messages | Issue warning letters |
+| Send deadline notices | Change employee data |
+| Schedule follow-up notifications | Modify attendance records |
+| Query any data (read-only) | Process payroll |
+| Suggest actions for HR review | Execute any decision |
+
+### Configuration
+
+Hermes is configured via `Settings > Hermes AI` or the admin API:
+- Enable/disable the integration
+- Set API key for authentication
+- Register Hermes agents with authority levels (`read_only` or `read_write`)
+- Configure which events are forwarded
+
+See full documentation: [`backend/src/core/hr/hermes/README.md`](../backend/src/core/hr/hermes/README.md)
