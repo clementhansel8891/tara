@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { MapPin, Fingerprint, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { MapPin, Lock, CheckCircle2, AlertTriangle, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GeoPosition {
@@ -13,7 +13,6 @@ interface GeoPosition {
 
 /**
  * Request the device's current GPS position.
- * Returns coordinates or throws with a user-friendly message.
  */
 function getGeoLocation(): Promise<GeoPosition> {
   return new Promise((resolve, reject) => {
@@ -49,56 +48,149 @@ function getGeoLocation(): Promise<GeoPosition> {
 }
 
 /**
- * Attempt biometric verification via WebAuthn.
- * Falls back gracefully if the device doesn't support it.
+ * PIN Input Dialog Component
  */
-async function verifyBiometric(): Promise<boolean> {
-  try {
-    if (!window.PublicKeyCredential) {
-      // Device doesn't support WebAuthn — skip biometric
-      return false;
+function PinDialog({
+  open,
+  onSubmit,
+  onCancel,
+  isVerifying,
+  error,
+}: {
+  open: boolean;
+  onSubmit: (pin: string) => void;
+  onCancel: () => void;
+  isVerifying: boolean;
+  error: string | null;
+}) {
+  const [pin, setPin] = useState(["", "", "", "", "", ""]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setPin(["", "", "", "", "", ""]);
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
+    }
+  }, [open]);
+
+  if (!open) return null;
+
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; // Only digits
+
+    const newPin = [...pin];
+    newPin[index] = value.slice(-1); // Take last character
+    setPin(newPin);
+
+    // Auto-advance to next input
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
     }
 
-    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    if (!available) {
-      return false;
+    // Auto-submit when all 6 digits are entered
+    if (value && index === 5) {
+      const fullPin = newPin.join("");
+      if (fullPin.length === 6) {
+        onSubmit(fullPin);
+      }
     }
+  };
 
-    // Use a simple user verification challenge (platform authenticator = fingerprint/face)
-    const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const credential = await navigator.credentials.get({
-      publicKey: {
-        challenge,
-        timeout: 30000,
-        userVerification: "required",
-        rpId: window.location.hostname,
-        allowCredentials: [],
-      },
-    });
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !pin[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
 
-    return !!credential;
-  } catch {
-    // User cancelled or biometric failed
-    return false;
-  }
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted.length === 6) {
+      setPin(pasted.split(""));
+      onSubmit(pasted);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+      <div className="bg-card rounded-2xl p-6 mx-4 w-full max-w-sm shadow-luxury-lg space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-gold" />
+            <h3 className="font-display font-semibold text-lg">Masukkan PIN</h3>
+          </div>
+          <button onClick={onCancel} className="p-1.5 rounded-md hover:bg-accent">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+          Masukkan PIN 6 digit untuk verifikasi kehadiran Anda.
+        </p>
+
+        {/* PIN Input */}
+        <div className="flex justify-center gap-2" onPaste={handlePaste}>
+          {pin.map((digit, i) => (
+            <input
+              key={i}
+              ref={(el) => { inputRefs.current[i] = el; }}
+              type="password"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(i, e)}
+              disabled={isVerifying}
+              className={cn(
+                "w-11 h-12 text-center text-lg font-mono font-semibold rounded-lg border-2 bg-background transition-all",
+                "focus:outline-none focus:ring-2 focus:ring-gold/30 focus:border-gold",
+                error ? "border-destructive" : "border-input",
+                isVerifying && "opacity-50"
+              )}
+            />
+          ))}
+        </div>
+
+        {/* Error */}
+        {error && (
+          <p className="text-center text-sm text-destructive font-medium animate-fade-in">
+            {error}
+          </p>
+        )}
+
+        {/* Loading */}
+        {isVerifying && (
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Memverifikasi...</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function MobileClockPage() {
   const { user } = useAuth();
-  const [status, setStatus] = useState<"idle" | "locating" | "biometric" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "locating" | "pin" | "submitting" | "success" | "error">("idle");
   const [clockedIn, setClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
   const [geoStatus, setGeoStatus] = useState<"unknown" | "inside" | "outside">("unknown");
   const [geoError, setGeoError] = useState<string | null>(null);
   const [lastPosition, setLastPosition] = useState<GeoPosition | null>(null);
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [isPinVerifying, setIsPinVerifying] = useState(false);
+  const [pendingPosition, setPendingPosition] = useState<GeoPosition | null>(null);
 
-  // Try to get location on page load for status display
+  // Get location on page load
   useEffect(() => {
     getGeoLocation()
       .then((pos) => {
         setLastPosition(pos);
-        setGeoStatus("inside"); // Backend will validate actual geofence
+        setGeoStatus("inside");
         setGeoError(null);
       })
       .catch((err) => {
@@ -115,12 +207,12 @@ export function MobileClockPage() {
 
     // Step 1: Get GPS location
     setStatus("locating");
-    let position: GeoPosition;
     try {
-      position = await getGeoLocation();
+      const position = await getGeoLocation();
       setLastPosition(position);
       setGeoStatus("inside");
       setGeoError(null);
+      setPendingPosition(position);
     } catch (err: any) {
       setGeoError(err.message);
       setGeoStatus("unknown");
@@ -130,11 +222,44 @@ export function MobileClockPage() {
       return;
     }
 
-    // Step 2: Biometric verification
-    setStatus("biometric");
-    const biometricVerified = await verifyBiometric();
+    // Step 2: Show PIN dialog
+    setStatus("pin");
+    setPinError(null);
+    setShowPinDialog(true);
+  };
 
-    // Step 3: Submit to backend
+  const handlePinSubmit = async (pin: string) => {
+    setIsPinVerifying(true);
+    setPinError(null);
+
+    try {
+      // Verify PIN with backend
+      const result = await api.post<{ success: boolean; data: { verified: boolean } }>("/auth/verify-pin", { pin });
+
+      if (!result.data?.verified) {
+        setPinError("PIN salah. Coba lagi.");
+        setIsPinVerifying(false);
+        return;
+      }
+
+      // PIN verified — close dialog and submit attendance
+      setShowPinDialog(false);
+      setIsPinVerifying(false);
+      await submitClock(pendingPosition!);
+    } catch (err: any) {
+      setPinError(err.message || "Gagal verifikasi PIN");
+      setIsPinVerifying(false);
+    }
+  };
+
+  const handlePinCancel = () => {
+    setShowPinDialog(false);
+    setStatus("idle");
+    setPinError(null);
+    setIsPinVerifying(false);
+  };
+
+  const submitClock = async (position: GeoPosition) => {
     setStatus("submitting");
     const now = new Date();
     const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -142,11 +267,11 @@ export function MobileClockPage() {
     try {
       if (!clockedIn) {
         await api.post("/absensi-agent/clock-in", {
-          employee_id: user.id,
+          employee_id: user!.id,
           timestamp: now.toISOString(),
           gps_latitude: position.latitude,
           gps_longitude: position.longitude,
-          biometric_verified: biometricVerified,
+          biometric_verified: true, // PIN verified
           attendance_source: "phone",
         });
         setClockInTime(timeStr);
@@ -155,7 +280,7 @@ export function MobileClockPage() {
         toast.success(`Clock-in berhasil pukul ${timeStr} WIB`);
       } else {
         await api.post("/absensi-agent/clock-out", {
-          employee_id: user.id,
+          employee_id: user!.id,
           timestamp: now.toISOString(),
           gps_latitude: position.latitude,
           gps_longitude: position.longitude,
@@ -169,18 +294,17 @@ export function MobileClockPage() {
       setTimeout(() => setStatus("idle"), 2000);
     } catch (err: any) {
       setStatus("error");
-      const msg = err.message || "Gagal mengirim data kehadiran";
-      toast.error(msg);
+      toast.error(err.message || "Gagal mengirim data kehadiran");
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
-  const isProcessing = status === "locating" || status === "biometric" || status === "submitting";
+  const isProcessing = status === "locating" || status === "submitting";
 
   const statusLabel = () => {
     switch (status) {
       case "locating": return "Mendapatkan lokasi...";
-      case "biometric": return "Verifikasi biometrik...";
+      case "pin": return "Masukkan PIN...";
       case "submitting": return "Mengirim data...";
       case "success": return "Berhasil!";
       case "error": return "Gagal. Coba lagi.";
@@ -204,7 +328,7 @@ export function MobileClockPage() {
       <div className="flex flex-col items-center space-y-4">
         <button
           onClick={handleClock}
-          disabled={isProcessing}
+          disabled={isProcessing || status === "pin"}
           className={cn(
             "h-32 w-32 rounded-full flex flex-col items-center justify-center gap-1 transition-all duration-300",
             status === "success"
@@ -226,7 +350,7 @@ export function MobileClockPage() {
             <Loader2 className="h-10 w-10 text-gold animate-spin" />
           ) : (
             <>
-              <Fingerprint className={cn("h-10 w-10", clockedIn ? "text-destructive" : "text-gold")} />
+              <Lock className={cn("h-10 w-10", clockedIn ? "text-destructive" : "text-gold")} />
               <span className={cn("text-2xs font-medium", clockedIn ? "text-destructive" : "text-gold")}>
                 {clockedIn ? "CLOCK OUT" : "CLOCK IN"}
               </span>
@@ -279,6 +403,15 @@ export function MobileClockPage() {
           </div>
         </div>
       </div>
+
+      {/* PIN Dialog */}
+      <PinDialog
+        open={showPinDialog}
+        onSubmit={handlePinSubmit}
+        onCancel={handlePinCancel}
+        isVerifying={isPinVerifying}
+        error={pinError}
+      />
     </div>
   );
 }

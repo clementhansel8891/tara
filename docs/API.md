@@ -126,10 +126,86 @@ All admin endpoints require `HR_Admin` or `SuperAdmin` role.
 | GET/POST/PUT/DELETE | `/admin/offices` | Office locations CRUD |
 | GET/POST/PUT/DELETE | `/admin/departments` | Departments CRUD |
 | GET/POST/PUT/DELETE | `/admin/roles` | Roles CRUD |
+| GET | `/admin/users` | List all users (full name, dept, role) |
 | GET/PUT | `/admin/notification-channels` | Channel config |
 | GET/PUT | `/admin/hermes` | Hermes AI config |
 | GET/PUT | `/admin/attendance-config` | Attendance source config |
 | GET | `/settings/agents` | Agent status |
+| GET/PUT | `/settings/company` | Company profile info |
+
+---
+
+## SOP Documents
+
+Standard Operating Procedure document management with PDF file storage.
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/sop/upload` | HR_Admin | Upload single PDF (multipart/form-data) |
+| POST | `/sop/upload-bulk` | HR_Admin | Upload multiple PDFs (up to 20 files) |
+| GET | `/sop` | Authenticated | List all SOP documents |
+| GET | `/sop/:id` | Authenticated | Get SOP metadata |
+| GET | `/sop/:id/file` | Authenticated | Download/view PDF file |
+| PUT | `/sop/:id` | HR_Admin | Update SOP metadata (title, description, category) |
+| DELETE | `/sop/:id` | HR_Admin | Delete SOP document and file |
+
+### POST /sop/upload
+```
+Content-Type: multipart/form-data
+
+Fields:
+- file: (required) PDF file (max 50MB)
+- title: (optional) Document title (defaults to filename)
+- description: (optional) Short description
+- category: (optional) e.g. "HR", "IT", "Operations"
+```
+
+### POST /sop/upload-bulk
+```
+Content-Type: multipart/form-data
+
+Fields:
+- files: (required) Multiple PDF files (max 20, each max 50MB)
+- category: (optional) Applied to all uploaded files
+```
+
+### Response
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "title": "SOP Pengajuan Cuti",
+    "description": "Prosedur pengajuan cuti",
+    "category": "HR",
+    "file_name": "sop-cuti.pdf",
+    "file_size": 245000,
+    "mime_type": "application/pdf",
+    "created_at": "2026-06-26T00:00:00Z"
+  }
+}
+```
+
+---
+
+## Dashboard
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/dashboard/stats` | Authenticated | Dashboard summary stats |
+
+### GET /dashboard/stats Response
+```json
+{
+  "success": true,
+  "data": {
+    "total_employees": 6,
+    "present_today": 4,
+    "pending_leave": 2,
+    "late_today": 2
+  }
+}
+```
 
 ---
 

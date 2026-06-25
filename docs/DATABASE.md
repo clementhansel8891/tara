@@ -84,6 +84,12 @@ TARA uses PostgreSQL 14+ with PostGIS extension for geo-spatial operations. The 
 |-------|---------|-----------|
 | `aws_device_mappings` | AWS fingerprint device ↔ Employee mapping | aws_employee_id, tara_employee_id, aws_device_id |
 
+### Documents
+
+| Table | Purpose | Key Fields |
+|-------|---------|-----------|
+| `sop_documents` | Standard Operating Procedure PDFs | title, description, category, file_name, file_path, file_size, mime_type, uploaded_by |
+
 ## Key Constraints
 
 - `attendance`: UNIQUE(employee_id, attendance_date)

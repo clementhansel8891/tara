@@ -1,8 +1,8 @@
 # TARA — Total Assistance for Resources & Administration
 
-**TARA** adalah sistem manajemen HR (Human Resources) cerdas yang dirancang untuk **PT. Maju Bersama**. Sistem ini mengotomatisasi operasional HR sehari-hari menggunakan 7 agen otonom, sehingga tim HR dapat fokus pada tugas strategis.
+**TARA** adalah sistem manajemen HR (Human Resources) cerdas yang dirancang untuk **Ralali**. Sistem ini mengotomatisasi operasional HR sehari-hari menggunakan 7 agen otonom, sehingga tim HR dapat fokus pada tugas strategis.
 
-**Version:** 2.0.0 ([Changelog](./CHANGELOG.md))  
+**Version:** 2.1.0 ([Changelog](./CHANGELOG.md))  
 **Status:** Active Development
 
 ---
@@ -16,10 +16,12 @@
 | 💰 **Penggajian** | Hitung gaji, potongan, bonus, dan cetak slip gaji |
 | 💳 **Pinjaman / Kasbon** | Karyawan ajukan pinjaman, cicilan otomatis potong gaji |
 | 📅 **Jadwal Kerja** | Atur shift, jadwal per karyawan, hari libur |
+| 📄 **Dokumen SOP** | Upload, kelola, dan baca dokumen SOP (PDF) untuk seluruh karyawan |
 | 🔔 **Notifikasi Multi-Kanal** | Kirim alert via aplikasi, WhatsApp, Telegram, atau Email |
 | 🤖 **7 Agen Otonom** | Robot HR yang bekerja 24/7 tanpa perlu dioperasikan manual |
 | 🧠 **Hermes AI** | Integrasi AI agentic: baca event, kirim reminder, sarankan keputusan |
 | 📊 **Laporan & Analitik** | Dashboard kehadiran, keterlambatan, dan produktivitas |
+| 🏢 **Profil Perusahaan** | Kelola informasi perusahaan, kantor, cabang, dan departemen |
 
 ---
 
@@ -36,16 +38,18 @@
 ## Tampilan Aplikasi
 
 ### Web Interface (untuk HR & Supervisor)
-- Dashboard dengan statistik real-time
-- Direktori karyawan dengan pencarian
+- Dashboard dengan statistik real-time (total karyawan, hadir hari ini, cuti pending, terlambat)
+- Direktori karyawan dengan pencarian + halaman detail per karyawan
 - Manajemen cuti (setujui/tolak)
 - Penggajian (periode, komponen, slip)
-- Pengaturan lengkap (agen, organisasi, notifikasi, Hermes AI)
+- Dokumen SOP (upload single/bulk PDF, viewer inline, kategori)
+- Pengaturan lengkap (profil perusahaan, organisasi, agen, notifikasi, Hermes AI)
 
 ### Mobile Interface (untuk Karyawan)
 - Clock-in/out dengan satu ketukan
 - Ajukan cuti dari ponsel
 - Lihat saldo cuti dan riwayat
+- Baca dokumen SOP (viewer PDF inline)
 - Notifikasi real-time
 - Profil dan pengaturan bahasa
 
@@ -125,9 +129,11 @@ project-tara/
 ├── backend/                # Backend (NestJS + TypeScript)
 │   ├── src/core/hr/        # Modul HR (agen, services, controllers)
 │   ├── src/core/hr/hermes/ # Integrasi Hermes AI (action gateway, safety)
+│   ├── src/core/sop/       # Modul SOP (upload PDF, storage, viewer)
 │   ├── src/core/auth/      # Autentikasi (JWT + bcrypt)
 │   ├── src/core/demo/      # Demo mode (data mock)
 │   ├── src/scripts/        # Seed scripts (auto-run di Docker)
+│   ├── uploads/sop/        # Persistent PDF storage (not in git)
 │   └── prisma/             # Database schema & migrations
 ├── docker/                 # Docker init scripts (PostGIS setup)
 ├── docs/                   # Dokumentasi teknis
@@ -196,4 +202,4 @@ git push --follow-tags
 
 ## Lisensi
 
-Proprietary — PT. Maju Bersama. Hak cipta dilindungi.
+Proprietary — Ralali. Hak cipta dilindungi.

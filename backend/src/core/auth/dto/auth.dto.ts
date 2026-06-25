@@ -23,6 +23,10 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   employee_code?: string;
+
+  @IsString()
+  @IsOptional()
+  pin?: string;
 }
 
 export class ChangePasswordDto {
@@ -41,4 +45,16 @@ export class ResetPasswordDto {
   @IsString()
   @MinLength(6)
   new_password: string;
+}
+
+export class SetPinDto {
+  @IsString()
+  @MinLength(6)
+  pin: string;
+}
+
+export class VerifyPinDto {
+  @IsString()
+  @MinLength(6)
+  pin: string;
 }

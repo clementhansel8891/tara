@@ -34,6 +34,25 @@ export class DemoController {
     return { success: true, data: emp };
   }
 
+  @Post('auth/set-pin')
+  setPin(@Body() body: { pin: string }) {
+    if (!/^\d{6}$/.test(body.pin)) return { statusCode: 400, message: 'PIN must be exactly 6 digits' };
+    return { success: true, message: 'PIN set successfully' };
+  }
+
+  @Post('auth/verify-pin')
+  verifyPin(@Body() body: { pin: string }) {
+    // Demo: accept "123456" as valid PIN
+    const verified = body.pin === '123456';
+    return { success: true, data: { verified } };
+  }
+
+  @Get('auth/pin-status')
+  getPinStatus(@Req() req: any) {
+    // Demo: assume all demo users have PIN set
+    return { success: true, data: { has_pin: true } };
+  }
+
   // === EMPLOYEES ===
   @Get('employees')
   getEmployees() { return { success: true, data: DEMO_EMPLOYEES }; }

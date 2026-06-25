@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, ChangePasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto, ChangePasswordDto, ResetPasswordDto, SetPinDto, VerifyPinDto } from './dto/auth.dto';
 import { JwtGuard } from './guards/jwt.guard';
 import { RolesGuard, Roles } from './guards/roles.guard';
 
@@ -40,5 +40,26 @@ export class AuthController {
   async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.authService.resetPassword(dto.employee_id, dto.new_password);
     return { success: true, message: 'Password reset' };
+  }
+
+  @Post('set-pin')
+  @UseGuards(JwtGuard)
+  async setPin(@Req() req: any, @Body() dto: SetPinDto) {
+    await this.authService.setPin(req.user.sub, dto.pin);
+    return { success: true, message: 'PIN set successfully' };
+  }
+
+  @Post('verify-pin')
+  @UseGuards(JwtGuard)
+  async verifyPin(@Req() req: any, @Body() dto: VerifyPinDto) {
+    const result = await this.authService.verifyPin(req.user.sub, dto.pin);
+    return { success: true, data: result };
+  }
+
+  @Get('pin-status')
+  @UseGuards(JwtGuard)
+  async getPinStatus(@Req() req: any) {
+    const hasPin = await this.authService.hasPinSet(req.user.sub);
+    return { success: true, data: { has_pin: hasPin } };
   }
 }

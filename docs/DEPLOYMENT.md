@@ -74,7 +74,44 @@ JWT_SECRET=dev-secret-key
 BCRYPT_ROUNDS=12
 ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
 REDIS_URL=redis://localhost:6379
+
+# SOP Document Storage (persistent path on VPS)
+# Defaults to ./uploads/sop if not set
+SOP_UPLOAD_DIR=/var/data/tara/sop
 ```
+
+---
+
+## File Storage (SOP Documents)
+
+SOP PDF files are stored on disk (not in the database) for performance. The storage path is configured via the `SOP_UPLOAD_DIR` environment variable.
+
+### VPS Persistence
+
+To ensure uploaded PDFs survive container restarts and redeployments:
+
+1. **Set `SOP_UPLOAD_DIR`** to a persistent directory on your VPS:
+   ```bash
+   SOP_UPLOAD_DIR=/var/data/tara/sop
+   ```
+
+2. **Mount as a Docker volume** in `docker-compose.yml`:
+   ```yaml
+   backend:
+     volumes:
+       - sop_data:/var/data/tara/sop
+   
+   volumes:
+     sop_data:
+   ```
+
+3. **Ensure correct permissions**:
+   ```bash
+   sudo mkdir -p /var/data/tara/sop
+   sudo chown -R 1000:1000 /var/data/tara/sop
+   ```
+
+The backend auto-creates the directory on startup if it doesn't exist. File metadata (title, category, path) is stored in the `sop_documents` PostgreSQL table.
 
 ---
 

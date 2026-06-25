@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '../../persistence/prisma.service';
@@ -71,17 +71,27 @@ export class AuthService {
     };
   }
 
-  async register(data: { email: string; password: string; full_name: string; employee_code?: string }) {
+  async register(data: { email: string; password: string; full_name: string; employee_code?: string; pin?: string }) {
     const existing = await this.prisma.employee.findUnique({ where: { email: data.email.toLowerCase() } });
     if (existing) throw new ConflictException('Email already in use');
 
     const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
     const password_hash = await bcrypt.hash(data.password, rounds);
 
+    // Hash PIN if provided
+    let pin_hash: string | undefined;
+    if (data.pin) {
+      if (!/^\d{6}$/.test(data.pin)) {
+        throw new BadRequestException('PIN must be exactly 6 digits');
+      }
+      pin_hash = await bcrypt.hash(data.pin, rounds);
+    }
+
     const employee = await this.prisma.employee.create({
       data: {
         email: data.email.toLowerCase(),
         password_hash,
+        pin_hash,
         full_name: data.full_name,
         employee_code: data.employee_code || `EMP-${Date.now().toString(36).toUpperCase()}`,
         hire_date: new Date(),
@@ -111,6 +121,33 @@ export class AuthService {
     const password_hash = await bcrypt.hash(newPassword, rounds);
     await this.prisma.employee.update({ where: { id: employeeId }, data: { password_hash } });
     return { success: true };
+  }
+
+  async setPin(employeeId: string, pin: string) {
+    if (!/^\d{6}$/.test(pin)) {
+      throw new BadRequestException('PIN must be exactly 6 digits');
+    }
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+    const pin_hash = await bcrypt.hash(pin, rounds);
+    await this.prisma.employee.update({ where: { id: employeeId }, data: { pin_hash } });
+    return { success: true };
+  }
+
+  async verifyPin(employeeId: string, pin: string): Promise<{ verified: boolean }> {
+    const employee = await this.prisma.employee.findUnique({ where: { id: employeeId } });
+    if (!employee || !employee.pin_hash) {
+      return { verified: false };
+    }
+    const isMatch = await bcrypt.compare(pin, employee.pin_hash);
+    return { verified: isMatch };
+  }
+
+  async hasPinSet(employeeId: string): Promise<boolean> {
+    const employee = await this.prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { pin_hash: true },
+    });
+    return !!employee?.pin_hash;
   }
 
   verifyToken(token: string): JwtPayload {

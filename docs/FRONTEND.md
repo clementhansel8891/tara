@@ -34,10 +34,12 @@ src/
 │   ├── web/                    # Desktop pages (HR/Supervisor)
 │   │   ├── DashboardPage.tsx
 │   │   ├── EmployeesPage.tsx
+│   │   ├── EmployeeDetailPage.tsx
 │   │   ├── AttendancePage.tsx
 │   │   ├── LeavesPage.tsx
 │   │   ├── PayrollPage.tsx
 │   │   ├── SchedulePage.tsx
+│   │   ├── SopPage.tsx
 │   │   ├── NotificationsPage.tsx
 │   │   ├── SettingsPage.tsx
 │   │   └── ProfilePage.tsx
@@ -45,6 +47,7 @@ src/
 │   │   ├── MobileHomePage.tsx
 │   │   ├── MobileClockPage.tsx
 │   │   ├── MobileLeavePage.tsx
+│   │   ├── MobileSopPage.tsx
 │   │   ├── MobileNotificationsPage.tsx
 │   │   └── MobileProfilePage.tsx
 │   └── NotFoundPage.tsx
@@ -63,16 +66,19 @@ src/
 | `/login` | None | LoginPage | Public |
 | `/web` | WebLayout | DashboardPage | HR/Supervisor |
 | `/web/employees` | WebLayout | EmployeesPage | HR |
+| `/web/employees/:id` | WebLayout | EmployeeDetailPage | HR |
 | `/web/attendance` | WebLayout | AttendancePage | HR/Supervisor |
 | `/web/leaves` | WebLayout | LeavesPage | HR/Supervisor |
 | `/web/payroll` | WebLayout | PayrollPage | HR |
 | `/web/schedule` | WebLayout | SchedulePage | HR |
+| `/web/sop` | WebLayout | SopPage | All |
 | `/web/notifications` | WebLayout | NotificationsPage | All |
 | `/web/settings` | WebLayout | SettingsPage | HR |
 | `/web/profile` | WebLayout | ProfilePage | All |
 | `/m` | MobileLayout | MobileHomePage | All |
 | `/m/clock` | MobileLayout | MobileClockPage | All |
 | `/m/leave` | MobileLayout | MobileLeavePage | All |
+| `/m/sop` | MobileLayout | MobileSopPage | All |
 | `/m/notifications` | MobileLayout | MobileNotificationsPage | All |
 | `/m/profile` | MobileLayout | MobileProfilePage | All |
 
@@ -92,7 +98,7 @@ This detection is handled by the `useIsMobile` hook (`src/lib/useIsMobile.ts`) w
 
 ### Theme
 
-Two themes: Dark (default) and Light. Controlled via CSS variables in `index.css`.
+Two themes: Light (default) and Dark. Controlled via CSS variables in `index.css`.
 
 **Light mode:** Warm ivory base, deep navy primary, champagne accents
 **Dark mode:** Deep charcoal with warm undertone, gold accent signature
