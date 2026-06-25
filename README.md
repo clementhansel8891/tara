@@ -18,6 +18,7 @@
 | 📅 **Jadwal Kerja** | Atur shift, jadwal per karyawan, hari libur |
 | 🔔 **Notifikasi Multi-Kanal** | Kirim alert via aplikasi, WhatsApp, Telegram, atau Email |
 | 🤖 **7 Agen Otonom** | Robot HR yang bekerja 24/7 tanpa perlu dioperasikan manual |
+| 🧠 **Hermes AI** | Integrasi AI agentic: baca event, kirim reminder, sarankan keputusan |
 | 📊 **Laporan & Analitik** | Dashboard kehadiran, keterlambatan, dan produktivitas |
 
 ---
@@ -53,35 +54,51 @@
 ## Cara Menjalankan (Quick Start)
 
 ### Prasyarat
-- Node.js 18+
-- PostgreSQL 14+ (atau gunakan Docker)
+- Docker & Docker Compose (rekomendasi)
+- Atau: Node.js 20+, PostgreSQL 16+ dengan PostGIS
 
-### Langkah
+### Langkah (Docker — Plug & Play)
 
 ```bash
 # 1. Clone repository
 git clone <repository-url>
 cd project-tara
 
+# 2. Salin konfigurasi
+cp .env.example .env
+
+# 3. Jalankan semuanya (build + migrate + seed + start)
+docker compose up --build
+```
+
+Selesai. Semua berjalan otomatis:
+- Database dibuat dan di-migrasi
+- Data default (agen, role, konfigurasi Hermes) di-seed
+- Backend dan frontend aktif
+
+Aplikasi tersedia di:
+- **Frontend:** http://localhost
+- **Backend API:** http://localhost:3001
+- **Health Check:** http://localhost:3001/health
+- **Hermes WebSocket:** ws://localhost:3001/event-stream
+
+### Langkah (Development — Native)
+
+```bash
+# 1. Jalankan database via Docker
+docker compose -f docker-compose.dev.yml up -d
+
 # 2. Install dependencies
 npm install
 cd backend && npm install && cd ..
 
-# 3. Setup database (pilih salah satu)
-# Opsi A: Docker (rekomendasi)
-docker compose -f docker-compose.dev.yml up -d
+# 3. Migrasi database
+cd backend && npx prisma migrate deploy && cd ..
 
-# Opsi B: PostgreSQL lokal
-# Buat database "tara" dan atur backend/.env
-
-# 4. Jalankan migrasi
-cd backend && npx prisma migrate dev && cd ..
-
-# 5. Jalankan aplikasi
+# 4. Jalankan aplikasi (frontend + backend bersamaan)
 npm run dev
 ```
 
-Aplikasi tersedia di:
 - **Frontend:** http://localhost:5173
 - **Backend:** http://localhost:3001
 
@@ -105,16 +122,17 @@ project-tara/
 │   ├── contexts/           # Auth & Theme context
 │   ├── layouts/            # WebLayout, MobileLayout
 │   └── lib/                # Utilities, API helper, version config
-│       └── version.ts      # App version (single source of truth)
 ├── backend/                # Backend (NestJS + TypeScript)
 │   ├── src/core/hr/        # Modul HR (agen, services, controllers)
+│   ├── src/core/hr/hermes/ # Integrasi Hermes AI (action gateway, safety)
 │   ├── src/core/auth/      # Autentikasi (JWT + bcrypt)
 │   ├── src/core/demo/      # Demo mode (data mock)
+│   ├── src/scripts/        # Seed scripts (auto-run di Docker)
 │   └── prisma/             # Database schema & migrations
+├── docker/                 # Docker init scripts (PostGIS setup)
 ├── docs/                   # Dokumentasi teknis
-├── CHANGELOG.md            # Riwayat versi (Keep a Changelog)
-├── docker-compose.yml      # Production deployment
-└── docker-compose.dev.yml  # Development (DB only)
+├── docker-compose.yml      # Production (satu command: docker compose up)
+└── docker-compose.dev.yml  # Development (DB + Redis saja)
 ```
 
 ---
@@ -129,6 +147,7 @@ Untuk developer, dokumentasi lengkap tersedia di folder [`docs/`](./docs/):
 | [Database Schema](./docs/DATABASE.md) | Semua tabel, relasi, dan indexing strategy |
 | [API Reference](./docs/API.md) | Endpoint lengkap, request/response, autentikasi |
 | [Agen Otonom](./docs/AGENTS.md) | 7 agen, cara kerja, event, dan konfigurasi |
+| [Hermes AI Integration](./backend/src/core/hr/hermes/README.md) | Integrasi AI agentic, action gateway, safety guardrails |
 | [Deployment](./docs/DEPLOYMENT.md) | Docker, environment variables, production setup |
 | [Frontend](./docs/FRONTEND.md) | Routing, design system, tema, dan komponen |
 | [Security](./docs/SECURITY.md) | Autentikasi, otorisasi, enkripsi, OWASP |

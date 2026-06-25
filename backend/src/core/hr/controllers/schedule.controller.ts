@@ -11,8 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ScheduleService } from '../services/schedule.service';
-import { RolesGuard } from '../../auth/guards/tara-role.guard';
-import { Roles } from '../../auth/guards/tara-role.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/guards/roles.guard';
 
 /**
  * Schedule Controller — dedicated endpoints for work schedule management.

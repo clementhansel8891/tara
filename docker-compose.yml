@@ -1,7 +1,31 @@
 version: "3.9"
 
+# ==============================================================================
+# TARA HR System — Docker Compose (Production)
+#
+# Single command to launch everything:
+#   docker compose up --build
+#
+# What happens:
+# 1. PostgreSQL (with PostGIS) starts and becomes healthy
+# 2. Redis starts and becomes healthy
+# 3. Backend waits for both, then:
+#    a. Runs Prisma migrations (creates/updates all tables)
+#    b. Seeds default config (agents, roles, Hermes settings)
+#    c. Starts the NestJS API on port 3001
+# 4. Frontend builds and nginx serves on port 80
+#
+# After startup:
+# - Frontend: http://localhost
+# - Backend API: http://localhost:3001 (or via nginx at http://localhost/api/)
+# - WebSocket: ws://localhost:3001/event-stream (Hermes connects here)
+# - Database: localhost:5432 (for development tools)
+# ==============================================================================
+
 services:
-  # PostgreSQL with PostGIS
+  # ============================================================================
+  # PostgreSQL 16 + PostGIS 3.4
+  # ============================================================================
   db:
     image: postgis/postgis:16-3.4-alpine
     container_name: tara-db
@@ -10,30 +34,43 @@ services:
       POSTGRES_DB: tara
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD:-tara_secret_2024}
+      # Ensure PostGIS extension is created automatically
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8"
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tara"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
-  # Redis (sessions + caching)
+  # ============================================================================
+  # Redis 7 (sessions, caching, pub/sub)
+  # ============================================================================
   redis:
     image: redis:7-alpine
     container_name: tara-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  # Backend API
+  # ============================================================================
+  # Backend API (NestJS)
+  # - Auto-runs migrations on startup
+  # - Seeds default config (agents, roles, Hermes)
+  # - Exposes port 3001
+  # ============================================================================
   backend:
     build:
       context: ./backend
@@ -49,25 +86,44 @@ services:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-tara_secret_2024}@db:5432/tara?schema=public
-      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      JWT_SECRET: ${JWT_SECRET:-tara-jwt-secret-change-in-production}
       BCRYPT_ROUNDS: 12
-      ALLOWED_ORIGINS: http://localhost:5173,http://localhost
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,http://localhost:5173,http://localhost:80}
       REDIS_URL: redis://redis:6379
+      # Hermes defaults (override via admin API after first boot)
+      HERMES_ENABLED: ${HERMES_ENABLED:-false}
+      HERMES_API_KEY: ${HERMES_API_KEY:-}
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # Frontend (production build served by nginx)
+  # ============================================================================
+  # Frontend (Vite build → nginx)
+  # - Serves SPA on port 80
+  # - Proxies /api/ to backend:3001
+  # - Proxies /socket.io/ for WebSocket
+  # ============================================================================
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
     container_name: tara-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
-      - "80:80"
-      - "443:443"
+      - "${FRONTEND_PORT:-80}:80"
 
 volumes:
   pgdata:
+    driver: local
+  redisdata:
+    driver: local

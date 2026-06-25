@@ -14,6 +14,17 @@ backend/dist/
 backend/.env
 backend/.env.*
 !backend/.env.example
+*.pem
+*.key
+*.cert
+*.p12
+*_rsa
+*_dsa
+*_ecdsa
+*_ed25519
+credentials.json
+secrets.json
+service-account*.json
 
 # IDE & Editor
 .vscode/
@@ -30,7 +41,8 @@ desktop.ini
 .cursorrules
 .cursor/
 
-# Testing
+# Tests & E2E
+tests/
 coverage/
 playwright-report/
 test-results/
@@ -45,10 +57,6 @@ pgdata/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Lock files (optional — remove if you want to track them)
-# package-lock.json
-# backend/package-lock.json
 
 # Misc
 *.tgz
